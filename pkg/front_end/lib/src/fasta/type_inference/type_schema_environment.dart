@@ -11,6 +11,8 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         Library,
         NamedType,
+        NeverType,
+        Nullability,
         Procedure,
         TypeParameter,
         Variance;
@@ -21,7 +23,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
-import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
+import 'package:kernel/type_environment.dart';
 
 import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
@@ -35,6 +37,8 @@ import 'type_demotion.dart';
 import 'type_schema.dart' show UnknownType, typeSchemaToString, isKnown;
 
 import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
+
+import '../problems.dart';
 
 // TODO(paulberry): try to push this functionality into kernel.
 FunctionType substituteTypeParams(
@@ -109,19 +113,48 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   Class get objectClass => coreTypes.objectClass;
 
+  InterfaceType get objectNonNullableRawType {
+    return coreTypes.objectNonNullableRawType;
+  }
+
+  InterfaceType functionRawType(Nullability nullability) {
+    return coreTypes.functionRawType(nullability);
+  }
+
+  InterfaceType objectRawType(Nullability nullability) {
+    return coreTypes.objectRawType(nullability);
+  }
+
+  bool areMutualSubtypes(DartType s, DartType t, SubtypeCheckMode mode) {
+    IsSubtypeOf result = performNullabilityAwareMutualSubtypesCheck(s, t);
+    switch (mode) {
+      case SubtypeCheckMode.ignoringNullabilities:
+        return result.isSubtypeWhenIgnoringNullabilities();
+      case SubtypeCheckMode.withNullabilities:
+        return result.isSubtypeWhenUsingNullabilities();
+    }
+    return unhandled(
+        "$mode", "TypeSchemaEnvironment.areMutualSubtypes", -1, null);
+  }
+
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2) {
-    return hierarchy.getLegacyLeastUpperBound(type1, type2, this.coreTypes);
+      InterfaceType type1, InterfaceType type2, Library clientLibrary) {
+    return hierarchy.getLegacyLeastUpperBound(
+        type1, type2, clientLibrary, this.coreTypes);
   }
 
   /// Modify the given [constraint]'s lower bound to include [lower].
-  void addLowerBound(TypeConstraint constraint, DartType lower) {
-    constraint.lower = getStandardUpperBound(constraint.lower, lower);
+  void addLowerBound(
+      TypeConstraint constraint, DartType lower, Library clientLibrary) {
+    constraint.lower =
+        getStandardUpperBound(constraint.lower, lower, clientLibrary);
   }
 
   /// Modify the given [constraint]'s upper bound to include [upper].
-  void addUpperBound(TypeConstraint constraint, DartType upper) {
-    constraint.upper = getStandardLowerBound(constraint.upper, upper);
+  void addUpperBound(
+      TypeConstraint constraint, DartType upper, Library clientLibrary) {
+    constraint.upper =
+        getStandardLowerBound(constraint.upper, upper, clientLibrary);
   }
 
   @override
@@ -131,10 +164,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // override.
     if (type1 is InterfaceType && type1.classNode == coreTypes.intClass) {
       if (type2 is InterfaceType && type2.classNode == coreTypes.intClass) {
-        return type2;
+        return type2.withNullability(type1.nullability);
       }
       if (type2 is InterfaceType && type2.classNode == coreTypes.doubleClass) {
-        return type2;
+        return type2.withNullability(type1.nullability);
       }
     }
     return coreTypes.numRawType(type1.nullability);
@@ -170,8 +203,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       List<DartType> actualTypes,
       DartType returnContextType,
       List<DartType> inferredTypes,
-      Library currentLibrary,
+      Library clientLibrary,
       {bool isConst: false}) {
+    assert((formalTypes?.length ?? 0) == (actualTypes?.length ?? 0));
     if (typeParametersToInfer.isEmpty) {
       return;
     }
@@ -181,11 +215,17 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // be subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     TypeConstraintGatherer gatherer =
-        new TypeConstraintGatherer(this, typeParametersToInfer, currentLibrary);
+        new TypeConstraintGatherer(this, typeParametersToInfer, clientLibrary);
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {
-        returnContextType = new TypeVariableEliminator(coreTypes)
+        returnContextType = new TypeVariableEliminator(
+                clientLibrary.isNonNullableByDefault
+                    ? const NeverType(Nullability.nonNullable)
+                    : nullType,
+                clientLibrary.isNonNullableByDefault
+                    ? objectNullableRawType
+                    : objectLegacyRawType)
             .substituteType(returnContextType);
       }
       gatherer.trySubtypeMatch(declaredReturnType, returnContextType);
@@ -199,12 +239,12 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       }
     }
 
-    inferTypeFromConstraints(
-        gatherer.computeConstraints(), typeParametersToInfer, inferredTypes,
+    inferTypeFromConstraints(gatherer.computeConstraints(clientLibrary),
+        typeParametersToInfer, inferredTypes, clientLibrary,
         downwardsInferPhase: formalTypes == null);
 
     for (int i = 0; i < inferredTypes.length; i++) {
-      inferredTypes[i] = demoteType(inferredTypes[i]);
+      inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i], clientLibrary);
     }
   }
 
@@ -238,8 +278,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// inference, and must not conclude `?` for any type formal.  In this pass,
   /// [inferredTypes] should contain the values from the first pass.  They will
   /// be replaced with the final inferred types.
-  void inferTypeFromConstraints(Map<TypeParameter, TypeConstraint> constraints,
-      List<TypeParameter> typeParametersToInfer, List<DartType> inferredTypes,
+  void inferTypeFromConstraints(
+      Map<TypeParameter, TypeConstraint> constraints,
+      List<TypeParameter> typeParametersToInfer,
+      List<DartType> inferredTypes,
+      Library clientLibrary,
       {bool downwardsInferPhase: false}) {
     List<DartType> typesFromDownwardsInference =
         downwardsInferPhase ? null : inferredTypes.toList(growable: false);
@@ -256,13 +299,17 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       }
 
       TypeConstraint constraint = constraints[typeParam];
-      if (downwardsInferPhase || !typeParam.isLegacyCovariant) {
+      if (downwardsInferPhase) {
         inferredTypes[i] = _inferTypeParameterFromContext(
-            constraint, extendsConstraint,
-            isContravariant: typeParam.variance == Variance.contravariant);
+            constraint, extendsConstraint, clientLibrary);
       } else {
         inferredTypes[i] = _inferTypeParameterFromAll(
-            typesFromDownwardsInference[i], constraint, extendsConstraint);
+            typesFromDownwardsInference[i],
+            constraint,
+            extendsConstraint,
+            clientLibrary,
+            isContravariant: typeParam.variance == Variance.contravariant,
+            preferUpwardsInference: !typeParam.isLegacyCovariant);
       }
     }
 
@@ -286,8 +333,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       if (success && !hasOmittedBound(typeParam)) {
         // If everything else succeeded, check the `extends` constraint.
         DartType extendsConstraint = typeParamBound;
-        success = isSubtypeOf(inferred, extendsConstraint,
-            SubtypeCheckMode.ignoringNullabilities);
+        success = isSubtypeOf(
+            inferred, extendsConstraint, SubtypeCheckMode.withNullabilities);
       }
 
       if (!success) {
@@ -308,11 +355,19 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   @override
-  bool isSubtypeOf(
-      DartType subtype, DartType supertype, SubtypeCheckMode mode) {
-    if (subtype is UnknownType) return true;
-    if (subtype == Null && supertype is UnknownType) return true;
-    return super.isSubtypeOf(subtype, supertype, mode);
+  IsSubtypeOf performNullabilityAwareSubtypeCheck(
+      DartType subtype, DartType supertype) {
+    if (subtype is UnknownType) return const IsSubtypeOf.always();
+    DartType unwrappedSupertype = supertype;
+    while (unwrappedSupertype is InterfaceType &&
+        unwrappedSupertype.classNode == futureOrClass) {
+      unwrappedSupertype =
+          (unwrappedSupertype as InterfaceType).typeArguments.single;
+    }
+    if (subtype == coreTypes.nullType && unwrappedSupertype is UnknownType) {
+      return const IsSubtypeOf.always();
+    }
+    return super.performNullabilityAwareSubtypeCheck(subtype, supertype);
   }
 
   bool isEmptyContext(DartType context) {
@@ -364,8 +419,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// If [isContravariant] is `true`, then we are solving for a contravariant
   /// type parameter which means we choose the upper bound rather than the
   /// lower bound for normally covariant type parameters.
-  DartType solveTypeConstraint(TypeConstraint constraint,
+  DartType solveTypeConstraint(TypeConstraint constraint, DartType bottomType,
       {bool grounded: false, bool isContravariant: false}) {
+    assert(bottomType == const NeverType(Nullability.nonNullable) ||
+        bottomType == coreTypes.nullType);
     if (!isContravariant) {
       // Prefer the known bound, if any.
       if (isKnown(constraint.lower)) return constraint.lower;
@@ -375,11 +432,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // e.g. `Iterable<?>`
       if (constraint.lower is! UnknownType) {
         return grounded
-            ? leastClosure(coreTypes, constraint.lower)
+            ? leastClosure(constraint.lower, bottomType)
             : constraint.lower;
       } else {
         return grounded
-            ? greatestClosure(coreTypes, constraint.upper)
+            ? greatestClosure(constraint.upper, bottomType)
             : constraint.upper;
       }
     } else {
@@ -391,11 +448,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // e.g. `Iterable<?>`
       if (constraint.upper is! UnknownType) {
         return grounded
-            ? greatestClosure(coreTypes, constraint.upper)
+            ? greatestClosure(constraint.upper, bottomType)
             : constraint.upper;
       } else {
         return grounded
-            ? leastClosure(coreTypes, constraint.lower)
+            ? leastClosure(constraint.lower, bottomType)
             : constraint.lower;
       }
     }
@@ -404,32 +461,45 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// Determine if the given [type] satisfies the given type [constraint].
   bool typeSatisfiesConstraint(DartType type, TypeConstraint constraint) {
     return isSubtypeOf(
-            constraint.lower, type, SubtypeCheckMode.ignoringNullabilities) &&
-        isSubtypeOf(
-            type, constraint.upper, SubtypeCheckMode.ignoringNullabilities);
+            constraint.lower, type, SubtypeCheckMode.withNullabilities) &&
+        isSubtypeOf(type, constraint.upper, SubtypeCheckMode.withNullabilities);
   }
 
-  DartType _inferTypeParameterFromAll(DartType typeFromContextInference,
-      TypeConstraint constraint, DartType extendsConstraint) {
+  DartType _inferTypeParameterFromAll(
+      DartType typeFromContextInference,
+      TypeConstraint constraint,
+      DartType extendsConstraint,
+      Library clientLibrary,
+      {bool isContravariant: false,
+      bool preferUpwardsInference: false}) {
     // See if we already fixed this type from downwards inference.
-    // If so, then we aren't allowed to change it based on argument types.
-    if (isKnown(typeFromContextInference)) {
+    // If so, then we aren't allowed to change it based on argument types unless
+    // [preferUpwardsInference] is true.
+    if (!preferUpwardsInference && isKnown(typeFromContextInference)) {
       return typeFromContextInference;
     }
 
     if (extendsConstraint != null) {
       constraint = constraint.clone();
-      addUpperBound(constraint, extendsConstraint);
+      addUpperBound(constraint, extendsConstraint, clientLibrary);
     }
 
-    return solveTypeConstraint(constraint, grounded: true);
+    return solveTypeConstraint(
+        constraint,
+        clientLibrary.isNonNullableByDefault
+            ? const NeverType(Nullability.nonNullable)
+            : nullType,
+        grounded: true,
+        isContravariant: isContravariant);
   }
 
-  DartType _inferTypeParameterFromContext(
-      TypeConstraint constraint, DartType extendsConstraint,
-      {bool isContravariant: false}) {
-    DartType t =
-        solveTypeConstraint(constraint, isContravariant: isContravariant);
+  DartType _inferTypeParameterFromContext(TypeConstraint constraint,
+      DartType extendsConstraint, Library clientLibrary) {
+    DartType t = solveTypeConstraint(
+        constraint,
+        clientLibrary.isNonNullableByDefault
+            ? const NeverType(Nullability.nonNullable)
+            : nullType);
     if (!isKnown(t)) {
       return t;
     }
@@ -443,22 +513,25 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // If we consider the `T extends num` we conclude `<num>`, which works.
     if (extendsConstraint != null) {
       constraint = constraint.clone();
-      addUpperBound(constraint, extendsConstraint);
-      return solveTypeConstraint(constraint);
+      addUpperBound(constraint, extendsConstraint, clientLibrary);
+      return solveTypeConstraint(
+          constraint,
+          clientLibrary.isNonNullableByDefault
+              ? const NeverType(Nullability.nonNullable)
+              : nullType);
     }
     return t;
   }
 }
 
 class TypeVariableEliminator extends Substitution {
-  final CoreTypes _coreTypes;
+  final DartType bottomType;
+  final DartType topType;
 
-  // TODO(dmitryas): Instead of a CoreTypes object pass null and an Object type
-  // explicitly, with the suitable nullability on the latter.
-  TypeVariableEliminator(this._coreTypes);
+  TypeVariableEliminator(this.bottomType, this.topType);
 
   @override
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {
-    return upperBound ? _coreTypes.nullType : _coreTypes.objectLegacyRawType;
+    return upperBound ? bottomType : topType;
   }
 }

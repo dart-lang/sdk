@@ -8,8 +8,23 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 export 'service_test_common.dart' show IsolateTest, VMTest;
+
+/// Whether to use causal async stacks (if not we use lazy async stacks).
+const bool useCausalAsyncStacks =
+    const bool.fromEnvironment('dart.developer.causal_async_stacks');
+
+/// The extra arguments to use
+const List<String> extraDebuggingArgs = useCausalAsyncStacks
+    ? const ['--causal-async-stacks', '--no-lazy-async-stacks']
+    : const ['--no-causal-async-stacks', '--lazy-async-stacks'];
+
+List<IsolateTest> ifLazyAsyncStacks(List<IsolateTest> lazyTests) {
+  if (useCausalAsyncStacks) return const <IsolateTest>[];
+  return lazyTests;
+}
 
 /// Will be set to the http address of the VM's service protocol before
 /// any tests are invoked.
@@ -39,7 +54,7 @@ class _ServiceTesteeRunner {
       bool pause_on_exit: false}) async {
     if (!pause_on_start) {
       if (testeeBefore != null) {
-        var result = testeeBefore();
+        final result = testeeBefore();
         if (result is Future) {
           await result;
         }
@@ -47,7 +62,7 @@ class _ServiceTesteeRunner {
       print(''); // Print blank line to signal that testeeBefore has run.
     }
     if (testeeConcurrent != null) {
-      var result = testeeConcurrent();
+      final result = testeeConcurrent();
       if (result is Future) {
         await result;
       }
@@ -91,25 +106,36 @@ class _ServiceTesteeLauncher {
       bool pause_on_start,
       bool pause_on_exit,
       bool pause_on_unhandled_exceptions,
+      bool enable_service_port_fallback,
       bool testeeControlsServer,
       Uri serviceInfoUri,
-      List<String> extraArgs) {
+      int port,
+      List<String> extraArgs,
+      List<String> executableArgs) {
     assert(pause_on_start != null);
     assert(pause_on_exit != null);
     assert(pause_on_unhandled_exceptions != null);
     assert(testeeControlsServer != null);
 
     if (_shouldLaunchSkyShell()) {
-      return _spawnSkyProcess(pause_on_start, pause_on_exit,
-          pause_on_unhandled_exceptions, testeeControlsServer, extraArgs);
+      return _spawnSkyProcess(
+          pause_on_start,
+          pause_on_exit,
+          pause_on_unhandled_exceptions,
+          testeeControlsServer,
+          extraArgs,
+          executableArgs);
     } else {
       return _spawnDartProcess(
           pause_on_start,
           pause_on_exit,
           pause_on_unhandled_exceptions,
+          enable_service_port_fallback,
           testeeControlsServer,
           serviceInfoUri,
-          extraArgs);
+          port,
+          extraArgs,
+          executableArgs);
     }
   }
 
@@ -117,19 +143,25 @@ class _ServiceTesteeLauncher {
       bool pause_on_start,
       bool pause_on_exit,
       bool pause_on_unhandled_exceptions,
+      bool enable_service_port_fallback,
       bool testeeControlsServer,
       Uri serviceInfoUri,
-      List<String> extraArgs) {
+      int port,
+      List<String> extraArgs,
+      List<String> executableArgs) {
     assert(!_shouldLaunchSkyShell());
 
-    String dartExecutable = Platform.executable;
+    final String dartExecutable = Platform.executable;
 
-    var fullArgs = <String>[];
+    final fullArgs = <String>[];
     if (pause_on_start) {
       fullArgs.add('--pause-isolates-on-start');
     }
     if (pause_on_exit) {
       fullArgs.add('--pause-isolates-on-exit');
+    }
+    if (enable_service_port_fallback) {
+      fullArgs.add('--enable_service_port_fallback');
     }
     fullArgs.add('--write-service-info=$serviceInfoUri');
 
@@ -140,10 +172,9 @@ class _ServiceTesteeLauncher {
     if (extraArgs != null) {
       fullArgs.addAll(extraArgs);
     }
-
-    fullArgs.addAll(Platform.executableArguments);
+    fullArgs.addAll(executableArgs);
     if (!testeeControlsServer) {
-      fullArgs.add('--enable-vm-service:0');
+      fullArgs.add('--enable-vm-service:$port');
     }
     fullArgs.addAll(args);
 
@@ -155,13 +186,14 @@ class _ServiceTesteeLauncher {
       bool pause_on_exit,
       bool pause_on_unhandled_exceptions,
       bool testeeControlsServer,
-      List<String> extraArgs) {
+      List<String> extraArgs,
+      List<String> executableArgs) {
     assert(_shouldLaunchSkyShell());
 
-    String dartExecutable = _skyShellPath();
+    final String dartExecutable = _skyShellPath();
 
-    var dartFlags = <String>[];
-    var fullArgs = <String>[];
+    final dartFlags = <String>[];
+    final fullArgs = <String>[];
     if (pause_on_start) {
       dartFlags.add('--pause_isolates_on_start');
       fullArgs.add('--start-paused');
@@ -178,8 +210,7 @@ class _ServiceTesteeLauncher {
     if (extraArgs != null) {
       fullArgs.addAll(extraArgs);
     }
-
-    fullArgs.addAll(Platform.executableArguments);
+    fullArgs.addAll(executableArgs);
     if (!testeeControlsServer) {
       fullArgs.add('--observatory-port=0');
     }
@@ -191,8 +222,8 @@ class _ServiceTesteeLauncher {
 
   Future<Process> _spawnCommon(String executable, List<String> arguments,
       Map<String, String> dartEnvironment) {
-    var environment = _TESTEE_SPAWN_ENV;
-    var bashEnvironment = new StringBuffer();
+    final environment = _TESTEE_SPAWN_ENV;
+    final bashEnvironment = new StringBuffer();
     environment.forEach((k, v) => bashEnvironment.write("$k=$v "));
     if (dartEnvironment != null) {
       dartEnvironment.forEach((k, v) {
@@ -207,15 +238,26 @@ class _ServiceTesteeLauncher {
       bool pause_on_start,
       bool pause_on_exit,
       bool pause_on_unhandled_exceptions,
+      bool enable_service_port_fallback,
       bool testeeControlsServer,
-      List<String> extraArgs) async {
+      int port,
+      List<String> extraArgs,
+      List<String> executableArgs) async {
     final completer = new Completer<Uri>();
     final serviceInfoDir =
         await Directory.systemTemp.createTemp('dart_service');
     final serviceInfoUri = serviceInfoDir.uri.resolve('service_info.json');
     final serviceInfoFile = await File.fromUri(serviceInfoUri).create();
-    _spawnProcess(pause_on_start, pause_on_exit, pause_on_unhandled_exceptions,
-            testeeControlsServer, serviceInfoUri, extraArgs)
+    _spawnProcess(
+            pause_on_start,
+            pause_on_exit,
+            pause_on_unhandled_exceptions,
+            enable_service_port_fallback,
+            testeeControlsServer,
+            serviceInfoUri,
+            port,
+            extraArgs,
+            executableArgs)
         .then((p) async {
       process = p;
       Uri uri;
@@ -277,41 +319,60 @@ void setupAddresses(Uri serverAddress) {
 }
 
 class _ServiceTesterRunner {
-  void run(
-      {List<String> mainArgs,
-      List<String> extraArgs,
-      List<VMTest> vmTests,
-      List<IsolateTest> isolateTests,
-      bool pause_on_start: false,
-      bool pause_on_exit: false,
-      bool verbose_vm: false,
-      bool pause_on_unhandled_exceptions: false,
-      bool testeeControlsServer: false}) {
-    var process = new _ServiceTesteeLauncher();
-    bool testsDone = false;
-    runZoned(() {
-      process
-          .launch(pause_on_start, pause_on_exit, pause_on_unhandled_exceptions,
-              testeeControlsServer, extraArgs)
+  void run({
+    List<String> mainArgs,
+    List<String> extraArgs,
+    List<String> executableArgs,
+    List<VMTest> vmTests,
+    List<IsolateTest> isolateTests,
+    bool pause_on_start: false,
+    bool pause_on_exit: false,
+    bool verbose_vm: false,
+    bool pause_on_unhandled_exceptions: false,
+    bool enable_service_port_fallback: false,
+    bool testeeControlsServer: false,
+    int port = 0,
+  }) {
+    if (executableArgs == null) {
+      executableArgs = Platform.executableArguments;
+    }
+
+    final process = new _ServiceTesteeLauncher();
+    final name = Platform.script.pathSegments.last;
+    WebSocketVM vm;
+    setUp(() async {
+      await process
+          .launch(
+              pause_on_start,
+              pause_on_exit,
+              pause_on_unhandled_exceptions,
+              enable_service_port_fallback,
+              testeeControlsServer,
+              port,
+              extraArgs,
+              executableArgs)
           .then((Uri serverAddress) async {
         if (mainArgs.contains("--gdb")) {
-          var pid = process.process.pid;
-          var wait = new Duration(seconds: 10);
+          final pid = process.process.pid;
+          final wait = new Duration(seconds: 10);
           print("Testee has pid $pid, waiting $wait before continuing");
           sleep(wait);
         }
         setupAddresses(serverAddress);
-        var name = Platform.script.pathSegments.last;
-        var vm =
-            new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
+        vm = new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
         print('Loading VM...');
         await vm.load();
         print('Done loading VM');
+      });
+    });
 
+    test(
+      name,
+      () async {
         // Run vm tests.
         if (vmTests != null) {
-          var testIndex = 1;
-          var totalTests = vmTests.length;
+          int testIndex = 1;
+          final totalTests = vmTests.length;
           for (var test in vmTests) {
             vm.verbose = verbose_vm;
             print('Running $name [$testIndex/$totalTests]');
@@ -322,9 +383,9 @@ class _ServiceTesterRunner {
 
         // Run isolate tests.
         if (isolateTests != null) {
-          var isolate = await getFirstIsolate(vm);
-          var testIndex = 1;
-          var totalTests = isolateTests.length;
+          final isolate = await getFirstIsolate(vm);
+          int testIndex = 1;
+          final totalTests = isolateTests.length;
           for (var test in isolateTests) {
             vm.verbose = verbose_vm;
             print('Running $name [$testIndex/$totalTests]');
@@ -332,26 +393,21 @@ class _ServiceTesterRunner {
             await test(isolate);
           }
         }
+      },
+      retry: 0,
+      // Some service tests run fairly long (e.g., valid_source_locations_test).
+      timeout: Timeout.none,
+    );
 
-        print('All service tests completed successfully.');
-        testsDone = true;
-        process.requestExit();
-      });
-    }, onError: (error, stackTrace) {
-      if (testsDone) {
-        print('Ignoring late exception during process exit:\n'
-            '$error\n#stackTrace');
-      } else {
-        process.requestExit();
-        print('Unexpected exception in service tests: $error\n$stackTrace');
-        throw error;
-      }
+    tearDown(() {
+      print('All service tests completed successfully.');
+      process.requestExit();
     });
   }
 
   Future<Isolate> getFirstIsolate(WebSocketVM vm) async {
     if (vm.isolates.isNotEmpty) {
-      var isolate = await vm.isolates.first.load();
+      final isolate = await vm.isolates.first.load();
       if (isolate is Isolate) {
         return isolate;
       }
@@ -472,7 +528,10 @@ Future runVMTests(List<String> mainArgs, List<VMTest> tests,
     bool pause_on_exit: false,
     bool verbose_vm: false,
     bool pause_on_unhandled_exceptions: false,
-    List<String> extraArgs}) async {
+    bool enable_service_port_fallback: false,
+    int port = 0,
+    List<String> extraArgs,
+    List<String> executableArgs}) async {
   if (_isTestee()) {
     new _ServiceTesteeRunner().run(
         testeeBefore: testeeBefore,
@@ -481,12 +540,16 @@ Future runVMTests(List<String> mainArgs, List<VMTest> tests,
         pause_on_exit: pause_on_exit);
   } else {
     new _ServiceTesterRunner().run(
-        mainArgs: mainArgs,
-        extraArgs: extraArgs,
-        vmTests: tests,
-        pause_on_start: pause_on_start,
-        pause_on_exit: pause_on_exit,
-        verbose_vm: verbose_vm,
-        pause_on_unhandled_exceptions: pause_on_unhandled_exceptions);
+      mainArgs: mainArgs,
+      extraArgs: extraArgs,
+      executableArgs: executableArgs,
+      vmTests: tests,
+      pause_on_start: pause_on_start,
+      pause_on_exit: pause_on_exit,
+      verbose_vm: verbose_vm,
+      pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
+      enable_service_port_fallback: enable_service_port_fallback,
+      port: port,
+    );
   }
 }

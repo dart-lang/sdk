@@ -19,7 +19,8 @@ class NeverTypeBuilder extends BuiltinTypeBuilder {
   String get debugName => "NeverTypeBuilder";
 
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
     return type.withNullability(nullabilityBuilder.build(library));
   }
 

@@ -9,7 +9,7 @@ import 'delete_context_test.dart' as delete_context_test;
 import 'map_uri_test.dart' as map_uri_test;
 import 'set_subscriptions_test.dart' as set_subscription_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     create_context_test.main();
     delete_context_test.main();

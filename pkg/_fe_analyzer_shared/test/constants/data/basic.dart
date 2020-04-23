@@ -9,6 +9,7 @@ const string0 = /*cfe.String(foo)*/ 'foo';
 const int0 = /*cfe.Int(0)*/ 0;
 const double0 = /*cfe.Double(0.5)*/ 0.5;
 const symbol0 = /*cfe.Symbol(foo)*/ #foo;
+const symbol1 = const /*cfe.Symbol(foo)*/ Symbol('foo');
 
 main() {
   print(/*Null()*/ null0);
@@ -21,4 +22,8 @@ main() {
       /*cfe|analyzer.Symbol(foo)*/
       /*dart2js.Instance(Symbol,{_name:String(foo))*/
       symbol0);
+  print(
+      /*cfe|analyzer.Symbol(foo)*/
+      /*dart2js.Instance(Symbol,{_name:String(foo))*/
+      symbol1);
 }

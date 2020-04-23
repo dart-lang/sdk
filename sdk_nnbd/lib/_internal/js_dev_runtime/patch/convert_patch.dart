@@ -272,7 +272,7 @@ class _JsonMap extends MapBase<String, dynamic> {
 
   List<String> _computeKeys() {
     assert(!_isUpgraded);
-    List keys = _data;
+    List? keys = _data;
     if (keys == null) {
       keys = _data = _getPropertyNames(_original);
     }

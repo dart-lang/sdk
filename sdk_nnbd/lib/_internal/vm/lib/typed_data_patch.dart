@@ -85,7 +85,7 @@ abstract class _TypedListBase {
     throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  bool remove(Object element) {
+  bool remove(Object? element) {
     throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
@@ -157,7 +157,7 @@ mixin _IntListMixin implements List<int> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -254,7 +254,7 @@ mixin _IntListMixin implements List<int> {
     return false;
   }
 
-  int firstWhere(bool test(int element), {int orElse()}) {
+  int firstWhere(bool test(int element), {int orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -264,7 +264,7 @@ mixin _IntListMixin implements List<int> {
     throw IterableElementError.noElement();
   }
 
-  int lastWhere(bool test(int element), {int orElse()}) {
+  int lastWhere(bool test(int element), {int orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -276,7 +276,7 @@ mixin _IntListMixin implements List<int> {
     throw IterableElementError.noElement();
   }
 
-  int singleWhere(bool test(int element), {int orElse()}) {
+  int singleWhere(bool test(int element), {int orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -378,8 +378,11 @@ mixin _IntListMixin implements List<int> {
   }
 
   void fillRange(int start, int end, [int? fillValue]) {
-    if (fillValue == null) throw ArgumentError.notNull("fillValue");
     RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
+      throw ArgumentError.notNull("fillValue");
+    }
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -510,7 +513,7 @@ mixin _DoubleListMixin implements List<double> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -609,7 +612,7 @@ mixin _DoubleListMixin implements List<double> {
     return false;
   }
 
-  double firstWhere(bool test(double element), {double orElse()}) {
+  double firstWhere(bool test(double element), {double orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -619,7 +622,7 @@ mixin _DoubleListMixin implements List<double> {
     throw IterableElementError.noElement();
   }
 
-  double lastWhere(bool test(double element), {double orElse()}) {
+  double lastWhere(bool test(double element), {double orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -631,7 +634,7 @@ mixin _DoubleListMixin implements List<double> {
     throw IterableElementError.noElement();
   }
 
-  double singleWhere(bool test(double element), {double orElse()}) {
+  double singleWhere(bool test(double element), {double orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -734,8 +737,11 @@ mixin _DoubleListMixin implements List<double> {
 
   void fillRange(int start, int end, [double? fillValue]) {
     // TODO(eernst): Could use zero as default and not throw; issue .
-    if (fillValue == null) throw ArgumentError.notNull("fillValue");
     RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
+      throw ArgumentError.notNull("fillValue");
+    }
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -869,7 +875,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -1035,7 +1041,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     return false;
   }
 
-  Float32x4 firstWhere(bool test(Float32x4 element), {Float32x4 orElse()}) {
+  Float32x4 firstWhere(bool test(Float32x4 element), {Float32x4 orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -1045,7 +1051,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     throw IterableElementError.noElement();
   }
 
-  Float32x4 lastWhere(bool test(Float32x4 element), {Float32x4 orElse()}) {
+  Float32x4 lastWhere(bool test(Float32x4 element), {Float32x4 orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -1057,7 +1063,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     throw IterableElementError.noElement();
   }
 
-  Float32x4 singleWhere(bool test(Float32x4 element), {Float32x4 orElse()}) {
+  Float32x4 singleWhere(bool test(Float32x4 element), {Float32x4 orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -1170,8 +1176,11 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
   }
 
   void fillRange(int start, int end, [Float32x4? fillValue]) {
-    if (fillValue == null) throw ArgumentError.notNull("fillValue");
     RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
+      throw ArgumentError.notNull("fillValue");
+    }
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -1226,7 +1235,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -1391,7 +1400,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     return false;
   }
 
-  Int32x4 firstWhere(bool test(Int32x4 element), {Int32x4 orElse()}) {
+  Int32x4 firstWhere(bool test(Int32x4 element), {Int32x4 orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -1401,7 +1410,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     throw IterableElementError.noElement();
   }
 
-  Int32x4 lastWhere(bool test(Int32x4 element), {Int32x4 orElse()}) {
+  Int32x4 lastWhere(bool test(Int32x4 element), {Int32x4 orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -1413,7 +1422,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     throw IterableElementError.noElement();
   }
 
-  Int32x4 singleWhere(bool test(Int32x4 element), {Int32x4 orElse()}) {
+  Int32x4 singleWhere(bool test(Int32x4 element), {Int32x4 orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -1526,8 +1535,11 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
   }
 
   void fillRange(int start, int end, [Int32x4? fillValue]) {
-    if (fillValue == null) throw ArgumentError.notNull("fillValue");
     RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
+      throw ArgumentError.notNull("fillValue");
+    }
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -1582,7 +1594,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -1748,7 +1760,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     return false;
   }
 
-  Float64x2 firstWhere(bool test(Float64x2 element), {Float64x2 orElse()}) {
+  Float64x2 firstWhere(bool test(Float64x2 element), {Float64x2 orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -1758,7 +1770,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     throw IterableElementError.noElement();
   }
 
-  Float64x2 lastWhere(bool test(Float64x2 element), {Float64x2 orElse()}) {
+  Float64x2 lastWhere(bool test(Float64x2 element), {Float64x2 orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -1770,7 +1782,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     throw IterableElementError.noElement();
   }
 
-  Float64x2 singleWhere(bool test(Float64x2 element), {Float64x2 orElse()}) {
+  Float64x2 singleWhere(bool test(Float64x2 element), {Float64x2 orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -1883,8 +1895,11 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
   }
 
   void fillRange(int start, int end, [Float64x2? fillValue]) {
-    if (fillValue == null) throw ArgumentError.notNull("fillValue");
     RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
+      throw ArgumentError.notNull("fillValue");
+    }
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -2308,7 +2323,8 @@ class _Int16List extends _TypedList
     _setIndexedInt16(index, _toInt16(value));
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> iterable,
+      [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -2375,7 +2391,8 @@ class _Uint16List extends _TypedList
     _setIndexedUint16(index, _toUint16(value));
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> iterable,
+      [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -3471,13 +3488,28 @@ class _ExternalFloat64x2Array extends _TypedList
 @patch
 class Float32x4 {
   @patch
+  @pragma("vm:prefer-inline")
+  factory Float32x4(double x, double y, double z, double w) {
+    _throwIfNull(x, 'x');
+    _throwIfNull(y, 'y');
+    _throwIfNull(z, 'z');
+    _throwIfNull(w, 'w');
+    return _Float32x4FromDoubles(x, y, z, w);
+  }
+
   @pragma("vm:exact-result-type", _Float32x4)
-  factory Float32x4(double x, double y, double z, double w)
-      native "Float32x4_fromDoubles";
+  static _Float32x4 _Float32x4FromDoubles(
+      double x, double y, double z, double w) native "Float32x4_fromDoubles";
 
   @patch
+  @pragma("vm:prefer-inline")
+  factory Float32x4.splat(double v) {
+    _throwIfNull(v, 'v');
+    return _Float32x4Splat(v);
+  }
+
   @pragma("vm:exact-result-type", _Float32x4)
-  factory Float32x4.splat(double v) native "Float32x4_splat";
+  static _Float32x4 _Float32x4Splat(double v) native "Float32x4_splat";
 
   @patch
   @pragma("vm:exact-result-type", _Float32x4)
@@ -3538,14 +3570,42 @@ class _Float32x4 implements Float32x4 {
   @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 shuffleMix(Float32x4 zw, int mask) native "Float32x4_shuffleMix";
 
+  @pragma("vm:prefer-inline")
+  Float32x4 withX(double x) {
+    _throwIfNull(x, 'x');
+    return _withX(x);
+  }
+
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 withX(double x) native "Float32x4_setX";
+  Float32x4 _withX(double x) native "Float32x4_setX";
+
+  @pragma("vm:prefer-inline")
+  Float32x4 withY(double y) {
+    _throwIfNull(y, 'y');
+    return _withY(y);
+  }
+
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 withY(double y) native "Float32x4_setY";
+  Float32x4 _withY(double y) native "Float32x4_setY";
+
+  @pragma("vm:prefer-inline")
+  Float32x4 withZ(double z) {
+    _throwIfNull(z, 'z');
+    return _withZ(z);
+  }
+
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 withZ(double z) native "Float32x4_setZ";
+  Float32x4 _withZ(double z) native "Float32x4_setZ";
+
+  @pragma("vm:prefer-inline")
+  Float32x4 withW(double w) {
+    _throwIfNull(w, 'w');
+    return _withW(w);
+  }
+
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 withW(double w) native "Float32x4_setW";
+  Float32x4 _withW(double w) native "Float32x4_setW";
+
   @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 min(Float32x4 other) native "Float32x4_min";
   @pragma("vm:exact-result-type", _Float32x4)
@@ -3561,12 +3621,31 @@ class _Float32x4 implements Float32x4 {
 @patch
 class Int32x4 {
   @patch
+  @pragma("vm:prefer-inline")
+  factory Int32x4(int x, int y, int z, int w) {
+    _throwIfNull(x, 'x');
+    _throwIfNull(y, 'y');
+    _throwIfNull(z, 'z');
+    _throwIfNull(w, 'w');
+    return _Int32x4FromInts(x, y, z, w);
+  }
+
   @pragma("vm:exact-result-type", _Int32x4)
-  factory Int32x4(int x, int y, int z, int w) native "Int32x4_fromInts";
+  static _Int32x4 _Int32x4FromInts(int x, int y, int z, int w)
+      native "Int32x4_fromInts";
 
   @patch
+  @pragma("vm:prefer-inline")
+  factory Int32x4.bool(bool x, bool y, bool z, bool w) {
+    _throwIfNull(x, 'x');
+    _throwIfNull(y, 'y');
+    _throwIfNull(z, 'z');
+    _throwIfNull(w, 'w');
+    return _Int32x4FromBools(x, y, z, w);
+  }
+
   @pragma("vm:exact-result-type", _Int32x4)
-  factory Int32x4.bool(bool x, bool y, bool z, bool w)
+  static _Int32x4 _Int32x4FromBools(bool x, bool y, bool z, bool w)
       native "Int32x4_fromBools";
 
   @patch
@@ -3591,10 +3670,43 @@ class _Int32x4 implements Int32x4 {
   Int32x4 shuffle(int mask) native "Int32x4_shuffle";
   @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 shuffleMix(Int32x4 zw, int mask) native "Int32x4_shuffleMix";
-  Int32x4 withX(int x) native "Int32x4_setX";
-  Int32x4 withY(int y) native "Int32x4_setY";
-  Int32x4 withZ(int z) native "Int32x4_setZ";
-  Int32x4 withW(int w) native "Int32x4_setW";
+
+  @pragma("vm:prefer-inline")
+  Int32x4 withX(int x) {
+    _throwIfNull(x, 'x');
+    return _withX(x);
+  }
+
+  @pragma("vm:exact-result-type", _Int32x4)
+  Int32x4 _withX(int x) native "Int32x4_setX";
+
+  @pragma("vm:prefer-inline")
+  Int32x4 withY(int y) {
+    _throwIfNull(y, 'y');
+    return _withY(y);
+  }
+
+  @pragma("vm:exact-result-type", _Int32x4)
+  Int32x4 _withY(int y) native "Int32x4_setY";
+
+  @pragma("vm:prefer-inline")
+  Int32x4 withZ(int z) {
+    _throwIfNull(z, 'z');
+    return _withZ(z);
+  }
+
+  @pragma("vm:exact-result-type", _Int32x4)
+  Int32x4 _withZ(int z) native "Int32x4_setZ";
+
+  @pragma("vm:prefer-inline")
+  Int32x4 withW(int w) {
+    _throwIfNull(w, 'w');
+    return _withW(w);
+  }
+
+  @pragma("vm:exact-result-type", _Int32x4)
+  Int32x4 _withW(int w) native "Int32x4_setW";
+
   @pragma("vm:exact-result-type", bool)
   bool get flagX native "Int32x4_getFlagX";
   @pragma("vm:exact-result-type", bool)
@@ -3603,14 +3715,43 @@ class _Int32x4 implements Int32x4 {
   bool get flagZ native "Int32x4_getFlagZ";
   @pragma("vm:exact-result-type", bool)
   bool get flagW native "Int32x4_getFlagW";
+
+  @pragma("vm:prefer-inline", _Int32x4)
+  Int32x4 withFlagX(bool x) {
+    _throwIfNull(x, 'x');
+    return _withFlagX(x);
+  }
+
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 withFlagX(bool x) native "Int32x4_setFlagX";
+  Int32x4 _withFlagX(bool x) native "Int32x4_setFlagX";
+
+  @pragma("vm:prefer-inline", _Int32x4)
+  Int32x4 withFlagY(bool y) {
+    _throwIfNull(y, 'y');
+    return _withFlagY(y);
+  }
+
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 withFlagY(bool y) native "Int32x4_setFlagY";
+  Int32x4 _withFlagY(bool y) native "Int32x4_setFlagY";
+
+  @pragma("vm:prefer-inline", _Int32x4)
+  Int32x4 withFlagZ(bool z) {
+    _throwIfNull(z, 'z');
+    return _withFlagZ(z);
+  }
+
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 withFlagZ(bool z) native "Int32x4_setFlagZ";
+  Int32x4 _withFlagZ(bool z) native "Int32x4_setFlagZ";
+
+  @pragma("vm:prefer-inline", _Int32x4)
+  Int32x4 withFlagW(bool w) {
+    _throwIfNull(w, 'w');
+    return _withFlagW(w);
+  }
+
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 withFlagW(bool w) native "Int32x4_setFlagW";
+  Int32x4 _withFlagW(bool w) native "Int32x4_setFlagW";
+
   @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 select(Float32x4 trueValue, Float32x4 falseValue)
       native "Int32x4_select";
@@ -3619,12 +3760,26 @@ class _Int32x4 implements Int32x4 {
 @patch
 class Float64x2 {
   @patch
+  @pragma("vm:prefer-inline")
+  factory Float64x2(double x, double y) {
+    _throwIfNull(x, 'x');
+    _throwIfNull(y, 'y');
+    return _Float64x2FromDoubles(x, y);
+  }
+
   @pragma("vm:exact-result-type", _Float64x2)
-  factory Float64x2(double x, double y) native "Float64x2_fromDoubles";
+  static _Float64x2 _Float64x2FromDoubles(double x, double y)
+      native "Float64x2_fromDoubles";
 
   @patch
+  @pragma("vm:prefer-inline")
+  factory Float64x2.splat(double v) {
+    _throwIfNull(v, 'v');
+    return _Float64x2Splat(v);
+  }
+
   @pragma("vm:exact-result-type", _Float64x2)
-  factory Float64x2.splat(double v) native "Float64x2_splat";
+  static _Float64x2 _Float64x2Splat(double v) native "Float64x2_splat";
 
   @patch
   @pragma("vm:exact-result-type", _Float64x2)
@@ -3654,10 +3809,25 @@ class _Float64x2 implements Float64x2 {
   @pragma("vm:exact-result-type", "dart:core#_Double")
   double get y native "Float64x2_getY";
   int get signMask native "Float64x2_getSignMask";
+
+  @pragma("vm:prefer-inline")
+  Float64x2 withX(double x) {
+    _throwIfNull(x, 'x');
+    return _withX(x);
+  }
+
   @pragma("vm:exact-result-type", _Float64x2)
-  Float64x2 withX(double x) native "Float64x2_setX";
+  Float64x2 _withX(double x) native "Float64x2_setX";
+
+  @pragma("vm:prefer-inline")
+  Float64x2 withY(double y) {
+    _throwIfNull(y, 'y');
+    return _withY(y);
+  }
+
   @pragma("vm:exact-result-type", _Float64x2)
-  Float64x2 withY(double y) native "Float64x2_setY";
+  Float64x2 _withY(double y) native "Float64x2_setY";
+
   @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 min(Float64x2 other) native "Float64x2_min";
   @pragma("vm:exact-result-type", _Float64x2)
@@ -3670,9 +3840,9 @@ class _TypedListIterator<E> implements Iterator<E> {
   final List<E> _array;
   final int _length;
   int _position;
-  E _current;
+  E? _current;
 
-  _TypedListIterator(List array)
+  _TypedListIterator(List<E> array)
       : _array = array,
         _length = array.length,
         _position = -1 {
@@ -3691,7 +3861,10 @@ class _TypedListIterator<E> implements Iterator<E> {
     return false;
   }
 
-  E get current => _current;
+  E get current {
+    final cur = _current;
+    return (cur != null) ? cur : cur as E;
+  }
 }
 
 abstract class _TypedListView extends _TypedListBase implements TypedData {
@@ -3863,7 +4036,8 @@ class _Int16ArrayView extends _TypedListView
         offsetInBytes + (index * Int16List.bytesPerElement), _toInt16(value));
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> iterable,
+      [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -3914,7 +4088,8 @@ class _Uint16ArrayView extends _TypedListView
         offsetInBytes + (index * Uint16List.bytesPerElement), _toUint16(value));
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> iterable,
+      [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -4609,6 +4784,13 @@ int _toInt32(int value) {
 @pragma("vm:prefer-inline")
 int _toUint32(int value) {
   return value & 0xFFFFFFFF;
+}
+
+@pragma("vm:prefer-inline")
+void _throwIfNull(val, String name) {
+  if (val == null) {
+    throw ArgumentError.notNull(name);
+  }
 }
 
 // In addition to explicitly checking the range, this method implicitly ensures

@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
-main() {
+void main() {
   test('run original example', () async {
     File exampleFile = findFile('pkg/dartfix/example/example.dart');
 

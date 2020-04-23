@@ -43,7 +43,7 @@ ParseStringResult parseFile(
     {@required String path,
     ResourceProvider resourceProvider,
     @required FeatureSet featureSet,
-    bool throwIfDiagnostics: true}) {
+    bool throwIfDiagnostics = true}) {
   if (featureSet == null) {
     throw ArgumentError('A non-null feature set must be provided.');
   }
@@ -81,7 +81,7 @@ ParseStringResult parseFile2(
     {@required String path,
     ResourceProvider resourceProvider,
     @required FeatureSet featureSet,
-    bool throwIfDiagnostics: true}) {
+    bool throwIfDiagnostics = true}) {
   return parseFile(
       path: path,
       resourceProvider: resourceProvider,
@@ -110,7 +110,7 @@ ParseStringResult parseString(
     {@required String content,
     FeatureSet featureSet,
     String path,
-    bool throwIfDiagnostics: true}) {
+    bool throwIfDiagnostics = true}) {
   featureSet ??= FeatureSet.fromEnableFlags([]);
   var source = StringSource(content, path);
   var reader = CharSequenceReader(content);
@@ -118,13 +118,17 @@ ParseStringResult parseString(
   var scanner = Scanner(source, reader, errorCollector)
     ..configureFeatures(featureSet);
   var token = scanner.tokenize();
-  var parser = Parser(source, errorCollector, featureSet: scanner.featureSet);
+  var parser = Parser(
+    source,
+    errorCollector,
+    featureSet: scanner.featureSet,
+  );
   var unit = parser.parseCompilationUnit(token);
   unit.lineInfo = LineInfo(scanner.lineStarts);
   ParseStringResult result =
       ParseStringResultImpl(content, unit, errorCollector.errors);
   if (throwIfDiagnostics && result.errors.isNotEmpty) {
-    throw new ArgumentError('Content produced diagnostics when parsed');
+    throw ArgumentError('Content produced diagnostics when parsed');
   }
   return result;
 }
@@ -149,13 +153,13 @@ Future<ResolvedUnitResult> resolveFile(
 /// If a [resourceProvider] is given, it will be used to access the file system.
 AnalysisContext _createAnalysisContext(
     {@required String path, ResourceProvider resourceProvider}) {
-  AnalysisContextCollection collection = new AnalysisContextCollection(
+  AnalysisContextCollection collection = AnalysisContextCollection(
     includedPaths: <String>[path],
     resourceProvider: resourceProvider ?? PhysicalResourceProvider.INSTANCE,
   );
   List<AnalysisContext> contexts = collection.contexts;
   if (contexts.length != 1) {
-    throw new ArgumentError('path must be an absolute path to a single file');
+    throw ArgumentError('path must be an absolute path to a single file');
   }
   return contexts[0];
 }

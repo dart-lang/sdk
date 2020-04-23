@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,21 +27,20 @@ class D {
 }
 const D constant2 = const D(constant);
 ''');
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class C {
   final double d;
   const C(this.d);
 }
 const C constant = const C(0);
 ''');
-    assertNoTestErrors();
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
   }
 
   test_int_to_double_reference_from_other_library_other_file_before() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class C {
   final double d;
   const C(this.d);
@@ -58,18 +58,16 @@ const D constant2 = const D(constant);
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
-    assertNoTestErrors();
   }
 
   test_int_to_double_single_library() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class C {
   final double d;
   const C(this.d);
 }
 const C constant = const C(0);
 ''');
-    assertNoTestErrors();
   }
 
   test_int_to_double_via_default_value_other_file_after() async {
@@ -79,14 +77,15 @@ class C {
   const C([this.x = 0]);
 }
 ''');
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 import 'other.dart';
 
 void main() {
   const c = C();
 }
-''');
-    assertNoTestErrors();
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+    ]);
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
@@ -103,13 +102,14 @@ class C {
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
 
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 import 'other.dart';
 
 void main() {
   const c = C();
 }
-''');
-    assertNoTestErrors();
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+    ]);
   }
 }

@@ -1,0 +1,18 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  class Foo extends dart.core::Object {
+    synthetic constructor •() → main::Foo*
+      : super dart.core::Object::•()
+      ;
+    get x() → dart.core::String* {
+      return "x #1";
+    }
+    set x(dart.core::String* x) → void {}
+  }
+  static method main() → dynamic {
+    main::Foo* foo = new main::Foo::•();
+    dart.core::print(foo.{main::Foo::x});
+    foo.{main::Foo::x} = "hello";
+  }
+}

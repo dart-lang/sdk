@@ -21,17 +21,12 @@ main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/assigned_variables/'
       'data'));
-  await runTests(dataDir,
+  await runTests<_Data>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
-          const AssignedVariablesDataComputer(), [cfeNonNullableOnlyConfig]),
-      skipList: [
-        'for.dart',
-        'for_element.dart',
-      ]);
+      runTest: runTestFor<_Data>(
+          const AssignedVariablesDataComputer(), [cfeNonNullableOnlyConfig]));
 }
 
 class AssignedVariablesDataComputer extends DataComputer<_Data> {
@@ -44,7 +39,10 @@ class AssignedVariablesDataComputer extends DataComputer<_Data> {
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
-  void computeMemberData(InternalCompilerResult compilerResult, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<_Data>> actualMap,
       {bool verbose}) {
     MemberBuilderImpl memberBuilder =

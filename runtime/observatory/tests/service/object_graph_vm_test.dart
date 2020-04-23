@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:observatory/heap_snapshot.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/object_graph.dart';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 class Foo {
@@ -36,10 +35,7 @@ void script() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var raw = await isolate.fetchHeapSnapshot().last;
-    HeapSnapshot snapshot = new HeapSnapshot();
-    await snapshot.loadProgress(isolate, raw).last;
-    var graph = snapshot.graph;
+    var graph = await isolate.fetchHeapSnapshot().done;
 
     Iterable<SnapshotObject> foos =
         graph.objects.where((SnapshotObject obj) => obj.klass.name == "Foo");
@@ -82,6 +78,69 @@ var tests = <IsolateTest>[
     // Check that the short list retains more than the long list inside.
     // and specifically, that it retains exactly itself + the long one.
     expect(first.retainedSize, equals(first.shallowSize + second.shallowSize));
+
+    // Verify sizes of classes are the appropriates sums of their instances.
+    // This also verifies that the class instance iterators are visiting the
+    // correct set of objects (e.g., not including dead objects).
+    for (SnapshotClass klass in graph.classes) {
+      int shallowSum = 0;
+      int internalSum = 0;
+      int externalSum = 0;
+      for (SnapshotObject instance in klass.instances) {
+        if (instance == graph.root) {
+          // The root may have 0 self size.
+          expect(instance.internalSize, greaterThanOrEqualTo(0));
+          expect(instance.externalSize, greaterThanOrEqualTo(0));
+          expect(instance.shallowSize, greaterThanOrEqualTo(0));
+        } else {
+          // All other objects are heap objects with positive size.
+          expect(instance.internalSize, greaterThan(0));
+          expect(instance.externalSize, greaterThanOrEqualTo(0));
+          expect(instance.shallowSize, greaterThan(0));
+        }
+        expect(instance.retainedSize, greaterThan(0));
+        expect(instance.shallowSize,
+            equals(instance.internalSize + instance.externalSize));
+        shallowSum += instance.shallowSize;
+        internalSum += instance.internalSize;
+        externalSum += instance.externalSize;
+      }
+      expect(shallowSum, equals(klass.shallowSize));
+      expect(internalSum, equals(klass.internalSize));
+      expect(externalSum, equals(klass.externalSize));
+      expect(
+          klass.shallowSize, equals(klass.internalSize + klass.externalSize));
+    }
+
+    // Verify sizes of the overall graph are the appropriates sums of all
+    // instances. This also verifies that the all instances iterator is visiting
+    // the correct set of objects (e.g., not including dead objects).
+    int shallowSum = 0;
+    int internalSum = 0;
+    int externalSum = 0;
+    for (SnapshotObject instance in graph.objects) {
+      if (instance == graph.root) {
+        // The root may have 0 self size.
+        expect(instance.internalSize, greaterThanOrEqualTo(0));
+        expect(instance.externalSize, greaterThanOrEqualTo(0));
+        expect(instance.shallowSize, greaterThanOrEqualTo(0));
+      } else {
+        // All other objects are heap objects with positive size.
+        expect(instance.internalSize, greaterThan(0));
+        expect(instance.externalSize, greaterThanOrEqualTo(0));
+        expect(instance.shallowSize, greaterThan(0));
+      }
+      expect(instance.retainedSize, greaterThan(0));
+      expect(instance.shallowSize,
+          equals(instance.internalSize + instance.externalSize));
+      shallowSum += instance.shallowSize;
+      internalSum += instance.internalSize;
+      externalSum += instance.externalSize;
+    }
+    expect(shallowSum, equals(graph.size));
+    expect(internalSum, equals(graph.internalSize));
+    expect(externalSum, equals(graph.externalSize));
+    expect(graph.size, equals(graph.internalSize + graph.externalSize));
   },
 ];
 

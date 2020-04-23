@@ -14,7 +14,6 @@ import 'dart:io';
 import 'dart:math';
 
 import "package:status_file/expectation.dart";
-import 'package:test_runner/src/feature.dart';
 
 import 'browser.dart';
 import 'command.dart';
@@ -25,7 +24,6 @@ import 'path.dart';
 import 'repository.dart';
 import 'summary_report.dart';
 import 'test_case.dart';
-import 'test_configurations.dart';
 import 'test_file.dart';
 import 'testing_servers.dart';
 import 'utils.dart';
@@ -136,25 +134,6 @@ abstract class TestSuite {
   /// fundamental reasons.
   bool _isRelevantTest(
       TestFile testFile, String displayName, Set<Expectation> expectations) {
-    // TODO(38390): Temporary hack. Right now, when analyzer is run with the
-    // NNBD experiment enabled, it implicitly opts the code into NNBD as well.
-    // (In other words, it defaults to "weak" instead of "legacy"). We want to
-    // create a test configuration that enables the NNBD experiment for the
-    // tests in language_2/nnbd/ that *do* require NNBD. That configuration will
-    // fail many of the older language tests if analyzer treats them as being
-    // opted in to NNBD instead of as legacy mode.
-    //
-    // So, for now, until we have figured out how to manage those tests, we
-    // implicitly skip any test that does not require NNBD if run in a
-    // configuration that enables the NNBD experiment.
-    if (testFile.path.toString().contains("language_2") &&
-        configuration.experiments.contains("non-nullable") &&
-        !(testFile.requirements.contains(Feature.nnbd) ||
-            testFile.requirements.contains(Feature.nnbdWeak) ||
-            testFile.requirements.contains(Feature.nnbdStrong))) {
-      return false;
-    }
-
     // Test if the selector includes this test.
     var pattern = configuration.selectors[suiteName];
     if (!pattern.hasMatch(displayName)) {
@@ -209,11 +188,11 @@ abstract class TestSuite {
 
   String createGeneratedTestDirectoryHelper(
       String name, String dirname, Path testPath) {
-    Path relative = testPath.relativeTo(Repository.dir);
+    var relative = testPath.relativeTo(Repository.dir);
     relative = relative.directoryPath.append(relative.filenameWithoutExtension);
-    String testUniqueName = TestUtils.getShortName(relative.toString());
+    var testUniqueName = TestUtils.getShortName(relative.toString());
 
-    Path generatedTestPath = Path(buildDir)
+    var generatedTestPath = Path(buildDir)
         .append('generated_$name')
         .append(dirname)
         .append(testUniqueName);
@@ -403,7 +382,7 @@ class StandardTestSuite extends TestSuite {
     // Initialize _testListPossibleFilenames.
     if (configuration.testList != null) {
       _testListPossibleFilenames = <String>{};
-      for (String s in configuration.testList) {
+      for (var s in configuration.testList) {
         if (s.startsWith("$suiteName/")) {
           s = s.substring(s.indexOf('/') + 1);
           _testListPossibleFilenames
@@ -458,7 +437,7 @@ class StandardTestSuite extends TestSuite {
   ///     StandardTestSuite.forDirectory(configuration, 'path/to/mytestsuite');
   ///
   /// instead of having to create a custom [StandardTestSuite] subclass. In
-  /// particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES]
+  /// particular, if you add 'path/to/mytestsuite' to `testSuiteDirectories`
   /// in test.dart, this will all be set up for you.
   factory StandardTestSuite.forDirectory(
       TestConfiguration configuration, Path directory) {
@@ -595,38 +574,22 @@ class StandardTestSuite extends TestSuite {
       return;
     }
 
+    var expectationSet = expectations.expectations(testFile.name);
     if (configuration.compilerConfiguration.hasCompiler &&
         (testFile.hasCompileError || testFile.isStaticErrorTest)) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
-      _enqueueStandardTest(testFile, expectations, onTest);
+      _enqueueStandardTest(testFile, expectationSet, onTest);
     } else if (configuration.runtime.isBrowser) {
-      var expectationsMap = <String, Set<Expectation>>{};
-
-      if (testFile.isMultiHtmlTest) {
-        // A browser multi-test has multiple expectations for one test file.
-        // Find all the different sub-test expectations for one entire test
-        // file.
-        var subtestNames = testFile.subtestNames;
-        expectationsMap = <String, Set<Expectation>>{};
-        for (var subtest in subtestNames) {
-          expectationsMap[subtest] =
-              expectations.expectations('${testFile.name}/$subtest');
-        }
-      } else {
-        expectationsMap[testFile.name] =
-            expectations.expectations(testFile.name);
-      }
-
-      _enqueueBrowserTest(testFile, expectationsMap, onTest);
+      _enqueueBrowserTest(testFile, expectationSet, onTest);
     } else {
-      _enqueueStandardTest(testFile, expectations, onTest);
+      _enqueueStandardTest(testFile, expectationSet, onTest);
     }
   }
 
   void _enqueueStandardTest(
-      TestFile testFile, ExpectationSet expectations, TestCaseEvent onTest) {
+      TestFile testFile, Set<Expectation> expectations, TestCaseEvent onTest) {
     var commonArguments = _commonArgumentsFromFile(testFile);
 
     var vmOptionsList = getVmOptions(testFile);
@@ -641,8 +604,7 @@ class StandardTestSuite extends TestSuite {
         allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
       }
 
-      var testExpectations = expectations.expectations(testFile.name);
-      var isCrashExpected = testExpectations.contains(Expectation.crash);
+      var isCrashExpected = expectations.contains(Expectation.crash);
       var commands = _makeCommands(testFile, vmOptionsVariant, allVmOptions,
           commonArguments, isCrashExpected);
       var variantTestName = testFile.name;
@@ -650,8 +612,7 @@ class StandardTestSuite extends TestSuite {
         variantTestName = "${testFile.name}/$vmOptionsVariant";
       }
 
-      _addTestCase(
-          testFile, variantTestName, commands, testExpectations, onTest);
+      _addTestCase(testFile, variantTestName, commands, expectations, onTest);
     }
   }
 
@@ -747,7 +708,7 @@ class StandardTestSuite extends TestSuite {
     return null;
   }
 
-  String _uriForBrowserTest(String pathComponent, [String subtestName]) {
+  String _uriForBrowserTest(String pathComponent) {
     // Note: If we run test.py with the "--list" option, no http servers
     // will be started. So we return a dummy url instead.
     if (configuration.listTests) {
@@ -757,9 +718,6 @@ class StandardTestSuite extends TestSuite {
     var serverPort = configuration.servers.port;
     var crossOriginPort = configuration.servers.crossOriginPort;
     var parameters = {'crossOriginPort': crossOriginPort.toString()};
-    if (subtestName != null) {
-      parameters['group'] = subtestName;
-    }
     return Uri(
             scheme: 'http',
             host: configuration.localIP,
@@ -775,12 +733,8 @@ class StandardTestSuite extends TestSuite {
   /// in a generated output directory. Any additional framework and HTML files
   /// are put there too. Then adds another [Command] the spawn the browser and
   /// run the test.
-  ///
-  /// In order to handle browser multitests, [expectations] is a map of subtest
-  /// names to expectation sets. If the test is not a multitest, the map has
-  /// a single key, `testFile.name`.
-  void _enqueueBrowserTest(TestFile testFile,
-      Map<String, Set<Expectation>> expectations, TestCaseEvent onTest) {
+  void _enqueueBrowserTest(
+      TestFile testFile, Set<Expectation> expectations, TestCaseEvent onTest) {
     var tempDir = createOutputDirectory(testFile.path);
     var compilationTempDir = createCompilationOutputDirectory(testFile.path);
     var nameNoExt = testFile.path.filenameWithoutExtension;
@@ -803,8 +757,7 @@ class StandardTestSuite extends TestSuite {
             _createUrlPathFromFile(Path('$compilationTempDir/$nameNoExt.js'));
         content = dart2jsHtml(testFile.path.toNativePath(), scriptPath);
       } else {
-        var packageRoot =
-            packagesArgument(configuration.packageRoot, configuration.packages);
+        var packageRoot = packagesArgument(configuration.packages);
         packageRoot =
             packageRoot == null ? nameNoExt : packageRoot.split("=").last;
         var nameFromModuleRoot =
@@ -813,8 +766,8 @@ class StandardTestSuite extends TestSuite {
             "${nameFromModuleRoot.directoryPath}/$nameNoExt";
         var jsDir =
             Path(compilationTempDir).relativeTo(Repository.dir).toString();
-        content = dartdevcHtml(
-            nameNoExt, nameFromModuleRootNoExt, jsDir, configuration.compiler);
+        content = dartdevcHtml(nameNoExt, nameFromModuleRootNoExt, jsDir,
+            configuration.compiler, configuration.nnbdMode);
       }
     }
 
@@ -837,51 +790,34 @@ class StandardTestSuite extends TestSuite {
         .computeCompilationArtifact(outputDir, args, environmentOverrides);
     commands.addAll(compilation.commands);
 
-    if (testFile.isMultiHtmlTest) {
-      // Variables for browser multi-tests.
-      var subtestNames = testFile.subtestNames;
-      for (var subtestName in subtestNames) {
-        _enqueueSingleBrowserTest(
-            commands,
-            testFile,
-            '${testFile.name}/$subtestName',
-            subtestName,
-            expectations[subtestName],
-            htmlPath,
-            onTest);
-      }
-    } else {
-      _enqueueSingleBrowserTest(commands, testFile, testFile.name, null,
-          expectations[testFile.name], htmlPath, onTest);
-    }
+    _enqueueSingleBrowserTest(
+        commands, testFile, testFile.name, expectations, htmlPath, onTest);
   }
 
+  // TODO: Merge with above.
   /// Enqueues a single browser test, or a single subtest of an HTML multitest.
   void _enqueueSingleBrowserTest(
       List<Command> commands,
       TestFile testFile,
       String testName,
-      String subtestName,
       Set<Expectation> expectations,
       String htmlPath,
       TestCaseEvent onTest) {
     // Construct the command that executes the browser test.
     commands = commands.toList();
 
-    var htmlPathSubtest = _createUrlPathFromFile(Path(htmlPath));
-    var fullHtmlPath = _uriForBrowserTest(htmlPathSubtest, subtestName);
-
+    var fullHtmlPath =
+        _uriForBrowserTest(_createUrlPathFromFile(Path(htmlPath)));
     commands.add(BrowserTestCommand(fullHtmlPath, configuration));
 
     var fullName = testName;
-    if (subtestName != null) fullName += "/$subtestName";
     _addTestCase(testFile, fullName, commands, expectations, onTest);
   }
 
   List<String> _commonArgumentsFromFile(TestFile testFile) {
     var args = configuration.standardOptions.toList();
 
-    var packages = packagesArgument(testFile.packageRoot, testFile.packages);
+    var packages = packagesArgument(testFile.packages);
     if (packages != null) {
       args.add(packages);
     }
@@ -901,25 +837,17 @@ class StandardTestSuite extends TestSuite {
     return args;
   }
 
-  String packagesArgument(String packageRoot, String packages) {
+  String packagesArgument(String packages) {
     // If this test is inside a package, we will check if there is a
     // pubspec.yaml file and if so, create a custom package root for it.
-    if (packageRoot == null && packages == null) {
-      if (configuration.packageRoot != null) {
-        packageRoot = Path(configuration.packageRoot).toNativePath();
-      }
-
-      if (configuration.packages != null) {
-        packages = Path(configuration.packages).toNativePath();
-      }
+    if (packages == null && configuration.packages != null) {
+      packages = Path(configuration.packages).toNativePath();
     }
 
-    if (packageRoot == 'none' || packages == 'none') {
+    if (packages == 'none') {
       return null;
     } else if (packages != null) {
       return '--packages=$packages';
-    } else if (packageRoot != null) {
-      return '--package-root=$packageRoot';
     } else {
       return null;
     }
@@ -951,8 +879,8 @@ class PackageTestSuite extends StandardTestSuite {
             ["$directoryPath/.status"],
             recursive: true);
 
-  void _enqueueBrowserTest(TestFile testFile,
-      Map<String, Set<Expectation>> expectations, TestCaseEvent onTest) {
+  void _enqueueBrowserTest(
+      TestFile testFile, Set<Expectation> expectations, TestCaseEvent onTest) {
     var dir = testFile.path.directoryPath;
     var nameNoExt = testFile.path.filenameWithoutExtension;
     var customHtmlPath = dir.append('$nameNoExt.html');
@@ -962,8 +890,7 @@ class PackageTestSuite extends StandardTestSuite {
     } else {
       var fullPath = _createUrlPathFromFile(customHtmlPath);
       var command = BrowserTestCommand(fullPath, configuration);
-      _addTestCase(testFile, testFile.name, [command],
-          expectations[testFile.name], onTest);
+      _addTestCase(testFile, testFile.name, [command], expectations, onTest);
     }
   }
 }

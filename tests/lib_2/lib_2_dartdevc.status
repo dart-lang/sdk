@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartdevc ]
-html/xhr_test: Slow
+html/xhr_test: Slow, Pass
 
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
@@ -18,26 +18,20 @@ html/interactive_media_test: Skip # Requires interactive camera, microphone perm
 html/xhr_test: Skip # Times out. Issue 21527
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
-convert/chunked_conversion_utf88_test: Slow
-convert/json_utf8_chunk_test: Slow
-convert/streamed_conversion_utf8_decode_test: Slow # Issue 29922
-convert/utf85_test: Slow
+convert/chunked_conversion_utf88_test: Slow, Pass
+convert/json_utf8_chunk_test: Slow, Pass
+convert/streamed_conversion_utf8_decode_test: Slow, Pass # Issue 29922
+convert/utf85_test: Slow, Pass
+developer/metrics_num_test: Skip # Because of an int / double type test.
 html/callback_list_test: Skip # Test requires user interaction to accept permissions.
 html/custom/attribute_changed_callback_test: Skip # Issue 31577
 html/custom/constructor_calls_created_synchronously_test: Skip # Issue 31577
 html/custom/created_callback_test: Skip # Issue 31577
 html/custom/document_register_basic_test: Skip # Issue 31577
 html/custom/document_register_template_test: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/construction: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/constructors: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/createElement with type extension: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/functional: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/namespaces: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/parsing: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/registration: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/single-parameter createElement: Skip # Issue 31577
+html/custom/document_register_type_extensions_test: Skip # Issue 31577
 html/custom/element_upgrade_test: Skip # Issue 31577
-html/custom/entered_left_view_test: Skip # Issue 31577
+html/custom/entered_left_view/.*: Skip # Issue 31577
 html/custom/mirrors_2_test: Skip # Issue 31577
 html/custom_element_method_clash_test: Skip # Issue 29922
 html/custom_element_name_clash_test: Skip # Issue 29922
@@ -46,4 +40,3 @@ html/custom_elements_test: Skip # Issue 29922
 html/notification_permission_test: Skip # Issue 32002
 isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
-profiler/metrics_num_test: Skip # Because of an int / double type test.

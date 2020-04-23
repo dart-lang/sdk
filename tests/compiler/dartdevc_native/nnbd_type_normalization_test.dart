@@ -24,7 +24,7 @@ void main() {
   // Null? == Null
   Expect.identical(nullable(Null), Null);
   // Never? == Null
-  Expect.identical(nullable(dart.wrapType(dart.never_)), Null);
+  Expect.identical(nullable(Never), Null);
   // dynamic? == dynamic
   Expect.identical(nullable(dynamic), dynamic);
   // void? == void

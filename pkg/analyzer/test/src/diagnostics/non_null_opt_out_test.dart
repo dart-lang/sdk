@@ -25,7 +25,7 @@ main() {
 class NonNullOptOutTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
@@ -450,8 +450,23 @@ main() {
     _assertLegacyMember(
       instanceCreation.staticElement,
       _import_a.unnamedConstructor('A'),
-      expectedSubstitution: {'T': 'int'},
+      expectedSubstitution: {'T': 'int*'},
     );
+  }
+
+  test_instanceCreation_generic_instantiateToBounds() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A<T extends num> {}
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.5
+import 'a.dart';
+
+var v = A();
+''');
+
+    var v = findElement.topVar('v');
+    assertType(v.type, 'A<num*>*');
   }
 
   test_methodInvocation_extension_functionTarget() async {
@@ -650,7 +665,7 @@ main(A a) {
     assertType(identifier, 'int* Function(int*, int*)*');
 
     MethodElement element = identifier.staticElement;
-    assertElementTypeString(element.type, 'int* Function(int*, int*)*');
+    assertType(element.type, 'int* Function(int*, int*)*');
   }
 
   test_methodInvocation_method_interfaceTarget() async {
@@ -675,7 +690,7 @@ main(A a) {
     assertType(identifier, 'int* Function(int*, int*)*');
 
     MethodElement element = identifier.staticElement;
-    assertElementTypeString(element.type, 'int* Function(int*, int*)*');
+    assertType(element.type, 'int* Function(int*, int*)*');
   }
 
   test_methodInvocation_method_nullTarget() async {
@@ -702,7 +717,7 @@ class B extends A {
     assertType(identifier, 'int* Function(int*, int*)*');
 
     MethodElement element = identifier.staticElement;
-    assertElementTypeString(element.type, 'int* Function(int*, int*)*');
+    assertType(element.type, 'int* Function(int*, int*)*');
   }
 
   test_methodInvocation_method_staticTarget() async {
@@ -727,7 +742,7 @@ main() {
     assertType(identifier, 'int* Function(int*, int*)*');
 
     MethodElement element = identifier.staticElement;
-    assertElementTypeString(element.type, 'int* Function(int*, int*)*');
+    assertType(element.type, 'int* Function(int*, int*)*');
   }
 
   test_methodInvocation_method_superTarget() async {
@@ -754,7 +769,7 @@ class B extends A {
     assertType(identifier, 'int* Function(int*, int*)*');
 
     MethodElement element = identifier.staticElement;
-    assertElementTypeString(element.type, 'int* Function(int*, int*)*');
+    assertType(element.type, 'int* Function(int*, int*)*');
   }
 
   test_nnbd_optOut_invalidSyntax() async {

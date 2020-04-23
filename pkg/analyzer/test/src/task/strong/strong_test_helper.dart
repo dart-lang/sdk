@@ -7,12 +7,14 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -51,7 +53,7 @@ SourceSpanWithContext _createSpanHelper(
 
   var text = content.substring(start, end);
   var lineText = content.substring(lineStart, lineEnd);
-  return new SourceSpanWithContext(startLoc, endLoc, text, lineText);
+  return SourceSpanWithContext(startLoc, endLoc, text, lineText);
 }
 
 ErrorSeverity _errorSeverity(
@@ -69,11 +71,11 @@ void _expectErrors(AnalysisOptions analysisOptions, CompilationUnit unit,
     Iterable<AnalysisError> actualErrors) {
   var expectedErrors = _findExpectedErrors(unit.beginToken);
 
-  var actualMap = new SplayTreeMap<int, List<AnalysisError>>();
+  var actualMap = SplayTreeMap<int, List<AnalysisError>>();
   for (var e in actualErrors) {
     actualMap.putIfAbsent(e.offset, () => []).add(e);
   }
-  var expectedMap = new SplayTreeMap<int, List<_ErrorExpectation>>();
+  var expectedMap = SplayTreeMap<int, List<_ErrorExpectation>>();
   for (var e in expectedErrors) {
     expectedMap.putIfAbsent(e.offset, () => []).add(e);
   }
@@ -144,13 +146,13 @@ List<_ErrorExpectation> _findExpectedErrors(Token beginToken) {
 
 SourceLocation _locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
   var loc = lineInfo.getLocation(offset);
-  return new SourceLocation(offset,
+  return SourceLocation(offset,
       sourceUrl: uri, line: loc.lineNumber - 1, column: loc.columnNumber - 1);
 }
 
 /// Returns all libraries transitively imported or exported from [start].
 Set<LibraryElement> _reachableLibraries(LibraryElement start) {
-  Set<LibraryElement> results = new Set<LibraryElement>();
+  Set<LibraryElement> results = <LibraryElement>{};
 
   void find(LibraryElement library) {
     if (results.add(library)) {
@@ -184,7 +186,8 @@ void _reportFailure(
         span.message(error.message);
   }
 
-  String formatExpectedError(_ErrorExpectation error, {bool showSource: true}) {
+  String formatExpectedError(_ErrorExpectation error,
+      {bool showSource = true}) {
     int offset = error.offset;
     var severity = error.severity.displayName;
     var result = '@$offset $severity:${error.typeName}';
@@ -194,7 +197,7 @@ void _reportFailure(
     return '$result\n${span.message('')}';
   }
 
-  var message = new StringBuffer();
+  var message = StringBuffer();
   if (unreported.isNotEmpty) {
     message.writeln('Expected errors that were not reported:');
     unreported.map(formatExpectedError).forEach(message.writeln);
@@ -248,7 +251,7 @@ class AbstractStrongTest with ResourceProviderMixin {
   ///     check();
   ///
   /// For a single file, you may also use [checkFile].
-  void addFile(String content, {String name: '/main.dart'}) {
+  void addFile(String content, {String name = '/main.dart'}) {
     name = name.replaceFirst(RegExp('^package:'), '/packages/');
     newFile(name, content: content);
     _checkCalled = false;
@@ -262,48 +265,50 @@ class AbstractStrongTest with ResourceProviderMixin {
   ///
   /// Returns the main resolved library. This can be used for further checks.
   Future<CompilationUnit> check(
-      {bool implicitCasts: true,
-      bool implicitDynamic: true,
-      bool strictInference: false,
-      bool strictRawTypes: false}) async {
+      {bool implicitCasts = true,
+      bool implicitDynamic = true,
+      bool strictInference = false,
+      bool strictRawTypes = false}) async {
     _checkCalled = true;
 
     File mainFile = getFile('/main.dart');
     expect(mainFile.exists, true, reason: '`/main.dart` is missing');
 
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.strongModeHints = true;
+    AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
     analysisOptions.strictInference = strictInference;
     analysisOptions.strictRawTypes = strictRawTypes;
-    analysisOptions.enabledExperiments = enabledExperiments;
+    analysisOptions.contextFeatures = FeatureSet.fromEnableFlags(
+      enabledExperiments,
+    );
 
-    var mockSdk = new MockSdk(
+    var mockSdk = MockSdk(
       resourceProvider: resourceProvider,
       analysisOptions: analysisOptions,
     );
 
-    SourceFactory sourceFactory = new SourceFactory([
-      new DartUriResolver(mockSdk),
-      new PackageMapUriResolver(resourceProvider, packageMap),
-      new ResourceUriResolver(resourceProvider),
+    SourceFactory sourceFactory = SourceFactory([
+      DartUriResolver(mockSdk),
+      PackageMapUriResolver(resourceProvider, packageMap),
+      ResourceUriResolver(resourceProvider),
     ]);
 
     CompilationUnit mainUnit;
-    StringBuffer logBuffer = new StringBuffer();
-    FileContentOverlay fileContentOverlay = new FileContentOverlay();
-    PerformanceLog log = new PerformanceLog(logBuffer);
-    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-    _driver = new AnalysisDriver(
+    StringBuffer logBuffer = StringBuffer();
+    FileContentOverlay fileContentOverlay = FileContentOverlay();
+    PerformanceLog log = PerformanceLog(logBuffer);
+    AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(log);
+    _driver = AnalysisDriver(
         scheduler,
         log,
         resourceProvider,
-        new MemoryByteStore(),
+        MemoryByteStore(),
         fileContentOverlay,
         null,
         sourceFactory,
-        analysisOptions);
+        analysisOptions,
+        packages: Packages.empty);
     scheduler.start();
 
     mainUnit = (await _driver.getResult(mainFile.path)).unit;
@@ -356,7 +361,7 @@ class AbstractStrongTest with ResourceProviderMixin {
   ///
   /// Also returns the resolved compilation unit.
   Future<CompilationUnit> checkFile(String content,
-      {bool implicitCasts: true, bool implicitDynamic: true}) async {
+      {bool implicitCasts = true, bool implicitDynamic = true}) async {
     addFile(content);
     return await check(
       implicitCasts: implicitCasts,
@@ -379,7 +384,7 @@ class AbstractStrongTest with ResourceProviderMixin {
 
   Future<_TestAnalysisResult> _resolve(Source source) async {
     var result = await _driver.getResult(source.fullName);
-    return new _TestAnalysisResult(source, result.unit, result.errors);
+    return _TestAnalysisResult(source, result.unit, result.errors);
   }
 }
 
@@ -396,6 +401,7 @@ class _ErrorExpectation {
         e.errorCode.name == typeName;
   }
 
+  @override
   String toString() => '@$offset ${severity.displayName}: [$typeName]';
 
   static _ErrorExpectation parse(int offset, String descriptor) {
@@ -423,7 +429,7 @@ class _ErrorExpectation {
         reason: 'invalid severity in error descriptor: `${tokens[0]}`');
     expect(typeName, isNotNull,
         reason: 'invalid type in error descriptor: ${tokens[1]}');
-    return new _ErrorExpectation(offset, level, typeName);
+    return _ErrorExpectation(offset, level, typeName);
   }
 }
 

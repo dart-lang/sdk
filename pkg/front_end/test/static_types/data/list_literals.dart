@@ -6,25 +6,25 @@
 /*cfe:nnbd.library: nnbd=true*/
 
 main() {
-  /*cfe|dart2js.List<dynamic>*/
+  /*cfe.List<dynamic>*/
   /*cfe:nnbd.List<dynamic>!*/
   [];
 
-  /*cfe|dart2js.List<int>*/
+  /*cfe.List<int>*/
   /*cfe:nnbd.List<int!>!*/
-  [/*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0];
+  [/*cfe.int*/ /*cfe:nnbd.int!*/ 0];
 
-  /*cfe|dart2js.List<num>*/
-  /*cfe:nnbd.List<num>!*/
+  /*cfe.List<num>*/
+  /*cfe:nnbd.List<num!>!*/
   [
-    /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0,
-    /*cfe|dart2js.double*/ /*cfe:nnbd.double!*/ 0.5
+    /*cfe.int*/ /*cfe:nnbd.int!*/ 0,
+    /*cfe.double*/ /*cfe:nnbd.double!*/ 0.5
   ];
 
-  /*cfe|dart2js.List<Object>*/
-  /*cfe:nnbd.List<Object>!*/
+  /*cfe.List<Object>*/
+  /*cfe:nnbd.List<Object!>!*/
   [
-    /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0,
-    /*cfe|dart2js.String*/ /*cfe:nnbd.String!*/ ''
+    /*cfe.int*/ /*cfe:nnbd.int!*/ 0,
+    /*cfe.String*/ /*cfe:nnbd.String!*/ ''
   ];
 }

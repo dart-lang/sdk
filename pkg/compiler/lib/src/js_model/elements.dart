@@ -102,40 +102,6 @@ class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
   String toString() => '${jsElementPrefix}class($name)';
 }
 
-class JTypedef extends IndexedTypedef {
-  /// Tag used for identifying serialized [JTypedef] objects in a
-  /// debugging data stream.
-  static const String tag = 'typedef';
-
-  @override
-  final JLibrary library;
-
-  @override
-  final String name;
-
-  JTypedef(this.library, this.name);
-
-  /// Deserializes a [JTypedef] object from [source].
-  factory JTypedef.readFromDataSource(DataSource source) {
-    source.begin(tag);
-    JLibrary library = source.readLibrary();
-    String name = source.readString();
-    source.end(tag);
-    return new JTypedef(library, name);
-  }
-
-  /// Serializes this [JTypedef] to [sink].
-  void writeToDataSink(DataSink sink) {
-    sink.begin(tag);
-    sink.writeLibrary(library);
-    sink.writeString(name);
-    sink.end(tag);
-  }
-
-  @override
-  String toString() => '${jsElementPrefix}typedef($name)';
-}
-
 /// Enum used for identifying [JMember] subclasses in serialization.
 enum JMemberKind {
   generativeConstructor,
@@ -787,7 +753,7 @@ class JSignatureMethod extends JMethod {
 }
 
 /// Enum used for identifying [JTypeVariable] variants in serialization.
-enum JTypeVariableKind { cls, member, typedef, local }
+enum JTypeVariableKind { cls, member, local }
 
 class JTypeVariable extends IndexedTypeVariable {
   /// Tag used for identifying serialized [JTypeVariable] objects in a
@@ -815,9 +781,6 @@ class JTypeVariable extends IndexedTypeVariable {
       case JTypeVariableKind.member:
         typeDeclaration = source.readMember();
         break;
-      case JTypeVariableKind.typedef:
-        typeDeclaration = source.readTypedef();
-        break;
       case JTypeVariableKind.local:
         // Type variables declared by local functions don't point to their
         // declaration, since the corresponding closure call methods is created
@@ -842,10 +805,6 @@ class JTypeVariable extends IndexedTypeVariable {
       IndexedMember member = typeDeclaration;
       sink.writeEnum(JTypeVariableKind.member);
       sink.writeMember(member);
-    } else if (typeDeclaration is IndexedTypedef) {
-      IndexedTypedef typedef = typeDeclaration;
-      sink.writeEnum(JTypeVariableKind.typedef);
-      sink.writeTypedef(typedef);
     } else if (typeDeclaration == null) {
       sink.writeEnum(JTypeVariableKind.local);
     } else {

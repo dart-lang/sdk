@@ -6,10 +6,16 @@
 // on the dart2js internals.
 library compiler.src.kernel.dart2js_target;
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show Message, LocatedMessage;
+import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/reference_from_index.dart';
+import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
+
 import 'invocation_mirror_constants.dart';
 
 const Iterable<String> _allowedDartSchemePaths = const <String>[
@@ -44,6 +50,7 @@ bool maybeEnableNative(Uri uri) {
 
 /// A kernel [Target] to configure the Dart Front End for dart2js.
 class Dart2jsTarget extends Target {
+  @override
   final TargetFlags flags;
   @override
   final String name;
@@ -53,10 +60,13 @@ class Dart2jsTarget extends Target {
   @override
   bool get enableNoSuchMethodForwarders => true;
 
-  // TODO(johnniwinther): Change this to `false` when late field lowering is
-  // ready.
   @override
-  bool get supportsLateFields => true;
+  bool get supportsLateFields => false;
+
+  // TODO(johnniwinther,sigmund): Remove this when js-interop handles getter
+  //  calls encoded with an explicit property get or disallows getter calls.
+  @override
+  bool get supportsExplicitGetterCalls => false;
 
   @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name];
@@ -88,7 +98,15 @@ class Dart2jsTarget extends Target {
       List<ir.Library> libraries,
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg)}) {}
+      ReferenceFromIndex referenceFromIndex,
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {
+    for (var library in libraries) {
+      JsInteropChecks(
+              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
+          .visitLibrary(library);
+    }
+  }
 
   @override
   ir.Expression instantiateInvocation(
@@ -122,7 +140,7 @@ class Dart2jsTarget extends Target {
                 new ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
                 arg.value)
               ..fileOffset = arg.fileOffset;
-          })), keyType: coreTypes.stringLegacyRawType)
+          })), keyType: coreTypes.stringNonNullableRawType)
             ..isConst = (arguments.named.length == 0)
             ..fileOffset = arguments.fileOffset,
           new ir.IntLiteral(kind)..fileOffset = offset,
@@ -171,7 +189,6 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:io',
     'dart:js',
     'dart:js_util',
-    'dart:mirrors',
     'dart:svg',
     'dart:web_audio',
     'dart:web_gl',
@@ -190,7 +207,6 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:io',
     'dart:js',
     'dart:js_util',
-    'dart:mirrors',
   ]
 };
 

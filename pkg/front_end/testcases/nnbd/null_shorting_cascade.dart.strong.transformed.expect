@@ -1,9 +1,9 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     : super core::Object::•()
     ;
   method method() → self::Class
@@ -15,12 +15,12 @@ extension Extension on self::Class {
 }
 static method Extension|extensionMethod(final self::Class #this) → self::Class
   return #this;
-static method Extension|get#extensionMethod(final self::Class #this) → () →* self::Class
+static method Extension|get#extensionMethod(final self::Class #this) → () → self::Class
   return () → self::Class => self::Extension|extensionMethod(#this);
 static method main() → dynamic {
   self::Class? c;
-  let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{self::Class?} null : let final void #t2 = #t1.{self::Class::method}() in #t1;
-  let final self::Class? #t3 = c in #t3.{core::Object::==}(null) ?{self::Class?} null : let final void #t4 = #t3.{self::Class::method}() in let final void #t5 = #t3.{self::Class::method}() in #t3;
-  let final self::Class? #t6 = c in #t6.{core::Object::==}(null) ?{self::Class?} null : let final void #t7 = self::Extension|extensionMethod(#t6) in #t6;
-  let final self::Class? #t8 = c in #t8.{core::Object::==}(null) ?{self::Class?} null : let final void #t9 = self::Extension|extensionMethod(#t8) in let final void #t10 = self::Extension|extensionMethod(#t8) in #t8;
+  let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{self::Class?} null : let final void #t2 = #t1{self::Class}.{self::Class::method}() in #t1;
+  let final self::Class? #t3 = c in #t3.{core::Object::==}(null) ?{self::Class?} null : let final void #t4 = #t3{self::Class}.{self::Class::method}() in let final void #t5 = #t3{self::Class}.{self::Class::method}() in #t3;
+  let final self::Class? #t6 = c in #t6.{core::Object::==}(null) ?{self::Class?} null : let final void #t7 = self::Extension|extensionMethod(#t6{self::Class}) in #t6;
+  let final self::Class? #t8 = c in #t8.{core::Object::==}(null) ?{self::Class?} null : let final void #t9 = self::Extension|extensionMethod(#t8{self::Class}) in let final void #t10 = self::Extension|extensionMethod(#t8{self::Class}) in #t8;
 }

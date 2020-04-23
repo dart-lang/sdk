@@ -7,13 +7,12 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationAnalyzedFilesTest);
   });
@@ -39,22 +38,23 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
     await pumpEventQueue(times: 5000);
   }
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ANALYZED_FILES) {
-      AnalysisAnalyzedFilesParams params =
-          new AnalysisAnalyzedFilesParams.fromNotification(notification);
+      var params = AnalysisAnalyzedFilesParams.fromNotification(notification);
       analyzedFilesReceived = true;
       analyzedFiles = params.directories;
     }
   }
 
+  @override
   void setUp() {
     generateSummaryFiles = true;
     super.setUp();
     createProject();
   }
 
-  test_afterAnalysis() async {
+  Future<void> test_afterAnalysis() async {
     addTestFile('''
 class A {}
 ''');
@@ -63,7 +63,7 @@ class A {}
     assertHasFile(testFile);
   }
 
-  test_beforeAnalysis() async {
+  Future<void> test_beforeAnalysis() async {
     addTestFile('''
 class A {}
 ''');
@@ -71,8 +71,8 @@ class A {}
     assertHasFile(testFile);
   }
 
-  test_beforeAnalysis_excludeYamlFiles() async {
-    File yamlFile = getFolder(projectPath).getChildAssumingFile('sample.yaml');
+  Future<void> test_beforeAnalysis_excludeYamlFiles() async {
+    var yamlFile = getFolder(projectPath).getChildAssumingFile('sample.yaml');
     yamlFile.writeAsStringSync('');
     addTestFile('''
 class A {}
@@ -82,7 +82,7 @@ class A {}
     assertHasNoFile(yamlFile.path);
   }
 
-  test_insignificant_change() async {
+  Future<void> test_insignificant_change() async {
     // Making a change that doesn't affect the set of reachable files should
     // not trigger the notification to be re-sent.
     addTestFile('class A {}');
@@ -95,7 +95,7 @@ class A {}
     expect(analyzedFilesReceived, isFalse);
   }
 
-  test_resubscribe_no_changes() async {
+  Future<void> test_resubscribe_no_changes() async {
     // Unsubscribing and resubscribing should cause the notification to be
     // re-sent, even if nothing has changed.
     addTestFile('class A {}');
@@ -110,7 +110,7 @@ class A {}
     assertHasFile(testFile);
   }
 
-  test_significant_change() async {
+  Future<void> test_significant_change() async {
     // Making a change that *does* affect the set of reachable files should
     // trigger the notification to be re-sent.
     addTestFile('class A {}');

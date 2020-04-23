@@ -2171,13 +2171,13 @@
       of specified sources if a change in a specified source requires it.
     </p>
     <p>
-      If includedFixes is specified, then those fixes will be applied.
-      If includeRequiredFixes is specified, then "required" fixes will be applied
-      in addition to whatever fixes are specified in includedFixes if any.
-      If neither includedFixes nor includeRequiredFixes is specified,
-      then all fixes will be applied.
-      If excludedFixes is specified, then those fixes will not be applied
-      regardless of whether they are "required" or specified in includedFixes.
+      If includedFixes is specified, then those fixes will be applied. If
+      includePedanticFixes is specified, then fixes associated with the pedantic
+      rule set will be applied in addition to whatever fixes are specified in
+      includedFixes if any. If neither includedFixes nor includePedanticFixes is
+      specified, then no fixes will be applied. If excludedFixes is specified,
+      then those fixes will not be applied regardless of whether they are
+      specified in includedFixes.
     </p>
     <params>
       <field name="included">
@@ -2185,14 +2185,17 @@
           <ref>FilePath</ref>
         </list>
         <p>
-          A list of the files and directories for which edits should be suggested.
+          A list of the files and directories for which edits should be
+          suggested.
         </p>
         <p>
-          If a request is made with a path that is invalid, e.g. is not absolute and normalized,
-          an error of type <tt>INVALID_FILE_PATH_FORMAT</tt> will be generated.
-          If a request is made for a file which does not exist, or which is not currently subject to analysis
-          (e.g. because it is not associated with any analysis root specified to analysis.setAnalysisRoots),
-          an error of type <tt>FILE_NOT_ANALYZED</tt> will be generated.
+          If a request is made with a path that is invalid, e.g. is not absolute
+          and normalized, an error of type <tt>INVALID_FILE_PATH_FORMAT</tt>
+          will be generated. If a request is made for a file which does not
+          exist, or which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>FILE_NOT_ANALYZED</tt> will be generated.
         </p>
       </field>
       <field name="includedFixes" optional="true">
@@ -2203,20 +2206,14 @@
           A list of names indicating which fixes should be applied.
         </p>
         <p>
-          If a name is specified that does not match the name of a known fix,
-          an error of type <tt>UNKNOWN_FIX</tt> will be generated.
+          If a name is specified that does not match the name of a known fix, an
+          error of type <tt>UNKNOWN_FIX</tt> will be generated.
         </p>
       </field>
       <field name="includePedanticFixes" optional="true">
         <ref>bool</ref>
         <p>
-          A flag indicating that "pedantic" fixes should be applied.
-        </p>
-      </field>
-      <field name="includeRequiredFixes" optional="true">
-        <ref>bool</ref>
-        <p>
-          A flag indicating that "required" fixes should be applied.
+          A flag indicating whether "pedantic" fixes should be applied.
         </p>
       </field>
       <field name="excludedFixes" optional="true">
@@ -2227,25 +2224,20 @@
           A list of names indicating which fixes should not be applied.
         </p>
         <p>
-          If a name is specified that does not match the name of a known fix,
-          an error of type <tt>UNKNOWN_FIX</tt> will be generated.
+          If a name is specified that does not match the name of a known fix, an
+          error of type <tt>UNKNOWN_FIX</tt> will be generated.
         </p>
       </field>
-      <field name="port" optional="true">
+      <field name="port" optional="true" deprecated="true">
         <ref>int</ref>
         <p>
-          The port to be used to listen for and respond to http requests for
-          preview pages.
+          <b>Deprecated:</b> This field is now ignored by server.
         </p>
       </field>
-      <field name="outputDir" optional="true">
+      <field name="outputDir" optional="true" deprecated="true">
         <ref>FilePath</ref>
         <p>
-          The absolute and normalized path to a directory to which
-          non-nullability migration output will be written. The output is only
-          produced if the non-nullable fix is included. Files in the directory
-          might be overwritten, but no previously existing files will be
-          deleted.
+          <b>Deprecated:</b> This field is now ignored by server.
         </p>
       </field>
     </params>
@@ -2292,6 +2284,23 @@
           details that users might want to explore before committing the changes
           or (b) describe exceptions that were thrown but that did not stop the
           fixes from being produced. The list will be omitted if it is empty.
+        </p>
+      </field>
+      <field name="port" optional="true">
+        <ref>int</ref>
+        <p>
+          The port on which the preview tool will respond to GET requests. The
+          field is omitted if a preview was not requested.
+        </p>
+      </field>
+      <field name="urls" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          The URLs that users can visit in a browser to see a preview of the
+          proposed changes. There is one URL for each of the included file
+          paths. The field is omitted if a preview was not requested.
         </p>
       </field>
     </result>
@@ -3181,6 +3190,11 @@
     <p>
       If the location does not have a support widget, an error of type
       <tt>FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET</tt> will be generated.
+    </p>
+    <p>
+      If a change to a file happens while widget descriptions are computed,
+      an error of type <tt>FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED</tt>
+      will be generated.
     </p>
     <params>
       <field name="file">
@@ -4900,6 +4914,12 @@
         </p>
       </value>
       <value>
+        <code>FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED</code>
+        <p>
+          A file was change while widget descriptions were being computed.
+        </p>
+      </value>
+      <value>
         <code>FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET</code>
         <p>
           The given location does not have a supported widget.
@@ -5149,12 +5169,6 @@
         <ref>String</ref>
         <p>
           A human readable description of the fix.
-        </p>
-      </field>
-      <field name="isRequired" optional="true">
-        <ref>bool</ref>
-        <p>
-          `true` if the fix is in the "required" fixes group.
         </p>
       </field>
     </object>

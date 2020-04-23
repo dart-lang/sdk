@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveDeadCodeTest);
   });
@@ -19,7 +19,7 @@ class RemoveDeadCodeTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_DEAD_CODE;
 
-  test_catch_afterCatchAll_catch() async {
+  Future<void> test_catch_afterCatchAll_catch() async {
     await resolveTestUnit('''
 main() {
   try {
@@ -40,7 +40,7 @@ main() {
 ''');
   }
 
-  test_catch_afterCatchAll_on() async {
+  Future<void> test_catch_afterCatchAll_on() async {
     await resolveTestUnit('''
 main() {
   try {
@@ -61,7 +61,7 @@ main() {
 ''');
   }
 
-  test_catch_subtype() async {
+  Future<void> test_catch_subtype() async {
     await resolveTestUnit('''
 class A {}
 class B extends A {}
@@ -86,7 +86,7 @@ main() {
 ''');
   }
 
-  test_condition() async {
+  Future<void> test_condition() async {
     await resolveTestUnit('''
 main(int p) {
   if (true || p > 5) {
@@ -103,7 +103,7 @@ main(int p) {
 ''');
   }
 
-  test_statements_one() async {
+  Future<void> test_statements_one() async {
     await resolveTestUnit('''
 int main() {
   print(0);
@@ -119,7 +119,7 @@ int main() {
 ''');
   }
 
-  test_statements_two() async {
+  Future<void> test_statements_two() async {
     await resolveTestUnit('''
 int main() {
   print(0);

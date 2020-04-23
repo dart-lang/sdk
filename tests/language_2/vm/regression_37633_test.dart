@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--deterministic --enable-inlining-annotations
+// VMOptions=--deterministic
 
 // Issue #37633 found with fuzzing: internal compiler crash (parallel move).
 
@@ -10,13 +10,11 @@ import 'dart:math';
 
 import "package:expect/expect.dart";
 
-const String NeverInline = 'NeverInline';
-
 double foo0() {
   return acos(0.9474715118880382);
 }
 
-@NeverInline
+@pragma('vm:never-inline')
 double foo() {
   return atan2(foo0(), foo0());
 }

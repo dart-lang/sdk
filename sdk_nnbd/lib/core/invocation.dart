@@ -21,7 +21,7 @@ abstract class Invocation {
    * If the named arguments are omitted, they default to no named arguments.
    */
   factory Invocation.method(
-          Symbol memberName, Iterable<Object?> positionalArguments,
+          Symbol memberName, Iterable<Object?>? positionalArguments,
           [Map<Symbol, Object?>? namedArguments]) =>
       _Invocation.method(memberName, null, positionalArguments, namedArguments);
 
@@ -35,7 +35,7 @@ abstract class Invocation {
    * If the named arguments are omitted, they default to no named arguments.
    */
   factory Invocation.genericMethod(Symbol memberName,
-          Iterable<Type> typeArguments, Iterable<Object?> positionalArguments,
+          Iterable<Type>? typeArguments, Iterable<Object?>? positionalArguments,
           [Map<Symbol, Object?>? namedArguments]) =>
       _Invocation.method(
           memberName, typeArguments, positionalArguments, namedArguments);
@@ -118,8 +118,7 @@ class _Invocation implements Invocation {
 
   _Invocation.method(this.memberName, Iterable<Type>? types,
       Iterable<Object?>? positional, Map<Symbol, Object?>? named)
-      : typeArguments =
-            types == null ? const <Type>[] : List<Type>.unmodifiable(types),
+      : typeArguments = _ensureNonNullTypes(types),
         _positional = positional == null
             ? const <Object?>[]
             : List<Object?>.unmodifiable(positional),
@@ -145,4 +144,17 @@ class _Invocation implements Invocation {
   bool get isGetter => _positional == null;
   bool get isSetter => _positional != null && _named == null;
   bool get isAccessor => _named == null;
+
+  /// Checks that the elements of [types] are not null.
+  static List<Type> _ensureNonNullTypes(Iterable<Type>? types) {
+    if (types == null) return const <Type>[];
+    List<Type> typeArguments = List<Type>.unmodifiable(types);
+    for (int i = 0; i < typeArguments.length; i++) {
+      if (typeArguments[i] == null) {
+        throw ArgumentError.value(types, "types",
+            "Type arguments must be non-null, was null at index $i.");
+      }
+    }
+    return typeArguments;
+  }
 }

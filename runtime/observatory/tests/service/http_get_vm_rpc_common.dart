@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
+import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart' as S;
-import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 Future<Null> testeeBefore() async {
@@ -15,7 +15,7 @@ Future<Null> testeeBefore() async {
   print(await Service.getInfo());
   // Start the web server.
   ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
-  expect(info.serverUri, isNotNull);
+  Expect.isNotNull(info.serverUri);
   var httpClient = new io.HttpClient();
 
   // Build the request.
@@ -36,20 +36,20 @@ Future<Null> testeeBefore() async {
         .transform(json.decoder)
         .first;
     Map result = response['result'];
-    expect(result['type'], equals('VM'));
-    expect(result['name'], equals('vm'));
-    expect(result['architectureBits'], isPositive);
-    expect(result['targetCPU'], new isInstanceOf<String>());
-    expect(result['hostCPU'], new isInstanceOf<String>());
-    expect(result['version'], new isInstanceOf<String>());
-    expect(result['pid'], new isInstanceOf<int>());
-    expect(result['startTime'], isPositive);
-    expect(result['isolates'].length, isPositive);
-    expect(result['isolates'][0]['type'], equals('@Isolate'));
-    expect(result['isolateGroups'].length, isPositive);
-    expect(result['isolateGroups'][0]['type'], equals('@IsolateGroup'));
+    Expect.equals(result['type'], 'VM');
+    Expect.equals(result['name'], 'vm');
+    Expect.isTrue(result['architectureBits'] > 0);
+    Expect.type<String>(result['targetCPU']);
+    Expect.type<String>(result['hostCPU']);
+    Expect.type<String>(result['version']);
+    Expect.type<int>(result['pid']);
+    Expect.isTrue(result['startTime'] > 0);
+    Expect.isTrue(result['isolates'].length > 0);
+    Expect.equals(result['isolates'][0]['type'], '@Isolate');
+    Expect.isTrue(result['isolateGroups'].length > 0);
+    Expect.equals(result['isolateGroups'][0]['type'], '@IsolateGroup');
   } catch (e) {
-    fail('invalid request: $e');
+    Expect.fail('invalid request: $e');
   }
 }
 
@@ -58,6 +58,5 @@ var tests = <IsolateTest>[
     await isolate.reload();
     // Just getting here means that the testee enabled the service protocol
     // web server.
-    expect(true, true);
   }
 ];

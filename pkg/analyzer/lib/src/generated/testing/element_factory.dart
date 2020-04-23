@@ -9,14 +9,16 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -50,7 +52,7 @@ class ElementFactory {
   static ClassElementImpl classElement(
       String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
-    ClassElementImpl element = new ClassElementImpl(typeName, 0);
+    ClassElementImpl element = ClassElementImpl(typeName, 0);
     element.constructors = const <ConstructorElement>[];
     element.supertype = superclassType;
     if (parameterNames != null) {
@@ -98,8 +100,8 @@ class ElementFactory {
   static CompilationUnitElementImpl compilationUnit(String fileName,
       [Source librarySource]) {
     Source source =
-        new NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
-    CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
+        NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
+    CompilationUnitElementImpl unit = CompilationUnitElementImpl();
     unit.source = source;
     if (librarySource == null) {
       librarySource = source;
@@ -109,14 +111,14 @@ class ElementFactory {
   }
 
   static ConstLocalVariableElementImpl constLocalVariableElement(String name) =>
-      new ConstLocalVariableElementImpl(name, 0);
+      ConstLocalVariableElementImpl(name, 0);
 
   static ConstructorElementImpl constructorElement(
       ClassElement definingClass, String name, bool isConst,
       [List<DartType> argumentTypes]) {
     ConstructorElementImpl constructor = name == null
-        ? new ConstructorElementImpl("", -1)
-        : new ConstructorElementImpl(name, 0);
+        ? ConstructorElementImpl("", -1)
+        : ConstructorElementImpl(name, 0);
     if (name != null) {
       if (name.isEmpty) {
         constructor.nameEnd = definingClass.name.length;
@@ -129,9 +131,9 @@ class ElementFactory {
     constructor.isConst = isConst;
     if (argumentTypes != null) {
       int count = argumentTypes.length;
-      List<ParameterElement> parameters = new List<ParameterElement>(count);
+      List<ParameterElement> parameters = List<ParameterElement>(count);
       for (int i = 0; i < count; i++) {
-        ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
+        ParameterElementImpl parameter = ParameterElementImpl("a$i", i);
         parameter.type = argumentTypes[i];
         parameter.parameterKind = ParameterKind.REQUIRED;
         parameters[i] = parameter;
@@ -152,12 +154,19 @@ class ElementFactory {
           [List<DartType> argumentTypes]) =>
       constructorElement(definingClass, name, false, argumentTypes);
 
+  @deprecated
   static EnumElementImpl enumElement(TypeProvider typeProvider, String enumName,
       [List<String> constantNames]) {
+    var typeSystem = TypeSystemImpl(
+      implicitCasts: false,
+      isNonNullableByDefault: false,
+      strictInference: false,
+      typeProvider: typeProvider,
+    );
     //
     // Build the enum.
     //
-    EnumElementImpl enumElement = new EnumElementImpl(enumName, -1);
+    EnumElementImpl enumElement = EnumElementImpl(enumName, -1);
     InterfaceTypeImpl enumType = enumElement.instantiate(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.star,
@@ -165,20 +174,20 @@ class ElementFactory {
     //
     // Populate the fields.
     //
-    List<FieldElement> fields = new List<FieldElement>();
+    List<FieldElement> fields = <FieldElement>[];
     InterfaceType intType = typeProvider.intType;
     InterfaceType stringType = typeProvider.stringType;
     String indexFieldName = "index";
-    FieldElementImpl indexField = new FieldElementImpl(indexFieldName, -1);
+    FieldElementImpl indexField = FieldElementImpl(indexFieldName, -1);
     indexField.isFinal = true;
     indexField.type = intType;
     fields.add(indexField);
     String nameFieldName = "_name";
-    FieldElementImpl nameField = new FieldElementImpl(nameFieldName, -1);
+    FieldElementImpl nameField = FieldElementImpl(nameFieldName, -1);
     nameField.isFinal = true;
     nameField.type = stringType;
     fields.add(nameField);
-    FieldElementImpl valuesField = new FieldElementImpl("values", -1);
+    FieldElementImpl valuesField = FieldElementImpl("values", -1);
     valuesField.isStatic = true;
     valuesField.isConst = true;
     valuesField.type = typeProvider.listType2(enumType);
@@ -191,18 +200,19 @@ class ElementFactory {
       for (int i = 0; i < constantCount; i++) {
         String constantName = constantNames[i];
         FieldElementImpl constantElement =
-            new ConstFieldElementImpl(constantName, -1);
+            ConstFieldElementImpl(constantName, -1);
         constantElement.isStatic = true;
         constantElement.isConst = true;
         constantElement.type = enumType;
         Map<String, DartObjectImpl> fieldMap =
-            new HashMap<String, DartObjectImpl>();
-        fieldMap[indexFieldName] = new DartObjectImpl(intType, new IntState(i));
+            HashMap<String, DartObjectImpl>();
+        fieldMap[indexFieldName] =
+            DartObjectImpl(typeSystem, intType, IntState(i));
         fieldMap[nameFieldName] =
-            new DartObjectImpl(stringType, new StringState(constantName));
+            DartObjectImpl(typeSystem, stringType, StringState(constantName));
         DartObjectImpl value =
-            new DartObjectImpl(enumType, new GenericState(fieldMap));
-        constantElement.evaluationResult = new EvaluationResultImpl(value);
+            DartObjectImpl(typeSystem, enumType, GenericState(fieldMap));
+        constantElement.evaluationResult = EvaluationResultImpl(value);
         fields.add(constantElement);
       }
     }
@@ -216,7 +226,7 @@ class ElementFactory {
 
   static ExportElementImpl exportFor(LibraryElement exportedLibrary,
       [List<NamespaceCombinator> combinators = const <NamespaceCombinator>[]]) {
-    ExportElementImpl spec = new ExportElementImpl(-1);
+    ExportElementImpl spec = ExportElementImpl(-1);
     spec.exportedLibrary = exportedLibrary;
     spec.combinators = combinators;
     return spec;
@@ -229,9 +239,8 @@ class ElementFactory {
   static FieldElementImpl fieldElement(
       String name, bool isStatic, bool isFinal, bool isConst, DartType type,
       {Expression initializer}) {
-    FieldElementImpl field = isConst
-        ? new ConstFieldElementImpl(name, 0)
-        : new FieldElementImpl(name, 0);
+    FieldElementImpl field =
+        isConst ? ConstFieldElementImpl(name, 0) : FieldElementImpl(name, 0);
     field.isConst = isConst;
     field.isFinal = isFinal;
     field.isStatic = isStatic;
@@ -239,16 +248,16 @@ class ElementFactory {
     if (isConst) {
       (field as ConstFieldElementImpl).constantInitializer = initializer;
     }
-    new PropertyAccessorElementImpl_ImplicitGetter(field);
+    PropertyAccessorElementImpl_ImplicitGetter(field);
     if (!isConst && !isFinal) {
-      new PropertyAccessorElementImpl_ImplicitSetter(field);
+      PropertyAccessorElementImpl_ImplicitSetter(field);
     }
     return field;
   }
 
   static FieldFormalParameterElementImpl fieldFormalParameter(
           Identifier name) =>
-      new FieldFormalParameterElementImpl(name.name, name.offset);
+      FieldFormalParameterElementImpl(name.name, name.offset);
 
   /**
    * Destroy any static state retained by [ElementFactory].  This should be
@@ -272,17 +281,16 @@ class ElementFactory {
       List<TypeDefiningElement> normalParameters,
       List<TypeDefiningElement> optionalParameters) {
     // We don't create parameter elements because we don't have parameter names
-    FunctionElementImpl functionElement =
-        new FunctionElementImpl(functionName, 0);
+    FunctionElementImpl functionElement = FunctionElementImpl(functionName, 0);
     functionElement.returnType = returnType ?? VoidTypeImpl.instance;
     // parameters
     int normalCount = normalParameters == null ? 0 : normalParameters.length;
     int optionalCount =
         optionalParameters == null ? 0 : optionalParameters.length;
     int totalCount = normalCount + optionalCount;
-    List<ParameterElement> parameters = new List<ParameterElement>(totalCount);
+    List<ParameterElement> parameters = List<ParameterElement>(totalCount);
     for (int i = 0; i < totalCount; i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
+      ParameterElementImpl parameter = ParameterElementImpl("a$i", i);
       if (i < normalCount) {
         parameter.type = _typeDefiningElementType(normalParameters[i]);
         parameter.parameterKind = ParameterKind.REQUIRED;
@@ -304,27 +312,26 @@ class ElementFactory {
       List<ClassElement> normalParameters,
       List<String> names,
       List<ClassElement> namedParameters) {
-    FunctionElementImpl functionElement =
-        new FunctionElementImpl(functionName, 0);
+    FunctionElementImpl functionElement = FunctionElementImpl(functionName, 0);
     // parameters
     int normalCount = normalParameters == null ? 0 : normalParameters.length;
     int nameCount = names == null ? 0 : names.length;
     int typeCount = namedParameters == null ? 0 : namedParameters.length;
     if (names != null && nameCount != typeCount) {
-      throw new StateError(
+      throw StateError(
           "The passed String[] and ClassElement[] arrays had different lengths.");
     }
     int totalCount = normalCount + nameCount;
-    List<ParameterElement> parameters = new List<ParameterElement>(totalCount);
+    List<ParameterElement> parameters = List<ParameterElement>(totalCount);
     for (int i = 0; i < totalCount; i++) {
       if (i < normalCount) {
-        ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
+        ParameterElementImpl parameter = ParameterElementImpl("a$i", i);
         parameter.type = _typeDefiningElementType(normalParameters[i]);
         parameter.parameterKind = ParameterKind.REQUIRED;
         parameters[i] = parameter;
       } else {
         ParameterElementImpl parameter =
-            new ParameterElementImpl(names[i - normalCount], i);
+            ParameterElementImpl(names[i - normalCount], i);
         parameter.type =
             _typeDefiningElementType(namedParameters[i - normalCount]);
         parameter.parameterKind = ParameterKind.NAMED;
@@ -363,10 +370,9 @@ class ElementFactory {
   static FunctionElementImpl functionElement8(
       List<DartType> parameters, DartType returnType,
       {List<DartType> optional, Map<String, DartType> named}) {
-    List<ParameterElement> parameterElements = new List<ParameterElement>();
+    List<ParameterElement> parameterElements = <ParameterElement>[];
     for (int i = 0; i < parameters.length; i++) {
-      ParameterElementImpl parameterElement =
-          new ParameterElementImpl("a$i", i);
+      ParameterElementImpl parameterElement = ParameterElementImpl("a$i", i);
       parameterElement.type = parameters[i];
       parameterElement.parameterKind = ParameterKind.REQUIRED;
       parameterElements.add(parameterElement);
@@ -374,8 +380,7 @@ class ElementFactory {
     if (optional != null) {
       int j = parameters.length;
       for (int i = 0; i < optional.length; i++) {
-        ParameterElementImpl parameterElement =
-            new ParameterElementImpl("o$i", j);
+        ParameterElementImpl parameterElement = ParameterElementImpl("o$i", j);
         parameterElement.type = optional[i];
         parameterElement.parameterKind = ParameterKind.POSITIONAL;
         parameterElements.add(parameterElement);
@@ -384,7 +389,7 @@ class ElementFactory {
     } else if (named != null) {
       int j = parameters.length;
       for (String s in named.keys) {
-        ParameterElementImpl parameterElement = new ParameterElementImpl(s, j);
+        ParameterElementImpl parameterElement = ParameterElementImpl(s, j);
         parameterElement.type = named[s];
         parameterElement.parameterKind = ParameterKind.NAMED;
         parameterElements.add(parameterElement);
@@ -396,8 +401,7 @@ class ElementFactory {
 
   static FunctionElementImpl functionElementWithParameters(String functionName,
       DartType returnType, List<ParameterElement> parameters) {
-    FunctionElementImpl functionElement =
-        new FunctionElementImpl(functionName, 0);
+    FunctionElementImpl functionElement = FunctionElementImpl(functionName, 0);
     functionElement.returnType =
         returnType == null ? VoidTypeImpl.instance : returnType;
     functionElement.parameters = parameters;
@@ -405,9 +409,9 @@ class ElementFactory {
   }
 
   static GenericTypeAliasElementImpl genericTypeAliasElement(String name,
-      {List<ParameterElement> parameters: const [], DartType returnType}) {
-    var element = new GenericTypeAliasElementImpl(name, -1);
-    element.function = new GenericFunctionTypeElementImpl.forOffset(-1)
+      {List<ParameterElement> parameters = const [], DartType returnType}) {
+    var element = GenericTypeAliasElementImpl(name, -1);
+    element.function = GenericFunctionTypeElementImpl.forOffset(-1)
       ..parameters = parameters
       ..returnType = returnType ?? DynamicTypeImpl.instance;
     return element;
@@ -415,13 +419,12 @@ class ElementFactory {
 
   static PropertyAccessorElementImpl getterElement(
       String name, bool isStatic, DartType type) {
-    FieldElementImpl field = new FieldElementImpl(name, -1);
+    FieldElementImpl field = FieldElementImpl(name, -1);
     field.isStatic = isStatic;
     field.isSynthetic = true;
     field.type = type;
     field.isFinal = true;
-    PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl(name, 0);
+    PropertyAccessorElementImpl getter = PropertyAccessorElementImpl(name, 0);
     getter.isSynthetic = false;
     getter.getter = true;
     getter.variable = field;
@@ -434,7 +437,7 @@ class ElementFactory {
   static ImportElementImpl importFor(
       LibraryElement importedLibrary, PrefixElement prefix,
       [List<NamespaceCombinator> combinators = const <NamespaceCombinator>[]]) {
-    ImportElementImpl spec = new ImportElementImpl(0);
+    ImportElementImpl spec = ImportElementImpl(0);
     spec.importedLibrary = importedLibrary;
     spec.prefix = prefix;
     spec.combinators = combinators;
@@ -442,31 +445,36 @@ class ElementFactory {
   }
 
   static LibraryElementImpl library(AnalysisContext context, String libraryName,
-      {bool isNonNullableByDefault: true}) {
+      {bool isNonNullableByDefault = true}) {
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
-    LibraryElementImpl library = new LibraryElementImpl(context, null,
-        libraryName, 0, libraryName.length, isNonNullableByDefault);
+    LibraryElementImpl library = LibraryElementImpl(
+        context,
+        AnalysisSessionImpl(null),
+        libraryName,
+        0,
+        libraryName.length,
+        isNonNullableByDefault);
     library.definingCompilationUnit = unit;
     return library;
   }
 
   static LocalVariableElementImpl localVariableElement(Identifier name) =>
-      new LocalVariableElementImpl(name.name, name.offset);
+      LocalVariableElementImpl(name.name, name.offset);
 
   static LocalVariableElementImpl localVariableElement2(String name) =>
-      new LocalVariableElementImpl(name, 0);
+      LocalVariableElementImpl(name, 0);
 
   static MethodElementImpl methodElement(String methodName, DartType returnType,
       [List<DartType> argumentTypes]) {
-    MethodElementImpl method = new MethodElementImpl(methodName, 0);
+    MethodElementImpl method = MethodElementImpl(methodName, 0);
     if (argumentTypes == null) {
       method.parameters = const <ParameterElement>[];
     } else {
       int count = argumentTypes.length;
-      List<ParameterElement> parameters = new List<ParameterElement>(count);
+      List<ParameterElement> parameters = List<ParameterElement>(count);
       for (int i = 0; i < count; i++) {
-        ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
+        ParameterElementImpl parameter = ParameterElementImpl("a$i", i);
         parameter.type = argumentTypes[i];
         parameter.parameterKind = ParameterKind.REQUIRED;
         parameters[i] = parameter;
@@ -482,7 +490,7 @@ class ElementFactory {
       String methodName,
       DartType returnType,
       List<ParameterElement> parameters) {
-    MethodElementImpl method = new MethodElementImpl(methodName, 0);
+    MethodElementImpl method = MethodElementImpl(methodName, 0);
     method.enclosingElement = enclosingElement;
     method.parameters = parameters;
     method.returnType = returnType;
@@ -511,13 +519,13 @@ class ElementFactory {
   }
 
   static ParameterElementImpl namedParameter(String name) {
-    ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
+    ParameterElementImpl parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED;
     return parameter;
   }
 
   static ParameterElementImpl namedParameter2(String name, DartType type) {
-    ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
+    ParameterElementImpl parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED;
     parameter.type = type;
     return parameter;
@@ -526,7 +534,7 @@ class ElementFactory {
   static ParameterElementImpl namedParameter3(String name,
       {DartType type, Expression initializer, String initializerCode}) {
     DefaultParameterElementImpl parameter =
-        new DefaultParameterElementImpl(name, 0);
+        DefaultParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED;
     parameter.type = type;
     parameter.constantInitializer = initializer;
@@ -535,29 +543,28 @@ class ElementFactory {
   }
 
   static ParameterElementImpl positionalParameter(String name) {
-    ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
+    ParameterElementImpl parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.POSITIONAL;
     return parameter;
   }
 
   static ParameterElementImpl positionalParameter2(String name, DartType type) {
-    ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
+    ParameterElementImpl parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.POSITIONAL;
     parameter.type = type;
     return parameter;
   }
 
-  static PrefixElementImpl prefix(String name) =>
-      new PrefixElementImpl(name, 0);
+  static PrefixElementImpl prefix(String name) => PrefixElementImpl(name, 0);
 
   static ParameterElementImpl requiredParameter(String name) {
-    ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
+    ParameterElementImpl parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.REQUIRED;
     return parameter;
   }
 
   static ParameterElementImpl requiredParameter2(String name, DartType type) {
-    ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
+    ParameterElementImpl parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.REQUIRED;
     parameter.type = type;
     return parameter;
@@ -565,19 +572,17 @@ class ElementFactory {
 
   static PropertyAccessorElementImpl setterElement(
       String name, bool isStatic, DartType type) {
-    FieldElementImpl field = new FieldElementImpl(name, -1);
+    FieldElementImpl field = FieldElementImpl(name, -1);
     field.isStatic = isStatic;
     field.isSynthetic = true;
     field.type = type;
-    PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl(name, -1);
+    PropertyAccessorElementImpl getter = PropertyAccessorElementImpl(name, -1);
     getter.getter = true;
     getter.variable = field;
     getter.returnType = type;
     field.getter = getter;
     ParameterElementImpl parameter = requiredParameter2("a", type);
-    PropertyAccessorElementImpl setter =
-        new PropertyAccessorElementImpl(name, -1);
+    PropertyAccessorElementImpl setter = PropertyAccessorElementImpl(name, -1);
     setter.setter = true;
     setter.isSynthetic = true;
     setter.variable = field;
@@ -589,7 +594,7 @@ class ElementFactory {
   }
 
   static TopLevelVariableElementImpl topLevelVariableElement(Identifier name) =>
-      new TopLevelVariableElementImpl(name.name, name.offset);
+      TopLevelVariableElementImpl(name.name, name.offset);
 
   static TopLevelVariableElementImpl topLevelVariableElement2(String name) =>
       topLevelVariableElement3(name, false, false, null);
@@ -599,7 +604,7 @@ class ElementFactory {
     TopLevelVariableElementImpl variable;
     if (isConst) {
       ConstTopLevelVariableElementImpl constant =
-          new ConstTopLevelVariableElementImpl(name, -1);
+          ConstTopLevelVariableElementImpl(name, -1);
       InstanceCreationExpression initializer =
           AstTestFactory.instanceCreationExpression2(
               Keyword.CONST, AstTestFactory.typeName(type.element));
@@ -611,21 +616,21 @@ class ElementFactory {
       constant.constantInitializer = initializer;
       variable = constant;
     } else {
-      variable = new TopLevelVariableElementImpl(name, -1);
+      variable = TopLevelVariableElementImpl(name, -1);
     }
     variable.isConst = isConst;
     variable.isFinal = isFinal;
     variable.isSynthetic = false;
     variable.type = type;
-    new PropertyAccessorElementImpl_ImplicitGetter(variable);
+    PropertyAccessorElementImpl_ImplicitGetter(variable);
     if (!isConst && !isFinal) {
-      new PropertyAccessorElementImpl_ImplicitSetter(variable);
+      PropertyAccessorElementImpl_ImplicitSetter(variable);
     }
     return variable;
   }
 
   static TypeParameterElementImpl typeParameterElement(String name) {
-    return new TypeParameterElementImpl(name, 0);
+    return TypeParameterElementImpl(name, 0);
   }
 
   static List<TypeParameterElement> typeParameters(List<String> names) {
@@ -634,7 +639,7 @@ class ElementFactory {
       return const <TypeParameterElement>[];
     }
     List<TypeParameterElementImpl> typeParameters =
-        new List<TypeParameterElementImpl>(count);
+        List<TypeParameterElementImpl>(count);
     for (int i = 0; i < count; i++) {
       typeParameters[i] = typeParameterWithType(names[i]);
     }

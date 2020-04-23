@@ -4,34 +4,28 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/edit/nnbd_migration/highlight_js.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/resources/resources.g.dart'
+    as resources;
 import 'package:analysis_server/src/edit/preview/preview_page.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 
 /// The page that contains the JavaScript used to apply semantic highlighting
 /// styles to a Dart file.
 class HighlightJSPage extends PreviewPage {
-  /// The decoded content of the page. Use [pageContent] to access this field so
-  /// that it is initialized on first read.
-  static String _pageContent;
-
   /// Initialize a newly created JS page within the given [site].
   HighlightJSPage(PreviewSite site)
-      : super(site, PreviewSite.highlightJSPagePath.substring(1));
+      : super(site, PreviewSite.highlightJsPath.substring(1));
+
+  @override
+  bool get requiresAuth => false;
 
   @override
   void generateBody(Map<String, String> params) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future<void> generatePage(Map<String, String> params) async {
-    buf.write(pageContent());
-  }
-
-  /// Return the content of the page, decoding it if it hasn't been decoded
-  /// before.
-  String pageContent() {
-    return _pageContent ??= decodeHighlightJs();
+    buf.write(resources.highlight_pack_js);
   }
 }

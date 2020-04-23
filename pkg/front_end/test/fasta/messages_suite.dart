@@ -21,7 +21,7 @@ import 'package:kernel/ast.dart' show Location, Source;
 import "package:kernel/target/targets.dart" show TargetFlags;
 
 import "package:testing/testing.dart"
-    show Chain, ChainContext, Result, Step, TestDescription, runMe;
+    show Chain, ChainContext, Expectation, Result, Step, TestDescription, runMe;
 
 import "package:vm/target/vm.dart" show VmTarget;
 
@@ -30,8 +30,13 @@ import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag;
+
 import 'package:front_end/src/api_prototype/memory_file_system.dart'
     show MemoryFileSystem;
+
+import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
@@ -65,6 +70,22 @@ class MessageTestDescription extends TestDescription {
       this.example, this.problem);
 }
 
+class Configuration {
+  final NnbdMode nnbdMode;
+
+  const Configuration(this.nnbdMode);
+
+  CompilerOptions apply(CompilerOptions options) {
+    if (nnbdMode != null) {
+      options.experimentalFlags[ExperimentalFlag.nonNullable] = true;
+      options.nnbdMode = nnbdMode;
+    }
+    return options;
+  }
+
+  static const Configuration defaultConfiguration = const Configuration(null);
+}
+
 class MessageTestSuite extends ChainContext {
   final List<Step> steps = const <Step>[
     const Validate(),
@@ -80,6 +101,15 @@ class MessageTestSuite extends ChainContext {
   MessageTestSuite(this.fastOnly)
       : fileSystem = new MemoryFileSystem(Uri.parse("org-dartlang-fasta:///")),
         compiler = new BatchCompiler(null);
+
+  @override
+  Set<Expectation> processExpectedOutcomes(
+      Set<Expectation> outcomes, TestDescription description) {
+    if (description.shortName.contains("/spelling")) {
+      return {Expectation.Pass};
+    }
+    return outcomes;
+  }
 
   /// Convert all the examples found in `messages.yaml` to a test
   /// description. In addition, create a test description for each kind of
@@ -97,6 +127,7 @@ class MessageTestSuite extends ChainContext {
       if (message is String) continue;
 
       List<String> unknownKeys = <String>[];
+      bool exampleAllowMoreCodes = false;
       List<Example> examples = <Example>[];
       String externalTest;
       bool frontendInternal = false;
@@ -109,6 +140,7 @@ class MessageTestSuite extends ChainContext {
       const String spellingPostMessage = "\nIf the word(s) look okay, update "
           "'spell_checking_list_messages.txt' or "
           "'spell_checking_list_common.txt'.";
+      Configuration configuration;
 
       Source source;
       List<String> formatSpellingMistakes(
@@ -197,6 +229,10 @@ class MessageTestSuite extends ChainContext {
                 : new List<String>.from(value);
             break;
 
+          case "exampleAllowMoreCodes":
+            exampleAllowMoreCodes = value;
+            break;
+
           case "bytes":
             YamlList list = node;
             if (list.first is List) {
@@ -271,9 +307,30 @@ class MessageTestSuite extends ChainContext {
             }
             break;
 
+          case "configuration":
+            if (value == "nnbd-weak") {
+              configuration = const Configuration(NnbdMode.Weak);
+            } else if (value == "nnbd-strong") {
+              configuration = const Configuration(NnbdMode.Strong);
+            } else {
+              throw new ArgumentError("Unknown configuration '$value'.");
+            }
+            break;
+
           default:
             unknownKeys.add(key);
         }
+      }
+
+      if (exampleAllowMoreCodes) {
+        // Update all examples.
+        for (Example example in examples) {
+          example.allowMoreCodes = exampleAllowMoreCodes;
+        }
+      }
+      for (Example example in examples) {
+        example.configuration =
+            configuration ?? Configuration.defaultConfiguration;
       }
 
       MessageTestDescription createDescription(
@@ -299,8 +356,8 @@ class MessageTestSuite extends ChainContext {
         for (Example example in examples) {
           yield createDescription(
               "part_wrapped_${example.name}",
-              new PartWrapExample(
-                  "part_wrapped_${example.name}", name, example),
+              new PartWrapExample("part_wrapped_${example.name}", name,
+                  exampleAllowMoreCodes, example),
               null);
         }
       }
@@ -410,6 +467,10 @@ abstract class Example {
   final String name;
 
   final String expectedCode;
+
+  bool allowMoreCodes = false;
+
+  Configuration configuration;
 
   Example(this.name, this.expectedCode);
 
@@ -523,6 +584,7 @@ class ScriptExample extends Example {
       var scriptFiles = <String, Uint8List>{};
       script.forEach((fileName, value) {
         scriptFiles[fileName] = new Uint8List.fromList(utf8.encode(value));
+        print("$fileName => $value\n\n======\n\n");
       });
       return scriptFiles;
     } else {
@@ -533,7 +595,13 @@ class ScriptExample extends Example {
 
 class PartWrapExample extends Example {
   final Example example;
-  PartWrapExample(String name, String code, this.example) : super(name, code);
+  @override
+  final bool allowMoreCodes;
+
+  PartWrapExample(String name, String code, this.allowMoreCodes, this.example)
+      : super(name, code) {
+    configuration = example.configuration;
+  }
 
   @override
   Uint8List get bytes => throw "Unsupported: PartWrapExample.bytes";
@@ -609,10 +677,13 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
     Uri output =
         suite.fileSystem.currentDirectory.resolve("$dir/main.dart.dill");
 
-    // Setup .packages if it doesn't exist.
+    // Setup .packages if it (or package_config.json) doesn't exist.
     Uri dotPackagesUri =
         suite.fileSystem.currentDirectory.resolve("$dir/.packages");
-    if (!await suite.fileSystem.entityForUri(dotPackagesUri).exists()) {
+    Uri packageConfigJsonUri = suite.fileSystem.currentDirectory
+        .resolve("$dir/.dart_tool/package_config.json");
+    if (!await suite.fileSystem.entityForUri(dotPackagesUri).exists() &&
+        !await suite.fileSystem.entityForUri(packageConfigJsonUri).exists()) {
       suite.fileSystem.entityForUri(dotPackagesUri).writeAsBytesSync([]);
     }
 
@@ -620,18 +691,27 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
     List<DiagnosticMessage> messages = <DiagnosticMessage>[];
 
     await suite.compiler.batchCompile(
-        new CompilerOptions()
+        example.configuration.apply(new CompilerOptions()
           ..sdkSummary = computePlatformBinariesLocation(forceBuildDir: true)
               .resolve("vm_platform_strong.dill")
           ..target = new VmTarget(new TargetFlags())
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
           ..packagesFileUri = dotPackagesUri
           ..onDiagnostic = messages.add
-          ..environmentDefines = const {},
+          ..environmentDefines = const {}),
         main,
         output);
 
     List<DiagnosticMessage> unexpectedMessages = <DiagnosticMessage>[];
+    if (example.allowMoreCodes) {
+      List<DiagnosticMessage> messagesFiltered = new List<DiagnosticMessage>();
+      for (DiagnosticMessage message in messages) {
+        if (getMessageCodeObject(message).name == example.expectedCode) {
+          messagesFiltered.add(message);
+        }
+      }
+      messages = messagesFiltered;
+    }
     for (DiagnosticMessage message in messages) {
       if (getMessageCodeObject(message).name != example.expectedCode) {
         unexpectedMessages.add(message);

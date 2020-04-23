@@ -80,7 +80,7 @@ void badClassStaticInvoke() {
 }
 
 void badStaticInvoke() {
-  final ClosureMirror im = reflect(foo);
+  final im = reflect(foo) as ClosureMirror;
   Expect.throwsTypeError(() => im.apply(['Hello world!']));
 }
 
@@ -124,7 +124,7 @@ void badGenericFactoryInvoke() {
 }
 
 void badGenericStaticInvoke() {
-  final ClosureMirror im = reflect(bar);
+  final im = reflect(bar) as ClosureMirror;
   Expect.throwsTypeError(() => im.apply(['Hello world!']));
 }
 

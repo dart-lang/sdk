@@ -10,6 +10,19 @@ main() {
   expect(123, lateLocal);
   expect(124, lateLocal = 124);
   expect(124, lateLocal);
+
+  local<T>(T? value1, T? value2) {
+    late T? lateGenericLocal = value1;
+
+    expect(value1, lateGenericLocal);
+    expect(value2, lateGenericLocal = value2);
+    expect(value2, lateGenericLocal);
+  }
+
+  local<int?>(null, 0);
+  local<int?>(0, null);
+  local<int>(null, 0);
+  local<int>(0, null);
 }
 
 expect(expected, actual) {

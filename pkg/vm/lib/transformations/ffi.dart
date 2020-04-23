@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
@@ -119,7 +120,7 @@ const wordSize = <Abi, int>{
 /// Has an entry for all Abis. Empty entries document that every native
 /// type is aligned to it's own size in this ABI.
 ///
-/// See runtime/vm/compiler/ffi.cc for asserts in the VM that verify these
+/// See runtime/vm/ffi/abi.cc for asserts in the VM that verify these
 /// alignments.
 ///
 /// TODO(37470): Add uncommon primitive data types when we want to support them.
@@ -178,6 +179,7 @@ class FfiTransformer extends Transformer {
   final LibraryIndex index;
   final ClassHierarchy hierarchy;
   final DiagnosticReporter diagnosticReporter;
+  final ReferenceFromIndex referenceFromIndex;
 
   final Class intClass;
   final Class doubleClass;
@@ -194,12 +196,14 @@ class FfiTransformer extends Transformer {
   final Procedure castMethod;
   final Procedure offsetByMethod;
   final Procedure elementAtMethod;
+  final Procedure addressGetter;
   final Procedure asFunctionMethod;
   final Procedure asFunctionInternal;
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
   final Field addressOfField;
   final Constructor structFromPointer;
+  final Procedure fromAddressInternal;
   final Procedure libraryLookupMethod;
   final Procedure abiMethod;
   final Procedure pointerFromFunctionProcedure;
@@ -212,8 +216,8 @@ class FfiTransformer extends Transformer {
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
 
-  FfiTransformer(
-      this.index, this.coreTypes, this.hierarchy, this.diagnosticReporter)
+  FfiTransformer(this.index, this.coreTypes, this.hierarchy,
+      this.diagnosticReporter, this.referenceFromIndex)
       : env = new TypeEnvironment(coreTypes, hierarchy),
         intClass = coreTypes.intClass,
         doubleClass = coreTypes.doubleClass,
@@ -229,14 +233,18 @@ class FfiTransformer extends Transformer {
         castMethod = index.getMember('dart:ffi', 'Pointer', 'cast'),
         offsetByMethod = index.getMember('dart:ffi', 'Pointer', '_offsetBy'),
         elementAtMethod = index.getMember('dart:ffi', 'Pointer', 'elementAt'),
+        addressGetter = index.getMember('dart:ffi', 'Pointer', 'get:address'),
         addressOfField = index.getMember('dart:ffi', 'Struct', '_addressOf'),
         structFromPointer =
             index.getMember('dart:ffi', 'Struct', '_fromPointer'),
-        asFunctionMethod = index.getMember('dart:ffi', 'Pointer', 'asFunction'),
+        fromAddressInternal =
+            index.getTopLevelMember('dart:ffi', '_fromAddress'),
+        asFunctionMethod =
+            index.getMember('dart:ffi', 'NativeFunctionPointer', 'asFunction'),
         asFunctionInternal =
             index.getTopLevelMember('dart:ffi', '_asFunctionInternal'),
-        lookupFunctionMethod =
-            index.getMember('dart:ffi', 'DynamicLibrary', 'lookupFunction'),
+        lookupFunctionMethod = index.getMember(
+            'dart:ffi', 'DynamicLibraryExtension', 'lookupFunction'),
         fromFunctionMethod =
             index.getMember('dart:ffi', 'Pointer', 'fromFunction'),
         libraryLookupMethod =

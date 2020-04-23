@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:kernel/ast.dart' hide MapEntry;
-
-import 'replacement_visitor.dart';
+import 'package:kernel/src/replacement_visitor.dart';
 
 /// Returns `true` if type contains a promoted type variable.
 bool hasPromotedTypeVariable(DartType type) {
@@ -56,23 +55,75 @@ class _HasPromotedTypeVariableVisitor extends DartTypeVisitor<bool> {
 }
 
 /// Returns [type] in which all promoted type variables have been replace with
-/// their unpromoted equivalents.
-DartType demoteType(DartType type) {
-  return type.accept(const _TypeVariableDemotion()) ?? type;
+/// their unpromoted equivalents, and where all nullabilities have been
+/// normalized to the default nullability of [library].
+///
+/// If [library] is non-nullable by default all legacy types have been replaced
+/// with non-nullable types. Otherwise all non-legacy types have been replaced
+/// with legacy types.
+DartType demoteTypeInLibrary(DartType type, Library library) {
+  if (library.isNonNullableByDefault) {
+    return type.accept(const _DemotionNullabilityNormalization(
+            demoteTypeVariables: true, forNonNullableByDefault: true)) ??
+        type;
+  } else {
+    return type.accept(const _DemotionNullabilityNormalization(
+            demoteTypeVariables: true, forNonNullableByDefault: false)) ??
+        type;
+  }
 }
 
-/// Visitor that replaces all promoted type variables the type variable itself.
+/// Returns [type] normalized to the default nullability of [library].
+///
+/// If [library] is non-nullable by default all legacy types have been replaced
+/// with non-nullable types. Otherwise all non-legacy types have been replaced
+/// with legacy types.
+DartType normalizeNullabilityInLibrary(DartType type, Library library) {
+  if (library.isNonNullableByDefault) {
+    return type.accept(const _DemotionNullabilityNormalization(
+            demoteTypeVariables: false, forNonNullableByDefault: true)) ??
+        type;
+  } else {
+    return type.accept(const _DemotionNullabilityNormalization(
+            demoteTypeVariables: false, forNonNullableByDefault: false)) ??
+        type;
+  }
+}
+
+/// Visitor that replaces all promoted type variables the type variable itself
+/// and normalizes the type nullabilities.
 ///
 /// The visitor returns `null` if the type wasn't changed.
-class _TypeVariableDemotion extends ReplacementVisitor {
-  const _TypeVariableDemotion();
+class _DemotionNullabilityNormalization extends ReplacementVisitor {
+  final bool demoteTypeVariables;
+  final bool forNonNullableByDefault;
+
+  const _DemotionNullabilityNormalization(
+      {this.demoteTypeVariables, this.forNonNullableByDefault})
+      : assert(demoteTypeVariables != null),
+        assert(forNonNullableByDefault != null);
+
+  @override
+  Nullability visitNullability(DartType node) {
+    if (forNonNullableByDefault) {
+      if (node.nullability == Nullability.legacy) {
+        return Nullability.nonNullable;
+      }
+    } else {
+      if (node.nullability != Nullability.legacy) {
+        return Nullability.legacy;
+      }
+    }
+    return null;
+  }
 
   @override
   DartType visitTypeParameterType(TypeParameterType node) {
-    if (node.promotedBound != null) {
+    Nullability newNullability = visitNullability(node);
+    if (demoteTypeVariables && node.promotedBound != null) {
       return new TypeParameterType(
-          node.parameter, node.typeParameterTypeNullability);
+          node.parameter, newNullability ?? node.typeParameterTypeNullability);
     }
-    return node;
+    return createTypeParameterType(node, newNullability);
   }
 }

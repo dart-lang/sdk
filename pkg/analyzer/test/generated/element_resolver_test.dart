@@ -10,11 +10,10 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -273,8 +272,9 @@ const V = 0;
   Future<void> _validateAnnotation(
       String annotationPrefix,
       String annotationText,
-      validator(SimpleIdentifier name1, SimpleIdentifier name2,
-          SimpleIdentifier name3, Element annotationElement)) async {
+      Function(SimpleIdentifier name1, SimpleIdentifier name2,
+              SimpleIdentifier name3, Element annotationElement)
+          validator) async {
     await resolveTestCode('''
 import 'a.dart' $annotationPrefix;
 $annotationText
@@ -322,6 +322,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
    */
   ElementResolver _resolver;
 
+  @override
   TypeProvider get typeProvider => _typeProvider;
 
   void fail_visitExportDirective_combinators() {
@@ -374,7 +375,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   }
 
   void setUp() {
-    _listener = new GatheringErrorListener();
+    _listener = GatheringErrorListener();
     _createResolver();
   }
 
@@ -405,7 +406,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //
     ClassElementImpl classD =
         ElementFactory.classElement("D", interfaceTypeStar(classC));
-    _encloseElement(classA);
+    _encloseElement(classD);
     //
     // D a;
     // a[i];
@@ -418,86 +419,12 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitAssignmentExpression_compound() async {
-    InterfaceType intType = _typeProvider.intType;
-    SimpleIdentifier leftHandSide = AstTestFactory.identifier3("a");
-    leftHandSide.staticType = intType;
-    AssignmentExpression assignment = AstTestFactory.assignmentExpression(
-        leftHandSide, TokenType.PLUS_EQ, AstTestFactory.integer(1));
-    _resolveNode(assignment);
-    expect(
-        assignment.staticElement, same(_typeProvider.numType.getMethod('+')));
-    _listener.assertNoErrors();
-  }
-
-  test_visitAssignmentExpression_simple() async {
-    AssignmentExpression expression = AstTestFactory.assignmentExpression(
-        AstTestFactory.identifier3("x"),
-        TokenType.EQ,
-        AstTestFactory.integer(0));
-    _resolveNode(expression);
-    expect(expression.staticElement, isNull);
-    _listener.assertNoErrors();
-  }
-
-  test_visitBinaryExpression_bangEq() async {
-    // String i;
-    // var j;
-    // i == j
-    InterfaceType stringType = _typeProvider.stringType;
-    SimpleIdentifier left = AstTestFactory.identifier3("i");
-    left.staticType = stringType;
-    BinaryExpression expression = AstTestFactory.binaryExpression(
-        left, TokenType.BANG_EQ, AstTestFactory.identifier3("j"));
-    _resolveNode(expression);
-    var stringElement = stringType.element;
-    expect(expression.staticElement, isNotNull);
-    expect(
-        expression.staticElement,
-        stringElement.lookUpMethod(
-            TokenType.EQ_EQ.lexeme, stringElement.library));
-    _listener.assertNoErrors();
-  }
-
-  test_visitBinaryExpression_eq() async {
-    // String i;
-    // var j;
-    // i == j
-    InterfaceType stringType = _typeProvider.stringType;
-    SimpleIdentifier left = AstTestFactory.identifier3("i");
-    left.staticType = stringType;
-    BinaryExpression expression = AstTestFactory.binaryExpression(
-        left, TokenType.EQ_EQ, AstTestFactory.identifier3("j"));
-    _resolveNode(expression);
-    var stringElement = stringType.element;
-    expect(
-        expression.staticElement,
-        stringElement.lookUpMethod(
-            TokenType.EQ_EQ.lexeme, stringElement.library));
-    _listener.assertNoErrors();
-  }
-
-  test_visitBinaryExpression_plus() async {
-    // num i;
-    // var j;
-    // i + j
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier left = AstTestFactory.identifier3("i");
-    left.staticType = numType;
-    BinaryExpression expression = AstTestFactory.binaryExpression(
-        left, TokenType.PLUS, AstTestFactory.identifier3("j"));
-    _resolveNode(expression);
-    expect(expression.staticElement, numType.getMethod('+'));
-    _listener.assertNoErrors();
-  }
-
   test_visitBreakStatement_withLabel() async {
     // loop: while (true) {
     //   break loop;
     // }
     String label = "loop";
-    LabelElementImpl labelElement =
-        new LabelElementImpl(label, -1, false, false);
+    LabelElementImpl labelElement = LabelElementImpl(label, -1, false, false);
     BreakStatement breakStatement = AstTestFactory.breakStatement2(label);
     Expression condition = AstTestFactory.booleanLiteral(true);
     WhileStatement whileStatement =
@@ -524,7 +451,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.setterElement(propName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter, setter];
     // set name scope
-    _visitor.nameScope = new EnclosedScope(null)
+    _visitor.nameScope = EnclosedScope(null)
       ..defineNameWithoutChecking('A', classA);
     // prepare "A.p"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'p');
@@ -544,7 +471,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.methodElement("m", _typeProvider.intType);
     classA.methods = <MethodElement>[method];
     // set name scope
-    _visitor.nameScope = new EnclosedScope(null)
+    _visitor.nameScope = EnclosedScope(null)
       ..defineNameWithoutChecking('A', classA);
     // prepare "A.m"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'm');
@@ -564,7 +491,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.methodElement("==", _typeProvider.boolType);
     classA.methods = <MethodElement>[method];
     // set name scope
-    _visitor.nameScope = new EnclosedScope(null)
+    _visitor.nameScope = EnclosedScope(null)
       ..defineNameWithoutChecking('A', classA);
     // prepare "A.=="
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', '==');
@@ -610,8 +537,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //   continue loop;
     // }
     String label = "loop";
-    LabelElementImpl labelElement =
-        new LabelElementImpl(label, -1, false, false);
+    LabelElementImpl labelElement = LabelElementImpl(label, -1, false, false);
     ContinueStatement continueStatement =
         AstTestFactory.continueStatement(label);
     Expression condition = AstTestFactory.booleanLiteral(true);
@@ -627,27 +553,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     ContinueStatement statement = AstTestFactory.continueStatement();
     _resolveStatement(statement, null, null);
     _listener.assertNoErrors();
-  }
-
-  test_visitEnumDeclaration() async {
-    CompilationUnitElementImpl compilationUnitElement =
-        ElementFactory.compilationUnit('foo.dart');
-    EnumElementImpl enumElement =
-        ElementFactory.enumElement(_typeProvider, ('E'));
-    compilationUnitElement.enums = <ClassElement>[enumElement];
-    EnumDeclaration enumNode = AstTestFactory.enumDeclaration2('E', []);
-    Annotation annotationNode =
-        AstTestFactory.annotation(AstTestFactory.identifier3('a'));
-    annotationNode.element = ElementFactory.classElement2('A');
-    annotationNode.elementAnnotation =
-        new ElementAnnotationImpl(compilationUnitElement);
-    enumNode.metadata.add(annotationNode);
-    enumNode.name.staticElement = enumElement;
-    List<ElementAnnotation> metadata = <ElementAnnotation>[
-      annotationNode.elementAnnotation
-    ];
-    _resolveNode(enumNode);
-    expect(metadata[0].element, annotationNode.element);
   }
 
   test_visitExportDirective_noCombinators() async {
@@ -799,45 +704,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitPostfixExpression() async {
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier operand = AstTestFactory.identifier3("i");
-    operand.staticType = numType;
-    PostfixExpression expression =
-        AstTestFactory.postfixExpression(operand, TokenType.PLUS_PLUS);
-    _resolveNode(expression);
-    expect(expression.staticElement, numType.getMethod('+'));
-    _listener.assertNoErrors();
-  }
-
-  @failingTest
-  test_visitPostfixExpression_bang() async {
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier operand = AstTestFactory.identifier3("i");
-    operand.staticType = numType;
-    PostfixExpression expression =
-        AstTestFactory.postfixExpression(operand, TokenType.BANG);
-    // TODO(danrubel): fails with Unsupported operation
-    _resolveNode(expression);
-    _listener.assertErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-  }
-
-  @failingTest
-  test_visitPostfixExpression_bang_NNBD() async {
-    // TODO(danrubel): enable NNBD
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier operand = AstTestFactory.identifier3("i");
-    operand.staticType = numType;
-    PostfixExpression expression =
-        AstTestFactory.postfixExpression(operand, TokenType.BANG);
-    _resolveNode(expression);
-    // TODO(danrubel): fails with Unsupported operation
-    expect(expression.staticElement, numType.getMethod('!'));
-    _listener.assertNoErrors();
-    // TODO(scheglov) This is wrong: `expr!` should not be resolved to `num.!`.
-    fail('Expectations are wrong.');
-  }
-
   test_visitPrefixedIdentifier_dynamic() async {
     DartType dynamicType = _typeProvider.dynamicType;
     SimpleIdentifier target = AstTestFactory.identifier3("a");
@@ -943,17 +809,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitPrefixExpression() async {
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier operand = AstTestFactory.identifier3("i");
-    operand.staticType = numType;
-    PrefixExpression expression =
-        AstTestFactory.prefixExpression(TokenType.PLUS_PLUS, operand);
-    _resolveNode(expression);
-    expect(expression.staticElement, numType.getMethod('+'));
-    _listener.assertNoErrors();
-  }
-
   test_visitPropertyAccess_getter_identifier() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     _encloseElement(classA);
@@ -985,8 +840,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter];
     SuperExpression target = AstTestFactory.superExpression();
-    target.staticType = interfaceTypeStar(
-        ElementFactory.classElement("B", interfaceTypeStar(classA)));
+    var classB = ElementFactory.classElement("B", interfaceTypeStar(classA));
+    _encloseElement(classB);
+    target.staticType = interfaceTypeStar(classB);
     PropertyAccess access = AstTestFactory.propertyAccess2(target, getterName);
     AstTestFactory.methodDeclaration2(
         null,
@@ -1119,24 +975,24 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
    * Create and return the resolver used by the tests.
    */
   void _createResolver() {
-    AnalysisContext context = TestAnalysisContext();
-    _typeProvider = context.typeProvider;
+    var context = TestAnalysisContext();
+    _typeProvider = context.typeProviderLegacy;
 
-    Source source = new FileSource(getFile("/test.dart"));
-    CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
+    Source source = FileSource(getFile("/test.dart"));
+    CompilationUnitElementImpl unit = CompilationUnitElementImpl();
     unit.librarySource = unit.source = source;
     _definingLibrary =
         ElementFactory.library(context, "test", isNonNullableByDefault: false);
     _definingLibrary.definingCompilationUnit = unit;
 
-    _definingLibrary.typeProvider = context.typeProvider;
-    _definingLibrary.typeSystem = context.typeSystem;
-    var inheritance = new InheritanceManager3();
+    _definingLibrary.typeProvider = context.typeProviderLegacy;
+    _definingLibrary.typeSystem = context.typeSystemLegacy;
+    var inheritance = InheritanceManager3();
 
-    _visitor = new ResolverVisitor(
+    _visitor = ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
         featureSet: FeatureSet.forTesting(),
-        nameScope: new LibraryScope(_definingLibrary));
+        nameScope: LibraryScope(_definingLibrary));
     _resolver = _visitor.elementResolver;
   }
 
@@ -1200,8 +1056,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     Scope outerScope = _visitor.nameScope;
     try {
       _visitor.enclosingClass = enclosingClass;
-      EnclosedScope innerScope = new ClassScope(
-          new TypeParameterScope(outerScope, enclosingClass), enclosingClass);
+      EnclosedScope innerScope = ClassScope(
+          TypeParameterScope(outerScope, enclosingClass), enclosingClass);
       _visitor.nameScope = innerScope;
       node.accept(_resolver);
     } finally {
@@ -1237,7 +1093,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   void _resolveNode(AstNode node, [List<Element> definedElements]) {
     Scope outerScope = _visitor.nameScope;
     try {
-      EnclosedScope innerScope = new EnclosedScope(outerScope);
+      EnclosedScope innerScope = EnclosedScope(outerScope);
       if (definedElements != null) {
         for (Element element in definedElements) {
           innerScope.define(element);
@@ -1266,7 +1122,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
       if (labelElement == null) {
         innerScope = outerScope;
       } else {
-        innerScope = new LabelScope(
+        innerScope = LabelScope(
             outerScope, labelElement.name, labelTarget, labelElement);
       }
       _visitor.labelScope = innerScope;

@@ -253,6 +253,17 @@ BUILD_MODES = {
     'product': 'Product',
 }
 
+# Mapping table between build mode and build configuration.
+BUILD_SANITIZERS = {
+    None: '',
+    'none': '',
+    'asan': 'ASAN',
+    'lsan': 'LSAN',
+    'msan': 'MSAN',
+    'tsan': 'TSAN',
+    'ubsan': 'UBSAN',
+}
+
 # Mapping table between OS and build output location.
 BUILD_ROOT = {
     'win32': os.path.join('out'),
@@ -261,12 +272,14 @@ BUILD_ROOT = {
     'macos': os.path.join('xcodebuild'),
 }
 
+# Note: gn expects these to be lower case.
 ARCH_FAMILY = {
     'ia32': 'ia32',
     'x64': 'ia32',
     'arm': 'arm',
     'armv6': 'arm',
     'arm64': 'arm',
+    'arm_x64': 'arm',
     'simarm': 'ia32',
     'simarmv6': 'ia32',
     'simarm64': 'ia32',
@@ -290,6 +303,10 @@ def GetBuildMode(mode):
     return BUILD_MODES[mode]
 
 
+def GetBuildSanitizer(sanitizer):
+    return BUILD_SANITIZERS[sanitizer]
+
+
 def GetArchFamily(arch):
     return ARCH_FAMILY[arch]
 
@@ -299,9 +316,8 @@ def IsCrossBuild(target_os, arch):
     return ((GetArchFamily(host_arch) != GetArchFamily(arch)) or
             (target_os != GuessOS()))
 
-
 # TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
-def GetBuildConf(mode, arch, conf_os=None, use_nnbd=False):
+def GetBuildConf(mode, arch, conf_os=None, sanitizer=None, use_nnbd=False):
     nnbd = "NNBD" if use_nnbd else ""
     if conf_os == 'android':
         return '%s%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper(),
@@ -312,8 +328,8 @@ def GetBuildConf(mode, arch, conf_os=None, use_nnbd=False):
         cross_build = ''
         if GetArchFamily(host_arch) != GetArchFamily(arch):
             cross_build = 'X'
-        return '%s%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper(),
-                             nnbd)
+        return '%s%s%s%s%s' % (GetBuildMode(mode), GetBuildSanitizer(sanitizer),
+                               cross_build, arch.upper(), nnbd)
 
 
 def GetBuildDir(host_os):
@@ -321,11 +337,17 @@ def GetBuildDir(host_os):
 
 
 # TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
-def GetBuildRoot(host_os, mode=None, arch=None, target_os=None, use_nnbd=False):
+def GetBuildRoot(host_os,
+                 mode=None,
+                 arch=None,
+                 target_os=None,
+                 sanitizer=None,
+                 use_nnbd=False):
     build_root = GetBuildDir(host_os)
     if mode:
-        build_root = os.path.join(build_root,
-                                  GetBuildConf(mode, arch, target_os, use_nnbd))
+        build_root = os.path.join(
+            build_root, GetBuildConf(mode, arch, target_os, sanitizer,
+                                     use_nnbd))
     return build_root
 
 
@@ -356,8 +378,9 @@ def GetSemanticSDKVersion(no_git_hash=False, version_file=None):
 
     if version.channel == 'be':
         postfix = '-edge' if no_git_hash else '-edge.%s' % GetGitRevision()
-    elif version.channel == 'dev':
-        postfix = '-dev.%s.%s' % (version.prerelease, version.prerelease_patch)
+    elif version.channel in ('beta', 'dev'):
+        postfix = '-%s.%s.%s' % (version.prerelease, version.prerelease_patch,
+                                 version.channel)
     else:
         assert version.channel == 'stable'
         postfix = ''
@@ -804,7 +827,8 @@ class PosixCoreDumpEnabler(object):
         resource.setrlimit(resource.RLIMIT_CORE, (-1, -1))
 
     def __exit__(self, *_):
-        resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
+        if self._old_limits != None:
+            resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
 
 
 class LinuxCoreDumpEnabler(PosixCoreDumpEnabler):

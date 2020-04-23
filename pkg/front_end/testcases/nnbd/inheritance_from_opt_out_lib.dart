@@ -6,6 +6,8 @@
 
 abstract class GenericInterface<T> {}
 
+abstract class GenericSubInterface<T> implements GenericInterface<T> {}
+
 class LegacyClass1 {}
 
 class LegacyClass2<T> {}
@@ -13,3 +15,16 @@ class LegacyClass2<T> {}
 class LegacyClass3<T> implements GenericInterface<T> {}
 
 class LegacyClass4 implements GenericInterface<num> {}
+
+class LegacyClass5<T> extends LegacyClass3<T> implements GenericInterface<T> {}
+
+class LegacyClass6<T> extends Object
+    with LegacyClass3<T>
+    implements GenericInterface<T> {}
+
+class LegacyClass7<T> extends LegacyClass3<T>
+    implements GenericSubInterface<T> {}
+
+class LegacyClass8<T> extends Object
+    with LegacyClass3<T>
+    implements GenericSubInterface<T> {}

@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -14,1095 +13,20 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/task/strong/ast_properties.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
+import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(StrongModeCastsTest);
     defineReflectiveTests(StrongModeLocalInferenceTest);
-    defineReflectiveTests(StrongModeLocalInferenceTest_NNBD);
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
     defineReflectiveTests(StrongModeTypePropagationTest);
   });
-}
-
-@reflectiveTest
-class StrongModeCastsTest extends ResolverTestCase {
-  test_implicitCastMetadata_ifElement_condition() async {
-    var source = addSource(r'''
-class C {
-  dynamic dyn;
-  Object object;
-  bool boolean;
-
-  void casts() {
-    [if (dyn) null];
-    [if (object) null];
-    <int>{if (dyn) null};
-    <int>{if (object) null};
-    <int, int>{if (dyn) null: null};
-    <int, int>{if (object) null: null};
-  }
-
-  void noCasts() {
-    [if (boolean) null];
-    [if (null) null];
-    <int>{if (dyn) null};
-    <int>{if (object) null};
-    <int, int>{if (boolean) null : null};
-    <int, int>{if (null) null : null};
-  }
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    Expression getCondition(ExpressionStatement s) {
-      Expression expression = s.expression;
-      IfElement ifElement;
-      if (expression is ListLiteral) {
-        ifElement = expression.elements[0];
-      } else if (expression is SetOrMapLiteral) {
-        ifElement = expression.elements[0];
-      }
-      return ifElement.condition;
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      var expression = getCondition(s);
-      var castType = getImplicitCast(expression);
-      expect(castType, isNotNull,
-          reason: 'Expression $expression does not have implicit cast');
-      expect(castType.toString(), equals('bool'));
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      var expression = getCondition(s);
-      var spreadCastType = getImplicitSpreadCast(expression);
-      expect(spreadCastType, isNull,
-          reason: 'Expression $expression should not have implicit cast');
-    }
-  }
-
-  test_implicitCastMetadata_ifElement_list_branches() async {
-    var source = addSource(r'''
-class C {
-  bool c;
-  dynamic dyn;
-  Object object;
-  num someNum;
-  int someInt;
-
-  void casts() {
-    <num>[if (c) dyn];
-    <num>[if (c) object];
-    <int>[if (c) dyn];
-    <int>[if (c) object];
-    <int>[if (c) someNum];
-    <Null>[if (c) dyn];
-    <Null>[if (c) object];
-    <Null>[if (c) someNum];
-    <Null>[if (c) someInt];
-    <num>[if (c) dyn else dyn];
-    <num>[if (c) object else object];
-    <int>[if (c) dyn else dyn];
-    <int>[if (c) object else object];
-    <int>[if (c) someNum else someNum];
-    <Null>[if (c) dyn else dyn];
-    <Null>[if (c) object else object];
-    <Null>[if (c) someNum else someNum];
-    <Null>[if (c) someInt else someInt];
-  }
-
-  void noCasts() {
-    <dynamic>[if (c) dyn];
-    <dynamic>[if (c) object];
-    <dynamic>[if (c) someNum];
-    <dynamic>[if (c) someInt];
-    <dynamic>[if (c) null];
-    <Object>[if (c) dyn];
-    <Object>[if (c) object];
-    <Object>[if (c) someNum];
-    <Object>[if (c) someInt];
-    <Object>[if (c) null];
-    <num>[if (c) someNum];
-    <num>[if (c) someInt];
-    <num>[if (c) null];
-    <int>[if (c) someInt];
-    <int>[if (c) null];
-    <Null>[if (c) null];
-    <dynamic>[if (c) dyn else dyn];
-    <dynamic>[if (c) object else object];
-    <dynamic>[if (c) someNum else someNum];
-    <dynamic>[if (c) someInt else someInt];
-    <dynamic>[if (c) null else null];
-    <Object>[if (c) dyn else dyn];
-    <Object>[if (c) object else object];
-    <Object>[if (c) someNum else someNum];
-    <Object>[if (c) someInt else someInt];
-    <Object>[if (c) null else null];
-    <num>[if (c) someNum else someNum];
-    <num>[if (c) someInt else someInt];
-    <num>[if (c) null else null];
-    <int>[if (c) someInt else someInt];
-    <int>[if (c) null else null];
-    <Null>[if (c) null else null];
-  }
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    List<Expression> getBranches(ExpressionStatement s) {
-      ListLiteral literal = s.expression;
-      IfElement ifElement = literal.elements[0];
-      return ifElement.elseElement == null
-          ? [ifElement.thenElement]
-          : [ifElement.thenElement, ifElement.elseElement];
-    }
-
-    DartType getListElementType(ExpressionStatement s) {
-      ListLiteral literal = s.expression;
-      return literal.typeArguments.arguments[0].type;
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      for (var expression in getBranches(s)) {
-        var castType = getImplicitCast(expression);
-        expect(castType, isNotNull,
-            reason: 'Expression $expression does not have implicit cast');
-        expect(castType, equals(getListElementType(s)));
-      }
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      for (var expression in getBranches(s)) {
-        var castType = getImplicitCast(expression);
-        expect(castType, isNull,
-            reason: 'Expression $expression should not have implicit cast');
-      }
-    }
-  }
-
-  test_implicitCastMetadata_ifElement_map_keys() async {
-    var source = addSource(r'''
-class C {
-  bool c;
-  dynamic dyn;
-  Object object;
-  num someNum;
-  int someInt;
-
-  void casts() {
-    <num, dynamic>{if (c) dyn: null};
-    <num, dynamic>{if (c) object: null};
-    <int, dynamic>{if (c) dyn: null};
-    <int, dynamic>{if (c) object: null};
-    <int, dynamic>{if (c) someNum: null};
-    <Null, dynamic>{if (c) dyn: null};
-    <Null, dynamic>{if (c) object: null};
-    <Null, dynamic>{if (c) someNum: null};
-    <Null, dynamic>{if (c) someInt: null};
-    <num, dynamic>{if (c) dyn: null else dyn: null};
-    <num, dynamic>{if (c) object: null else object: null};
-    <int, dynamic>{if (c) dyn: null else dyn: null};
-    <int, dynamic>{if (c) object: null else object: null};
-    <int, dynamic>{if (c) someNum: null else someNum: null};
-    <Null, dynamic>{if (c) dyn: null else dyn: null};
-    <Null, dynamic>{if (c) object: null else object: null};
-    <Null, dynamic>{if (c) someNum: null else someNum: null};
-    <Null, dynamic>{if (c) someInt: null else someInt: null};
-  }
-
-  void noCasts() {
-    <dynamic, dynamic>{if (c) dyn: null};
-    <dynamic, dynamic>{if (c) object: null};
-    <dynamic, dynamic>{if (c) someNum: null};
-    <dynamic, dynamic>{if (c) someInt: null};
-    <dynamic, dynamic>{if (c) null: null};
-    <Object, dynamic>{if (c) dyn: null};
-    <Object, dynamic>{if (c) object: null};
-    <Object, dynamic>{if (c) someNum: null};
-    <Object, dynamic>{if (c) someInt: null};
-    <Object, dynamic>{if (c) null: null};
-    <num, dynamic>{if (c) someNum: null};
-    <num, dynamic>{if (c) someInt: null};
-    <num, dynamic>{if (c) null: null};
-    <int, dynamic>{if (c) someInt: null};
-    <int, dynamic>{if (c) null: null};
-    <Null, dynamic>{if (c) null: null};
-    <dynamic, dynamic>{if (c) dyn: null else dyn: null};
-    <dynamic, dynamic>{if (c) object: null else object: null};
-    <dynamic, dynamic>{if (c) someNum: null else someNum: null};
-    <dynamic, dynamic>{if (c) someInt: null else someInt: null};
-    <dynamic, dynamic>{if (c) null: null else null: null};
-    <Object, dynamic>{if (c) dyn: null else dyn: null};
-    <Object, dynamic>{if (c) object: null else object: null};
-    <Object, dynamic>{if (c) someNum: null else someNum: null};
-    <Object, dynamic>{if (c) someInt: null else someInt: null};
-    <Object, dynamic>{if (c) null: null else null: null};
-    <num, dynamic>{if (c) someNum: null else someNum: null};
-    <num, dynamic>{if (c) someInt: null else someInt: null};
-    <num, dynamic>{if (c) null: null else null: null};
-    <int, dynamic>{if (c) someInt: null else someInt: null};
-    <int, dynamic>{if (c) null: null else null: null};
-    <Null, dynamic>{if (c) null: null else null: null};
-  }
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    List<Expression> getKeys(ExpressionStatement s) {
-      SetOrMapLiteral literal = s.expression;
-      IfElement ifElement = literal.elements[0];
-      return (ifElement.elseElement == null
-              ? [ifElement.thenElement]
-              : [ifElement.thenElement, ifElement.elseElement])
-          .cast<MapLiteralEntry>()
-          .map((elem) => elem.key)
-          .toList();
-    }
-
-    DartType getMapKeyType(ExpressionStatement s) {
-      SetOrMapLiteral literal = s.expression;
-      return literal.typeArguments.arguments[0].type;
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      for (var expression in getKeys(s)) {
-        var castType = getImplicitCast(expression);
-        expect(castType, isNotNull,
-            reason: 'Expression $expression does not have implicit cast');
-        expect(castType, equals(getMapKeyType(s)));
-      }
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      for (var expression in getKeys(s)) {
-        var castType = getImplicitCast(expression);
-        expect(castType, isNull,
-            reason: 'Expression $expression should not have implicit cast');
-      }
-    }
-  }
-
-  test_implicitCastMetadata_ifElement_map_values() async {
-    var source = addSource(r'''
-class C {
-  bool c;
-  dynamic dyn;
-  Object object;
-  num someNum;
-  int someInt;
-
-  void casts() {
-    <dynamic, num>{if (c) null: dyn};
-    <dynamic, num>{if (c) null: object};
-    <dynamic, int>{if (c) null: dyn};
-    <dynamic, int>{if (c) null: object};
-    <dynamic, int>{if (c) null: someNum};
-    <dynamic, Null>{if (c) null: dyn};
-    <dynamic, Null>{if (c) null: object};
-    <dynamic, Null>{if (c) null: someNum};
-    <dynamic, Null>{if (c) null: someInt};
-    <dynamic, num>{if (c) null: dyn else null: dyn};
-    <dynamic, num>{if (c) null: object else null: object};
-    <dynamic, int>{if (c) null: dyn else null: dyn};
-    <dynamic, int>{if (c) null: object else null: object};
-    <dynamic, int>{if (c) null: someNum else null: someNum};
-    <dynamic, Null>{if (c) null: dyn else null: dyn};
-    <dynamic, Null>{if (c) null: object else null: object};
-    <dynamic, Null>{if (c) null: someNum else null: someNum};
-    <dynamic, Null>{if (c) null: someInt else null: someInt};
-  }
-
-  void noCasts() {
-    <dynamic, dynamic>{if (c) null: dyn};
-    <dynamic, dynamic>{if (c) null: object};
-    <dynamic, dynamic>{if (c) null: someNum};
-    <dynamic, dynamic>{if (c) null: someInt};
-    <dynamic, dynamic>{if (c) null: null};
-    <dynamic, Object>{if (c) null: dyn};
-    <dynamic, Object>{if (c) null: object};
-    <dynamic, Object>{if (c) null: someNum};
-    <dynamic, Object>{if (c) null: someInt};
-    <dynamic, Object>{if (c) null: null};
-    <dynamic, num>{if (c) null: someNum};
-    <dynamic, num>{if (c) null: someInt};
-    <dynamic, num>{if (c) null: null};
-    <dynamic, int>{if (c) null: someInt};
-    <dynamic, int>{if (c) null: null};
-    <dynamic, Null>{if (c) null: null};
-    <dynamic, dynamic>{if (c) null: dyn else null: dyn};
-    <dynamic, dynamic>{if (c) null: object else null: object};
-    <dynamic, dynamic>{if (c) null: someNum else null: someNum};
-    <dynamic, dynamic>{if (c) null: someInt else null: someInt};
-    <dynamic, dynamic>{if (c) null: null else null: null};
-    <dynamic, Object>{if (c) null: dyn else null: dyn};
-    <dynamic, Object>{if (c) null: object else null: object};
-    <dynamic, Object>{if (c) null: someNum else null: someNum};
-    <dynamic, Object>{if (c) null: someInt else null: someInt};
-    <dynamic, Object>{if (c) null: null else null: null};
-    <dynamic, num>{if (c) null: someNum else null: someNum};
-    <dynamic, num>{if (c) null: someInt else null: someInt};
-    <dynamic, num>{if (c) null: null else null: null};
-    <dynamic, int>{if (c) null: someInt else null: someInt};
-    <dynamic, int>{if (c) null: null else null: null};
-    <dynamic, Null>{if (c) null: null else null: null};
-  }
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    List<Expression> getValues(ExpressionStatement s) {
-      SetOrMapLiteral literal = s.expression;
-      IfElement ifElement = literal.elements[0];
-      return (ifElement.elseElement == null
-              ? [ifElement.thenElement]
-              : [ifElement.thenElement, ifElement.elseElement])
-          .cast<MapLiteralEntry>()
-          .map((elem) => elem.value)
-          .toList();
-    }
-
-    DartType getMapValueType(ExpressionStatement s) {
-      SetOrMapLiteral literal = s.expression;
-      return literal.typeArguments.arguments[1].type;
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      for (var expression in getValues(s)) {
-        var castType = getImplicitCast(expression);
-        expect(castType, isNotNull,
-            reason: 'Expression $expression does not have implicit cast');
-        expect(castType, equals(getMapValueType(s)));
-      }
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      for (var expression in getValues(s)) {
-        var castType = getImplicitCast(expression);
-        expect(castType, isNull,
-            reason: 'Expression $expression should not have implicit cast');
-      }
-    }
-  }
-
-  test_implicitCastMetadata_ifElement_set_trueBranch() async {
-    var source = addSource(r'''
-class C {
-  bool c;
-  dynamic dyn;
-  Object object;
-  num someNum;
-  int someInt;
-
-  void casts() {
-    <num>{if (c) dyn};
-    <num>{if (c) object};
-    <int>{if (c) dyn};
-    <int>{if (c) object};
-    <int>{if (c) someNum};
-    <Null>{if (c) dyn};
-    <Null>{if (c) object};
-    <Null>{if (c) someNum};
-    <Null>{if (c) someInt};
-    <num>{if (c) dyn else dyn};
-    <num>{if (c) object else object};
-    <int>{if (c) dyn else dyn};
-    <int>{if (c) object else object};
-    <int>{if (c) someNum else someNum};
-    <Null>{if (c) dyn else dyn};
-    <Null>{if (c) object else object};
-    <Null>{if (c) someNum else someNum};
-    <Null>{if (c) someInt else someInt};
-  }
-
-  void noCasts() {
-    <dynamic>{if (c) dyn};
-    <dynamic>{if (c) object};
-    <dynamic>{if (c) someNum};
-    <dynamic>{if (c) someInt};
-    <dynamic>{if (c) null};
-    <Object>{if (c) dyn};
-    <Object>{if (c) object};
-    <Object>{if (c) someNum};
-    <Object>{if (c) someInt};
-    <Object>{if (c) null};
-    <num>{if (c) someNum};
-    <num>{if (c) someInt};
-    <num>{if (c) null};
-    <int>{if (c) someInt};
-    <int>{if (c) null};
-    <Null>{if (c) null};
-    <dynamic>{if (c) dyn else dyn};
-    <dynamic>{if (c) object else object};
-    <dynamic>{if (c) someNum else someNum};
-    <dynamic>{if (c) someInt else someInt};
-    <dynamic>{if (c) null else null};
-    <Object>{if (c) dyn else dyn};
-    <Object>{if (c) object else object};
-    <Object>{if (c) someNum else someNum};
-    <Object>{if (c) someInt else someInt};
-    <Object>{if (c) null else null};
-    <num>{if (c) someNum else someNum};
-    <num>{if (c) someInt else someInt};
-    <num>{if (c) null else null};
-    <int>{if (c) someInt else someInt};
-    <int>{if (c) null else null};
-    <Null>{if (c) null else null};
- }
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    List<Expression> getBranches(ExpressionStatement s) {
-      SetOrMapLiteral literal = s.expression;
-      IfElement ifElement = literal.elements[0];
-      return ifElement.elseElement == null
-          ? [ifElement.thenElement]
-          : [ifElement.thenElement, ifElement.elseElement];
-    }
-
-    DartType getSetElementType(ExpressionStatement s) {
-      SetOrMapLiteral literal = s.expression;
-      return literal.typeArguments.arguments[0].type;
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      for (var expression in getBranches(s)) {
-        var castType = getImplicitCast(expression);
-        expect(castType, isNotNull,
-            reason: 'Expression $expression does not have implicit cast');
-        expect(castType, equals(getSetElementType(s)));
-      }
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      for (var expression in getBranches(s)) {
-        var castType = getImplicitCast(expression);
-        expect(castType, isNull,
-            reason: 'Expression $expression should not have implicit cast');
-      }
-    }
-  }
-
-  test_implicitCastMetadata_spread_list_elements() async {
-    var source = addSource(r'''
-class C {
-  dynamic dyn;
-  Iterable<int> iInt;
-  Iterable<Object> iObject;
-  Iterable<dynamic> iDynamic;
-  Iterable<Null> iNull;
-  List<int> lInt;
-  List<Object> lObject;
-  List<dynamic> lDynamic;
-  List<Null> lNull;
-
-  void casts() {
-    <int>[...dyn];
-    <num>[...dyn];
-    <int>[...iObject];
-    <int>[...iDynamic];
-    <int>[...lObject];
-    <int>[...lDynamic];
-    <Null>[...dyn];
-    <Null>[...iObject];
-    <Null>[...iDynamic];
-    <Null>[...iInt];
-    <Null>[...lObject];
-    <Null>[...lDynamic];
-    <Null>[...lInt];
-  }
-
-  void noCasts() {
-    [...dyn];
-    <dynamic>[...dyn];
-    <Object>[...dyn];
-    <dynamic>[...iInt];
-    <Object>[...iInt];
-    <Object>[...iNull];
-    <dynamic>[...lInt];
-    <Object>[...lInt];
-    <Object>[...lNull];
-    <dynamic>[...iObject];
-    <Object>[...iObject];
-    <Object>[...iNull];
-    <dynamic>[...lObject];
-    <Object>[...lObject];
-    <Object>[...lNull];
-    <dynamic>[...iDynamic];
-    <Object>[...iDynamic];
-    <Object>[...iNull];
-    <dynamic>[...lDynamic];
-    <Object>[...lDynamic];
-    <Object>[...lNull];
-    <num>[...iInt];
-    <num>[...lInt];
-    <num>[...iNull];
-    <num>[...lNull];
-    <int>[...iInt];
-    <int>[...lInt];
-    <int>[...iNull];
-    <int>[...lNull];
-    <Null>[...iNull];
-    <Null>[...lNull];
-  }
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    Expression getSpreadExpression(ExpressionStatement s) {
-      ListLiteral literal = s.expression;
-      SpreadElement spread = literal.elements[0];
-      return spread.expression;
-    }
-
-    DartType getListElementType(ExpressionStatement s) {
-      ListLiteral literal = s.expression;
-      return literal.typeArguments.arguments[0].type;
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitSpreadCast(expression);
-      expect(spreadCastType, isNotNull,
-          reason: 'Expression $expression does not have implicit cast');
-      expect(spreadCastType, equals(getListElementType(s)));
-    }
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitSpreadCast(expression);
-      expect(spreadCastType, isNull,
-          reason: 'Expression $expression should not have implicit cast');
-    }
-  }
-
-  test_implicitCastMetadata_spread_list_iterable() async {
-    var source = addSource(r'''
-class C {
-  dynamic dyn;
-  Iterable<int> iInt;
-  Iterable<Object> iObject;
-  Iterable<dynamic> iDynamic;
-  Iterable<Null> iNull;
-  List<int> lInt;
-  List<Object> lObject;
-  List<dynamic> lDynamic;
-  List<Null> lNull;
-
-  void casts() {
-    [...dyn];
-    <int>[...dyn];
-    <num>[...dyn];
-  }
-
-  void noCasts() {
-    [...iInt];
-    [...iObject];
-    [...iDynamic];
-    [...iNull];
-    <Null>[...iInt];
-    <Null>[...iObject];
-    <Null>[...iDynamic];
-    <Null>[...iNull];
-    <int>[...iInt];
-    <int>[...iObject];
-    <int>[...iDynamic];
-    <int>[...iNull];
-    [...lInt];
-    [...lObject];
-    [...lDynamic];
-    [...lNull];
-    <Null>[...lInt];
-    <Null>[...lObject];
-    <Null>[...lDynamic];
-    <Null>[...lNull];
-    <int>[...lInt];
-    <int>[...lObject];
-    <int>[...lDynamic];
-    <int>[...lNull];
-  }
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    Expression getSpreadExpression(ExpressionStatement e) {
-      ListLiteral expression = e.expression;
-      SpreadElement spread = expression.elements[0];
-      return spread.expression;
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitCast(expression);
-      expect(spreadCastType, isNotNull,
-          reason: 'Expression $expression does not have implicit cast');
-      expect(spreadCastType.toString(), equals('Iterable<dynamic>'));
-    }
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitCast(expression);
-      expect(spreadCastType, isNull,
-          reason: 'Expression $expression should not have implicit cast');
-    }
-  }
-
-  test_implicitCastMetadata_spread_map_keys() async {
-    var source = addSource(r'''
-abstract class HashMap<K, V> implements Map<K, V> {}
-class C {
-  dynamic dyn;
-  Map<int, dynamic> mIntDynamic;
-  Map<Object, dynamic> mObjectDynamic;
-  Map<dynamic, dynamic> mDynamicDynamic;
-  Map<Null, dynamic> mNullDynamic;
-  HashMap<int, dynamic> hIntDynamic;
-  HashMap<Object, dynamic> hObjectDynamic;
-  HashMap<dynamic, dynamic> hDynamicDynamic;
-  HashMap<Null, dynamic> hNullDynamic;
-
-  void casts() {
-    Map m0 = <int, dynamic>{...dyn};
-    Map m1 = <num, dynamic>{...dyn};
-    Map m2 = <int, dynamic>{...mObjectDynamic};
-    Map m3 = <int, dynamic>{...mDynamicDynamic};
-    Map m4 = <int, dynamic>{...hObjectDynamic};
-    Map m5 = <int, dynamic>{...hDynamicDynamic};
-    Map m6 = <Null, dynamic>{...dyn};
-    Map m7 = <Null, dynamic>{...mObjectDynamic};
-    Map m8 = <Null, dynamic>{...mDynamicDynamic};
-    Map m9 = <Null, dynamic>{...mIntDynamic};
-    Map m10 = <Null, dynamic>{...hObjectDynamic};
-    Map m11 = <Null, dynamic>{...hDynamicDynamic};
-    Map m12 = <Null, dynamic>{...hIntDynamic};
-  }
-
-  void noCasts() {
-    Map m0 = {...dyn};
-    Map m1 = <dynamic, dynamic>{...dyn};
-    Map m2 = <Object, dynamic>{...dyn};
-    Map m3 = <dynamic, dynamic>{...mIntDynamic};
-    Map m4 = <Object, dynamic>{...mIntDynamic};
-    Map m5 = <Object, dynamic>{...mNullDynamic};
-    Map m6 = <dynamic, dynamic>{...hIntDynamic};
-    Map m7 = <Object, dynamic>{...hIntDynamic};
-    Map m8 = <Object, dynamic>{...hNullDynamic};
-    Map m9 = <dynamic, dynamic>{...mObjectDynamic};
-    Map m10 = <Object, dynamic>{...mObjectDynamic};
-    Map m11 = <Object, dynamic>{...mNullDynamic};
-    Map m12 = <dynamic, dynamic>{...hObjectDynamic};
-    Map m13 = <Object, dynamic>{...hObjectDynamic};
-    Map m14 = <Object, dynamic>{...hNullDynamic};
-    Map m15 = <dynamic, dynamic>{...mDynamicDynamic};
-    Map m16 = <Object, dynamic>{...mDynamicDynamic};
-    Map m17 = <Object, dynamic>{...mNullDynamic};
-    Map m18 = <dynamic, dynamic>{...hDynamicDynamic};
-    Map m19 = <Object, dynamic>{...hDynamicDynamic};
-    Map m20 = <Object, dynamic>{...hNullDynamic};
-    Map m21 = <num, dynamic>{...mIntDynamic};
-    Map m22 = <num, dynamic>{...hIntDynamic};
-    Map m23 = <num, dynamic>{...mNullDynamic};
-    Map m24 = <num, dynamic>{...hNullDynamic};
-    Map m25 = <int, dynamic>{...hIntDynamic};
-    Map m26 = <int, dynamic>{...mIntDynamic};
-    Map m27 = <int, dynamic>{...mNullDynamic};
-    Map m28 = <int, dynamic>{...hNullDynamic};
-    Map m29 = <Null, dynamic>{...mNullDynamic};
-    Map m30 = <Null, dynamic>{...hNullDynamic};
- }
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    Expression getSpreadExpression(VariableDeclarationStatement s) {
-      VariableDeclaration declaration = s.variables.variables[0];
-      SetOrMapLiteral literal = declaration.initializer;
-      SpreadElement spread = literal.elements[0];
-      return spread.expression;
-    }
-
-    DartType getSetElementType(VariableDeclarationStatement s) {
-      VariableDeclaration declaration = s.variables.variables[0];
-      SetOrMapLiteral literal = declaration.initializer;
-      return literal.typeArguments.arguments[0].type;
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitSpreadKeyCast(expression);
-      expect(spreadCastType, isNotNull,
-          reason: 'Expression $expression does not have implicit cast');
-      expect(spreadCastType, equals(getSetElementType(s)));
-    }
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitSpreadKeyCast(expression);
-      expect(spreadCastType, isNull,
-          reason: 'Expression $expression should not have implicit cast');
-    }
-  }
-
-  test_implicitCastMetadata_spread_map_map() async {
-    var source = addSource(r'''
-abstract class HashMap<K, V> implements Map<K, V> {}
-class C {
-  dynamic dyn;
-  Map<int, int> mIntInt;
-  Map<int, Object> mIntObject;
-  Map<Object, int> mObjectInt;
-  Map<Object, Object> mObjectObject;
-  Map<dynamic, dynamic> mDynamicDynamic;
-  Map<Null, Null> mNullNull;
-  Map<Object, Null> mObjectNull;
-  Map<Null, Object> mNullObject;
-  HashMap<int, int> hIntInt;
-  HashMap<int, Object> hIntObject;
-  HashMap<Object, int> hObjectInt;
-  HashMap<Object, Object> hObjectObject;
-  HashMap<dynamic, dynamic> hDynamicDynamic;
-  HashMap<Null, Null> hNullNull;
-
-  void casts() {
-    Map m0 = {...dyn};
-    Map m1 = <int, int>{...dyn};
-    Map m2 = <num, int>{...dyn};
-    Map m3 = <int, num>{...dyn};
-    Map m4 = <num, num>{...dyn};
-  }
-
-  void noCasts() {
-    Map m0 = {...mIntInt};
-    Map m1 = {...mIntObject};
-    Map m2 = {...mObjectInt};
-    Map m3 = {...mObjectObject};
-    Map m4 = {...mDynamicDynamic};
-    Map m5 = {...mNullObject};
-    Map m6 = {...mObjectNull};
-    Map m7 = {...mNullNull};
-    Map m8 = <Null, Null>{...mIntInt};
-    Map m9 = <Null, Null>{...mObjectObject};
-    Map m10 = <Null, Null>{...mDynamicDynamic};
-    Map m11 = <Null, Null>{...mNullNull};
-    Map m12 = <int, int>{...mIntInt};
-    Map m13 = <int, int>{...mObjectObject};
-    Map m14 = <int, int>{...mDynamicDynamic};
-    Map m15 = <int, int>{...mNullNull};
-    Map m16 = {...hIntInt};
-    Map m17 = {...hObjectObject};
-    Map m18 = {...hDynamicDynamic};
-    Map m19 = {...hNullNull};
-    Map m20 = <Null, Null>{...hIntInt};
-    Map m21 = <Null, Null>{...hObjectObject};
-    Map m22 = <Null, Null>{...hDynamicDynamic};
-    Map m23 = <Null, Null>{...hNullNull};
-    Map m24 = <int, int>{...hIntInt};
-    Map m25 = <int, int>{...hObjectObject};
-    Map m26 = <int, int>{...hDynamicDynamic};
-    Map m27 = <int, int>{...hNullNull};
-  }
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    Expression getSpreadExpression(VariableDeclarationStatement s) {
-      VariableDeclaration declaration = s.variables.variables[0];
-      SetOrMapLiteral literal = declaration.initializer;
-      SpreadElement spread = literal.elements[0];
-      return spread.expression;
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitCast(expression);
-      expect(spreadCastType, isNotNull,
-          reason: 'Expression $expression does not have implicit cast');
-      expect(spreadCastType.toString(), equals('Map<dynamic, dynamic>'));
-    }
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitCast(expression);
-      expect(spreadCastType, isNull,
-          reason: 'Expression $expression should not have implicit cast');
-    }
-  }
-
-  test_implicitCastMetadata_spread_map_values() async {
-    var source = addSource(r'''
-abstract class HashMap<K, V> implements Map<K, V> {}
-class C {
-  dynamic dyn;
-  Map<dynamic, int> mDynamicInt;
-  Map<dynamic, Object> mDynamicObject;
-  Map<dynamic, dynamic> mDynamicDynamic;
-  Map<dynamic, Null> mDynamicNull;
-  HashMap<dynamic, int> hDynamicInt;
-  HashMap<dynamic, Object> hDynamicObject;
-  HashMap<dynamic, dynamic> hDynamicDynamic;
-  HashMap<dynamic, Null> hDynamicNull;
-
-  void casts() {
-    Map m0 = <dynamic, int>{...dyn};
-    Map m1 = <dynamic, num>{...dyn};
-    Map m2 = <dynamic, int>{...mDynamicObject};
-    Map m3 = <dynamic, int>{...mDynamicDynamic};
-    Map m4 = <dynamic, int>{...hDynamicObject};
-    Map m5 = <dynamic, int>{...hDynamicDynamic};
-    Map m6 = <dynamic, Null>{...dyn};
-    Map m7 = <dynamic, Null>{...mDynamicObject};
-    Map m8 = <dynamic, Null>{...mDynamicDynamic};
-    Map m9 = <dynamic, Null>{...mDynamicInt};
-    Map m10 = <dynamic, Null>{...hDynamicObject};
-    Map m11 = <dynamic, Null>{...hDynamicDynamic};
-    Map m12 = <dynamic, Null>{...hDynamicInt};
-  }
-
-  void noCasts() {
-    Map m0 = {...dyn};
-    Map m1 = <dynamic, dynamic>{...dyn};
-    Map m2 = <dynamic, Object>{...dyn};
-    Map m3 = <dynamic, dynamic>{...mDynamicInt};
-    Map m4 = <dynamic, Object>{...mDynamicInt};
-    Map m5 = <dynamic, Object>{...mDynamicNull};
-    Map m6 = <dynamic, dynamic>{...hDynamicInt};
-    Map m7 = <dynamic, Object>{...hDynamicInt};
-    Map m8 = <dynamic, Object>{...hDynamicNull};
-    Map m9 = <dynamic, dynamic>{...mDynamicObject};
-    Map m10 = <dynamic, Object>{...mDynamicObject};
-    Map m11 = <dynamic, Object>{...mDynamicNull};
-    Map m12 = <dynamic, dynamic>{...hDynamicObject};
-    Map m13 = <dynamic, Object>{...hDynamicObject};
-    Map m14 = <dynamic, Object>{...hDynamicNull};
-    Map m15 = <dynamic, dynamic>{...mDynamicDynamic};
-    Map m16 = <dynamic, Object>{...mDynamicDynamic};
-    Map m17 = <dynamic, Object>{...mDynamicNull};
-    Map m18 = <dynamic, dynamic>{...hDynamicDynamic};
-    Map m19 = <dynamic, Object>{...hDynamicDynamic};
-    Map m20 = <dynamic, Object>{...hDynamicNull};
-    Map m21 = <dynamic, num>{...mDynamicInt};
-    Map m22 = <dynamic, num>{...hDynamicInt};
-    Map m23 = <dynamic, num>{...mDynamicNull};
-    Map m24 = <dynamic, num>{...hDynamicNull};
-    Map m25 = <dynamic, int>{...hDynamicInt};
-    Map m26 = <dynamic, int>{...mDynamicInt};
-    Map m27 = <dynamic, int>{...mDynamicNull};
-    Map m28 = <dynamic, int>{...hDynamicNull};
-    Map m29 = <dynamic, Null>{...mDynamicNull};
-    Map m30 = <dynamic, Null>{...hDynamicNull};
- }
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    Expression getSpreadExpression(VariableDeclarationStatement s) {
-      VariableDeclaration declaration = s.variables.variables[0];
-      SetOrMapLiteral literal = declaration.initializer;
-      SpreadElement spread = literal.elements[0];
-      return spread.expression;
-    }
-
-    DartType getValueType(VariableDeclarationStatement s) {
-      VariableDeclaration declaration = s.variables.variables[0];
-      SetOrMapLiteral literal = declaration.initializer;
-      return literal.typeArguments.arguments[1].type;
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitSpreadValueCast(expression);
-      expect(spreadCastType, isNotNull,
-          reason: 'Expression $expression does not have implicit cast');
-      expect(spreadCastType, equals(getValueType(s)));
-    }
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitSpreadValueCast(expression);
-      expect(spreadCastType, isNull,
-          reason: 'Expression $expression should not have implicit cast');
-    }
-  }
-
-  test_implicitCastMetadata_spread_set_elements() async {
-    var source = addSource(r'''
-class C {
-  dynamic dyn;
-  Iterable<int> iInt;
-  Iterable<Object> iObject;
-  Iterable<dynamic> iDynamic;
-  Iterable<Null> iNull;
-  List<int> lInt;
-  List<Object> lObject;
-  List<dynamic> lDynamic;
-  List<Null> lNull;
-
-  void casts() {
-    Set s0 = <int>{...dyn};
-    Set s1 = <num>{...dyn};
-    Set s2 = <int>{...iObject};
-    Set s3 = <int>{...iDynamic};
-    Set s4 = <int>{...lObject};
-    Set s5 = <int>{...lDynamic};
-    Set s6 = <Null>{...dyn};
-    Set s7 = <Null>{...iObject};
-    Set s8 = <Null>{...iDynamic};
-    Set s9 = <Null>{...iInt};
-    Set s10 = <Null>{...lObject};
-    Set s11 = <Null>{...lDynamic};
-    Set s12 = <Null>{...lInt};
-  }
-
-  void noCasts() {
-    Set s0 = {...dyn};
-    Set s1 = <dynamic>{...dyn};
-    Set s2 = <Object>{...dyn};
-    Set s3 = <dynamic>{...iInt};
-    Set s4 = <Object>{...iInt};
-    Set s5 = <Object>{...iNull};
-    Set s6 = <dynamic>{...lInt};
-    Set s7 = <Object>{...lInt};
-    Set s8 = <Object>{...lNull};
-    Set s9 = <dynamic>{...iObject};
-    Set s10 = <Object>{...iObject};
-    Set s11 = <Object>{...iNull};
-    Set s12 = <dynamic>{...lObject};
-    Set s13 = <Object>{...lObject};
-    Set s14 = <Object>{...lNull};
-    Set s15 = <dynamic>{...iDynamic};
-    Set s16 = <Object>{...iDynamic};
-    Set s17 = <Object>{...iNull};
-    Set s18 = <dynamic>{...lDynamic};
-    Set s19 = <Object>{...lDynamic};
-    Set s20 = <Object>{...lNull};
-    Set s21 = <num>{...iInt};
-    Set s22 = <num>{...lInt};
-    Set s23 = <num>{...iNull};
-    Set s24 = <num>{...lNull};
-    Set s25 = <int>{...iInt};
-    Set s26 = <int>{...lInt};
-    Set s27 = <int>{...iNull};
-    Set s28 = <int>{...lNull};
-    Set s29 = <Null>{...iNull};
-    Set s30 = <Null>{...lNull};
-  }
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    Expression getSpreadExpression(VariableDeclarationStatement s) {
-      VariableDeclaration declaration = s.variables.variables[0];
-      SetOrMapLiteral literal = declaration.initializer;
-      SpreadElement spread = literal.elements[0];
-      return spread.expression;
-    }
-
-    DartType getKeyType(VariableDeclarationStatement s) {
-      VariableDeclaration declaration = s.variables.variables[0];
-      SetOrMapLiteral literal = declaration.initializer;
-      return literal.typeArguments.arguments[0].type;
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitSpreadCast(expression);
-      expect(spreadCastType, isNotNull,
-          reason: 'Expression $expression does not have implicit cast');
-      expect(spreadCastType, equals(getKeyType(s)));
-    }
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitSpreadCast(expression);
-      expect(spreadCastType, isNull,
-          reason: 'Expression $expression should not have implicit cast');
-    }
-  }
-
-  test_implicitCastMetadata_spread_set_iterable() async {
-    var source = addSource(r'''
-class C {
-  dynamic dyn;
-  Iterable<int> iInt;
-  Iterable<Object> iObject;
-  Iterable<dynamic> iDynamic;
-  Iterable<Null> iNull;
-  List<int> lInt;
-  List<Object> lObject;
-  List<dynamic> lDynamic;
-  List<Null> lNull;
-
-  void casts() {
-    Set s0 = {...dyn};
-    Set s1 = <int>{...dyn};
-    Set s2 = <num>{...dyn};
-  }
-
-  void noCasts() {
-    Set s0 = {...iInt};
-    Set s1 = {...iObject};
-    Set s2 = {...iDynamic};
-    Set s3 = {...iNull};
-    Set s4 = <Null>{...iInt};
-    Set s5 = <Null>{...iObject};
-    Set s6 = <Null>{...iDynamic};
-    Set s7 = <Null>{...iNull};
-    Set s8 = <int>{...iInt};
-    Set s9 = <int>{...iObject};
-    Set s10 = <int>{...iDynamic};
-    Set s11 = <int>{...iNull};
-    Set s12 = {...lInt};
-    Set s13 = {...lObject};
-    Set s14 = {...lDynamic};
-    Set s15 = {...lNull};
-    Set s16 = <Null>{...lInt};
-    Set s17 = <Null>{...lObject};
-    Set s18 = <Null>{...lDynamic};
-    Set s19 = <Null>{...lNull};
-    Set s20 = <int>{...lInt};
-    Set s21 = <int>{...lObject};
-    Set s22 = <int>{...lDynamic};
-  }
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    Expression getSpreadExpression(VariableDeclarationStatement s) {
-      VariableDeclaration declaration = s.variables.variables[0];
-      SetOrMapLiteral literal = declaration.initializer;
-      SpreadElement spread = literal.elements[0];
-      return spread.expression;
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitCast(expression);
-      expect(spreadCastType, isNotNull,
-          reason: 'Expression $expression does not have implicit cast');
-      expect(spreadCastType.toString(), equals('Iterable<dynamic>'));
-    }
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      var expression = getSpreadExpression(s);
-      var spreadCastType = getImplicitCast(expression);
-      expect(spreadCastType, isNull,
-          reason: 'Expression $expression should not have implicit cast');
-    }
-  }
 }
 
 /// Strong mode static analyzer local type inference tests
@@ -1130,16 +54,29 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
   AsserterBuilder<Asserter<DartType>, InterfaceType> _isListOf;
   AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, InterfaceType>
       _isMapOf;
-  AsserterBuilder<List<Asserter<DartType>>, InterfaceType> _isStreamOf;
   AsserterBuilder<DartType, DartType> _isType;
 
   AsserterBuilder<Element, DartType> _hasElement;
+
+  void assertInvokeType(InvocationExpression expression, String expected) {
+    DartType actual = expression.staticInvokeType;
+    assertType(actual, expected);
+  }
+
+  void assertType(DartType type, String expected) {
+    if (expected == null) {
+      expect(type, isNull);
+    } else {
+      var typeStr = type.getDisplayString(withNullability: false);
+      expect(typeStr, expected);
+    }
+  }
 
   @override
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
     TestAnalysisResult result = await super.computeAnalysisResult(source);
     if (_assertions == null) {
-      _assertions = new TypeAssertions(typeProvider);
+      _assertions = TypeAssertions(typeProvider);
       _isType = _assertions.isType;
       _hasElement = _assertions.hasElement;
       _isInstantiationOf = _assertions.isInstantiationOf;
@@ -1159,7 +96,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
       _isFutureOfInt = _isFutureOf([_isInt]);
       _isFutureOfNull = _isFutureOf([_isNull]);
       _isFutureOrOfInt = _isFutureOrOf([_isInt]);
-      _isStreamOf = _isInstantiationOf(_hasElement(typeProvider.streamElement));
     }
     return result;
   }
@@ -1167,7 +103,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
   @override
   void setUp() {
     super.setUp();
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    AnalysisOptionsImpl options = AnalysisOptionsImpl();
     resetWith(options: options);
   }
 
@@ -1282,61 +218,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     check("g3", _isFutureOfInt);
     check("g4", _isFutureOfInt);
     check("g5", _isFutureOfInt);
-  }
-
-  test_async_star_method_propagation() async {
-    String code = r'''
-      import "dart:async";
-      class A {
-        Stream g0() async* { yield []; }
-        Stream g1() async* { yield* new Stream(); }
-
-        Stream<List<int>> g2() async* { yield []; }
-        Stream<List<int>> g3() async* { yield* new Stream(); }
-      }
-    ''';
-    CompilationUnit unit = await resolveSource(code);
-
-    void check(String name, Asserter<InterfaceType> typeTest) {
-      MethodDeclaration test = AstFinder.getMethodInClass(unit, "A", name);
-      BlockFunctionBody body = test.body;
-      YieldStatement stmt = body.block.statements[0];
-      Expression exp = stmt.expression;
-      typeTest(exp.staticType);
-    }
-
-    check("g0", _isListOf(_isDynamic));
-    check("g1", _isStreamOf([_isDynamic]));
-
-    check("g2", _isListOf(_isInt));
-    check("g3", _isStreamOf([(DartType type) => _isListOf(_isInt)(type)]));
-  }
-
-  test_async_star_propagation() async {
-    String code = r'''
-      import "dart:async";
-
-      Stream g0() async* { yield []; }
-      Stream g1() async* { yield* new Stream(); }
-
-      Stream<List<int>> g2() async* { yield []; }
-      Stream<List<int>> g3() async* { yield* new Stream(); }
-   ''';
-    CompilationUnit unit = await resolveSource(code);
-
-    void check(String name, Asserter<InterfaceType> typeTest) {
-      FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, name);
-      BlockFunctionBody body = test.functionExpression.body;
-      YieldStatement stmt = body.block.statements[0];
-      Expression exp = stmt.expression;
-      typeTest(exp.staticType);
-    }
-
-    check("g0", _isListOf(_isDynamic));
-    check("g1", _isStreamOf([_isDynamic]));
-
-    check("g2", _isListOf(_isInt));
-    check("g3", _isStreamOf([(DartType type) => _isListOf(_isInt)(type)]));
   }
 
   test_cascadeExpression() async {
@@ -1489,318 +370,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     ConstructorFieldInitializer assignment = constructor.initializers[0];
     Expression exp = assignment.expression;
     _isListOf(_isString)(exp.staticType);
-  }
-
-  test_covarianceChecks() async {
-    var source = addSource(r'''
-class C<T> {
-  add(T t) {}
-  forEach(void f(T t)) {}
-}
-class D extends C<int> {
-  add(int t) {}
-  forEach(void f(int t)) {}
-}
-class E extends C<int> {
-  add(Object t) {}
-  forEach(void f(Null t)) {}
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-    var cAdd = AstFinder.getMethodInClass(unit, "C", "add");
-    var covariantC = getClassCovariantParameters(AstFinder.getClass(unit, "C"));
-    expect(covariantC.toList(), [cAdd.declaredElement.parameters[0]]);
-
-    var dAdd = AstFinder.getMethodInClass(unit, "D", "add");
-    var covariantD = getClassCovariantParameters(AstFinder.getClass(unit, "D"));
-    expect(covariantD.toList(), [dAdd.declaredElement.parameters[0]]);
-
-    var covariantE = getClassCovariantParameters(AstFinder.getClass(unit, "E"));
-    expect(covariantE.toList(), []);
-  }
-
-  test_covarianceChecks2() async {
-    var content = r'''
-class View<T1> {
-  View<T1> create() => this;
-}
-
-class Bar<T2> extends View<Bar<T2>> {}
-
-main() {
-  var b = new Bar<int>();
-  b.create();
-}
-''';
-    var source = addSource(content);
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    var findNode = FindNode(content, unit);
-    expect(getImplicitCast(findNode.methodInvocation('b.create')), isNull);
-  }
-
-  test_covarianceChecks_genericMethods() async {
-    var source = addSource(r'''
-class C<T> {
-  add<S>(T t) {}
-  forEach<S>(S f(T t)) {}
-}
-class D extends C<int> {
-  add<S>(int t) {}
-  forEach<S>(S f(int t)) {}
-}
-class E extends C<int> {
-  add<S>(Object t) {}
-  forEach<S>(S f(Null t)) {}
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    var cAdd = AstFinder.getMethodInClass(unit, "C", "add");
-    var covariantC = getClassCovariantParameters(AstFinder.getClass(unit, "C"));
-    expect(covariantC.toList(), [cAdd.declaredElement.parameters[0]]);
-
-    var dAdd = AstFinder.getMethodInClass(unit, "D", "add");
-    var covariantD = getClassCovariantParameters(AstFinder.getClass(unit, "D"));
-    expect(covariantD.toList(), [dAdd.declaredElement.parameters[0]]);
-
-    var covariantE = getClassCovariantParameters(AstFinder.getClass(unit, "E"));
-    expect(covariantE.toList(), []);
-  }
-
-  test_covarianceChecks_returnFunction() async {
-    var source = addSource(r'''
-typedef F<T>(T t);
-typedef T R<T>();
-class C<T> {
-  F<T> f;
-
-  C();
-  factory C.fact() => new C<Null>();
-
-  F<T> get g => null;
-  F<T> m1() => null;
-  R<F<T>> m2() => null;
-
-  casts(C<T> other, T t) {
-    other.f;
-    other.g(t);
-    other.m1();
-    other.m2;
-
-    new C<T>.fact().f(t);
-    new C<int>.fact().g;
-    new C<int>.fact().m1;
-    new C<T>.fact().m2();
-
-    new C<Object>.fact().f(42);
-    new C<Object>.fact().g;
-    new C<Object>.fact().m1;
-    new C<Object>.fact().m2();
-
-    new C.fact().f(42);
-    new C.fact().g;
-    new C.fact().m1;
-    new C.fact().m2();
-  }
-
-  noCasts(T t) {
-    f;
-    g;
-    m1();
-    m2();
-
-    f(t);
-    g(t);
-    (f)(t);
-    (g)(t);
-    m1;
-    m2;
-
-    this.f;
-    this.g;
-    this.m1();
-    this.m2();
-    this.m1;
-    this.m2;
-    (this.m1)();
-    (this.m2)();
-    this.f(t);
-    this.g(t);
-    (this.f)(t);
-    (this.g)(t);
-
-    new C<int>().f;
-    new C<T>().g;
-    new C<int>().m1();
-    new C().m2();
-
-    new D().f;
-    new D().g;
-    new D().m1();
-    new D().m2();
-  }
-}
-class D extends C<num> {
-  noCasts(t) {
-    f;
-    this.g;
-    this.m1();
-    m2;
-
-    super.f;
-    super.g;
-    super.m1;
-    super.m2();
-  }
-}
-
-D d;
-C<Object> c;
-C cD;
-C<Null> cN;
-F<Object> f;
-F<Null> fN;
-R<F<Object>> rf;
-R<F<Null>> rfN;
-R<R<F<Object>>> rrf;
-R<R<F<Null>>> rrfN;
-Object obj;
-F<int> fi;
-R<F<int>> rfi;
-R<R<F<int>>> rrfi;
-
-casts() {
-  c.f;
-  c.g;
-  c.m1;
-  c.m1();
-  c.m2();
-
-  fN = c.f;
-  fN = c.g;
-  rfN = c.m1;
-  rrfN = c.m2;
-  fN = c.m1();
-  rfN = c.m2();
-
-  f = c.f;
-  f = c.g;
-  rf = c.m1;
-  rrf = c.m2;
-  f = c.m1();
-  rf = c.m2();
-  c.m2()();
-
-  c.f(obj);
-  c.g(obj);
-  (c.f)(obj);
-  (c.g)(obj);
-  (c.m1)();
-  c.m1()(obj);
-  (c.m2)();
-
-  cD.f;
-  cD.g;
-  cD.m1;
-  cD.m1();
-  cD.m2();
-
-  cN.f;
-  cN.g;
-  cN.m1;
-  cN.m1();
-  cN.m2();
-}
-
-noCasts() {
-  fi = d.f;
-  fi = d.g;
-  rfi = d.m1;
-  fi = d.m1();
-  rrfi = d.m2;
-  rfi = d.m2();
-  d.f(42);
-  d.g(42);
-  (d.f)(42);
-  (d.g)(42);
-  d.m1()(42);
-  d.m2()()(42);
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    void expectCast(Statement statement, bool hasCast) {
-      var value = (statement as ExpressionStatement).expression;
-      if (value is AssignmentExpression) {
-        value = (value as AssignmentExpression).rightHandSide;
-      }
-      while (value is FunctionExpressionInvocation) {
-        value = (value as FunctionExpressionInvocation).function;
-      }
-      while (value is ParenthesizedExpression) {
-        value = (value as ParenthesizedExpression).expression;
-      }
-      var isCallingGetter =
-          value is MethodInvocation && !value.methodName.name.startsWith('m');
-      var cast = isCallingGetter
-          ? getImplicitOperationCast(value)
-          : getImplicitCast(value);
-      var castKind = isCallingGetter ? 'special cast' : 'cast';
-      expect(cast, hasCast ? isNotNull : isNull,
-          reason: '`$statement` should ' +
-              (hasCast ? '' : 'not ') +
-              'have a $castKind on `$value`.');
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      expectCast(s, false);
-    }
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      expectCast(s, true);
-    }
-    for (var s in AstFinder.getStatementsInMethod(unit, 'D', 'noCasts')) {
-      expectCast(s, false);
-    }
-    for (var s in AstFinder.getStatementsInTopLevelFunction(unit, 'noCasts')) {
-      expectCast(s, false);
-    }
-    for (var s in AstFinder.getStatementsInTopLevelFunction(unit, 'casts')) {
-      expectCast(s, true);
-    }
-  }
-
-  test_covarianceChecks_superclass() async {
-    var source = addSource(r'''
-class C<T> {
-  add(T t) {}
-  forEach(void f(T t)) {}
-}
-class D {
-  add(int t) {}
-  forEach(void f(int t)) {}
-}
-class E extends D implements C<int> {}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-    var cAdd = AstFinder.getMethodInClass(unit, "C", "add");
-    var covariantC = getClassCovariantParameters(AstFinder.getClass(unit, "C"));
-    expect(covariantC.toList(), [cAdd.declaredElement.parameters[0]]);
-
-    var dAdd = AstFinder.getMethodInClass(unit, "D", "add");
-    var covariantD = getClassCovariantParameters(AstFinder.getClass(unit, "D"));
-    expect(covariantD, null);
-
-    var classE = AstFinder.getClass(unit, "E");
-    var covariantE = getClassCovariantParameters(classE);
-    var superCovariantE = getSuperclassCovariantParameters(classE);
-    expect(covariantE.toList(), []);
-    expect(superCovariantE.toList(), [dAdd.declaredElement.parameters[0]]);
   }
 
   test_factoryConstructor_propagation() async {
@@ -2487,7 +1056,9 @@ void test() {
       _isInstantiationOf(_hasElement(elementA))([_isInt])(init.staticType);
     }
 
-    for (var i = 0; i < 5; i++) check(i);
+    for (var i = 0; i < 5; i++) {
+      check(i);
+    }
   }
 
   test_inferConstructor_unknownTypeLowerBound() async {
@@ -2585,7 +1156,7 @@ test() {
         .variables
         .variables[0];
     var call = h.initializer as MethodInvocation;
-    expect(call.staticInvokeType.toString(), 'Null Function(Null, Null)');
+    assertInvokeType(call, 'Null Function(Null, Null)');
   }
 
   test_inference_error_extendsFromReturn2() async {
@@ -2698,8 +1269,7 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      FunctionType fType = invoke.staticInvokeType;
-      expect('$fType',
+      assertInvokeType(invoke,
           'void Function(T Function(T), int Function(T, T), T Function(T))');
     }
   }
@@ -2726,8 +1296,8 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      FunctionType fType = invoke.staticInvokeType;
-      expect('$fType', 'void Function(List<T>, int Function(T, T), List<T>)');
+      assertInvokeType(
+          invoke, 'void Function(List<T>, int Function(T, T), List<T>)');
     }
   }
 
@@ -2753,8 +1323,7 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      FunctionType fType = invoke.staticInvokeType;
-      expect('$fType', 'void Function(T, int Function(T, T), T)');
+      assertInvokeType(invoke, 'void Function(T, int Function(T, T), T)');
     }
   }
 
@@ -2777,10 +1346,9 @@ test() {
         .variables[0];
     _isDynamic(h.declaredElement.type);
     var fCall = h.initializer as MethodInvocation;
-    expect(fCall.staticInvokeType.toString(),
-        'dynamic Function(dynamic Function(dynamic))');
+    assertInvokeType(fCall, 'dynamic Function(dynamic Function(dynamic))');
     var g = fCall.argumentList.arguments[0];
-    expect(g.staticType.toString(), 'dynamic Function(dynamic)');
+    assertType(g.staticType, 'dynamic Function(dynamic)');
   }
 
   test_inferGenericInstantiation2() async {
@@ -2805,11 +1373,10 @@ num test(Iterable values) => values.fold(values.first as num, max);
             .functionExpression
             .body as ExpressionFunctionBody)
         .expression as MethodInvocation;
-    expect(fold.staticInvokeType.toString(),
-        'num Function(num, num Function(num, dynamic))');
+    assertInvokeType(fold, 'num Function(num, num Function(num, dynamic))');
     var max = fold.argumentList.arguments[1];
     // TODO(jmesserly): arguably num Function(num, num) is better here.
-    expect(max.staticType.toString(), 'dynamic Function(dynamic, dynamic)');
+    assertType(max.staticType, 'dynamic Function(dynamic, dynamic)');
   }
 
   test_inferredFieldDeclaration_propagation() async {
@@ -3591,11 +2158,14 @@ class B<T2, U2> {
     ConstructorName redirected = bConstructor.redirectedConstructor;
 
     TypeName typeName = redirected.type;
-    expect(typeName.type.toString(), 'A<T2, U2>');
-    expect(typeName.type.toString(), 'A<T2, U2>');
+    assertType(typeName.type, 'A<T2, U2>');
+    assertType(typeName.type, 'A<T2, U2>');
 
     var constructorMember = redirected.staticElement;
-    expect(constructorMember.toString(), 'A<T2, U2> A.named()');
+    expect(
+      constructorMember.getDisplayString(withNullability: false),
+      'A<T2, U2> A.named()',
+    );
     expect(redirected.name.staticElement, constructorMember);
   }
 
@@ -3628,11 +2198,14 @@ class B<T2, U2> {
     ConstructorName redirected = bConstructor.redirectedConstructor;
 
     TypeName typeName = redirected.type;
-    expect(typeName.type.toString(), 'A<T2, U2>');
-    expect(typeName.type.toString(), 'A<T2, U2>');
+    assertType(typeName.type, 'A<T2, U2>');
+    assertType(typeName.type, 'A<T2, U2>');
 
     expect(redirected.name, isNull);
-    expect(redirected.staticElement.toString(), 'A<T2, U2> A()');
+    expect(
+      redirected.staticElement.getDisplayString(withNullability: false),
+      'A<T2, U2> A()',
+    );
   }
 
   test_redirectingConstructor_propagation() async {
@@ -3795,61 +2368,6 @@ class B<T2, U2> {
     _isListOf(_isString)(exp.staticType);
   }
 
-  test_sync_star_method_propagation() async {
-    String code = r'''
-      import "dart:async";
-      class A {
-        Iterable f0() sync* { yield []; }
-        Iterable f1() sync* { yield* new List(); }
-
-        Iterable<List<int>> f2() sync* { yield []; }
-        Iterable<List<int>> f3() sync* { yield* new List(); }
-      }
-   ''';
-    CompilationUnit unit = await resolveSource(code);
-
-    void check(String name, Asserter<InterfaceType> typeTest) {
-      MethodDeclaration test = AstFinder.getMethodInClass(unit, "A", name);
-      BlockFunctionBody body = test.body;
-      YieldStatement stmt = body.block.statements[0];
-      Expression exp = stmt.expression;
-      typeTest(exp.staticType);
-    }
-
-    check("f0", _isListOf(_isDynamic));
-    check("f1", _isListOf(_isDynamic));
-
-    check("f2", _isListOf(_isInt));
-    check("f3", _isListOf((DartType type) => _isListOf(_isInt)(type)));
-  }
-
-  test_sync_star_propagation() async {
-    String code = r'''
-      import "dart:async";
-
-      Iterable f0() sync* { yield []; }
-      Iterable f1() sync* { yield* new List(); }
-
-      Iterable<List<int>> f2() sync* { yield []; }
-      Iterable<List<int>> f3() sync* { yield* new List(); }
-   ''';
-    CompilationUnit unit = await resolveSource(code);
-
-    void check(String name, Asserter<InterfaceType> typeTest) {
-      FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, name);
-      BlockFunctionBody body = test.functionExpression.body;
-      YieldStatement stmt = body.block.statements[0];
-      Expression exp = stmt.expression;
-      typeTest(exp.staticType);
-    }
-
-    check("f0", _isListOf(_isDynamic));
-    check("f1", _isListOf(_isDynamic));
-
-    check("f2", _isListOf(_isInt));
-    check("f3", _isListOf((DartType type) => _isListOf(_isInt)(type)));
-  }
-
   /// Verifies the source has the expected [errorCodes] as well as the
   /// expected [errorMessage].
   void _expectInferenceError(
@@ -3893,273 +2411,21 @@ class B<T2, U2> {
 }
 
 @reflectiveTest
-class StrongModeLocalInferenceTest_NNBD extends ResolverTestCase {
-  @override
-  AnalysisOptions get analysisOptions => new AnalysisOptionsImpl()
-    ..contextFeatures =
-        new FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  void setUp() {
-    //TODO(mfairhurst): why is this override required?
-    super.setUp();
-    AnalysisOptionsImpl options = analysisOptions;
-    resetWith(options: options);
-  }
-
-  test_covarianceChecks_returnFunction() async {
-    // test Never cases.
-    var source = addSource(r'''
-typedef F<T>(T t);
-typedef T R<T>();
-class C<T> {
-  F<T> f = throw '';
-
-  C();
-  factory C.fact() => new C<Never>();
-
-  F<T> get g => throw '';
-  F<T> m1() => throw '';
-  R<F<T>> m2() => throw '';
-
-  casts(C<T> other, T t) {
-    other.f;
-    other.g(t);
-    other.m1();
-    other.m2;
-
-    new C<T>.fact().f(t);
-    new C<int>.fact().g;
-    new C<int>.fact().m1;
-    new C<T>.fact().m2();
-
-    new C<Object>.fact().f(42);
-    new C<Object>.fact().g;
-    new C<Object>.fact().m1;
-    new C<Object>.fact().m2();
-
-    new C.fact().f(42);
-    new C.fact().g;
-    new C.fact().m1;
-    new C.fact().m2();
-  }
-
-  noCasts(T t) {
-    f;
-    g;
-    m1();
-    m2();
-
-    f(t);
-    g(t);
-    (f)(t);
-    (g)(t);
-    m1;
-    m2;
-
-    this.f;
-    this.g;
-    this.m1();
-    this.m2();
-    this.m1;
-    this.m2;
-    (this.m1)();
-    (this.m2)();
-    this.f(t);
-    this.g(t);
-    (this.f)(t);
-    (this.g)(t);
-
-    new C<int>().f;
-    new C<T>().g;
-    new C<int>().m1();
-    new C().m2();
-
-    new D().f;
-    new D().g;
-    new D().m1();
-    new D().m2();
-  }
-}
-class D extends C<num> {
-  noCasts(t) {
-    f;
-    this.g;
-    this.m1();
-    m2;
-
-    super.f;
-    super.g;
-    super.m1;
-    super.m2();
-  }
-}
-
-D d = throw '';
-C<Object> c = throw '';
-C cD = throw '';
-C<Null> cNu = throw '';
-F<Object> f = throw '';
-R<F<Object>> rf = throw '';
-R<R<F<Object>>> rrf = throw '';
-Object obj = throw '';
-F<int> fi = throw '';
-R<F<int>> rfi = throw '';
-R<R<F<int>>> rrfi = throw '';
-
-casts() {
-  c.f;
-  c.g;
-  c.m1;
-  c.m1();
-  c.m2();
-
-  f = c.f;
-  f = c.g;
-  rf = c.m1;
-  rrf = c.m2;
-  f = c.m1();
-  rf = c.m2();
-  c.m2()();
-
-  c.f(obj);
-  c.g(obj);
-  (c.f)(obj);
-  (c.g)(obj);
-  (c.m1)();
-  c.m1()(obj);
-  (c.m2)();
-
-  cD.f;
-  cD.g;
-  cD.m1;
-  cD.m1();
-  cD.m2();
-
-  cNu.f;
-  cNu.g;
-  cNu.m1;
-  cNu.m1();
-  cNu.m2();
-}
-
-noCasts() {
-  fi = d.f;
-  fi = d.g;
-  rfi = d.m1;
-  fi = d.m1();
-  rrfi = d.m2;
-  rfi = d.m2();
-  d.f(42);
-  d.g(42);
-  (d.f)(42);
-  (d.g)(42);
-  d.m1()(42);
-  d.m2()()(42);
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      _expectCast(s, false);
-    }
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      _expectCast(s, true);
-    }
-    for (var s in AstFinder.getStatementsInMethod(unit, 'D', 'noCasts')) {
-      _expectCast(s, false);
-    }
-    for (var s in AstFinder.getStatementsInTopLevelFunction(unit, 'noCasts')) {
-      _expectCast(s, false);
-    }
-    for (var s in AstFinder.getStatementsInTopLevelFunction(unit, 'casts')) {
-      _expectCast(s, true);
-    }
-  }
-
-  test_covarianceChecks_returnFunction_never() async {
-    var source = addSource(r'''
-typedef F<T>(T t);
-typedef T R<T>();
-class C<T> {
-  F<T> f = throw '';
-
-  F<T> get g => throw '';
-  F<T> m1() => throw '';
-  R<F<T>> m2() => throw '';
-}
-
-C<Object> c = throw '';
-C<Never> cN = throw '';
-F<Never> fN = throw '';
-R<F<Never>> rfN = throw '';
-R<R<F<Never>>> rrfN = throw '';
-
-casts() {
-  fN = c.f;
-  fN = c.g;
-  rfN = c.m1;
-  rrfN = c.m2;
-  fN = c.m1();
-  rfN = c.m2();
-
-  // The cases below used to be noCasts().
-  // This is a DDC optimization that we do not support anymore.
-  cN.f;
-  cN.g;
-  cN.m1;
-  cN.m1();
-  cN.m2();
-}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-
-    for (var s in AstFinder.getStatementsInTopLevelFunction(unit, 'casts')) {
-      _expectCast(s, true);
-    }
-  }
-
-  void _expectCast(Statement statement, bool hasCast) {
-    var value = (statement as ExpressionStatement).expression;
-    if (value is AssignmentExpression) {
-      value = (value as AssignmentExpression).rightHandSide;
-    }
-    while (value is FunctionExpressionInvocation) {
-      value = (value as FunctionExpressionInvocation).function;
-    }
-    while (value is ParenthesizedExpression) {
-      value = (value as ParenthesizedExpression).expression;
-    }
-    var isCallingGetter =
-        value is MethodInvocation && !value.methodName.name.startsWith('m');
-    var cast = isCallingGetter
-        ? getImplicitOperationCast(value)
-        : getImplicitCast(value);
-    var castKind = isCallingGetter ? 'special cast' : 'cast';
-    expect(cast, hasCast ? isNotNull : isNull,
-        reason: '`$statement` should ' +
-            (hasCast ? '' : 'not ') +
-            'have a $castKind on `$value`.');
-  }
-}
-
-@reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
-  void expectStaticInvokeType(String search, String type) {
+  void expectStaticInvokeType(String search, String expected) {
     var invocation = findNode.simple(search).parent as MethodInvocation;
-    expect(invocation.staticInvokeType.toString(), type);
+    assertInvokeType(invocation, expected);
   }
 
   test_dynamicObjectGetter_hashCode() async {
-    String code = r'''
+    await assertErrorsInCode(r'''
 main() {
   dynamic a = null;
   var foo = a.hashCode;
 }
-''';
-    await assertNoErrorsInCode(code);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
@@ -4206,28 +2472,29 @@ main() {
   }
 
   test_generalizedVoid_assignToVoidOk() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void main() {
   void x;
   x = 42;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+    ]);
   }
 
   test_genericFunction() async {
     await assertNoErrorsInCode(r'T f<T>(T x) => null;');
-    expectFunctionType('f', 'T Function<T>(T)',
-        elementTypeParams: '[T]', typeFormals: '[T]');
+    expectFunctionType('f', 'T Function<T>(T)', typeFormals: '[T]');
     SimpleIdentifier f = findNode.simple('f');
     FunctionElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    expect(ft.toString(), 'String Function(String)');
+    assertType(ft, 'String Function(String)');
   }
 
   test_genericFunction_bounds() async {
     await assertNoErrorsInCode(r'T f<T extends num>(T x) => null;');
     expectFunctionType('f', 'T Function<T extends num>(T)',
-        elementTypeParams: '[T extends num]', typeFormals: '[T extends num]');
+        typeFormals: '[T extends num]');
   }
 
   test_genericFunction_parameter() async {
@@ -4236,7 +2503,7 @@ void g(T f<T>(T x)) {}
 ''');
     var type = expectFunctionType2('f', 'T Function<T>(T)');
     FunctionType ft = type.instantiate([typeProvider.stringType]);
-    expect(ft.toString(), 'String Function(String)');
+    assertType(ft, 'String Function(String)');
   }
 
   test_genericFunction_static() async {
@@ -4245,12 +2512,11 @@ class C<E> {
   static T f<T>(T x) => null;
 }
 ''');
-    expectFunctionType('f', 'T Function<T>(T)',
-        elementTypeParams: '[T]', typeFormals: '[T]');
+    expectFunctionType('f', 'T Function<T>(T)', typeFormals: '[T]');
     SimpleIdentifier f = findNode.simple('f');
     MethodElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    expect(ft.toString(), 'String Function(String)');
+    assertType(ft, 'String Function(String)');
   }
 
   test_genericFunction_typedef() async {
@@ -4322,33 +2588,27 @@ List<Object> eee = [new Object()];
   }
 
   test_genericMethod() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   List<T> f<T>(E e) => null;
 }
 main() {
   C<String> cOfString;
 }
-''');
-    assertElementTypeString(
-      findElement.method('f').type,
-      'List<T> Function<T>(E)',
-    );
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 9),
+    ]);
+    assertType(findElement.method('f').type, 'List<T> Function<T>(E)');
 
     var cOfString = findElement.localVar('cOfString');
     var ft = (cOfString.type as InterfaceType).getMethod('f').type;
-    assertElementTypeString(
-      ft,
-      'List<T> Function<T>(String)',
-    );
-    assertElementTypeString(
-      ft.instantiate([typeProvider.intType]),
-      'List<int> Function(String)',
-    );
+    assertType(ft, 'List<T> Function<T>(String)');
+    assertType(
+        ft.instantiate([typeProvider.intType]), 'List<int> Function(String)');
   }
 
   test_genericMethod_explicitTypeParams() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   List<T> f<T>(E e) => null;
 }
@@ -4356,17 +2616,19 @@ main() {
   C<String> cOfString;
   var x = cOfString.f<int>('hi');
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 1),
+    ]);
     MethodInvocation f = findNode.simple('f<int>').parent;
     FunctionType ft = f.staticInvokeType;
-    expect(ft.toString(), 'List<int> Function(String)');
+    assertType(ft, 'List<int> Function(String)');
 
     var x = findElement.localVar('x');
     expect(x.type, typeProvider.listType2(typeProvider.intType));
   }
 
   test_genericMethod_functionExpressionInvocation_explicit() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   T f<T>(T e) => null;
   static T g<T>(T e) => null;
@@ -4388,7 +2650,16 @@ void test<S>(T Function<T>(T) pf) {
   var localCall = (lf)<int>(3);
   var paramCall = (pf)<int>(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 237, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 281, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 315, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 349, 15),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 388, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 423, 12),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 460, 9),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 492, 9),
+    ]);
     _assertLocalVarType('lambdaCall', "int");
     _assertLocalVarType('methodCall', "int");
     _assertLocalVarType('staticCall', "int");
@@ -4400,25 +2671,29 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)<int>(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 9),
+    ]);
     _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 9),
+    ]);
     _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_inferred() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   T f<T>(T e) => null;
   static T g<T>(T e) => null;
@@ -4440,7 +2715,16 @@ void test<S>(T Function<T>(T) pf) {
   var localCall = (lf)(3);
   var paramCall = (pf)(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 237, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 276, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 305, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 334, 15),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 368, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 398, 12),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 430, 9),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 457, 9),
+    ]);
     _assertLocalVarType('lambdaCall', "int");
     _assertLocalVarType('methodCall', "int");
     _assertLocalVarType('staticCall', "int");
@@ -4452,7 +2736,7 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionInvocation_explicit() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   T f<T>(T e) => null;
   static T g<T>(T e) => null;
@@ -4472,7 +2756,15 @@ void test<S>(T Function<T>(T) pf) {
   var localCall = lf<int>(3);
   var paramCall = pf<int>(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 236, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 268, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 300, 15),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 337, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 370, 12),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 405, 9),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 435, 9),
+    ]);
     _assertLocalVarType('methodCall', "int");
     _assertLocalVarType('staticCall', "int");
     _assertLocalVarType('staticFieldCall', "int");
@@ -4483,25 +2775,29 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_explicit() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf<int>(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 9),
+    ]);
     _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_inferred() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 9),
+    ]);
     _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_inferred() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   T f<T>(T e) => null;
   static T g<T>(T e) => null;
@@ -4521,7 +2817,15 @@ void test<S>(T Function<T>(T) pf) {
   var localCall = lf(3);
   var paramCall = pf(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 236, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 263, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 290, 15),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 322, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 350, 12),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 380, 9),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 405, 9),
+    ]);
     _assertLocalVarType('methodCall', "int");
     _assertLocalVarType('staticCall', "int");
     _assertLocalVarType('staticFieldCall', "int");
@@ -4532,37 +2836,34 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionTypedParameter() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   List<T> f<T>(T f(E e)) => null;
 }
 main() {
   C<String> cOfString;
 }
-''');
-    assertElementTypeString(
-      findElement.method('f').type,
-      'List<T> Function<T>(T Function(E))',
-    );
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 70, 9),
+    ]);
+    assertType(
+        findElement.method('f').type, 'List<T> Function<T>(T Function(E))');
 
     var cOfString = findElement.localVar('cOfString');
     var ft = (cOfString.type as InterfaceType).getMethod('f').type;
-    assertElementTypeString(
-      ft,
-      'List<T> Function<T>(T Function(String))',
-    );
-    assertElementTypeString(
-      ft.instantiate([typeProvider.intType]),
-      'List<int> Function(int Function(String))',
-    );
+    assertType(ft, 'List<T> Function<T>(T Function(String))');
+    assertType(ft.instantiate([typeProvider.intType]),
+        'List<int> Function(int Function(String))');
   }
 
   test_genericMethod_functionTypedParameter_tearoff() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramTearOff = pf;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 12),
+    ]);
     _assertLocalVarType('paramTearOff', "T Function<T>(T)");
   }
 
@@ -4585,60 +2886,68 @@ void foo() {
         'map((e) => 3);', 'T Function<T>(T Function(dynamic))');
 
     MethodInvocation m1 = findNode.methodInvocation('map((e) => e);');
-    expect(m1.staticInvokeType.toString(),
-        'dynamic Function(dynamic Function(dynamic))');
+    assertInvokeType(m1, 'dynamic Function(dynamic Function(dynamic))');
     MethodInvocation m2 = findNode.methodInvocation('map((e) => 3);');
-    expect(
-        m2.staticInvokeType.toString(), 'int Function(int Function(dynamic))');
+    assertInvokeType(m2, 'int Function(int Function(dynamic))');
   }
 
   test_genericMethod_max_doubleDouble() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math';
 main() {
   var foo = max(1.0, 2.0);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 3),
+    ]);
     expectInitializerType('foo', 'double');
   }
 
   test_genericMethod_max_doubleDouble_prefixed() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math' as math;
 main() {
   var foo = math.max(1.0, 2.0);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 3),
+    ]);
     expectInitializerType('foo', 'double');
   }
 
   test_genericMethod_max_doubleInt() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math';
 main() {
   var foo = max(1.0, 2);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 3),
+    ]);
     expectInitializerType('foo', 'num');
   }
 
   test_genericMethod_max_intDouble() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math';
 main() {
   var foo = max(1, 2.0);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 3),
+    ]);
     expectInitializerType('foo', 'num');
   }
 
   test_genericMethod_max_intInt() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math';
 main() {
   var foo = max(1, 2);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
@@ -4664,7 +2973,7 @@ class C<T> {
 }
 ''');
     MethodInvocation f = findNode.methodInvocation('f<int>(3);');
-    expect(f.staticInvokeType.toString(), 'S Function(int)');
+    assertInvokeType(f, 'S Function(int)');
 
     expectIdentifierType('f;', 'S Function<S₀>(S₀)');
   }
@@ -4681,7 +2990,7 @@ class C<T> {
 }
 ''');
     MethodInvocation f = findNode.methodInvocation('f<int>(3);');
-    expect(f.staticInvokeType.toString(), 'S Function(int)');
+    assertInvokeType(f, 'S Function(int)');
     FunctionType ft = f.staticInvokeType;
     expect('${ft.typeArguments}', '[S, int]');
 
@@ -4689,20 +2998,17 @@ class C<T> {
   }
 
   test_genericMethod_nestedFunctions() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 S f<S>(S x) {
   g<S>(S x) => f;
   return null;
 }
-''');
-    assertElementTypeString(
-      findElement.topFunction('f').type,
-      'S Function<S>(S)',
-    );
-    assertElementTypeString(
-      findElement.localFunction('g').type,
-      'S Function<S>(S) Function<S>(S)',
-    );
+''', [
+      error(HintCode.UNUSED_ELEMENT, 16, 1),
+    ]);
+    assertType(findElement.topFunction('f').type, 'S Function<S>(S)');
+    assertType(findElement.localFunction('g').type,
+        'S Function<S>(S) Function<S₀>(S₀)');
   }
 
   test_genericMethod_override() async {
@@ -4715,11 +3021,11 @@ class D extends C {
 }
 ''');
     expectFunctionType('f<T>(T x) => null; // from D', 'T Function<T>(T)',
-        elementTypeParams: '[T]', typeFormals: '[T]');
+        typeFormals: '[T]');
     SimpleIdentifier f = findNode.simple('f<T>(T x) => null; // from D');
     MethodElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    expect(ft.toString(), 'String Function(String)');
+    assertType(ft, 'String Function(String)');
   }
 
   test_genericMethod_override_bounds() async {
@@ -4829,7 +3135,7 @@ class D extends C {
     // example won't work, as we now compute a static type and therefore discard
     // the propagated type. So a new test was created that doesn't run under
     // strong mode.
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 abstract class Iter {
   List<S> map<S>(S f(x));
 }
@@ -4839,12 +3145,15 @@ C toSpan(dynamic element) {
     var y = element.map(toSpan);
   }
   return null;
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 122, 1),
+    ]);
     _assertLocalVarType('y', 'List<C>');
   }
 
   test_genericMethod_tearoff() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   T f<T>(E e) => null;
   static T g<T>(T e) => null;
@@ -4864,7 +3173,15 @@ void test<S>(T Function<T>(T) pf) {
   var localTearOff = lf;
   var paramTearOff = pf;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 236, 13),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 263, 13),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 290, 18),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 322, 13),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 350, 15),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 380, 12),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 405, 12),
+    ]);
     _assertLocalVarType('methodTearOff', "T Function<T>(int)");
     _assertLocalVarType('staticTearOff', "T Function<T>(T)");
     _assertLocalVarType('staticFieldTearOff', "T Function<T>(T)");
@@ -4907,27 +3224,31 @@ void test<S>(T pf<T>(T e)) {
   }
 
   test_genericMethod_then() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 String toString(int x) => x.toString();
 main() {
   Future<int> bar = null;
   var foo = bar.then(toString);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 102, 3),
+    ]);
 
     expectInitializerType('foo', 'Future<String>');
   }
 
   test_genericMethod_then_prefixed() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async' as async;
 String toString(int x) => x.toString();
 main() {
   async.Future<int> bar = null;
   var foo = bar.then(toString);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 117, 3),
+    ]);
     expectInitializerType('foo', 'Future<String>');
   }
 
@@ -4951,7 +3272,7 @@ void main() {
   }
 
   test_genericMethod_toplevel_field_staticTearoff() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   static T g<T>(T e) => null;
   static T Function<T>(T) h = null;
@@ -4960,12 +3281,14 @@ class C<E> {
 void test() {
   var fieldRead = C.h;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 102, 9),
+    ]);
     _assertLocalVarType('fieldRead', "T Function<T>(T)");
   }
 
   test_implicitBounds() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A<T> {}
 
 class B<T extends num> {}
@@ -4980,7 +3303,14 @@ void test() {
   var bb = new B();
   var cc = new C();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 116, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 132, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 142, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 162, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 182, 2),
+    ]);
     _assertLocalVarType('ai', "A<dynamic>");
     _assertLocalVarType('bi', "B<num>");
     _assertLocalVarType('ci', "C<int, B<int>, A<dynamic>>");
@@ -5091,7 +3421,7 @@ C c;
   }
 
   test_instantiateToBounds_class_ok_simpleBounds() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A<T> {}
 class B<T extends num> {}
 class C<T extends List<int>> {}
@@ -5102,7 +3432,12 @@ void main() {
   C c;
   D d;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 114, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 121, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 128, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 135, 1),
+    ]);
     _assertLocalVarType('a', 'A<dynamic>');
     _assertLocalVarType('b', 'B<num>');
     _assertLocalVarType('c', 'C<List<int>>');
@@ -5376,7 +3711,15 @@ void main() {
   (f)..toString();
   (f)..toString;
   (f)..hashCode;
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 69, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 94, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 117, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 183, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 210, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 235, 2),
+    ]);
   }
 
   test_objectMethodOnFunctions_Function() async {
@@ -5402,7 +3745,15 @@ void main() {
   (f)..toString();
   (f)..toString;
   (f)..hashCode;
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 63, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 88, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 111, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 177, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 204, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 229, 2),
+    ]);
   }
 
   test_objectMethodOnFunctions_Static() async {
@@ -5428,7 +3779,15 @@ void main() {
   (f)..toString();
   (f)..toString;
   (f)..hashCode;
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 96, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 119, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 185, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 212, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 237, 2),
+    ]);
   }
 
   test_objectMethodOnFunctions_Typedef() async {
@@ -5456,7 +3815,15 @@ void main() {
   (f)..toString();
   (f)..toString;
   (f)..hashCode;
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 107, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 132, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 155, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 221, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 248, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 273, 2),
+    ]);
   }
 
   test_returnOfInvalidType_object_void() async {
@@ -5524,35 +3891,40 @@ Object set g(x) => null;
   }
 
   test_ternaryOperator_null_left() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var foo = (true) ? null : 3;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
   test_ternaryOperator_null_right() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var foo = (true) ? 3 : null;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
   void _assertLocalVarType(String name, String expectedType) {
     var element = findElement.localVar(name);
-    assertElementTypeString(element.type, expectedType);
+    assertType(element.type, expectedType);
   }
 
   void _assertTopVarType(String name, String expectedType) {
     var element = findElement.topVar(name);
-    assertElementTypeString(element.type, expectedType);
+    assertType(element.type, expectedType);
   }
 
-  Future<void> _objectMethodOnFunctions_helper2(String code) async {
-    await assertNoErrorsInCode(code);
+  Future<void> _objectMethodOnFunctions_helper2(
+      String code, List<ExpectedError> expectedErrors) async {
+    await assertErrorsInCode(code, expectedErrors);
     _assertLocalVarType('t0', "String");
     _assertLocalVarType('t1', "String Function()");
     _assertLocalVarType('t2', "int");
@@ -5572,7 +3944,7 @@ main() {
     v; // marker
   }
 }''');
-    assertElementTypeDynamic(findElement.localVar('v').type);
+    assertTypeDynamic(findElement.localVar('v').type);
     assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
@@ -5597,7 +3969,7 @@ main() {
     v; // marker
   }
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5609,7 +3981,7 @@ main() {
     v; // marker
   }
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5622,7 +3994,7 @@ main() async {
     v; // marker
   }
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5651,7 +4023,7 @@ main() {
   var v = null;
   v; // marker
 }''');
-    assertElementTypeDynamic(findElement.localVar('v').type);
+    assertTypeDynamic(findElement.localVar('v').type);
     assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
@@ -5661,7 +4033,7 @@ main() {
   var v = 3;
   v; // marker
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5671,7 +4043,7 @@ main() {
   dynamic v = 3;
   v; // marker
 }''');
-    assertElementTypeDynamic(findElement.localVar('v').type);
+    assertTypeDynamic(findElement.localVar('v').type);
     assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
@@ -5698,7 +4070,7 @@ class A {
 main() {
 }
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5714,7 +4086,7 @@ class A {
 main() {
 }
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5730,7 +4102,7 @@ class A {
 main() {
 }
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5746,7 +4118,7 @@ class A {
 main() {
 }
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5757,7 +4129,7 @@ main() {
   var v = x[0];
   v; // marker
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5768,7 +4140,7 @@ main() {
   var v = x;
   v; // marker
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5780,7 +4152,7 @@ main() {
   v; // marker
 }
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5792,7 +4164,7 @@ main() {
 }
 final x = 3;
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5804,7 +4176,7 @@ main() {
   v; // marker
 }
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5816,7 +4188,7 @@ main() {
 }
 int x = 3;
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 }

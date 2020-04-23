@@ -209,6 +209,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
         }
         break;
       case TypeUseKind.PARAMETER_CHECK:
+      case TypeUseKind.TYPE_VARIABLE_BOUND_CHECK:
         if (_annotationsData.getParameterCheckPolicy(member).isEmitted) {
           _registerIsCheck(type);
         }

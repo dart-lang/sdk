@@ -6,7 +6,7 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$MIXINS$IMPLEMENTS {
   factory PaymentRequest(List<Map> methodData, Map details,
-      [Map options]) {
+      [Map$NULLABLE options]) {
     var methodData_1 = [];
     for (var i in methodData) {
       methodData_1.add(convertDartToNative_Dictionary(i));

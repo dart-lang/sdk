@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Foo extends core::Object {
+class Foo extends core::Object /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Foo*>* values = #C7;

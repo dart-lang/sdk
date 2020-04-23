@@ -5,6 +5,7 @@
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/noop_service.dart';
 import 'package:analyzer/instrumentation/plugin_data.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:telemetry/crash_reporting.dart';
 
 class CrashReportingInstrumentation extends NoopInstrumentationService {
@@ -13,27 +14,52 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
   CrashReportingInstrumentation(this.reporter);
 
   @override
-  void logException(dynamic exception, [StackTrace stackTrace]) {
+  void logException(dynamic exception,
+      [StackTrace stackTrace,
+      List<InstrumentationServiceAttachment> attachments]) {
+    var crashReportAttachments = (attachments ?? []).map((e) {
+      return CrashReportAttachment.string(
+        field: 'attachment_${e.id}',
+        value: e.stringValue,
+      );
+    }).toList();
+
     if (exception is CaughtException) {
       // Get the root CaughtException, which matters most for debugging.
-      exception = exception.rootCaughtException;
-      // Report the root exception stack trace.
-      stackTrace = exception.stackTrace;
-      // Report the dynamic exception object that the CaughtException holds.
-      exception = exception.exception;
+      var root = exception.rootCaughtException;
+
+      reporter
+          .sendReport(root.exception, root.stackTrace,
+              attachments: crashReportAttachments, comment: root.message)
+          .catchError((error) {
+        // We silently ignore errors sending crash reports (network issues, ...).
+      });
+    } else {
+      reporter
+          .sendReport(exception, stackTrace ?? StackTrace.current,
+              attachments: crashReportAttachments)
+          .catchError((error) {
+        // We silently ignore errors sending crash reports (network issues, ...).
+      });
     }
-    reporter
-        .sendReport(exception, stackTrace: stackTrace ?? StackTrace.current)
-        .catchError((error) {
-      // We silently ignore errors sending crash reports (network issues, ...).
-    });
   }
 
   @override
   void logPluginException(
-      PluginData plugin, dynamic exception, StackTrace stackTrace) {
-    // TODO(mfairhurst): send plugin information too.
-    reporter.sendReport(exception, stackTrace: stackTrace).catchError((error) {
+    PluginData plugin,
+    dynamic exception,
+    StackTrace stackTrace,
+  ) {
+    // TODO(devoncarew): Temporarily disabled; re-enable after deciding on a
+    // plan of action for the AngularDart analysis plugin.
+    const angularPluginName = 'Angular Analysis Plugin';
+    if (plugin.name == angularPluginName) {
+      return;
+    }
+
+    reporter
+        .sendReport(exception, stackTrace, comment: 'plugin: ${plugin.name}')
+        .catchError((error) {
       // We silently ignore errors sending crash reports (network issues, ...).
     });
   }

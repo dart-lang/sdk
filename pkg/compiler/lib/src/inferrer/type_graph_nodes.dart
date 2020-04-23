@@ -1665,15 +1665,6 @@ class NarrowTypeInformation extends TypeInformation {
     AbstractValue input = inputs.first.type;
     AbstractValue intersection =
         abstractValueDomain.intersection(input, typeAnnotation);
-    if (debug.ANOMALY_WARN) {
-      if (abstractValueDomain.contains(input, intersection).isDefinitelyFalse ||
-          abstractValueDomain
-              .contains(typeAnnotation, intersection)
-              .isDefinitelyFalse) {
-        print("ANOMALY WARNING: narrowed $input to $intersection via "
-            "$typeAnnotation");
-      }
-    }
     return intersection;
   }
 
@@ -2261,32 +2252,33 @@ AbstractValue _narrowType(
     JClosedWorld closedWorld, AbstractValue type, DartType annotation,
     {bool isNullable: true}) {
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-  AbstractValue otherType;
-  if (annotation.treatAsDynamic) {
-    return type;
-  } else if (annotation is InterfaceType) {
-    if (annotation.element == closedWorld.commonElements.objectClass) {
-      return type;
+
+  AbstractValue _intersectionWith(AbstractValue otherType) {
+    if (isNullable) {
+      otherType = abstractValueDomain.includeNull(otherType);
     }
-    otherType = abstractValueDomain.createNonNullSubtype(annotation.element);
-  } else if (annotation is VoidType) {
+    return type == null
+        ? otherType
+        : abstractValueDomain.intersection(type, otherType);
+  }
+
+  // TODO(joshualitt): FutureOrType, TypeVariableType, and FunctionTypeVariable
+  // can be narrowed.
+  // TODO(fishythefish): Use nullability.
+  annotation = annotation.withoutNullability;
+  if (closedWorld.dartTypes.isTopType(annotation) ||
+      annotation is FutureOrType ||
+      annotation is TypeVariableType ||
+      annotation is FunctionTypeVariable) {
     return type;
-  } else if (annotation is TypedefType || annotation is FunctionType) {
-    otherType = closedWorld.abstractValueDomain.functionType;
-  } else if (annotation is FutureOrType) {
-    // TODO(johnniwinther): Narrow FutureOr types.
-    return type;
+  } else if (annotation is NeverType) {
+    return _intersectionWith(abstractValueDomain.emptyType);
+  } else if (annotation is InterfaceType) {
+    return _intersectionWith(
+        abstractValueDomain.createNonNullSubtype(annotation.element));
+  } else if (annotation is FunctionType) {
+    return _intersectionWith(abstractValueDomain.functionType);
   } else {
-    assert(
-        annotation is TypeVariableType || annotation is FunctionTypeVariable);
-    // TODO(ngeoffray): Narrow to bound.
-    return type;
+    throw 'Unexpected annotation type $annotation';
   }
-  if (isNullable) {
-    otherType = abstractValueDomain.includeNull(otherType);
-  }
-  if (type == null) {
-    return otherType;
-  }
-  return abstractValueDomain.intersection(type, otherType);
 }

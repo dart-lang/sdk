@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_rename.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameExtensionMemberTest);
   });
@@ -17,12 +16,13 @@ main() {
 
 @reflectiveTest
 class RenameExtensionMemberTest extends RenameRefactoringTest {
+  @override
   void setUp() {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     super.setUp();
   }
 
-  test_checkFinalConditions_hasMember_MethodElement() async {
+  Future<void> test_checkFinalConditions_hasMember_MethodElement() async {
     await indexTestUnit('''
 extension E on int {
   test() {}
@@ -32,14 +32,14 @@ extension E on int {
     createRenameRefactoringAtString('test() {}');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage:
             "Extension 'E' already declares method with name 'newName'.",
         expectedContextSearch: 'newName() {} // existing');
   }
 
-  test_checkFinalConditions_OK_dropSuffix() async {
+  Future<void> test_checkFinalConditions_OK_dropSuffix() async {
     await indexTestUnit(r'''
 extension E on int {
   void testOld() {}
@@ -48,11 +48,12 @@ extension E on int {
     createRenameRefactoringAtString('testOld() {}');
     // check status
     refactoring.newName = 'test';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_shadowed_byLocalFunction_inExtension() async {
+  Future<void>
+      test_checkFinalConditions_shadowed_byLocalFunction_inExtension() async {
     await indexTestUnit('''
 extension E on int {
   test() {}
@@ -65,7 +66,7 @@ extension E on int {
     createRenameRefactoringAtString('test() {}');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.ERROR,
@@ -75,7 +76,8 @@ extension E on int {
     );
   }
 
-  test_checkFinalConditions_shadowed_byLocalVariable_inExtension() async {
+  Future<void>
+      test_checkFinalConditions_shadowed_byLocalVariable_inExtension() async {
     await indexTestUnit('''
 extension E on int {
   test() {}
@@ -88,7 +90,7 @@ extension E on int {
     createRenameRefactoringAtString('test() {}');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.ERROR,
@@ -98,7 +100,8 @@ extension E on int {
     );
   }
 
-  test_checkFinalConditions_shadowed_byParameter_inExtension() async {
+  Future<void>
+      test_checkFinalConditions_shadowed_byParameter_inExtension() async {
     await indexTestUnit('''
 extension E on int {
   test() {}
@@ -110,7 +113,7 @@ extension E on int {
     createRenameRefactoringAtString('test() {}');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.ERROR,
@@ -120,7 +123,7 @@ extension E on int {
     );
   }
 
-  test_checkInitialConditions_operator() async {
+  Future<void> test_checkInitialConditions_operator() async {
     await indexTestUnit('''
 extension E on int {
   operator -(other) => null;
@@ -129,11 +132,11 @@ extension E on int {
     createRenameRefactoringAtString('-(other)');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
-  test_checkNewName_FieldElement() async {
+  Future<void> test_checkNewName_FieldElement() async {
     await indexTestUnit('''
 extension E on int {
   int get test => 0;
@@ -145,7 +148,7 @@ extension E on int {
     assertRefactoringStatus(
       refactoring.checkNewName(),
       RefactoringProblemSeverity.FATAL,
-      expectedMessage: "Field name must not be null.",
+      expectedMessage: 'Field name must not be null.',
     );
 
     // OK
@@ -153,7 +156,7 @@ extension E on int {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_MethodElement() async {
+  Future<void> test_checkNewName_MethodElement() async {
     await indexTestUnit('''
 extension E on int {
   void test() {}
@@ -166,7 +169,7 @@ extension E on int {
     assertRefactoringStatus(
       refactoring.checkNewName(),
       RefactoringProblemSeverity.FATAL,
-      expectedMessage: "Method name must not be null.",
+      expectedMessage: 'Method name must not be null.',
     );
 
     // empty
@@ -174,7 +177,7 @@ extension E on int {
     assertRefactoringStatus(
       refactoring.checkNewName(),
       RefactoringProblemSeverity.FATAL,
-      expectedMessage: "Method name must not be empty.",
+      expectedMessage: 'Method name must not be empty.',
     );
 
     // same
@@ -182,7 +185,7 @@ extension E on int {
     assertRefactoringStatus(
       refactoring.checkNewName(),
       RefactoringProblemSeverity.FATAL,
-      expectedMessage: "The new name must be different than the current name.",
+      expectedMessage: 'The new name must be different than the current name.',
     );
 
     // OK
@@ -190,7 +193,7 @@ extension E on int {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_createChange_MethodElement_instance() async {
+  Future<void> test_createChange_MethodElement_instance() async {
     await indexTestUnit('''
 class A {}
 
@@ -226,7 +229,7 @@ main() {
 ''');
   }
 
-  test_createChange_PropertyAccessorElement_getter() async {
+  Future<void> test_createChange_PropertyAccessorElement_getter() async {
     await indexTestUnit('''
 extension E on int {
   get test {} // marker
@@ -269,7 +272,7 @@ main() {
 ''');
   }
 
-  test_createChange_PropertyAccessorElement_setter() async {
+  Future<void> test_createChange_PropertyAccessorElement_setter() async {
     await indexTestUnit('''
 extension E on int {
   get test {}
@@ -312,7 +315,7 @@ main() {
 ''');
   }
 
-  test_createChange_TypeParameterElement() async {
+  Future<void> test_createChange_TypeParameterElement() async {
     await indexTestUnit('''
 extension E<Test> on int {
   Test get g1 => null;

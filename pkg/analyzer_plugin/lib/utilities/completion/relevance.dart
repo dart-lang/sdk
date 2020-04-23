@@ -35,3 +35,52 @@ const int DART_RELEVANCE_NAMED_PARAMETER = 1060;
 const int DART_RELEVANCE_NAMED_PARAMETER_REQUIRED = 1065;
 const int DART_RELEVANCE_PARAMETER = 1059;
 const int DART_RELEVANCE_TYPE_PARAMETER = 1058;
+
+/// A name scope for constants that are related to the relevance of completion
+/// suggestions. The values are required to be in the range [0, 1000].
+abstract class Relevance {
+  /// The relevance used when suggesting a `call` method that is implied by a
+  /// type but isn't explicitly implemented in the type hierarchy.
+  static const int callFunction = 200;
+
+  /// The relevance used when suggesting a closure corresponding to a
+  /// function-typed parameter in an argument list.
+  static const int closure = 900;
+
+  /// The relevance used when suggesting a constructor.
+  static const int constructor = 900;
+
+  /// The relevance used when suggesting a field as a field formal parameter.
+  static const int fieldFormalParameter = 1000;
+
+  /// The relevance used when suggesting a label.
+  static const int label = 1000;
+
+  /// The relevance used when suggesting the `loadLibrary` function from a
+  /// deferred imported library.
+  static const int loadLibrary = 200;
+
+  /// The relevance used when suggesting a member of a class or extension and
+  /// there are no features that can be used to provide a relevance score.
+  static const int member = 500;
+
+  /// The relevance used when suggesting a named argument corresponding to a
+  /// named parameter that is not required.
+  static const int namedArgument = 900;
+
+  /// The relevance used when suggesting a named constructor.
+  static const int namedConstructor = 1000;
+
+  /// The relevance used when suggesting an override of an inherited member.
+  static const int override = 750;
+
+  /// The relevance used when suggesting a prefix from an import directive.
+  static const int prefix = 50;
+
+  /// The relevance used when suggesting a named argument corresponding to a
+  /// named parameter that is required.
+  static const int requiredNamedArgument = 950;
+
+  /// The relevance used when suggesting a type parameter.
+  static const int typeParameter = 900;
+}

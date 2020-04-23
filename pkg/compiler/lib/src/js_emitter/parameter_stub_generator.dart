@@ -36,7 +36,7 @@ class ParameterStubGenerator {
   final NativeEmitter _nativeEmitter;
   final Namer _namer;
   final RuntimeTypesEncoder _rtiEncoder;
-  final RecipeEncoder _rtiRecipeEncoder; // `null` if not experimentNewRti.
+  final RecipeEncoder _rtiRecipeEncoder; // `null` if not useNewRti.
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final CodegenWorld _codegenWorld;
@@ -55,6 +55,7 @@ class ParameterStubGenerator {
       this._closedWorld,
       this._sourceInformationStrategy);
 
+  DartTypes get _dartTypes => _closedWorld.dartTypes;
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
 
@@ -249,8 +250,8 @@ class ParameterStubGenerator {
     Set<TypeVariableType> variables = Set();
     type.forEachTypeVariable(variables.add);
     assert(variables.isNotEmpty);
-    return type.subst(
-        List.filled(variables.length, AnyType()), variables.toList());
+    return _dartTypes.subst(List.filled(variables.length, _dartTypes.anyType()),
+        variables.toList(), type);
   }
 
   // We fill the lists depending on possible/invoked selectors. For example,

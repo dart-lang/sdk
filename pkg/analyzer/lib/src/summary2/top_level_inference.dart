@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -19,6 +20,7 @@ import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
+import 'package:meta/meta.dart';
 
 DartType _dynamicIfNull(DartType type) {
   if (type == null || type.isBottom || type.isDartCoreNull) {
@@ -118,10 +120,7 @@ class TopLevelInference {
   }
 
   void _performOverrideInference() {
-    var inferrer = new InstanceMemberInferrer(
-      linker.typeProvider,
-      linker.inheritance,
-    );
+    var inferrer = InstanceMemberInferrer(linker.inheritance);
     for (var builder in linker.builders.values) {
       for (var unit in builder.element.units) {
         inferrer.inferCompilationUnit(unit);
@@ -202,7 +201,8 @@ class _ConstructorInferenceNode extends _InferenceNode {
   }
 }
 
-class _FunctionElementForLink_Initializer implements FunctionElementImpl {
+class _FunctionElementForLink_Initializer
+    implements FunctionElementImpl, ElementImplWithFunctionType {
   final _VariableInferenceNode _node;
 
   @override
@@ -211,13 +211,18 @@ class _FunctionElementForLink_Initializer implements FunctionElementImpl {
   _FunctionElementForLink_Initializer(this._node);
 
   @override
-  DartType get returnType {
+  DartType get returnType =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
+
+  @override
+  DartType get returnTypeInternal {
     if (!_node.isEvaluated) {
       _node._walker.walk(_node);
     }
     return LazyAst.getType(_node._node);
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -395,7 +400,7 @@ class _VariableInferenceNode extends _InferenceNode {
 
   @override
   List<_InferenceNode> computeDependencies() {
-    _resolveInitializer();
+    _resolveInitializer(forDependencies: true);
 
     var collector = _InferenceDependenciesCollector();
     _node.initializer.accept(collector);
@@ -423,7 +428,7 @@ class _VariableInferenceNode extends _InferenceNode {
 
   @override
   void evaluate() {
-    _resolveInitializer();
+    _resolveInitializer(forDependencies: false);
 
     if (LazyAst.getType(_node) == null) {
       var initializerType = _node.initializer.staticType;
@@ -438,7 +443,7 @@ class _VariableInferenceNode extends _InferenceNode {
   void markCircular(List<_InferenceNode> cycle) {
     LazyAst.setType(_node, DynamicTypeImpl.instance);
 
-    var cycleNames = Set<String>();
+    var cycleNames = <String>{};
     for (var inferenceNode in cycle) {
       cycleNames.add(inferenceNode.displayName);
     }
@@ -454,9 +459,13 @@ class _VariableInferenceNode extends _InferenceNode {
     isEvaluated = true;
   }
 
-  void _resolveInitializer() {
+  void _resolveInitializer({@required bool forDependencies}) {
     var astResolver = AstResolver(_walker._linker, _unitElement, _scope);
-    astResolver.flowAnalysis?.topLevelDeclaration_enter(_node, null, null);
-    astResolver.resolve(_node.initializer, () => _node.initializer);
+    astResolver.resolve(
+      _node.initializer,
+      () => _node.initializer,
+      buildElements: forDependencies,
+      isTopLevelVariableInitializer: true,
+    );
   }
 }

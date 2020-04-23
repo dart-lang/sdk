@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as path;
@@ -21,12 +21,6 @@ class LanguageModel {
   final Map<String, int> _word2idx;
   final Map<int, String> _idx2word;
   final int _lookback;
-
-  LanguageModel._(
-      this._interpreter, this._word2idx, this._idx2word, this._lookback);
-
-  /// Number of previous tokens to look at during predictions.
-  int get lookback => _lookback;
 
   /// Load model from directory.
   factory LanguageModel.load(String directory) {
@@ -55,9 +49,19 @@ class LanguageModel {
     return LanguageModel._(interpreter, word2idx, idx2word, lookback);
   }
 
+  LanguageModel._(
+      this._interpreter, this._word2idx, this._idx2word, this._lookback);
+
+  /// Number of previous tokens to look at during predictions.
+  int get lookback => _lookback;
+
   /// Tear down the interpreter.
   void close() {
     _interpreter.delete();
+  }
+
+  bool isNumber(String token) {
+    return _numeric.hasMatch(token) || token.startsWith('0x');
   }
 
   /// Predicts the next token to follow a list of precedent tokens
@@ -75,6 +79,16 @@ class LanguageModel {
     _interpreter.invoke();
     final tensorOut = _interpreter.getOutputTensors().single;
     return _transformOutput(tensorOut.data, tokens);
+  }
+
+  bool _isAlphanumeric(String token) {
+    // Note that _numeric covers integral and decimal values whereas
+    // _alphanumeric only matches integral values. Check both.
+    return _alphanumeric.hasMatch(token) || _numeric.hasMatch(token);
+  }
+
+  bool _isString(String token) {
+    return token.contains('"') || token.contains("'");
   }
 
   /// Transforms tokens to data bytes that can be used as interpreter input.
@@ -108,8 +122,8 @@ class LanguageModel {
     // Get scores (as floats)
     final probabilities = Float32List.view(bytes.buffer);
 
-    final scores = Map<String, double>();
-    final scoresAboveThreshold = Map<String, double>();
+    final scores = <String, double>{};
+    final scoresAboveThreshold = <String, double>{};
     probabilities.asMap().forEach((k, v) {
       // x in 0, 1, ..., |V| - 1 correspond to specific members of the vocabulary.
       // x in |V|, |V| + 1, ..., |V| + 49 are pointers to reference positions along the
@@ -137,19 +151,5 @@ class LanguageModel {
 
     return Map.fromEntries(scoresAboveThreshold.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value)));
-  }
-
-  bool _isAlphanumeric(String token) {
-    // Note that _numeric covers integral and decimal values whereas
-    // _alphanumeric only matches integral values. Check both.
-    return _alphanumeric.hasMatch(token) || _numeric.hasMatch(token);
-  }
-
-  bool _isString(String token) {
-    return token.indexOf('"') != -1 || token.indexOf("'") != -1;
-  }
-
-  bool isNumber(String token) {
-    return _numeric.hasMatch(token) || token.startsWith('0x');
   }
 }

@@ -12,11 +12,12 @@ import 'world.dart' show JClosedWorld;
 
 /// If non-null, we only trace methods whose name match the regexp defined by
 /// the given pattern.
-String get TRACE_FILTER_PATTERN =>
-    TRACE_FILTER_PATTERN_FROM_ENVIRONMENT ?? TRACE_FILTER_PATTERN_FOR_TEST;
+String get TRACE_FILTER_PATTERN => TRACE_FILTER_PATTERN_FROM_ENVIRONMENT != ''
+    ? TRACE_FILTER_PATTERN_FROM_ENVIRONMENT
+    : TRACE_FILTER_PATTERN_FOR_TEST;
 
 const String TRACE_FILTER_PATTERN_FROM_ENVIRONMENT =
-    const String.fromEnvironment("DUMP_IR");
+    String.fromEnvironment("DUMP_IR", defaultValue: "");
 String TRACE_FILTER_PATTERN_FOR_TEST;
 
 /// Dumps the intermediate representation after each phase in a format

@@ -30,7 +30,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class A extends core::Object {
+class A extends core::Object /*hasConstConstructor*/  {
   final field dynamic x = null;
   constructor named1() → self::A*
     ;
@@ -50,7 +50,7 @@ class C extends core::Object {
   synthetic constructor •() → self::C*
     ;
 }
-abstract class AbstractClass extends core::Object {
+abstract class AbstractClass extends core::Object /*hasConstConstructor*/  {
   const constructor id() → self::AbstractClass*
     : super core::Object::•()
     ;

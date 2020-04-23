@@ -160,8 +160,8 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     ReplaceWithStaticCall(instr, target, targets.AggregateCallCount());
   } else {
     PolymorphicInstanceCallInstr* call =
-        new (Z) PolymorphicInstanceCallInstr(instr, targets,
-                                             /* complete = */ false);
+        PolymorphicInstanceCallInstr::FromCall(Z, instr, targets,
+                                               /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());
   }
 }

@@ -21,7 +21,7 @@ class InferenceFailureOnCollectionLiteralTest extends DriverResolutionTest {
       AnalysisOptionsImpl()..strictInference = true;
 
   test_collectionsWithAnyElements() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void main() {
   var a = [7];
   var b = [7 as dynamic];
@@ -31,7 +31,15 @@ void main() {
   var f = {7 as dynamic: 42};
   var g = {7: 42 as dynamic};
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 20, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 102, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 121, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 151, 1),
+    ]);
   }
 
   test_conditionalList() async {
@@ -64,7 +72,7 @@ void f([map = const {}]) => print(map);
   }
 
   test_downwardsInference() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void main() {
   List<dynamic> a = [];
   Set<dynamic> b = {};
@@ -77,17 +85,28 @@ void main() {
   Set<int> g() => {};
   Map<int, int> h() => {};
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 85, 1),
+      error(HintCode.UNUSED_ELEMENT, 172, 1),
+      error(HintCode.UNUSED_ELEMENT, 194, 1),
+      error(HintCode.UNUSED_ELEMENT, 221, 1),
+    ]);
   }
 
   test_explicitTypeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void main() {
   var a = <dynamic>[];
   var b = <dynamic>{};
   var c = <dynamic, dynamic>{};
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 20, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
+    ]);
   }
 
   test_functionReturnsList_dynamicReturnType() async {
@@ -111,11 +130,13 @@ void f() => [];
   }
 
   test_inferredFromNullAware() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void main() {
   var x = [1, 2, 3] ?? [];
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 20, 1),
+    ]);
   }
 
   test_localConstVariable_list() async {

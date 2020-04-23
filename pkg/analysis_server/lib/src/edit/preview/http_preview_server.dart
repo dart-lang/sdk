@@ -5,8 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/migration_state.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 
 /// Instances of the class [AbstractGetHandler] handle GET requests.
@@ -15,24 +14,35 @@ abstract class AbstractGetHandler {
   Future<void> handleGetRequest(HttpRequest request);
 }
 
+/// Instances of the class [AbstractPostHandler] handle POST requests.
+abstract class AbstractPostHandler {
+  /// Handle a POST request received by the HTTP server.
+  Future<void> handlePostRequest(HttpRequest request);
+}
+
 /// Instances of the class [HttpPreviewServer] implement a simple HTTP server
 /// that serves up dartfix preview pages.
 class HttpPreviewServer {
-  /// The information about the migration that will be used to serve up pages.
-  final MigrationInfo migrationInfo;
+  /// The state of the migration being previewed.
+  final MigrationState migrationState;
 
-  /// The path mapper used to map paths from the unit infos to the paths being
-  /// served.
-  final PathMapper pathMapper;
-
-  /// An object that can handle GET requests.
-  AbstractGetHandler getHandler;
+  /// The [PreviewSite] that can handle GET and POST requests.
+  PreviewSite previewSite;
 
   /// Future that is completed with the HTTP server once it is running.
   Future<HttpServer> _serverFuture;
 
+  // A function which allows the migration to be rerun, taking changed paths.
+  final Future<MigrationState> Function([List<String>]) rerunFunction;
+
   /// Initialize a newly created HTTP server.
-  HttpPreviewServer(this.migrationInfo, this.pathMapper);
+  HttpPreviewServer(this.migrationState, this.rerunFunction);
+
+  Future<String> get authToken async {
+    await _serverFuture;
+    previewSite ??= PreviewSite(migrationState, rerunFunction);
+    return previewSite.serviceAuthToken;
+  }
 
   /// Return the port this server is bound to.
   Future<int> get boundPort async {
@@ -55,7 +65,7 @@ class HttpPreviewServer {
       _serverFuture =
           HttpServer.bind(InternetAddress.loopbackIPv4, initialPort ?? 0);
 
-      HttpServer server = await _serverFuture;
+      var server = await _serverFuture;
       _handleServer(server);
       return server.port;
     } catch (ignore) {
@@ -69,21 +79,28 @@ class HttpPreviewServer {
 
   /// Handle a GET request received by the HTTP server.
   Future<void> _handleGetRequest(HttpRequest request) async {
-    getHandler ??= new PreviewSite(migrationInfo, pathMapper);
-    await getHandler.handleGetRequest(request);
+    previewSite ??= PreviewSite(migrationState, rerunFunction);
+    await previewSite.handleGetRequest(request);
+  }
+
+  /// Handle a POST request received by the HTTP server.
+  Future<void> _handlePostRequest(HttpRequest request) async {
+    previewSite ??= PreviewSite(migrationState, rerunFunction);
+    await previewSite.handlePostRequest(request);
   }
 
   /// Attach a listener to a newly created HTTP server.
   void _handleServer(HttpServer httpServer) {
     httpServer.listen((HttpRequest request) async {
-      List<String> updateValues = request.headers[HttpHeaders.upgradeHeader];
+      var updateValues = request.headers[HttpHeaders.upgradeHeader];
       if (request.method == 'GET') {
         await _handleGetRequest(request);
-      } else if (updateValues != null &&
-          updateValues.indexOf('websocket') >= 0) {
+      } else if (request.method == 'POST') {
+        await _handlePostRequest(request);
+      } else if (updateValues != null && updateValues.contains('websocket')) {
         // We do not support serving analysis server communications over
         // WebSocket connections.
-        HttpResponse response = request.response;
+        var response = request.response;
         response.statusCode = HttpStatus.notFound;
         response.headers.contentType = ContentType.text;
         response.write(
@@ -98,7 +115,7 @@ class HttpPreviewServer {
   /// Return an error in response to an unrecognized request received by the HTTP
   /// server.
   void _returnUnknownRequest(HttpRequest request) {
-    HttpResponse response = request.response;
+    var response = request.response;
     response.statusCode = HttpStatus.notFound;
     response.headers.contentType = ContentType.text;
     response.write('Not found');

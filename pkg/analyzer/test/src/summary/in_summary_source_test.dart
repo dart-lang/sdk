@@ -17,10 +17,10 @@ main() {
 @reflectiveTest
 class InSummarySourceTest {
   test_InSummarySource() {
-    var sourceFactory = new SourceFactory([
-      new InSummaryUriResolver(
+    var sourceFactory = SourceFactory([
+      InSummaryUriResolver(
           PhysicalResourceProvider.INSTANCE,
-          new MockSummaryDataStore.fake({
+          MockSummaryDataStore.fake({
             'package:foo/foo.dart': 'foo.sum',
             'package:foo/src/foo_impl.dart': 'foo.sum',
             'package:bar/baz.dart': 'bar.sum',
@@ -42,13 +42,15 @@ class InSummarySourceTest {
 }
 
 class MockSummaryDataStore implements SummaryDataStore {
+  @override
   final Map<String, String> uriToSummaryPath;
 
   MockSummaryDataStore(this.uriToSummaryPath);
 
   factory MockSummaryDataStore.fake(Map<String, String> uriToSummary) {
-    return new MockSummaryDataStore(uriToSummary);
+    return MockSummaryDataStore(uriToSummary);
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

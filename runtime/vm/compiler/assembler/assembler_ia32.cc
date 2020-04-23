@@ -42,10 +42,6 @@ int32_t Assembler::jit_cookie() {
   return jit_cookie_;
 }
 
-void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
-  memset(reinterpret_cast<void*>(data), Instr::kBreakPointInstruction, length);
-}
-
 void Assembler::call(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xFF);
@@ -184,6 +180,9 @@ void Assembler::movsxb(Register dst, const Address& src) {
 }
 
 void Assembler::movb(Register dst, const Address& src) {
+  // This would leave 24 bits above the 1 byte value undefined.
+  // If we ever want to purposefully have those undefined, remove this.
+  // TODO(dartbug.com/40210): Allow this.
   FATAL("Use movzxb or movsxb instead.");
 }
 
@@ -230,6 +229,9 @@ void Assembler::movsxw(Register dst, const Address& src) {
 }
 
 void Assembler::movw(Register dst, const Address& src) {
+  // This would leave 16 bits above the 2 byte value undefined.
+  // If we ever want to purposefully have those undefined, remove this.
+  // TODO(dartbug.com/40210): Allow this.
   FATAL("Use movzxw or movsxw instead.");
 }
 
@@ -2117,7 +2119,7 @@ void Assembler::EmitEntryFrameVerification() {
 // EBX receiver, ECX ICData entries array
 // Preserve EDX (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntryJIT() {
-  has_single_entry_point_ = false;
+  has_monomorphic_entry_ = true;
   intptr_t start = CodeSize();
   Label have_cid, miss;
   Bind(&miss);
@@ -2156,7 +2158,7 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 }
 
 void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
-  has_single_entry_point_ = false;
+  has_monomorphic_entry_ = true;
   while (CodeSize() < target::Instructions::kMonomorphicEntryOffsetJIT) {
     int3();
   }
@@ -2336,9 +2338,11 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   entry.Call(this, argument_count);
 }
 
-void Assembler::Call(const Code& target, bool movable_target) {
+void Assembler::Call(const Code& target,
+                     bool movable_target,
+                     CodeEntryKind entry_kind) {
   LoadObject(CODE_REG, ToObject(target), movable_target);
-  call(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
 void Assembler::CallToRuntime() {
@@ -2533,6 +2537,10 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 
 void Assembler::EnterStubFrame() {
   EnterDartFrame(0);
+}
+
+void Assembler::LeaveStubFrame() {
+  LeaveFrame();
 }
 
 void Assembler::EmitOperand(int rm, const Operand& operand) {
@@ -2731,38 +2739,58 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
   }
 }
 
-static ScaleFactor ToScaleFactor(intptr_t index_scale) {
-  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays with
-  // index scale factor > 1. E.g., for Uint8Array and OneByteString the index is
-  // expected to be untagged before accessing.
-  ASSERT(kSmiTagShift == 1);
-  switch (index_scale) {
-    case 1:
-      return TIMES_1;
-    case 2:
-      return TIMES_1;
-    case 4:
-      return TIMES_2;
-    case 8:
-      return TIMES_4;
-    case 16:
-      return TIMES_8;
-    default:
-      UNREACHABLE();
-      return TIMES_1;
+static ScaleFactor ToScaleFactor(intptr_t index_scale, bool index_unboxed) {
+  if (index_unboxed) {
+    switch (index_scale) {
+      case 1:
+        return TIMES_1;
+      case 2:
+        return TIMES_2;
+      case 4:
+        return TIMES_4;
+      case 8:
+        return TIMES_8;
+      case 16:
+        return TIMES_16;
+      default:
+        UNREACHABLE();
+        return TIMES_1;
+    }
+  } else {
+    // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
+    // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
+    // index is expected to be untagged before accessing.
+    ASSERT(kSmiTagShift == 1);
+    switch (index_scale) {
+      case 1:
+        return TIMES_1;
+      case 2:
+        return TIMES_1;
+      case 4:
+        return TIMES_2;
+      case 8:
+        return TIMES_4;
+      case 16:
+        return TIMES_8;
+      default:
+        UNREACHABLE();
+        return TIMES_1;
+    }
   }
 }
 
 Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
+                                             bool index_unboxed,
                                              Register array,
                                              Register index,
                                              intptr_t extra_disp) {
   if (is_external) {
-    return Address(array, index, ToScaleFactor(index_scale), extra_disp);
+    return Address(array, index, ToScaleFactor(index_scale, index_unboxed),
+                   extra_disp);
   } else {
-    return FieldAddress(array, index, ToScaleFactor(index_scale),
+    return FieldAddress(array, index, ToScaleFactor(index_scale, index_unboxed),
                         target::Instance::DataOffsetFor(cid) + extra_disp);
   }
 }

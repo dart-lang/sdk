@@ -1061,7 +1061,7 @@ class TagProfileSnapshot {
   int get sum => _sum;
   int _sum = 0;
   TagProfileSnapshot(this.seconds, int countersLength)
-      : counters = new List<int>(countersLength);
+      : counters = new List<int>.filled(countersLength, 0);
 
   /// Set [counters] and update [sum].
   void set(List<int> counters) {
@@ -1097,8 +1097,8 @@ class TagProfileSnapshot {
 }
 
 class TagProfile {
-  final List<String> names = new List<String>();
-  final List<TagProfileSnapshot> snapshots = new List<TagProfileSnapshot>();
+  final List<String> names = <String>[];
+  final List<TagProfileSnapshot> snapshots = <TagProfileSnapshot>[];
   double get updatedAtSeconds => _seconds;
   double _seconds;
   TagProfileSnapshot _maxSnapshot;
@@ -1291,6 +1291,7 @@ class IsolateGroup extends ServiceObjectOwner implements M.IsolateGroup {
 
   @override
   void _update(Map map, bool mapIsRef) {
+    _upgradeCollection(map, vm);
     name = map['name'];
     vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
     number = int.tryParse(map['number']);
@@ -1299,7 +1300,9 @@ class IsolateGroup extends ServiceObjectOwner implements M.IsolateGroup {
     }
     _loaded = true;
     isolates.clear();
-    isolates.addAll(map['isolates'] as List<Isolate>);
+    for (var isolate in map['isolates']) {
+      isolates.add(isolate);
+    }
     isolates.sort(ServiceObject.LexicalSortName);
     vm._buildIsolateGroupList();
   }
@@ -1401,7 +1404,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return M.IsolateStatus.loading;
   }
 
-  final List<String> extensionRPCs = new List<String>();
+  final List<String> extensionRPCs = <String>[];
 
   Map<String, ServiceObject> _cache = new Map<String, ServiceObject>();
   final TagProfile tagProfile = new TagProfile(20);
@@ -1595,12 +1598,10 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   String fileAndLine;
 
   DartError error;
-  StreamController _snapshotFetch;
-
-  List<Uint8List> _chunksInProgress;
+  SnapshotReader _snapshotFetch;
 
   List<Thread> get threads => _threads;
-  final List<Thread> _threads = new List<Thread>();
+  final List<Thread> _threads = <Thread>[];
 
   int get zoneHighWatermark => _zoneHighWatermark;
   int _zoneHighWatermark = 0;
@@ -1611,22 +1612,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   int get numScopedHandles => _numScopedHandles;
   int _numScopedHandles;
 
-  static Uint8List _flatten(List<Uint8List> chunks) {
-    var length = 0;
-    for (var chunk in chunks) {
-      length += chunk.length;
-    }
-    var flattened = new Uint8List(length);
-    var position = 0;
-    for (var chunk in chunks) {
-      flattened.setRange(position, position + chunk.length, chunk);
-      position += chunk.length;
-    }
-    return flattened;
-  }
-
   void _loadHeapSnapshot(ServiceEvent event) {
-    if (_snapshotFetch == null || _snapshotFetch.isClosed) {
+    if (_snapshotFetch == null) {
       // No outstanding snapshot request. Presumably another client asked for a
       // snapshot.
       Logger.root.info("Dropping unsolicited heap snapshot chunk");
@@ -1634,32 +1621,20 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     }
 
     // Occasionally these actually arrive out of order.
-    if (_chunksInProgress == null) {
-      _chunksInProgress = new List();
-    }
-
-    _chunksInProgress.add(event.data);
-    _snapshotFetch.add([_chunksInProgress.length, _chunksInProgress.length]);
-    if (!event.lastChunk) {
-      return;
-    }
-
-    var flattened = _flatten(_chunksInProgress);
-    _chunksInProgress = null; // Make chunks GC'able.
-
-    if (_snapshotFetch != null) {
-      _snapshotFetch.add(flattened);
+    _snapshotFetch.add(event.data);
+    if (event.lastChunk) {
       _snapshotFetch.close();
+      _snapshotFetch = null;
     }
   }
 
-  Stream fetchHeapSnapshot() {
-    if (_snapshotFetch == null || _snapshotFetch.isClosed) {
-      _snapshotFetch = new StreamController.broadcast();
+  SnapshotReader fetchHeapSnapshot() {
+    if (_snapshotFetch == null) {
+      _snapshotFetch = new SnapshotReader();
       // isolate.vm.streamListen('HeapSnapshot');
       isolate.invokeRpcNoUpgrade('requestHeapSnapshot', {});
     }
-    return _snapshotFetch.stream;
+    return _snapshotFetch;
   }
 
   void updateHeapsFromMap(Map map) {
@@ -1933,6 +1908,16 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     });
   }
 
+  Future<ServiceObject> invoke(ServiceObject target, String selector,
+      [List<ServiceObject> arguments = const <ServiceObject>[]]) {
+    Map params = {
+      'targetId': target.id,
+      'selector': selector,
+      'argumentIds': arguments.map((arg) => arg.id).toList(),
+    };
+    return invokeRpc('invoke', params);
+  }
+
   Future<ServiceObject> eval(ServiceObject target, String expression,
       {Map<String, ServiceObject> scope, bool disableBreakpoints: false}) {
     Map params = {
@@ -2069,7 +2054,7 @@ class NamedField implements M.NamedField {
 }
 
 class ObjectStore extends ServiceObject implements M.ObjectStore {
-  List<NamedField> fields = new List<NamedField>();
+  List<NamedField> fields = <NamedField>[];
 
   ObjectStore._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2926,7 +2911,7 @@ class Instance extends HeapObject implements M.Instance {
     twoByteBytecode = map['_twoByteBytecode'];
 
     if (map['fields'] != null) {
-      var fields = new List<BoundField>();
+      var fields = <BoundField>[];
       for (var f in map['fields']) {
         fields.add(new BoundField(f['decl'], f['value']));
       }
@@ -2945,7 +2930,7 @@ class Instance extends HeapObject implements M.Instance {
       // Should be:
       // elements = map['elements'].map((e) => new Guarded<Instance>(e)).toList();
       // some times we obtain object that are not InstanceRef
-      var localElements = new List<Guarded<HeapObject>>();
+      var localElements = <Guarded<HeapObject>>[];
       for (var element in map['elements']) {
         localElements.add(new Guarded<HeapObject>(element));
       }
@@ -3066,7 +3051,7 @@ class Context extends HeapObject implements M.Context {
     if (map['variables'] == null) {
       variables = <ContextElement>[];
     } else {
-      var localVariables = new List<ContextElement>();
+      var localVariables = <ContextElement>[];
       for (var element in map['variables']) {
         localVariables.add(new ContextElement(element));
       }
@@ -3480,15 +3465,18 @@ class CallSite {
   factory CallSite.fromMap(Map siteMap, Script script) {
     var name = siteMap['name'];
     var tokenPos = siteMap['tokenPos'];
-    var entries = new List<CallSiteEntry>();
+    var entries = <CallSiteEntry>[];
     for (var entryMap in siteMap['cacheEntries']) {
       entries.add(new CallSiteEntry.fromMap(entryMap));
     }
     return new CallSite(name, script, tokenPos, entries);
   }
 
-  operator ==(other) {
-    return (script == other.script) && (tokenPos == other.tokenPos);
+  bool operator ==(Object other) {
+    if (other is CallSite) {
+      return (script == other.script) && (tokenPos == other.tokenPos);
+    }
+    return false;
   }
 
   int get hashCode => (script.hashCode << 8) | tokenPos;
@@ -4254,7 +4242,7 @@ M.CodeKind stringToCodeKind(String s) {
 class CodeInlineInterval {
   final int start;
   final int end;
-  final List<ServiceFunction> functions = new List<ServiceFunction>();
+  final List<ServiceFunction> functions = <ServiceFunction>[];
   bool contains(int pc) => (pc >= start) && (pc < end);
   CodeInlineInterval(this.start, this.end);
 }
@@ -4761,8 +4749,9 @@ String _stripRef(String type) => (_hasRef(type) ? type.substring(1) : type);
 /// associated with [vm] and [isolate].
 void _upgradeCollection(collection, ServiceObjectOwner owner) {
   if (collection is ServiceMap) {
-    return;
+    return; // Already upgraded.
   }
+
   if (collection is Map) {
     _upgradeMap(collection, owner);
   } else if (collection is List) {
@@ -4783,6 +4772,12 @@ void _upgradeMap(Map map, ServiceObjectOwner owner) {
 }
 
 void _upgradeList(List list, ServiceObjectOwner owner) {
+  if (list is Uint8List) {
+    // Nothing to upgrade; avoid slowly visiting every byte
+    // of large binary responses.
+    return;
+  }
+
   for (var i = 0; i < list.length; i++) {
     var v = list[i];
     if ((v is Map) && _isServiceMap(v)) {

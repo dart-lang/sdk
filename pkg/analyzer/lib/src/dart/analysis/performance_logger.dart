@@ -18,7 +18,7 @@ class PerformanceLog {
   PerformanceLogSection enter(String msg) {
     writeln('+++ $msg.');
     _level++;
-    return new PerformanceLogSection(this, msg);
+    return PerformanceLogSection(this, msg);
   }
 
   /// Return the result of the function [f] invocation and log the elapsed time.
@@ -26,8 +26,8 @@ class PerformanceLog {
   /// Each invocation of [run] creates a new enclosed section in the log,
   /// which begins with printing [msg], then any log output produced during
   /// [f] invocation, and ends with printing [msg] with the elapsed time.
-  T run<T>(String msg, T f()) {
-    Stopwatch timer = new Stopwatch()..start();
+  T run<T>(String msg, T Function() f) {
+    Stopwatch timer = Stopwatch()..start();
     try {
       writeln('+++ $msg.');
       _level++;
@@ -44,8 +44,8 @@ class PerformanceLog {
   /// Each invocation of [run] creates a new enclosed section in the log,
   /// which begins with printing [msg], then any log output produced during
   /// [f] invocation, and ends with printing [msg] with the elapsed time.
-  Future<T> runAsync<T>(String msg, Future<T> f()) async {
-    Stopwatch timer = new Stopwatch()..start();
+  Future<T> runAsync<T>(String msg, Future<T> Function() f) async {
+    Stopwatch timer = Stopwatch()..start();
     try {
       writeln('+++ $msg.');
       _level++;
@@ -75,7 +75,7 @@ class PerformanceLog {
 class PerformanceLogSection {
   final PerformanceLog _logger;
   final String _msg;
-  final Stopwatch _timer = new Stopwatch()..start();
+  final Stopwatch _timer = Stopwatch()..start();
 
   PerformanceLogSection(this._logger, this._msg);
 

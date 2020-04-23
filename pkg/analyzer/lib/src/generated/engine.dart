@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -13,12 +14,11 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystem;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -28,7 +28,7 @@ export 'package:analyzer/src/generated/timestamped_data.dart'
 
 /// Used by [AnalysisOptions] to allow function bodies to be analyzed in some
 /// sources but not others.
-typedef bool AnalyzeFunctionBodiesPredicate(Source source);
+typedef AnalyzeFunctionBodiesPredicate = bool Function(Source source);
 
 /// A context in which a single analysis can be performed and incrementally
 /// maintained. The context includes such information as the version of the SDK
@@ -75,7 +75,7 @@ abstract class AnalysisContext {
   /// Set the set of analysis options controlling the behavior of this context to
   /// the given [options]. Clients can safely assume that all necessary analysis
   /// results have been invalidated.
-  void set analysisOptions(AnalysisOptions options);
+  set analysisOptions(AnalysisOptions options);
 
   /// Return the set of declared variables used when computing constant values.
   DeclaredVariables get declaredVariables;
@@ -87,13 +87,15 @@ abstract class AnalysisContext {
   /// Set the source factory used to create the sources that can be analyzed in
   /// this context to the given source [factory]. Clients can safely assume that
   /// all analysis results have been invalidated.
-  void set sourceFactory(SourceFactory factory);
+  set sourceFactory(SourceFactory factory);
 
   /// Return a type provider for this context or throw [AnalysisException] if
   /// either `dart:core` or `dart:async` cannot be resolved.
+  @Deprecated('Use LibraryElement.typeProvider')
   TypeProvider get typeProvider;
 
   /// Return a type system for this context.
+  @Deprecated('Use LibraryElement.typeSystem')
   TypeSystem get typeSystem;
 }
 
@@ -109,9 +111,6 @@ class AnalysisEngine {
   /// The long suffix used for HTML files.
   static const String SUFFIX_HTML = "html";
 
-  /// The deprecated file name used for analysis options files.
-  static const String ANALYSIS_OPTIONS_FILE = '.analysis_options';
-
   /// The file name used for analysis options files.
   static const String ANALYSIS_OPTIONS_YAML_FILE = 'analysis_options.yaml';
 
@@ -122,7 +121,7 @@ class AnalysisEngine {
   static const String ANDROID_MANIFEST_FILE = 'AndroidManifest.xml';
 
   /// The unique instance of this class.
-  static final AnalysisEngine instance = new AnalysisEngine._();
+  static final AnalysisEngine instance = AnalysisEngine._();
 
   /// The instrumentation service that is to be used by this analysis engine.
   InstrumentationService _instrumentationService =
@@ -136,7 +135,7 @@ class AnalysisEngine {
 
   /// Set the instrumentation service that is to be used by this analysis engine
   /// to the given [service].
-  void set instrumentationService(InstrumentationService service) {
+  set instrumentationService(InstrumentationService service) {
     if (service == null) {
       _instrumentationService = InstrumentationService.NULL_SERVICE;
     } else {
@@ -164,8 +163,7 @@ class AnalysisEngine {
       return false;
     }
     String basename = (context ?? pathos.posix).basename(fileName);
-    return basename == ANALYSIS_OPTIONS_FILE ||
-        basename == ANALYSIS_OPTIONS_YAML_FILE;
+    return basename == ANALYSIS_OPTIONS_YAML_FILE;
   }
 
   /// Return `true` if the given [fileName] is assumed to contain Dart source
@@ -207,6 +205,7 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
 
   /// The line information associated with the errors, or `null` if there are no
   /// errors.
+  @override
   final LineInfo lineInfo;
 
   /// Initialize an newly created error info with the given [errors] and
@@ -266,13 +265,6 @@ abstract class AnalysisOptions {
   /// Return `true` to enable interface libraries (DEP 40).
   @deprecated
   bool get enableConditionalDirectives;
-
-  /// Return a list containing the names of the experiments that are enabled in
-  /// the context associated with these options.
-  ///
-  /// The process around these experiments is described in this
-  /// [doc](https://github.com/dart-lang/sdk/blob/master/docs/process/experimental-flags.md).
-  List<String> get enabledExperiments;
 
   /// Return a list of the names of the packages for which, if they define a
   /// plugin, the plugin should be enabled.
@@ -430,9 +422,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool dart2jsHint = false;
 
-  List<String> _enabledExperiments = const <String>[];
-
   ExperimentStatus _contextFeatures = ExperimentStatus();
+
+  /// The set of features to use for libraries that are not in a package.
+  ///
+  /// If a library is in a package, this feature set is *not* used, even if the
+  /// package does not specify the language version. Instead [contextFeatures]
+  /// is used.
+  FeatureSet nonPackageFeatureSet = ExperimentStatus();
 
   @override
   List<String> enabledPluginNames = const <String>[];
@@ -466,16 +463,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// `true`.
   List<Linter> _lintRules;
 
+  @override
   Map<String, List<String>> patchPaths = {};
 
   @override
   bool preserveComments = true;
-
-  /// A flag indicating whether strong-mode inference hints should be
-  /// used.  This flag is not exposed in the interface, and should be
-  /// replaced by something more general.
-  // TODO(leafp): replace this with something more general
-  bool strongModeHints = false;
 
   @override
   bool trackCacheDependencies = true;
@@ -526,7 +518,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   AnalysisOptionsImpl.from(AnalysisOptions options) {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     dart2jsHint = options.dart2jsHint;
-    enabledExperiments = options.enabledExperiments;
+    contextFeatures = options.contextFeatures;
     enabledPluginNames = options.enabledPluginNames;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableTiming = options.enableTiming;
@@ -540,7 +532,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     preserveComments = options.preserveComments;
     useFastaParser = options.useFastaParser;
     if (options is AnalysisOptionsImpl) {
-      strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
       implicitDynamic = options.implicitDynamic;
       strictInference = options.strictInference;
@@ -559,7 +550,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
         analyzeFunctionBodiesPredicate, _analyzeNoFunctionBodies)) {
       return false;
     } else {
-      throw new StateError('analyzeFunctionBodiesPredicate in use');
+      throw StateError('analyzeFunctionBodiesPredicate in use');
     }
   }
 
@@ -577,7 +568,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   set analyzeFunctionBodiesPredicate(AnalyzeFunctionBodiesPredicate value) {
     if (value == null) {
-      throw new ArgumentError.notNull('analyzeFunctionBodiesPredicate');
+      throw ArgumentError.notNull('analyzeFunctionBodiesPredicate');
     }
     _analyzeFunctionBodiesPredicate = value;
   }
@@ -587,7 +578,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   set contextFeatures(FeatureSet featureSet) {
     _contextFeatures = featureSet;
-    _enabledExperiments = _contextFeatures.toStringList();
+    nonPackageFeatureSet = featureSet;
   }
 
   @deprecated
@@ -595,33 +586,31 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool get enableAssertInitializer => true;
 
   @deprecated
-  void set enableAssertInitializer(bool enable) {}
+  set enableAssertInitializer(bool enable) {}
 
   @override
   @deprecated
   bool get enableAssertMessage => true;
 
   @deprecated
-  void set enableAssertMessage(bool enable) {}
+  set enableAssertMessage(bool enable) {}
 
   @deprecated
   @override
   bool get enableAsync => true;
 
   @deprecated
-  void set enableAsync(bool enable) {}
+  set enableAsync(bool enable) {}
 
   /// A flag indicating whether interface libraries are to be supported (DEP 40).
+  @override
   bool get enableConditionalDirectives => true;
 
   @deprecated
-  void set enableConditionalDirectives(_) {}
+  set enableConditionalDirectives(_) {}
 
-  @override
-  List<String> get enabledExperiments => _enabledExperiments;
-
+  @deprecated
   set enabledExperiments(List<String> enabledExperiments) {
-    _enabledExperiments = enabledExperiments;
     _contextFeatures = ExperimentStatus.fromStrings(enabledExperiments);
   }
 
@@ -630,21 +619,21 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool get enableGenericMethods => true;
 
   @deprecated
-  void set enableGenericMethods(bool enable) {}
+  set enableGenericMethods(bool enable) {}
 
   @deprecated
   @override
   bool get enableInitializingFormalAccess => true;
 
   @deprecated
-  void set enableInitializingFormalAccess(bool enable) {}
+  set enableInitializingFormalAccess(bool enable) {}
 
   @override
   @deprecated
   bool get enableSuperMixins => false;
 
   @deprecated
-  void set enableSuperMixins(bool enable) {
+  set enableSuperMixins(bool enable) {
     // Ignored.
   }
 
@@ -653,7 +642,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool get enableUriInPartOf => true;
 
   @deprecated
-  void set enableUriInPartOf(bool enable) {}
+  set enableUriInPartOf(bool enable) {}
 
   @override
   List<ErrorProcessor> get errorProcessors =>
@@ -661,7 +650,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// Set the list of error [processors] that are to be used when reporting
   /// errors in some analysis context.
-  void set errorProcessors(List<ErrorProcessor> processors) {
+  set errorProcessors(List<ErrorProcessor> processors) {
     _errorProcessors = processors;
   }
 
@@ -670,7 +659,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// Set the exclude patterns used to exclude some sources from analysis to
   /// those in the given list of [patterns].
-  void set excludePatterns(List<String> patterns) {
+  set excludePatterns(List<String> patterns) {
     _excludePatterns = patterns;
   }
 
@@ -690,7 +679,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// Set the lint rules that are to be run in an analysis context if [lint]
   /// returns `true`.
-  void set lintRules(List<Linter> rules) {
+  set lintRules(List<Linter> rules) {
     _lintRules = rules;
   }
 
@@ -704,7 +693,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   Uint32List get signature {
     if (_signature == null) {
-      ApiSignature buffer = new ApiSignature();
+      ApiSignature buffer = ApiSignature();
 
       // Append environment.
       if (sdkVersionConstraint != null) {
@@ -717,13 +706,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(implicitDynamic);
       buffer.addBool(strictInference);
       buffer.addBool(strictRawTypes);
-      buffer.addBool(strongModeHints);
       buffer.addBool(useFastaParser);
 
-      // Append enabled experiments.
-      buffer.addInt(enabledExperiments.length);
-      for (String experimentName in enabledExperiments) {
-        buffer.addString(experimentName);
+      // Append features.
+      buffer.addInt(ExperimentStatus.knownFeatures.length);
+      for (var feature in ExperimentStatus.knownFeatures.values) {
+        buffer.addBool(contextFeatures.isEnabled(feature));
       }
 
       // Append error processors.
@@ -747,7 +735,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
       // Hash and convert to Uint32List.
       List<int> bytes = buffer.toByteList();
-      _signature = new Uint8List.fromList(bytes).buffer.asUint32List();
+      _signature = Uint8List.fromList(bytes).buffer.asUint32List();
     }
     return _signature;
   }
@@ -764,21 +752,25 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// The length of the list is guaranteed to equal [unlinkedSignatureLength].
   Uint32List get unlinkedSignature {
     if (_unlinkedSignature == null) {
-      ApiSignature buffer = new ApiSignature();
+      ApiSignature buffer = ApiSignature();
 
       // Append boolean flags.
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(useFastaParser);
 
-      // Append enabled experiments.
-      buffer.addInt(enabledExperiments.length);
-      for (String experimentName in enabledExperiments) {
-        buffer.addString(experimentName);
+      // Append the current language version.
+      buffer.addInt(ExperimentStatus.currentVersion.major);
+      buffer.addInt(ExperimentStatus.currentVersion.minor);
+
+      // Append features.
+      buffer.addInt(ExperimentStatus.knownFeatures.length);
+      for (var feature in ExperimentStatus.knownFeatures.values) {
+        buffer.addBool(contextFeatures.isEnabled(feature));
       }
 
       // Hash and convert to Uint32List.
       List<int> bytes = buffer.toByteList();
-      _unlinkedSignature = new Uint8List.fromList(bytes).buffer.asUint32List();
+      _unlinkedSignature = Uint8List.fromList(bytes).buffer.asUint32List();
     }
     return _unlinkedSignature;
   }
@@ -790,9 +782,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   void resetToDefaults() {
+    contextFeatures = ExperimentStatus();
     dart2jsHint = false;
     disableCacheFlushing = false;
-    enabledExperiments = const <String>[];
     enabledPluginNames = const <String>[];
     enableLazyAssignmentOperators = false;
     enableTiming = false;
@@ -809,7 +801,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _lintRules = null;
     patchPaths = {};
     preserveComments = true;
-    strongModeHints = false;
     trackCacheDependencies = true;
     useFastaParser = true;
   }
@@ -818,9 +809,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
-    if (options is AnalysisOptionsImpl) {
-      strongModeHints = options.strongModeHints;
-    }
   }
 
   /// Return whether the given lists of lints are equal.
@@ -845,20 +833,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static bool _analyzeNoFunctionBodies(Source _) => false;
 }
 
-/// Additional behavior for an analysis context that is required by internal
-/// users of the context.
-abstract class InternalAnalysisContext implements AnalysisContext {
-  /// Sets the [TypeProvider]s for this context.
-  void setTypeProviders({
-    @required TypeProvider legacy,
-    @required TypeProvider nonNullableByDefault,
-  });
-}
-
 /// Container with global [AnalysisContext] performance statistics.
 class PerformanceStatistics {
   /// The [PerformanceTag] for `package:analyzer`.
-  static PerformanceTag analyzer = new PerformanceTag('analyzer');
+  static PerformanceTag analyzer = PerformanceTag('analyzer');
 
   /// The [PerformanceTag] for time spent in reading files.
   static PerformanceTag io = analyzer.createChild('io');
@@ -873,7 +851,7 @@ class PerformanceStatistics {
   static PerformanceTag parse = analyzer.createChild('parse');
 
   /// The [PerformanceTag] for time spent in resolving.
-  static PerformanceTag resolve = new PerformanceTag('resolve');
+  static PerformanceTag resolve = PerformanceTag('resolve');
 
   /// The [PerformanceTag] for time spent in error verifier.
   static PerformanceTag errors = analysis.createChild('errors');
@@ -885,7 +863,7 @@ class PerformanceStatistics {
   static PerformanceTag lints = analysis.createChild('lints');
 
   /// The [PerformanceTag] for time spent computing cycles.
-  static PerformanceTag cycles = new PerformanceTag('cycles');
+  static PerformanceTag cycles = PerformanceTag('cycles');
 
   /// The [PerformanceTag] for time spent in summaries support.
   static PerformanceTag summary = analyzer.createChild('summary');

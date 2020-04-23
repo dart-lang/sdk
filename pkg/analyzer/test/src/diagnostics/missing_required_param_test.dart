@@ -8,6 +8,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
@@ -19,8 +20,13 @@ main() {
 
 @reflectiveTest
 class MissingRequiredParamTest extends DriverResolutionTest with PackageMixin {
-  test_constructor_argumentGiven() async {
+  @override
+  setUp() {
+    super.setUp();
     addMetaPackage();
+  }
+
+  test_constructor_argumentGiven() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -34,8 +40,24 @@ main() {
 ''');
   }
 
+  test_constructor_fieldFormalParameter() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  final int a;
+  C({@required this.a});
+}
+
+main() {
+  new C();
+}
+''', [
+      error(HintCode.MISSING_REQUIRED_PARAM, 102, 1),
+    ]);
+  }
+
   test_constructor_hasReason() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class C {
@@ -50,7 +72,6 @@ main() {
   }
 
   test_constructor_noReason() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -67,7 +88,6 @@ main() {
   }
 
   test_constructor_noReason_generic() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -84,7 +104,6 @@ main() {
   }
 
   test_constructor_nullReason() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -101,7 +120,6 @@ main() {
   }
 
   test_constructor_redirectingConstructorCall() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class C {
@@ -114,7 +132,6 @@ class C {
   }
 
   test_constructor_superCall() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -131,7 +148,6 @@ class D extends C {
   }
 
   test_function() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -146,7 +162,6 @@ main() {
   }
 
   test_method() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -161,7 +176,6 @@ f() {
   }
 
   test_method_generic() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -177,7 +191,6 @@ f() {
   }
 
   test_method_inOtherLib() async {
-    addMetaPackage();
     newFile('/a_lib.dart', content: r'''
 library a_lib;
 import 'package:meta/meta.dart';
@@ -192,9 +205,10 @@ f() {
 }
 ''');
 
-    await _resolveTestFile('/a_lib.dart');
-    await _resolveTestFile('/test.dart');
-    assertTestErrorsWithCodes([HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
+    await _resolveFile('/a_lib.dart');
+    await _resolveFile('/test.dart', [
+      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 37, 1),
+    ]);
   }
 
   @FailingTest(reason: r'''
@@ -204,7 +218,6 @@ not know its elements, and does not know that there was a parameter
 marked `@required`. There is exactly one such typedef in Flutter.
 ''')
   test_typedef_function() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -220,11 +233,15 @@ class C {
     ]);
   }
 
-  /// Resolve the test file at [path].
+  /// Resolve the file with the given [path].
   ///
   /// Similar to ResolutionTest.resolveTestFile, but a custom path is supported.
-  Future<void> _resolveTestFile(String path) async {
+  Future<void> _resolveFile(
+    String path, [
+    List<ExpectedError> expectedErrors = const [],
+  ]) async {
     result = await resolveFile(convertPath(path));
+    assertErrorsInResolvedUnit(result, expectedErrors);
   }
 }
 
@@ -232,7 +249,7 @@ class C {
 class MissingRequiredParamWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   test_constructor_argumentGiven() async {
@@ -335,6 +352,22 @@ f() {
 ''', [
       error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 37, 1),
     ]);
+  }
+
+  test_method_legacy() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  void foo({required int a}) {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import "a.dart";
+
+f() {
+  A().foo();
+}
+''');
   }
 
   test_typedef_function() async {

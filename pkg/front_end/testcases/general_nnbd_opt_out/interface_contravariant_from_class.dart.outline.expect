@@ -1,0 +1,33 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/interface_contravariant_from_class.dart:19:16: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'B'.
+// abstract class C<T> extends B<F<T>> implements I<F<T>> {}
+//                ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/interface_contravariant_from_class.dart:19:16: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'I'.
+// abstract class C<T> extends B<F<T>> implements I<F<T>> {}
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<contravariant T extends core::Object* = dynamic> = (T*) →* void;
+class B<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T*>*
+    ;
+  method f(core::int* x) → self::B::T*
+    ;
+}
+abstract class I<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T*>*
+    ;
+  abstract method f(core::Object* x) → self::I::T*;
+}
+abstract class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
+    ;
+}
+static method main() → void
+  ;

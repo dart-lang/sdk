@@ -25,11 +25,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * Event [KeyEvent].
    */
   factory $CLASSNAME(String type, {
-      Window view,
+      Window$NULLABLE view,
       bool canBubble: true,
       bool cancelable: true,
-      int location,
-      int keyLocation, // Legacy alias for location
+      int$NULLABLE location,
+      int$NULLABLE keyLocation, // Legacy alias for location
       bool ctrlKey: false,
       bool altKey: false,
       bool shiftKey: false,
@@ -38,15 +38,15 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       view = window;
     }
     location ??= keyLocation ?? 1;
-    KeyboardEvent e = document._createEvent("KeyboardEvent");
+    KeyboardEvent e = document._createEvent("KeyboardEvent") $#NULLSAFECAST(as KeyboardEvent);
     e._initKeyboardEvent(type, canBubble, cancelable, view, "",
         location, ctrlKey, altKey, shiftKey, metaKey);
     return e;
   }
 
   void _initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      Window view, String keyIdentifier, int location, bool ctrlKey,
-      bool altKey, bool shiftKey, bool metaKey) {
+      Window$NULLABLE view, String keyIdentifier, int$NULLABLE location,
+      bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) {
     if (JS('bool', 'typeof(#.initKeyEvent) == "function"', this)) {
       // initKeyEvent is only in Firefox (instead of initKeyboardEvent). It has
       // a slightly different signature, and allows you to specify keyCode and
@@ -63,9 +63,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  final int keyCode;
+  int get keyCode native;
 
-  final int charCode;
+  int get charCode native;
 
   int get which => _which;
 $!MEMBERS

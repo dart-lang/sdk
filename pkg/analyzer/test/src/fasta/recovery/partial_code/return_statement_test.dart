@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new ReturnStatementTest().buildAll();
+  ReturnStatementTest().buildAll();
 }
 
 class ReturnStatementTest extends PartialCodeTest {
@@ -15,10 +15,10 @@ class ReturnStatementTest extends PartialCodeTest {
     buildTests(
         'return_statement',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword', 'return', [ParserErrorCode.EXPECTED_TOKEN], "return;",
               allFailing: true),
-          new TestDescriptor('expression', 'return a',
+          TestDescriptor('expression', 'return a',
               [ParserErrorCode.EXPECTED_TOKEN], "return a;"),
         ],
         PartialCodeTest.statementSuffixes,

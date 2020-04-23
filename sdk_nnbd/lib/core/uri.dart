@@ -2248,7 +2248,7 @@ class _Uri implements Uri {
     var result = StringBuffer();
     var separator = "";
 
-    void writeParameter(String key, String value) {
+    void writeParameter(String key, String? value) {
       result.write(separator);
       separator = "&";
       result.write(Uri.encodeQueryComponent(key));
@@ -2668,7 +2668,7 @@ class _Uri implements Uri {
         }
       }
     }
-    String fragment = reference.hasFragment ? reference.fragment : null;
+    String? fragment = reference.hasFragment ? reference.fragment : null;
     return _Uri._internal(targetScheme, targetUserInfo, targetHost, targetPort,
         targetPath, targetQuery, fragment);
   }
@@ -3256,8 +3256,7 @@ class UriData {
       bool base64 = false}) {
     StringBuffer buffer = StringBuffer();
     List<int> indices = [_noScheme];
-    String? charsetName;
-    String? charSetName = parameters?.["charset"];
+    String? charsetName = parameters?.["charset"];
     String? encodingName;
     if (encoding == null) {
       if (charsetName != null) {

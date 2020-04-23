@@ -6,10 +6,13 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -25,17 +28,13 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
 import 'package:analyzer/src/manifest/manifest_validator.dart';
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
-import 'package:analyzer/src/source/sdk_ext.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
@@ -49,10 +48,6 @@ import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
 import 'package:linter/src/rules.dart' as linter;
 import 'package:meta/meta.dart';
-import 'package:package_config/discovery.dart' as pkg_discovery;
-import 'package:package_config/packages.dart' show Packages;
-import 'package:package_config/packages_file.dart' as pkgfile show parse;
-import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
@@ -66,16 +61,17 @@ StringSink outSink = io.stdout;
 
 /// Test this option map to see if it specifies lint rules.
 bool containsLintRuleEntry(YamlMap options) {
-  YamlNode linterNode = getValue(options, 'linter');
+  var linterNode = getValue(options, 'linter');
   return linterNode is YamlMap && getValue(linterNode, 'rules') != null;
 }
 
 class Driver with HasContextMixin implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
-      new PerformanceTag("Driver._analyzeAll");
+      PerformanceTag('Driver._analyzeAll');
 
-  static final ByteStore analysisDriverMemoryByteStore = new MemoryByteStore();
+  static final ByteStore analysisDriverMemoryByteStore = MemoryByteStore();
 
+  @override
   ContextCache contextCache;
 
   /// The driver that was most recently created by a call to [_analyzeAll], or
@@ -90,20 +86,15 @@ class Driver with HasContextMixin implements CommandLineStarter {
   /// its creation.
   CommandLineOptions _previousOptions;
 
-  @override
-  ResolverProvider packageResolverProvider;
-
   /// SDK instance.
   DartSdk sdk;
 
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   @override
   final ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
 
   /// Collected analysis statistics.
-  final AnalysisStats stats = new AnalysisStats();
+  final AnalysisStats stats = AnalysisStats();
 
   /// The [PathFilter] for excluded files with wildcards, etc.
   PathFilter pathFilter;
@@ -111,11 +102,9 @@ class Driver with HasContextMixin implements CommandLineStarter {
   /// Create a new Driver instance.
   ///
   /// [isTesting] is true if we're running in a test environment.
-  Driver({bool isTesting: false});
+  Driver({bool isTesting = false});
 
-  /**
-   * Converts the given [filePath] into absolute and normalized.
-   */
+  /// Converts the given [filePath] into absolute and normalized.
   String normalizePath(String filePath) {
     filePath = filePath.trim();
     filePath = resourceProvider.pathContext.absolute(filePath);
@@ -126,34 +115,34 @@ class Driver with HasContextMixin implements CommandLineStarter {
   @override
   Future<void> start(List<String> args, {SendPort sendPort}) async {
     if (analysisDriver != null) {
-      throw new StateError("start() can only be called once");
+      throw StateError('start() can only be called once');
     }
-    int startTime = new DateTime.now().millisecondsSinceEpoch;
+    var startTime = DateTime.now().millisecondsSinceEpoch;
 
-    StringUtilities.INTERNER = new MappedInterner();
+    StringUtilities.INTERNER = MappedInterner();
 
     linter.registerLintRules();
 
     // Parse commandline options.
-    CommandLineOptions options = CommandLineOptions.parse(args);
+    var options = CommandLineOptions.parse(args);
 
     // Do analysis.
     if (options.buildMode) {
-      ErrorSeverity severity = await _buildModeAnalyze(options, sendPort);
+      var severity = await _buildModeAnalyze(options, sendPort);
       // Propagate issues to the exit code.
       if (_shouldBeFatal(severity, options)) {
         io.exitCode = severity.ordinal;
       }
     } else if (options.batchMode) {
-      BatchRunner batchRunner = new BatchRunner(outSink, errorSink);
+      var batchRunner = BatchRunner(outSink, errorSink);
       batchRunner.runAsBatch(args, (List<String> args) async {
         // TODO(brianwilkerson) Determine whether this await is necessary.
         await null;
-        CommandLineOptions options = CommandLineOptions.parse(args);
+        var options = CommandLineOptions.parse(args);
         return await _analyzeAll(options);
       });
     } else {
-      ErrorSeverity severity = await _analyzeAll(options);
+      var severity = await _analyzeAll(options);
       // Propagate issues to the exit code.
       if (_shouldBeFatal(severity, options)) {
         io.exitCode = severity.ordinal;
@@ -167,11 +156,14 @@ class Driver with HasContextMixin implements CommandLineStarter {
       // representative of what we see internally; call into _buildModeAnalyze()
       // with some appropriate options.
       print('\nGenerating strong mode summary...');
-      final Stopwatch stopwatch = new Stopwatch()..start();
+      final stopwatch = Stopwatch()..start();
 
-      new SummaryBuilder.forSdk(options.dartSdkPath).build();
-      new SummaryBuilder.forSdk(options.dartSdkPath).build();
-      new SummaryBuilder.forSdk(options.dartSdkPath).build();
+      for (var i = 0; i < 3; i++) {
+        var featureSet = FeatureSet.fromEnableFlags([]);
+        SummaryBuilder.forSdk(options.dartSdkPath).build(
+          featureSet: featureSet,
+        );
+      }
 
       print('Done in ${stopwatch.elapsedMilliseconds} ms.');
     }
@@ -181,16 +173,16 @@ class Driver with HasContextMixin implements CommandLineStarter {
     }
 
     if (options.perfReport != null) {
-      String json = makePerfReport(
+      var json = makePerfReport(
           startTime, currentTimeMillis, options, _analyzedFileCount, stats);
-      new io.File(options.perfReport).writeAsStringSync(json);
+      io.File(options.perfReport).writeAsStringSync(json);
     }
   }
 
   Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    PerformanceTag previous = _analyzeAllTag.makeCurrent();
+    var previous = _analyzeAllTag.makeCurrent();
     try {
       return await _analyzeAllImpl(options);
     } finally {
@@ -203,7 +195,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (!options.machineFormat) {
-      List<String> fileNames = options.sourceFiles.map((String file) {
+      var fileNames = options.sourceFiles.map((String file) {
         file = path.normalize(file);
         if (file == '.') {
           file = path.basename(path.current);
@@ -217,13 +209,13 @@ class Driver with HasContextMixin implements CommandLineStarter {
     }
 
     // These are used to do part file analysis across sources.
-    Set<String> dartFiles = new Set<String>();
-    Set<FileState> libraryFiles = new Set<FileState>();
-    Set<FileState> danglingParts = new Set<FileState>();
+    var dartFiles = <String>{};
+    var libraryFiles = <FileState>{};
+    var danglingParts = <FileState>{};
 
     // Note: This references analysisDriver via closure, so it will change over
     // time during the following analysis.
-    SeverityProcessor defaultSeverityProcessor = (AnalysisError error) {
+    var defaultSeverityProcessor = (AnalysisError error) {
       return determineProcessedSeverity(
           error, options, analysisDriver.analysisOptions);
     };
@@ -236,23 +228,23 @@ class Driver with HasContextMixin implements CommandLineStarter {
     // batch flag and source file" error message.
     ErrorFormatter formatter;
     if (options.machineFormat) {
-      formatter = new MachineErrorFormatter(errorSink, options, stats,
+      formatter = MachineErrorFormatter(errorSink, options, stats,
           severityProcessor: defaultSeverityProcessor);
     } else {
-      formatter = new HumanErrorFormatter(outSink, options, stats,
+      formatter = HumanErrorFormatter(outSink, options, stats,
           severityProcessor: defaultSeverityProcessor);
     }
 
-    ErrorSeverity allResult = ErrorSeverity.NONE;
+    var allResult = ErrorSeverity.NONE;
 
     void reportPartError(String partPath) {
-      errorSink.writeln("$partPath is a part and cannot be analyzed.");
-      errorSink.writeln("Please pass in a library that contains this part.");
+      errorSink.writeln('$partPath is a part and cannot be analyzed.');
+      errorSink.writeln('Please pass in a library that contains this part.');
       io.exitCode = ErrorSeverity.ERROR.ordinal;
       allResult = allResult.max(ErrorSeverity.ERROR);
     }
 
-    for (String sourcePath in options.sourceFiles) {
+    for (var sourcePath in options.sourceFiles) {
       sourcePath = normalizePath(sourcePath);
 
       // Create a context, or re-use the previous one.
@@ -266,40 +258,38 @@ class Driver with HasContextMixin implements CommandLineStarter {
       // Add all the files to be analyzed en masse to the context. Skip any
       // files that were added earlier (whether explicitly or implicitly) to
       // avoid causing those files to be unnecessarily re-read.
-      Set<String> filesToAnalyze = new Set<String>();
+      var filesToAnalyze = <String>{};
 
       // Collect files for analysis.
       // Note that these files will all be analyzed in the same context.
       // This should be updated when the ContextManager re-work is complete
       // (See: https://github.com/dart-lang/sdk/issues/24133)
-      Iterable<io.File> files =
-          _collectFiles(sourcePath, analysisDriver.analysisOptions);
+      var files = _collectFiles(sourcePath, analysisDriver.analysisOptions);
       if (files.isEmpty) {
         errorSink.writeln('No dart files found at: $sourcePath');
         io.exitCode = ErrorSeverity.ERROR.ordinal;
         return ErrorSeverity.ERROR;
       }
 
-      for (io.File file in files) {
+      for (var file in files) {
         filesToAnalyze.add(file.absolute.path);
       }
 
       // Analyze the libraries.
-      for (String path in filesToAnalyze) {
+      for (var path in filesToAnalyze) {
         var shortName = resourceProvider.pathContext.basename(path);
-        if (shortName == AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE ||
-            shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE) {
-          File file = resourceProvider.getFile(path);
-          String content = file.readAsStringSync();
-          LineInfo lineInfo = new LineInfo.fromContent(content);
-          List<AnalysisError> errors = analyzeAnalysisOptions(
+        if (shortName == AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE) {
+          var file = resourceProvider.getFile(path);
+          var content = file.readAsStringSync();
+          var lineInfo = LineInfo.fromContent(content);
+          var errors = analyzeAnalysisOptions(
               file.createSource(), content, analysisDriver.sourceFactory);
           formatter.formatErrors([
             ErrorsResultImpl(analysisDriver.currentSession, path, null,
                 lineInfo, false, errors)
           ]);
-          for (AnalysisError error in errors) {
-            ErrorSeverity severity = determineProcessedSeverity(
+          for (var error in errors) {
+            var severity = determineProcessedSeverity(
                 error, options, analysisDriver.analysisOptions);
             if (severity != null) {
               allResult = allResult.max(severity);
@@ -307,20 +297,20 @@ class Driver with HasContextMixin implements CommandLineStarter {
           }
         } else if (shortName == AnalysisEngine.PUBSPEC_YAML_FILE) {
           try {
-            File file = resourceProvider.getFile(path);
-            String content = file.readAsStringSync();
-            YamlNode node = loadYamlNode(content);
+            var file = resourceProvider.getFile(path);
+            var content = file.readAsStringSync();
+            var node = loadYamlNode(content);
             if (node is YamlMap) {
-              PubspecValidator validator =
-                  new PubspecValidator(resourceProvider, file.createSource());
-              LineInfo lineInfo = new LineInfo.fromContent(content);
-              List<AnalysisError> errors = validator.validate(node.nodes);
+              var validator =
+                  PubspecValidator(resourceProvider, file.createSource());
+              var lineInfo = LineInfo.fromContent(content);
+              var errors = validator.validate(node.nodes);
               formatter.formatErrors([
                 ErrorsResultImpl(analysisDriver.currentSession, path, null,
                     lineInfo, false, errors)
               ]);
-              for (AnalysisError error in errors) {
-                ErrorSeverity severity = determineProcessedSeverity(
+              for (var error in errors) {
+                var severity = determineProcessedSeverity(
                     error, options, analysisDriver.analysisOptions);
                 allResult = allResult.max(severity);
               }
@@ -330,19 +320,18 @@ class Driver with HasContextMixin implements CommandLineStarter {
           }
         } else if (shortName == AnalysisEngine.ANDROID_MANIFEST_FILE) {
           try {
-            File file = resourceProvider.getFile(path);
-            String content = file.readAsStringSync();
-            ManifestValidator validator =
-                new ManifestValidator(file.createSource());
-            LineInfo lineInfo = new LineInfo.fromContent(content);
-            List<AnalysisError> errors = validator.validate(
+            var file = resourceProvider.getFile(path);
+            var content = file.readAsStringSync();
+            var validator = ManifestValidator(file.createSource());
+            var lineInfo = LineInfo.fromContent(content);
+            var errors = validator.validate(
                 content, analysisDriver.analysisOptions.chromeOsManifestChecks);
             formatter.formatErrors([
               ErrorsResultImpl(analysisDriver.currentSession, path, null,
                   lineInfo, false, errors)
             ]);
-            for (AnalysisError error in errors) {
-              ErrorSeverity severity = determineProcessedSeverity(
+            for (var error in errors) {
+              var severity = determineProcessedSeverity(
                   error, options, analysisDriver.analysisOptions);
               allResult = allResult.max(severity);
             }
@@ -361,11 +350,11 @@ class Driver with HasContextMixin implements CommandLineStarter {
           }
           libraryFiles.add(file);
 
-          ErrorSeverity status = await _runAnalyzer(file, options, formatter);
+          var status = await _runAnalyzer(file, options, formatter);
           allResult = allResult.max(status);
 
           // Mark previously dangling parts as no longer dangling.
-          for (FileState part in file.partedFiles) {
+          for (var part in file.partedFiles) {
             danglingParts.remove(part);
           }
         }
@@ -380,7 +369,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     }
 
     // Any dangling parts still in this list were definitely dangling.
-    for (FileState partFile in danglingParts) {
+    for (var partFile in danglingParts) {
       reportPartError(partFile.path);
     }
 
@@ -401,19 +390,19 @@ class Driver with HasContextMixin implements CommandLineStarter {
       CommandLineOptions options, SendPort sendPort) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    PerformanceTag previous = _analyzeAllTag.makeCurrent();
+    var previous = _analyzeAllTag.makeCurrent();
     try {
       if (options.buildModePersistentWorker) {
         var workerLoop = sendPort == null
-            ? new AnalyzerWorkerLoop.std(resourceProvider,
+            ? AnalyzerWorkerLoop.std(resourceProvider,
                 dartSdkPath: options.dartSdkPath)
-            : new AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
+            : AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
                 dartSdkPath: options.dartSdkPath);
         await workerLoop.run();
         return ErrorSeverity.NONE;
       } else {
-        return await new BuildMode(resourceProvider, options, stats,
-                new ContextCache(resourceProvider, options, verbosePrint))
+        return await BuildMode(resourceProvider, options, stats,
+                ContextCache(resourceProvider, options, verbosePrint))
             .analyze();
       }
     } finally {
@@ -434,62 +423,37 @@ class Driver with HasContextMixin implements CommandLineStarter {
       SummaryDataStore summaryDataStore,
       bool includeSdkResolver,
       AnalysisOptions analysisOptions) {
-    // Create a custom package resolver if one has been specified.
-    if (packageResolverProvider != null) {
-      Folder folder = resourceProvider.getFolder('.');
-      UriResolver resolver = packageResolverProvider(folder);
-      if (resolver != null) {
-        // TODO(brianwilkerson) This doesn't handle sdk extensions.
-        List<UriResolver> resolvers = <UriResolver>[];
-        if (includeSdkResolver) {
-          resolvers.add(new DartUriResolver(sdk));
-        }
-        resolvers
-            .add(new InSummaryUriResolver(resourceProvider, summaryDataStore));
-        resolvers.add(resolver);
-        resolvers.add(new ResourceUriResolver(resourceProvider));
-        return new SourceFactory(resolvers);
-      }
-    }
-
     UriResolver packageUriResolver;
 
-    if (options.packageRootPath != null) {
-      ContextBuilderOptions builderOptions = new ContextBuilderOptions();
-      builderOptions.defaultPackagesDirectoryPath = options.packageRootPath;
-      ContextBuilder builder = new ContextBuilder(resourceProvider, null, null,
-          options: builderOptions);
-      packageUriResolver = new PackageMapUriResolver(resourceProvider,
-          builder.convertPackagesToMap(builder.createPackageMap('')));
+    if (packageInfo.packageMap != null) {
+      packageUriResolver = PackageMapUriResolver(
+        resourceProvider,
+        packageInfo.packageMap,
+      );
     }
 
     // Now, build our resolver list.
-    List<UriResolver> resolvers = [];
+    var resolvers = <UriResolver>[];
 
     // 'dart:' URIs come first.
 
     // Setup embedding.
     if (includeSdkResolver) {
-      EmbedderSdk embedderSdk = new EmbedderSdk(resourceProvider, embedderMap);
+      var embedderSdk = EmbedderSdk(resourceProvider, embedderMap);
       if (embedderSdk.libraryMap.size() == 0) {
         // The embedder uri resolver has no mappings. Use the default Dart SDK
         // uri resolver.
-        resolvers.add(new DartUriResolver(sdk));
+        resolvers.add(DartUriResolver(sdk));
       } else {
         // The embedder uri resolver has mappings, use it instead of the default
         // Dart SDK uri resolver.
         embedderSdk.analysisOptions = analysisOptions;
-        resolvers.add(new DartUriResolver(embedderSdk));
+        resolvers.add(DartUriResolver(embedderSdk));
       }
     }
 
-    // Next SdkExts.
-    if (packageInfo.packageMap != null) {
-      resolvers.add(new SdkExtUriResolver(packageInfo.packageMap));
-    }
-
     // Then package URIs from summaries.
-    resolvers.add(new InSummaryUriResolver(resourceProvider, summaryDataStore));
+    resolvers.add(InSummaryUriResolver(resourceProvider, summaryDataStore));
 
     // Then package URIs.
     if (packageUriResolver != null) {
@@ -497,24 +461,24 @@ class Driver with HasContextMixin implements CommandLineStarter {
     }
 
     // Finally files.
-    resolvers.add(new ResourceUriResolver(resourceProvider));
+    resolvers.add(ResourceUriResolver(resourceProvider));
 
-    return new SourceFactory(resolvers, packageInfo.packages);
+    return SourceFactory(resolvers);
   }
 
   /// Collect all analyzable files at [filePath], recursively if it's a
   /// directory, ignoring links.
   Iterable<io.File> _collectFiles(String filePath, AnalysisOptions options) {
-    List<io.File> files = <io.File>[];
-    io.File file = new io.File(filePath);
+    var files = <io.File>[];
+    var file = io.File(filePath);
     if (file.existsSync() && !pathFilter.ignored(filePath)) {
       files.add(file);
     } else {
-      io.Directory directory = new io.Directory(filePath);
+      var directory = io.Directory(filePath);
       if (directory.existsSync()) {
-        for (io.FileSystemEntity entry
+        for (var entry
             in directory.listSync(recursive: true, followLinks: false)) {
-          String relative = path.relative(entry.path, from: directory.path);
+          var relative = path.relative(entry.path, from: directory.path);
           if ((AnalysisEngine.isDartFileName(entry.path) ||
                   AnalysisEngine.isManifestFileName(entry.path)) &&
               entry is io.File &&
@@ -534,15 +498,15 @@ class Driver with HasContextMixin implements CommandLineStarter {
     // If not the same command-line options, clear cached information.
     if (!_equalCommandLineOptions(_previousOptions, options)) {
       _previousOptions = options;
-      contextCache = new ContextCache(resourceProvider, options, verbosePrint);
+      contextCache = ContextCache(resourceProvider, options, verbosePrint);
       analysisDriver = null;
     }
 
-    AnalysisOptionsImpl analysisOptions =
+    var analysisOptions =
         createAnalysisOptionsForCommandLineOptions(options, source);
 
     // Store the [PathFilter] for this context to properly exclude files
-    pathFilter = new PathFilter(getContextInfo(options, source).analysisRoot,
+    pathFilter = PathFilter(getContextInfo(options, source).analysisRoot,
         analysisOptions.excludePatterns);
 
     // If we have the analysis driver, and the new analysis options are the
@@ -556,7 +520,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     // Set up logging.
     if (options.log) {
-      AnalysisEngine.instance.instrumentationService = new StdInstrumentation();
+      AnalysisEngine.instance.instrumentationService = StdInstrumentation();
     }
 
     // Save stats from previous context before clobbering it.
@@ -565,104 +529,86 @@ class Driver with HasContextMixin implements CommandLineStarter {
     }
 
     // Find package info.
-    _PackageInfo packageInfo = _findPackages(options);
+    var packageInfo = _findPackages(options);
 
     // Process embedders.
-    Map<Folder, YamlMap> embedderMap =
-        new EmbedderYamlLocator(packageInfo.packageMap).embedderYamls;
+    var embedderMap = <Folder, YamlMap>{};
+    if (packageInfo.packageMap != null) {
+      var libFolder = packageInfo.packageMap['sky_engine']?.first;
+      if (libFolder != null) {
+        var locator = EmbedderYamlLocator.forLibFolder(libFolder);
+        embedderMap = locator.embedderYamls;
+      }
+    }
 
-    // Scan for SDK extenders.
-    bool hasSdkExt = _hasSdkExt(packageInfo.packageMap?.values);
-
-    // No summaries in the presence of embedders or extenders.
-    bool useSummaries = embedderMap.isEmpty && !hasSdkExt;
+    // No summaries in the presence of embedders.
+    var useSummaries = embedderMap.isEmpty;
 
     if (!useSummaries && options.buildSummaryInputs.isNotEmpty) {
-      throw new _DriverError(
-          'Summaries are not yet supported when using Flutter.');
+      throw _DriverError('Summaries are not yet supported when using Flutter.');
     }
 
     // Read any input summaries.
-    SummaryDataStore summaryDataStore = new SummaryDataStore(
+    var summaryDataStore = SummaryDataStore(
         useSummaries ? options.buildSummaryInputs : <String>[]);
 
     // Once options and embedders are processed, setup the SDK.
     _setupSdk(options, useSummaries, analysisOptions);
 
-    PackageBundle sdkBundle = sdk.getLinkedBundle();
+    var sdkBundle = sdk.getLinkedBundle();
     if (sdkBundle != null) {
       summaryDataStore.addBundle(null, sdkBundle);
     }
 
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
-    SourceFactory sourceFactory = _chooseUriResolutionPolicy(options,
-        embedderMap, packageInfo, summaryDataStore, true, analysisOptions);
+    var sourceFactory = _chooseUriResolutionPolicy(options, embedderMap,
+        packageInfo, summaryDataStore, true, analysisOptions);
 
-    PerformanceLog log = new PerformanceLog(null);
-    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+    var log = PerformanceLog(null);
+    var scheduler = AnalysisDriverScheduler(log);
 
-    analysisDriver = new AnalysisDriver(
+    analysisDriver = AnalysisDriver(
         scheduler,
         log,
         resourceProvider,
         analysisDriverMemoryByteStore,
-        new FileContentOverlay(),
-        null,
+        FileContentOverlay(),
+        ContextRoot(source, [], pathContext: resourceProvider.pathContext),
         sourceFactory,
-        analysisOptions);
+        analysisOptions,
+        packages: packageInfo.packages);
     analysisDriver.results.listen((_) {});
     analysisDriver.exceptions.listen((_) {});
     scheduler.start();
   }
 
-  /// Return discovered packagespec, or `null` if none is found.
-  Packages _discoverPackagespec(Uri root) {
-    try {
-      Packages packages = pkg_discovery.findPackagesFromFile(root);
-      if (packages != Packages.noPackages) {
-        return packages;
-      }
-    } catch (_) {
-      // Ignore and fall through to null.
-    }
-
-    return null;
-  }
-
   _PackageInfo _findPackages(CommandLineOptions options) {
-    if (packageResolverProvider != null) {
-      // The resolver provider will do all the work later.
-      return new _PackageInfo(null, null);
-    }
-
     Packages packages;
     Map<String, List<Folder>> packageMap;
 
     if (options.packageConfigPath != null) {
-      String packageConfigPath = options.packageConfigPath;
-      Uri fileUri = new Uri.file(packageConfigPath);
+      var path = normalizePath(options.packageConfigPath);
       try {
-        io.File configFile = new io.File.fromUri(fileUri).absolute;
-        List<int> bytes = configFile.readAsBytesSync();
-        Map<String, Uri> map = pkgfile.parse(bytes, configFile.uri);
-        packages = new MapPackages(map);
+        packages = parsePackagesFile(
+          resourceProvider,
+          resourceProvider.getFile(path),
+        );
         packageMap = _getPackageMap(packages);
       } catch (e) {
-        printAndFail(
-            'Unable to read package config data from $packageConfigPath: $e');
+        printAndFail('Unable to read package config data from $path: $e');
       }
     } else if (options.packageRootPath != null) {
-      packageMap = _PackageRootPackageMapBuilder.buildPackageMap(
-          options.packageRootPath);
+      var path = normalizePath(options.packageRootPath);
+      packageMap = _PackageRootPackageMapBuilder.buildPackageMap(path);
     } else {
-      Resource cwd = resourceProvider.getResource(path.current);
+      var cwd = resourceProvider.getResource(path.current);
       // Look for .packages.
-      packages = _discoverPackagespec(new Uri.directory(cwd.path));
+      packages = findPackagesFrom(resourceProvider, cwd);
       packageMap = _getPackageMap(packages);
     }
 
-    return new _PackageInfo(packages, packageMap);
+    return _PackageInfo(packages, packageMap);
   }
 
   Map<String, List<Folder>> _getPackageMap(Packages packages) {
@@ -670,38 +616,23 @@ class Driver with HasContextMixin implements CommandLineStarter {
       return null;
     }
 
-    Map<String, List<Folder>> folderMap = new Map<String, List<Folder>>();
-    var pathContext = resourceProvider.pathContext;
-    packages.asMap().forEach((String packagePath, Uri uri) {
-      String path = fileUriToNormalizedPath(pathContext, uri);
-      folderMap[packagePath] = [resourceProvider.getFolder(path)];
-    });
-    return folderMap;
-  }
-
-  bool _hasSdkExt(Iterable<List<Folder>> folders) {
-    if (folders != null) {
-      //TODO: ideally share this traversal with SdkExtUriResolver
-      for (Iterable<Folder> libDirs in folders) {
-        if (libDirs.any((Folder libDir) =>
-            libDir.getChild(SdkExtUriResolver.SDK_EXT_NAME).exists)) {
-          return true;
-        }
-      }
+    var packageMap = <String, List<Folder>>{};
+    for (var package in packages.packages) {
+      packageMap[package.name] = [package.libFolder];
     }
-    return false;
+    return packageMap;
   }
 
   /// Returns `true` if this relative path is a hidden directory.
   bool _isInHiddenDir(String relative) =>
-      path.split(relative).any((part) => part.startsWith("."));
+      path.split(relative).any((part) => part.startsWith('.'));
 
   /// Analyze a single source.
   Future<ErrorSeverity> _runAnalyzer(
       FileState file, CommandLineOptions options, ErrorFormatter formatter) {
-    int startTime = currentTimeMillis;
-    AnalyzerImpl analyzer = new AnalyzerImpl(analysisDriver.analysisOptions,
-        analysisDriver, file, options, stats, startTime);
+    var startTime = currentTimeMillis;
+    var analyzer = AnalyzerImpl(analysisDriver.analysisOptions, analysisDriver,
+        file, options, stats, startTime);
     return analyzer.analyze(formatter);
   }
 
@@ -709,10 +640,10 @@ class Driver with HasContextMixin implements CommandLineStarter {
       AnalysisOptions analysisOptions) {
     if (sdk == null) {
       if (options.dartSdkSummaryPath != null) {
-        sdk = new SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
+        sdk = SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
       } else {
-        String dartSdkPath = options.dartSdkPath;
-        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(
+        var dartSdkPath = options.dartSdkPath;
+        var dartSdk = FolderBasedDartSdk(
             resourceProvider, resourceProvider.getFolder(dartSdkPath));
         dartSdk.useSummary = useSummaries &&
             options.sourceFiles.every((String sourcePath) {
@@ -770,7 +701,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     if (l1.length != l2.length) {
       return false;
     }
-    for (int i = 0; i < l1.length; i++) {
+    for (var i = 0; i < l1.length; i++) {
       if (l1[i] != l2[i]) {
         return false;
       }
@@ -783,7 +714,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     if (m1.length != m2.length) {
       return false;
     }
-    for (String key in m1.keys) {
+    for (var key in m1.keys) {
       if (!m2.containsKey(key) || m1[key] != m2[key]) {
         return false;
       }
@@ -805,20 +736,20 @@ class _PackageInfo {
   _PackageInfo(this.packages, this.packageMap);
 }
 
-/// [SdkExtUriResolver] needs a Map from package name to folder. In the case
-/// that the analyzer is invoked with a --package-root option, we need to
-/// manually create this mapping. Given [packageRootPath],
-/// [_PackageRootPackageMapBuilder] creates a simple mapping from package name
-/// to full path on disk (resolving any symbolic links).
 class _PackageRootPackageMapBuilder {
+  /// In the case that the analyzer is invoked with a --package-root option, we
+  /// need to manually create the mapping from package name to folder.
+  ///
+  /// Given [packageRootPath], creates a simple mapping from package name
+  /// to full path on disk (resolving any symbolic links).
   static Map<String, List<Folder>> buildPackageMap(String packageRootPath) {
-    var packageRoot = new io.Directory(packageRootPath);
+    var packageRoot = io.Directory(packageRootPath);
     if (!packageRoot.existsSync()) {
-      throw new _DriverError(
+      throw _DriverError(
           'Package root directory ($packageRootPath) does not exist.');
     }
     var packages = packageRoot.listSync(followLinks: false);
-    var result = new Map<String, List<Folder>>();
+    var result = <String, List<Folder>>{};
     for (var package in packages) {
       var packageName = path.basename(package.path);
       var realPath = package.resolveSymbolicLinksSync();

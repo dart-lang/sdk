@@ -26,7 +26,7 @@ namespace dart {
 using compiler::BlockBuilder;
 
 ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefinitionAfterStrictCompareWithNull) {
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
 
   FlowGraphBuilderHelper H;
 
@@ -58,7 +58,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefinitionAfterStrictCompareWithNull) {
 
   {
     BlockBuilder builder(H.flow_graph(), normal_entry);
-    v0 = builder.AddParameter(0, /*with_frame=*/true);
+    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
     builder.AddBranch(
         new StrictCompareInstr(
             TokenPosition::kNoSource, Token::kEQ_STRICT, new Value(v0),
@@ -101,7 +101,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefinitionAfterStrictCompareWithNull) {
 
 ISOLATE_UNIT_TEST_CASE(
     TypePropagator_RedefinitionAfterStrictCompareWithLoadClassId) {
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
 
   FlowGraphBuilderHelper H;
 
@@ -124,7 +124,7 @@ ISOLATE_UNIT_TEST_CASE(
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
-    v0 = builder.AddParameter(0, /*with_frame=*/true);
+    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
     auto load_cid = builder.AddDefinition(new LoadClassIdInstr(new Value(v0)));
     builder.AddBranch(
         new StrictCompareInstr(
@@ -164,7 +164,7 @@ ISOLATE_UNIT_TEST_CASE(
 }
 
 ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
 
   const Class& object_class =
       Class::Handle(thread->isolate()->object_store()->object_class());
@@ -184,7 +184,8 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
                  /*is_static=*/true,
                  /*is_final=*/false,
                  /*is_const=*/false,
-                 /*is_reflectable=*/true, object_class, Object::dynamic_type(),
+                 /*is_reflectable=*/true,
+                 /*is_late=*/false, object_class, Object::dynamic_type(),
                  TokenPosition::kNoSource, TokenPosition::kNoSource));
 
   FlowGraphBuilderHelper H;
@@ -215,7 +216,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
-    v0 = builder.AddParameter(0, /*with_frame=*/true);
+    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
     builder.AddBranch(new StrictCompareInstr(
                           TokenPosition::kNoSource, Token::kEQ_STRICT,
                           new Value(v0), new Value(H.IntConstant(1)),
@@ -229,7 +230,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
         new StaticCallInstr(TokenPosition::kNoSource, target_func,
                             /*type_args_len=*/0,
                             /*argument_names=*/Array::empty_array(),
-                            new PushArgumentsArray(0), S.GetNextDeoptId(),
+                            new InputsArray(0), S.GetNextDeoptId(),
                             /*call_count=*/0, ICData::RebindRule::kStatic));
     builder.AddInstruction(new GotoInstr(b4, S.GetNextDeoptId()));
   }
@@ -252,8 +253,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
   EXPECT_PROPERTY(v2->Type(), it.IsNullableInt());
   EXPECT_PROPERTY(v3->Type(), it.IsNullableInt());
 
-  auto v4 = new LoadStaticFieldInstr(
-      new Value(H.flow_graph()->GetConstant(field)), TokenPosition::kNoSource);
+  auto v4 = new LoadStaticFieldInstr(field, TokenPosition::kNoSource);
   H.flow_graph()->InsertBefore(v2, v4, nullptr, FlowGraph::kValue);
   v2->ReplaceUsesWith(v4);
   v2->RemoveFromGraph();
@@ -266,7 +266,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
 // This test verifies that mutable compile types are not incorrectly cached
 // as reaching types after inference.
 ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -306,7 +306,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
-    v0 = builder.AddParameter(0, /*with_frame=*/true);
+    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
     builder.AddBranch(new StrictCompareInstr(
                           TokenPosition::kNoSource, Token::kEQ_STRICT,
                           new Value(v0), new Value(H.IntConstant(1)),

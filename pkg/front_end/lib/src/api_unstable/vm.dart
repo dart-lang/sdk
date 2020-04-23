@@ -31,6 +31,8 @@ export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 
+export '../base/nnbd_mode.dart' show NnbdMode;
+
 export '../base/processed_options.dart' show ProcessedOptions;
 
 export '../compute_platform_binaries_location.dart'
@@ -59,6 +61,9 @@ export '../fasta/fasta_codes.dart'
         templateIllegalRecursiveType;
 
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
+
+export '../fasta/kernel/redirecting_factory_body.dart'
+    show isRedirectingFactoryField;
 
 export '../fasta/kernel/utils.dart'
     show

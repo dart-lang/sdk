@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToPackageImportTest);
   });
@@ -24,15 +24,24 @@ class ConvertToPackageImportTest extends FixProcessorLintTest {
   String get lintCode => LintNames.avoid_relative_lib_imports;
 
   /// More coverage in the `convert_to_package_import_test.dart` assist test.
-  test_relativeImport() async {
-    addSource('/home/test/lib/foo.dart', '');
-    testFile = convertPath('/home/test/lib/src/test.dart');
+  @failingTest
+  Future<void> test_relativeImport() async {
+    // This test fails because any attempt to specify a relative path that
+    // includes 'lib' (which the lint requires) results in a malformed URI when
+    // trying to resolve the import.
+    newFile('/home/test/lib/foo/bar.dart', content: '''
+class C {}
+''');
     await resolveTestUnit('''
-import /*LINT*/'../lib/foo.dart';
+import '../lib/foo/bar.dart';
+
+C c;
 ''');
 
     await assertHasFix('''
-import /*LINT*/'package:test/lib/foo.dart';
+import 'package:test/lib/foo.dart';
+
+C c;
 ''');
   }
 }

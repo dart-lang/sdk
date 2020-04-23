@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new BreakStatementTest().buildAll();
+  BreakStatementTest().buildAll();
 }
 
 class BreakStatementTest extends PartialCodeTest {
@@ -15,7 +15,7 @@ class BreakStatementTest extends PartialCodeTest {
     buildTests(
         'break_statement',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'break',
               [
@@ -27,7 +27,7 @@ class BreakStatementTest extends PartialCodeTest {
                 ParserErrorCode.BREAK_OUTSIDE_OF_LOOP
               ],
               failing: ['labeled', 'localFunctionNonVoid']),
-          new TestDescriptor(
+          TestDescriptor(
               'label', 'break a', [ParserErrorCode.EXPECTED_TOKEN], "break a;"),
         ],
         PartialCodeTest.statementSuffixes,

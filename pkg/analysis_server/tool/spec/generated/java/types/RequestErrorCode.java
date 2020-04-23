@@ -33,6 +33,11 @@ public class RequestErrorCode {
   public static final String FILE_NOT_ANALYZED = "FILE_NOT_ANALYZED";
 
   /**
+   * A file was change while widget descriptions were being computed.
+   */
+  public static final String FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED = "FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED";
+
+  /**
    * The given location does not have a supported widget.
    */
   public static final String FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET = "FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET";

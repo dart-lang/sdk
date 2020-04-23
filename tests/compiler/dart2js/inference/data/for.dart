@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: main:[null]*/
 main() {
   simpleFor();
@@ -99,10 +101,10 @@ class Class2 {
   var field;
 }
 
-/*member: _forUnion:Union([exact=Class1], [null|exact=Class2])*/
+/*member: _forUnion:Union(null, [exact=Class1], [exact=Class2])*/
 _forUnion(/*[exact=Class1]*/ o) {
   for (;
-      o = o. /*Union([exact=Class1], [null|exact=Class2])*/ field;
+      o = o. /*Union(null, [exact=Class1], [exact=Class2])*/ field;
       o != null) {}
   return o;
 }
@@ -132,7 +134,7 @@ class Class4 {
   var field;
 }
 
-/*member: _forIs:Union([exact=Class3], [null|exact=Class4])*/
+/*member: _forIs:Union(null, [exact=Class3], [exact=Class4])*/
 _forIs(/*[exact=Class3]*/ o) {
   for (; o is Class3; o = o. /*[exact=Class3]*/ field) {}
   return o;
@@ -163,11 +165,11 @@ class Class6 {
   var field;
 }
 
-/*member: _forIsNot:Union([exact=Class5], [null|exact=Class6])*/
+/*member: _forIsNot:Union(null, [exact=Class5], [exact=Class6])*/
 _forIsNot(/*[exact=Class5]*/ o) {
   for (;
       o is! Class6;
-      o = o. /*Union([exact=Class5], [null|exact=Class6])*/ field) {}
+      o = o. /*Union(null, [exact=Class5], [exact=Class6])*/ field) {}
   return o;
 }
 

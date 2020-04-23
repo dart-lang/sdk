@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
  * Compute the [DefinedNames] for the given [unit].
  */
 DefinedNames computeDefinedNames(CompilationUnit unit) {
-  DefinedNames names = new DefinedNames();
+  DefinedNames names = DefinedNames();
 
   void appendName(Set<String> names, SimpleIdentifier node) {
     String name = node?.name;
@@ -51,6 +51,6 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
  * Defined top-level and class member names.
  */
 class DefinedNames {
-  final Set<String> topLevelNames = new Set<String>();
-  final Set<String> classMemberNames = new Set<String>();
+  final Set<String> topLevelNames = <String>{};
+  final Set<String> classMemberNames = <String>{};
 }

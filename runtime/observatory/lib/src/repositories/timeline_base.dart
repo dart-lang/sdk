@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file
 
 import 'dart:async';
+import 'package:logging/logging.dart';
 import 'package:observatory/sample_profile.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;
@@ -13,11 +14,11 @@ class TimelineRepositoryBase {
   static const kTimeOriginMicros = 'timeOriginMicros';
   static const kTimeExtentMicros = 'timeExtentMicros';
 
-  Future<void> _formatSamples(
-      M.Isolate isolate, Map traceObject, S.ServiceMap cpuSamples) async {
+  Future<void> _formatSamples(M.Isolate isolate, Map traceObject,
+      Future<S.ServiceObject> cpuSamples) async {
     const kRootFrameId = 0;
     final profile = SampleProfile();
-    await profile.load(isolate as S.ServiceObjectOwner, cpuSamples);
+    await profile.load(isolate as S.ServiceObjectOwner, await cpuSamples);
     final trie = profile.loadFunctionTree(M.ProfileTreeDirection.inclusive);
     final root = trie.root;
     int nextId = kRootFrameId;
@@ -65,24 +66,20 @@ class TimelineRepositoryBase {
   Future<Map> getCpuProfileTimeline(M.VMRef ref,
       {int timeOriginMicros, int timeExtentMicros}) async {
     final S.VM vm = ref as S.VM;
-    final sampleRequests = <Future>[];
-
-    for (final isolate in vm.isolates) {
-      sampleRequests.add(vm.invokeRpc('getCpuSamples', {
-        'isolateId': isolate.id,
-        if (timeOriginMicros != null) kTimeOriginMicros: timeOriginMicros,
-        if (timeExtentMicros != null) kTimeExtentMicros: timeExtentMicros,
-      }));
-    }
-
-    final completed = await Future.wait(sampleRequests);
     final traceObject = <String, dynamic>{
       _kStackFrames: {},
       _kTraceEvents: [],
     };
-    for (int i = 0; i < vm.isolates.length; ++i) {
-      await _formatSamples(vm.isolates[i], traceObject, completed[i]);
-    }
+
+    await Future.wait(vm.isolates.map((isolate) {
+      final samples = vm.invokeRpc('getCpuSamples', {
+        'isolateId': isolate.id,
+        if (timeOriginMicros != null) kTimeOriginMicros: timeOriginMicros,
+        if (timeExtentMicros != null) kTimeExtentMicros: timeExtentMicros,
+      });
+      return _formatSamples(isolate, traceObject, samples);
+    }));
+
     return traceObject;
   }
 
@@ -92,11 +89,24 @@ class TimelineRepositoryBase {
         await vm.invokeRpc('getVMTimeline', {});
     final timeOriginMicros = vmTimelineResponse[kTimeOriginMicros];
     final timeExtentMicros = vmTimelineResponse[kTimeExtentMicros];
-    final traceObject = await getCpuProfileTimeline(
-      vm,
-      timeOriginMicros: timeOriginMicros,
-      timeExtentMicros: timeExtentMicros,
-    );
+    var traceObject = <String, dynamic>{
+      _kStackFrames: {},
+      _kTraceEvents: [],
+    };
+    try {
+      final cpuProfile = await getCpuProfileTimeline(
+        vm,
+        timeOriginMicros: timeOriginMicros,
+        timeExtentMicros: timeExtentMicros,
+      );
+      traceObject = cpuProfile;
+    } on S.ServerRpcException catch (e) {
+      if (e.code != S.ServerRpcException.kFeatureDisabled) {
+        rethrow;
+      }
+      Logger.root.info(
+          "CPU profiler is disabled. Creating timeline without CPU profile.");
+    }
     traceObject[_kTraceEvents].addAll(vmTimelineResponse[_kTraceEvents]);
     return traceObject;
   }

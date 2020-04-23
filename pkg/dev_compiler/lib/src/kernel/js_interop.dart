@@ -5,15 +5,41 @@
 import 'package:kernel/kernel.dart';
 import 'kernel_helpers.dart';
 
-/// Returns true if [library] represents any library from `package:js` or is the
-/// internal `dart:_js_helper` library.
-bool _isJSLibrary(Library library) {
+/// Returns true if [library] is one of the [candidates].
+/// The latter should be a list, e.g.,: ['dart:js', 'package:js'].
+bool _isLibrary(Library library, List<String> candidates) {
   if (library == null) return false;
   var uri = library.importUri;
   var scheme = uri.scheme;
-  return scheme == 'package' && uri.pathSegments[0] == 'js' ||
-      scheme == 'dart' &&
-          (uri.path == '_js_helper' || uri.path == '_foreign_helper');
+  var path = uri.pathSegments[0];
+  for (var candidate in candidates) {
+    var pair = candidate.split(':');
+    if (scheme == pair[0] && (path == pair[1] || pair[1] == '*')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/// Returns true if [library] represents any library from `package:js` or is the
+/// internal `dart:_js_helper` library.
+bool _isJSLibrary(Library library) => _isLibrary(
+    library, ['package:js', 'dart:_js_helper', 'dart:_foreign_helper']);
+
+/// Whether [node] is a direct call to `allowInterop`.
+bool isAllowInterop(Expression node) {
+  if (node is StaticInvocation) {
+    var target = node.target;
+    return _isLibrary(target.enclosingLibrary, ['dart:js']) &&
+        target.name.name == 'allowInterop';
+  }
+  return false;
+}
+
+bool isJsMember(Member member) {
+  // TODO(vsm): If we ever use external outside the SDK for non-JS interop,
+  // we're need to fix this.
+  return !_isLibrary(member.enclosingLibrary, ['dart:*']) && member.isExternal;
 }
 
 bool _annotationIsFromJSLibrary(String expectedName, Expression value) {

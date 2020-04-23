@@ -30,6 +30,12 @@ static const intptr_t kPageSize = 512 * KB;
 static const intptr_t kPageSizeInWords = kPageSize / kWordSize;
 static const intptr_t kPageMask = ~(kPageSize - 1);
 
+static const intptr_t kBitVectorWordsPerBlock = 1;
+static const intptr_t kBlockSize =
+    kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock;
+static const intptr_t kBlockMask = ~(kBlockSize - 1);
+static const intptr_t kBlocksPerPage = kPageSize / kBlockSize;
+
 // A page containing old generation objects.
 class HeapPage {
  public:
@@ -231,7 +237,15 @@ class PageSpaceController {
   bool is_enabled() { return is_enabled_; }
 
  private:
+  friend class PageSpace;  // For MergeOtherPageSpaceController
+
   void RecordUpdate(SpaceUsage before, SpaceUsage after, const char* reason);
+  void MergeOtherPageSpaceController(PageSpaceController* other);
+
+  void RecordUpdate(SpaceUsage before,
+                    SpaceUsage after,
+                    intptr_t growth_in_pages,
+                    const char* reason);
 
   Heap* heap_;
 
@@ -255,10 +269,13 @@ class PageSpaceController {
   // we grow the heap more aggressively.
   const int garbage_collection_time_ratio_;
 
-  // Perform a synchronous GC when capacity exceeds this amount.
-  intptr_t gc_threshold_in_words_;
+  // Perform a stop-the-world GC when usage exceeds this amount.
+  intptr_t hard_gc_threshold_in_words_;
 
-  // Start considering idle GC when capacity exceeds this amount.
+  // Begin concurrent marking when usage exceeds this amount.
+  intptr_t soft_gc_threshold_in_words_;
+
+  // Run idle GC if time permits when usage exceeds this amount.
   intptr_t idle_gc_threshold_in_words_;
 
   PageSpaceGarbageCollectionHistory history_;
@@ -269,7 +286,13 @@ class PageSpaceController {
 class PageSpace {
  public:
   enum GrowthPolicy { kControlGrowth, kForceGrowth };
-  enum Phase { kDone, kMarking, kAwaitingFinalization, kSweeping };
+  enum Phase {
+    kDone,
+    kMarking,
+    kAwaitingFinalization,
+    kSweepingLarge,
+    kSweepingRegular
+  };
 
   PageSpace(Heap* heap, intptr_t max_capacity_in_words);
   ~PageSpace();
@@ -317,8 +340,17 @@ class PageSpace {
     MutexLocker ml(&pages_lock_);
     return usage_;
   }
+  int64_t ImageInWords() const {
+    int64_t size = 0;
+    MutexLocker ml(&pages_lock_);
+    for (HeapPage* page = image_pages_; page != nullptr; page = page->next()) {
+      size += page->memory_->size();
+    }
+    return size >> kWordSizeLog2;
+  }
 
   bool Contains(uword addr) const;
+  bool ContainsUnsafe(uword addr) const;
   bool Contains(uword addr, HeapPage::PageType type) const;
   bool DataContains(uword addr) const;
   bool IsValidAddress(uword addr) const { return Contains(addr); }
@@ -429,6 +461,8 @@ class PageSpace {
 
   bool IsObjectFromImagePages(RawObject* object);
 
+  void MergeOtherPageSpace(PageSpace* other);
+
  private:
   // Ids for time and data records in Heap::GCStats.
   enum {
@@ -446,8 +480,6 @@ class PageSpace {
     kAllowedGrowth = 3
   };
 
-  static const intptr_t kAllocatablePageSize = 64 * KB;
-
   uword TryAllocateInternal(intptr_t size,
                             HeapPage::PageType type,
                             GrowthPolicy growth_policy,
@@ -457,12 +489,27 @@ class PageSpace {
                                HeapPage::PageType type,
                                GrowthPolicy growth_policy,
                                bool is_locked);
+  uword TryAllocateInFreshLargePage(intptr_t size,
+                                    HeapPage::PageType type,
+                                    GrowthPolicy growth_policy);
+
+  void EvaluateConcurrentMarking(GrowthPolicy growth_policy);
+
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
+
+  void AddPageLocked(HeapPage* page);
+  void AddLargePageLocked(HeapPage* page);
+  void AddExecPageLocked(HeapPage* page);
+  void RemovePageLocked(HeapPage* page, HeapPage* previous_page);
+  void RemoveLargePageLocked(HeapPage* page, HeapPage* previous_page);
+  void RemoveExecPageLocked(HeapPage* page, HeapPage* previous_page);
+
   HeapPage* AllocatePage(HeapPage::PageType type, bool link = true);
-  void FreePage(HeapPage* page, HeapPage* previous_page);
   HeapPage* AllocateLargePage(intptr_t size, HeapPage::PageType type);
+
   void TruncateLargePage(HeapPage* page, intptr_t new_object_size_in_bytes);
+  void FreePage(HeapPage* page, HeapPage* previous_page);
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
 
@@ -470,8 +517,9 @@ class PageSpace {
                                  bool finalize,
                                  int64_t pre_wait_for_sweepers,
                                  int64_t pre_safe_point);
-  void BlockingSweep();
-  void ConcurrentSweep(Isolate* isolate);
+  void SweepLarge();
+  void Sweep();
+  void ConcurrentSweep(IsolateGroup* isolate_group);
   void Compact(Thread* thread);
 
   static intptr_t LargePageSizeInWordsFor(intptr_t size);
@@ -493,12 +541,13 @@ class PageSpace {
 
   // Use ExclusivePageIterator for safe access to these.
   mutable Mutex pages_lock_;
-  HeapPage* pages_;
-  HeapPage* pages_tail_;
-  HeapPage* exec_pages_;
-  HeapPage* exec_pages_tail_;
-  HeapPage* large_pages_;
-  HeapPage* image_pages_;
+  HeapPage* pages_ = nullptr;
+  HeapPage* pages_tail_ = nullptr;
+  HeapPage* exec_pages_ = nullptr;
+  HeapPage* exec_pages_tail_ = nullptr;
+  HeapPage* large_pages_ = nullptr;
+  HeapPage* large_pages_tail_ = nullptr;
+  HeapPage* image_pages_ = nullptr;
 
   // A block of memory in a data page, managed by bump allocation. The remainder
   // is kept formatted as a FreeListElement, but is not in any freelist.
@@ -531,10 +580,12 @@ class PageSpace {
 
   bool enable_concurrent_mark_;
 
+  friend class BasePageIterator;
   friend class ExclusivePageIterator;
   friend class ExclusiveCodePageIterator;
   friend class ExclusiveLargePageIterator;
   friend class HeapIterationScope;
+  friend class HeapSnapshotWriter;
   friend class PageSpaceController;
   friend class ConcurrentSweeperTask;
   friend class GCCompactor;

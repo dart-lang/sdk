@@ -14,7 +14,7 @@ class FileInstrumentationLogger implements InstrumentationLogger {
   IOSink _sink;
 
   FileInstrumentationLogger(this.filePath) {
-    File file = new File(filePath);
+    File file = File(filePath);
     _sink = file.openWrite();
   }
 

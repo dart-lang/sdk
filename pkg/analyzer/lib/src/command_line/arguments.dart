@@ -13,8 +13,6 @@ import 'package:args/args.dart';
 import 'package:path/path.dart';
 
 const String analysisOptionsFileOption = 'options';
-const String bazelAnalysisOptionsPath =
-    'package:dart.analysis_options/default.yaml';
 const String defineVariableOption = 'D';
 const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
 @deprecated
@@ -31,11 +29,9 @@ const String sdkPathOption = 'dart-sdk';
 
 const String sdkSummaryPathOption = 'dart-sdk-summary';
 
-/**
- * Update [options] with the value of each analysis option command line flag.
- */
+/// Update [options] with the value of each analysis option command line flag.
 void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
-    {void verbosePrint(String text)}) {
+    {void Function(String text) verbosePrint}) {
   void verbose(String text) {
     if (verbosePrint != null) {
       verbosePrint('Analysis options: $text');
@@ -66,7 +62,7 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
  */
 ContextBuilderOptions createContextBuilderOptions(ArgResults args,
     {bool trackCacheDependencies}) {
-  ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+  ContextBuilderOptions builderOptions = ContextBuilderOptions();
   builderOptions.argResults = args;
   //
   // File locations.
@@ -79,7 +75,7 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args,
   //
   // Analysis options.
   //
-  AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+  AnalysisOptionsImpl defaultOptions = AnalysisOptionsImpl();
   applyAnalysisOptionFlags(defaultOptions, args);
   if (trackCacheDependencies != null) {
     defaultOptions.trackCacheDependencies = trackCacheDependencies;
@@ -127,7 +123,7 @@ DartSdkManager createDartSdkManager(
         sourcePath = context.normalize(sourcePath);
         return !context.isWithin(sdkPath, sourcePath);
       });
-  return new DartSdkManager(
+  return DartSdkManager(
       sdkPath ?? FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path,
       canUseSummaries);
 }
@@ -140,7 +136,8 @@ DartSdkManager createDartSdkManager(
  * TODO(danrubel) Update DDC to support all the options defined in this method
  * then remove the [ddc] named argument from this method.
  */
-void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
+void defineAnalysisArguments(ArgParser parser,
+    {bool hide = true, ddc = false}) {
   parser.addOption(sdkPathOption,
       help: 'The path to the Dart SDK.', hide: ddc && hide);
   parser.addOption(analysisOptionsFileOption,
@@ -245,8 +242,8 @@ List<String> extractDefinedVariables(
  * '--ignore-unrecognized-flags' option.
  */
 List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
-  Set<String> knownOptions = new HashSet<String>();
-  Set<String> knownAbbreviations = new HashSet<String>();
+  Set<String> knownOptions = HashSet<String>();
+  Set<String> knownAbbreviations = HashSet<String>();
   parser.options.forEach((String name, Option option) {
     knownOptions.add(name);
     String abbreviation = option.abbr;
@@ -303,7 +300,7 @@ ArgResults parse(
  * Always returns a new modifiable list.
  */
 List<String> preprocessArgs(ResourceProvider provider, List<String> args) {
-  args = new List.from(args);
+  args = List.from(args);
   if (args.isEmpty) {
     return args;
   }
@@ -319,7 +316,7 @@ List<String> preprocessArgs(ResourceProvider provider, List<String> args) {
           .split('\n')
           .where((String line) => line.isNotEmpty));
     } on FileSystemException catch (e) {
-      throw new Exception('Failed to read file specified by $lastArg : $e');
+      throw Exception('Failed to read file specified by $lastArg : $e');
     }
   }
   return args;

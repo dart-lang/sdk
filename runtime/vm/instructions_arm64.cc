@@ -332,6 +332,10 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
     if (instr->RnField() == PP) {
       // PP is untagged on ARM64.
       ASSERT(Utils::IsAligned(offset, 8));
+      // A code object may have an object pool attached in bare instructions
+      // mode if the v8 snapshot profile writer is active, but this pool cannot
+      // be used for object loading.
+      if (FLAG_use_bare_instructions) return false;
       intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
       const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
       if (!pool.IsNull()) {

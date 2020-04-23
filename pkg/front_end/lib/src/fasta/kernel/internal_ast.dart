@@ -21,7 +21,7 @@
 import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
-
+import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
 import 'package:kernel/core_types.dart';
 
 import '../fasta_codes.dart'
@@ -195,6 +195,181 @@ class ClassInferenceInfo {
   ClassInferenceInfo(this.builder);
 }
 
+/// Common base class for internal statements.
+abstract class InternalStatement extends Statement {
+  @override
+  R accept<R>(StatementVisitor<R> visitor) {
+    if (visitor is Printer || visitor is Precedence) {
+      // Allow visitors needed for toString.
+      return visitor.defaultStatement(this);
+    }
+    return unsupported("${runtimeType}.accept", -1, null);
+  }
+
+  @override
+  R accept1<R, A>(StatementVisitor1<R, A> visitor, A arg) =>
+      unsupported("${runtimeType}.accept1", -1, null);
+
+  StatementInferenceResult acceptInference(InferenceVisitor visitor);
+}
+
+class ForInStatementWithSynthesizedVariable extends InternalStatement {
+  VariableDeclaration variable;
+  Expression iterable;
+  Expression syntheticAssignment;
+  Statement expressionEffects;
+  Statement body;
+  final bool isAsync;
+  final bool hasProblem;
+  int bodyOffset;
+
+  ForInStatementWithSynthesizedVariable(this.variable, this.iterable,
+      this.syntheticAssignment, this.expressionEffects, this.body,
+      {this.isAsync, this.hasProblem})
+      : assert(isAsync != null),
+        assert(hasProblem != null) {
+    variable?.parent = this;
+    iterable?.parent = this;
+    syntheticAssignment?.parent = this;
+    expressionEffects?.parent = this;
+    body?.parent = this;
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitor visitor) {
+    return visitor.visitForInStatementWithSynthesizedVariable(this);
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    iterable?.accept(v);
+    syntheticAssignment?.accept(v);
+    expressionEffects?.accept(v);
+    body?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
+    }
+    if (iterable != null) {
+      iterable = iterable.accept<TreeNode>(v);
+      iterable?.parent = this;
+    }
+    if (syntheticAssignment != null) {
+      syntheticAssignment = syntheticAssignment.accept<TreeNode>(v);
+      syntheticAssignment?.parent = this;
+    }
+    if (expressionEffects != null) {
+      expressionEffects = expressionEffects.accept<TreeNode>(v);
+      expressionEffects?.parent = this;
+    }
+    if (body != null) {
+      body = body.accept<TreeNode>(v);
+      body?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "ForInStatementWithSynthesizedVariable(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
+}
+
+class TryStatement extends InternalStatement {
+  Statement tryBlock;
+  List<Catch> catchBlocks;
+  Statement finallyBlock;
+
+  TryStatement(this.tryBlock, this.catchBlocks, this.finallyBlock) {
+    tryBlock?.parent = this;
+    setParents(catchBlocks, this);
+    finallyBlock?.parent = this;
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitor visitor) {
+    return visitor.visitTryStatement(this);
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    tryBlock?.accept(v);
+    visitList(catchBlocks, v);
+    finallyBlock?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (tryBlock != null) {
+      tryBlock = tryBlock.accept<TreeNode>(v);
+      tryBlock?.parent = this;
+    }
+    transformList(catchBlocks, v, this);
+    if (finallyBlock != null) {
+      finallyBlock = finallyBlock.accept<TreeNode>(v);
+      finallyBlock?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "TryStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
+}
+
+class SwitchCaseImpl extends SwitchCase {
+  final bool hasLabel;
+
+  SwitchCaseImpl(
+      List<Expression> expressions, List<int> expressionOffsets, Statement body,
+      {bool isDefault: false, this.hasLabel})
+      : assert(hasLabel != null),
+        super(expressions, expressionOffsets, body, isDefault: isDefault);
+
+  @override
+  String toString() {
+    return "SwitchCaseImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
+}
+
+class BreakStatementImpl extends BreakStatement {
+  Statement targetStatement;
+  final bool isContinue;
+
+  BreakStatementImpl({this.isContinue})
+      : assert(isContinue != null),
+        super(null);
+
+  @override
+  String toString() {
+    return "BreakStatementImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
+}
+
 enum InternalExpressionKind {
   Binary,
   Cascade,
@@ -205,6 +380,7 @@ enum InternalExpressionKind {
   CompoundSuperIndexSet,
   DeferredCheck,
   Equals,
+  ExpressionInvocation,
   ExtensionIndexSet,
   ExtensionTearOff,
   ExtensionSet,
@@ -237,8 +413,13 @@ abstract class InternalExpression extends Expression {
   InternalExpressionKind get kind;
 
   @override
-  R accept<R>(ExpressionVisitor<R> visitor) =>
-      unsupported("${runtimeType}.accept", -1, null);
+  R accept<R>(ExpressionVisitor<R> visitor) {
+    if (visitor is Printer || visitor is Precedence) {
+      // Allow visitors needed for toString.
+      return visitor.defaultExpression(this);
+    }
+    return unsupported("${runtimeType}.accept", -1, null);
+  }
 
   @override
   R accept1<R, A>(ExpressionVisitor1<R, A> visitor, A arg) =>
@@ -314,6 +495,17 @@ class ArgumentsImpl extends Arguments {
     arguments.types.clear();
     arguments._explicitTypeArgumentCount = 0;
   }
+
+  @override
+  String toString() {
+    return "ArgumentsImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    // TODO(jensj): Make (much) better.
+    return "";
+  }
 }
 
 /// Internal expression representing a cascade expression.
@@ -376,6 +568,16 @@ class Cascade extends InternalExpression {
     }
     transformList(expressions, v, this);
   }
+
+  @override
+  String toString() {
+    return "Cascade(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing a deferred check.
@@ -415,6 +617,16 @@ class DeferredCheck extends InternalExpression {
       expression?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "DeferredCheck(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Common base class for shadow objects representing expressions in kernel
@@ -442,6 +654,16 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
       InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitFactoryConstructorInvocationJudgment(this, typeContext);
   }
+
+  @override
+  String toString() {
+    return "FactoryConstructorInvocationJudgment(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Front end specific implementation of [FunctionDeclaration].
@@ -455,6 +677,16 @@ class FunctionDeclarationImpl extends FunctionDeclaration {
   static void setHasImplicitReturnType(
       FunctionDeclarationImpl declaration, bool hasImplicitReturnType) {
     declaration.hasImplicitReturnType = hasImplicitReturnType;
+  }
+
+  @override
+  String toString() {
+    return "FunctionDeclarationImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -471,6 +703,16 @@ class InvalidSuperInitializerJudgment extends LocalInitializer
   @override
   void acceptInference(InferenceVisitor visitor) {
     return visitor.visitInvalidSuperInitializerJudgment(this);
+  }
+
+  @override
+  String toString() {
+    return "InvalidSuperInitializerJudgment(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -514,6 +756,16 @@ class IfNullExpression extends InternalExpression {
       right = right.accept<TreeNode>(v);
       right?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "IfNullExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -563,6 +815,16 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
       InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitIntJudgment(this, typeContext);
   }
+
+  @override
+  String toString() {
+    return "IntJudgment(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
@@ -592,6 +854,16 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
       InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitShadowLargeIntLiteral(this, typeContext);
   }
+
+  @override
+  String toString() {
+    return "ShadowLargeIntLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Concrete shadow object representing an invalid initializer in kernel form.
@@ -602,6 +874,16 @@ class ShadowInvalidInitializer extends LocalInitializer
   @override
   void acceptInference(InferenceVisitor visitor) {
     return visitor.visitShadowInvalidInitializer(this);
+  }
+
+  @override
+  String toString() {
+    return "ShadowInvalidInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -621,17 +903,64 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   void acceptInference(InferenceVisitor visitor) {
     return visitor.visitShadowInvalidFieldInitializer(this);
   }
+
+  @override
+  String toString() {
+    return "ShadowInvalidFieldInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
-/// Front end specific implementation of [MethodInvocation].
-class MethodInvocationImpl extends MethodInvocation {
-  /// Indicates whether this method invocation is a call to a `call` method
-  /// resulting from the invocation of a function expression.
-  final bool isImplicitCall;
+class ExpressionInvocation extends InternalExpression {
+  Expression expression;
+  Arguments arguments;
 
-  MethodInvocationImpl(Expression receiver, Name name, ArgumentsImpl arguments,
-      {this.isImplicitCall: false, Member interfaceTarget})
-      : super(receiver, name, arguments, interfaceTarget);
+  ExpressionInvocation(this.expression, this.arguments) {
+    expression?.parent = this;
+    arguments?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitExpressionInvocation(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.ExpressionInvocation;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    expression?.accept(v);
+    arguments?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = expression.accept<TreeNode>(v);
+      expression?.parent = this;
+    }
+    if (arguments != null) {
+      arguments = arguments.accept<TreeNode>(v);
+      arguments?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "ExpressionInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Concrete shadow object representing a named function expression.
@@ -652,6 +981,16 @@ class NamedFunctionExpressionJudgment extends Let
   ExpressionInferenceResult acceptInference(
       InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitNamedFunctionExpressionJudgment(this, typeContext);
+  }
+
+  @override
+  String toString() {
+    return "NamedFunctionExpressionJudgment(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -700,6 +1039,16 @@ class NullAwareMethodInvocation extends InternalExpression {
       invocation?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "NullAwareMethodInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing a null-aware read from a property.
@@ -746,6 +1095,16 @@ class NullAwarePropertyGet extends InternalExpression {
       read = read.accept<TreeNode>(v);
       read?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "NullAwarePropertyGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -794,6 +1153,16 @@ class NullAwarePropertySet extends InternalExpression {
       write?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "NullAwarePropertySet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Front end specific implementation of [ReturnStatement].
@@ -802,6 +1171,16 @@ class ReturnStatementImpl extends ReturnStatement {
 
   ReturnStatementImpl(this.isArrow, [Expression expression])
       : super(expression);
+
+  @override
+  String toString() {
+    return "ReturnStatementImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Concrete implementation of [TypePromoter] specialized to work with kernel
@@ -884,6 +1263,9 @@ class VariableDeclarationImpl extends VariableDeclaration {
   /// the kernel.
   final bool isImplicitlyTyped;
 
+  /// True if the initializer was specified by the programmer.
+  final bool hasDeclaredInitializer;
+
   // TODO(ahe): Remove this field. We can get rid of it by recording closure
   // mutation in [BodyBuilder].
   final int functionNestingLevel;
@@ -907,6 +1289,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
 
   VariableDeclarationImpl(String name, this.functionNestingLevel,
       {this.forSyntheticToken: false,
+      this.hasDeclaredInitializer: false,
       Expression initializer,
       DartType type,
       bool isFinal: false,
@@ -933,6 +1316,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
         functionNestingLevel = 0,
         isImplicitlyTyped = false,
         isLocalFunction = false,
+        hasDeclaredInitializer = true,
         super.forValue(initializer);
 
   VariableDeclarationImpl.forValue(Expression initializer)
@@ -940,10 +1324,33 @@ class VariableDeclarationImpl extends VariableDeclaration {
         functionNestingLevel = 0,
         isImplicitlyTyped = true,
         isLocalFunction = false,
+        hasDeclaredInitializer = true,
         super.forValue(initializer);
 
+  // The synthesized local getter function for a lowered late variable.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
   VariableDeclaration lateGetter;
+
+  // The synthesized local setter function for an assignable lowered late
+  // variable.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
   VariableDeclaration lateSetter;
+
+  // Is `true` if this a lowered late final variable without an initializer.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
+  bool isLateFinalWithoutInitializer = false;
+
+  // The original type (declared or inferred) of a lowered late variable.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
+  DartType lateType;
 }
 
 /// Front end specific implementation of [VariableGet].
@@ -952,8 +1359,24 @@ class VariableGetImpl extends VariableGet {
 
   final TypePromotionScope scope;
 
-  VariableGetImpl(VariableDeclaration variable, this.fact, this.scope)
-      : super(variable);
+  // TODO(johnniwinther): Remove the need for this by encoding all null aware
+  // expressions explicitly.
+  final bool forNullGuardedAccess;
+
+  VariableGetImpl(VariableDeclaration variable, this.fact, this.scope,
+      {this.forNullGuardedAccess})
+      : assert(forNullGuardedAccess != null),
+        super(variable);
+
+  @override
+  String toString() {
+    return "VariableGetImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Front end specific implementation of [LoadLibrary].
@@ -961,6 +1384,16 @@ class LoadLibraryImpl extends LoadLibrary {
   final Arguments arguments;
 
   LoadLibraryImpl(LibraryDependency import, this.arguments) : super(import);
+
+  @override
+  String toString() {
+    return "LoadLibraryImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing a tear-off of a `loadLibrary` function.
@@ -993,6 +1426,16 @@ class LoadLibraryTearOff extends InternalExpression {
     if (target != null) {
       target = target.accept<TreeNode>(v);
     }
+  }
+
+  @override
+  String toString() {
+    return "LoadLibraryTearOff(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1058,6 +1501,16 @@ class IfNullPropertySet extends InternalExpression {
       write?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "IfNullPropertySet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing an if-null assignment.
@@ -1112,6 +1565,16 @@ class IfNullSet extends InternalExpression {
       write = write.accept<TreeNode>(v);
       write?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "IfNullSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1230,6 +1693,16 @@ class CompoundExtensionSet extends InternalExpression {
       rhs?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "CompoundExtensionSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing an compound property assignment.
@@ -1314,6 +1787,16 @@ class CompoundPropertySet extends InternalExpression {
       rhs?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "CompoundPropertySet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing an compound property assignment.
@@ -1374,6 +1857,16 @@ class PropertyPostIncDec extends InternalExpression {
       write?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "PropertyPostIncDec(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing an local variable post inc/dec expression.
@@ -1421,6 +1914,16 @@ class LocalPostIncDec extends InternalExpression {
       write = write.accept<TreeNode>(v);
       write?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "LocalPostIncDec(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1470,6 +1973,16 @@ class StaticPostIncDec extends InternalExpression {
       write?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "StaticPostIncDec(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing an static member post inc/dec expression.
@@ -1518,6 +2031,16 @@ class SuperPostIncDec extends InternalExpression {
       write?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "SuperPostIncDec(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing an index get expression.
@@ -1558,6 +2081,16 @@ class IndexGet extends InternalExpression {
       index = index.accept<TreeNode>(v);
       index?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "IndexGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1628,6 +2161,16 @@ class IndexSet extends InternalExpression {
       value?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "IndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing a  super index set expression.
@@ -1683,6 +2226,16 @@ class SuperIndexSet extends InternalExpression {
       value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "SuperIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1763,6 +2316,16 @@ class ExtensionIndexSet extends InternalExpression {
       value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "ExtensionIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1861,6 +2424,16 @@ class IfNullIndexSet extends InternalExpression {
       value?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "IfNullIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing an if-null super index set expression.
@@ -1942,6 +2515,16 @@ class IfNullSuperIndexSet extends InternalExpression {
       value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "IfNullSuperIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2051,6 +2634,16 @@ class IfNullExtensionIndexSet extends InternalExpression {
       value?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "IfNullExtensionIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing a compound index assignment.
@@ -2143,6 +2736,16 @@ class CompoundIndexSet extends InternalExpression {
       rhs = rhs.accept<TreeNode>(v);
       rhs?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "CompoundIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2251,6 +2854,16 @@ class NullAwareCompoundSet extends InternalExpression {
       rhs?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "NullAwareCompoundSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing an null-aware if-null property set.
@@ -2332,6 +2945,16 @@ class NullAwareIfNullSet extends InternalExpression {
       value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "NullAwareIfNullSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2418,6 +3041,16 @@ class CompoundSuperIndexSet extends InternalExpression {
       rhs = rhs.accept<TreeNode>(v);
       rhs?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "CompoundSuperIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2542,6 +3175,16 @@ class CompoundExtensionIndexSet extends InternalExpression {
       rhs?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "CompoundExtensionIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing an assignment to an extension setter.
@@ -2624,6 +3267,16 @@ class ExtensionSet extends InternalExpression {
       value?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "ExtensionSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression representing an null-aware extension expression.
@@ -2670,6 +3323,16 @@ class NullAwareExtension extends InternalExpression {
       expression?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "NullAwareExtension(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Front end specific implementation of [PropertySet].
@@ -2685,6 +3348,16 @@ class PropertySetImpl extends PropertySet {
       {Member interfaceTarget, this.forEffect, this.readOnlyReceiver})
       : assert(forEffect != null),
         super(receiver, name, value, interfaceTarget);
+
+  @override
+  String toString() {
+    return "PropertySetImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal representation of a read of an extension instance member.
@@ -2731,6 +3404,16 @@ class ExtensionTearOff extends InternalExpression {
       arguments?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "ExtensionTearOff(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression for an equals or not-equals expression.
@@ -2771,6 +3454,16 @@ class EqualsExpression extends InternalExpression {
       right?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "EqualsExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression for a binary expression.
@@ -2810,6 +3503,16 @@ class BinaryExpression extends InternalExpression {
       right?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "BinaryExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression for a unary expression.
@@ -2842,6 +3545,16 @@ class UnaryExpression extends InternalExpression {
       expression?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "UnaryExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Internal expression for a parenthesized expression.
@@ -2873,6 +3586,16 @@ class ParenthesizedExpression extends InternalExpression {
       expression?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "ParenthesizedExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Creates a [Let] of [variable] with the given [body] using
@@ -2889,6 +3612,7 @@ Let createLet(VariableDeclaration variable, Expression body) {
 /// This is useful for creating let variables for expressions in replacement
 /// code.
 VariableDeclaration createVariable(Expression expression, DartType type) {
+  assert(expression is! ThisExpression);
   return new VariableDeclaration.forValue(expression, type: type)
     ..fileOffset = expression.fileOffset;
 }
@@ -2923,4 +3647,9 @@ MethodInvocation createEqualsNull(
         ..fileOffset = fileOffset)
     ..fileOffset = fileOffset
     ..interfaceTarget = equalsMember;
+}
+
+ExpressionStatement createExpressionStatement(Expression expression) {
+  return new ExpressionStatement(expression)
+    ..fileOffset = expression.fileOffset;
 }

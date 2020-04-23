@@ -51,18 +51,18 @@ class IndexTest extends BaseAnalysisDriverTest {
 
   _ElementIndexAssert assertThat(Element element) {
     List<_Relation> relations = _getElementRelations(element);
-    return new _ElementIndexAssert(this, element, relations);
+    return _ElementIndexAssert(this, element, relations);
   }
 
   _NameIndexAssert assertThatName(String name) {
-    return new _NameIndexAssert(this, name);
+    return _NameIndexAssert(this, name);
   }
 
   Element findElement(String name, [ElementKind kind]) {
     return findChildElement(testUnitElement, name, kind);
   }
 
-  CompilationUnitElement importedUnit({int index: 0}) {
+  CompilationUnitElement importedUnit({int index = 0}) {
     List<ImportElement> imports = testLibraryElement.imports;
     return imports[index].importedLibrary.definingCompilationUnit;
   }
@@ -136,17 +136,6 @@ mixin M5 on M2 {}
       ..isAncestorOf('M3 implements A')
       ..isAncestorOf('M4 implements B')
       ..isAncestorOf('M5 on M2');
-  }
-
-  test_isExtendedBy_ClassDeclaration() async {
-    await _indexTestUnit('''
-class A {} // 1
-class B extends A {} // 2
-''');
-    ClassElement elementA = findElement('A');
-    assertThat(elementA)
-      ..isExtendedAt('A {} // 2', false)
-      ..isReferencedAt('A {} // 2', false);
   }
 
   test_isExtendedBy_ClassDeclaration_isQualified() async {
@@ -910,13 +899,69 @@ main() {
     await _indexTestUnit('''
 typedef F = void Function({int p});
 
-void main() {
-  F f;
+void main(F f) {
   f(p: 0);
 }
 ''');
     // We should not crash because of reference to "p" - a named parameter
     // of a generic function type.
+  }
+
+  test_isReferencedBy_ParameterElement_genericFunctionType_call() async {
+    await _indexTestUnit('''
+typedef F<T> = void Function({T test});
+
+main(F<int> f) {
+  f.call(test: 0);
+}
+''');
+    // No exceptions.
+  }
+
+  test_isReferencedBy_ParameterElement_multiplyDefined_generic() async {
+    newFile('/test/lib/a.dart', content: r'''
+void foo<T>({T a}) {}
+''');
+    newFile('/test/lib/b.dart', content: r'''
+void foo<T>({T a}) {}
+''');
+    await _indexTestUnit(r"""
+import 'a.dart';
+import 'b.dart';
+
+void main() {
+  foo(a: 0);
+}
+""");
+    // No exceptions.
+  }
+
+  test_isReferencedBy_ParameterElement_named_ofConstructor_genericClass() async {
+    await _indexTestUnit('''
+class A<T> {
+  A({T test});
+}
+
+main() {
+  A(test: 0);
+}
+''');
+    Element element = findElement('test');
+    assertThat(element)..isReferencedAt('test: 0', true);
+  }
+
+  test_isReferencedBy_ParameterElement_named_ofMethod_genericClass() async {
+    await _indexTestUnit('''
+class A<T> {
+  void foo({T test}) {}
+}
+
+main(A<int> a) {
+  a.foo(test: 0);
+}
+''');
+    Element element = findElement('test');
+    assertThat(element)..isReferencedAt('test: 0', true);
   }
 
   test_isReferencedBy_ParameterElement_optionalPositional() async {
@@ -1274,12 +1319,12 @@ main() {
     if (length == null) {
       length = getLeadingIdentifierLength(search);
     }
-    return new ExpectedLocation(testUnitElement, offset, length, isQualified);
+    return ExpectedLocation(testUnitElement, offset, length, isQualified);
   }
 
   void _failWithIndexDump(String msg) {
     String packageIndexJsonString =
-        new JsonEncoder.withIndent('  ').convert(index.toJson());
+        JsonEncoder.withIndent('  ').convert(index.toJson());
     fail('$msg in\n' + packageIndexJsonString);
   }
 
@@ -1289,7 +1334,7 @@ main() {
   int _findElementId(Element element) {
     int unitId = _getUnitId(element);
     // Prepare the element that was put into the index.
-    IndexElementInfo info = new IndexElementInfo(element);
+    IndexElementInfo info = IndexElementInfo(element);
     element = info.element;
     // Prepare element's name components.
     int unitMemberId = index.nullStringId;
@@ -1335,7 +1380,7 @@ main() {
     List<_Relation> relations = <_Relation>[];
     for (int i = 0; i < index.usedElementOffsets.length; i++) {
       if (index.usedElements[i] == elementId) {
-        relations.add(new _Relation(
+        relations.add(_Relation(
             index.usedElementKinds[i],
             index.usedElementOffsets[i],
             index.usedElementLengths[i],
@@ -1383,7 +1428,7 @@ main() {
 
     AnalysisDriverUnitIndexBuilder indexBuilder = indexUnit(testUnit);
     List<int> indexBytes = indexBuilder.toBuffer();
-    index = new AnalysisDriverUnitIndex.fromBuffer(indexBytes);
+    index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
   }
 }
 
@@ -1391,7 +1436,7 @@ main() {
 class IndexWithExtensionMethodsTest extends IndexTest {
   @override
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_isInvokedBy_MethodElement_ofExtension_instance() async {

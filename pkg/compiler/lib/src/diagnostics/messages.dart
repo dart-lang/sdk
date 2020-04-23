@@ -17,8 +17,10 @@ library dart2js.messages;
 import 'package:front_end/src/api_unstable/dart2js.dart' show tokenToString;
 
 import 'generated/shared_messages.dart' as shared_messages;
-import '../constants/expressions.dart' show ConstantExpression;
+import '../constants/values.dart' show ConstantValue;
 import '../commandline_options.dart';
+import '../elements/types.dart';
+import '../options.dart';
 import 'invariant.dart' show failedAt;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
 
@@ -76,10 +78,8 @@ enum MessageKind {
   INVALID_PACKAGE_URI,
   INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
   JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
-  JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR,
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
   JS_INTEROP_FIELD_NOT_SUPPORTED,
-  JS_INTEROP_INDEX_NOT_SUPPORTED,
   JS_INTEROP_NON_EXTERNAL_MEMBER,
   JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS,
   JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
@@ -98,8 +98,7 @@ enum MessageKind {
   RETHROW_OUTSIDE_CATCH,
   RETURN_IN_GENERATIVE_CONSTRUCTOR,
   RETURN_IN_GENERATOR,
-  RUNTIME_TYPE_TO_STRING_OBJECT,
-  RUNTIME_TYPE_TO_STRING_SUBTYPE,
+  RUNTIME_TYPE_TO_STRING,
   STRING_EXPECTED,
   UNDEFINED_GETTER,
   UNDEFINED_INSTANCE_GETTER_BUT_SETTER,
@@ -202,38 +201,6 @@ class MessageTemplate {
               """
           ]),
 
-      MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED: const MessageTemplate(
-          MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED,
-          "Js-interop does not support [] and []= operator methods.",
-          howToFix: "Try replacing [] and []= operator methods with normal "
-              "methods.",
-          examples: const [
-            """
-        import 'package:js/js.dart';
-
-        @JS()
-        class Foo {
-          external operator [](arg);
-        }
-
-        main() {
-          new Foo()[0];
-        }
-        """,
-            """
-        import 'package:js/js.dart';
-
-        @JS()
-        class Foo {
-          external operator []=(arg, value);
-        }
-
-        main() {
-          new Foo()[0] = 1;
-        }
-        """
-          ]),
-
       MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS:
           const MessageTemplate(
               MessageKind
@@ -264,13 +231,6 @@ main() => new Class();
           "Js-interop class members are only supported in js-interop classes.",
           howToFix: "Try marking the enclosing class as js-interop or "
               "remove the js-interop annotation from the member."),
-
-      MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR:
-          const MessageTemplate(
-              MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR,
-              "Constructor '#{constructor}' in js-interop class '#{cls}' is "
-              "not external.",
-              howToFix: "Try adding the 'external' to '#{constructor}'."),
 
       MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER: const MessageTemplate(
           MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
@@ -652,21 +612,11 @@ become a compile-time error in the future."""),
           "more code and prevents the compiler from doing some optimizations.",
           howToFix: "Consider removing this 'noSuchMethod' implementation."),
 
-      MessageKind.RUNTIME_TYPE_TO_STRING_OBJECT: const MessageTemplate(
-          MessageKind.RUNTIME_TYPE_TO_STRING_OBJECT,
+      MessageKind.RUNTIME_TYPE_TO_STRING: const MessageTemplate(
+          MessageKind.RUNTIME_TYPE_TO_STRING,
           "Using '.runtimeType.toString()' causes the compiler to generate "
-          "more code because it needs to preserve type arguments on all "
+          "more code because it needs to preserve type arguments on "
           "generic classes, even if they are not necessary elsewhere.",
-          howToFix: "If used only for debugging, consider using option "
-              "${Flags.laxRuntimeTypeToString} to reduce the code size "
-              "impact."),
-
-      MessageKind.RUNTIME_TYPE_TO_STRING_SUBTYPE: const MessageTemplate(
-          MessageKind.RUNTIME_TYPE_TO_STRING_SUBTYPE,
-          "Using '.runtimeType.toString()' here causes the compiler to "
-          "generate more code because it needs to preserve type arguments on "
-          "all generic subtypes of '#{receiverType}', even if they are not "
-          "necessary elsewhere.",
           howToFix: "If used only for debugging, consider using option "
               "${Flags.laxRuntimeTypeToString} to reduce the code size "
               "impact."),
@@ -700,8 +650,8 @@ become a compile-time error in the future."""),
   @override
   String toString() => template;
 
-  Message message([Map arguments = const {}, bool terse = false]) {
-    return new Message(this, arguments, terse);
+  Message message(Map arguments, CompilerOptions options) {
+    return new Message(this, arguments, options);
   }
 
   bool get hasHowToFix => howToFix != null && howToFix != DONT_KNOW_HOW_TO_FIX;
@@ -710,10 +660,12 @@ become a compile-time error in the future."""),
 class Message {
   final MessageTemplate template;
   final Map arguments;
-  final bool terse;
+  final CompilerOptions _options;
+  bool get terse => _options?.terseDiagnostics ?? false;
+  bool get _printLegacyStars => _options?.printLegacyStars ?? false;
   String message;
 
-  Message(this.template, this.arguments, this.terse) {
+  Message(this.template, this.arguments, this._options) {
     assert(() {
       computeMessage();
       return true;
@@ -758,8 +710,10 @@ class Message {
   @override
   int get hashCode => throw new UnsupportedError('Message.hashCode');
 
-  static String convertToString(value) {
-    if (value is ConstantExpression) {
+  String convertToString(value) {
+    if (value is DartType) {
+      value = value.toStructuredText(printLegacyStars: _printLegacyStars);
+    } else if (value is ConstantValue) {
       value = value.toDartText();
     } else {
       value = tokenToString(value);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: returnNum1:Union([exact=JSDouble], [exact=JSUInt31])*/
 returnNum1(/*Value([exact=JSBool], value: true)*/ a) {
   if (a)
@@ -394,7 +396,7 @@ testLabeledIf(/*Value([exact=JSBool], value: true)*/ a) {
   return c;
 }
 
-/*member: testSwitch1:Union([exact=JSUInt31], [null|exact=JSDouble])*/
+/*member: testSwitch1:Union(null, [exact=JSDouble], [exact=JSUInt31])*/
 testSwitch1() {
   var a = null;
   switch (topLevelGetter) {
@@ -424,7 +426,7 @@ testSwitch2() {
   return a;
 }
 
-/*member: testSwitch3:Union([exact=JSString], [null|subclass=JSNumber])*/
+/*member: testSwitch3:Union(null, [exact=JSString], [subclass=JSNumber])*/
 testSwitch3() {
   dynamic a = 42;
   var b;
@@ -461,7 +463,7 @@ testSwitch5() {
   }
 }
 
-/*member: testContinue1:Union([exact=JSString], [null|subclass=JSNumber])*/
+/*member: testContinue1:Union(null, [exact=JSString], [subclass=JSNumber])*/
 testContinue1() {
   dynamic a = 42;
   var b;
@@ -475,7 +477,7 @@ testContinue1() {
   return b;
 }
 
-/*member: testBreak1:Union([null|exact=JSString], [subclass=JSUInt32])*/
+/*member: testBreak1:Union(null, [exact=JSString], [subclass=JSUInt32])*/
 testBreak1() {
   var a = 42;
   var b;
@@ -487,7 +489,7 @@ testBreak1() {
   return b;
 }
 
-/*member: testContinue2:Union([exact=JSString], [null|subclass=JSUInt32])*/
+/*member: testContinue2:Union(null, [exact=JSString], [subclass=JSUInt32])*/
 testContinue2() {
   var a = 42;
   var b;
@@ -654,7 +656,7 @@ testReturnNotEquals() {
 }
 
 /*member: testReturnInvokeDynamicGetter:[null|subclass=Object]*/
-testReturnInvokeDynamicGetter() => new A(). /*invoke: [exact=A]*/ myFactory();
+testReturnInvokeDynamicGetter() => new A().myFactory /*invoke: [exact=A]*/ ();
 
 /*member: topLevelConstList:Container([exact=JSUnmodifiableArray], element: [exact=JSUInt31], length: 1)*/
 var topLevelConstList = const [42];
@@ -761,7 +763,7 @@ class C {
   C();
 
   /*member: C.returnInt1:[subclass=JSPositiveInt]*/
-  returnInt1() => /*invoke: [subclass=JSPositiveInt]*/ ++ /*[exact=C]*/ /*update: [exact=C]*/ myField;
+  returnInt1() => /*invoke: [subclass=JSPositiveInt]*/ ++ /*update: [exact=C]*/ /*[exact=C]*/ myField;
 
   /*member: C.returnInt2:[subclass=JSPositiveInt]*/
   returnInt2() => /*invoke: [subclass=JSPositiveInt]*/ ++this

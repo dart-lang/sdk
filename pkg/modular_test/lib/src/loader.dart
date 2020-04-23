@@ -206,7 +206,6 @@ Future<Module> _createSdkModule(Uri root) async {
     Uri.parse('sdk/lib/libraries.json'),
     // TODO(#38701) Cleanup after merging the forked SDK into mainline.
     Uri.parse('sdk_nnbd/lib/libraries.json'),
-    Uri.parse('sdk_nnbd/lib/libraries_nnbd_mix_hack.json')
   ];
 
   // Include all dart2js, ddc, vm library sources and patch files.

@@ -1,24 +1,16 @@
-### This directory contains feature specifications.
+## Background material about features
 
-**Note**: This directory contains older feature specifications, new ones
-should be submitted to the language repository
-[here](https://github.com/dart-lang/language).
+This directory contains background material only. Consult the 
+[language specification](https://dart.dev/guides/language/spec)
+and the 
+[language repository](https://github.com/dart-lang/language)
+for current information.
 
-The existing feature specifications in this directory will have their status
-updated as we proceed, and in particular each of them will become 'background'
-material as it is integrated into the language specification. When all feature
-specifications in this directory (that is, all other files than this one) have
-become background material, this directory will serve only as documentation for
-the process whereby each feature was designed and the associated motivation.
-
-That said, the following section contains a few words about what a feature
-specification is, and how it can be used.
-
-### What is a Feature Specification?
+### What is a feature specification?
 
 In order to move faster and get better feedback, we implement and iterate on
-language changes before the full official specification has been written. Still,
-the implementers need *something* to go on.
+language changes before the full official specification has been written.
+Still, the implementers need *something* to go on.
 
 For that, the language team writes _feature specifications_. These are
 intended to be precise enough for a good faith implementer to correctly
@@ -27,3 +19,15 @@ of a feature specification is integrated into the language specification we
 expect the extra processing to give rise to additional clarifications and
 corrections, which means that a feature specification is expected to be 
 _nearly_ as complete and correct as the language specification.
+
+### Feature specifications in this directory
+
+This directory contains older feature specifications, newer ones can be
+found in, respectively should be submitted to, the language repository
+[here](https://github.com/dart-lang/language).
+
+The status of every feature specification in this directory is that it is
+background material, and the contents has been integrated into the language
+specification. Consequently, these feature specifications can only be used
+as a source of informal background information. Precise rules about the
+features should be looked up in the language specification.

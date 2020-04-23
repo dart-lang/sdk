@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DiagnosticDomainTest);
   });
@@ -21,11 +21,11 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
   void setUp() {
     generateSummaryFiles = true;
     super.setUp();
-    handler = new DiagnosticDomainHandler(server);
+    handler = DiagnosticDomainHandler(server);
     server.handlers = [handler];
   }
 
-  test_getDiagnostics() async {
+  Future<void> test_getDiagnostics() async {
     newFile('/project/pubspec.yaml', content: 'name: project');
     newFile('/project/bin/test.dart', content: 'main() {}');
 
@@ -33,13 +33,13 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
 
     await server.onAnalysisComplete;
 
-    var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
+    var request = DiagnosticGetDiagnosticsParams().toRequest('0');
     var response = handler.handleRequest(request);
-    var result = new DiagnosticGetDiagnosticsResult.fromResponse(response);
+    var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
 
     expect(result.contexts, hasLength(1));
 
-    ContextData context = result.contexts[0];
+    var context = result.contexts[0];
     expect(context.name, convertPath('/project'));
     expect(context.explicitFileCount, 1); /* test.dart */
 
@@ -48,10 +48,10 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     expect(context.workItemQueueLength, isNotNull);
   }
 
-  test_getDiagnostics_noRoot() async {
-    var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
+  Future<void> test_getDiagnostics_noRoot() async {
+    var request = DiagnosticGetDiagnosticsParams().toRequest('0');
     var response = handler.handleRequest(request);
-    var result = new DiagnosticGetDiagnosticsResult.fromResponse(response);
+    var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
     expect(result.contexts, isEmpty);
   }
 }

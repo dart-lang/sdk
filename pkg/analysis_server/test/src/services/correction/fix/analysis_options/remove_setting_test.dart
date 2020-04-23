@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveSettingTest);
   });
@@ -14,7 +14,7 @@ main() {
 
 @reflectiveTest
 class RemoveSettingTest extends AnalysisOptionsFixTest {
-  test_enableSuperMixins() async {
+  Future<void> test_enableSuperMixins() async {
     await assertHasFix('''
 analyzer:
   enable-experiment:
@@ -28,7 +28,7 @@ analyzer:
 ''');
   }
 
-  test_invalidExperiment_first() async {
+  Future<void> test_invalidExperiment_first() async {
     await assertHasFix('''
 analyzer:
   enable-experiment:
@@ -41,7 +41,7 @@ analyzer:
 ''');
   }
 
-  test_invalidExperiment_last() async {
+  Future<void> test_invalidExperiment_last() async {
     await assertHasFix('''
 analyzer:
   enable-experiment:
@@ -54,7 +54,7 @@ analyzer:
 ''');
   }
 
-  test_invalidExperiment_only() async {
+  Future<void> test_invalidExperiment_only() async {
     await assertHasFix('''
 analyzer:
   enable-experiment:

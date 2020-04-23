@@ -1,8 +1,9 @@
 library test;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
-class Foo extends core::Object {
+class Foo extends core::Object /*hasConstConstructor*/  {
   const constructor •(core::List<core::String*>* l) → self::Foo*
     : super core::Object::•()
     ;
@@ -10,7 +11,12 @@ class Foo extends core::Object {
 static method test() → void {
   for (@#C1 core::int* i = 0; i.{core::num::<}(1); i = i.{core::num::+}(1)) {
   }
-  for (@#C1 core::int* i in <core::int*>[0]) {
+  {
+    core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[0]).{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      @#C1 core::int* i = :sync-for-iterator.{core::Iterator::current};
+      {}
+    }
   }
 }
 static method main() → dynamic {}

@@ -7,7 +7,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PluginLocatorTest);
   });
@@ -22,14 +22,14 @@ class PluginLocatorTest with ResourceProviderMixin {
 
   void setUp() {
     packageRoot = newFolder('/package').path;
-    locator = new PluginLocator(resourceProvider);
+    locator = PluginLocator(resourceProvider);
   }
 
   @failingTest
   void test_findPlugin_inPubspec_defaultDir() {
     // Support for specifying plugin locations in the pubspec is temporarily
     // disabled.
-    String dirPath = _createPubspecWithKey();
+    var dirPath = _createPubspecWithKey();
     _createDefaultDir();
     expect(locator.findPlugin(packageRoot), dirPath);
   }
@@ -38,7 +38,7 @@ class PluginLocatorTest with ResourceProviderMixin {
   void test_findPlugin_inPubspec_noDefaultDir() {
     // Support for specifying plugin locations in the pubspec is temporarily
     // disabled.
-    String dirPath = _createPubspecWithKey();
+    var dirPath = _createPubspecWithKey();
     expect(locator.findPlugin(packageRoot), dirPath);
   }
 
@@ -75,7 +75,7 @@ class PluginLocatorTest with ResourceProviderMixin {
   }
 
   String _createPubspecWithKey() {
-    String nonDefaultPath = newFolder('/package/pluginDir').path;
+    var nonDefaultPath = newFolder('/package/pluginDir').path;
     _createPubspec('''
 name: test_project
 ${PluginLocator.analyzerPluginKey}: $nonDefaultPath

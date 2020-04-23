@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveInitializerTest);
   });
@@ -23,34 +23,67 @@ class RemoveInitializerTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.avoid_init_to_null;
 
-  test_field() async {
+  Future<void> test_field() async {
     await resolveTestUnit('''
 class Test {
-  int /*LINT*/x = null;
+  int x = null;
 }
 ''');
     await assertHasFix('''
 class Test {
-  int /*LINT*/x;
+  int x;
 }
 ''');
   }
 
-  test_listOfVariableDeclarations() async {
+  Future<void> test_forLoop() async {
     await resolveTestUnit('''
-String a = 'a', /*LINT*/b = null, c = 'c';
+void f() {
+  for (var i = null; i != null; i++) {
+  }
+}
 ''');
     await assertHasFix('''
-String a = 'a', /*LINT*/b, c = 'c';
+void f() {
+  for (var i; i != null; i++) {
+  }
+}
 ''');
   }
 
-  test_topLevel() async {
+  Future<void> test_listOfVariableDeclarations() async {
     await resolveTestUnit('''
-var /*LINT*/x = null;
+String a = 'a', b = null, c = 'c';
 ''');
     await assertHasFix('''
-var /*LINT*/x;
+String a = 'a', b, c = 'c';
+''');
+  }
+
+  Future<void> test_parameter_optionalNamed() async {
+    await resolveTestUnit('''
+void f({String s = null}) {}
+''');
+    await assertHasFix('''
+void f({String s}) {}
+''');
+  }
+
+  Future<void> test_parameter_optionalPositional() async {
+    await resolveTestUnit('''
+void f([String s = null]) {}
+''');
+    await assertHasFix('''
+void f([String s]) {}
+''');
+  }
+
+  Future<void> test_topLevel() async {
+    await resolveTestUnit('''
+var x = null;
+''');
+    await assertHasFix('''
+var x;
 ''');
   }
 }

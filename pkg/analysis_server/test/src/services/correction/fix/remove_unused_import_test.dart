@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnusedImportTest);
   });
@@ -20,7 +20,7 @@ class RemoveUnusedImportTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_UNUSED_IMPORT;
 
-  test_all_diverseImports() async {
+  Future<void> test_all_diverseImports() async {
     await resolveTestUnit('''
 import 'dart:math';
 import 'dart:math';
@@ -34,7 +34,7 @@ main() {
 ''');
   }
 
-  test_all_diverseImports2() async {
+  Future<void> test_all_diverseImports2() async {
     await resolveTestUnit('''
 import 'dart:async';
 import 'dart:math' as math;
@@ -55,7 +55,7 @@ main() {
 ''');
   }
 
-  test_all_singleLine() async {
+  Future<void> test_all_singleLine() async {
     await resolveTestUnit('''
 import 'dart:math'; import 'dart:math'; import 'dart:math';
 main() {
@@ -67,7 +67,7 @@ main() {
 ''');
   }
 
-  test_anotherImportOnLine() async {
+  Future<void> test_anotherImportOnLine() async {
     await resolveTestUnit('''
 import 'dart:math'; import 'dart:async';
 
@@ -86,7 +86,7 @@ main() {
 ''');
   }
 
-  test_duplicateImport() async {
+  Future<void> test_duplicateImport() async {
     await resolveTestUnit('''
 import 'dart:math';
 import 'dart:math';
@@ -104,7 +104,7 @@ main() {
 ''');
   }
 
-  test_multipleOfSame_all() async {
+  Future<void> test_multipleOfSame_all() async {
     await resolveTestUnit('''
 import 'dart:math';
 import 'dart:math';
@@ -118,7 +118,7 @@ main() {
 ''');
   }
 
-  test_severalLines() async {
+  Future<void> test_severalLines() async {
     await resolveTestUnit('''
 import
   'dart:math';
@@ -131,7 +131,7 @@ main() {
 ''');
   }
 
-  test_single() async {
+  Future<void> test_single() async {
     await resolveTestUnit('''
 import 'dart:math';
 main() {

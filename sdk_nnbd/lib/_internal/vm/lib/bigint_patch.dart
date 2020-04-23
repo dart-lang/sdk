@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of dart.core;
 
 // Copyright 2009 The Go Authors. All rights reserved.
@@ -52,11 +50,11 @@ class BigInt implements Comparable<BigInt> {
   static BigInt get two => _BigIntImpl.two;
 
   @patch
-  static BigInt parse(String source, {int radix}) =>
+  static BigInt parse(String source, {int? radix}) =>
       _BigIntImpl.parse(source, radix: radix);
 
   @patch
-  static BigInt tryParse(String source, {int radix}) =>
+  static BigInt? tryParse(String source, {int? radix}) =>
       _BigIntImpl._tryParse(source, radix: radix);
 
   @patch
@@ -96,16 +94,27 @@ class _BigIntImpl implements BigInt {
   static const int _minInt = -0x8000000000000000;
   static const int _maxInt = 0x7fffffffffffffff;
 
+  /// Certain methods of _BigIntImpl class are intrinsified by the VM
+  /// depending on the runtime flags. They return number of processed
+  /// digits (2) which is different from non-intrinsic implementation (1).
+  /// This flag is used to confuse constant propagation at compile time and
+  /// avoid propagating return value to the callers. It should not be
+  /// evaluated to a constant.
+  /// Note that [_isIntrinsified] is still false if intrinsification occurs,
+  /// so it should be used only inside methods which are replaced by
+  /// intrinsification.
+  static final bool _isIntrinsified =
+      new bool.fromEnvironment('dart.vm.not.a.compile.time.constant');
+
   // Result cache for last _divRem call.
-  // Result cache for last _divRem call.
-  static Uint32List _lastDividendDigits;
-  static int _lastDividendUsed;
-  static Uint32List _lastDivisorDigits;
-  static int _lastDivisorUsed;
-  static Uint32List _lastQuoRemDigits;
-  static int _lastQuoRemUsed;
-  static int _lastRemUsed;
-  static int _lastRem_nsh;
+  static Uint32List? _lastDividendDigits;
+  static int? _lastDividendUsed;
+  static Uint32List? _lastDivisorDigits;
+  static int? _lastDivisorUsed;
+  static late Uint32List _lastQuoRemDigits;
+  static late int _lastQuoRemUsed;
+  static late int _lastRemUsed;
+  static late int _lastRem_nsh;
 
   /// Whether this bigint is negative.
   final bool _isNegative;
@@ -156,7 +165,7 @@ class _BigIntImpl implements BigInt {
    * Throws a [FormatException] if the [source] is not a valid integer literal,
    * optionally prefixed by a sign.
    */
-  static _BigIntImpl parse(String source, {int radix}) {
+  static _BigIntImpl parse(String source, {int? radix}) {
     var result = _tryParse(source, radix: radix);
     if (result == null) {
       throw new FormatException("Could not parse BigInt", source);
@@ -175,7 +184,7 @@ class _BigIntImpl implements BigInt {
     // Read in the source 9 digits at a time.
     // The first part may have a few leading virtual '0's to make the remaining
     // parts all have exactly 9 digits.
-    int digitInPartCount = 9 - source.length.remainder(9);
+    int digitInPartCount = 9 - unsafeCast<int>(source.length.remainder(9));
     if (digitInPartCount == 9) digitInPartCount = 0;
     for (int i = 0; i < source.length; i++) {
       part = part * 10 + source.codeUnitAt(i) - _0;
@@ -217,7 +226,7 @@ class _BigIntImpl implements BigInt {
   /// If [isNegative] is true, negates the result before returning it.
   ///
   /// The [source] (substring) must be a valid hex literal.
-  static _BigIntImpl _parseHex(String source, int startPos, bool isNegative) {
+  static _BigIntImpl? _parseHex(String source, int startPos, bool isNegative) {
     int hexCharsPerDigit = _digitBits ~/ 4;
     int sourceLength = source.length - startPos;
     int used = (sourceLength + hexCharsPerDigit - 1) ~/ hexCharsPerDigit;
@@ -251,7 +260,7 @@ class _BigIntImpl implements BigInt {
   ///
   /// The [source] will be checked for invalid characters. If it is invalid,
   /// this function returns `null`.
-  static _BigIntImpl _parseRadix(String source, int radix, bool isNegative) {
+  static _BigIntImpl? _parseRadix(String source, int radix, bool isNegative) {
     var result = zero;
     var base = new _BigIntImpl._fromInt(radix);
     for (int i = 0; i < source.length; i++) {
@@ -268,21 +277,21 @@ class _BigIntImpl implements BigInt {
   /// Returns the parsed big integer, or `null` if it failed.
   ///
   /// If the [radix] is `null` accepts decimal literals or `0x` hex literals.
-  static _BigIntImpl _tryParse(String source, {int radix}) {
+  static _BigIntImpl? _tryParse(String source, {int? radix}) {
     if (source == "") return null;
 
-    var match = _parseRE.firstMatch(source);
+    final match = _parseRE.firstMatch(source);
     int signIndex = 1;
     int hexIndex = 3;
     int decimalIndex = 4;
     int nonDecimalHexIndex = 5;
     if (match == null) return null;
 
-    bool isNegative = match[signIndex] == "-";
+    final bool isNegative = match[signIndex] == "-";
 
-    String decimalMatch = match[decimalIndex];
-    String hexMatch = match[hexIndex];
-    String nonDecimalMatch = match[nonDecimalHexIndex];
+    final String? decimalMatch = match[decimalIndex];
+    final String? hexMatch = match[hexIndex];
+    final String? nonDecimalMatch = match[nonDecimalHexIndex];
 
     if (radix == null) {
       if (decimalMatch != null) {
@@ -296,21 +305,22 @@ class _BigIntImpl implements BigInt {
       return null;
     }
 
-    if (radix is! int) {
-      throw new ArgumentError.value(radix, 'radix', 'is not an integer');
-    }
     if (radix < 2 || radix > 36) {
       throw new RangeError.range(radix, 2, 36, 'radix');
     }
     if (radix == 10 && decimalMatch != null) {
       return _parseDecimal(decimalMatch, isNegative);
     }
-    if (radix == 16 && (decimalMatch != null || nonDecimalMatch != null)) {
-      return _parseHex(decimalMatch ?? nonDecimalMatch, 0, isNegative);
+    if (radix == 16) {
+      final match = decimalMatch ?? nonDecimalMatch;
+      if (match != null) {
+        return _parseHex(match, 0, isNegative);
+      }
     }
 
-    return _parseRadix(
-        decimalMatch ?? nonDecimalMatch ?? hexMatch, radix, isNegative);
+    // The RegExp guarantees that one of the 3 matches is non-null.
+    final nonNullMatch = (decimalMatch ?? nonDecimalMatch ?? hexMatch)!;
+    return _parseRadix(nonNullMatch, radix, isNegative);
   }
 
   static RegExp _parseRE = RegExp(
@@ -357,10 +367,13 @@ class _BigIntImpl implements BigInt {
     if (value == 1) return one;
     if (value == 2) return two;
 
-    if (value.abs() < 0x100000000)
+    if (value.abs() < 0x100000000) {
       return new _BigIntImpl._fromInt(value.toInt());
-    if (value is double) return new _BigIntImpl._fromDouble(value);
-    return new _BigIntImpl._fromInt(value);
+    }
+    if (value is double) {
+      return new _BigIntImpl._fromDouble(value);
+    }
+    return new _BigIntImpl._fromInt(value as int);
   }
 
   factory _BigIntImpl._fromInt(int value) {
@@ -710,7 +723,7 @@ class _BigIntImpl implements BigInt {
   /// Returns 0 if abs(this) == abs(other); a positive number if
   /// abs(this) > abs(other); and a negative number if abs(this) < abs(other).
   int _absCompare(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     return _compareDigits(_digits, _used, other._digits, other._used);
   }
 
@@ -721,7 +734,7 @@ class _BigIntImpl implements BigInt {
    * equal, and a positive number if `this` is greater than `other`.
    */
   int compareTo(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     if (_isNegative == other._isNegative) {
       var result = _absCompare(other);
       // Use 0 - result to avoid negative zero in JavaScript.
@@ -919,7 +932,7 @@ class _BigIntImpl implements BigInt {
    * the result is non-negative.
    */
   _BigIntImpl operator &(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     if (_isZero || other._isZero) return zero;
     if (_isNegative == other._isNegative) {
       if (_isNegative) {
@@ -959,7 +972,7 @@ class _BigIntImpl implements BigInt {
    * otherwise the result us negative.
    */
   _BigIntImpl operator |(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     if (_isZero) return other;
     if (other._isZero) return this;
     if (_isNegative == other._isNegative) {
@@ -1001,7 +1014,7 @@ class _BigIntImpl implements BigInt {
    * otherwise the result is negative.
    */
   _BigIntImpl operator ^(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     if (_isZero) return other;
     if (other._isZero) return this;
     if (_isNegative == other._isNegative) {
@@ -1050,7 +1063,7 @@ class _BigIntImpl implements BigInt {
 
   /// Addition operator.
   _BigIntImpl operator +(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     if (_isZero) return other;
     if (other._isZero) return this;
     var isNegative = _isNegative;
@@ -1069,7 +1082,7 @@ class _BigIntImpl implements BigInt {
 
   /// Subtraction operator.
   _BigIntImpl operator -(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     if (_isZero) return -other;
     if (other._isZero) return this;
     var isNegative = _isNegative;
@@ -1114,7 +1127,7 @@ class _BigIntImpl implements BigInt {
     int x = xDigits[xIndex];
     if (x == 0) {
       // No-op if x is 0.
-      return 1;
+      return _isIntrinsified ? 2 : 1;
     }
     int carry = 0;
     int xl = x & _halfDigitMask;
@@ -1135,7 +1148,7 @@ class _BigIntImpl implements BigInt {
       carry = l >> _digitBits;
       accumulatorDigits[j++] = l & _digitMask;
     }
-    return 1;
+    return _isIntrinsified ? 2 : 1;
   }
 
   /// Multiplies `xDigits[i]` with `xDigits` and adds the result to
@@ -1158,7 +1171,7 @@ class _BigIntImpl implements BigInt {
   static int _sqrAdd(
       Uint32List xDigits, int i, Uint32List acculumatorDigits, int used) {
     int x = xDigits[i];
-    if (x == 0) return 1;
+    if (x == 0) return _isIntrinsified ? 2 : 1;
     int j = 2 * i;
     int carry = 0;
     int xl = x & _halfDigitMask;
@@ -1193,12 +1206,12 @@ class _BigIntImpl implements BigInt {
     } else {
       acculumatorDigits[i + used] = carry;
     }
-    return 1;
+    return _isIntrinsified ? 2 : 1;
   }
 
   /// Multiplication operator.
   _BigIntImpl operator *(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     var used = _used;
     var otherUsed = other._used;
     if (used == 0 || otherUsed == 0) {
@@ -1293,12 +1306,12 @@ class _BigIntImpl implements BigInt {
         args[_quotientDigit] = quotientDigit;
       }
     }
-    return 1;
+    return _isIntrinsified ? 2 : 1;
   }
 
   /// Returns `trunc(this / other)`, with `other != 0`.
   _BigIntImpl _div(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     assert(other._used > 0);
     if (_used < other._used) {
       return zero;
@@ -1318,7 +1331,7 @@ class _BigIntImpl implements BigInt {
 
   /// Returns `this - other * trunc(this / other)`, with `other != 0`.
   _BigIntImpl _rem(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     assert(other._used > 0);
     if (_used < other._used) {
       return this;
@@ -1661,7 +1674,7 @@ class _BigIntImpl implements BigInt {
    * ```
    */
   _BigIntImpl operator ~/(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     if (other._used == 0) {
       throw const IntegerDivisionByZeroException();
     }
@@ -1676,7 +1689,7 @@ class _BigIntImpl implements BigInt {
    * As a consequence the remainder `r` has the same sign as the divider `this`.
    */
   _BigIntImpl remainder(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     if (other._used == 0) {
       throw const IntegerDivisionByZeroException();
     }
@@ -1710,7 +1723,7 @@ class _BigIntImpl implements BigInt {
    * See [remainder] for the remainder of the truncating division.
    */
   _BigIntImpl operator %(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     if (other._used == 0) {
       throw const IntegerDivisionByZeroException();
     }
@@ -1774,8 +1787,8 @@ class _BigIntImpl implements BigInt {
    * positive.
    */
   _BigIntImpl modPow(BigInt bigExponent, BigInt bigModulus) {
-    _BigIntImpl exponent = bigExponent;
-    _BigIntImpl modulus = bigModulus;
+    final exponent = _ensureSystemBigInt(bigExponent, 'bigExponent');
+    final modulus = _ensureSystemBigInt(bigModulus, 'bigModulus');
     if (exponent._isNegative) {
       throw new ArgumentError("exponent must be positive: $exponent");
     }
@@ -1819,7 +1832,7 @@ class _BigIntImpl implements BigInt {
       }
       return z._revert(resultDigits, resultUsed);
     }
-    var k;
+    late int k;
     if (exponentBitlen < 18)
       k = 1;
     else if (exponentBitlen < 48)
@@ -1832,10 +1845,10 @@ class _BigIntImpl implements BigInt {
       k = 6;
     _BigIntReduction z = new _BigIntMontgomeryReduction(modulus);
     var n = 3;
-    final k1 = k - 1;
+    final int k1 = k - 1;
     final km = (1 << k) - 1;
-    List gDigits = new List(km + 1);
-    List gUsed = new List(km + 1);
+    List gDigits = new List.filled(km + 1, null);
+    List gUsed = new List.filled(km + 1, null);
     gDigits[1] = _newDigits(z._normModulusUsed);
     gUsed[1] = z._convert(this, gDigits[1]);
     if (k > 1) {
@@ -1856,7 +1869,7 @@ class _BigIntImpl implements BigInt {
     var result2Used;
     var exponentDigits = exponent._digits;
     var j = exponent._used - 1;
-    var i = exponentDigits[j].bitLength - 1;
+    int i = exponentDigits[j].bitLength - 1;
     while (j >= 0) {
       if (i >= k1) {
         w = (exponentDigits[j] >> (i - k1)) & km;
@@ -1977,19 +1990,19 @@ class _BigIntImpl implements BigInt {
     // Variables a, b, c, and d require one more digit.
     final abcdUsed = maxUsed + 1;
     final abcdLen = abcdUsed + (abcdUsed & 1) + 2; // +2 to satisfy _absAdd.
-    var aDigits, bDigits, cDigits, dDigits;
-    bool aIsNegative, bIsNegative, cIsNegative, dIsNegative;
+
+    bool aIsNegative = false;
+    bool cIsNegative = false;
+    late final Uint32List aDigits, cDigits;
     if (ac) {
       aDigits = _newDigits(abcdLen);
-      aIsNegative = false;
       aDigits[0] = 1;
       cDigits = _newDigits(abcdLen);
-      cIsNegative = false;
     }
-    bDigits = _newDigits(abcdLen);
-    bIsNegative = false;
-    dDigits = _newDigits(abcdLen);
-    dIsNegative = false;
+    final Uint32List bDigits = _newDigits(abcdLen);
+    final Uint32List dDigits = _newDigits(abcdLen);
+    bool bIsNegative = false;
+    bool dIsNegative = false;
     dDigits[0] = 1;
 
     while (true) {
@@ -2183,7 +2196,7 @@ class _BigIntImpl implements BigInt {
    */
   // Returns 1/this % modulus, with modulus > 0.
   _BigIntImpl modInverse(BigInt bigInt) {
-    _BigIntImpl modulus = bigInt;
+    final modulus = _ensureSystemBigInt(bigInt, 'bigInt');
     if (modulus <= zero) {
       throw new ArgumentError("Modulus must be strictly positive: $modulus");
     }
@@ -2209,7 +2222,7 @@ class _BigIntImpl implements BigInt {
    * If both `this` and `other` is zero, the result is also zero.
    */
   _BigIntImpl gcd(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+    final other = _ensureSystemBigInt(bigInt, 'bigInt');
     if (_isZero) return other.abs();
     if (other._isZero) return this.abs();
     return _binaryGcd(this, other, false);
@@ -2517,6 +2530,12 @@ class _BigIntImpl implements BigInt {
     }
     return new String.fromCharCodes(chars.reversed);
   }
+
+  static _BigIntImpl _ensureSystemBigInt(BigInt bigInt, String parameterName) {
+    if (bigInt is _BigIntImpl) return bigInt;
+    throw ArgumentError.value(
+        bigInt, parameterName, "Must be a platform BigInt");
+  }
 }
 
 // Interface for modular reduction.
@@ -2535,10 +2554,10 @@ abstract class _BigIntReduction {
 // Montgomery reduction on _BigIntImpl.
 class _BigIntMontgomeryReduction implements _BigIntReduction {
   final _BigIntImpl _modulus;
-  int _normModulusUsed; // Even if processing 64-bit (digit pairs).
-  Uint32List _modulusDigits;
-  Uint32List _args;
-  int _digitsPerStep; // Number of digits processed in one step. 1 or 2.
+  final int _normModulusUsed; // Even if processing 64-bit (digit pairs).
+  final Uint32List _modulusDigits;
+  final Uint32List _args;
+  final int _digitsPerStep; // Number of digits processed in one step. 1 or 2.
   static const int _xDigit = 0; // Index of digit of x.
   static const int _xHighDigit = 1; // Index of high digit of x (64-bit only).
   static const int _rhoDigit = 2; // Index of digit of rho.
@@ -2546,22 +2565,29 @@ class _BigIntMontgomeryReduction implements _BigIntReduction {
   static const int _muDigit = 4; // Index of mu.
   static const int _muHighDigit = 5; // Index of high 32-bits of mu (64-bit).
 
-  _BigIntMontgomeryReduction(this._modulus) {
-    _modulusDigits = _modulus._digits;
-    _args = _newDigits(6);
+  factory _BigIntMontgomeryReduction(_BigIntImpl modulus) {
+    final Uint32List modulusDigits = modulus._digits;
+    final Uint32List args = _newDigits(6);
+
     // Determine if we can process digit pairs by calling an intrinsic.
-    _digitsPerStep = _mulMod(_args, _args, 0);
-    _args[_xDigit] = _modulusDigits[0];
-    if (_digitsPerStep == 1) {
-      _normModulusUsed = _modulus._used;
-      _invDigit(_args);
+    final int digitsPerStep = _mulMod(args, args, 0);
+    args[_xDigit] = modulusDigits[0];
+
+    int normModulusUsed = modulus._used;
+    if (digitsPerStep == 1) {
+      _invDigit(args);
     } else {
-      assert(_digitsPerStep == 2);
-      _normModulusUsed = _modulus._used + (_modulus._used & 1);
-      _args[_xHighDigit] = _modulusDigits[1];
-      _invDigitPair(_args);
+      assert(digitsPerStep == 2);
+      normModulusUsed += modulus._used & 1;
+      args[_xHighDigit] = modulusDigits[1];
+      _invDigitPair(args);
     }
+    return _BigIntMontgomeryReduction._(
+        modulus, normModulusUsed, modulusDigits, args, digitsPerStep);
   }
+
+  _BigIntMontgomeryReduction._(this._modulus, this._normModulusUsed,
+      this._modulusDigits, this._args, this._digitsPerStep);
 
   // Calculates -1/x % _digitBase, x is 32-bit digit.
   //         xy == 1 (mod m)
@@ -2627,7 +2653,7 @@ class _BigIntMontgomeryReduction implements _BigIntReduction {
             (((dl * rhoh + dh * rhol) & _BigIntImpl._halfDigitMask) <<
                 _BigIntImpl._halfDigitBits)) &
         _BigIntImpl._digitMask;
-    return 1;
+    return _BigIntImpl._isIntrinsified ? 2 : 1;
   }
 
   // result = x*R mod _modulus.
@@ -2719,40 +2745,53 @@ class _BigIntClassicReduction implements _BigIntReduction {
   // quotient digit(s).
   Uint32List _tmpDigits; // Temporary digits used during reduction.
 
-  _BigIntClassicReduction(this._modulus) {
+  factory _BigIntClassicReduction(_BigIntImpl modulus) {
     // Preprocess arguments to _remDigits.
-    var nsh =
-        _BigIntImpl._digitBits - _modulus._digits[_modulus._used - 1].bitLength;
+    int nsh =
+        _BigIntImpl._digitBits - modulus._digits[modulus._used - 1].bitLength;
     // For 64-bit processing, make sure _negNormModulusDigits has an even number
     // of digits.
-    if (_modulus._used.isOdd) {
+    if (modulus._used.isOdd) {
       nsh += _BigIntImpl._digitBits;
     }
-    _modulusNsh = nsh;
-    _normModulus = _modulus << nsh;
-    _normModulusUsed = _normModulus._used;
-    _normModulusDigits = _normModulus._digits;
-    assert(_normModulusUsed.isEven);
-    _args = _newDigits(4);
-    _args[_BigIntImpl._divisorLowTopDigit] =
-        _normModulusDigits[_normModulusUsed - 2];
-    _args[_BigIntImpl._divisorTopDigit] =
-        _normModulusDigits[_normModulusUsed - 1];
-    // Negate _normModulus so we can use _mulAdd instead of
+    final _BigIntImpl normModulus = modulus << nsh;
+    final int normModulusUsed = normModulus._used;
+    final Uint32List normModulusDigits = normModulus._digits;
+    assert(normModulusUsed.isEven);
+
+    final Uint32List args = _newDigits(4);
+    args[_BigIntImpl._divisorLowTopDigit] =
+        normModulusDigits[normModulusUsed - 2];
+    args[_BigIntImpl._divisorTopDigit] = normModulusDigits[normModulusUsed - 1];
+    // Negate normModulus so we can use _mulAdd instead of
     // unimplemented  _mulSub.
-    var negNormModulus =
-        _BigIntImpl.one._dlShift(_normModulusUsed) - _normModulus;
-    if (negNormModulus._used < _normModulusUsed) {
-      _negNormModulusDigits = _BigIntImpl._cloneDigits(
-          negNormModulus._digits, 0, _normModulusUsed, _normModulusUsed);
+    final _BigIntImpl negNormModulus =
+        _BigIntImpl.one._dlShift(normModulusUsed) - normModulus;
+    late Uint32List negNormModulusDigits;
+    if (negNormModulus._used < normModulusUsed) {
+      negNormModulusDigits = _BigIntImpl._cloneDigits(
+          negNormModulus._digits, 0, normModulusUsed, normModulusUsed);
     } else {
-      _negNormModulusDigits = negNormModulus._digits;
+      negNormModulusDigits = negNormModulus._digits;
     }
-    // _negNormModulusDigits is read-only and has _normModulusUsed digits (possibly
+    // negNormModulusDigits is read-only and has normModulusUsed digits (possibly
     // including several leading zeros) plus a leading zero for 64-bit
     // processing.
-    _tmpDigits = _newDigits(2 * _normModulusUsed);
+    final Uint32List tmpDigits = _newDigits(2 * normModulusUsed);
+
+    return _BigIntClassicReduction._(modulus, normModulusUsed, normModulus,
+        normModulusDigits, negNormModulusDigits, nsh, args, tmpDigits);
   }
+
+  _BigIntClassicReduction._(
+      this._modulus,
+      this._normModulusUsed,
+      this._normModulus,
+      this._normModulusDigits,
+      this._negNormModulusDigits,
+      this._modulusNsh,
+      this._args,
+      this._tmpDigits);
 
   int _convert(_BigIntImpl x, Uint32List resultDigits) {
     var digits;

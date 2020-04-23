@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.ffi;
 
 /// Represents a dynamically loaded C library.
@@ -30,16 +28,19 @@ class DynamicLibrary {
   /// Throws an [ArgumentError] if it fails to lookup the symbol.
   external Pointer<T> lookup<T extends NativeType>(String symbolName);
 
-  /// Helper that combines lookup and cast to a Dart function.
-  external F lookupFunction<T extends Function, F extends Function>(
-      String symbolName);
-
   /// Dynamic libraries are equal if they load the same library.
-  external bool operator ==(other);
+  external bool operator ==(Object other);
 
   /// The hash code for a DynamicLibrary only depends on the loaded library
   external int get hashCode;
 
   /// The handle to the dynamic library.
   external Pointer<Void> get handle;
+}
+
+/// Methods which cannot be invoked dynamically.
+extension DynamicLibraryExtension on DynamicLibrary {
+  /// Helper that combines lookup and cast to a Dart function.
+  external F lookupFunction<T extends Function, F extends Function>(
+      String symbolName);
 }

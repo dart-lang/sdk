@@ -6,9 +6,7 @@ void nested_closures(Function([dynamic]) f) {
   void inner(Object x) {
     if (x is String) {
       f();
-      // TODO(paulberry): x should be promoted here.
-      // See https://github.com/dart-lang/sdk/issues/38791
-      x;
+      /*String*/ x;
     }
     f(() {
       if (x is String) {

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceVarWithDynamicTest);
   });
@@ -20,7 +20,7 @@ class ReplaceVarWithDynamicTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REPLACE_VAR_WITH_DYNAMIC;
 
-  test_simple() async {
+  Future<void> test_simple() async {
     await resolveTestUnit('''
 class A {
   Map<String, var> m;

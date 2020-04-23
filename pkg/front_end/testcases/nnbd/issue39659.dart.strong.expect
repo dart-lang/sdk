@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue39659.dart:8:9: Error: Can't throw a value of 'String?' since it is neither dynamic nor non-nullable.
+//   throw bar();
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo() → dynamic {
+  invalid-expression "pkg/front_end/testcases/nnbd/issue39659.dart:8:9: Error: Can't throw a value of 'String?' since it is neither dynamic nor non-nullable.
+  throw bar();
+        ^";
+}
+static method bar() → core::String?
+  return "asdf";
+static method main() → dynamic {}

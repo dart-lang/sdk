@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
 /*strong.class: Class1a:explicit=[Class1a]*/
@@ -40,10 +42,10 @@ method10<T extends Class4>() => null;
 
 main() {
   /*strong.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
-  method7<T extends Class1a>() => null;
+  /*omit.*/method7<T extends Class1a>() => null;
 
   /*strong.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
-  method8<T extends Class2a<num>>() => null;
+  /*omit.*/method8<T extends Class2a<num>>() => null;
 
   /**/
   method9<T>() => null;

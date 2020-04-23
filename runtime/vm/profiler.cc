@@ -107,13 +107,8 @@ void Profiler::Cleanup() {
   }
   ASSERT(initialized_);
   ThreadInterrupter::Cleanup();
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
-  // TODO(30309): Free the sample buffer on platforms that use a signal-based
-  // thread interrupter.
-#else
   delete sample_buffer_;
   sample_buffer_ = NULL;
-#endif
   initialized_ = false;
 }
 
@@ -462,12 +457,12 @@ void ClearProfileVisitor::VisitSample(Sample* sample) {
 }
 
 static void DumpStackFrame(intptr_t frame_index, uword pc, uword fp) {
-  uintptr_t start = 0;
-  char* native_symbol_name = NativeSymbolResolver::LookupSymbolName(pc, &start);
-  if (native_symbol_name != NULL) {
-    OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s\n", pc, fp,
-                 native_symbol_name);
-    NativeSymbolResolver::FreeSymbolName(native_symbol_name);
+  uword start = 0;
+  if (auto const name = NativeSymbolResolver::LookupSymbolName(pc, &start)) {
+    uword offset = pc - start;
+    OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s+0x%" Px "\n", pc, fp, name,
+                 offset);
+    NativeSymbolResolver::FreeSymbolName(name);
     return;
   }
 
@@ -1141,9 +1136,21 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   ASSERT(os_thread != NULL);
   Isolate* isolate = Isolate::Current();
   const char* name = isolate == NULL ? NULL : isolate->name();
-  OS::PrintErr(
-      "version=%s\nthread=%" Pd ", isolate=%s(%p)\n", Version::String(),
-      OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name, isolate);
+  OS::PrintErr("version=%s\npid=%" Pd ", thread=%" Pd ", isolate=%s(%p)\n",
+               Version::String(), OS::ProcessId(),
+               OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name,
+               isolate);
+  const IsolateGroupSource* source =
+      isolate == nullptr ? nullptr : isolate->source();
+  const IsolateGroupSource* vm_source =
+      Dart::vm_isolate() == nullptr ? nullptr : Dart::vm_isolate()->source();
+  OS::PrintErr("isolate_instructions=%" Px ", vm_instructions=%" Px "\n",
+               source == nullptr
+                   ? 0
+                   : reinterpret_cast<uword>(source->snapshot_instructions),
+               vm_source == nullptr
+                   ? 0
+                   : reinterpret_cast<uword>(vm_source->snapshot_instructions));
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
     OS::PrintErr("Stack dump aborted because InitialRegisterCheck failed.\n");
@@ -1365,7 +1372,7 @@ void Profiler::SampleThread(Thread* thread,
       SampleThreadSingleFrame(thread, pc);
       return;
     }
-    if (isolate->compaction_in_progress()) {
+    if (isolate->group()->compaction_in_progress()) {
       // The Dart stack isn't fully walkable.
       SampleThreadSingleFrame(thread, pc);
       return;

@@ -89,7 +89,8 @@ class _CopyingBytesBuilder implements BytesBuilder {
 
   Uint8List takeBytes() {
     if (_length == 0) return _emptyList;
-    var buffer = new Uint8List.view(_buffer.buffer, 0, _length);
+    var buffer =
+        new Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length);
     clear();
     return buffer;
   }
@@ -97,7 +98,7 @@ class _CopyingBytesBuilder implements BytesBuilder {
   Uint8List toBytes() {
     if (_length == 0) return _emptyList;
     return new Uint8List.fromList(
-        new Uint8List.view(_buffer.buffer, 0, _length));
+        new Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length));
   }
 
   int get length => _length;
@@ -1276,7 +1277,8 @@ class _HttpGZipSink extends ByteConversionSink {
 
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
     if (chunk is Uint8List) {
-      _consume(new Uint8List.view(chunk.buffer, start, end - start));
+      _consume(new Uint8List.view(
+          chunk.buffer, chunk.offsetInBytes + start, end - start));
     } else {
       _consume(chunk.sublist(start, end - start));
     }
@@ -1512,8 +1514,8 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
         if (_gzip) {
           _gzipAdd = socket.add;
           if (_gzipBufferLength > 0) {
-            _gzipSink.add(
-                new Uint8List.view(_gzipBuffer.buffer, 0, _gzipBufferLength));
+            _gzipSink.add(new Uint8List.view(_gzipBuffer.buffer,
+                _gzipBuffer.offsetInBytes, _gzipBufferLength));
           }
           _gzipBuffer = null;
           _gzipSink.close();
@@ -1523,7 +1525,8 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
       }
       // Add any remaining data in the buffer.
       if (_length > 0) {
-        socket.add(new Uint8List.view(_buffer.buffer, 0, _length));
+        socket.add(
+            new Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length));
       }
       // Clear references, for better GC.
       _buffer = null;
@@ -1584,7 +1587,8 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
       return;
     }
     if (chunk.length > _gzipBuffer.length - _gzipBufferLength) {
-      add(new Uint8List.view(_gzipBuffer.buffer, 0, _gzipBufferLength));
+      add(new Uint8List.view(
+          _gzipBuffer.buffer, _gzipBuffer.offsetInBytes, _gzipBufferLength));
       _gzipBuffer = new Uint8List(_OUTGOING_BUFFER_SIZE);
       _gzipBufferLength = 0;
     }
@@ -1602,7 +1606,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
       if (_buffer != null) {
         // If _buffer is not null, we have not written the header yet. Write
         // it now.
-        add(new Uint8List.view(_buffer.buffer, 0, _length));
+        add(new Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length));
         _buffer = null;
         _length = 0;
       }
@@ -1610,7 +1614,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
       return;
     }
     if (chunk.length > _buffer.length - _length) {
-      add(new Uint8List.view(_buffer.buffer, 0, _length));
+      add(new Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length));
       _buffer = new Uint8List(_OUTGOING_BUFFER_SIZE);
       _length = 0;
     }
@@ -1744,6 +1748,10 @@ class _HttpClientConnection {
     _currentUri = uri;
     // Start with pausing the parser.
     _subscription.pause();
+    if (method == "CONNECT") {
+      // Parser will ignore Content-Length or Transfer-Encoding header
+      _httpParser.connectMethod = true;
+    }
     _ProxyCredentials proxyCreds; // Credentials used to authorize proxy.
     _SiteCredentials creds; // Credentials used to authorize this request.
     var outgoing = new _HttpOutgoing(_socket);
@@ -1756,9 +1764,9 @@ class _HttpClientConnection {
     request.headers
       ..host = host
       ..port = port
-      .._add(HttpHeaders.acceptEncodingHeader, "gzip");
+      ..add(HttpHeaders.acceptEncodingHeader, "gzip");
     if (_httpClient.userAgent != null) {
-      request.headers._add(HttpHeaders.userAgentHeader, _httpClient.userAgent);
+      request.headers.add(HttpHeaders.userAgentHeader, _httpClient.userAgent);
     }
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
@@ -2253,8 +2261,6 @@ class _HttpClient implements HttpClient {
   static void _startRequestTimelineEvent(
       TimelineTask timeline, String method, Uri uri) {
     timeline?.start('HTTP CLIENT ${method.toUpperCase()}', arguments: {
-      'filterKey':
-          'HTTP/client', // key used to filter network requests from timeline
       'method': method.toUpperCase(),
       'uri': uri.toString(),
     });
@@ -2300,7 +2306,7 @@ class _HttpClient implements HttpClient {
     TimelineTask timeline;
     // TODO(bkonyi): do we want this to be opt-in?
     if (HttpClient.enableTimelineLogging) {
-      timeline = TimelineTask();
+      timeline = TimelineTask(filterKey: 'HTTP/client');
       _startRequestTimelineEvent(timeline, method, uri);
     }
     return _getConnection(uri.host, port, proxyConf, isSecure, timeline).then(
@@ -2558,6 +2564,10 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
           outgoing,
           _httpServer.defaultResponseHeaders,
           _httpServer.serverHeader);
+      // Parser found badRequest and sent out Response.
+      if (incoming.statusCode == HttpStatus.badRequest) {
+        response.statusCode = HttpStatus.badRequest;
+      }
       var request = new _HttpRequest(response, incoming, _httpServer, this);
       _streamFuture = outgoing.done.then((_) {
         response.deadline = null;
@@ -2624,7 +2634,6 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
   bool get _isActive => _state == _ACTIVE;
   bool get _isIdle => _state == _IDLE;
   bool get _isClosing => _state == _CLOSING;
-  bool get _isDetached => _state == _DETACHED;
 
   String get _serviceTypePath => 'io/http/serverconnections';
   String get _serviceTypeName => 'HttpServerConnection';
@@ -2966,7 +2975,7 @@ class _ProxyConfiguration {
           int port;
           try {
             port = int.parse(portString);
-          } on FormatException catch (e) {
+          } on FormatException {
             throw new HttpException(
                 "Invalid proxy configuration $configuration, "
                 "invalid port '$portString'");
@@ -3266,7 +3275,6 @@ class _HttpClientDigestCredentials extends _HttpClientCredentials
     String qop;
     String cnonce;
     String nc;
-    var x;
     hasher = new _MD5()..add(credentials.ha1.codeUnits)..add([_CharCode.COLON]);
     if (credentials.qop == "auth") {
       qop = credentials.qop;

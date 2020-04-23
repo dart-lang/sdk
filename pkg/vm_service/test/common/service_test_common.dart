@@ -117,7 +117,7 @@ IsolateTest setBreakpointAtLine(int line) {
   return (VmService service, IsolateRef isolateRef) async {
     print("Setting breakpoint for line $line");
     final isolate = await service.getIsolate(isolateRef.id);
-    final lib = await service.getObject(isolate.id, isolate.rootLib.id);
+    final Library lib = await service.getObject(isolate.id, isolate.rootLib.id);
     final script = lib.scripts.first;
 
     Breakpoint bpt = await service.addBreakpoint(isolate.id, script.id, line);
@@ -131,7 +131,7 @@ IsolateTest stoppedAtLine(int line) {
 
     // Make sure that the isolate has stopped.
     final isolate = await service.getIsolate(isolateRef.id);
-    expect(isolate.pauseEvent != EventKind.kResume, isTrue);
+    expect(isolate.pauseEvent.kind != EventKind.kResume, isTrue);
 
     final stack = await service.getStack(isolateRef.id);
 
@@ -139,7 +139,8 @@ IsolateTest stoppedAtLine(int line) {
     expect(frames.length, greaterThanOrEqualTo(1));
 
     final top = frames[0];
-    final script = await service.getObject(isolate.id, top.location.script.id);
+    final Script script =
+        await service.getObject(isolate.id, top.location.script.id);
     int actualLine = script.getLineNumberFromTokenPos(top.location.tokenPos);
     if (actualLine != line) {
       print("Actual: $actualLine Line: $line");

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: X.:[exact=X]*/
 class X {}
 
@@ -75,7 +77,7 @@ returnDyn8(
   return x;
 }
 
-/*member: test8:Union([exact=JSUInt31], [null|exact=JSString])*/ test8() {
+/*member: test8:Union(null, [exact=JSString], [exact=JSUInt31])*/ test8() {
   dynamic a = "foo";
   if (a. /*Value([exact=JSString], value: "foo")*/ length
       /*invoke: [subclass=JSInt]*/ ==

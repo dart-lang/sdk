@@ -150,11 +150,14 @@ abstract class Stream<T> {
    * stack trace as well.
    */
   @Since("2.5")
-  factory Stream.error(Object error, [StackTrace? stackTrace]) =>
-      (_AsyncStreamController<T>(null, null, null, null)
-            .._addError(error, stackTrace)
-            .._closeUnchecked())
-          .stream;
+  factory Stream.error(Object error, [StackTrace? stackTrace]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(error, "error");
+    return (_AsyncStreamController<T>(null, null, null, null)
+          .._addError(error, stackTrace ?? AsyncError.defaultStackTrace(error))
+          .._closeUnchecked())
+        .stream;
+  }
 
   /**
    * Creates a new single-subscription stream from the future.
@@ -200,18 +203,20 @@ abstract class Stream<T> {
     // Declare these as variables holding closures instead of as
     // function declarations.
     // This avoids creating a new closure from the functions for each future.
-    var onValue = (T value) {
+    void onValue(T value) {
       if (!controller.isClosed) {
         controller._add(value);
         if (--count == 0) controller._closeUnchecked();
       }
-    };
-    var onError = (Object error, StackTrace? stack) {
+    }
+
+    void onError(Object error, StackTrace stack) {
       if (!controller.isClosed) {
         controller._addError(error, stack);
         if (--count == 0) controller._closeUnchecked();
       }
-    };
+    }
+
     // The futures are already running, so start listening to them immediately
     // (instead of waiting for the stream to be listened on).
     // If we wait, we might not catch errors in the futures in time.
@@ -408,7 +413,7 @@ abstract class Stream<T> {
    * error object and possibly a stack trace.
    *
    * The [onError] callback must be of type `void onError(Object error)` or
-   * `void onError(Object error, StackTrace? stackTrace)`. If [onError] accepts
+   * `void onError(Object error, StackTrace stackTrace)`. If [onError] accepts
    * two arguments it is called with the error object and the stack trace
    * (which could be `null` if this stream itself received an error without
    * stack trace).
@@ -489,16 +494,23 @@ abstract class Stream<T> {
    * The returned stream is a broadcast stream if this stream is.
    */
   Stream<E> asyncMap<E>(FutureOr<E> convert(T event)) {
-    _StreamControllerBase<E> controller = isBroadcast
-        ? _SyncBroadcastStreamController<E>(null, null)
-        : _SyncStreamController<E>(null, null, null, null);
+    _StreamControllerBase<E> controller;
+    if (isBroadcast) {
+      controller = _SyncBroadcastStreamController<E>(null, null);
+    } else {
+      controller = _SyncStreamController<E>(null, null, null, null);
+    }
 
     controller.onListen = () {
       StreamSubscription<T> subscription = this.listen(null,
           onError: controller._addError, // Avoid Zone error replacement.
           onDone: controller.close);
-      final add = controller.add;
+      FutureOr<Null> add(E value) {
+        controller.add(value);
+      }
+
       final addError = controller._addError;
+      final resume = subscription.resume;
       subscription.onData((T event) {
         FutureOr<E> newValue;
         try {
@@ -509,11 +521,11 @@ abstract class Stream<T> {
         }
         if (newValue is Future<E>) {
           subscription.pause();
-          newValue
-              .then(add, onError: addError)
-              .whenComplete(subscription.resume);
+          newValue.then(add, onError: addError).whenComplete(resume);
         } else {
-          if (newValue is! E) throw "unreachable"; // TODO(lrn): Remove when type promotion works.
+          if (newValue is! E) {
+            throw "unreachable"; // TODO(lrn): Remove when type promotion works.
+          }
           controller.add(newValue);
         }
       });
@@ -521,7 +533,7 @@ abstract class Stream<T> {
       if (!isBroadcast) {
         controller
           ..onPause = subscription.pause
-          ..onResume = subscription.resume;
+          ..onResume = resume;
       }
     };
     return controller.stream;
@@ -545,25 +557,30 @@ abstract class Stream<T> {
    *
    * The returned stream is a broadcast stream if this stream is.
    */
-  Stream<E> asyncExpand<E>(Stream<E> convert(T event)) {
-    _StreamControllerBase<E> controller = isBroadcast
-        ? _SyncBroadcastStreamController<E>(null, null)
-        : _SyncStreamController<E>(null, null, null, null);
+  Stream<E> asyncExpand<E>(Stream<E>? convert(T event)) {
+    _StreamControllerBase<E> controller;
+    if (isBroadcast) {
+      controller = _SyncBroadcastStreamController<E>(null, null);
+    } else {
+      controller = _SyncStreamController<E>(null, null, null, null);
+    }
 
     controller.onListen = () {
       StreamSubscription<T> subscription = this.listen(null,
           onError: controller._addError, // Avoid Zone error replacement.
           onDone: controller.close);
       subscription.onData((T event) {
-        Stream<E> newStream;
+        Stream<E>? newStream;
         try {
           newStream = convert(event);
         } catch (e, s) {
           controller.addError(e, s);
           return;
         }
-        subscription.pause();
-        controller.addStream(newStream).whenComplete(subscription.resume);
+        if (newStream != null) {
+          subscription.pause();
+          controller.addStream(newStream).whenComplete(subscription.resume);
+        }
       });
       controller.onCancel = subscription.cancel;
       if (!isBroadcast) {
@@ -582,7 +599,7 @@ abstract class Stream<T> {
    * by the [onError] function.
    *
    * The [onError] callback must be of type `void onError(Object error)` or
-   * `void onError(Object error, StackTrace? stackTrace)`.
+   * `void onError(Object error, StackTrace stackTrace)`.
    * The function type determines whether [onError] is invoked with a stack
    * trace argument.
    * The stack trace argument may be `null` if this stream received an error
@@ -655,7 +672,7 @@ abstract class Stream<T> {
   }
 
   /**
-   * Applies  [streamTransformer] to this stream.
+   * Applies [streamTransformer] to this stream.
    *
    * Returns the transformed stream,
    * that is, the result of `streamTransformer.bind(this)`.
@@ -824,7 +841,7 @@ abstract class Stream<T> {
    * the returned future is completed with that error,
    * and processing stops.
    */
-  Future<bool> contains(Object needle) {
+  Future<bool> contains(Object? needle) {
     _Future<bool> future = new _Future<bool>();
     StreamSubscription<T> subscription =
         this.listen(null, onError: future._completeError, onDone: () {
@@ -955,9 +972,9 @@ abstract class Stream<T> {
    * Whether this stream contains any elements.
    *
    * Waits for the first element of this stream, then completes the returned
-   * future with `true`.
+   * future with `false`.
    * If this stream ends without emitting any elements, the returned future is
-   * completed with `false`.
+   * completed with `true`.
    *
    * If the first event is an error, the returned future is completed with that
    * error.
@@ -1275,7 +1292,7 @@ abstract class Stream<T> {
         _completeWithErrorCallback(future, e, s);
       }
     }, cancelOnError: true);
-    subscription.onError((T value) {
+    subscription.onData((T value) {
       if (foundResult) {
         // This is the second element we get.
         try {
@@ -1455,7 +1472,8 @@ abstract class Stream<T> {
     subscription =
         this.listen(null, onError: result._completeError, onDone: () {
       result._completeError(
-          new RangeError.index(index, this, "index", null, elementIndex));
+          new RangeError.index(index, this, "index", null, elementIndex),
+          StackTrace.empty);
     }, cancelOnError: true);
     subscription.onData((T value) {
       if (index == elementIndex) {
@@ -1496,9 +1514,12 @@ abstract class Stream<T> {
    * and the subscriptions' timers can be paused individually.
    */
   Stream<T> timeout(Duration timeLimit, {void onTimeout(EventSink<T> sink)?}) {
-    _StreamControllerBase<T> controller = isBroadcast
-        ? new _SyncBroadcastStreamController<T>(null, null)
-        : new _SyncStreamController<T>(null, null, null, null);
+    _StreamControllerBase<T> controller;
+    if (isBroadcast) {
+      controller = new _SyncBroadcastStreamController<T>(null, null);
+    } else {
+      controller = new _SyncStreamController<T>(null, null, null, null);
+    }
 
     Zone zone = Zone.current;
     // Register callback immediately.
@@ -1536,7 +1557,7 @@ abstract class Stream<T> {
           // issue: https://github.com/dart-lang/sdk/issues/37565
           controller.add(event);
         })
-        ..onError((Object error, StackTrace? stackTrace) {
+        ..onError((Object error, StackTrace stackTrace) {
           timer.cancel();
           timer = zone.createTimer(timeLimit, timeoutCallback);
           controller._addError(
@@ -1591,15 +1612,11 @@ abstract class StreamSubscription<T> {
    * Returns a future that is completed once the stream has finished
    * its cleanup.
    *
-   * For historical reasons, may also return `null` if no cleanup was necessary.
-   * Returning `null` is deprecated and should be avoided.
-   *
-   * Typically, futures are returned when the stream needs to release resources.
+   * Typically, cleanup happens when the stream needs to release resources.
    * For example, a stream might need to close an open file (as an asynchronous
    * operation). If the listener wants to delete the file after having
    * canceled the subscription, it must wait for the cleanup future to complete.
    *
-   * A returned future completes with a `null` value.
    * If the cleanup throws, which it really shouldn't, the returned future
    * completes with that error.
    */
@@ -2033,8 +2050,7 @@ abstract class StreamTransformer<S, T> {
    */
   factory StreamTransformer.fromHandlers(
       {void handleData(S data, EventSink<T> sink)?,
-      void handleError(
-          Object error, StackTrace? stackTrace, EventSink<T> sink)?,
+      void handleError(Object error, StackTrace stackTrace, EventSink<T> sink)?,
       void handleDone(EventSink<T> sink)?}) = _StreamHandlerTransformer<S, T>;
 
   /**

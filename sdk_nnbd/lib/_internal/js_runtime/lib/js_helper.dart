@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 library _js_helper;
 
 import 'dart:_js_embedded_names'
     show
+        ARRAY_RTI_PROPERTY,
         CURRENT_SCRIPT,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
@@ -130,8 +129,8 @@ String rawRtiToJsConstructorName(Object rti) {
 /// Given a raw constructor name, return the unminified name, if available,
 /// otherwise tag the name with `minified:`.
 String unminifyOrTag(String rawClassName) {
-  String preserved = unmangleGlobalNameIfPreservedAnyways(rawClassName);
-  if (preserved is String) return preserved;
+  String? preserved = unmangleGlobalNameIfPreservedAnyways(rawClassName);
+  if (preserved != null) return preserved;
   if (JS_GET_FLAG('MINIFIED')) return 'minified:${rawClassName}';
   return rawClassName;
 }
@@ -400,7 +399,7 @@ class JSInvocationMirror implements Invocation {
 
 class Primitives {
   static int objectHashCode(object) {
-    int hash = JS('int|Null', r'#.$identityHash', object);
+    int? hash = JS('int|Null', r'#.$identityHash', object);
     if (hash == null) {
       hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
       JS('void', r'#.$identityHash = #', object, hash);
@@ -408,7 +407,7 @@ class Primitives {
     return JS('int', '#', hash);
   }
 
-  static int parseInt(String source, int radix) {
+  static int? parseInt(String source, int? radix) {
     checkString(source);
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
     var match = JS('JSExtendableArray|Null', '#.exec(#)', re, source);
@@ -480,7 +479,7 @@ class Primitives {
     return JS('int', r'parseInt(#, #)', source, radix);
   }
 
-  static double parseDouble(String source) {
+  static double? parseDouble(String source) {
     checkString(source);
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
@@ -544,7 +543,7 @@ class Primitives {
     // instance (`const JSString()`, should use `JSString.prototype`).
     //
     // These all should have a `constructor` property with a `name` property.
-    String name;
+    String? name;
     var interceptorConstructor = JS('', '#.constructor', interceptor);
     if (JS('bool', 'typeof # == "function"', interceptorConstructor)) {
       var interceptorConstructorName = JS('', '#.name', interceptorConstructor);
@@ -592,7 +591,7 @@ class Primitives {
 
     // Type inference does not understand that [name] is now always a non-null
     // String. (There is some imprecision in the negation of the disjunction.)
-    name = JS('String', '#', name);
+    name = JS<String>('String', '#', name);
 
     // TODO(kasperl): If the namer gave us a fresh global name, we may
     // want to remove the numeric suffix that makes it unique too.
@@ -659,7 +658,7 @@ class Primitives {
   static int dateNow() => JS('int', r'Date.now()');
 
   static void initTicker() {
-    if (timerFrequency != null) return;
+    if (timerFrequency != 0) return;
     // Start with low-resolution. We overwrite the fields if we find better.
     timerFrequency = 1000;
     timerTicks = dateNow;
@@ -673,10 +672,10 @@ class Primitives {
     timerTicks = () => (1000 * JS('num', '#.now()', performance)).floor();
   }
 
-  static int timerFrequency;
-  static Function timerTicks;
+  static int timerFrequency = 0;
+  static late int Function() timerTicks;
 
-  static String currentUri() {
+  static String? currentUri() {
     requiresPreamble();
     // In a browser return self.location.href.
     if (JS('bool', '!!self.location')) {
@@ -788,7 +787,7 @@ class Primitives {
     // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".
     // We extract this name using a regexp.
     var d = lazyAsJsDate(receiver);
-    List match = JS('JSArray|Null', r'/\((.*)\)/.exec(#.toString())', d);
+    List? match = JS('JSArray|Null', r'/\((.*)\)/.exec(#.toString())', d);
     if (match != null) return match[1];
 
     // Internet Explorer 10+ emits the zone name without parenthesis:
@@ -821,10 +820,11 @@ class Primitives {
   static int getTimeZoneOffsetInMinutes(DateTime receiver) {
     // Note that JS and Dart disagree on the sign of the offset.
     // Subtract to avoid -0.0
-    return 0 - JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
+    return 0 - JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver))
+        as int;
   }
 
-  static int valueFromDecomposedDate(
+  static int? valueFromDecomposedDate(
       years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     checkInt(years);
@@ -979,8 +979,8 @@ class Primitives {
     JS('void', '#[#] = #', object, key, value);
   }
 
-  static functionNoSuchMethod(
-      function, List positionalArguments, Map<String, dynamic> namedArguments) {
+  static functionNoSuchMethod(function, List? positionalArguments,
+      Map<String, dynamic>? namedArguments) {
     int argumentCount = 0;
     List arguments = [];
     List namedArgumentList = [];
@@ -1043,8 +1043,8 @@ class Primitives {
   /// instead. For example, if the catch-all property contains the string
   /// "call$4", then the object's "call$4" property should be used as if it was
   /// the value of the catch-all property.
-  static applyFunction(Function function, List positionalArguments,
-      Map<String, dynamic> namedArguments) {
+  static applyFunction(Function function, List? positionalArguments,
+      Map<String, dynamic>? namedArguments) {
     // Fast shortcut for the common case.
     if (JS('bool', '# instanceof Array', positionalArguments) &&
         (namedArguments == null || namedArguments.isEmpty)) {
@@ -1106,8 +1106,8 @@ class Primitives {
         function, positionalArguments, namedArguments);
   }
 
-  static _genericApplyFunction2(Function function, List positionalArguments,
-      Map<String, dynamic> namedArguments) {
+  static _genericApplyFunction2(Function function, List? positionalArguments,
+      Map<String, dynamic>? namedArguments) {
     List arguments;
     if (positionalArguments != null) {
       if (JS('bool', '# instanceof Array', positionalArguments)) {
@@ -1576,7 +1576,7 @@ class TypeErrorDecoder {
     // Look for the special pattern \$camelCase\$ (all the $ symbols
     // have been escaped already), as we will soon be inserting
     // regular expression syntax that we want interpreted by RegExp.
-    List<String> match =
+    List<String>? match =
         JS('JSExtendableArray|Null', r'#.match(/\\\$[a-zA-Z]+\\\$/g)', message);
     if (match == null) match = [];
 
@@ -1741,7 +1741,7 @@ class TypeErrorDecoder {
 
 class NullError extends Error implements NoSuchMethodError {
   final String _message;
-  final String _method;
+  final String? _method;
 
   NullError(this._message, match)
       : _method = match == null ? null : JS('', '#.method', match);
@@ -1754,8 +1754,8 @@ class NullError extends Error implements NoSuchMethodError {
 
 class JsNoSuchMethodError extends Error implements NoSuchMethodError {
   final String _message;
-  final String _method;
-  final String _receiver;
+  final String? _method;
+  final String? _receiver;
 
   JsNoSuchMethodError(this._message, match)
       : _method = match == null ? null : JS('String|Null', '#.method', match),
@@ -1927,7 +1927,7 @@ unwrapException(ex) {
   return ex;
 }
 
-String tryStringifyException(ex) {
+String? tryStringifyException(ex) {
   // Since this function is called from [unwrapException] which is called from
   // code injected into a catch-clause, use JavaScript try-catch to avoid a
   // potential loop if stringifying crashes.
@@ -1951,7 +1951,7 @@ StackTrace getTraceFromException(exception) {
     return exception.stackTrace;
   }
   if (exception == null) return new _StackTrace(exception);
-  _StackTrace trace = JS('_StackTrace|Null', r'#.$cachedTrace', exception);
+  _StackTrace? trace = JS('_StackTrace|Null', r'#.$cachedTrace', exception);
   if (trace != null) return trace;
   trace = new _StackTrace(exception);
   return JS('_StackTrace', r'#.$cachedTrace = #', exception, trace);
@@ -1959,13 +1959,13 @@ StackTrace getTraceFromException(exception) {
 
 class _StackTrace implements StackTrace {
   var _exception;
-  String _trace;
+  String? _trace;
   _StackTrace(this._exception);
 
   String toString() {
     if (_trace != null) return JS('String', '#', _trace);
 
-    String trace;
+    String? trace;
     if (JS('bool', '# !== null', _exception) &&
         JS('bool', 'typeof # === "object"', _exception)) {
       trace = JS('String|Null', r'#.stack', _exception);
@@ -2096,7 +2096,7 @@ abstract class Closure implements Function {
   static fromTearOff(
     receiver,
     List functions,
-    int applyTrampolineIndex,
+    int? applyTrampolineIndex,
     var reflectionInfo,
     bool isStatic,
     bool isIntercepted,
@@ -2117,8 +2117,8 @@ abstract class Closure implements Function {
     // TODO(ahe): All the place below using \$ should be rewritten to go
     // through the namer.
     var function = JS('', '#[#]', functions, 0);
-    String name = JS('String|Null', '#.\$stubName', function);
-    String callName = JS('String|Null', '#[#]', function,
+    String? name = JS('String|Null', '#.\$stubName', function);
+    String? callName = JS('String|Null', '#[#]', function,
         JS_GET_NAME(JsGetName.CALL_NAME_PROPERTY));
 
     // This variable holds either an index into the types-table, or a function
@@ -2156,7 +2156,7 @@ abstract class Closure implements Function {
         ? JS('StaticClosure', 'Object.create(#.constructor.prototype)',
             new StaticClosure())
         : JS('BoundClosure', 'Object.create(#.constructor.prototype)',
-            new BoundClosure(null, null, null, null));
+            new BoundClosure(null, null, null, ''));
 
     JS('', '#.\$initialize = #', prototype, JS('', '#.constructor', prototype));
 
@@ -2302,7 +2302,7 @@ abstract class Closure implements Function {
   }
 
   static cspForwardCall(
-      int arity, bool isSuperCall, String stubName, function) {
+      int arity, bool isSuperCall, String? stubName, function) {
     var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
     // Handle intercepted stub-names with the default slow case.
     if (isSuperCall) arity = -1;
@@ -2384,7 +2384,7 @@ abstract class Closure implements Function {
 
   static forwardCallTo(receiver, function, bool isIntercepted) {
     if (isIntercepted) return forwardInterceptedCallTo(receiver, function);
-    String stubName = JS('String|Null', '#.\$stubName', function);
+    String? stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
     var lookedUpFunction = JS('', '#[#]', receiver, stubName);
     // The receiver[stubName] may not be equal to the function if we try to
@@ -2421,7 +2421,7 @@ abstract class Closure implements Function {
   }
 
   static cspForwardInterceptedCall(
-      int arity, bool isSuperCall, String name, function) {
+      int arity, bool isSuperCall, String? name, function) {
     var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
     var getReceiver = RAW_DART_FUNCTION_REF(BoundClosure.receiverOf);
     // Handle intercepted stub-names with the default slow case.
@@ -2516,7 +2516,7 @@ abstract class Closure implements Function {
   static forwardInterceptedCallTo(receiver, function) {
     String selfField = BoundClosure.selfFieldName();
     String receiverField = BoundClosure.receiverFieldName();
-    String stubName = JS('String|Null', '#.\$stubName', function);
+    String? stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
     bool isCsp = JS_GET_FLAG('USE_CONTENT_SECURITY_POLICY');
     var lookedUpFunction = JS('', '#[#]', receiver, stubName);
@@ -2561,7 +2561,7 @@ abstract class Closure implements Function {
   // to be visible to resolution and the generation of extra stubs.
 
   String toString() {
-    String name;
+    String? name;
     var constructor = JS('', '#.constructor', this);
     name =
         constructor == null ? null : JS('String|Null', '#.name', constructor);
@@ -2588,7 +2588,7 @@ abstract class TearOffClosure extends Closure {}
 
 class StaticClosure extends TearOffClosure {
   String toString() {
-    String name =
+    String? name =
         JS('String|Null', '#[#]', this, STATIC_FUNCTION_NAME_PROPERTY_NAME);
     if (name == null) return 'Closure of unknown static method';
     return "Closure '${unminifyOrTag(name)}'";
@@ -2666,22 +2666,22 @@ class BoundClosure extends TearOffClosure {
 
   static nameOf(BoundClosure closure) => closure._name;
 
-  static String selfFieldNameCache;
+  static String? selfFieldNameCache;
 
   static String selfFieldName() {
     if (selfFieldNameCache == null) {
       selfFieldNameCache = computeFieldNamed('self');
     }
-    return selfFieldNameCache;
+    return selfFieldNameCache!;
   }
 
-  static String receiverFieldNameCache;
+  static String? receiverFieldNameCache;
 
   static String receiverFieldName() {
     if (receiverFieldNameCache == null) {
       receiverFieldNameCache = computeFieldNamed('receiver');
     }
-    return receiverFieldNameCache;
+    return receiverFieldNameCache!;
   }
 
   @pragma('dart2js:noInline')
@@ -2696,6 +2696,7 @@ class BoundClosure extends TearOffClosure {
         return JS('String', '#', name);
       }
     }
+    throw new ArgumentError("Field name $fieldName not found.");
   }
 }
 
@@ -3087,34 +3088,30 @@ void checkDeferredIsLoaded(String loadId) {
 /// visible to anyone, and is only injected into special libraries.
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
-// TODO(lrn): These exceptions should be implemented in core.
-// When they are, remove the 'Implementation' here.
-
 /// Thrown by type assertions that fail.
-class TypeErrorImplementation extends Error implements TypeError {
-  final String message;
+class TypeErrorImplementation extends Error implements TypeError, CastError {
+  final String _message;
 
   /// Normal type error caused by a failed subtype test.
   TypeErrorImplementation(Object value, String type)
-      : message = "TypeError: ${Error.safeToString(value)}: type "
+      : _message = "TypeError: ${Error.safeToString(value)}: type "
             "'${_typeDescription(value)}' is not a subtype of type '$type'";
 
-  TypeErrorImplementation.fromMessage(String this.message);
+  TypeErrorImplementation.fromMessage(String this._message);
 
-  String toString() => message;
+  String toString() => _message;
 }
 
 /// Thrown by the 'as' operator if the cast isn't valid.
-class CastErrorImplementation extends Error implements CastError {
-  // TODO(lrn): Rename to CastError (and move implementation into core).
-  final String message;
+class CastErrorImplementation extends Error implements CastError, TypeError {
+  final String _message;
 
   /// Normal cast error caused by a failed type cast.
   CastErrorImplementation(Object value, Object type)
-      : message = "CastError: ${Error.safeToString(value)}: type "
+      : _message = "TypeError: ${Error.safeToString(value)}: type "
             "'${_typeDescription(value)}' is not a subtype of type '$type'";
 
-  String toString() => message;
+  String toString() => _message;
 }
 
 String _typeDescription(value) {
@@ -3162,8 +3159,8 @@ void assertHelper(condition) {
 /// resolved cannot be found.
 void throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
   Symbol memberName = new _symbol_dev.Symbol.unvalidated(name);
-  throw new NoSuchMethodError(obj, memberName, arguments,
-      new Map<Symbol, dynamic>(), expectedArgumentNames);
+  throw new NoSuchMethodError(
+      obj, memberName, arguments, new Map<Symbol, dynamic>());
 }
 
 /// Called by generated code when a static field's initializer references the
@@ -3230,7 +3227,7 @@ LoadLibraryFunctionType _loadLibraryWrapper(String loadId) {
   return () => loadDeferredLibrary(loadId);
 }
 
-final Map<String, Future<Null>> _loadingLibraries = <String, Future<Null>>{};
+final Map<String, Future<Null>?> _loadingLibraries = <String, Future<Null>?>{};
 final Set<String> _loadedLibraries = new Set<String>();
 
 /// Events used to diagnose failures from deferred loading requests.
@@ -3239,14 +3236,14 @@ final List<String> _eventLog = <String>[];
 typedef void DeferredLoadCallback();
 
 // Function that will be called every time a new deferred import is loaded.
-DeferredLoadCallback deferredLoadHook;
+DeferredLoadCallback? deferredLoadHook;
 
 Future<Null> loadDeferredLibrary(String loadId) {
   // For each loadId there is a list of parts to load. The parts are represented
   // by an index. There are two arrays, one that maps the index into a Uri and
   // another that maps the index to a hash.
   var partsMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_PARTS);
-  List indexes = JS('JSExtendableArray|Null', '#[#]', partsMap, loadId);
+  List? indexes = JS('JSExtendableArray|Null', '#[#]', partsMap, loadId);
   if (indexes == null) return new Future.value(null);
   List<String> uris = <String>[];
   List<String> hashes = <String>[];
@@ -3304,7 +3301,7 @@ Future<Null> loadDeferredLibrary(String loadId) {
       waitingForLoad[i] = false;
       return new Future.value();
     }
-    return _loadHunk(uris[i]).then((_) {
+    return _loadHunk(uris[i]).then((Null _) {
       waitingForLoad[i] = false;
       initializeSomeLoadedHunks();
     });
@@ -3317,27 +3314,27 @@ Future<Null> loadDeferredLibrary(String loadId) {
     assert(nextHunkToInitialize == total);
     bool updated = _loadedLibraries.add(loadId);
     if (updated && deferredLoadHook != null) {
-      deferredLoadHook();
+      deferredLoadHook!();
     }
   });
 }
 
 /// The `nonce` value on the current script used for strict-CSP, if any.
-String _cspNonce = _computeCspNonce();
+String? _cspNonce = _computeCspNonce();
 
-String _computeCspNonce() {
+String? _computeCspNonce() {
   var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
   if (currentScript == null) return null;
-  String nonce = JS('String|Null', '#.nonce', currentScript);
+  String? nonce = JS('String|Null', '#.nonce', currentScript);
   return (nonce != null && nonce != '')
       ? nonce
       : JS('String|Null', '#.getAttribute("nonce")', currentScript);
 }
 
 /// The 'crossOrigin' value on the current script used for CORS, if any.
-String _crossOrigin = _computeCrossOrigin();
+String? _crossOrigin = _computeCrossOrigin();
 
-String _computeCrossOrigin() {
+String? _computeCrossOrigin() {
   var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
   if (currentScript == null) return null;
   return JS('String|Null', '#.crossOrigin', currentScript);
@@ -3350,12 +3347,12 @@ bool _isWorker() {
 }
 
 /// The src url for the script tag that loaded this code.
-String thisScript = _computeThisScript();
+String? thisScript = _computeThisScript();
 
 /// The src url for the script tag that loaded this function.
 ///
 /// Used to create JavaScript workers and load deferred libraries.
-String _computeThisScript() {
+String? _computeThisScript() {
   var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
   if (currentScript != null) {
     return JS('String', 'String(#.src)', currentScript);
@@ -3402,14 +3399,14 @@ String _computeThisScriptFromTrace() {
 }
 
 Future<Null> _loadHunk(String hunkName) {
-  Future<Null> future = _loadingLibraries[hunkName];
+  var future = _loadingLibraries[hunkName];
   _eventLog.add(' - _loadHunk: $hunkName');
   if (future != null) {
     _eventLog.add('reuse: $hunkName');
-    return future.then((_) => null);
+    return future.then((Null _) => null);
   }
 
-  String uri = thisScript;
+  String uri = thisScript!;
 
   int index = uri.lastIndexOf('/');
   uri = '${uri.substring(0, index + 1)}$hunkName';
@@ -3423,7 +3420,7 @@ Future<Null> _loadHunk(String hunkName) {
     completer.complete(null);
   }
 
-  void failure(error, String context, StackTrace stackTrace) {
+  void failure(error, String context, StackTrace? stackTrace) {
     _eventLog.add(' - download failed: $hunkName (context: $context)');
     _loadingLibraries[hunkName] = null;
     stackTrace ??= StackTrace.current;
@@ -3546,3 +3543,12 @@ void registerGlobalObject(object) {}
 // Hook to register new browser classes.
 // This is currently a no-op in dart2js.
 void applyExtension(name, nativeObject) {}
+
+// See tests/compiler/dart2js_extra/platform_environment_variable1_test.dart
+const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
+    'dart2js.test.platform.environment.variable',
+    defaultValue: 'not-specified');
+
+String testingGetPlatformEnvironmentVariable() {
+  return testPlatformEnvironmentVariableValue;
+}

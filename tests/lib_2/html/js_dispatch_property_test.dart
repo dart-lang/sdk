@@ -4,8 +4,7 @@
 
 // Test for dart2js initialization of dispatchPropertyName.
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:expect/minitest.dart';
 
 import 'package:expect/expect.dart' show NoInline, AssumeDynamic;
 
@@ -16,8 +15,6 @@ import 'js_dispatch_property_test_lib.dart';
 confuse(x) => x;
 
 main() {
-  useHtmlConfiguration();
-
   group('group', () {
     test('test', () {
       // Force dynamic interceptor dispatch.

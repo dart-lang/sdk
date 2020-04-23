@@ -249,6 +249,7 @@ L2:
   CheckStack           1
   Push                 r1
   InterfaceCall        CP#2, 1
+  AssertBoolean        0
   JumpIfFalse          L1
   Push                 r1
   InterfaceCall        CP#4, 1
@@ -290,6 +291,7 @@ L2:
   CheckStack           1
   Push                 r2
   InterfaceCall        CP#2, 1
+  AssertBoolean        0
   JumpIfFalse          L1
   Push                 r2
   InterfaceCall        CP#4, 1
@@ -382,17 +384,29 @@ ConstantPool {
   }
   static method test_for_in(dart.core::List<dart.core::int*>* list) → dart.core::int* {
     dart.core::int* sum = 0;
-    for (dart.core::int* e in list) {
-      sum = sum.{dart.core::num::+}(e);
+    {
+      dart.core::Iterator<dart.core::int*>* :sync-for-iterator = dart._internal::unsafeCast<dart.core::Iterable<dart.core::int*>*>(list).{dart.core::Iterable::iterator};
+      for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
+        dart.core::int* e = :sync-for-iterator.{dart.core::Iterator::current};
+        {
+          sum = sum.{dart.core::num::+}(e);
+        }
+      }
     }
     return sum;
   }
   static method test_for_in_with_outer_var(dart.core::List<dart.core::int*>* list) → dart.core::int* {
     dart.core::int* sum = 0;
     dart.core::int* e = 42;
-    for (final dart.core::int* #t3 in list) {
-      e = #t3;
-      sum = sum.{dart.core::num::+}(e);
+    {
+      dart.core::Iterator<dart.core::int*>* :sync-for-iterator = dart._internal::unsafeCast<dart.core::Iterable<dart.core::int*>*>(list).{dart.core::Iterable::iterator};
+      for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
+        final dart.core::int* #t3 = :sync-for-iterator.{dart.core::Iterator::current};
+        {
+          e = #t3;
+          sum = sum.{dart.core::num::+}(e);
+        }
+      }
     }
     return sum;
   }

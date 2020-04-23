@@ -22,7 +22,7 @@ main() {
 class AssertWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
@@ -43,7 +43,7 @@ T a<T>() => throw '';
 class DoWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
@@ -64,7 +64,7 @@ T a<T>() => throw '';
 class ForWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
@@ -78,7 +78,7 @@ void f() async {
 T a<T>() => throw '';
 ''');
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Stream<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Stream<Object?> Function()');
   }
 
   test_awaitForIn_int_downward() async {
@@ -109,7 +109,7 @@ void f() {
 T a<T>() => throw '';
 ''');
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Iterable<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Iterable<Object?> Function()');
   }
 
   test_forIn_int_downward() async {
@@ -128,7 +128,7 @@ T a<T>() => throw '';
 class IfWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
@@ -149,7 +149,7 @@ T a<T>() => throw '';
 class WhileWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   @override

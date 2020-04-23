@@ -53,7 +53,7 @@ extension E1 on A1 {
     // The instance getter shadows the global method
     topLevelMethod(4);
 //  ^^^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
 //                ^
 // [cfe] The method 'call' isn't defined for the class 'int'.
   }
@@ -145,7 +145,7 @@ extension E3 on A3 {
     // The static getter shadows the global method
     topLevelMethod(4);
 //  ^^^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
 //                   ^
 // [cfe] The method 'call' isn't defined for the class 'int'.
   }
@@ -227,7 +227,7 @@ extension E6 on A6 {
     // The instance getter shadows the other extensions method
     extensionMethod(4);
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
 //                 ^
 // [cfe] The method 'call' isn't defined for the class 'int'.
   }
@@ -258,7 +258,8 @@ class A7 extends A6 {
     // The instance getter shadows the other extensions method
     extensionMethod(4);
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+//                 ^
 // [cfe] 'extensionMethod' isn't a function or method and can't be invoked.
   }
 }
@@ -372,7 +373,7 @@ extension E10 on A10 {
     // The static getter shadows the other extensions method
     extensionMethod(4);
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
 //                     ^
 // [cfe] The method 'call' isn't defined for the class 'int'.
   }
@@ -418,7 +419,7 @@ class A11 extends A10 {
     // The static getter shadows the other extensions method
     extensionMethod(4);
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
 //                 ^
 // [cfe] The method 'call' isn't defined for the class 'int'.
   }

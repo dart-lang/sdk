@@ -6,8 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'local_declaration_visitor_test.dart' as local_declaration_visitor_test;
 
-/// Utility for manually running all tests.
-main() {
+void main() {
   defineReflectiveSuite(() {
     local_declaration_visitor_test.main();
   });

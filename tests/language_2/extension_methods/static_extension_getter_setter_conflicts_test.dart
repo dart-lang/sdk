@@ -63,7 +63,7 @@ void test0() {
   c0[0] = 0;
   //^^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '[]=' isn't defined for the class 'C0'.
+  // [cfe] The operator '[]=' isn't defined for the class 'C0'.
   E0(c0)[0];
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_OPERATOR
@@ -73,20 +73,20 @@ void test0() {
   c0[0] += 0;
   //^^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '[]=' isn't defined for the class 'C0'.
+  // [cfe] The operator '[]=' isn't defined for the class 'C0'.
   c0[0]++;
   //^^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '[]=' isn't defined for the class 'C0'.
+  // [cfe] The operator '[]=' isn't defined for the class 'C0'.
 
   E0(c0)[0] += 0;
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_OPERATOR
-  // [cfe] The method '[]' isn't defined for the class 'C0'.
+  // [cfe] The operator '[]' isn't defined for the class 'C0'.
   E0(c0)[0]++;
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_OPERATOR
-  // [cfe] The method '[]' isn't defined for the class 'C0'.
+  // [cfe] The operator '[]' isn't defined for the class 'C0'.
 }
 
 // Conflicting extensions.
@@ -124,17 +124,17 @@ void test1() {
   c1a[0] = 0;
   // ^^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '[]=' isn't defined for the class 'C1<int>'.
+  // [cfe] The operator '[]=' isn't defined for the class 'C1<int>'.
 
   c1a[0] += 0;
   // ^^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '[]=' isn't defined for the class 'C1<int>'.
+  // [cfe] The operator '[]=' isn't defined for the class 'C1<int>'.
 
   c1a[0]++;
   // ^^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '[]=' isn't defined for the class 'C1<int>'.
+  // [cfe] The operator '[]=' isn't defined for the class 'C1<int>'.
 
   c1a[0];
 
@@ -143,59 +143,55 @@ void test1() {
   c1b.m1;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The getter 'm1' isn't defined for the class 'C1<Object>'.
+  // [cfe] The property 'm1' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
 
   c1b.m1 = 0;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The setter 'm1' isn't defined for the class 'C1<Object>'.
+  // [cfe] The property 'm1' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
 
   c1b.m1 += 0;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The getter 'm1' isn't defined for the class 'C1<Object>'.
-  //  ^
-  // [cfe] The setter 'm1' isn't defined for the class 'C1<Object>'.
+  // [cfe] The property 'm1' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
 
   c1b.m1++;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The getter 'm1' isn't defined for the class 'C1<Object>'.
-  //  ^
-  // [cfe] The setter 'm1' isn't defined for the class 'C1<Object>'.
+  // [cfe] The property 'm1' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
 
   c1b.m2;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The getter 'm2' isn't defined for the class 'C1<Object>'.
+  // [cfe] The property 'm2' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
 
   c1b[0];
 //^^^
 // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // ^
-  // [cfe] The method '[]' isn't defined for the class 'C1<Object>'.
+//   ^
+// [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
 
   c1b[0] = 0;
 //^^^
 // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // ^
-  // [cfe] The method '[]=' isn't defined for the class 'C1<Object>'.
+//   ^
+// [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
 
   c1b[0] += 0;
 //^^^
 // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // ^
-  // [cfe] The method '[]' isn't defined for the class 'C1<Object>'.
-  // ^
-  // [cfe] The method '[]=' isn't defined for the class 'C1<Object>'.
+//   ^
+// [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
+//   ^
+// [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
 
   c1b[0]++;
 //^^^
 // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // ^
-  // [cfe] The method '[]' isn't defined for the class 'C1<Object>'.
-  // ^
-  // [cfe] The method '[]=' isn't defined for the class 'C1<Object>'.
+//   ^
+// [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
+//   ^
+// [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
 }
 
 // Getter on the extension itself.
@@ -231,17 +227,17 @@ extension E2 on C2 {
     this[0];
     //  ^^^
     // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-    // [cfe] The method '[]' isn't defined for the class 'C2'.
+    // [cfe] The operator '[]' isn't defined for the class 'C2'.
 
     this[0] += 0;
     //  ^^^
     // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-    // [cfe] The method '[]' isn't defined for the class 'C2'.
+    // [cfe] The operator '[]' isn't defined for the class 'C2'.
 
     this[0]++;
     //  ^^^
     // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-    // [cfe] The method '[]' isn't defined for the class 'C2'.
+    // [cfe] The operator '[]' isn't defined for the class 'C2'.
 
     // Check that `this.mc` refers to `C2.mc`.
     this.mc.toRadixString(16);

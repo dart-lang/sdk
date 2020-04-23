@@ -8,23 +8,19 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * A computer for [CompilationUnit] closing labels.
- */
+/// A computer for [CompilationUnit] closing labels.
 class DartUnitClosingLabelsComputer {
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
   final List<ClosingLabel> _closingLabels = [];
-  final Set<ClosingLabel> hasNestingSet = new Set();
-  final Set<ClosingLabel> isSingleLineSet = new Set();
+  final Set<ClosingLabel> hasNestingSet = {};
+  final Set<ClosingLabel> isSingleLineSet = {};
 
   DartUnitClosingLabelsComputer(this._lineInfo, this._unit);
 
-  /**
-   * Returns a list of closing labels, not `null`.
-   */
+  /// Returns a list of closing labels, not `null`.
   List<ClosingLabel> compute() {
-    _unit.accept(new _DartUnitClosingLabelsComputerVisitor(this));
+    _unit.accept(_DartUnitClosingLabelsComputerVisitor(this));
 
     return _closingLabels.where((ClosingLabel label) {
       // Filter labels that don't have some nesting.
@@ -42,9 +38,7 @@ class DartUnitClosingLabelsComputer {
   }
 }
 
-/**
- * An AST visitor for [DartUnitClosingLabelsComputer].
- */
+/// An AST visitor for [DartUnitClosingLabelsComputer].
 class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
   final DartUnitClosingLabelsComputer computer;
 
@@ -60,9 +54,9 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
     ClosingLabel label;
 
     if (node.argumentList != null) {
-      String labelText = node.constructorName.type.name.name;
+      var labelText = node.constructorName.type.name.name;
       if (node.constructorName.name != null) {
-        labelText += ".${node.constructorName.name.name}";
+        labelText += '.${node.constructorName.name.name}';
       }
       // We override the node used for doing line calculations because otherwise
       // constructors that split over multiple lines (but have parens on same
@@ -82,13 +76,13 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    final NodeList<TypeAnnotation> args = node.typeArguments?.arguments;
-    final String typeName = args != null ? args[0]?.toString() : null;
+    var args = node.typeArguments?.arguments;
+    var typeName = args != null ? args[0]?.toString() : null;
 
     ClosingLabel label;
 
     if (typeName != null) {
-      label = _addLabel(node, "<$typeName>[]");
+      label = _addLabel(node, '<$typeName>[]');
     }
 
     if (label != null) _pushLabel(label);
@@ -124,15 +118,14 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
     final CharacterLocation end =
         computer._lineInfo.getLocation(checkLinesUsing.end - 1);
 
-    final ClosingLabel closingLabel =
-        new ClosingLabel(node.offset, node.length, label);
+    var closingLabel = ClosingLabel(node.offset, node.length, label);
 
-    int spannedLines = end.lineNumber - start.lineNumber;
+    var spannedLines = end.lineNumber - start.lineNumber;
     if (spannedLines < 1) {
       computer.setSingleLine(closingLabel);
     }
 
-    ClosingLabel parent = _currentLabel;
+    var parent = _currentLabel;
     if (parent != null) {
       computer.setHasNesting(parent);
       computer.setHasNesting(closingLabel);

@@ -8,6 +8,7 @@ import '../common.dart';
 import '../common_elements.dart' show KElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../ir/annotations.dart';
 import '../js_backend/native_data.dart';
 
@@ -143,8 +144,8 @@ bool isAnnotation(
 
 /// Extracts the name if [value] is a named annotation based on
 /// [annotationClass], otherwise returns `null`.
-String readAnnotationName(
-    Spannable spannable, ConstantValue value, ClassEntity annotationClass,
+String readAnnotationName(DartTypes dartTypes, Spannable spannable,
+    ConstantValue value, ClassEntity annotationClass,
     {String defaultValue}) {
   if (!value.isConstructedObject) return null;
   ConstructedConstantValue constructedObject = value;
@@ -153,8 +154,8 @@ String readAnnotationName(
   Iterable<ConstantValue> fields = constructedObject.fields.values;
   // TODO(sra): Better validation of the constant.
   if (fields.length != 1) {
-    failedAt(
-        spannable, 'Annotations needs one string: ${value.toStructuredText()}');
+    failedAt(spannable,
+        'Annotations needs one string: ${value.toStructuredText(dartTypes)}');
     return null;
   } else if (fields.single is StringConstantValue) {
     StringConstantValue specStringConstant = fields.single;
@@ -162,8 +163,8 @@ String readAnnotationName(
   } else if (defaultValue != null && fields.single is NullConstantValue) {
     return defaultValue;
   } else {
-    failedAt(
-        spannable, 'Annotations needs one string: ${value.toStructuredText()}');
+    failedAt(spannable,
+        'Annotations needs one string: ${value.toStructuredText(dartTypes)}');
     return null;
   }
 }

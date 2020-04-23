@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:meta/meta.dart';
@@ -14,7 +14,7 @@ import 'package:meta/meta.dart';
 /**
  * An [AnalysisContext] in which analysis can be performed.
  */
-class AnalysisContextImpl implements InternalAnalysisContext {
+class AnalysisContextImpl implements AnalysisContext {
   final SynchronousSession _synchronousSession;
 
   @override
@@ -28,7 +28,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  void set analysisOptions(AnalysisOptions options) {
+  set analysisOptions(AnalysisOptions options) {
     throw StateError('Cannot be changed.');
   }
 
@@ -38,10 +38,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  void set sourceFactory(SourceFactory factory) {
+  set sourceFactory(SourceFactory factory) {
     throw StateError('Cannot be changed.');
   }
 
+  @Deprecated('Use LibraryElement.typeProvider')
   @override
   TypeProvider get typeProvider {
     return _synchronousSession.typeProvider;
@@ -55,6 +56,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return _synchronousSession.typeProviderNonNullableByDefault;
   }
 
+  @Deprecated('Use LibraryElement.typeSystem')
   @override
   TypeSystemImpl get typeSystem {
     return _synchronousSession.typeSystem;
@@ -72,7 +74,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _synchronousSession.clearTypeProvider();
   }
 
-  @override
   void setTypeProviders({
     @required TypeProvider legacy,
     @required TypeProvider nonNullableByDefault,

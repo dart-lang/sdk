@@ -4,9 +4,9 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -71,6 +71,8 @@ class Scanner {
    */
   bool enableNonNullable = false;
 
+  fasta.LanguageVersionToken _languageVersion;
+
   FeatureSet _featureSet;
 
   /**
@@ -81,12 +83,12 @@ class Scanner {
    */
   factory Scanner(Source source, CharacterReader reader,
           AnalysisErrorListener errorListener) =>
-      new Scanner.fasta(source, errorListener,
+      Scanner.fasta(source, errorListener,
           contents: reader.getContents(), offset: reader.offset);
 
   factory Scanner.fasta(Source source, AnalysisErrorListener errorListener,
-      {String contents, int offset: -1}) {
-    return new Scanner._(
+      {String contents, int offset = -1}) {
+    return Scanner._(
         source, contents ?? source.contents.data, offset, errorListener);
   }
 
@@ -107,6 +109,12 @@ class Scanner {
    */
   FeatureSet get featureSet => _featureSet;
 
+  /**
+   * The language version override specified for this compilation unit using a
+   * token like '// @dart = 2.7', or `null` if no override is specified.
+   */
+  fasta.LanguageVersionToken get languageVersion => _languageVersion;
+
   set preserveComments(bool preserveComments) {
     this._preserveComments = preserveComments;
   }
@@ -125,7 +133,7 @@ class Scanner {
   void reportError(
       ScannerErrorCode errorCode, int offset, List<Object> arguments) {
     _errorListener
-        .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
+        .onError(AnalysisError(source, offset, 1, errorCode, arguments));
   }
 
   void setSourceStart(int line, int column) {
@@ -189,10 +197,13 @@ class Scanner {
 
   void _languageVersionChanged(
       fasta.Scanner scanner, fasta.LanguageVersionToken languageVersion) {
-    if (_featureSet != null) {
-      _featureSet = _featureSet.restrictToVersion(
-          Version(languageVersion.major, languageVersion.minor, 0));
-      scanner.configuration = buildConfig(_featureSet);
+    if (languageVersion.major >= 0 && languageVersion.minor >= 0) {
+      _languageVersion = languageVersion;
+      if (_featureSet != null) {
+        _featureSet = _featureSet.restrictToVersion(
+            Version(languageVersion.major, languageVersion.minor, 0));
+        scanner.configuration = buildConfig(_featureSet);
+      }
     }
   }
 

@@ -18,7 +18,7 @@ class B extends A<Function()?> {
 }
 
 main() {
-  void Function() g;
+  void Function() g = () {};
   void Function()? f = g;
 
   var fBar = bar();

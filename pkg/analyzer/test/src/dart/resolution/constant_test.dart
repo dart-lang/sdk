@@ -2,9 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,23 +18,23 @@ import 'driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstantDriverTest);
+    defineReflectiveTests(ConstantResolutionTest);
+    defineReflectiveTests(ConstantResolutionWithNnbdTest);
   });
 }
 
 @reflectiveTest
-class ConstantDriverTest extends DriverResolutionTest {
+class ConstantResolutionTest extends DriverResolutionTest {
   test_constantValue_defaultParameter_noDefaultValue() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
   const A({int p});
 }
 ''');
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart';
 const a = const A();
 ''');
-    assertNoTestErrors();
 
     var aLib = findElement.import('package:test/a.dart').importedLibrary;
     var aConstructor = aLib.getType('A').constructors.single;
@@ -41,7 +47,7 @@ const a = const A();
   }
 
   test_constFactoryRedirection_super() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class I {
   const factory I(int f) = B;
 }
@@ -59,7 +65,6 @@ class B extends A {
 @I(42)
 main() {}
 ''');
-    assertNoTestErrors();
 
     var node = findNode.annotation('@I');
     var value = node.elementAnnotation.constantValue;
@@ -67,7 +72,7 @@ main() {}
   }
 
   test_constNotInitialized() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class B {
   const B(_);
 }
@@ -76,11 +81,30 @@ class C extends B {
   static const a;
   const C() : super(a);
 }
-''');
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.CONST_NOT_INITIALIZED,
-      CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+''', [
+      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 62, 1),
     ]);
+  }
+
+  test_context_eliminateTypeVariables() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  const A({List<T> a = const []});
+}
+''');
+    assertType(findNode.listLiteral('const []'), 'List<Null>');
+  }
+
+  test_context_eliminateTypeVariables_functionType() async {
+    await assertNoErrorsInCode(r'''
+class A<T, U> {
+  const A({List<T Function(U)> a = const []});
+}
+''');
+    assertType(
+      findNode.listLiteral('const []'),
+      'List<Null Function(Object)>',
+    );
   }
 
   test_functionType_element_typeArguments() async {
@@ -92,22 +116,21 @@ class C<T> {
   const C();
 }
 ''');
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart';
 
 const v = a;
 ''');
-    assertNoTestErrors();
 
     var v = findElement.topVar('v') as ConstVariableElement;
     var value = v.computeConstantValue();
 
     var type = value.type as InterfaceType;
-    assertElementTypeString(type, 'C<double Function(int)>');
+    assertType(type, 'C<double Function(int)>');
 
     expect(type.typeArguments, hasLength(1));
     var typeArgument = type.typeArguments[0] as FunctionType;
-    assertElementTypeString(typeArgument, 'double Function(int)');
+    assertType(typeArgument, 'double Function(int)');
 
     // The element and type arguments are available for the function type.
     var importFind = findElement.importFind('package:test/a.dart');
@@ -170,6 +193,37 @@ import 'a.dart';
     expect(a.computeConstantValue().toIntValue(), 42);
   }
 
+  test_imported_super_defaultFieldFormalParameter() async {
+    newFile('/test/lib/a.dart', content: r'''
+import 'test.dart';
+
+class A {
+  static const B b = const B();
+
+  final bool f1;
+  final bool f2;
+
+  const A({this.f1: false}) : this.f2 = f1 && true;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart';
+
+class B extends A {
+  const B() : super();
+}
+''');
+
+    result = await resolveFile(convertPath('/test/lib/a.dart'));
+    assertErrorsInResolvedUnit(result, []);
+
+    var bElement = FindElement(result.unit).field('b') as ConstVariableElement;
+    var bValue = bElement.evaluationResult.value;
+    var superFields = bValue.getField(GenericState.SUPERCLASS_FIELD);
+    expect(superFields.getField('f1').toBoolValue(), false);
+  }
+
   test_local_prefixedIdentifier_staticField_extension() async {
     await assertNoErrorsInCode(r'''
 const a = E.f;
@@ -180,5 +234,101 @@ extension E on int {
 ''');
     var a = findElement.topVar('a') as ConstVariableElement;
     expect(a.computeConstantValue().toIntValue(), 42);
+  }
+}
+
+@reflectiveTest
+class ConstantResolutionWithNnbdTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    )
+    ..implicitCasts = false;
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_context_eliminateTypeVariables() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  const A({List<T> a = const []});
+}
+''');
+    assertType(findNode.listLiteral('const []'), 'List<Never>');
+  }
+
+  test_context_eliminateTypeVariables_functionType() async {
+    await assertNoErrorsInCode(r'''
+class A<T, U> {
+  const A({List<T Function(U)> a = const []});
+}
+''');
+    assertType(
+      findNode.listLiteral('const []'),
+      'List<Never Function(Object?)>',
+    );
+  }
+
+  test_field_optIn_fromOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  static const foo = 42;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.5
+import 'a.dart';
+
+const bar = A.foo;
+''');
+
+    var bar = findElement.topVar('bar');
+    _assertIntValue(bar, 42);
+  }
+
+  test_topLevelVariable_optIn_fromOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+const foo = 42;
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.5
+import 'a.dart';
+
+const bar = foo;
+''');
+
+    var bar = findElement.topVar('bar');
+    assertType(bar.type, 'int*');
+    _assertIntValue(bar, 42);
+  }
+
+  test_topLevelVariable_optOut2() async {
+    newFile('/test/lib/a.dart', content: r'''
+const a = 42;
+''');
+
+    newFile('/test/lib/b.dart', content: r'''
+import 'a.dart';
+
+const b = a;
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.5
+import 'b.dart';
+
+const c = b;
+''');
+
+    var c = findElement.topVar('c');
+    assertType(c.type, 'int*');
+    _assertIntValue(c, 42);
+  }
+
+  void _assertIntValue(VariableElement element, int value) {
+    expect(element.constantValue.toIntValue(), value);
   }
 }

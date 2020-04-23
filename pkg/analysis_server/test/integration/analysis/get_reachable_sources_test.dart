@@ -4,13 +4,12 @@
 
 import 'dart:io';
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetReachableSourcesTest);
   });
@@ -19,11 +18,11 @@ main() {
 @reflectiveTest
 class GetReachableSourcesTest extends AbstractAnalysisServerIntegrationTest {
   @failingTest
-  test_reachable() async {
+  Future<void> test_reachable() async {
     // This fails with the new analysis driver ('Bad state: Should not be used
     // with the new analysis driver') - #29311.
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 class Foo {}
 
 class Bar {
@@ -34,12 +33,12 @@ class Bar {
     standardAnalysisSetup();
     await analysisFinished;
 
-    AnalysisGetReachableSourcesResult result =
+    var result =
         // ignore: deprecated_member_use_from_same_package
         await sendAnalysisGetReachableSources(pathname);
-    Map<String, List<String>> sources = result.sources;
-    List<String> keys = sources.keys.toList();
-    String url = new File(pathname).uri.toString();
+    var sources = result.sources;
+    var keys = sources.keys.toList();
+    var url = File(pathname).uri.toString();
 
     expect(keys, contains('dart:core'));
     expect(keys, contains('dart:collection'));

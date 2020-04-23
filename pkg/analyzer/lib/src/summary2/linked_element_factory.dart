@@ -29,6 +29,8 @@ class LinkedElementFactory {
     this.analysisSession,
     this.rootReference,
   ) {
+    ArgumentError.checkNotNull(analysisContext, 'analysisContext');
+    ArgumentError.checkNotNull(analysisSession, 'analysisSession');
     var dartCoreRef = rootReference.getChild('dart:core');
     dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
     dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
@@ -56,6 +58,15 @@ class LinkedElementFactory {
     var exportedReferences = exportsOfLibrary('$uri');
     for (var exportedReference in exportedReferences) {
       var element = elementOfReference(exportedReference);
+      // TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/41212
+      if (element == null) {
+        throw StateError(
+          '[No element]'
+          '[uri: $uri]'
+          '[exportedReferences: $exportedReferences]'
+          '[exportedReference: $exportedReference]',
+        );
+      }
       exportedNames[element.name] = element;
     }
 
@@ -66,6 +77,10 @@ class LinkedElementFactory {
     LibraryElementImpl dartCore,
     LibraryElementImpl dartAsync,
   ) {
+    if (analysisContext.typeProviderNonNullableByDefault != null) {
+      return;
+    }
+
     analysisContext.setTypeProviders(
       legacy: TypeProviderImpl(
         coreLibrary: dartCore,
@@ -87,9 +102,6 @@ class LinkedElementFactory {
         _setLibraryTypeSystem(libraryElement);
       }
     }
-
-    dartCore.createLoadLibraryFunction(dartCore.typeProvider);
-    dartAsync.createLoadLibraryFunction(dartAsync.typeProvider);
   }
 
   Element elementOfReference(Reference reference) {
@@ -165,7 +177,7 @@ class LinkedElementFactory {
     // During linking we create libraries when typeProvider is not ready.
     // And if we link dart:core and dart:async, we cannot create it.
     // We will set typeProvider later, during [createTypeProviders].
-    if (analysisContext.typeProviderLegacy == null) {
+    if (analysisContext.typeProviderNonNullableByDefault == null) {
       return;
     }
 
@@ -176,6 +188,8 @@ class LinkedElementFactory {
     libraryElement.typeSystem = isNonNullable
         ? analysisContext.typeSystemNonNullableByDefault
         : analysisContext.typeSystemLegacy;
+
+    libraryElement.createLoadLibraryFunction();
   }
 }
 
@@ -376,11 +390,6 @@ class _ElementRequest {
     libraryElement.definingCompilationUnit = units[0];
     libraryElement.parts = units.skip(1).toList();
     reference.element = libraryElement;
-
-    var typeProvider = elementFactory.analysisContext.typeProvider;
-    if (typeProvider != null) {
-      libraryElement.createLoadLibraryFunction(typeProvider);
-    }
 
     return libraryElement;
   }

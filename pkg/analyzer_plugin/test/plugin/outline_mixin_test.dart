@@ -34,22 +34,21 @@ class OutlineMixinTest with ResourceProviderMixin {
     packagePath1 = convertPath('/package1');
     filePath1 = join(packagePath1, 'lib', 'test.dart');
     newFile(filePath1);
-    contextRoot1 = new ContextRoot(packagePath1, <String>[]);
+    contextRoot1 = ContextRoot(packagePath1, <String>[]);
 
-    channel = new MockChannel();
-    plugin = new _TestServerPlugin(resourceProvider);
+    channel = MockChannel();
+    plugin = _TestServerPlugin(resourceProvider);
     plugin.start(channel);
   }
 
-  test_sendOutlineNotification() async {
+  Future<void> test_sendOutlineNotification() async {
     await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot1]));
+        AnalysisSetContextRootsParams([contextRoot1]));
 
-    Completer<void> notificationReceived = new Completer<void>();
+    var notificationReceived = Completer<void>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
-      AnalysisOutlineParams params =
-          new AnalysisOutlineParams.fromNotification(notification);
+      var params = AnalysisOutlineParams.fromNotification(notification);
       expect(params.file, filePath1);
       expect(params.outline, hasLength(3));
       notificationReceived.complete();
@@ -66,9 +65,8 @@ class _TestOutlineContributor implements OutlineContributor {
 
   @override
   void computeOutline(OutlineRequest request, OutlineCollector collector) {
-    for (int i = 0; i < elementCount; i++) {
-      collector.startElement(
-          new Element(ElementKind.METHOD, 'm$i', 0), 20 * i, 20);
+    for (var i = 0; i < elementCount; i++) {
+      collector.startElement(Element(ElementKind.METHOD, 'm$i', 0), 20 * i, 20);
       collector.endElement();
     }
   }
@@ -81,14 +79,14 @@ class _TestServerPlugin extends MockServerPlugin with OutlineMixin {
   @override
   List<OutlineContributor> getOutlineContributors(String path) {
     return <OutlineContributor>[
-      new _TestOutlineContributor(2),
-      new _TestOutlineContributor(1)
+      _TestOutlineContributor(2),
+      _TestOutlineContributor(1)
     ];
   }
 
   @override
   Future<OutlineRequest> getOutlineRequest(String path) async {
-    var result = new MockResolvedUnitResult(path: path);
-    return new DartOutlineRequestImpl(resourceProvider, result);
+    var result = MockResolvedUnitResult(path: path);
+    return DartOutlineRequestImpl(resourceProvider, result);
   }
 }

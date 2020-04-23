@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*strong.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
 /*omit.class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A {}
@@ -16,8 +18,7 @@ class C<T> {
   method(void Function(T) f) {}
 }
 
-/*strong.class: D:checks=[$asC],instance*/
-/*omit.class: D:checks=[],instance*/
+/*class: D:checks=[],instance*/
 class D extends C<B> {}
 
 main() {

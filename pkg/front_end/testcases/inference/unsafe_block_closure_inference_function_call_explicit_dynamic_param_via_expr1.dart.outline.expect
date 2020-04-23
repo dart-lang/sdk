@@ -4,11 +4,11 @@ library test;
 //
 // pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1.dart:9:19: Error: A comparison expression can't be an operand of another comparison expression.
 // Try putting parentheses around one of the comparisons.
-// var v = (f<dynamic>)(() {
+// var v = (f<dynamic>)(/*@returnType=int**/() {
 //                   ^
 //
 // pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1.dart:9:20: Error: Expected an identifier, but got ')'.
-// var v = (f<dynamic>)(() {
+// var v = (f<dynamic>)(/*@returnType=int**/() {
 //                    ^
 //
 import self as self;

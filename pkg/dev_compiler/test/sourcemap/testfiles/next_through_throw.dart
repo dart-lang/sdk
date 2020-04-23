@@ -12,6 +12,6 @@ void main() {
   }
 }
 
-foo() {
+int foo() {
   return 42;
 }

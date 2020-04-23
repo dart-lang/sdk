@@ -29,17 +29,20 @@ class DeprecatedLint extends LintRule {
 
 @reflectiveTest
 class OptionsRuleValidatorTest extends Object with ResourceProviderMixin {
-  LinterRuleOptionsValidator validator = new LinterRuleOptionsValidator(
-      provider: () => [new DeprecatedLint(), new StableLint()]);
+  LinterRuleOptionsValidator validator = LinterRuleOptionsValidator(
+      provider: () => [DeprecatedLint(), StableLint(), RuleNeg(), RulePos()]);
 
 /**
  * Assert that when the validator is used on the given [content] the
  * [expectedErrorCodes] are produced.
  */
   void assertErrors(String content, List<ErrorCode> expectedErrorCodes) {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    ErrorReporter reporter = new ErrorReporter(
-        listener, new StringSource(content, 'analysis_options.yaml'));
+    GatheringErrorListener listener = GatheringErrorListener();
+    ErrorReporter reporter = ErrorReporter(
+      listener,
+      StringSource(content, 'analysis_options.yaml'),
+      isNonNullableByDefault: false,
+    );
     validator.validate(reporter, loadYamlNode(content));
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }
@@ -59,6 +62,15 @@ linter:
     - stable_lint
     - stable_lint
       ''', [DUPLICATE_RULE_HINT]);
+  }
+
+  test_incompatible_rule() {
+    assertErrors('''
+linter:
+  rules:
+    - rule_pos
+    - rule_neg
+      ''', [INCOMPATIBLE_LINT_WARNING]);
   }
 
   test_stable_rule() {
@@ -82,4 +94,16 @@ class StableLint extends LintRule {
   StableLint()
       : super(
             name: 'stable_lint', group: Group.style, maturity: Maturity.stable);
+}
+
+class RuleNeg extends LintRule {
+  RuleNeg() : super(name: 'rule_neg', group: Group.style);
+  @override
+  List<String> get incompatibleRules => ['rule_pos'];
+}
+
+class RulePos extends LintRule {
+  RulePos() : super(name: 'rule_pos', group: Group.style);
+  @override
+  List<String> get incompatibleRules => ['rule_neg'];
 }

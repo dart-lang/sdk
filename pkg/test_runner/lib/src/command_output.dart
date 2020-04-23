@@ -9,6 +9,7 @@ import 'dart:io' as io;
 
 import 'package:status_file/expectation.dart';
 import 'package:test_runner/src/static_error.dart';
+import 'package:dart2js_tools/deobfuscate_stack_trace.dart';
 
 import 'browser_controller.dart';
 import 'command.dart';
@@ -88,7 +89,7 @@ class CommandOutput {
       // codes basically saying that codes starting with 0xC0, 0x80 or 0x40
       // are crashes, so look at the 4 most significant bits in 32-bit-space
       // make sure its either 0b1100, 0b1000 or 0b0100.
-      int masked = (exitCode & 0xF0000000) >> 28;
+      var masked = (exitCode & 0xF0000000) >> 28;
       return (exitCode < 0) && (masked >= 4) && ((masked & 3) == 0);
     }
     return exitCode < 0;
@@ -269,7 +270,12 @@ class BrowserCommandOutput extends CommandOutput
   final BrowserTestOutput _result;
   final Expectation _outcome;
 
-  factory BrowserCommandOutput(Command command, BrowserTestOutput result) {
+  /// Directory that is being served under `http:/.../root_build/` to browser
+  /// tests.
+  final String _buildDirectory;
+
+  factory BrowserCommandOutput(
+      BrowserTestCommand command, BrowserTestOutput result) {
     Expectation outcome;
 
     var parsedResult =
@@ -297,12 +303,24 @@ class BrowserCommandOutput extends CommandOutput
       }
     }
 
-    return BrowserCommandOutput._internal(command, result, outcome,
-        parsedResult, encodeUtf8(""), encodeUtf8(stderr));
+    return BrowserCommandOutput._internal(
+        command,
+        result,
+        outcome,
+        parsedResult,
+        command.configuration.buildDirectory,
+        encodeUtf8(""),
+        encodeUtf8(stderr));
   }
 
-  BrowserCommandOutput._internal(Command command, BrowserTestOutput result,
-      this._outcome, this._jsonResult, List<int> stdout, List<int> stderr)
+  BrowserCommandOutput._internal(
+      Command command,
+      BrowserTestOutput result,
+      this._outcome,
+      this._jsonResult,
+      this._buildDirectory,
+      List<int> stdout,
+      List<int> stderr)
       : _result = result,
         super(command, 0, result.didTimeout, stdout, stderr, result.duration,
             false, 0);
@@ -364,13 +382,25 @@ class BrowserCommandOutput extends CommandOutput
 
     void _showError(String header, event) {
       output.subsection(header);
-      output.write((event["value"] as String).trim());
+      var value = event["value"] as String;
       if (event["stack_trace"] != null) {
-        var stack = (event["stack_trace"] as String).trim().split("\n");
-        output.writeAll(stack);
+        value = '$value\n${event["stack_trace"] as String}';
       }
-
       showedError = true;
+      output.write(value);
+
+      // Skip deobfuscation if there is no indication that there is a stack
+      // trace in the string value.
+      if (!value.contains(RegExp('\\.js:'))) return;
+      var stringStack = value
+          // Convert `http:` URIs to relative `file:` URIs.
+          .replaceAll(RegExp('http://[^/]*/root_build/'), '$_buildDirectory/')
+          .replaceAll(RegExp('http://[^/]*/root_dart/'), '')
+          // Remove query parameters (seen in .html URIs).
+          .replaceAll(RegExp('\\?[^:]*:'), ':');
+      // TODO(sigmund): change internal deobfuscation code to avoid spurious
+      // error messages when files do not have a corresponding source-map.
+      _deobfuscateAndWriteStack(stringStack, output);
     }
 
     for (var event in _jsonResult.events) {
@@ -665,6 +695,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   static const _dfeErrorExitCode = 252;
   static const _compileErrorExitCode = 254;
   static const _uncaughtExceptionExitCode = 255;
+  static const _adbInfraFailureCodes = [10];
 
   VMCommandOutput(Command command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time, int pid)
@@ -721,8 +752,20 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
     if (exitCode == _uncaughtExceptionExitCode) return Expectation.runtimeError;
     if (exitCode != 0) {
-      // This is a general fail, in case we get an unknown nonzero exitcode.
-      return Expectation.fail;
+      var ourExit = 5;
+      // Unknown nonzero exit code from vm command.
+      // Consider this a failure of testing, and exit the test script.
+      if (testCase.configuration.system == System.android &&
+          _adbInfraFailureCodes.contains(exitCode)) {
+        print('Android device failed to run test');
+        ourExit = 3;
+      } else {
+        print('Unexpected exit code $exitCode');
+      }
+      print(command);
+      print(decodeUtf8(stdout));
+      print(decodeUtf8(stderr));
+      io.exit(ourExit);
     }
     var testOutput = decodeUtf8(stdout);
     if (_isAsyncTest(testOutput) && !_isAsyncTestSuccessful(testOutput)) {
@@ -880,7 +923,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     // between different kinds of failures and will mark a failed
     // compilation to just an exit code of "1".  So we treat all `exitCode ==
     // 1`s as compile-time errors as well.
-    const int kBatchModeCompileTimeErrorExit = 1;
+    const batchModeCompileTimeErrorExit = 1;
 
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.dartkCrash;
@@ -896,7 +939,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     // Multitests are handled specially.
     if (testCase.hasCompileError) {
       if (exitCode == VMCommandOutput._compileErrorExitCode ||
-          exitCode == kBatchModeCompileTimeErrorExit) {
+          exitCode == batchModeCompileTimeErrorExit) {
         return Expectation.pass;
       }
       return Expectation.missingCompileTimeError;
@@ -904,7 +947,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
 
     // The actual outcome depends on the exitCode.
     if (exitCode == VMCommandOutput._compileErrorExitCode ||
-        exitCode == kBatchModeCompileTimeErrorExit) {
+        exitCode == batchModeCompileTimeErrorExit) {
       return Expectation.compileTimeError;
     } else if (exitCode != 0) {
       // This is a general fail, in case we get an unknown nonzero exitcode.
@@ -922,7 +965,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     // between different kinds of failures and will mark a failed
     // compilation to just an exit code of "1".  So we treat all `exitCode ==
     // 1`s as compile-time errors as well.
-    const int kBatchModeCompileTimeErrorExit = 1;
+    const batchModeCompileTimeErrorExit = 1;
 
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.dartkCrash;
@@ -938,7 +981,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     // Multitests are handled specially.
 
     if (exitCode == VMCommandOutput._compileErrorExitCode ||
-        exitCode == kBatchModeCompileTimeErrorExit) {
+        exitCode == batchModeCompileTimeErrorExit) {
       return Expectation.compileTimeError;
     }
     if (exitCode != 0) {
@@ -992,6 +1035,16 @@ class JSCommandLineOutput extends CommandOutput
       return Expectation.fail;
     }
     return Expectation.pass;
+  }
+
+  void describe(TestCase testCase, Progress progress, OutputWriter output) {
+    super.describe(testCase, progress, output);
+    var decodedOut = decodeUtf8(stdout)
+        .replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n')
+        .trim();
+
+    _deobfuscateAndWriteStack(decodedOut, output);
   }
 }
 
@@ -1153,7 +1206,10 @@ mixin _StaticErrorOutput on CommandOutput {
             ? error.isAnalyzer
             : error.isCfe);
 
-    var validation = StaticError.validateExpectations(expected, errors);
+    var validation = StaticError.validateExpectations(
+      expected,
+      [...errors, ...warnings],
+    );
     if (validation == null) return Expectation.pass;
 
     writer?.subsection("static error failures");
@@ -1183,5 +1239,18 @@ mixin _UnittestSuiteMessagesMixin {
       }
     }
     return outcome;
+  }
+}
+
+void _deobfuscateAndWriteStack(String stack, OutputWriter output) {
+  try {
+    var deobfuscatedStack = deobfuscateStackTrace(stack);
+    if (deobfuscatedStack == stack) return;
+    output.subsection('Deobfuscated error and stack');
+    output.write(deobfuscatedStack);
+  } catch (e, st) {
+    output.subsection('Warning: not able to deobfuscate stack');
+    output.writeAll(['input: $stack', 'error: $e', 'stack trace: $st']);
+    return;
   }
 }

@@ -60,6 +60,7 @@
 library dart.mirrors;
 
 import 'dart:async' show Future;
+import "dart:_internal" show Since;
 
 /**
  * A [MirrorSystem] is the main interface used to reflect on a set of
@@ -111,6 +112,12 @@ abstract class MirrorSystem {
   TypeMirror get voidType;
 
   /**
+   * A mirror on the [:Never:] type.
+   */
+  @Since("2.8")
+  TypeMirror get neverType;
+
+  /**
    * Returns the name of [symbol].
    *
    * The following text is non-normative:
@@ -151,7 +158,7 @@ external MirrorSystem currentMirrorSystem();
  * function can only be used to obtain  mirrors on objects of the current
  * isolate.
  */
-external InstanceMirror reflect(Object reflectee);
+external InstanceMirror reflect(dynamic reflectee);
 
 /**
  * Reflects a class declaration.
@@ -401,11 +408,7 @@ abstract class ObjectMirror implements Mirror {
    * If the invocation throws an exception *e* (that it does not catch), this
    * method throws *e*.
    */
-  /*
-   * TODO(turnidge): Handle ambiguous names.
-   * TODO(turnidge): Handle optional & named arguments.
-   */
-  InstanceMirror invoke(Symbol memberName, List positionalArguments,
+  InstanceMirror invoke(Symbol memberName, List<dynamic> positionalArguments,
       [Map<Symbol, dynamic> namedArguments]);
 
   /**
@@ -469,8 +472,7 @@ abstract class ObjectMirror implements Mirror {
    * If the invocation throws an exception *e* (that it does not catch) this
    * method throws *e*.
    */
-  /* TODO(turnidge): Handle ambiguous names.*/
-  InstanceMirror setField(Symbol fieldName, Object value);
+  InstanceMirror setField(Symbol fieldName, dynamic value);
 
   /**
    * Performs [invocation] on the reflectee of this [ObjectMirror].
@@ -529,7 +531,7 @@ abstract class InstanceMirror implements ObjectMirror {
    * If you access [reflectee] when [hasReflectee] is false, an
    * exception is thrown.
    */
-  get reflectee;
+  dynamic get reflectee;
 
   /**
    * Whether this mirror is equal to [other].
@@ -597,7 +599,7 @@ abstract class ClosureMirror implements InstanceMirror {
    * If the invocation throws an exception *e* (that it does not catch), this
    * method throws *e*.
    */
-  InstanceMirror apply(List positionalArguments,
+  InstanceMirror apply(List<dynamic> positionalArguments,
       [Map<Symbol, dynamic> namedArguments]);
 }
 
@@ -845,11 +847,6 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    */
   ClassMirror get mixin;
 
-  // TODO(ahe): What about:
-  // /// Finds the instance member named [name] declared or inherited in the
-  // /// reflected class.
-  // DeclarationMirror instanceLookup(Symbol name);
-
   /**
    * Invokes the named constructor and returns a mirror on the result.
    *
@@ -878,7 +875,8 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * * If evaluating the expression throws an exception *e* (that it does not
    *   catch), this method throws *e*.
    */
-  InstanceMirror newInstance(Symbol constructorName, List positionalArguments,
+  InstanceMirror newInstance(
+      Symbol constructorName, List<dynamic> positionalArguments,
       [Map<Symbol, dynamic> namedArguments]);
 
   /**

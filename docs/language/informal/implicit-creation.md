@@ -4,7 +4,7 @@ Author: eernst@.
 
 Version: 0.7 (2018-04-10)
 
-Status: Implemented.
+Status: Background material, normative language now in dartLangSpec.tex.
 
 **This document** is an informal specification of the *implicit creation*
 feature. **The feature** adds support for omitting some occurrences of the

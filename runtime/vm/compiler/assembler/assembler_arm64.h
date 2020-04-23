@@ -14,6 +14,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/class_id.h"
+#include "vm/compiler/assembler/assembler_base.h"
 #include "vm/constants.h"
 #include "vm/hash_map.h"
 #include "vm/simulator.h"
@@ -446,6 +447,9 @@ class Assembler : public AssemblerBase {
   void PushRegister(Register r) { Push(r); }
   void PopRegister(Register r) { Pop(r); }
 
+  void PushRegisterPair(Register r0, Register r1) { PushPair(r0, r1); }
+  void PopRegisterPair(Register r0, Register r1) { PopPair(r0, r1); }
+
   void PushRegisters(const RegisterSet& registers);
   void PopRegisters(const RegisterSet& registers);
 
@@ -472,10 +476,23 @@ class Assembler : public AssemblerBase {
   void Jump(Label* label) { b(label); }
 
   void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+  void LoadMemoryValue(Register dst, Register base, int32_t offset) {
+    LoadFromOffset(dst, base, offset, kDoubleWord);
+  }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
+    CompareWithMemoryValue(value, address);
+  }
+
+  void CompareWithMemoryValue(Register value, Address address) {
     ldr(TMP, address);
     cmp(value, Operand(TMP));
+  }
+
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
+    ldr(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()),
+        kUnsignedByte);
+    cmp(TMP, Operand(value));
   }
 
   bool use_far_branches() const {
@@ -486,9 +503,6 @@ class Assembler : public AssemblerBase {
 
   // Debugging and bringup support.
   void Breakpoint() override { brk(0); }
-  void Stop(const char* message) override;
-
-  static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
   void SetPrologueOffset() {
     if (prologue_offset_ == -1) {
@@ -999,6 +1013,11 @@ class Assembler : public AssemblerBase {
     EmitCompareAndBranch(CBNZ, rt, label, sz);
   }
 
+  // Generate 64-bit compare with zero and branch when condition allows to use
+  // a single instruction: cbz/cbnz/tbz/tbnz.
+  bool CanGenerateXCbzTbz(Register rn, Condition cond);
+  void GenerateXCbzTbz(Register rn, Condition cond, Label* label);
+
   // Test bit and branch if zero.
   void tbz(Label* label, Register rt, intptr_t bit_number) {
     EmitTestAndBranch(TBZ, rt, bit_number, label);
@@ -1262,6 +1281,13 @@ class Assembler : public AssemblerBase {
       orr(rd, ZR, Operand(rn));
     }
   }
+  void movw(Register rd, Register rn) {
+    if ((rd == CSP) || (rn == CSP)) {
+      addw(rd, rn, Operand(0));
+    } else {
+      orrw(rd, ZR, Operand(rn));
+    }
+  }
   void vmov(VRegister vd, VRegister vn) { vorr(vd, vn, vn); }
   void mvn(Register rd, Register rm) { orn(rd, ZR, Operand(rm)); }
   void mvnw(Register rd, Register rm) { ornw(rd, ZR, Operand(rm)); }
@@ -1368,22 +1394,28 @@ class Assembler : public AssemblerBase {
               Register pp,
               ObjectPoolBuilderEntry::Patchability patchable =
                   ObjectPoolBuilderEntry::kNotPatchable);
-  void BranchPatchable(const Code& code);
 
   void BranchLink(const Code& code,
                   ObjectPoolBuilderEntry::Patchability patchable =
-                      ObjectPoolBuilderEntry::kNotPatchable);
+                      ObjectPoolBuilderEntry::kNotPatchable,
+                  CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
-  void BranchLinkPatchable(const Code& code) {
-    BranchLink(code, ObjectPoolBuilderEntry::kPatchable);
+  void BranchLinkPatchable(const Code& code,
+                           CodeEntryKind entry_kind = CodeEntryKind::kNormal) {
+    BranchLink(code, ObjectPoolBuilderEntry::kPatchable, entry_kind);
   }
   void BranchLinkToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers);
 
+  void CallNullArgErrorShared(bool save_fpu_registers);
+
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
-  void BranchLinkWithEquivalence(const Code& code, const Object& equivalence);
+  void BranchLinkWithEquivalence(
+      const Code& code,
+      const Object& equivalence,
+      CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
   void AddImmediate(Register dest, int64_t imm) {
     AddImmediate(dest, dest, imm);
@@ -1392,7 +1424,7 @@ class Assembler : public AssemblerBase {
   // Macros accepting a pp Register argument may attempt to load values from
   // the object pool when possible. Unless you are sure that the untagged object
   // pool pointer is in another register, or that it is not available at all,
-  // PP should be passed for pp.
+  // PP should be passed for pp. `dest` can be TMP2, `rn` cannot.
   void AddImmediate(Register dest, Register rn, int64_t imm);
   void AddImmediateSetFlags(Register dest,
                             Register rn,
@@ -1418,6 +1450,7 @@ class Assembler : public AssemblerBase {
                            OperandSize sz = kDoubleWord) {
     LoadFromOffset(dest, base, offset - kHeapObjectTag, sz);
   }
+  void LoadSFromOffset(VRegister dest, Register base, int32_t offset);
   void LoadDFromOffset(VRegister dest, Register base, int32_t offset);
   void LoadDFieldFromOffset(VRegister dest, Register base, int32_t offset) {
     LoadDFromOffset(dest, base, offset - kHeapObjectTag);
@@ -1437,6 +1470,8 @@ class Assembler : public AssemblerBase {
                           OperandSize sz = kDoubleWord) {
     StoreToOffset(src, base, offset - kHeapObjectTag, sz);
   }
+
+  void StoreSToOffset(VRegister src, Register base, int32_t offset);
   void StoreDToOffset(VRegister src, Register base, int32_t offset);
   void StoreDFieldToOffset(VRegister src, Register base, int32_t offset) {
     StoreDToOffset(src, base, offset - kHeapObjectTag);
@@ -1502,14 +1537,22 @@ class Assembler : public AssemblerBase {
                        const ExternalLabel* label,
                        ObjectPoolBuilderEntry::Patchability patchable);
   void LoadIsolate(Register dst);
+
+  // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadObject(Register dst, const Object& obj);
+  // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadUniqueObject(Register dst, const Object& obj);
+  // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadImmediate(Register reg, int64_t imm);
+
   void LoadDImmediate(VRegister reg, double immd);
 
   // Load word from pool from the given offset using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.
+  //
+  // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadWordFromPoolOffset(Register dst, uint32_t offset, Register pp = PP);
+
   void LoadDoubleWordFromPoolOffset(Register lower,
                                     Register upper,
                                     uint32_t offset);
@@ -1533,6 +1576,7 @@ class Assembler : public AssemblerBase {
   void CompareClassId(Register object,
                       intptr_t class_id,
                       Register scratch = kNoRegister);
+  // Note: input and output registers must be different.
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
@@ -1563,6 +1607,8 @@ class Assembler : public AssemblerBase {
   // Restores the values of the registers that are blocked to cache some values
   // e.g. BARRIER_MASK and NULL_REG.
   void RestorePinnedRegisters();
+
+  void SetupGlobalPoolAndDispatchTable();
 
   void EnterDartFrame(intptr_t frame_size, Register new_pp = kNoRegister);
   void EnterOsrFrame(intptr_t extra_size, Register new_pp = kNoRegister);
@@ -1637,6 +1683,7 @@ class Assembler : public AssemblerBase {
   Address ElementAddressForRegIndex(bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
+                                    bool index_unboxed,
                                     Register array,
                                     Register index,
                                     Register temp);
@@ -1648,6 +1695,7 @@ class Assembler : public AssemblerBase {
                                             intptr_t cid,
                                             OperandSize size,
                                             intptr_t index_scale,
+                                            bool index_unboxed,
                                             Register array,
                                             Register index,
                                             Register temp);
@@ -1656,15 +1704,16 @@ class Assembler : public AssemblerBase {
                                         bool is_external,
                                         intptr_t cid,
                                         intptr_t index_scale,
+                                        bool index_unboxed,
                                         Register array,
                                         Register index);
 
   // Returns object data offset for address calculation; for heap objects also
   // accounts for the tag.
   static int32_t HeapDataOffset(bool is_external, intptr_t cid) {
-    return is_external ?
-          0 :
-          (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
+    return is_external
+               ? 0
+               : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
   }
 
   static int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
@@ -1685,6 +1734,7 @@ class Assembler : public AssemblerBase {
 
   void LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset);
 
+  // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
 
   void AddSubHelper(OperandSize os,

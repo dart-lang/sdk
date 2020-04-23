@@ -1,0 +1,91 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:7:13: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+// foo(A<num?> a) {} // Error
+//             ^
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends num> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:9:13: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A' in the return type.
+// Try changing type arguments so that they conform to the bounds.
+// A<num?>? bar() {} // Error
+//             ^
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends num> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:11:5: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+// baz<T extends A<num?>>() {} // Error
+//     ^
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends num> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:13:7: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A' in the supertype 'A' of class 'B'.
+// Try changing type arguments so that they conform to the bounds.
+// class B extends A<num?> {} // Error
+//       ^
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends num> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:15:9: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+// class C<T extends A<num?>> {} // Error
+//         ^
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends num> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:24:3: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'T' on 'hest'.
+// Try changing type arguments so that they conform to the bounds.
+//   hest<num?>();
+//   ^
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:17:11: Context: This is the type variable whose bound isn't conformed to.
+// void hest<T extends num>() {}
+//           ^
+//
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:25:5: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'T' on 'Hest.hest'.
+//  - 'Hest' is from 'pkg/front_end/testcases/nnbd/bounds_checks.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   h.hest<num?>();
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::num = core::num> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
+    : super core::Object::•()
+    ;
+}
+class B extends self::A<core::num?> {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+class C<T extends self::A<core::num?> = self::A<core::num?>> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T>
+    : super core::Object::•()
+    ;
+}
+class Hest extends core::Object {
+  synthetic constructor •() → self::Hest
+    : super core::Object::•()
+    ;
+  method hest<T extends core::num = core::num>() → void {}
+}
+static method foo(self::A<core::num?> a) → dynamic {}
+static method bar() → self::A<core::num?>? {}
+static method baz<T extends self::A<core::num?> = self::A<core::num?>>() → dynamic {}
+static method hest<T extends core::num = core::num>() → void {}
+static method fisk(self::Hest h) → dynamic {
+  self::hest<core::num?>();
+  h.{self::Hest::hest}<core::num?>();
+}
+static method main() → dynamic {}

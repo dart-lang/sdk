@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "infer_in_legacy_from_opted_in_lib.dart" as inf;
+
+import "org-dartlang-testcase:///infer_in_legacy_from_opted_in_lib.dart";
+
+static method bar(core::int* x) → dynamic {
+  inf::baz(inf::foo<core::int*>(x, inf::y));
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as inf;
+import "dart:core" as core;
+
+static field core::int y = 42;
+static method foo<T extends core::num = core::num>(inf::foo::T t1, inf::foo::T t2) → inf::foo::T
+  return t1;
+static method baz(core::int? v) → dynamic {}

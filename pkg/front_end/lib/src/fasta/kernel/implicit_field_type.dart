@@ -6,19 +6,21 @@ library fasta.implicit_type;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-import 'package:kernel/ast.dart'
-    show DartType, DartTypeVisitor, DartTypeVisitor1, Nullability, Visitor;
+import 'package:kernel/ast.dart' hide MapEntry;
+
+import 'package:kernel/src/assumptions.dart';
+import 'package:kernel/src/legacy_erasure.dart';
 
 import '../builder/field_builder.dart';
-
+import '../constant_context.dart';
+import '../fasta_codes.dart';
 import '../problems.dart' show unsupported;
+import '../type_inference/type_inferrer.dart';
+import '../type_inference/type_schema.dart';
+import 'body_builder.dart';
 
 abstract class ImplicitFieldType extends DartType {
   SourceFieldBuilder get fieldBuilder;
-  Token get initializerToken;
-  void set initializerToken(Token value);
-  bool get isStarted;
-  void set isStarted(bool value);
 
   ImplicitFieldType._();
 
@@ -51,11 +53,15 @@ abstract class ImplicitFieldType extends DartType {
         "withNullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
   }
 
-  ImplicitFieldType createAlias(SourceFieldBuilder target) =>
-      new _ImplicitFieldTypeAlias(this, target);
+  void addOverride(ImplicitFieldType other);
+
+  DartType checkInferred(DartType type);
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) {
     if (identical(this, other)) return true;
     return other is ImplicitFieldType && fieldBuilder == other.fieldBuilder;
   }
@@ -64,41 +70,112 @@ abstract class ImplicitFieldType extends DartType {
   int get hashCode => fieldBuilder.hashCode;
 
   DartType inferType();
+
+  DartType computeType();
 }
 
 class _ImplicitFieldTypeRoot extends ImplicitFieldType {
   final SourceFieldBuilder fieldBuilder;
+  List<ImplicitFieldType> _overriddenFields;
   Token initializerToken;
   bool isStarted = false;
 
   _ImplicitFieldTypeRoot(this.fieldBuilder, this.initializerToken) : super._();
 
-  DartType inferType() => fieldBuilder.inferType();
-}
-
-class _ImplicitFieldTypeAlias extends ImplicitFieldType {
-  final ImplicitFieldType _root;
-  final SourceFieldBuilder _targetFieldBuilder;
-
-  _ImplicitFieldTypeAlias(this._root, this._targetFieldBuilder)
-      : assert(_root.fieldBuilder != _targetFieldBuilder),
-        super._();
-
-  SourceFieldBuilder get fieldBuilder => _root.fieldBuilder;
-
-  Token get initializerToken => _root.initializerToken;
-
-  void set initializerToken(Token value) {
-    _root.initializerToken = value;
-  }
-
-  bool get isStarted => _root.isStarted;
-
-  void set isStarted(bool value) {
-    _root.isStarted = value;
-  }
-
   DartType inferType() {
-    return _targetFieldBuilder.fieldType = _root.inferType();
+    return fieldBuilder.inferType();
   }
+
+  DartType computeType() {
+    if (isStarted) {
+      fieldBuilder.library.addProblem(
+          templateCantInferTypeDueToCircularity
+              .withArguments(fieldBuilder.name),
+          fieldBuilder.charOffset,
+          fieldBuilder.name.length,
+          fieldBuilder.fileUri);
+      return fieldBuilder.fieldType = const InvalidType();
+    }
+    isStarted = true;
+    DartType inferredType;
+    if (_overriddenFields != null) {
+      for (ImplicitFieldType overridden in _overriddenFields) {
+        DartType overriddenType = overridden.inferType();
+        if (!fieldBuilder.library.isNonNullableByDefault) {
+          overriddenType = legacyErasure(
+              fieldBuilder.library.loader.coreTypes, overriddenType);
+        }
+        if (inferredType == null) {
+          inferredType = overriddenType;
+        } else if (inferredType != overriddenType) {
+          inferredType = const InvalidType();
+        }
+      }
+      return inferredType;
+    } else if (initializerToken != null) {
+      InterfaceType enclosingClassThisType =
+          fieldBuilder.field.enclosingClass == null
+              ? null
+              : fieldBuilder.library.loader.typeInferenceEngine.coreTypes
+                  .thisInterfaceType(fieldBuilder.field.enclosingClass,
+                      fieldBuilder.field.enclosingLibrary.nonNullable);
+      TypeInferrerImpl typeInferrer = fieldBuilder
+          .library.loader.typeInferenceEngine
+          .createTopLevelTypeInferrer(
+              fieldBuilder.fileUri,
+              enclosingClassThisType,
+              fieldBuilder.library,
+              fieldBuilder.dataForTesting?.inferenceData);
+      BodyBuilder bodyBuilder = fieldBuilder.library.loader
+          .createBodyBuilderForField(fieldBuilder, typeInferrer);
+      bodyBuilder.constantContext = fieldBuilder.isConst
+          ? ConstantContext.inferred
+          : ConstantContext.none;
+      Expression initializer =
+          bodyBuilder.parseFieldInitializer(initializerToken);
+      initializerToken = null;
+
+      ExpressionInferenceResult result = typeInferrer.inferExpression(
+          initializer, const UnknownType(), true,
+          isVoidAllowed: true);
+      inferredType = typeInferrer.inferDeclarationType(result.inferredType);
+    } else {
+      inferredType = const DynamicType();
+    }
+    return inferredType;
+  }
+
+  void addOverride(ImplicitFieldType other) {
+    _overriddenFields ??= [];
+    _overriddenFields.add(other);
+  }
+
+  DartType checkInferred(DartType type) {
+    if (_overriddenFields != null) {
+      for (ImplicitFieldType overridden in _overriddenFields) {
+        DartType overriddenType = overridden.inferType();
+        if (!fieldBuilder.library.isNonNullableByDefault) {
+          overriddenType = legacyErasure(
+              fieldBuilder.library.loader.coreTypes, overriddenType);
+        }
+        if (type != overriddenType) {
+          String name = fieldBuilder.fullNameForErrors;
+          fieldBuilder.classBuilder.addProblem(
+              templateCantInferTypeDueToInconsistentOverrides
+                  .withArguments(name),
+              fieldBuilder.charOffset,
+              name.length,
+              wasHandled: true);
+          return const InvalidType();
+        }
+      }
+    }
+    return type;
+  }
+
+  @override
+  String toString() => 'ImplicitFieldType(${toStringInternal()})';
+
+  @override
+  String toStringInternal() => '$fieldBuilder';
 }

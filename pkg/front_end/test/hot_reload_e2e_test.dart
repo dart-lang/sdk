@@ -19,8 +19,7 @@ import 'package:expect/expect.dart' show Expect;
 
 import 'package:kernel/ast.dart' show Component;
 
-import 'package:kernel/binary/limited_ast_to_binary.dart'
-    show LimitedBinaryPrinter;
+import 'package:kernel/binary/ast_to_binary.dart';
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -321,8 +320,8 @@ Future<Null> writeProgram(Component component, Uri outputUri) async {
   var sink = new File.fromUri(outputUri).openWrite();
   // TODO(sigmund): the incremental generator should always filter these
   // libraries instead.
-  new LimitedBinaryPrinter(
-          sink, (library) => library.importUri.scheme != 'dart', false)
+  new BinaryPrinter(sink,
+          libraryFilter: (library) => library.importUri.scheme != 'dart')
       .writeComponentFile(component);
   await sink.close();
 }

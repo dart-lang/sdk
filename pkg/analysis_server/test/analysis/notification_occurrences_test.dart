@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationOccurrencesTest);
   });
@@ -24,43 +24,37 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
   List<Occurrences> occurrencesList;
   Occurrences testOccurrences;
 
-  Completer _resultsAvailable = new Completer();
+  final Completer<void> _resultsAvailable = Completer();
 
-  /**
-   * Asserts that there is an offset of [search] in [testOccurrences].
-   */
+  /// Asserts that there is an offset of [search] in [testOccurrences].
   void assertHasOffset(String search) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     expect(testOccurrences.offsets, contains(offset));
   }
 
-  /**
-   * Validates that there is a region at the offset of [search] in [testFile].
-   * If [length] is not specified explicitly, then length of an identifier
-   * from [search] is used.
-   */
+  /// Validates that there is a region at the offset of [search] in [testFile].
+  /// If [length] is not specified explicitly, then length of an identifier
+  /// from [search] is used.
   void assertHasRegion(String search, [int length = -1]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     if (length == -1) {
       length = findIdentifierLength(search);
     }
     findRegion(offset, length, true);
   }
 
-  /**
-   * Finds an [Occurrences] with the given [offset] and [length].
-   *
-   * If [exists] is `true`, then fails if such [Occurrences] does not exist.
-   * Otherwise remembers this it into [testOccurrences].
-   *
-   * If [exists] is `false`, then fails if such [Occurrences] exists.
-   */
+  /// Finds an [Occurrences] with the given [offset] and [length].
+  ///
+  /// If [exists] is `true`, then fails if such [Occurrences] does not exist.
+  /// Otherwise remembers this it into [testOccurrences].
+  ///
+  /// If [exists] is `false`, then fails if such [Occurrences] exists.
   void findRegion(int offset, int length, [bool exists]) {
-    for (Occurrences occurrences in occurrencesList) {
+    for (var occurrences in occurrencesList) {
       if (occurrences.length != length) {
         continue;
       }
-      for (int occurrenceOffset in occurrences.offsets) {
+      for (var occurrenceOffset in occurrences.offsets) {
         if (occurrenceOffset == offset) {
           if (exists == false) {
             fail('Not expected to find (offset=$offset; length=$length) in\n'
@@ -82,12 +76,13 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
     return _resultsAvailable.future;
   }
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OCCURRENCES) {
-      var params = new AnalysisOccurrencesParams.fromNotification(notification);
+      var params = AnalysisOccurrencesParams.fromNotification(notification);
       if (params.file == testFile) {
         occurrencesList = params.occurrences;
-        _resultsAvailable.complete(null);
+        _resultsAvailable.complete();
       }
     }
   }
@@ -98,7 +93,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  test_afterAnalysis() async {
+  Future<void> test_afterAnalysis() async {
     addTestFile('''
 main() {
   var vvv = 42;
@@ -114,7 +109,7 @@ main() {
     assertHasOffset('vvv);');
   }
 
-  test_field() async {
+  Future<void> test_field() async {
     addTestFile('''
 class A {
   int fff;
@@ -133,7 +128,7 @@ class A {
     assertHasOffset('fff); // print');
   }
 
-  test_field_unresolved() async {
+  Future<void> test_field_unresolved() async {
     addTestFile('''
 class A {
   A(this.noSuchField);
@@ -143,7 +138,7 @@ class A {
     await prepareOccurrences();
   }
 
-  test_localVariable() async {
+  Future<void> test_localVariable() async {
     addTestFile('''
 main() {
   var vvv = 42;
@@ -160,7 +155,7 @@ main() {
     assertHasOffset('vvv);');
   }
 
-  test_memberField() async {
+  Future<void> test_memberField() async {
     addTestFile('''
 class A<T> {
   T fff;
@@ -179,7 +174,7 @@ main() {
     assertHasOffset('fff = 2;');
   }
 
-  test_memberMethod() async {
+  Future<void> test_memberMethod() async {
     addTestFile('''
 class A<T> {
   T mmm() {}
@@ -198,7 +193,7 @@ main() {
     assertHasOffset('mmm(); // b');
   }
 
-  test_topLevelVariable() async {
+  Future<void> test_topLevelVariable() async {
     addTestFile('''
 var VVV = 1;
 main() {
@@ -213,7 +208,7 @@ main() {
     assertHasOffset('VVV);');
   }
 
-  test_type_class() async {
+  Future<void> test_type_class() async {
     addTestFile('''
 main() {
   int a = 1;
@@ -232,7 +227,7 @@ int VVV = 4;
     assertHasOffset('int VVV');
   }
 
-  test_type_dynamic() async {
+  Future<void> test_type_dynamic() async {
     addTestFile('''
 main() {
   dynamic a = 1;
@@ -241,17 +236,17 @@ main() {
 dynamic V = 3;
 ''');
     await prepareOccurrences();
-    int offset = findOffset('dynamic a');
+    var offset = findOffset('dynamic a');
     findRegion(offset, 'dynamic'.length, false);
   }
 
-  test_type_void() async {
+  Future<void> test_type_void() async {
     addTestFile('''
 void main() {
 }
 ''');
     await prepareOccurrences();
-    int offset = findOffset('void main()');
+    var offset = findOffset('void main()');
     findRegion(offset, 'void'.length, false);
   }
 }

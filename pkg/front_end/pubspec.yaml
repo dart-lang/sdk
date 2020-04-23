@@ -10,7 +10,8 @@ environment:
 dependencies:
   _fe_analyzer_shared: 1.0.0
   kernel: 0.3.29
-  package_config: '^1.1.0'
+  package_config:
+    path: ../../third_party/pkg_tested/package_config/
   meta: ^1.0.2
 dev_dependencies:
   analyzer: 0.39.1
@@ -24,3 +25,5 @@ dev_dependencies:
   test_reflective_loader: ^0.1.0
   web_socket_channel: ^1.0.4
   yaml: '^2.1.12'
+  vm_service:
+    path: ../vm_service

@@ -228,12 +228,14 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     JSONObject jssettings(&jsobj, "_debuggerSettings");
     isolate()->debugger()->PrintSettingsToJSONObject(&jssettings);
   }
-  if ((top_frame() != NULL) && Isolate::Current()->compilation_allowed()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (top_frame() != nullptr) {
     JSONObject jsFrame(&jsobj, "topFrame");
     top_frame()->PrintToJSONObject(&jsFrame);
     intptr_t index = 0;  // Avoid ambiguity in call to AddProperty.
     jsFrame.AddProperty("index", index);
   }
+#endif
   if (exception() != NULL) {
     jsobj.AddProperty("exception", *(exception()));
   }

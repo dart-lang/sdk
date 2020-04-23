@@ -380,7 +380,9 @@ bool SimpleInstanceOfType(const AbstractType& type) {
     // type arguments, then we can still use the _simpleInstanceOf
     // implementation (see also runtime/lib/object.cc:Object_SimpleInstanceOf).
     const auto& rare_type = AbstractType::Handle(type_class.RareType());
-    return rare_type.Equals(type);
+    // TODO(regis): Revisit the usage of TypeEquality::kSyntactical when
+    // implementing strong mode.
+    return rare_type.IsEquivalent(type, TypeEquality::kSyntactical);
   }
 
   // Finally a simple class for instance of checking.

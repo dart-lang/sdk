@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortChildPropertyLastTest);
   });
@@ -20,7 +20,7 @@ class SortChildPropertyLastTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.SORT_CHILD_PROPERTY_LAST;
 
-  test_already_sorted() async {
+  Future<void> test_already_sorted() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -38,7 +38,7 @@ main() {
     await assertNoAssist();
   }
 
-  test_already_sorted_one_prop() async {
+  Future<void> test_already_sorted_one_prop() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -55,7 +55,7 @@ main() {
     await assertNoAssist();
   }
 
-  test_no_children() async {
+  Future<void> test_no_children() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -68,7 +68,7 @@ main() {
     await assertNoAssist();
   }
 
-  test_sort() async {
+  Future<void> test_sort() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -96,10 +96,10 @@ main() {
   );
 }
 ''');
-    assertExitPosition(after: "],");
+    assertExitPosition(after: '],');
   }
 
-  test_sort_noAssistWithLint() async {
+  Future<void> test_sort_noAssistWithLint() async {
     addFlutterPackage();
     createAnalysisOptionsFile(lints: [LintNames.sort_child_properties_last]);
     verifyNoTestUnitErrors = false;

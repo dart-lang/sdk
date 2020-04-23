@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertFlutterChildTest);
   });
@@ -19,7 +19,67 @@ class ConvertFlutterChildTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CONVERT_FLUTTER_CHILD;
 
-  test_hasList() async {
+  Future<void> test_hasList() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+build() {
+  return Container(
+    child: Row(
+      child: [
+        Text('111'),
+        Text('222'),
+      ],
+    ),
+  );
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+build() {
+  return Container(
+    child: Row(
+      children: [
+        Text('111'),
+        Text('222'),
+      ],
+    ),
+  );
+}
+''');
+  }
+
+  Future<void> test_hasTypedList() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+build() {
+  return new Container(
+    child: new Row(
+      child: <Widget>[
+        new Text('111'),
+        new Text('222'),
+      ],
+    ),
+  );
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+build() {
+  return new Container(
+    child: new Row(
+      children: <Widget>[
+        new Text('111'),
+        new Text('222'),
+      ],
+    ),
+  );
+}
+''');
+  }
+
+  Future<void> test_listNotWidget() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -27,66 +87,6 @@ build() {
   return new Container(
     child: new Row(
       child: [
-        new Text('111'),
-        new Text('222'),
-      ],
-    ),
-  );
-}
-''');
-    await assertHasFix('''
-import 'package:flutter/widgets.dart';
-build() {
-  return new Container(
-    child: new Row(
-      children: <Widget>[
-        new Text('111'),
-        new Text('222'),
-      ],
-    ),
-  );
-}
-''');
-  }
-
-  test_hasTypedList() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
-import 'package:flutter/widgets.dart';
-build() {
-  return new Container(
-    child: new Row(
-      child: <Widget>[
-        new Text('111'),
-        new Text('222'),
-      ],
-    ),
-  );
-}
-''');
-    await assertHasFix('''
-import 'package:flutter/widgets.dart';
-build() {
-  return new Container(
-    child: new Row(
-      children: <Widget>[
-        new Text('111'),
-        new Text('222'),
-      ],
-    ),
-  );
-}
-''');
-  }
-
-  test_listNotWidget() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
-import 'package:flutter/widgets.dart';
-build() {
-  return new Container(
-    child: new Row(
-      child: <Widget>[
         new Container(),
         null,
       ],
@@ -97,7 +97,7 @@ build() {
     await assertNoFix();
   }
 
-  test_multiLine() async {
+  Future<void> test_multiLine() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -117,7 +117,7 @@ import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
     body: new Row(
-      children: <Widget>[
+      children: [
         new Container(
           width: 200.0,
           height: 300.0,
@@ -129,7 +129,7 @@ build() {
 ''');
   }
 
-  test_widgetVariable() async {
+  Future<void> test_widgetVariable() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -145,7 +145,7 @@ import 'package:flutter/material.dart';
 build() {
   var text = new Text('foo');
   new Row(
-    children: <Widget>[text],
+    children: [text],
   );
 }
 ''');

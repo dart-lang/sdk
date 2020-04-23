@@ -7,12 +7,12 @@
 # Please update this file if you add a package to DEPS or /pkg
 #
 _fe_analyzer_shared:pkg/_fe_analyzer_shared/lib
+_js_interop_checks:pkg/_js_interop_checks/lib
 analysis_server:pkg/analysis_server/lib
 analysis_server_client:pkg/analysis_server_client/lib
 analysis_tool:pkg/analysis_tool/lib
 analyzer:pkg/analyzer/lib
 analyzer_cli:pkg/analyzer_cli/lib
-analyzer_fe_comparison:pkg/analyzer_fe_comparison/lib
 analyzer_plugin:pkg/analyzer_plugin/lib
 args:third_party/pkg/args/lib
 async:third_party/pkg/async/lib
@@ -33,8 +33,10 @@ dart2js_tools:pkg/dart2js_tools/lib
 dart2native:pkg/dart2native/lib
 dart_internal:pkg/dart_internal/lib
 dart_style:third_party/pkg_tested/dart_style/lib
+dartdev:pkg/dartdev/lib
 dartdoc:third_party/pkg/dartdoc/lib
 dartfix:pkg/dartfix/lib
+dds:pkg/dds/lib
 dev_compiler:pkg/dev_compiler/lib
 diagnostic:pkg/diagnostic/lib
 expect:pkg/expect/lib
@@ -66,12 +68,12 @@ mime:third_party/pkg/mime/lib
 mockito:third_party/pkg/mockito/lib
 modular_test:pkg/modular_test/lib
 mustache:third_party/pkg/mustache/lib
+native_stack_traces:pkg/native_stack_traces/lib
 nnbd_migration:pkg/nnbd_migration/lib
 oauth2:third_party/pkg/oauth2/lib
 observatory:runtime/observatory/lib
 observatory_test_package:runtime/observatory/tests/service/observatory_test_package
 package_config:third_party/pkg_tested/package_config/lib
-package_resolver:third_party/pkg_tested/package_resolver/lib
 path:third_party/pkg/path/lib
 pedantic:third_party/pkg/pedantic/lib
 pool:third_party/pkg/pool/lib
@@ -83,6 +85,7 @@ resource:third_party/pkg/resource/lib
 sdk_library_metadata:sdk/lib/_internal/sdk_library_metadata/lib
 shelf:third_party/pkg/shelf/lib
 shelf_packages_handler:third_party/pkg/shelf_packages_handler/lib
+shelf_proxy:third_party/pkg/shelf_proxy/lib
 shelf_static:third_party/pkg/shelf_static/lib
 shelf_web_socket:third_party/pkg/shelf_web_socket/lib
 smith:pkg/smith/lib
@@ -91,6 +94,7 @@ sourcemap_testing:pkg/sourcemap_testing/lib
 source_maps:third_party/pkg/source_maps/lib
 source_span:third_party/pkg/source_span/lib
 stack_trace:third_party/pkg/stack_trace/lib
+stagehand:third_party/pkg/stagehand/lib
 status_file:pkg/status_file/lib
 stream_channel:third_party/pkg/stream_channel/lib
 string_scanner:third_party/pkg/string_scanner/lib
@@ -106,7 +110,6 @@ test_runner:pkg/test_runner/lib
 testing:pkg/testing/lib
 tflite_native:third_party/pkg/tflite_native/lib
 typed_data:third_party/pkg/typed_data/lib
-unittest:third_party/pkg/unittest/lib
 usage:third_party/pkg/usage/lib
 vm:pkg/vm/lib
 vm_service:pkg/vm_service/lib

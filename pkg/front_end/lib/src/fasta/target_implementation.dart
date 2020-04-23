@@ -6,7 +6,7 @@ library fasta.target_implementation;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Source;
+import 'package:kernel/ast.dart' show Library, Source;
 
 import 'package:kernel/target/targets.dart' as backend show Target;
 
@@ -55,7 +55,10 @@ abstract class TargetImplementation extends Target {
   bool enableNonfunctionTypeAliases;
 
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
-      : enableExtensionMethods = CompilerContext.current.options
+      : assert(ticker != null),
+        assert(uriTranslator != null),
+        assert(backendTarget != null),
+        enableExtensionMethods = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.extensionMethods),
         enableNonNullable = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.nonNullable),
@@ -75,7 +78,11 @@ abstract class TargetImplementation extends Target {
   ///
   /// [origin] is non-null if the created library is a patch to [origin].
   LibraryBuilder createLibraryBuilder(
-      Uri uri, Uri fileUri, covariant LibraryBuilder origin);
+      Uri uri,
+      Uri fileUri,
+      covariant LibraryBuilder origin,
+      Library referencesFrom,
+      bool referenceIsPartOwner);
 
   /// The class [cls] is involved in a cyclic definition. This method should
   /// ensure that the cycle is broken, for example, by removing superclass and

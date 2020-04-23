@@ -9,6 +9,7 @@ import 'dart:convert' show jsonDecode;
 import 'package:kernel/ast.dart'
     show
         Class,
+        ConstantExpression,
         DartType,
         DynamicType,
         Extension,
@@ -23,12 +24,15 @@ import 'package:kernel/ast.dart'
         Procedure,
         Reference,
         StaticGet,
+        StringConstant,
         StringLiteral,
         Typedef;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/dynamic_type_builder.dart';
+import '../builder/extension_builder.dart';
+import '../builder/modifier_builder.dart';
 import '../builder/never_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
@@ -43,7 +47,8 @@ import '../fasta_codes.dart'
         templateTypeNotFound,
         templateUnspecified;
 
-import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
+import '../kernel/redirecting_factory_body.dart'
+    show RedirectingFactoryBody, isRedirectingFactoryField;
 
 import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
@@ -85,10 +90,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   /// [../kernel/kernel_library_builder.dart].
   Map<String, String> unserializableExports;
 
-  // TODO(jensj): These 4 booleans could potentially be merged into a single
+  // TODO(jensj): These 5 booleans could potentially be merged into a single
   // state field.
   bool isReadyToBuild = false;
   bool isReadyToFinalizeExports = false;
+  bool suppressFinalizationErrors = false;
   bool isBuilt = false;
   bool isBuiltAndMarked = false;
 
@@ -134,7 +140,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   void setLanguageVersion(int major, int minor,
       {int offset: 0, int length, bool explicit}) {}
 
-  Uri get uri => library.importUri;
+  Uri get importUri => library.importUri;
 
   Uri get fileUri => library.fileUri;
 
@@ -160,7 +166,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     cls.procedures.forEach(classBulder.addMember);
     cls.constructors.forEach(classBulder.addMember);
     for (Field field in cls.fields) {
-      if (field.name.name == "_redirecting#") {
+      if (isRedirectingFactoryField(field)) {
         ListLiteral initializer = field.initializer;
         for (StaticGet get in initializer.expressions) {
           RedirectingFactoryBody.restoreFromDill(get.target);
@@ -181,8 +187,16 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     String name = member.name.name;
     if (name == "_exports#") {
       Field field = member;
-      StringLiteral string = field.initializer;
-      Map<dynamic, dynamic> json = jsonDecode(string.value);
+      String stringValue;
+      if (field.initializer is ConstantExpression) {
+        ConstantExpression constantExpression = field.initializer;
+        StringConstant string = constantExpression.constant;
+        stringValue = string.value;
+      } else {
+        StringLiteral string = field.initializer;
+        stringValue = string.value;
+      }
+      Map<dynamic, dynamic> json = jsonDecode(stringValue);
       unserializableExports =
           json != null ? new Map<String, String>.from(json) : null;
     } else {
@@ -198,6 +212,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       scopeBuilder.addSetter(name, declaration);
     } else {
       scopeBuilder.addMember(name, declaration);
+    }
+    if (declaration.isExtension) {
+      scopeBuilder.addExtension(declaration);
     }
     if (!name.startsWith("_")) {
       if (isSetter) {
@@ -249,8 +266,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     isReadyToBuild = true;
   }
 
-  void markAsReadyToFinalizeExports() {
+  void markAsReadyToFinalizeExports({bool suppressFinalizationErrors: false}) {
     isReadyToFinalizeExports = true;
+    this.suppressFinalizationErrors = suppressFinalizationErrors;
   }
 
   void finalizeExports() {
@@ -268,63 +286,93 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
           Message message = messageText == null
               ? templateTypeNotFound.withArguments(name)
               : templateUnspecified.withArguments(messageText);
-          addProblem(message, -1, noLength, null);
+          if (!suppressFinalizationErrors) {
+            addProblem(message, -1, noLength, null);
+          }
           declaration = new InvalidTypeDeclarationBuilder(
               name, message.withoutLocation());
       }
       exportScopeBuilder.addMember(name, declaration);
     });
 
+    Map<Reference, Builder> sourceBuildersMap =
+        loader.currentSourceLoader?.buildersCreatedWithReferences;
     for (Reference reference in library.additionalExports) {
       NamedNode node = reference.node;
-      Uri libraryUri;
-      String name;
-      bool isSetter = false;
-      if (node is Class) {
-        libraryUri = node.enclosingLibrary.importUri;
-        name = node.name;
-      } else if (node is Procedure) {
-        libraryUri = node.enclosingLibrary.importUri;
-        name = node.name.name;
-        isSetter = node.isSetter;
-      } else if (node is Member) {
-        libraryUri = node.enclosingLibrary.importUri;
-        name = node.name.name;
-      } else if (node is Typedef) {
-        libraryUri = node.enclosingLibrary.importUri;
-        name = node.name;
-      } else if (node is Extension) {
-        libraryUri = node.enclosingLibrary.importUri;
-        name = node.name;
-      } else {
-        unhandled("${node.runtimeType}", "finalizeExports", -1, fileUri);
-      }
-      DillLibraryBuilder library = loader.builders[libraryUri];
-      if (library == null) {
-        internalProblem(
-            templateUnspecified.withArguments("No builder for '$libraryUri'."),
-            -1,
-            fileUri);
-      }
       Builder declaration;
-      if (isSetter) {
-        declaration = library.exportScope.lookupLocalMember(name, setter: true);
-        exportScopeBuilder.addSetter(name, declaration);
+      String name;
+      if (sourceBuildersMap?.containsKey(reference) == true) {
+        declaration = sourceBuildersMap[reference];
+        assert(declaration != null);
+        if (declaration is ModifierBuilder) {
+          name = declaration.name;
+        } else {
+          throw new StateError(
+              "Unexpected: $declaration (${declaration.runtimeType}");
+        }
+
+        if (declaration.isSetter) {
+          exportScopeBuilder.addSetter(name, declaration);
+        } else {
+          exportScopeBuilder.addMember(name, declaration);
+        }
       } else {
-        declaration =
-            library.exportScope.lookupLocalMember(name, setter: false);
-        exportScopeBuilder.addMember(name, declaration);
+        Uri libraryUri;
+        bool isSetter = false;
+        if (node is Class) {
+          libraryUri = node.enclosingLibrary.importUri;
+          name = node.name;
+        } else if (node is Procedure) {
+          libraryUri = node.enclosingLibrary.importUri;
+          name = node.name.name;
+          isSetter = node.isSetter;
+        } else if (node is Member) {
+          libraryUri = node.enclosingLibrary.importUri;
+          name = node.name.name;
+        } else if (node is Typedef) {
+          libraryUri = node.enclosingLibrary.importUri;
+          name = node.name;
+        } else if (node is Extension) {
+          libraryUri = node.enclosingLibrary.importUri;
+          name = node.name;
+        } else {
+          unhandled("${node.runtimeType}", "finalizeExports", -1, fileUri);
+        }
+        LibraryBuilder library = loader.builders[libraryUri];
+        if (library == null) {
+          internalProblem(
+              templateUnspecified
+                  .withArguments("No builder for '$libraryUri'."),
+              -1,
+              fileUri);
+        }
+        if (isSetter) {
+          declaration =
+              library.exportScope.lookupLocalMember(name, setter: true);
+          exportScopeBuilder.addSetter(name, declaration);
+        } else {
+          declaration =
+              library.exportScope.lookupLocalMember(name, setter: false);
+          exportScopeBuilder.addMember(name, declaration);
+        }
+        if (declaration == null) {
+          internalProblem(
+              templateUnspecified.withArguments(
+                  "Exported element '$name' not found in '$libraryUri'."),
+              -1,
+              fileUri);
+        }
       }
-      if (declaration == null) {
-        internalProblem(
-            templateUnspecified.withArguments(
-                "Exported element '$name' not found in '$libraryUri'."),
-            -1,
-            fileUri);
-      }
-      assert((declaration is ClassBuilder && node == declaration.cls) ||
-          (declaration is TypeAliasBuilder && node == declaration.typedef) ||
-          (declaration is MemberBuilder && node == declaration.member));
+
+      assert(
+          (declaration is ClassBuilder && node == declaration.cls) ||
+              (declaration is TypeAliasBuilder &&
+                  node == declaration.typedef) ||
+              (declaration is MemberBuilder && node == declaration.member) ||
+              (declaration is ExtensionBuilder &&
+                  node == declaration.extension),
+          "Unexpected declaration ${declaration} (${declaration.runtimeType}) "
+          "for node ${node} (${node.runtimeType}).");
     }
   }
 }

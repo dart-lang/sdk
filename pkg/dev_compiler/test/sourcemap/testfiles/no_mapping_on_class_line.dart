@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void main() {
-  Foo foo = Foo();
+  var foo = Foo();
   foo.foo();
 }
 
 /*nm*/ class Foo {
   void foo() {
-    print("foo");
+    print('foo');
   }
 }

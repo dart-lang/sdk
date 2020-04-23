@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 library type_test_helper;
 
 import 'dart:async';
@@ -17,8 +19,9 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld, KClosedWorld;
 import 'memory_compiler.dart' as memory;
 
-DartType instantiate(ClassEntity element, List<DartType> arguments) {
-  return new InterfaceType(element, arguments);
+DartType instantiate(
+    DartTypes dartTypes, ClassEntity element, List<DartType> arguments) {
+  return dartTypes.interfaceType(element, arguments);
 }
 
 class TypeEnvironment {
@@ -112,10 +115,10 @@ class TypeEnvironment {
 
   DartType operator [](String name) {
     if (name == 'dynamic') {
-      return DynamicType();
+      return types.dynamicType();
     }
     if (name == 'void') {
-      return VoidType();
+      return types.voidType();
     }
     return getElementType(name);
   }
@@ -147,8 +150,8 @@ class TypeEnvironment {
     MemberEntity member = _getMember(name, cls);
     DartType type;
 
-    for (KLocalFunction local in compiler
-        .resolutionWorldBuilder.closedWorldForTesting.localFunctions) {
+    for (KLocalFunction local
+        in compiler.frontendClosedWorldForTesting.localFunctions) {
       if (local.memberContext == member) {
         type ??= elementEnvironment.getLocalFunctionType(local);
       }
@@ -179,7 +182,7 @@ class TypeEnvironment {
 
   KClosedWorld get kClosedWorld {
     assert(!testBackendWorld);
-    return compiler.resolutionWorldBuilder.closedWorldForTesting;
+    return compiler.frontendClosedWorldForTesting;
   }
 }
 

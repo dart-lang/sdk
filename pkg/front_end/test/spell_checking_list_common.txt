@@ -6,6 +6,9 @@
 # Comments can also be inline like 'correct # this is ok'.
 # Note that at least one space before the hash is required.
 
+# Comments on a line by itself will be considered a header of the file and
+# automatic tools might move it to the top of the file.
+
 a
 abbreviations
 ability
@@ -40,6 +43,7 @@ accordance
 according
 accordingly
 account
+accounted
 accumulate
 accurate
 achieve
@@ -67,6 +71,8 @@ adds
 adjacent
 adjust
 adjusted
+admit
+admitted
 adopt
 advance
 advanced
@@ -81,6 +87,7 @@ again
 against
 aggregate
 aggressively
+agnostic
 ahead
 algebra
 algorithm
@@ -123,6 +130,7 @@ analysis
 analyze
 analyzed
 analyzer
+analyzer's
 analyzing
 ancestor
 ancillary
@@ -130,6 +138,7 @@ and
 angle
 annotatable
 annotated
+annotating
 annotation
 annotations
 annotator
@@ -165,6 +174,7 @@ appropriate
 appropriately
 approximately
 arbitrary
+archive
 are
 aren't
 argument
@@ -204,6 +214,7 @@ assumed
 assumes
 assuming
 assumption
+assumptions
 asymmetric
 async
 asynchronous
@@ -235,6 +246,7 @@ backends
 backslash
 backslashes
 backspace
+backup
 backward
 backwards
 bad
@@ -265,6 +277,7 @@ belongs
 below
 beneficial
 benefit
+benign
 best
 bets
 better
@@ -284,6 +297,7 @@ black
 blacklisted
 block
 blocks
+blogs
 blue
 bodies
 body
@@ -344,6 +358,7 @@ calculates
 calculation
 calculator
 call
+callable
 callback
 called
 caller
@@ -379,8 +394,10 @@ cascade
 cascaded
 cascading
 case
+cased
 cases
 casting
+cat
 catch
 catches
 categories
@@ -456,6 +473,7 @@ closure
 closures
 clue
 code
+coinductively
 collapses
 collect
 collected
@@ -520,6 +538,7 @@ composition
 compound
 comprising
 computation
+computations
 compute
 computed
 computer
@@ -534,8 +553,8 @@ concretely
 concurrent
 condition
 conditional
-conditionals
 conditionally
+conditionals
 conditions
 configurable
 configuration
@@ -547,6 +566,7 @@ conflicting
 conflicts
 conform
 conformed
+confuse
 confused
 connect
 connected
@@ -564,6 +584,7 @@ consistently
 consisting
 consists
 console
+consolidated
 const
 constant
 constants
@@ -583,6 +604,7 @@ constructs
 constuctor
 consume
 consumed
+consumer
 consuming
 contain
 contained
@@ -835,6 +857,7 @@ dispatches
 display
 displayed
 displaying
+disregard
 distance
 distinct
 distinction
@@ -885,10 +908,12 @@ dynamic
 each
 eagerly
 earlier
+earliest
 early
 easier
 easiest
 easily
+eat
 edge
 edges
 edit
@@ -961,6 +986,8 @@ entries
 entry
 enum
 enumerated
+enumeration
+enumerations
 enums
 environment
 equal
@@ -1010,6 +1037,7 @@ exceptions
 exclamation
 exclude
 excluded
+excludes
 excluding
 exclusive
 executable
@@ -1018,6 +1046,7 @@ executes
 executing
 execution
 exercise
+exhaustive
 exist
 existing
 exists
@@ -1025,7 +1054,9 @@ exit
 exited
 exits
 expand
+expands
 expanding
+expansion
 expect
 expectation
 expectations
@@ -1086,6 +1117,7 @@ fake
 fall
 fallback
 falls
+fallthrough
 false
 far
 fashion
@@ -1101,6 +1133,7 @@ fetch
 few
 fewer
 field
+field's
 fieldname
 fields
 figure
@@ -1112,6 +1145,7 @@ filled
 fills
 filter
 filtered
+filtering
 final
 finalization
 finalize
@@ -1142,6 +1176,7 @@ flatten
 flattened
 flexibility
 flexible
+float
 flow
 flow's
 flush
@@ -1155,6 +1190,7 @@ follow
 followed
 following
 follows
+food
 for
 force
 forced
@@ -1246,6 +1282,7 @@ green
 grounded
 grounds
 group
+grouped
 grouping
 groups
 grow
@@ -1296,6 +1333,7 @@ hexadecimal
 hidden
 hide
 hides
+hiding
 hierarchies
 hierarchy
 high
@@ -1304,6 +1342,8 @@ highest
 highlighted
 hint
 historically
+hoist
+hoisted
 hold
 holder
 holding
@@ -1316,6 +1356,7 @@ hostnames
 how
 however
 http
+hungry
 hybrid
 idea
 ideally
@@ -1326,6 +1367,7 @@ identifier
 identifiers
 identify
 identity
+ie
 if
 ignorant
 ignore
@@ -1361,6 +1403,8 @@ impossible
 improve
 improved
 in
+inability
+inappropriate
 inbound
 include
 included
@@ -1414,6 +1458,7 @@ inherit
 inheritable
 inheritance
 inherited
+inheriting
 inherits
 initial
 initialization
@@ -1456,6 +1501,7 @@ instructions
 instrumentation
 instrumented
 int
+intact
 integer
 integers
 integrated
@@ -1606,6 +1652,7 @@ lexeme
 lexical
 lexically
 lexicographical
+lexicographically
 libraries
 library
 library's
@@ -1766,11 +1813,13 @@ misleading
 mismatch
 mismatches
 missing
+misused
 mix
 mixed
 mixes
 mixin
 mixin's
+mixing
 mixins
 mock
 mode
@@ -1793,6 +1842,7 @@ modulo
 moment
 mongolian
 more
+moreover
 most
 mostly
 motivation
@@ -1880,6 +1930,8 @@ noticed
 notifies
 now
 null
+nullability
+nullable
 num
 number
 numbers
@@ -1934,6 +1986,7 @@ opted
 optimistically
 optimization
 optimize
+optimized
 option
 optional
 optionally
@@ -2068,6 +2121,7 @@ platform's
 platforms
 please
 plethora
+plumbed
 plus
 point
 pointer
@@ -2096,6 +2150,7 @@ postpone
 postponed
 potential
 potentially
+practical
 practice
 practices
 preamble
@@ -2113,6 +2168,7 @@ precondition
 preconditions
 predefined
 predicate
+predicates
 preemptively
 prefer
 preferable
@@ -2184,10 +2240,12 @@ promotable
 promote
 promoted
 promoter
+promotes
 promotion
 promotions
 propagate
 propagating
+propagation
 proper
 properly
 properties
@@ -2325,6 +2383,7 @@ relationship
 relationships
 relative
 release
+releases
 relevant
 relied
 relies
@@ -2347,6 +2406,7 @@ removing
 rename
 renamed
 renaming
+repeat
 repeated
 repeatedly
 repetitions
@@ -2410,6 +2470,7 @@ resynthesize
 retain
 retained
 rethrow
+rethrowing
 retired
 retrieve
 retrieved
@@ -2468,6 +2529,7 @@ sanity
 satisfied
 satisfies
 satisfy
+satisfying
 save
 saved
 says
@@ -2630,6 +2692,8 @@ sorted
 sorting
 sorts
 sought
+sound
+soundness
 source
 sources
 space
@@ -2716,6 +2780,7 @@ sublist
 subsequence
 subsequent
 subset
+subsets
 substitute
 substituted
 substituting
@@ -2749,6 +2814,7 @@ suffix
 suffixes
 suggested
 suitable
+suites
 summaries
 summarize
 summarizes
@@ -2809,6 +2875,8 @@ targeted
 targeting
 targets
 task
+tear
+tearing
 technically
 technique
 template
@@ -2858,6 +2926,7 @@ third
 this
 those
 though
+threaded
 three
 threshold
 threw
@@ -2875,6 +2944,7 @@ timeline
 times
 timing
 tip
+title
 to
 today
 together
@@ -2888,7 +2958,9 @@ top
 topologically
 tortoise
 total
+totally
 touched
+towards
 trace
 traces
 tracing
@@ -2903,6 +2975,7 @@ transformation
 transformations
 transformed
 transformer
+transforms
 transient
 transition
 transitional
@@ -2925,6 +2998,7 @@ tri
 trick
 tried
 tries
+trigger
 triggered
 trim
 trimmed
@@ -2956,9 +3030,16 @@ typedefs
 types
 typically
 typing
+ultimate
+ultimately
 unable
+unalias
+unaliased
+unaliasing
 unambiguous
 unary
+unassignable
+unassigned
 unbalanced
 unbind
 uncertain
@@ -3029,6 +3110,7 @@ until
 untranslatable
 untyped
 unused
+unwanted
 unwrap
 unwrapped
 up
@@ -3040,6 +3122,7 @@ updates
 updating
 upon
 upper
+uppercase
 upwards
 uri
 uris
@@ -3099,6 +3182,7 @@ visit
 visited
 visiting
 visitor
+visitor's
 visual
 vm
 void
@@ -3107,6 +3191,7 @@ wait
 walk
 walked
 want
+wanted
 warn
 warning
 warnings
@@ -3119,6 +3204,7 @@ we'd
 we'll
 we're
 we've
+weak
 web
 weight
 weirdness

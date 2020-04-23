@@ -14,7 +14,6 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseOfVoidResultTest);
-    defineReflectiveTests(UseOfVoidResultWithExtensionMethodsTest);
     defineReflectiveTests(UseOfVoidResultTest_NonNullable);
   });
 }
@@ -86,12 +85,14 @@ void f(void x) {}
   test_assignToVoid_notStrong_error() async {
     // See StrongModeStaticTypeAnalyzer2Test.test_assignToVoidOk
     // for testing that this does not have errors in strong mode.
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void main() {
   void x;
   x = 42;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+    ]);
   }
 
   test_await() async {
@@ -102,15 +103,33 @@ main() async {
 }''');
   }
 
+  test_extensionApplication() async {
+    await assertErrorsInCode('''
+extension E on String {
+  int get g => 0;
+}
+
+void f() {}
+
+main() {
+  E(f()).g;
+}
+''', [
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 71, 3),
+    ]);
+  }
+
   test_implicitReturnValue() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f() {}
 class A {
   n() {
     var a = f();
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+    ]);
   }
 
   test_inForLoop_error() async {
@@ -127,13 +146,16 @@ class A {
   }
 
   test_inForLoop_ok() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class A {
   void m() {}
   n() {
     for(void a = m();;) {}
   }
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+    ]);
   }
 
   test_interpolateVoidValueError() async {
@@ -160,12 +182,14 @@ void main() {
   }
 
   test_nonVoidReturnValue() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 int f() => 1;
 g() {
   var a = f();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+    ]);
   }
 
   test_orVoidLhsError() async {
@@ -212,18 +236,6 @@ void main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 26, 1),
       error(StaticWarningCode.USE_OF_VOID_RESULT, 27, 1),
-    ]);
-  }
-
-  test_useOfInForeachIterableError() async {
-    await assertErrorsInCode('''
-void main() {
-  void x;
-  for (var v in x) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 40, 1),
     ]);
   }
 
@@ -350,6 +362,31 @@ void main() {
 ''');
   }
 
+  test_useOfVoidInForeachIterableError() async {
+    await assertErrorsInCode(r'''
+void main() {
+  void x;
+  var y;
+  for (y in x) {}
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 45, 1),
+    ]);
+  }
+
+  test_useOfVoidInForeachIterableError_declaredVariable() async {
+    await assertErrorsInCode('''
+void main() {
+  void x;
+  for (var v in x) {}
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 40, 1),
+    ]);
+  }
+
   @failingTest // This test may be completely invalid.
   test_useOfVoidInForeachVariableError() async {
     await assertErrorsInCode('''
@@ -415,12 +452,14 @@ void main() {
   }
 
   test_useOfVoidInMapLiteralKeyOk() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void main() {
   void x;
   var m2 = <void, int>{x : 4}; // not strong mode; we have to specify <void>.
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 2),
+    ]);
   }
 
   test_useOfVoidInMapLiteralValueError() async {
@@ -436,12 +475,14 @@ void main() {
   }
 
   test_useOfVoidInMapLiteralValueOk() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void main() {
   void x;
   var m1 = <int, void>{4: x}; // not strong mode; we have to specify <void>.
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 2),
+    ]);
   }
 
   test_useOfVoidInNullOperatorLhsError() async {
@@ -520,6 +561,19 @@ void main() {
     ]);
   }
 
+  test_useOfVoidReturnInExtensionMethod() async {
+    await assertErrorsInCode('''
+extension on void {
+  testVoid() {
+    // No access on void. Static type of `this` is void!
+    this.toString();
+  }
+}
+''', [
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 96, 4),
+    ]);
+  }
+
   @failingTest
   test_useOfVoidReturnInNonVoidFunctionError() async {
     // TODO(mfairhurst) Get this test to pass once codebase is compliant.
@@ -555,12 +609,14 @@ void main() {
   }
 
   test_useOfVoidWithInitializerOk() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void main() {
   void x;
   void y = x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+    ]);
   }
 
   test_variableDeclaration_function_error() async {
@@ -577,13 +633,16 @@ class A {
   }
 
   test_variableDeclaration_function_ok() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void f() {}
 class A {
   n() {
     void a = f();
   }
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+    ]);
   }
 
   test_variableDeclaration_method2() async {
@@ -615,13 +674,16 @@ class A {
   }
 
   test_variableDeclaration_method_ok() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class A {
   void m() {}
   n() {
     void a = m();
   }
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
+    ]);
   }
 
   test_yieldStarVoid_asyncStar() async {
@@ -668,61 +730,18 @@ main(void x) sync* {
 @reflectiveTest
 class UseOfVoidResultTest_NonNullable extends DriverResolutionTest {
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
-
-  test_bang_nonVoid() async {
-    await assertNoErrorsInCode(r'''
-int? f() => 1;
-g() {
-  f()!;
-}
-''');
-  }
-
-  test_bang_void() async {
-    await assertErrorsInCode(r'''
-void f() => 1;
-g() {
-  f()!;
-}
-''', [ExpectedError(StaticWarningCode.USE_OF_VOID_RESULT, 23, 4)]);
-  }
-}
-
-@reflectiveTest
-class UseOfVoidResultWithExtensionMethodsTest extends UseOfVoidResultTest {
-  @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    );
 
-  test_useOfVoidReturnInExtensionMethod() async {
-    await assertErrorsInCode('''
-extension on void {
-  testVoid() {
-    // No access on void. Static type of `this` is void!
-    this.toString();
-  }
+  test_nullCheck() async {
+    await assertErrorsInCode(r'''
+f(void x) {
+  x!;
 }
-''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 96, 4),
-    ]);
-  }
+''', [ExpectedError(StaticWarningCode.USE_OF_VOID_RESULT, 14, 2)]);
 
-  test_void() async {
-    await assertErrorsInCode('''
-extension E on String {
-  int get g => 0;
-}
-
-void f() {}
-
-main() {
-  E(f()).g;
-}
-''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 71, 3),
-    ]);
+    assertType(findNode.postfix('x!'), 'void');
   }
 }

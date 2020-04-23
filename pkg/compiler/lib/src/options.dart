@@ -42,11 +42,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// The entry point of the application that is being compiled.
   Uri entryPoint;
 
-  /// Package root location.
-  ///
-  /// If not null then [packageConfig] should be null.
-  Uri packageRoot;
-
   /// Location of the package configuration file.
   ///
   /// If not null then [packageRoot] should be null.
@@ -106,10 +101,8 @@ class CompilerOptions implements DiagnosticOptions {
   /// Flags enabling language experiments.
   Map<fe.ExperimentalFlag, bool> languageExperiments = {};
 
-  /// `true` if CFE performs constant evaluation.
-  /// TODO(johnniwinther, sigmund): Remove this and associated dead code.
-  bool get useCFEConstants =>
-      languageExperiments[fe.ExperimentalFlag.constantUpdate2018];
+  /// `true` if variance is enabled.
+  bool get enableVariance => languageExperiments[fe.ExperimentalFlag.variance];
 
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
@@ -241,6 +234,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Location of the kernel platform `.dill` files.
   Uri platformBinaries;
 
+  /// Whether to print legacy types as T* rather than T.
+  bool printLegacyStars = false;
+
   /// URI where the compiler should generate the output source map file.
   Uri sourceMapUri;
 
@@ -262,6 +258,14 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to omit class type arguments only needed for `toString` on
   /// `Object.runtimeType`.
   bool laxRuntimeTypeToString = false;
+
+  /// Whether to restrict the generated JavaScript to features that work on the
+  /// oldest supported versions of JavaScript. This currently means IE11. If
+  /// `true`, the generated code runs on the legacy JavaScript platform. If
+  /// `false`, the code will fail on the legacy JavaScript platform.
+  bool legacyJavaScript = true; // default value.
+  bool _legacyJavaScript = false;
+  bool _noLegacyJavaScript = false;
 
   /// What should the compiler do with parameter type assertions.
   ///
@@ -325,8 +329,22 @@ class CompilerOptions implements DiagnosticOptions {
   /// called.
   bool experimentCallInstrumentation = false;
 
-  /// Experimental use of the new (Q2 2019) RTI system.
-  bool experimentNewRti = false;
+  /// Whether to use the new RTI representation (default).
+  bool useNewRti = true;
+
+  /// Whether null-safety (non-nullable types) are enabled.
+  bool get useNullSafety =>
+      languageExperiments[fe.ExperimentalFlag.nonNullable];
+
+  /// When null-safety is enabled, whether the compiler should emit code with
+  /// weak or strong semantics.
+  bool _useWeakNullSafetySemantics = true;
+
+  /// Whether to use legacy subtype semantics rather than null-safe semantics.
+  /// This is `true` if null-safety is disabled, i.e. all code is legacy code,
+  /// or if weak null-safety semantics are being used, since we do not emit
+  /// warnings.
+  bool get useLegacySubtyping => !useNullSafety || _useWeakNullSafetySemantics;
 
   /// The path to the file that contains the profiled allocations.
   ///
@@ -360,6 +378,19 @@ class CompilerOptions implements DiagnosticOptions {
         _extractExperiments(options, onError: onError, onWarning: onWarning);
     if (equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
       platformBinaries ??= fe.computePlatformBinariesLocation();
+    } else {
+      // TODO(sigmund): change these defaults before we unfork the sdk.
+      // To unfork the plan is to accept the same platform files regardless of
+      // the experiment flag (it will be enabled in the sdk regardless).
+      if (_hasOption(options, Flags.testMode) &&
+          languageExperiments[fe.ExperimentalFlag.nonNullable]) {
+        var experimentWithoutNullability = Map.of(languageExperiments);
+        experimentWithoutNullability[fe.ExperimentalFlag.nonNullable] = false;
+        if (equalMaps(
+            experimentWithoutNullability, fe.defaultExperimentalFlags)) {
+          platformBinaries ??= fe.computePlatformBinariesLocation();
+        }
+      }
     }
     return new CompilerOptions()
       ..librariesSpecificationUri = librariesSpecificationUri
@@ -407,16 +438,19 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
-      ..experimentNewRti = _hasOption(options, Flags.experimentNewRti)
+      ..useNewRti = !_hasOption(options, Flags.useOldRti)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries =
           platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
+      ..printLegacyStars = _hasOption(options, Flags.printLegacyStars)
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
       ..omitAsCasts = _hasOption(options, Flags.omitAsCasts)
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
+      .._legacyJavaScript = _hasOption(options, Flags.legacyJavaScript)
+      .._noLegacyJavaScript = _hasOption(options, Flags.noLegacyJavaScript)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustJSInteropTypeAnnotations =
           _hasOption(options, Flags.trustJSInteropTypeAnnotations)
@@ -438,7 +472,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..codegenShard = _extractIntOption(options, '${Flags.codegenShard}=')
       ..codegenShards = _extractIntOption(options, '${Flags.codegenShards}=')
       ..cfeOnly = _hasOption(options, Flags.cfeOnly)
-      ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference);
+      ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference)
+      .._useWeakNullSafetySemantics = !_hasOption(options, Flags.nullSafety);
   }
 
   void validate() {
@@ -452,16 +487,13 @@ class CompilerOptions implements DiagnosticOptions {
       throw new ArgumentError(
           "[librariesSpecificationUri] should be a file: $librariesSpecificationUri");
     }
-    if (packageRoot != null && packageConfig != null) {
-      throw new ArgumentError("Only one of [packageRoot] or [packageConfig] "
-          "may be given.");
-    }
-    if (packageRoot != null && !packageRoot.path.endsWith("/")) {
-      throw new ArgumentError("[packageRoot] must end with a /");
-    }
     if (platformBinaries == null &&
         equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
       throw new ArgumentError("Missing required ${Flags.platformBinaries}");
+    }
+    if (_legacyJavaScript && _noLegacyJavaScript) {
+      throw ArgumentError("'${Flags.legacyJavaScript}' incompatible with "
+          "'${Flags.noLegacyJavaScript}'");
     }
   }
 
@@ -472,10 +504,14 @@ class CompilerOptions implements DiagnosticOptions {
     }
 
     if (benchmarkingExperiment) {
-      // TODO(sra): Set flags implied by '--benchmarking-x'. Initially this will
-      // be --experiment-new-rti, and later NNBD.
-      experimentNewRti = true;
+      // TODO(sra): Set flags implied by '--benchmarking-x'. At this time we
+      // use it to run the old-rti to continue comparing data with new-rti, but
+      // we should remove it once we start benchmarking NNBD.
+      useNewRti = false;
     }
+
+    if (_noLegacyJavaScript) legacyJavaScript = false;
+    if (_legacyJavaScript) legacyJavaScript = true;
 
     if (optimizationLevel != null) {
       if (optimizationLevel == 0) {

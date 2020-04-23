@@ -25,6 +25,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         FileSystem,
         FileSystemEntity,
         FileSystemException,
+        NnbdMode,
         ProcessedOptions,
         Severity,
         StandardFileSystem,
@@ -32,13 +33,12 @@ import 'package:front_end/src/api_unstable/vm.dart'
         kernelForProgram,
         parseExperimentalArguments,
         parseExperimentalFlags,
-        printDiagnosticMessage;
+        printDiagnosticMessage,
+        resolveInputUri;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/ast.dart' show Component, Library, Reference;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-import 'package:kernel/binary/limited_ast_to_binary.dart'
-    show LimitedBinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
@@ -46,7 +46,7 @@ import 'bytecode/bytecode_serialization.dart' show BytecodeSizeStatistics;
 import 'bytecode/gen_bytecode.dart'
     show generateBytecode, createFreshComponentWithBytecode;
 import 'bytecode/options.dart' show BytecodeOptions;
-
+import 'http_filesystem.dart' show HttpAwareFileSystem;
 import 'target/install.dart' show installAdditionalTargets;
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
@@ -102,6 +102,10 @@ void declareCompilerOptions(ArgParser args) {
       help: 'The values for the environment constants (e.g. -Dkey=value).');
   args.addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false);
+  args.addFlag('null-safety',
+      help:
+          'Respect the nullability of types at runtime in casts and instance checks.',
+      defaultsTo: false);
   args.addFlag('split-output-by-packages',
       help:
           'Split resulting kernel file into multiple files (one per package).',
@@ -160,6 +164,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool genBytecode = options['gen-bytecode'];
   final bool dropAST = options['drop-ast'];
   final bool enableAsserts = options['enable-asserts'];
+  final bool nullSafety = options['null-safety'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final List<String> experimentalFlags = options['enable-experiment'];
@@ -188,7 +193,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     aot: aot,
   )..parseCommandLineFlags(options['bytecode-options']);
 
-  final target = createFrontEndTarget(targetName);
+  final target = createFrontEndTarget(targetName, nullSafety: nullSafety);
   if (target == null) {
     print('Failed to create front-end target $targetName.');
     return badUsageExitCode;
@@ -197,17 +202,15 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final fileSystem =
       createFrontEndFileSystem(fileSystemScheme, fileSystemRoots);
 
-  final Uri packagesUri = packages != null
-      ? convertFileOrUriArgumentToUri(fileSystem, packages)
-      : null;
+  final Uri packagesUri = packages != null ? resolveInputUri(packages) : null;
 
   final platformKernelUri = Uri.base.resolveUri(new Uri.file(platformKernel));
-  final List<Uri> linkedDependencies = <Uri>[];
+  final List<Uri> additionalDills = <Uri>[];
   if (aot || linkPlatform) {
-    linkedDependencies.add(platformKernelUri);
+    additionalDills.add(platformKernelUri);
   }
 
-  Uri mainUri = convertFileOrUriArgumentToUri(fileSystem, input);
+  Uri mainUri = resolveInputUri(input);
   if (packagesUri != null) {
     mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
   }
@@ -219,18 +222,19 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..sdkSummary = platformKernelUri
     ..target = target
     ..fileSystem = fileSystem
-    ..linkedDependencies = linkedDependencies
+    ..additionalDills = additionalDills
     ..packagesFileUri = packagesUri
     ..experimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: print)
+    ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
     ..embedSourceText = embedSources;
 
   final results = await compileToKernel(mainUri, compilerOptions,
-      includePlatform: linkedDependencies.isNotEmpty,
+      includePlatform: additionalDills.isNotEmpty,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
@@ -316,7 +320,9 @@ Future<KernelCompilationResults> compileToKernel(
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
   options.onDiagnostic = errorDetector;
 
-  setVMEnvironmentDefines(environmentDefines, options);
+  options.environmentDefines =
+      options.target.updateEnvironmentDefines(environmentDefines);
+
   CompilerResult compilerResult = await kernelForProgram(source, options);
   Component component = compilerResult?.component;
   final compiledSources = component?.uriToSource?.keys;
@@ -392,30 +398,6 @@ Set<Library> createLoadedLibrariesSet(
   return loadedLibraries;
 }
 
-void setVMEnvironmentDefines(
-    Map<String, dynamic> environmentDefines, CompilerOptions options) {
-  // TODO(alexmarkov): move this logic into VmTarget and call from front-end
-  // in order to have the same defines when compiling platform.
-  assert(environmentDefines != null);
-  if (environmentDefines['dart.vm.product'] == 'true') {
-    environmentDefines['dart.developer.causal_async_stacks'] = 'false';
-  }
-  environmentDefines['dart.isVM'] = 'true';
-  // TODO(dartbug.com/36460): Derive dart.library.* definitions from platform.
-  for (String library in options.target.extraRequiredLibraries) {
-    Uri libraryUri = Uri.parse(library);
-    if (libraryUri.scheme == 'dart') {
-      final path = libraryUri.path;
-      if (!path.startsWith('_')) {
-        environmentDefines['dart.library.${path}'] = 'true';
-      }
-    }
-  }
-  // dart:core is not mentioned in Target.extraRequiredLibraries.
-  environmentDefines['dart.library.core'] = 'true';
-  options.environmentDefines = environmentDefines;
-}
-
 Future runGlobalTransformations(
     Target target,
     Component component,
@@ -459,7 +441,7 @@ Future runGlobalTransformations(
 
   // TODO(35069): avoid recomputing CSA by reading it from the platform files.
   void ignoreAmbiguousSupertypes(cls, a, b) {}
-  final hierarchy = new ClassHierarchy(component,
+  final hierarchy = new ClassHierarchy(component, coreTypes,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   call_site_annotator.transformLibraries(
       component, component.libraries, coreTypes, hierarchy);
@@ -546,57 +528,38 @@ bool parseCommandLineDefines(
 
 /// Create front-end target with given name.
 Target createFrontEndTarget(String targetName,
-    {bool trackWidgetCreation = false}) {
+    {bool trackWidgetCreation = false, bool nullSafety = false}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
-  final TargetFlags targetFlags =
-      new TargetFlags(trackWidgetCreation: trackWidgetCreation);
+  final TargetFlags targetFlags = new TargetFlags(
+      trackWidgetCreation: trackWidgetCreation, enableNullSafety: nullSafety);
   return getTarget(targetName, targetFlags);
 }
 
 /// Create a front-end file system.
-/// If requested, create a virtual mutli-root file system.
+///
+/// If requested, create a virtual mutli-root file system and/or an http aware
+/// file system.
 FileSystem createFrontEndFileSystem(
-    String multiRootFileSystemScheme, List<String> multiRootFileSystemRoots) {
+    String multiRootFileSystemScheme, List<String> multiRootFileSystemRoots,
+    {bool allowHttp}) {
+  allowHttp ??= false;
   FileSystem fileSystem = StandardFileSystem.instance;
+  if (allowHttp) {
+    fileSystem = HttpAwareFileSystem(fileSystem);
+  }
   if (multiRootFileSystemRoots != null &&
       multiRootFileSystemRoots.isNotEmpty &&
       multiRootFileSystemScheme != null) {
     final rootUris = <Uri>[];
     for (String root in multiRootFileSystemRoots) {
-      rootUris.add(Uri.base.resolveUri(new Uri.file(root)));
+      rootUris.add(resolveInputUri(root));
     }
     fileSystem = new MultiRootFileSystem(
         multiRootFileSystemScheme, rootUris, fileSystem);
   }
   return fileSystem;
-}
-
-/// Convert command line argument [input] which is a file or URI to an
-/// absolute URI.
-///
-/// If virtual multi-root file system is used, or [input] can be parsed to a
-/// URI with 'package' or 'file' scheme, then [input] is interpreted as URI.
-/// Otherwise [input] is interpreted as a file path.
-Uri convertFileOrUriArgumentToUri(FileSystem fileSystem, String input) {
-  if (input == null) {
-    return null;
-  }
-  // If using virtual multi-root file system, input source argument should be
-  // specified as URI.
-  if (fileSystem is MultiRootFileSystem) {
-    return Uri.base.resolve(input);
-  }
-  try {
-    Uri uri = Uri.parse(input);
-    if (uri.scheme == 'package' || uri.scheme == 'file') {
-      return uri;
-    }
-  } on FormatException {
-    // Ignore, treat input argument as file path.
-  }
-  return Uri.base.resolveUri(new Uri.file(input));
 }
 
 /// Convert a URI which may use virtual file system schema to a real file URI.
@@ -695,11 +658,9 @@ Future writeOutputSplitByPackages(
         }
       }
 
-      final BinaryPrinter printer = new LimitedBinaryPrinter(
-          sink,
-          (lib) =>
-              packageFor(lib, compilationResults.loadedLibraries) == package,
-          false /* excludeUriToSource */);
+      final BinaryPrinter printer = new BinaryPrinter(sink,
+          libraryFilter: (lib) =>
+              packageFor(lib, compilationResults.loadedLibraries) == package);
       printer.writeComponentFile(partComponent);
 
       await sink.close();

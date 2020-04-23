@@ -21,9 +21,9 @@ library from "org-dartlang-test:///main.dart" as main {
       : super dart.core::Object::•()
       ;
   }
-  abstract class M<T extends dart.core::Object* = dynamic> extends main::A<main::M::T*> {
+  abstract class M<T extends dart.core::Object* = dynamic> extends main::A<main::M::T*> /*isMixinDeclaration*/  {
   }
-  abstract class _C&Object&M extends dart.core::Object implements main::M<dynamic> {
+  abstract class _C&Object&M extends dart.core::Object implements main::M<dynamic> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
     const synthetic constructor •() → main::_C&Object&M*
       : super dart.core::Object::•()
       ;

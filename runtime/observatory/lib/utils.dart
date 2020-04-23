@@ -82,35 +82,36 @@ class Utils {
     millis = millis % millisPerSecond;
 
     if (hours > 0) {
-      return ("${zeroPad(hours,2)}"
-          ":${zeroPad(minutes,2)}"
-          ":${zeroPad(seconds,2)}"
-          ".${zeroPad(millis,3)}");
+      return ("${zeroPad(hours, 2)}"
+          ":${zeroPad(minutes, 2)}"
+          ":${zeroPad(seconds, 2)}"
+          ".${zeroPad(millis, 3)}");
     } else if (minutes > 0) {
-      return ("${zeroPad(minutes,2)}"
-          ":${zeroPad(seconds,2)}"
-          ".${zeroPad(millis,3)}");
+      return ("${zeroPad(minutes, 2)}"
+          ":${zeroPad(seconds, 2)}"
+          ".${zeroPad(millis, 3)}");
     } else {
-      return ("${zeroPad(seconds,2)}"
-          ".${zeroPad(millis,3)}");
+      return ("${zeroPad(seconds, 2)}"
+          ".${zeroPad(millis, 3)}");
     }
   }
 
   static String formatSize(bytesDynamic) {
     int bytes = bytesDynamic.toInt();
+    int absBytes = bytes >= 0 ? bytes : -bytes;
     const int digits = 1;
     const int bytesPerKB = 1024;
     const int bytesPerMB = 1024 * bytesPerKB;
     const int bytesPerGB = 1024 * bytesPerMB;
     const int bytesPerTB = 1024 * bytesPerGB;
 
-    if (bytes < bytesPerKB) {
+    if (absBytes < bytesPerKB) {
       return "${bytes}B";
-    } else if (bytes < bytesPerMB) {
+    } else if (absBytes < bytesPerMB) {
       return "${(bytes / bytesPerKB).toStringAsFixed(digits)}KB";
-    } else if (bytes < bytesPerGB) {
+    } else if (absBytes < bytesPerGB) {
       return "${(bytes / bytesPerMB).toStringAsFixed(digits)}MB";
-    } else if (bytes < bytesPerTB) {
+    } else if (absBytes < bytesPerTB) {
       return "${(bytes / bytesPerGB).toStringAsFixed(digits)}GB";
     } else {
       return "${(bytes / bytesPerTB).toStringAsFixed(digits)}TB";
@@ -250,7 +251,7 @@ class Utils {
   static bool runningInJavaScript() => identical(1.0, 1);
 
   static formatStringAsLiteral(String value, [bool wasTruncated = false]) {
-    var result = new List<int>();
+    var result = <int>[];
     result.add("'".codeUnitAt(0));
     for (int codeUnit in value.codeUnits) {
       if (codeUnit == '\n'.codeUnitAt(0))

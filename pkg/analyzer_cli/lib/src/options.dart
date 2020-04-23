@@ -23,7 +23,7 @@ ExitHandler exitHandler = exit;
 T cast<T>(dynamic value) => value as T;
 
 /// Print the given [message] to stderr and exit with the given [exitCode].
-void printAndFail(String message, {int exitCode: 15}) {
+void printAndFail(String message, {int exitCode = 15}) {
   errorSink.writeln(message);
   exitHandler(exitCode);
 }
@@ -31,7 +31,7 @@ void printAndFail(String message, {int exitCode: 15}) {
 /// Exit handler.
 ///
 /// *Visible for testing.*
-typedef void ExitHandler(int code);
+typedef ExitHandler = void Function(int code);
 
 /// Analyzer commandline configuration options.
 class CommandLineOptions {
@@ -69,8 +69,12 @@ class CommandLineOptions {
   /// The path to the dart SDK summary file.
   final String dartSdkSummaryPath;
 
-  /// Whether to disable cache flushing.  This option can improve analysis
-  /// speed at the expense of memory usage.  It may also be useful for working
+  /// The default language version for files that are not in a package.
+  /// (Or null if no default language version to force.)
+  final String defaultLanguageVersion;
+
+  /// Whether to disable cache flushing. This option can improve analysis
+  /// speed at the expense of memory usage. It may also be useful for working
   /// around bugs.
   final bool disableCacheFlushing;
 
@@ -161,6 +165,7 @@ class CommandLineOptions {
         contextBuilderOptions = createContextBuilderOptions(args),
         dartSdkPath = cast(args['dart-sdk']),
         dartSdkSummaryPath = cast(args['dart-sdk-summary']),
+        defaultLanguageVersion = cast(args['default-language-version']),
         disableCacheFlushing = cast(args['disable-cache-flushing']),
         disableHints = cast(args['no-hints']),
         displayVersion = cast(args['version']),
@@ -214,8 +219,8 @@ class CommandLineOptions {
   /// analyzer options. In case of a format error, calls [printAndFail], which
   /// by default prints an error message to stderr and exits.
   static CommandLineOptions parse(List<String> args,
-      {printAndFail(String msg) = printAndFail}) {
-    CommandLineOptions options = _parse(args);
+      {Function(String msg) printAndFail = printAndFail}) {
+    var options = _parse(args);
 
     /// Only happens in testing.
     if (options == null) {
@@ -227,7 +232,7 @@ class CommandLineOptions {
       // Infer if unspecified.
       options.dartSdkPath ??= getSdkPath(args);
 
-      String sdkPath = options.dartSdkPath;
+      var sdkPath = options.dartSdkPath;
 
       // Check that SDK is specified.
       if (sdkPath == null) {
@@ -235,7 +240,7 @@ class CommandLineOptions {
         return null; // Only reachable in testing.
       }
       // Check that SDK is existing directory.
-      if (!(new Directory(sdkPath)).existsSync()) {
+      if (!(Directory(sdkPath)).existsSync()) {
         printAndFail('Invalid Dart SDK path: $sdkPath');
         return null; // Only reachable in testing.
       }
@@ -263,23 +268,22 @@ class CommandLineOptions {
   static String _getVersion() {
     try {
       // This is relative to bin/snapshot, so ../..
-      String versionPath =
-          Platform.script.resolve('../../version').toFilePath();
-      File versionFile = new File(versionPath);
+      var versionPath = Platform.script.resolve('../../version').toFilePath();
+      var versionFile = File(versionPath);
       return versionFile.readAsStringSync().trim();
     } catch (_) {
       // This happens when the script is not running in the context of an SDK.
-      return "<unknown>";
+      return '<unknown>';
     }
   }
 
   static CommandLineOptions _parse(List<String> args) {
     args = preprocessArgs(PhysicalResourceProvider.INSTANCE, args);
 
-    bool verbose = args.contains('-v') || args.contains('--verbose');
-    bool hide = !verbose;
+    var verbose = args.contains('-v') || args.contains('--verbose');
+    var hide = !verbose;
 
-    ArgParser parser = new ArgParser(allowTrailingOptions: true);
+    var parser = ArgParser(allowTrailingOptions: true);
 
     if (!hide) {
       parser.addSeparator('General options:');
@@ -392,6 +396,10 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
+      ..addOption('default-language-version',
+          help: 'The default language version when it is not specified via '
+              'other ways (internal, tests only).',
+          hide: false)
       ..addFlag('disable-cache-flushing', defaultsTo: false, hide: hide)
       ..addOption('x-perf-report',
           help: 'Writes a performance report to the given file (experimental).',
@@ -470,8 +478,8 @@ class CommandLineOptions {
           hide: hide,
           negatable: true)
       ..addFlag('train-snapshot',
-          help: "Analyze the given source for the purposes of training a "
-              "dartanalyzer snapshot.",
+          help: 'Analyze the given source for the purposes of training a '
+              'dartanalyzer snapshot.',
           hide: hide,
           negatable: false);
 
@@ -479,12 +487,12 @@ class CommandLineOptions {
       if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
         args = filterUnknownArguments(args, parser);
       }
-      ArgResults results = parser.parse(args);
+      var results = parser.parse(args);
 
       // Persistent worker.
       if (args.contains('--persistent_worker')) {
-        bool hasBuildMode = args.contains('--build-mode');
-        bool onlyDartSdkArg = args.length == 2 ||
+        var hasBuildMode = args.contains('--build-mode');
+        var onlyDartSdkArg = args.length == 2 ||
             (args.length == 3 && args.any((a) => a.startsWith('--dart-sdk'))) ||
             (args.length == 4 && args.contains('--dart-sdk'));
         if (!(hasBuildMode && onlyDartSdkArg)) {
@@ -493,7 +501,7 @@ class CommandLineOptions {
               'option. Got: $args');
           return null; // Only reachable in testing.
         }
-        return new CommandLineOptions._fromArgs(results);
+        return CommandLineOptions._fromArgs(results);
       }
 
       // Help requests.
@@ -537,9 +545,9 @@ class CommandLineOptions {
             'future release.\n');
       }
       if (results.wasParsed('enable-experiment')) {
-        List<String> names =
+        var names =
             (results['enable-experiment'] as List).cast<String>().toList();
-        bool errorFound = false;
+        var errorFound = false;
         for (var validationResult in validateFlags(names)) {
           if (validationResult.isError) {
             errorFound = true;
@@ -554,7 +562,7 @@ class CommandLineOptions {
         }
       }
 
-      return new CommandLineOptions._fromArgs(results);
+      return CommandLineOptions._fromArgs(results);
     } on FormatException catch (e) {
       errorSink.writeln(e.message);
       _showUsage(parser);
@@ -563,7 +571,7 @@ class CommandLineOptions {
     }
   }
 
-  static _showUsage(ArgParser parser, {bool fromHelp: false}) {
+  static void _showUsage(ArgParser parser, {bool fromHelp = false}) {
     errorSink.writeln(
         'Usage: $_binaryName [options...] <directory or list of files>');
 

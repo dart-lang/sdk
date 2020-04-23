@@ -11,19 +11,56 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-//    defineReflectiveTests(ImplementsNonClassTest);
+    defineReflectiveTests(ImplementsNonClassTest);
     defineReflectiveTests(ImplementsNonClassWithNnbdTest);
   });
 }
 
 @reflectiveTest
-class ImplementsNonClassTest extends DriverResolutionTest {}
+class ImplementsNonClassTest extends DriverResolutionTest {
+  test_class() async {
+    await assertErrorsInCode(r'''
+int A = 7;
+class B implements A {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 30, 1),
+    ]);
+  }
+
+  test_dynamic() async {
+    await assertErrorsInCode('''
+class A implements dynamic {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 7),
+    ]);
+  }
+
+  test_enum() async {
+    await assertErrorsInCode(r'''
+enum E { ONE }
+class A implements E {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 34, 1),
+    ]);
+  }
+
+  test_typeAlias() async {
+    await assertErrorsInCode(r'''
+class A {}
+class M {}
+int B = 7;
+class C = A with M implements B;
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 63, 1),
+    ]);
+  }
+}
 
 @reflectiveTest
 class ImplementsNonClassWithNnbdTest extends ImplementsNonClassTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   test_Never() async {

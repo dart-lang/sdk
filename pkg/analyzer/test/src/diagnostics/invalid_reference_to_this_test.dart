@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -18,6 +19,18 @@ main() {
 
 @reflectiveTest
 class InvalidReferenceToThisTest extends DriverResolutionTest {
+  test_constructor_valid() async {
+    await assertErrorsInCode(r'''
+class A {
+  A() {
+    var v = this;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+    ]);
+  }
+
   test_factoryConstructor() async {
     await assertErrorsInCode(r'''
 class A {
@@ -25,6 +38,18 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 33, 4),
+    ]);
+  }
+
+  test_instanceMethod_valid() async {
+    await assertErrorsInCode(r'''
+class A {
+  m() {
+    var v = this;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
     ]);
   }
 
@@ -99,26 +124,30 @@ int x = this;
   }
 
   test_variableInitializer_inMethod_notLate() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   f() {
     var r = this;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+    ]);
   }
 }
 
 @reflectiveTest
 class InvalidReferenceToThisTest_NNBD extends InvalidReferenceToThisTest {
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    );
 
   test_instanceVariableInitializer_inDeclaration_late() async {
     await assertNoErrorsInCode(r'''
 class A {
-  late f = this;
+  late var f = this;
 }
 ''');
   }
@@ -126,16 +155,16 @@ class A {
   test_mixinVariableInitializer_inDeclaration_late() async {
     await assertNoErrorsInCode(r'''
 mixin A {
-  late f = this;
+  late var f = this;
 }
 ''');
   }
 
   test_variableInitializer_late() async {
     await assertErrorsInCode('''
-late x = this;
+late var x = this;
 ''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 9, 4),
+      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 13, 4),
     ]);
   }
 }

@@ -105,9 +105,11 @@ class SourceToDillStep implements IOModularStep {
       packagesContents.write('${module.name}:${module.packageBase}\n');
     }
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
+    int unusedNum = 0;
     for (Module dependency in transitiveDependencies) {
       if (dependency.isPackage) {
-        packagesContents.write('${dependency.name}:unused\n');
+        unusedNum++;
+        packagesContents.write('${dependency.name}:unused$unusedNum\n');
       }
     }
 

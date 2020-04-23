@@ -148,6 +148,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       compiler.frontendStrategy.elementEnvironment;
 
   CommonElements get commonElements => compiler.frontendStrategy.commonElements;
+  DartTypes get dartTypes => commonElements.dartTypes;
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -172,10 +173,6 @@ abstract class DeferredLoadTask extends CompilerTask {
   Iterable<ImportEntity> memberImportsTo(
       MemberEntity element, LibraryEntity library);
 
-  /// Returns every [ImportEntity] that imports [element] into [library].
-  Iterable<ImportEntity> typedefImportsTo(
-      TypedefEntity element, LibraryEntity library);
-
   /// Collects all direct dependencies of [element].
   ///
   /// The collected dependent elements and constants are are added to
@@ -184,7 +181,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       MemberEntity element, Dependencies dependencies) {
     // TODO(sigurdm): We want to be more specific about this - need a better
     // way to query "liveness".
-    if (!compiler.resolutionWorldBuilder.isMemberUsed(element)) {
+    if (!closedWorld.isMemberUsed(element)) {
       return;
     }
     _collectDependenciesFromImpact(closedWorld, element, dependencies);
@@ -203,7 +200,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     // to.  Static members are not relevant, unless we are processing
     // extra dependencies due to mirrors.
     void addLiveInstanceMember(MemberEntity member) {
-      if (!compiler.resolutionWorldBuilder.isMemberUsed(member)) return;
+      if (!closedWorld.isMemberUsed(member)) return;
       if (!member.isInstanceMember) return;
       dependencies.addMember(member);
       _collectDirectMemberDependencies(closedWorld, member, dependencies);
@@ -317,10 +314,10 @@ abstract class DeferredLoadTask extends CompilerTask {
           DartType type = typeUse.type;
           switch (typeUse.kind) {
             case TypeUseKind.TYPE_LITERAL:
-              if (type is InterfaceType) {
-                InterfaceType interface = type;
+              var typeWithoutNullability = type.withoutNullability;
+              if (typeWithoutNullability is InterfaceType) {
                 dependencies.addClass(
-                    interface.element, typeUse.deferredImport);
+                    typeWithoutNullability.element, typeUse.deferredImport);
               }
               break;
             case TypeUseKind.CONST_INSTANTIATION:
@@ -348,6 +345,7 @@ abstract class DeferredLoadTask extends CompilerTask {
               }
               break;
             case TypeUseKind.PARAMETER_CHECK:
+            case TypeUseKind.TYPE_VARIABLE_BOUND_CHECK:
               if (closedWorld.annotationsData
                   .getParameterCheckPolicy(element)
                   .isEmitted) {
@@ -397,6 +395,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       }
       if (constant is InstantiationConstantValue) {
         for (DartType type in constant.typeArguments) {
+          type = type.withoutNullability;
           if (type is InterfaceType) {
             _updateClassRecursive(
                 closedWorld, type.element, oldSet, newSet, queue);
@@ -415,8 +414,8 @@ abstract class DeferredLoadTask extends CompilerTask {
           newSet != importSets.mainSet || oldSet != null,
           failedAt(
               NO_LOCATION_SPANNABLE,
-              "Tried to assign ${constant.toDartText()} to the main output "
-              "unit, but it was assigned to $currentSet."));
+              "Tried to assign ${constant.toDartText(closedWorld.dartTypes)} "
+              "to the main output unit, but it was assigned to $currentSet."));
       queue.addConstant(constant, newSet);
     }
   }
@@ -551,15 +550,11 @@ abstract class DeferredLoadTask extends CompilerTask {
       LibraryEntity library, Spannable context) {
     if (info.isDeferred || compiler.options.newDeferredSplit) return;
     if (constant is TypeConstantValue) {
-      var type = constant.representedType;
+      var type = constant.representedType.withoutNullability;
       if (type is InterfaceType) {
         var imports = classImportsTo(type.element, library);
         _fixDependencyInfo(
             info, imports, "Class (in constant) ", type.element.name, context);
-      } else if (type is TypedefType) {
-        var imports = typedefImportsTo(type.element, library);
-        _fixDependencyInfo(
-            info, imports, "Typedef ", type.element.name, context);
       }
     }
   }
@@ -914,7 +909,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       if (value.isPrimitive) return;
       constantMap
           .putIfAbsent(importSet.unit, () => <String>[])
-          .add(value.toStructuredText());
+          .add(value.toStructuredText(dartTypes));
     });
 
     Map<OutputUnit, String> text = {};
@@ -1471,7 +1466,10 @@ class OutputUnitData {
   /// Returns the [OutputUnit] where [constant] belongs.
   OutputUnit outputUnitForConstant(ConstantValue constant) {
     if (!isProgramSplit) return mainOutputUnit;
-    return _constantToUnit[constant];
+    OutputUnit unit = _constantToUnit[constant];
+    // TODO(sigmund): enforce unit is not null: it is sometimes null on some
+    // corner cases on internal apps.
+    return unit ?? mainOutputUnit;
   }
 
   OutputUnit outputUnitForConstantForTesting(ConstantValue constant) =>
@@ -1692,12 +1690,6 @@ class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
   @override
   void visitAnyType(AnyType type, Null argument) {
     // Nothing to add.
-  }
-
-  @override
-  void visitTypedefType(TypedefType type, Null argument) {
-    visitList(type.typeArguments);
-    visit(type.unaliased);
   }
 
   @override

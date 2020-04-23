@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
@@ -15,7 +18,9 @@ class NullabilityFixDescription {
   /// An if-test or conditional expression needs to have its condition and
   /// "then" branch discarded.
   static const discardThen = const NullabilityFixDescription._(
-    appliedMessage: 'Discarded an unreachable conditional then branch',
+    appliedMessage:
+        'Discarded a condition which is always false, and the "then" branch '
+        'that follows',
     kind: NullabilityFixKind.discardThen,
   );
 
@@ -33,13 +38,39 @@ class NullabilityFixDescription {
     kind: NullabilityFixKind.discardElse,
   );
 
+  /// An if-test needs to be discarded completely.
+  static const discardIf = const NullabilityFixDescription._(
+    appliedMessage: 'Discarded an if-test with no effect',
+    kind: NullabilityFixKind.discardIf,
+  );
+
   /// An expression's value needs to be null-checked.
   static const checkExpression = const NullabilityFixDescription._(
     appliedMessage: 'Added a non-null assertion to nullable expression',
     kind: NullabilityFixKind.checkExpression,
   );
 
-  /// A message used by dartfix to indicate a fix has been applied.
+  /// An unnecessary downcast has been discarded.
+  static const removeLanguageVersionComment = const NullabilityFixDescription._(
+    appliedMessage: 'Removed language version comment so that NNBD features '
+        'will be allowed in this file',
+    kind: NullabilityFixKind.removeLanguageVersionComment,
+  );
+
+  /// An unnecessary downcast has been discarded.
+  static const removeAs = const NullabilityFixDescription._(
+    appliedMessage: 'Discarded a downcast that is now unnecessary',
+    kind: NullabilityFixKind.removeAs,
+  );
+
+  /// A null-aware operator needs to be changed into its non-null-aware
+  /// equivalent.
+  static const removeNullAwareness = const NullabilityFixDescription._(
+      appliedMessage:
+          'Changed a null-aware access into an ordinary access, because the target cannot be null',
+      kind: NullabilityFixKind.removeNullAwareness);
+
+  /// A message used to indicate a fix has been applied.
   final String appliedMessage;
 
   /// The kind of fix described.
@@ -62,8 +93,34 @@ class NullabilityFixDescription {
         kind: NullabilityFixKind.makeTypeNullable,
       );
 
+  /// An explicit type mentioned in the source program does not need to be made
+  /// nullable.
+  factory NullabilityFixDescription.typeNotMadeNullable(String type) =>
+      NullabilityFixDescription._(
+        appliedMessage: "Type '$type' was not made nullable",
+        kind: NullabilityFixKind.typeNotMadeNullable,
+      );
+
   const NullabilityFixDescription._(
       {@required this.appliedMessage, @required this.kind});
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, appliedMessage.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  operator ==(Object other) =>
+      other is NullabilityFixDescription &&
+      appliedMessage == other.appliedMessage &&
+      kind == other.kind;
+
+  @override
+  toString() =>
+      'NullabilityFixDescription(${json.encode(appliedMessage)}, $kind)';
 }
 
 /// An enumeration of the various kinds of nullability fixes.
@@ -72,16 +129,21 @@ enum NullabilityFixKind {
   checkExpression,
   discardCondition,
   discardElse,
+  discardIf,
   discardThen,
   makeTypeNullable,
-  noModification,
+  removeAs,
+  removeLanguageVersionComment,
+  removeNullAwareness,
+  typeNotMadeNullable,
 }
 
 /// Provisional API for DartFix to perform nullability migration.
 ///
 /// Usage: pass each input source file to [prepareInput].  Then pass each input
-/// source file to [processInput].  Then call [finish] to obtain the
-/// modifications that need to be made to each source file.
+/// source file to [processInput].  Then pass each input source file to
+/// [finalizeInput].  Then call [finish] to obtain the modifications that need
+/// to be made to each source file.
 abstract class NullabilityMigration {
   /// Prepares to perform nullability migration.
   ///
@@ -89,16 +151,27 @@ abstract class NullabilityMigration {
   /// as far as possible even though the migration algorithm is not yet
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
+  ///
+  /// Optional parameter [removeViaComments] indicates whether dead code should
+  /// be removed in its entirety (the default) or removed by commenting it out.
   factory NullabilityMigration(NullabilityMigrationListener listener,
-          {bool permissive,
-          NullabilityMigrationInstrumentation instrumentation}) =
-      NullabilityMigrationImpl;
+      {bool permissive,
+      NullabilityMigrationInstrumentation instrumentation,
+      bool removeViaComments}) = NullabilityMigrationImpl;
+
+  /// Check if this migration is being run permissively.
+  bool get isPermissive;
+
+  void finalizeInput(ResolvedUnitResult result);
 
   void finish();
 
   void prepareInput(ResolvedUnitResult result);
 
   void processInput(ResolvedUnitResult result);
+
+  /// Update the migration after an edge has been added or removed.
+  void update();
 }
 
 /// [NullabilityMigrationListener] is used by [NullabilityMigration]
@@ -106,28 +179,13 @@ abstract class NullabilityMigration {
 abstract class NullabilityMigrationListener {
   /// [addEdit] is called once for each source edit, in the order in which they
   /// appear in the source file.
-  void addEdit(SingleNullabilityFix fix, SourceEdit edit);
+  void addEdit(Source source, SourceEdit edit);
 
-  /// [addFix] is called once for each source change.
-  void addFix(SingleNullabilityFix fix);
+  void addSuggestion(String descriptions, Location location);
 
   /// [reportException] is called once for each exception that occurs in
   /// "permissive mode", reporting the location of the exception and the
   /// exception details.
   void reportException(
       Source source, AstNode node, Object exception, StackTrace stackTrace);
-}
-
-/// Representation of a single conceptual change made by the nullability
-/// migration algorithm.  This change might require multiple source edits to
-/// achieve.
-abstract class SingleNullabilityFix {
-  /// What kind of fix this is.
-  NullabilityFixDescription get description;
-
-  /// Locations of the change, for reporting to the user.
-  List<Location> get locations;
-
-  /// File to change.
-  Source get source;
 }

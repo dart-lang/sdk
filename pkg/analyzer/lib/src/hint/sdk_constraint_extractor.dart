@@ -39,7 +39,7 @@ class SdkConstraintExtractor {
       String text = constraintText();
       if (text != null) {
         try {
-          _constraint = new VersionConstraint.parse(text);
+          _constraint = VersionConstraint.parse(text);
         } catch (e) {
           // Ignore this, leaving [_constraint] unset.
         }

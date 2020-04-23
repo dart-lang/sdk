@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -15,13 +15,23 @@ import 'package:kernel/type_environment.dart';
 
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests(dataDir,
+  await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkersWithNnbd,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const StaticTypeDataComputer(),
-          [defaultCfeConfig, cfeNonNullableConfig]));
+          [defaultCfeConfig, cfeNonNullableConfig]),
+      skipMap: {
+        defaultCfeConfig.marker: [
+          // NNBD-only tests.
+          'constant_from_opt_in',
+          'constant_from_opt_out',
+          'from_opt_in',
+          'from_opt_out',
+          'if_null.dart',
+          'null_check.dart',
+        ]
+      });
 }
 
 class StaticTypeDataComputer extends DataComputer<String> {
@@ -30,15 +40,21 @@ class StaticTypeDataComputer extends DataComputer<String> {
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
-  void computeLibraryData(InternalCompilerResult compilerResult,
-      Library library, Map<Id, ActualData<String>> actualMap,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new StaticTypeDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
   @override
-  void computeMemberData(InternalCompilerResult compilerResult, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     member.accept(new StaticTypeDataExtractor(compilerResult, actualMap));
@@ -55,8 +71,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
   StaticTypeDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<String>> actualMap)
       : _environment = new TypeEnvironment(
-            new CoreTypes(compilerResult.component),
-            new ClassHierarchy(compilerResult.component)),
+            compilerResult.coreTypes, compilerResult.classHierarchy),
         super(compilerResult, actualMap);
 
   @override
@@ -94,6 +109,12 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
       if (node.types.isNotEmpty) {
         return '<${node.types.map(typeToText).join(',')}>';
       }
+    } else if (node is ForInStatement) {
+      if (id.kind == IdKind.current) {
+        DartType type = _staticTypeContext.typeEnvironment.forInElementType(
+            node, node.iterable.getStaticType(_staticTypeContext));
+        return typeToText(type);
+      }
     }
     return null;
   }
@@ -107,6 +128,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
       // Skip `null` literals from null-aware operations.
       return value1;
     }
-    return null;
+    return new ActualData<String>(value1.id, '${value1.value}|${value2.value}',
+        value1.uri, value1.offset, value1.object);
   }
 }

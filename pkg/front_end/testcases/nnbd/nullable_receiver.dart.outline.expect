@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  method foo() → dynamic
+    ;
+  get bar() → core::int
+    ;
+  set baz(core::int value) → void
+    ;
+  method call() → void
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+  method toString([core::int extra = 42]) → core::String
+    ;
+}
+static method error(core::String? s, self::A? a, self::B? b) → dynamic
+  ;
+static method ok<T extends core::Object? = core::Object?>(core::String? s, self::A? a, self::ok::T% t, self::B? b, core::Invocation i) → dynamic
+  ;
+static method main() → dynamic
+  ;

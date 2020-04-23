@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
@@ -31,31 +31,73 @@ void warmup() {
   globalMap2[target5] = 'value';
 }
 
-eval(Isolate isolate, String expression) async {
+@pragma("vm:entry-point")
+getGlobalObject() => globalObject;
+
+@pragma("vm:entry-point")
+takeTarget1() {
+  var tmp = target1;
+  target1 = null;
+  return tmp;
+}
+
+@pragma("vm:entry-point")
+takeTarget2() {
+  var tmp = target2;
+  target2 = null;
+  return tmp;
+}
+
+@pragma("vm:entry-point")
+takeTarget3() {
+  var tmp = target3;
+  target3 = null;
+  return tmp;
+}
+
+@pragma("vm:entry-point")
+takeTarget4() {
+  var tmp = target4;
+  target4 = null;
+  return tmp;
+}
+
+@pragma("vm:entry-point")
+takeTarget5() {
+  var tmp = target5;
+  target5 = null;
+  return tmp;
+}
+
+@pragma("vm:entry-point")
+getTrue() => true;
+
+invoke(Isolate isolate, String selector) async {
   Map params = {
     'targetId': isolate.rootLibrary.id,
-    'expression': expression,
+    'selector': selector,
+    'argumentIds': <String>[],
   };
-  return await isolate.invokeRpcNoUpgrade('evaluate', params);
+  return await isolate.invokeRpcNoUpgrade('invoke', params);
 }
 
 var tests = <IsolateTest>[
   // simple path
   (Isolate isolate) async {
-    var obj = await eval(isolate, 'globalObject');
+    var obj = await invoke(isolate, 'getGlobalObject');
     var params = {
       'targetId': obj['id'],
       'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
-    expect(result['gcRootType'], 'user global');
-    expect(result['elements'].length, equals(2));
-    expect(result['elements'][1]['value']['name'], equals('globalObject'));
+    expect(result['gcRootType'], 'static fields table');
+    expect(result['elements'].length, equals(1));
+    expect(result['elements'][0]['value']['type'], equals('@Instance'));
   },
 
   // missing limit.
   (Isolate isolate) async {
-    var obj = await eval(isolate, 'globalObject');
+    var obj = await invoke(isolate, 'getGlobalObject');
     var params = {
       'targetId': obj['id'],
     };
@@ -73,84 +115,79 @@ var tests = <IsolateTest>[
   },
 
   (Isolate isolate) async {
-    var target1 = await eval(
-        isolate, '() { var tmp = target1; target1 = null; return tmp;} ()');
+    var target1 = await invoke(isolate, 'takeTarget1');
     var params = {
       'targetId': target1['id'],
       'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['gcRootType'], 'user global');
-    expect(result['elements'].length, equals(3));
+    expect(result['gcRootType'], 'static fields table');
+    expect(result['elements'].length, equals(2));
+    expect(result['elements'][0]['value']['type'], equals('@Instance'));
     expect(result['elements'][1]['parentField'], equals('x'));
-    expect(result['elements'][2]['value']['name'], equals('globalObject'));
   },
 
   (Isolate isolate) async {
-    var target2 = await eval(
-        isolate, '() { var tmp = target2; target2 = null; return tmp;} ()');
+    var target2 = await invoke(isolate, 'takeTarget2');
     var params = {
       'targetId': target2['id'],
       'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['gcRootType'], 'user global');
-    expect(result['elements'].length, equals(3));
+    expect(result['gcRootType'], 'static fields table');
+    expect(result['elements'].length, equals(2));
     expect(result['elements'][1]['parentField'], equals('y'));
-    expect(result['elements'][2]['value']['name'], equals('globalObject'));
+    expect(result['elements'][1]['value']['type'], equals('@Instance'));
   },
 
   (Isolate isolate) async {
-    var target3 = await eval(
-        isolate, '() { var tmp = target3; target3 = null; return tmp;} ()');
+    var target3 = await invoke(isolate, 'takeTarget3');
     var params = {
       'targetId': target3['id'],
       'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['gcRootType'], 'user global');
-    expect(result['elements'].length, equals(3));
+    expect(result['gcRootType'], 'static fields table');
+    expect(result['elements'].length, equals(2));
     expect(result['elements'][1]['parentListIndex'], equals(12));
-    expect(result['elements'][2]['value']['name'], equals('globalList'));
+    expect(result['elements'][1]['value']['type'], equals('@Instance'));
   },
 
   (Isolate isolate) async {
-    var target4 = await eval(
-        isolate, '() { var tmp = target4; target4 = null; return tmp;} ()');
+    var target4 = await invoke(isolate, 'takeTarget4');
     var params = {
       'targetId': target4['id'],
       'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['gcRootType'], 'user global');
-    expect(result['elements'].length, equals(3));
+    expect(result['gcRootType'], 'static fields table');
+    expect(result['elements'].length, equals(2));
     expect(
         result['elements'][1]['parentMapKey']['valueAsString'], equals('key'));
-    expect(result['elements'][2]['value']['name'], equals('globalMap1'));
+    expect(result['elements'][1]['value']['type'], equals('@Instance'));
   },
 
   (Isolate isolate) async {
-    var target5 = await eval(
-        isolate, '() { var tmp = target5; target5 = null; return tmp;} ()');
+    var target5 = await invoke(isolate, 'takeTarget5');
     var params = {
       'targetId': target5['id'],
       'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['elements'].length, equals(3));
+    expect(result['elements'].length, equals(2));
     expect(result['elements'][1]['parentMapKey']['class']['name'],
         equals('_TestClass'));
-    expect(result['elements'][2]['value']['name'], equals('globalMap2'));
+    expect(result['elements'][1]['value']['type'], equals('@Instance'));
   },
 
   // object store
   (Isolate isolate) async {
-    var obj = await eval(isolate, 'true');
+    var obj = await invoke(isolate, 'getTrue');
     var params = {
       'targetId': obj['id'],
       'limit': 100,

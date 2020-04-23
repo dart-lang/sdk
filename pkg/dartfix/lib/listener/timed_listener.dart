@@ -8,7 +8,7 @@ import 'package:analysis_server_client/listener/server_listener.dart';
 /// to each logged interaction with the server.
 mixin TimedListener on ServerListener {
   /// Stopwatch that we use to generate timing information for debug output.
-  Stopwatch _time = Stopwatch();
+  final Stopwatch _time = Stopwatch();
 
   /// The [currentElapseTime] at which the last communication was received from
   /// the server or `null` if no communication has been received.

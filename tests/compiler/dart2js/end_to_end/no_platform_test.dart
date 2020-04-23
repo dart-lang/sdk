@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
@@ -19,7 +21,7 @@ main() {
             new Dart2jsTarget('dart2js', new TargetFlags()),
             Uri.base
                 .resolve('sdk/lib/libraries.json'), // librariesSpecificationUri
-            [], // linkedDependencies
+            [], // additionalDills
             Uri.base.resolve('.packages'), // packagesFileUri
             experimentalFlags: experimentalFlags,
             verify: true);

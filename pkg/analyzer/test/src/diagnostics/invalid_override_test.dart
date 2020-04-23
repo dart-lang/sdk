@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -10,6 +13,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidOverrideTest);
+    defineReflectiveTests(InvalidOverrideWithNnbdTest);
   });
 }
 
@@ -90,6 +94,34 @@ class B	extends A {
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 52, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 72, 3),
     ]);
+  }
+
+  test_method_covariant_1() async {
+    await assertNoErrorsInCode(r'''
+abstract class A<T> {
+  A<U> foo<U>(covariant A<Map<T, U>> a);
+}
+
+abstract class B<U, T> extends A<T> {
+  B<U, V> foo<V>(B<U, Map<T, V>> a);
+}
+''');
+  }
+
+  test_method_covariant_2() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  R foo<R>(VA<R> v);
+}
+
+abstract class B implements A {
+  R foo<R>(covariant VB<R> v);
+}
+
+abstract class VA<T> {}
+
+abstract class VB<T> implements VA<T> {}
+''');
   }
 
   test_method_named_fewerNamedParameters() async {
@@ -457,6 +489,84 @@ class B implements I<int>, J<String> {
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class InvalidOverrideWithNnbdTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    )
+    ..implicitCasts = false;
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_method_parameter_functionTyped_optOut_extends_optIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+abstract class A {
+  A catchError(void Function(Object) a);
+}
+''');
+
+    await assertNoErrorsInCode('''
+// @dart=2.6
+import 'a.dart';
+
+class B implements A {
+  A catchError(void Function(dynamic) a) => this;
+}
+''');
+  }
+
+  test_method_parameter_interfaceOptOut_concreteOptIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  void foo(Object a) {}
+}
+''');
+
+    await assertNoErrorsInCode('''
+// @dart=2.6
+import 'a.dart';
+
+class B extends A {
+  void foo(dynamic a);
+}
+''');
+  }
+
+  test_method_viaLegacy_returnType_notSubtype() async {
+    newFile('/test/lib/a.dart', content: r'''
+class Nullable {
+  int? foo() => 0;
+}
+
+class NonNullable {
+  int foo() => 0;
+}
+''');
+
+    newFile('/test/lib/b.dart', content: r'''
+// @dart=2.6
+import 'a.dart';
+
+class A extends Nullable implements NonNullable {}
+''');
+
+    await assertErrorsInCode('''
+import 'b.dart';
+
+class B extends A {}
+
+class C extends A {   
+  int? foo() => 0;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 70, 3),
     ]);
   }
 }

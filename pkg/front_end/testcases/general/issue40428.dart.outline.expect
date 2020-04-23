@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class SuperClass1 extends core::Object {
+  final field core::String* value;
+  constructor •(core::String* value) → self::SuperClass1*
+    ;
+}
+abstract class SuperClass2 extends core::Object {
+  final field core::String* value;
+  constructor •(core::String* i) → self::SuperClass2*
+    ;
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin*
+    ;
+}
+class NamedMixin1 = self::SuperClass1 with self::Mixin {
+  synthetic constructor •(core::String* value) → self::NamedMixin1*
+    : super self::SuperClass1::•(value)
+    ;
+}
+class NamedMixin2 = self::SuperClass2 with self::Mixin {
+  synthetic constructor •(core::String* i) → self::NamedMixin2*
+    : super self::SuperClass2::•(i)
+    ;
+}
+static method main() → void
+  ;
+static method errors() → dynamic
+  ;

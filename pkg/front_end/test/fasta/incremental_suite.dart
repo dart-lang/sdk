@@ -36,9 +36,6 @@ import "package:front_end/src/api_prototype/terminal_color_support.dart"
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import 'package:front_end/src/external_state_snapshot.dart'
-    show ExternalStateSnapshot;
-
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
@@ -60,7 +57,6 @@ final Uri entryPoint = base.resolve("main.dart");
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;
-  final ExternalStateSnapshot snapshot;
   final List<DiagnosticMessage> errors;
 
   final List<Step> steps = const <Step>[
@@ -70,7 +66,7 @@ class Context extends ChainContext {
 
   final IncrementalKernelGenerator compiler;
 
-  Context(this.compilerContext, this.snapshot, this.errors)
+  Context(this.compilerContext, this.errors)
       : compiler = new IncrementalCompiler(compilerContext);
 
   ProcessedOptions get options => compilerContext.options;
@@ -83,7 +79,6 @@ class Context extends ChainContext {
 
   void reset() {
     errors.clear();
-    snapshot.restore();
   }
 
   List<DiagnosticMessage> takeErrors() {
@@ -238,10 +233,7 @@ Future<Context> createContext(
   final ProcessedOptions options =
       new ProcessedOptions(options: optionBuilder, inputs: [entryPoint]);
 
-  final ExternalStateSnapshot snapshot =
-      new ExternalStateSnapshot(await options.loadSdkSummary(null));
-
-  return new Context(new CompilerContext(options), snapshot, errors);
+  return new Context(new CompilerContext(options), errors);
 }
 
 main([List<String> arguments = const []]) =>

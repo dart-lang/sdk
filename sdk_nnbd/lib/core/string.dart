@@ -144,12 +144,16 @@ abstract class String implements Comparable<String>, Pattern {
    * [defaultValue].
    *
    * Example of getting a value:
-   *
-   *     const String.fromEnvironment("defaultFloo", defaultValue: "no floo")
-   *
-   * Example of checking whether a declaration is there at all:
-   *
-   *     var isDeclared = const String.fromEnvironment("maybeDeclared") != null;
+   * ```
+   * const String.fromEnvironment("defaultFloo", defaultValue: "no floo")
+   * ```
+   * In order to check whether a declaration is there at all, use
+   * [bool.hasEnvironment]. Example:
+   * ```
+   * const maybeDeclared = bool.hasEnvironment("maybeDeclared")
+   *     ? String.fromEnvironment("maybeDeclared")
+   *     : null;
+   * ```
    */
   // The .fromEnvironment() constructors are special in that we do not want
   // users to call them using "new". We prohibit that by giving them bodies
@@ -299,7 +303,8 @@ abstract class String implements Comparable<String>, Pattern {
    *
    *     string.lastIndexOf(new RegExp(r'DART'));    // -1
    *
-   * The [start] must be non-negative and not greater than [length].
+   * If [start] is omitted, search starts from the end of the string.
+   * If supplied, [start] must be non-negative and not greater than [length].
    */
   int lastIndexOf(Pattern pattern, [int? start]);
 
@@ -507,7 +512,7 @@ abstract class String implements Comparable<String>, Pattern {
    *
    *     pigLatin('I have a secret now!'); // 'Iway avehay away ecretsay ownay!'
    */
-  String replaceAllMapped(Pattern from, String replace(Match match));
+  String replaceAllMapped(Pattern from, String Function(Match match) replace);
 
   /**
    * Replaces the substring from [start] to [end] with [replacement].
@@ -589,7 +594,7 @@ abstract class String implements Comparable<String>, Pattern {
    *         onNonMatch: (n) => '*'); // *shoots*
    */
   String splitMapJoin(Pattern pattern,
-      {String onMatch(Match match)?, String onNonMatch(String nonMatch)?});
+      {String Function(Match)? onMatch, String Function(String)? onNonMatch});
 
   /**
    * Returns an unmodifiable list of the UTF-16 code units of this string.
@@ -607,7 +612,7 @@ abstract class String implements Comparable<String>, Pattern {
 
   /**
    * Converts all characters in this string to lower case.
-   * If the string is already in all lower case, this method returns [:this:].
+   * If the string is already in all lower case, this method returns `this`.
    *
    *     'ALPHABET'.toLowerCase(); // 'alphabet'
    *     'abc'.toLowerCase();      // 'abc'
@@ -620,7 +625,7 @@ abstract class String implements Comparable<String>, Pattern {
 
   /**
    * Converts all characters in this string to upper case.
-   * If the string is already in all upper case, this method returns [:this:].
+   * If the string is already in all upper case, this method returns `this`.
    *
    *     'alphabet'.toUpperCase(); // 'ALPHABET'
    *     'ABC'.toUpperCase();      // 'ABC'
@@ -682,7 +687,7 @@ class RuneIterator implements BidirectionalIterator<int> {
    * Current code point.
    *
    * If the iterator has hit either end, the [_currentCodePoint] is -1
-   * and [: _position == _nextPosition :].
+   * and `_position == _nextPosition`.
    */
   int _currentCodePoint = -1;
 
@@ -721,20 +726,21 @@ class RuneIterator implements BidirectionalIterator<int> {
   }
 
   /**
-   * Returns the starting position of the current rune in the string.
+   * The starting position of the current rune in the string.
    *
-   * Returns null if the [current] rune is null.
+   * Returns -1 if there is no current rune ([current] is -1).
    */
-  int get rawIndex => (_position != _nextPosition) ? _position : null;
+  int get rawIndex => (_position != _nextPosition) ? _position : -1;
 
   /**
    * Resets the iterator to the rune at the specified index of the string.
    *
    * Setting a negative [rawIndex], or one greater than or equal to
-   * [:string.length:],
-   * is an error. So is setting it in the middle of a surrogate pair.
+   * `string.length`, is an error. So is setting it in the middle of a surrogate
+   *  pair.
    *
-   * Setting the position to the end of then string will set [current] to null.
+   * Setting the position to the end of then string means that there is no
+   * current rune.
    */
   void set rawIndex(int rawIndex) {
     RangeError.checkValidIndex(rawIndex, string, "rawIndex");
@@ -749,8 +755,9 @@ class RuneIterator implements BidirectionalIterator<int> {
    * You must call [moveNext] make the rune at the position current,
    * or [movePrevious] for the last rune before the position.
    *
-   * Setting a negative [rawIndex], or one greater than [:string.length:],
-   * is an error. So is setting it in the middle of a surrogate pair.
+   * The [rawIndex] must be non-negative and no greater than `string.length`.
+   * It must also not be the index of the trailing surrogate of a surrogate
+   * pair.
    */
   void reset([int rawIndex = 0]) {
     RangeError.checkValueInInterval(rawIndex, 0, string.length, "rawIndex");
@@ -770,7 +777,7 @@ class RuneIterator implements BidirectionalIterator<int> {
   /**
    * The number of code units comprising the current rune.
    *
-   * Returns zero if there is no current rune ([current] is null).
+   * Returns zero if there is no current rune ([current] is -1).
    */
   int get currentSize => _nextPosition - _position;
 

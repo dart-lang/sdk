@@ -1,5 +1,4 @@
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:expect/minitest.dart';
 import 'dart:html';
 
 main() {
@@ -16,8 +15,6 @@ main() {
     document.body.append(element);
     return element;
   }
-
-  useHtmlConfiguration();
 
   test("getGamepads", () {
     insertTestDiv();

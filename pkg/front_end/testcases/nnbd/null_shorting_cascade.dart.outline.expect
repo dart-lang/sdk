@@ -1,9 +1,9 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     ;
   method method() → self::Class
     ;
@@ -14,7 +14,7 @@ extension Extension on self::Class {
 }
 static method Extension|extensionMethod(final self::Class #this) → self::Class
   ;
-static method Extension|get#extensionMethod(final self::Class #this) → () →* self::Class
+static method Extension|get#extensionMethod(final self::Class #this) → () → self::Class
   return () → self::Class => self::Extension|extensionMethod(#this);
 static method main() → dynamic
   ;

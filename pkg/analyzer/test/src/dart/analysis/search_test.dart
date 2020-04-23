@@ -23,6 +23,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchTest);
     defineReflectiveTests(SearchWithExtensionMethodsTest);
+    defineReflectiveTests(SearchWithNnbdTest);
   });
 }
 
@@ -35,8 +36,9 @@ class ExpectedResult {
   final bool isQualified;
 
   ExpectedResult(this.enclosingElement, this.kind, this.offset, this.length,
-      {this.isResolved: true, this.isQualified: false});
+      {this.isResolved = true, this.isQualified = false});
 
+  @override
   bool operator ==(Object result) {
     return result is SearchResult &&
         result.kind == this.kind &&
@@ -49,7 +51,7 @@ class ExpectedResult {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write("ExpectedResult(kind=");
     buffer.write(kind);
     buffer.write(", enclosingElement=");
@@ -350,7 +352,7 @@ class A {
     CompilationUnit otherUnit = (await driver.getResult(other)).unit;
     Element main = otherUnit.declaredElement.functions[0];
     var expected = [
-      new ExpectedResult(main, SearchResultKind.REFERENCE,
+      ExpectedResult(main, SearchResultKind.REFERENCE,
           otherCode.indexOf('(); // in other'), 0,
           isResolved: true, isQualified: true)
     ];
@@ -653,9 +655,9 @@ part 'unitB.dart';
     CompilationUnitElement unitElementA = element.parts[0];
     CompilationUnitElement unitElementB = element.parts[1];
     var expected = [
-      new ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
+      ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
-      new ExpectedResult(unitElementB, SearchResultKind.REFERENCE,
+      ExpectedResult(unitElementB, SearchResultKind.REFERENCE,
           codeB.indexOf('lib; // B'), 'lib'.length),
     ];
     await _verifyReferences(element, expected);
@@ -679,9 +681,9 @@ part 'unitB.dart';
     CompilationUnitElement unitElementA = element.parts[0];
     CompilationUnitElement unitElementB = element.parts[1];
     var expected = [
-      new ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
+      ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
-      new ExpectedResult(unitElementB, SearchResultKind.REFERENCE,
+      ExpectedResult(unitElementB, SearchResultKind.REFERENCE,
           codeB.indexOf('lib; // B'), 'lib'.length),
     ];
     await _verifyReferences(element, expected);
@@ -965,7 +967,7 @@ main() {
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Stream'),
-      new ExpectedResult(c, SearchResultKind.REFERENCE,
+      ExpectedResult(c, SearchResultKind.REFERENCE,
           partCode.indexOf('ppp.Future c'), 'ppp'.length)
     ];
     await _verifyReferences(element, expected);
@@ -995,7 +997,7 @@ main() {
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Stream'),
-      new ExpectedResult(c, SearchResultKind.REFERENCE,
+      ExpectedResult(c, SearchResultKind.REFERENCE,
           partCode.indexOf('ppp.Future c'), 'ppp'.length)
     ];
     await _verifyReferences(element, expected);
@@ -1029,9 +1031,9 @@ _C v;
     Element v2 = testLibraryElement.parts[1].topLevelVariables[0];
     var expected = [
       _expectId(v, SearchResultKind.REFERENCE, '_C v;', length: 2),
-      new ExpectedResult(
+      ExpectedResult(
           v1, SearchResultKind.REFERENCE, code1.indexOf('_C v1;'), 2),
-      new ExpectedResult(
+      ExpectedResult(
           v2, SearchResultKind.REFERENCE, code2.indexOf('_C v2;'), 2),
     ];
     await _verifyReferences(element, expected);
@@ -1073,11 +1075,10 @@ _C v1;
     Element v1 = testLibraryElement.parts[0].topLevelVariables[0];
     Element v2 = testLibraryElement.parts[1].topLevelVariables[0];
     var expected = [
-      new ExpectedResult(
-          v, SearchResultKind.REFERENCE, code.indexOf('_C v;'), 2),
-      new ExpectedResult(
+      ExpectedResult(v, SearchResultKind.REFERENCE, code.indexOf('_C v;'), 2),
+      ExpectedResult(
           v1, SearchResultKind.REFERENCE, code1.indexOf('_C v1;'), 2),
-      new ExpectedResult(
+      ExpectedResult(
           v2, SearchResultKind.REFERENCE, code2.indexOf('_C v2;'), 2),
     ];
     await _verifyReferences(element, expected);
@@ -1107,11 +1108,11 @@ _C v;
     Element v1 = testLibraryElement.parts[0].topLevelVariables[0];
     Element v2 = testLibraryElement.parts[1].topLevelVariables[0];
     var expected = [
-      new ExpectedResult(
+      ExpectedResult(
           v, SearchResultKind.REFERENCE, testCode.indexOf('_C v;'), 2),
-      new ExpectedResult(
+      ExpectedResult(
           v1, SearchResultKind.REFERENCE, code1.indexOf('_C v1;'), 2),
-      new ExpectedResult(
+      ExpectedResult(
           v2, SearchResultKind.REFERENCE, code2.indexOf('_C v2;'), 2),
     ];
     await _verifyReferences(element, expected);
@@ -1427,10 +1428,10 @@ class A {
     LibraryElement coreLib = await driver.getLibraryByUri('dart:core');
     ClassElement listElement = coreLib.getType('List');
 
-    var searchedFiles = new SearchedFiles();
+    var searchedFiles = SearchedFiles();
     var results = await driver.search.subTypes(listElement, searchedFiles);
 
-    void assertHasResult(String path, String name, {bool not: false}) {
+    void assertHasResult(String path, String name, {bool not = false}) {
       var matcher = contains(predicate((SearchResult r) {
         var element = r.enclosingElement;
         return element.name == name && element.source.fullName == path;
@@ -1550,19 +1551,19 @@ class NoMatchABCDEF {}
     Element d = _findElement('D');
     Element e = _findElement('e');
     Element f = _findElement('f');
-    RegExp regExp = new RegExp(r'^[ABCDef]$');
+    RegExp regExp = RegExp(r'^[ABCDef]$');
     expect(await driver.search.topLevelElements(regExp),
         unorderedEquals([a, b, c, d, e, f]));
   }
 
   ExpectedResult _expectId(
       Element enclosingElement, SearchResultKind kind, String search,
-      {int length, bool isResolved: true, bool isQualified: false}) {
+      {int length, bool isResolved = true, bool isQualified = false}) {
     int offset = findOffset(search);
     if (length == null) {
       length = getLeadingIdentifierLength(search);
     }
-    return new ExpectedResult(enclosingElement, kind, offset, length,
+    return ExpectedResult(enclosingElement, kind, offset, length,
         isResolved: isResolved, isQualified: isQualified);
   }
 
@@ -1571,7 +1572,7 @@ class NoMatchABCDEF {}
    */
   ExpectedResult _expectIdQ(
       Element element, SearchResultKind kind, String search,
-      {int length, bool isResolved: true}) {
+      {int length, bool isResolved = true}) {
     return _expectId(element, kind, search, isQualified: true, length: length);
   }
 
@@ -1601,11 +1602,11 @@ class NoMatchABCDEF {}
 
   Element _findElementAtString(String search) {
     int offset = findOffset(search);
-    AstNode node = new NodeLocator(offset).searchWithin(testUnit);
+    AstNode node = NodeLocator(offset).searchWithin(testUnit);
     return ElementLocator.locate(node);
   }
 
-  Future<void> _resolveTestUnit(String code, {bool addToDriver: true}) async {
+  Future<void> _resolveTestUnit(String code, {bool addToDriver = true}) async {
     if (addToDriver) {
       addTestFile(code);
     } else {
@@ -1622,7 +1623,7 @@ class NoMatchABCDEF {}
 
   Future<void> _verifyNameReferences(
       String name, List<ExpectedResult> expectedMatches) async {
-    var searchedFiles = new SearchedFiles();
+    var searchedFiles = SearchedFiles();
     List<SearchResult> results =
         await driver.search.unresolvedMemberReferences(name, searchedFiles);
     _assertResults(results, expectedMatches);
@@ -1631,7 +1632,7 @@ class NoMatchABCDEF {}
 
   Future _verifyReferences(
       Element element, List<ExpectedResult> expectedMatches) async {
-    var searchedFiles = new SearchedFiles();
+    var searchedFiles = SearchedFiles();
     var results = await driver.search.references(element, searchedFiles);
     _assertResults(results, expectedMatches);
     expect(results, hasLength(expectedMatches.length));
@@ -1647,7 +1648,7 @@ class NoMatchABCDEF {}
 class SearchWithExtensionMethodsTest extends SearchTest {
   @override
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_searchReferences_ExtensionElement() async {
@@ -1787,6 +1788,77 @@ main() {
       _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo = 2;'),
       _expectIdQ(main, SearchResultKind.REFERENCE, 'foo = 3;'),
       _expectIdQ(main, SearchResultKind.REFERENCE, 'foo = 4;'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+}
+
+@reflectiveTest
+class SearchWithNnbdTest extends SearchTest {
+  @override
+  AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
+
+  test_searchReferences_ImportElement_noPrefix_optIn_fromOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+class N1 {}
+void N2() {}
+int get N3 => 0;
+set N4(int _) {}
+''');
+
+    await _resolveTestUnit('''
+// @dart = 2.7
+import 'a.dart';
+
+main() {
+  N1;
+  N2();
+  N3;
+  N4 = 0;
+}
+''');
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = _findElement('main');
+    var kind = SearchResultKind.REFERENCE;
+    var expected = [
+      _expectId(mainElement, kind, 'N1;', length: 0),
+      _expectId(mainElement, kind, 'N2();', length: 0),
+      _expectId(mainElement, kind, 'N3;', length: 0),
+      _expectId(mainElement, kind, 'N4 =', length: 0),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ImportElement_withPrefix_optIn_fromOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+class N1 {}
+void N2() {}
+int get N3 => 0;
+set N4(int _) {}
+''');
+
+    await _resolveTestUnit('''
+// @dart = 2.7
+import 'a.dart' as a;
+
+main() {
+  a.N1;
+  a.N2();
+  a.N3;
+  a.N4 = 0;
+}
+''');
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = _findElement('main');
+    var kind = SearchResultKind.REFERENCE;
+    var length = 'a.'.length;
+    var expected = [
+      _expectId(mainElement, kind, 'a.N1;', length: length),
+      _expectId(mainElement, kind, 'a.N2()', length: length),
+      _expectId(mainElement, kind, 'a.N3', length: length),
+      _expectId(mainElement, kind, 'a.N4', length: length),
     ];
     await _verifyReferences(element, expected);
   }

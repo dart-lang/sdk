@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-// @dart = 2.5
-
 /**
  * Foreign Function Interface for interoperability with the C programming language.
  *
@@ -15,6 +13,7 @@
  */
 library dart.ffi;
 
+import 'dart:isolate';
 import 'dart:typed_data';
 
 part "native_type.dart";
@@ -29,7 +28,7 @@ external int sizeOf<T extends NativeType>();
 
 /// Represents a pointer into the native C memory corresponding to "NULL", e.g.
 /// a pointer with address 0.
-final Pointer<Null> nullptr = Pointer.fromAddress(0);
+final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
 /// Represents a pointer into the native C memory. Cannot be extended.
 @pragma("vm:entry-point")
@@ -55,7 +54,7 @@ class Pointer<T extends NativeType> extends NativeType {
   /// [dynamic].
   external static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
-      [Object exceptionalReturn]);
+      [Object? exceptionalReturn]);
 
   /// Access to the raw pointer value.
   /// On 32-bit systems, the upper 32-bits of the result are 0.
@@ -67,23 +66,25 @@ class Pointer<T extends NativeType> extends NativeType {
   /// Cast Pointer<T> to a Pointer<V>.
   external Pointer<U> cast<U extends NativeType>();
 
-  /// Convert to Dart function, automatically marshalling the arguments
-  /// and return value.
-  ///
-  /// Can only be called on [Pointer]<[NativeFunction]>. Does not accept dynamic
-  /// invocations -- where the type of the receiver is [dynamic].
-  external R asFunction<@DartRepresentationOf("T") R extends Function>();
-
   /// Equality for Pointers only depends on their address.
-  bool operator ==(other) {
-    if (other == null) return false;
-    return address == other.address;
+  bool operator ==(Object other) {
+    if (other is! Pointer) return false;
+    Pointer otherPointer = other;
+    return address == otherPointer.address;
   }
 
   /// The hash code for a Pointer only depends on its address.
   int get hashCode {
     return address.hashCode;
   }
+}
+
+/// Extension on [Pointer] specialized for the type argument [NativeFunction].
+extension NativeFunctionPointer<NF extends Function>
+    on Pointer<NativeFunction<NF>> {
+  /// Convert to Dart function, automatically marshalling the arguments
+  /// and return value.
+  external DF asFunction<@DartRepresentationOf("NF") DF extends Function>();
 }
 
 //
@@ -619,4 +620,39 @@ extension NativePort on SendPort {
   /// messages to the connected [ReceivePort] via `Dart_PostCObject()` - see
   /// `dart_native_api.h`.
   external int get nativePort;
+}
+
+/// Opaque, not exposing it's members.
+class Dart_CObject extends Struct {}
+
+typedef Dart_NativeMessageHandler = Void Function(Int64, Pointer<Dart_CObject>);
+
+/// Exposes function pointers to functions in `dart_native_api.h`.
+abstract class NativeApi {
+  /// A function pointer to
+  /// `bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message)`
+  /// in `dart_native_api.h`.
+  external static Pointer<
+          NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
+      get postCObject;
+
+  /// A function pointer to
+  /// ```
+  /// Dart_Port Dart_NewNativePort(const char* name,
+  ///                              Dart_NativeMessageHandler handler,
+  ///                              bool handle_concurrently)
+  /// ```
+  /// in `dart_native_api.h`.
+  external static Pointer<
+      NativeFunction<
+          Int64 Function(
+              Pointer<Uint8>,
+              Pointer<NativeFunction<Dart_NativeMessageHandler>>,
+              Int8)>> get newNativePort;
+
+  /// A function pointer to
+  /// `bool Dart_CloseNativePort(Dart_Port native_port_id)`
+  /// in `dart_native_api.h`.
+  external static Pointer<NativeFunction<Int8 Function(Int64)>>
+      get closeNativePort;
 }

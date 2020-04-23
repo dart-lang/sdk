@@ -1,0 +1,89 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class A extends core::Object {
+  field core::int? _#A#x = null;
+  field core::int? _#A#y = null;
+  field core::bool _#A#y#isSet = false;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return let final core::int? #t1 = this.{self::A::_#A#x} in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.") : #t1{core::int};
+  set x(core::int #t2) → void
+    if(this.{self::A::_#A#x}.==(null))
+      this.{self::A::_#A#x} = #t2;
+    else
+      throw new _in::LateInitializationErrorImpl::•("Field 'x' has already been initialized.");
+  get y() → core::int?
+    return this.{self::A::_#A#y#isSet} ?{core::int?} this.{self::A::_#A#y} : throw new _in::LateInitializationErrorImpl::•("Field 'y' has not been initialized.");
+  set y(core::int? #t3) → void
+    if(this.{self::A::_#A#y#isSet})
+      throw new _in::LateInitializationErrorImpl::•("Field 'y' has already been initialized.");
+    else {
+      this.{self::A::_#A#y#isSet} = true;
+      this.{self::A::_#A#y} = #t3;
+    }
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  get x() → core::int
+    return 1;
+  get y() → core::int?
+    return 1;
+}
+class C extends self::A {
+  field core::int? _#C#x = null;
+  field core::int? _#C#y = null;
+  field core::bool _#C#y#isSet = false;
+  synthetic constructor •() → self::C
+    : super self::A::•()
+    ;
+  get x() → core::int
+    return let final core::int? #t4 = this.{self::C::_#C#x} in #t4.==(null) ?{core::int} let final core::int #t5 = 2 in this.{self::C::_#C#x}.==(null) ?{core::int} this.{self::C::_#C#x} = #t5 : throw new _in::LateInitializationErrorImpl::•("Field 'x' has been assigned during initialization.") : #t4{core::int};
+  get y() → core::int? {
+    if(!this.{self::C::_#C#y#isSet}) {
+      final core::int? #t6 = 2;
+      if(this.{self::C::_#C#y#isSet})
+        throw new _in::LateInitializationErrorImpl::•("Field 'y' has been assigned during initialization.");
+      this.{self::C::_#C#y#isSet} = true;
+      this.{self::C::_#C#y} = #t6;
+    }
+    return this.{self::C::_#C#y};
+  }
+}
+static method main() → dynamic {
+  self::B b = new self::B::•();
+  b.{self::A::x} = 3;
+  self::C c = new self::C::•();
+  self::throws(() → core::int => b.{self::A::x} = 14, "Write to B.x");
+  c.{self::A::x} = 3;
+  self::throws(() → core::int => c.{self::A::x} = 14, "Write to C.x");
+  self::expect(1, b.{self::B::x});
+  self::expect(2, c.{self::C::x});
+  b.{self::A::y} = 3;
+  self::throws(() → core::int => b.{self::A::y} = 14, "Write to B.y");
+  c.{self::A::y} = 3;
+  self::throws(() → core::int => c.{self::A::y} = 14, "Write to C.y");
+  self::expect(1, b.{self::B::y});
+  self::expect(2, c.{self::C::y});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → dynamic f, core::String message) → dynamic {
+  dynamic value;
+  try {
+    value = f.call();
+  }
+  on core::LateInitializationError catch(final core::LateInitializationError e) {
+    core::print(e);
+    return;
+  }
+  throw "${message}: ${value}";
+}

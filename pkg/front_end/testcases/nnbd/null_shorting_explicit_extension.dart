@@ -2,143 +2,266 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Class {
-  Class? _field;
+class Class1 {
+  Class1? get property => null;
+
+  void set property(Class1? value) {}
+
+  Class1 get property1 => new Class1();
+
+  Class2 get property2 => new Class2();
 }
 
-extension Extension on Class {
-  Class? get field => _field;
-  void set field(Class? value) {
-    _field = value;
+extension Extension1 on Class1 {
+  Class1? get nullable1 => property1;
+
+  void set nullable1(Class1? value) {
+    property = value;
   }
 
-  Class? method() => field;
+  Class1 nonNullable1Method() => nonNullable1;
 
-  Class? operator [](Class? key) => field;
-  void operator []=(Class? key, Class? value) {
-    field = value;
+  Class1? operator [](Class1? key) => nullable1;
+
+  void operator []=(Class1? key, Class1? value) {
+    property = value;
   }
 
-  Class? operator +(int value) => field;
+  Class1? operator +(int value) => nullable1;
 
-  Class? operator -() => field;
+  Class1? operator -() => nullable1;
+
+  Class1 get nonNullable1 => property1;
+
+  Class2 get nonNullable2 => property2;
+}
+
+class Class2 {
+  Class2 get property => this;
+
+  void set property(Class2 value) {}
+}
+
+extension Extension2 on Class2 {
+  Class2 nonNullable2Method() => nonNullable2;
+
+  Class2 operator [](Class2? key) => property;
+
+  void operator []=(Class2? key, Class2? value) => property;
+
+  Class2 operator +(int value) => property;
+
+  Class2 operator -() => property;
+
+  Class2 get nonNullable2 => property;
+
+  void set nonNullable2(Class2 value) {
+    property = value;
+  }
+}
+
+class Class3 {
+  Class2? get property => null;
+}
+
+extension Extension3 on Class3 {
+  Class2? operator [](Class3? key) => property;
 }
 
 main() {
   propertyAccess(null);
-  indexAccess(null);
-  operatorAccess(null);
+  indexAccess(null, null, null);
+  operatorAccess(null, null);
   ifNull(null);
 }
 
-void propertyAccess(Class? c) {
-  Extension(c)?.field;
-  Extension(c)?.field = new Class();
-  c = Extension(c)?.field = new Class();
-  Extension(c)?.method();
+void propertyAccess(Class1? n1) {
+  Class1? nullable1 = n1;
 
-  Extension(c)?.field.field;
-  Extension(c)?.field.field = new Class();
-  throws(() => (Extension(c)?.field).field);
-  throws(() => (Extension(c)?.field = new Class()).field);
-  throws(() => (Extension(c)?.method()).field);
-  c = Extension(c)?.field.field = new Class();
-  Extension(c)?.field.method();
-  Extension(c)?.field = new Class().field;
-  c = Extension(c)?.field = new Class().field;
-  Extension(c)?.field = new Class().field = new Class();
-  c = Extension(c)?.field = new Class().field = new Class();
-  Extension(c)?.field = new Class().method();
-  c = Extension(c)?.field = new Class().method();
-  Extension(c)?.method().field;
-  Extension(c)?.method().field = new Class();
-  Extension(c)?.method().method();
+  Extension1(n1)?.nullable1;
+  Extension1(n1)?.nullable1 = new Class1();
+  nullable1 = Extension1(n1)?.nullable1 = new Class1();
+  Extension1(n1)?.nonNullable1Method();
 
-  Extension(c)?.field.field.field;
-  Extension(c)?.field.field.field = new Class();
-  c = Extension(c)?.field.field.field = new Class();
-  Extension(c)?.field.field.method();
-  Extension(c)?.field = new Class().field.field;
-  c = Extension(c)?.field = new Class().field.field;
-  Extension(c)?.field = new Class().field.field = new Class();
-  c = Extension(c)?.field = new Class().field.field = new Class();
-  Extension(c)?.field = new Class().field.method();
-  c = Extension(c)?.field = new Class().field.method();
-  Extension(c)?.method().field.field;
-  Extension(c)?.method().field.field = new Class();
-  Extension(c)?.method().field.method();
+  Extension1(n1)?.nonNullable1.nullable1;
+  Extension1(n1)?.nullable1?.nullable1;
+  Extension1(n1)?.nonNullable1.nullable1?.nullable1;
+  Extension1(n1)?.nonNullable1.nullable1 = new Class1();
+  Extension1(n1)?.nullable1?.nullable1 = new Class1();
+  Extension1(n1)?.nonNullable1.nullable1?.nullable1 = new Class1();
+  (Extension1(n1)?.nullable1)?.nullable1;
+  throws(() => (Extension1(n1)?.nullable1 = new Class1()).nullable1);
+  throws(() => (Extension1(n1)?.nonNullable1Method()).nullable1);
+  nullable1 = Extension1(n1)?.nonNullable1.nullable1 = new Class1();
+  nullable1 = Extension1(n1)?.nullable1?.nullable1 = new Class1();
+  nullable1 = Extension1(n1)?.nonNullable1.nullable1?.nullable1 = new Class1();
+  Extension1(n1)?.nullable1?.nonNullable1Method();
+  Extension1(n1)?.nullable1 = new Class1().nullable1;
+  nullable1 = Extension1(n1)?.nullable1 = new Class1().nullable1;
+  Extension1(n1)?.nullable1 = new Class1().nullable1 = new Class1();
+  nullable1 = Extension1(n1)?.nullable1 = new Class1().nullable1 = new Class1();
+  Extension1(n1)?.nullable1 = new Class1().nonNullable1Method();
+  nullable1 = Extension1(n1)?.nullable1 = new Class1().nonNullable1Method();
+  Extension1(n1)?.nonNullable1Method().nullable1;
+  Extension1(n1)?.nonNullable1Method().nullable1 = new Class1();
+  Extension1(n1)?.nonNullable1Method().nonNullable1Method();
 
-  Extension(c)?.field.field = new Class().field;
-  c = Extension(c)?.field.field = new Class().field;
-  Extension(c)?.field.field = new Class().field = new Class();
-  c = Extension(c)?.field.field = new Class().field = new Class();
-  Extension(c)?.field.field = new Class().method();
-  c = Extension(c)?.field.field = new Class().method();
-  Extension(c)?.field = new Class().field = new Class().field;
-  c = Extension(c)?.field = new Class().field = new Class().field;
-  Extension(c)?.field = new Class().field = new Class().field = new Class();
-  c = Extension(c)?.field = new Class().field = new Class().field = new Class();
-  Extension(c)?.field = new Class().field = new Class().method();
-  c = Extension(c)?.field = new Class().field = new Class().method();
-  Extension(c)?.method().field = new Class().field;
-  c = Extension(c)?.method().field = new Class().field;
-  Extension(c)?.method().field = new Class().field = new Class();
-  c = Extension(c)?.method().field = new Class().field = new Class();
-  Extension(c)?.method().field = new Class().method();
-  c = Extension(c)?.method().field = new Class().method();
+  Extension1(n1)?.nonNullable1.nonNullable1.nullable1;
+  Extension1(n1)?.nonNullable1.nonNullable1.nullable1 = new Class1();
+  nullable1 =
+      Extension1(n1)?.nonNullable1.nonNullable1.nullable1 = new Class1();
+  Extension1(n1)?.nonNullable1.nullable1?.nonNullable1Method();
+  Extension1(n1)?.nullable1 = new Class1().nonNullable1.nullable1;
+  nullable1 = Extension1(n1)?.nullable1 = new Class1().nonNullable1.nullable1;
+  Extension1(n1)?.nullable1 =
+      new Class1().nonNullable1.nullable1 = new Class1();
+  nullable1 = Extension1(n1)?.nullable1 =
+      new Class1().nonNullable1.nullable1 = new Class1();
+  Extension1(n1)?.nullable1 = new Class1().nonNullable1.nonNullable1Method();
+  nullable1 = Extension1(n1)?.nullable1 =
+      new Class1().nonNullable1.nonNullable1Method();
+  Extension1(n1)?.nonNullable1Method().nonNullable1.nullable1;
+  Extension1(n1)?.nonNullable1Method().nonNullable1.nullable1 = new Class1();
+  Extension1(n1)?.nonNullable1Method().nonNullable1.nonNullable1Method();
 
-  Extension(c)?.field.method().field;
-  Extension(c)?.field.method().field = new Class();
-  c = Extension(c)?.field.method().field = new Class();
-  Extension(c)?.field.method().method();
-  Extension(c)?.field = new Class().method().field;
-  c = Extension(c)?.field = new Class().method().field;
-  Extension(c)?.field = new Class().method().field = new Class();
-  c = Extension(c)?.field = new Class().method().field = new Class();
-  Extension(c)?.field = new Class().method().method();
-  c = Extension(c)?.field = new Class().method().method();
-  Extension(c)?.method().method().field;
-  Extension(c)?.method().method().field = new Class();
-  Extension(c)?.method().method().method();
+  Extension1(n1)?.nonNullable1.nullable1 = new Class1().nullable1;
+  nullable1 = Extension1(n1)?.nonNullable1.nullable1 = new Class1().nullable1;
+  Extension1(n1)?.nonNullable1.nullable1 =
+      new Class1().nullable1 = new Class1();
+  nullable1 = Extension1(n1)?.nonNullable1.nullable1 =
+      new Class1().nullable1 = new Class1();
+  Extension1(n1)?.nonNullable1.nullable1 = new Class1().nonNullable1Method();
+  nullable1 = Extension1(n1)?.nonNullable1.nullable1 =
+      new Class1().nonNullable1Method();
+  Extension1(n1)?.nullable1 = new Class1().nullable1 = new Class1().nullable1;
+  nullable1 = Extension1(n1)?.nullable1 =
+      new Class1().nullable1 = new Class1().nullable1;
+  Extension1(n1)?.nullable1 =
+      new Class1().nullable1 = new Class1().nullable1 = new Class1();
+  nullable1 = Extension1(n1)?.nullable1 =
+      new Class1().nullable1 = new Class1().nullable1 = new Class1();
+  Extension1(n1)?.nullable1 =
+      new Class1().nullable1 = new Class1().nonNullable1Method();
+  nullable1 = Extension1(n1)?.nullable1 =
+      new Class1().nullable1 = new Class1().nonNullable1Method();
+  Extension1(n1)?.nonNullable1Method().nullable1 = new Class1().nullable1;
+  nullable1 =
+      Extension1(n1)?.nonNullable1Method().nullable1 = new Class1().nullable1;
+  Extension1(n1)?.nonNullable1Method().nullable1 =
+      new Class1().nullable1 = new Class1();
+  nullable1 = Extension1(n1)?.nonNullable1Method().nullable1 =
+      new Class1().nullable1 = new Class1();
+  Extension1(n1)?.nonNullable1Method().nullable1 =
+      new Class1().nonNullable1Method();
+  nullable1 = Extension1(n1)?.nonNullable1Method().nullable1 =
+      new Class1().nonNullable1Method();
+
+  Extension1(n1)?.nonNullable1.nonNullable1Method().nullable1;
+  Extension1(n1)?.nonNullable1.nonNullable1Method().nullable1 = new Class1();
+  nullable1 = Extension1(n1)?.nonNullable1.nonNullable1Method().nullable1 =
+      new Class1();
+  Extension1(n1)?.nonNullable1.nonNullable1Method().nonNullable1Method();
+  Extension1(n1)?.nullable1 = new Class1().nonNullable1Method().nullable1;
+  nullable1 =
+      Extension1(n1)?.nullable1 = new Class1().nonNullable1Method().nullable1;
+  Extension1(n1)?.nullable1 =
+      new Class1().nonNullable1Method().nullable1 = new Class1();
+  nullable1 = Extension1(n1)?.nullable1 =
+      new Class1().nonNullable1Method().nullable1 = new Class1();
+  Extension1(n1)?.nullable1 =
+      new Class1().nonNullable1Method().nonNullable1Method();
+  nullable1 = Extension1(n1)?.nullable1 =
+      new Class1().nonNullable1Method().nonNullable1Method();
+  Extension1(n1)?.nonNullable1Method().nonNullable1Method().nullable1;
+  Extension1(n1)?.nonNullable1Method().nonNullable1Method().nullable1 =
+      new Class1();
+  Extension1(n1)
+      ?.nonNullable1Method()
+      .nonNullable1Method()
+      .nonNullable1Method();
+
+  Extension1(n1)?.nonNullable1Method()?.nonNullable1Method();
 }
 
-void indexAccess(Class? c) {
-  Extension(c)?.[c];
-  Extension(c)?.[c] = new Class();
-  Extension(c)?.[c].method();
-  Extension(c)?.field[c];
-  Extension(c)?.field[c] = new Class();
-  c = Extension(c)?.field[c] = new Class();
-  Extension(c)?.field[c].method();
-  Extension(c)?.field[c] += 0;
-  c = Extension(c)?.field[c] += 0;
-  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
-  // update.
-  Extension(c)?.field[c]++;
-  c = Extension(c)?.field[c]++;
-  ++Extension(c)?.field[c];
-  c = ++Extension(c)?.field[c];
+void indexAccess(Class1? n1, Class2? n2, Class3? n3) {
+  Class1? nullable1 = n1;
+  Class2? nullable2 = n2;
+  Class3? nullable3 = n3;
+
+  Extension1(n1)?.[nullable1];
+  Extension1(n1)?.[nullable1] = new Class1();
+  Extension1(n1)?.[nullable1]?.nonNullable1Method();
+  Extension1(n1)?.nonNullable1[nullable1];
+  Extension1(n1)?.nonNullable1[nullable1] = new Class1();
+  nullable1 = Extension1(n1)?.nonNullable1[nullable1] = new Class1();
+  Extension1(n1)?.nonNullable1[nullable1]?.nonNullable1Method();
+  Extension1(n1)?.nonNullable2[nullable2] += 0;
+  nullable2 = Extension1(n1)?.nonNullable2[nullable2] += 0;
+  Extension1(n1)?.[nullable1] ??= nullable1;
+  nullable1 = Extension1(n1)?.[nullable1] ??= nullable1;
+  Extension2(n2)?.[nullable2] += 0;
+  nullable2 = Extension2(n2)?.[nullable2] += 0;
+  Extension2(n2)?.[nullable2] += 0;
+  nullable2 = Extension2(n2)?.[nullable2] += 0;
+  Extension2(n2)?.[nullable2]++;
+  nullable2 = Extension2(n2)?.[nullable2]++;
+  ++Extension2(n2)?.[nullable2];
+  nullable2 = ++Extension2(n2)?.[nullable2];
+  Extension1(n1)?.nonNullable2[nullable2]++;
+  nullable2 = Extension1(n1)?.nonNullable2[nullable2]++;
+  ++Extension1(n1)?.nonNullable2[nullable2];
+  nullable2 = ++Extension1(n1)?.nonNullable2[nullable2];
+
+  Extension1(n1)?.nonNullable2[nullable2][nullable2];
+  Extension1(n1)?.nonNullable2[nullable2][nullable2] = new Class2();
+  nullable2 = Extension1(n1)?.nonNullable2[nullable2][nullable2] = new Class2();
+  Extension1(n1)?.nonNullable2[nullable2][nullable2]?.nonNullable2Method();
+  Extension1(n1)?.nonNullable2[nullable2][nullable2] += 0;
+  nullable2 = Extension1(n1)?.nonNullable2[nullable2][nullable2] += 0;
+  Extension1(n1)?.nonNullable2[nullable2][nullable2]++;
+  nullable2 = Extension1(n1)?.nonNullable2[nullable2][nullable2]++;
+  ++Extension1(n1)?.nonNullable2[nullable2][nullable2];
+  nullable2 = ++Extension1(n1)?.nonNullable2[nullable2][nullable2];
+
+  Extension1(n1)?.[nullable1]?.[nullable1];
+  Extension1(n1)?.[nullable1]?.[nullable1] = new Class1();
+  nullable1 = Extension1(n1)?.[nullable1]?.[nullable1] = new Class1();
+  Extension1(n1)?.[nullable1]?.[nullable1]?.nonNullable1Method();
+  nullable1 = Extension1(n1)?.[nullable1]?.[nullable1]?.nonNullable1Method();
+  Extension1(n1)?.[nullable1]?.[nullable1] ??= nullable1;
+  nullable1 = Extension1(n1)?.[nullable1]?.[nullable1] ??= nullable1;
+  Extension3(n3)?.[nullable3]?.[nullable2] += 0;
+  nullable2 = Extension3(n3)?.[nullable3]?.[nullable2] += 0;
+  Extension3(n3)?.[nullable3]?.[nullable2]++;
+  nullable2 = Extension3(n3)?.[nullable3]?.[nullable2]++;
+  ++Extension3(n3)?.[nullable3]?.[nullable2];
+  nullable2 = ++Extension3(n3)?.[nullable3]?.[nullable2];
 }
 
-void operatorAccess(Class? c) {
-  throws(() => Extension(c)?.field + 0);
-  throws(() => -Extension(c)?.field);
-  Extension(c)?.field += 0;
-  c = Extension(c)?.field += 0;
-  Extension(c)?.field.field += 0;
-  c = Extension(c)?.field.field += 0;
-  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
-  // update.
-  Extension(c)?.field++;
-  c = Extension(c)?.field++;
-  ++Extension(c)?.field;
-  c = ++Extension(c)?.field;
+void operatorAccess(Class1? n1, Class2? n2) {
+  Class2? nullable2 = n2;
+
+  throws(() => Extension1(n1)?.nonNullable1 + 0);
+  throws(() => -Extension1(n1)?.nonNullable1);
+  Extension2(n2)?.nonNullable2 += 0;
+  nullable2 = Extension2(n2)?.nonNullable2 += 0;
+  Extension2(n2)?.nonNullable2.nonNullable2 += 0;
+  nullable2 = Extension2(n2)?.nonNullable2.nonNullable2 += 0;
+  Extension2(n2)?.nonNullable2++;
+  nullable2 = Extension2(n2)?.nonNullable2++;
+  ++Extension2(n2)?.nonNullable2;
+  nullable2 = ++Extension2(n2)?.nonNullable2;
 }
 
-void ifNull(Class? c) {
-  Extension(c)?.field ??= c;
-  c = Extension(c)?.field ??= c;
-  Extension(c)?.field[c] ??= c;
+void ifNull(Class1? n1) {
+  Class1? nullable1 = n1;
+
+  n1?.nullable1 ??= n1;
+  n1 = n1?.nullable1 ??= n1;
+  n1?.nonNullable1.nullable1 ??= n1;
+  n1 = n1?.nonNullable1.nullable1 ??= n1;
+  n1?.nonNullable1[n1] ??= n1;
+  n1 = n1?.nonNullable1[n1] ??= n1;
 }
 
 void throws(void Function() f) {

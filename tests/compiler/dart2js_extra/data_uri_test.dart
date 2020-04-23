@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "data:,var%20x=#_a._b;var%20y=#a._b;var%20z=#_b;";
 
 main() {

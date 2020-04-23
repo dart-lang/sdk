@@ -1,0 +1,85 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Check incremental serialization when loading from dill.
+# Update a package location and keep another one stable.
+# (At least currently) we don't initialize from dill when a package has changed
+# location, so we shouldn't use that for the incremental serializer either.
+
+type: newworld
+incrementalSerialization: true
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "package:package1/p1.dart";
+        import "package:package2/p2.dart";
+        main() {
+          p1();
+          p2();
+        }
+      package1/p1.dart:
+        p1() {
+          print("Package 1");
+          p1_v1_Only();
+        }
+        p1_v1_Only() {
+          print("Package 1 v1 only!");
+        }
+      package1v2/p1.dart:
+        p1() {
+          print("Package 1 v2");
+          p1_v2_Only();
+        }
+        p1_v2_Only() {
+          print("Package 1 v2 only!");
+        }
+      package2/p2.dart:
+        import "package:package1/p1.dart";
+        p2() {
+          p1();
+          print("Package 2");
+        }
+      .packages: |
+        package1:package1
+        package2:package2
+    expectedLibraryCount: 3
+    incrementalSerializationDoesWork: true
+  - entry: main.dart
+    expectInitializeFromDill: false # .packages changed
+    sources:
+      main.dart: |
+        import "package:package1/p1.dart";
+        import "package:package2/p2.dart";
+        main() {
+          p1();
+          p2();
+        }
+      package1/p1.dart:
+        p1() {
+          print("Package 1");
+          p1_v1_Only();
+        }
+        p1_v1_Only() {
+          print("Package 1 v1 only!");
+        }
+      package1v2/p1.dart:
+        p1() {
+          print("Package 1 v2");
+          p1_v2_Only();
+        }
+        p1_v2_Only() {
+          print("Package 1 v2 only!");
+        }
+      package2/p2.dart:
+        import "package:package1/p1.dart";
+        p2() {
+          p1();
+          print("Package 2");
+        }
+      .packages: |
+        package1:package1v2
+        package2:package2
+    expectedLibraryCount: 3
+    incrementalSerializationDoesWork: true

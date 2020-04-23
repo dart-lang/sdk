@@ -16,6 +16,29 @@ namespace dart {
 
 DECLARE_FLAG(bool, show_invisible_frames);
 
+static const intptr_t kDefaultStackAllocation = 8;
+
+static RawStackTrace* CurrentSyncStackTraceLazy(Thread* thread,
+                                                intptr_t skip_frames = 1) {
+  Zone* zone = thread->zone();
+
+  const auto& code_array = GrowableObjectArray::ZoneHandle(
+      zone, GrowableObjectArray::New(kDefaultStackAllocation));
+  const auto& pc_offset_array = GrowableObjectArray::ZoneHandle(
+      zone, GrowableObjectArray::New(kDefaultStackAllocation));
+
+  // Collect the frames.
+  StackTraceUtils::CollectFramesLazy(thread, code_array, pc_offset_array,
+                                     skip_frames);
+
+  const auto& code_array_fixed =
+      Array::Handle(zone, Array::MakeFixedLength(code_array));
+  const auto& pc_offset_array_fixed =
+      Array::Handle(zone, Array::MakeFixedLength(pc_offset_array));
+
+  return StackTrace::New(code_array_fixed, pc_offset_array_fixed);
+}
+
 static RawStackTrace* CurrentSyncStackTrace(Thread* thread,
                                             intptr_t skip_frames = 1) {
   Zone* zone = thread->zone();
@@ -45,6 +68,9 @@ static RawStackTrace* CurrentStackTrace(
     bool for_async_function,
     intptr_t skip_frames = 1,
     bool causal_async_stacks = FLAG_causal_async_stacks) {
+  if (FLAG_lazy_async_stacks) {
+    return CurrentSyncStackTraceLazy(thread, skip_frames);
+  }
   if (!causal_async_stacks) {
     // Return the synchronous stack trace.
     return CurrentSyncStackTrace(thread, skip_frames);

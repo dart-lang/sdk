@@ -91,15 +91,20 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type,
           for (int i = 0; i < type.arguments.length; ++i) {
             const int visitMarker = -2;
 
-            TypeVariableBuilder declarationTypeVariable =
-                declaration.typeVariables[i];
-
-            if (declarationTypeVariable.variance == pendingVariance) {
+            int declarationTypeVariableVariance = declaration.varianceAt(i);
+            if (declarationTypeVariableVariance == pendingVariance) {
+              assert(!declaration.fromDill);
+              TypeVariableBuilder declarationTypeVariable =
+                  declaration.typeVariables[i];
               declarationTypeVariable.variance = visitMarker;
               int computedVariance = computeVariance(
                   declarationTypeVariable, declaration.type, libraryBuilder);
-              declarationTypeVariable.variance = computedVariance;
-            } else if (declarationTypeVariable.variance == visitMarker) {
+              declarationTypeVariableVariance =
+                  declarationTypeVariable.variance = computedVariance;
+            } else if (declarationTypeVariableVariance == visitMarker) {
+              assert(!declaration.fromDill);
+              TypeVariableBuilder declarationTypeVariable =
+                  declaration.typeVariables[i];
               libraryBuilder.addProblem(
                   templateCyclicTypedef.withArguments(declaration.name),
                   declaration.charOffset,
@@ -108,7 +113,8 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type,
               // Use [Variance.unrelated] for recovery.  The type with the
               // cyclic dependency will be replaced with an [InvalidType]
               // elsewhere.
-              declarationTypeVariable.variance = Variance.unrelated;
+              declarationTypeVariableVariance =
+                  declarationTypeVariable.variance = Variance.unrelated;
             }
 
             result = Variance.meet(
@@ -116,7 +122,7 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type,
                 Variance.combine(
                     computeVariance(
                         variable, type.arguments[i], libraryBuilder),
-                    declarationTypeVariable.variance));
+                    declarationTypeVariableVariance));
           }
         }
         return result;

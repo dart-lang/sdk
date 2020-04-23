@@ -15,7 +15,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../support/abstract_context.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgumentListCompletionTargetTest);
     defineReflectiveTests(CompletionTargetTest);
@@ -24,7 +24,7 @@ main() {
 
 @reflectiveTest
 class ArgumentListCompletionTargetTest extends _Base {
-  test_Annotation_named() async {
+  Future<void> test_Annotation_named() async {
     await createTarget('''
 class Foo {
   const Foo({int a, String b});
@@ -37,12 +37,12 @@ main() {}
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: Foo Function({a: int, b: String})',
+      expectedExecutable: 'Foo.<init>: Foo Function({int a, String b})',
       expectedParameter: 'b: String',
     );
   }
 
-  test_Annotation_positional() async {
+  Future<void> test_Annotation_positional() async {
     await createTarget('''
 class Foo {
   const Foo(int a);
@@ -60,7 +60,7 @@ main() {}
     );
   }
 
-  test_InstanceCreationExpression_explicitNew_unresolved() async {
+  Future<void> test_InstanceCreationExpression_explicitNew_unresolved() async {
     await createTarget('''
 main() {
   new Foo(^)
@@ -69,7 +69,8 @@ main() {
     assertTarget(')', '()', argIndex: 0);
   }
 
-  test_InstanceCreationExpression_generic_explicitTypeArgument() async {
+  Future<void>
+      test_InstanceCreationExpression_generic_explicitTypeArgument() async {
     await createTarget('''
 class Foo<T> {
   Foo(T a, T b);
@@ -88,7 +89,8 @@ main() {
     );
   }
 
-  test_InstanceCreationExpression_generic_inferredTypeArgument() async {
+  Future<void>
+      test_InstanceCreationExpression_generic_inferredTypeArgument() async {
     await createTarget('''
 class Foo<T> {
   Foo(T a, T b);
@@ -107,7 +109,7 @@ main() {
     );
   }
 
-  test_InstanceCreationExpression_named() async {
+  Future<void> test_InstanceCreationExpression_named() async {
     await createTarget('''
 class Foo {
   Foo({int a, String b, double c});
@@ -122,12 +124,12 @@ main() {
       'b: ',
       argIndex: 0,
       expectedExecutable:
-          'Foo.<init>: Foo Function({a: int, b: String, c: double})',
+          'Foo.<init>: Foo Function({int a, String b, double c})',
       expectedParameter: 'b: String',
     );
   }
 
-  test_InstanceCreationExpression_named_unresolved() async {
+  Future<void> test_InstanceCreationExpression_named_unresolved() async {
     await createTarget('''
 class Foo {
   Foo({int a});
@@ -141,11 +143,11 @@ main() {
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: Foo Function({a: int})',
+      expectedExecutable: 'Foo.<init>: Foo Function({int a})',
     );
   }
 
-  test_InstanceCreationExpression_namedConstructor() async {
+  Future<void> test_InstanceCreationExpression_namedConstructor() async {
     await createTarget('''
 class Foo {
   Foo.named(int a, String b, double c);
@@ -164,7 +166,7 @@ main() {
     );
   }
 
-  test_InstanceCreationExpression_positional() async {
+  Future<void> test_InstanceCreationExpression_positional() async {
     await createTarget('''
 class Foo {
   Foo(int a);
@@ -183,7 +185,7 @@ main() {
     );
   }
 
-  test_InstanceCreationExpression_positional_isFunctional() async {
+  Future<void> test_InstanceCreationExpression_positional_isFunctional() async {
     await createTarget('''
 class Foo {
   Foo(int Function(String) f);
@@ -203,7 +205,7 @@ main() {
     );
   }
 
-  test_InstanceCreationExpression_positional_noParameter0() async {
+  Future<void> test_InstanceCreationExpression_positional_noParameter0() async {
     await createTarget('''
 class Foo {}
 
@@ -219,7 +221,7 @@ main() {
     );
   }
 
-  test_InstanceCreationExpression_positional_noParameter1() async {
+  Future<void> test_InstanceCreationExpression_positional_noParameter1() async {
     await createTarget('''
 class Foo {}
 
@@ -235,7 +237,7 @@ main() {
     );
   }
 
-  test_MethodInvocation_named() async {
+  Future<void> test_MethodInvocation_named() async {
     await createTarget('''
 int foo({int a, String b, double c}) {}
 
@@ -247,12 +249,12 @@ main() {
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'foo: int Function({a: int, b: String, c: double})',
+      expectedExecutable: 'foo: int Function({int a, String b, double c})',
       expectedParameter: 'b: String',
     );
   }
 
-  test_MethodInvocation_named_isFunctional() async {
+  Future<void> test_MethodInvocation_named_isFunctional() async {
     await createTarget('''
 int foo({int Function(String) f}) {}
 
@@ -264,13 +266,13 @@ main() {
       '',
       'f: ',
       argIndex: 0,
-      expectedExecutable: 'foo: int Function({f: int Function(String)})',
+      expectedExecutable: 'foo: int Function({int Function(String) f})',
       expectedParameter: 'f: int Function(String)',
       isFunctionalArgument: true,
     );
   }
 
-  test_MethodInvocation_named_unresolved() async {
+  Future<void> test_MethodInvocation_named_unresolved() async {
     await createTarget('''
 int foo({int a}) {}
 
@@ -282,11 +284,11 @@ main() {
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'foo: int Function({a: int})',
+      expectedExecutable: 'foo: int Function({int a})',
     );
   }
 
-  test_MethodInvocation_positional2() async {
+  Future<void> test_MethodInvocation_positional2() async {
     await createTarget('''
 int foo(int a, String b) {}
 
@@ -303,7 +305,7 @@ main() {
     );
   }
 
-  test_MethodInvocation_positional_isFunctional() async {
+  Future<void> test_MethodInvocation_positional_isFunctional() async {
     await createTarget('''
 int foo(int Function(String) f) {}
 
@@ -321,7 +323,7 @@ main() {
     );
   }
 
-  test_MethodInvocation_positional_isFunctional2() async {
+  Future<void> test_MethodInvocation_positional_isFunctional2() async {
     await createTarget('''
 class C {
   int foo(int Function(String) f) {}
@@ -341,7 +343,7 @@ main(C c) {
     );
   }
 
-  test_MethodInvocation_positional_withPrefix() async {
+  Future<void> test_MethodInvocation_positional_withPrefix() async {
     await createTarget('''
 int foo(int a, String b) {}
 
@@ -358,7 +360,7 @@ main() {
     );
   }
 
-  test_MethodInvocation_positional_withPrefix2() async {
+  Future<void> test_MethodInvocation_positional_withPrefix2() async {
     await createTarget('''
 int foo(int a, String b) {}
 
@@ -375,7 +377,7 @@ main() {
     );
   }
 
-  test_MethodInvocation_positional_withSuffix() async {
+  Future<void> test_MethodInvocation_positional_withSuffix() async {
     await createTarget('''
 int foo(int a, String b) {}
 
@@ -392,7 +394,7 @@ main() {
     );
   }
 
-  test_MethodInvocation_unresolved() async {
+  Future<void> test_MethodInvocation_unresolved() async {
     await createTarget('''
 main() {
   foo(^)
@@ -401,7 +403,7 @@ main() {
     assertTarget(')', '()', argIndex: 0);
   }
 
-  test_not_ListLiteral() async {
+  Future<void> test_not_ListLiteral() async {
     await createTarget('''
 main() {
   print([^]);
@@ -415,84 +417,84 @@ main() {
 
 @reflectiveTest
 class CompletionTargetTest extends _Base {
-  test_AsExpression_identifier() async {
+  Future<void> test_AsExpression_identifier() async {
     // SimpleIdentifier  TypeName  AsExpression
     await createTarget(
         'class A {var b; X _c; foo() {var a; (a^ as String).foo();}');
     assertTarget('a as String', '(a as String)');
   }
 
-  test_AsExpression_keyword() async {
+  Future<void> test_AsExpression_keyword() async {
     // SimpleIdentifier  TypeName  AsExpression
     await createTarget(
         'class A {var b; X _c; foo() {var a; (a ^as String).foo();}');
     assertTarget('as', 'a as String');
   }
 
-  test_AsExpression_keyword2() async {
+  Future<void> test_AsExpression_keyword2() async {
     // SimpleIdentifier  TypeName  AsExpression
     await createTarget(
         'class A {var b; X _c; foo() {var a; (a a^s String).foo();}');
     assertTarget('as', 'a as String');
   }
 
-  test_AsExpression_keyword3() async {
+  Future<void> test_AsExpression_keyword3() async {
     // SimpleIdentifier  TypeName  AsExpression
     await createTarget(
         'class A {var b; X _c; foo() {var a; (a as^ String).foo();}');
     assertTarget('as', 'a as String');
   }
 
-  test_AsExpression_type() async {
+  Future<void> test_AsExpression_type() async {
     // SimpleIdentifier  TypeName  AsExpression
     await createTarget(
         'class A {var b; X _c; foo() {var a; (a as ^String).foo();}');
     assertTarget('String', 'a as String');
   }
 
-  test_Block() async {
+  Future<void> test_Block() async {
     // Block
     await createTarget('main() {^}');
     assertTarget('}', '{}');
   }
 
-  test_Block_keyword() async {
+  Future<void> test_Block_keyword() async {
     await createTarget(
         'class C { static C get instance => null; } main() {C.in^}');
     assertTarget('in', 'C.in');
   }
 
-  test_Block_keyword2() async {
+  Future<void> test_Block_keyword2() async {
     await createTarget(
         'class C { static C get instance => null; } main() {C.i^n}');
     assertTarget('in', 'C.in');
   }
 
-  test_FormalParameter_partialType() async {
+  Future<void> test_FormalParameter_partialType() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
     await createTarget('foo(b.^ f) { }');
     assertTarget('f', 'b.f');
   }
 
-  test_FormalParameter_partialType2() async {
+  Future<void> test_FormalParameter_partialType2() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
     await createTarget('foo(b.z^ f) { }');
     assertTarget('z', 'b.z');
   }
 
-  test_FormalParameter_partialType3() async {
+  Future<void> test_FormalParameter_partialType3() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
     await createTarget('foo(b.^) { }');
     assertTarget('', 'b.');
   }
 
-  test_FormalParameterList() async {
+  Future<void> test_FormalParameterList() async {
     // Token  FormalParameterList  FunctionExpression
     await createTarget('foo(^) { }');
     assertTarget(')', '()');
   }
 
-  test_FunctionDeclaration_inLineComment() async {
+  Future<void> test_FunctionDeclaration_inLineComment() async {
     // Comment  CompilationUnit
     await createTarget('''
       // normal comment ^
@@ -500,7 +502,7 @@ class CompletionTargetTest extends _Base {
     assertTarget('// normal comment ', 'zoo(z) {} String name;');
   }
 
-  test_FunctionDeclaration_inLineComment2() async {
+  Future<void> test_FunctionDeclaration_inLineComment2() async {
     // Comment  CompilationUnit
     await createTarget('''
       // normal ^comment
@@ -508,7 +510,7 @@ class CompletionTargetTest extends _Base {
     assertTarget('// normal comment', 'zoo(z) {} String name;');
   }
 
-  test_FunctionDeclaration_inLineComment3() async {
+  Future<void> test_FunctionDeclaration_inLineComment3() async {
     // Comment  CompilationUnit
     await createTarget('''
       // normal comment ^
@@ -517,7 +519,7 @@ class CompletionTargetTest extends _Base {
     assertTarget('// normal comment ', 'zoo(z) {} String name;');
   }
 
-  test_FunctionDeclaration_inLineComment4() async {
+  Future<void> test_FunctionDeclaration_inLineComment4() async {
     // Comment  CompilationUnit
     await createTarget('''
       // normal comment
@@ -526,7 +528,7 @@ class CompletionTargetTest extends _Base {
     assertTarget('// normal comment 2', 'zoo(z) {} String name;');
   }
 
-  test_FunctionDeclaration_inLineDocComment() async {
+  Future<void> test_FunctionDeclaration_inLineDocComment() async {
     // Comment  FunctionDeclaration  CompilationUnit
     await createTarget('''
       /// some dartdoc ^
@@ -536,7 +538,7 @@ class CompletionTargetTest extends _Base {
     expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
   }
 
-  test_FunctionDeclaration_inLineDocComment2() async {
+  Future<void> test_FunctionDeclaration_inLineDocComment2() async {
     // Comment  FunctionDeclaration  CompilationUnit
     await createTarget('''
       /// some ^dartdoc
@@ -546,19 +548,19 @@ class CompletionTargetTest extends _Base {
     expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
   }
 
-  test_FunctionDeclaration_inStarComment() async {
+  Future<void> test_FunctionDeclaration_inStarComment() async {
     // Comment  CompilationUnit
     await createTarget('/* ^ */ zoo(z) {} String name;');
     assertTarget('/*  */', 'zoo(z) {} String name;');
   }
 
-  test_FunctionDeclaration_inStarComment2() async {
+  Future<void> test_FunctionDeclaration_inStarComment2() async {
     // Comment  CompilationUnit
     await createTarget('/*  *^/ zoo(z) {} String name;');
     assertTarget('/*  */', 'zoo(z) {} String name;');
   }
 
-  test_FunctionDeclaration_inStarDocComment() async {
+  Future<void> test_FunctionDeclaration_inStarDocComment() async {
     // Comment  FunctionDeclaration  CompilationUnit
     await createTarget('/** ^ */ zoo(z) { } String name;');
     assertTarget('/**  */', '');
@@ -566,7 +568,7 @@ class CompletionTargetTest extends _Base {
     expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
   }
 
-  test_FunctionDeclaration_inStarDocComment2() async {
+  Future<void> test_FunctionDeclaration_inStarDocComment2() async {
     // Comment  FunctionDeclaration  CompilationUnit
     await createTarget('/**  *^/ zoo(z) { } String name;');
     assertTarget('/**  */', '');
@@ -574,13 +576,13 @@ class CompletionTargetTest extends _Base {
     expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
   }
 
-  test_FunctionDeclaration_returnType() async {
+  Future<void> test_FunctionDeclaration_returnType() async {
     // CompilationUnit
     await createTarget('^ zoo(z) { } String name;');
     assertTarget('zoo(z) {}', 'zoo(z) {} String name;');
   }
 
-  test_FunctionDeclaration_returnType_afterLineComment() async {
+  Future<void> test_FunctionDeclaration_returnType_afterLineComment() async {
     // FunctionDeclaration  CompilationUnit
     await createTarget('''
       // normal comment
@@ -588,7 +590,7 @@ class CompletionTargetTest extends _Base {
     assertTarget('zoo(z) {}', 'zoo(z) {} String name;');
   }
 
-  test_FunctionDeclaration_returnType_afterLineComment2() async {
+  Future<void> test_FunctionDeclaration_returnType_afterLineComment2() async {
     // FunctionDeclaration  CompilationUnit
     // TOD(danrubel) left align all test source
     await createTarget('''
@@ -597,7 +599,7 @@ class CompletionTargetTest extends _Base {
     assertTarget('zoo(z) {}', 'zoo(z) {} String name;');
   }
 
-  test_FunctionDeclaration_returnType_afterLineDocComment() async {
+  Future<void> test_FunctionDeclaration_returnType_afterLineDocComment() async {
     // SimpleIdentifier  FunctionDeclaration  CompilationUnit
     await createTarget('''
       /// some dartdoc
@@ -605,7 +607,8 @@ class CompletionTargetTest extends _Base {
     assertTarget('zoo', 'zoo(z) {}');
   }
 
-  test_FunctionDeclaration_returnType_afterLineDocComment2() async {
+  Future<void>
+      test_FunctionDeclaration_returnType_afterLineDocComment2() async {
     // SimpleIdentifier  FunctionDeclaration  CompilationUnit
     await createTarget('''
 /// some dartdoc
@@ -613,31 +616,32 @@ class CompletionTargetTest extends _Base {
     assertTarget('zoo', 'zoo(z) {}');
   }
 
-  test_FunctionDeclaration_returnType_afterStarComment() async {
+  Future<void> test_FunctionDeclaration_returnType_afterStarComment() async {
     // CompilationUnit
     await createTarget('/* */ ^ zoo(z) { } String name;');
     assertTarget('zoo(z) {}', 'zoo(z) {} String name;');
   }
 
-  test_FunctionDeclaration_returnType_afterStarComment2() async {
+  Future<void> test_FunctionDeclaration_returnType_afterStarComment2() async {
     // CompilationUnit
     await createTarget('/* */^ zoo(z) { } String name;');
     assertTarget('zoo(z) {}', 'zoo(z) {} String name;');
   }
 
-  test_FunctionDeclaration_returnType_afterStarDocComment() async {
+  Future<void> test_FunctionDeclaration_returnType_afterStarDocComment() async {
     // FunctionDeclaration  CompilationUnit
     await createTarget('/** */ ^ zoo(z) { } String name;');
     assertTarget('zoo', 'zoo(z) {}');
   }
 
-  test_FunctionDeclaration_returnType_afterStarDocComment2() async {
+  Future<void>
+      test_FunctionDeclaration_returnType_afterStarDocComment2() async {
     // FunctionDeclaration  CompilationUnit
     await createTarget('/** */^ zoo(z) { } String name;');
     assertTarget('zoo', 'zoo(z) {}');
   }
 
-  test_IfStatement_droppedToken() async {
+  Future<void> test_IfStatement_droppedToken() async {
     // Comment  ClassDeclaration  CompilationUnit
     await createTarget('main() { if (v i^) }');
     if (usingFastaParser) {
@@ -647,35 +651,35 @@ class CompletionTargetTest extends _Base {
     }
   }
 
-  test_InstanceCreationExpression_identifier() async {
+  Future<void> test_InstanceCreationExpression_identifier() async {
     // InstanceCreationExpression  ExpressionStatement  Block
     await createTarget('class C {foo(){var f; {var x;} new ^C();}}');
     assertTarget('C', 'new C()');
   }
 
-  test_InstanceCreationExpression_keyword() async {
+  Future<void> test_InstanceCreationExpression_keyword() async {
     // InstanceCreationExpression  ExpressionStatement  Block
     await createTarget('class C {foo(){var f; {var x;} new^ }}');
     assertTarget('new ();', '{var f; {var x;} new ();}');
   }
 
-  test_InstanceCreationExpression_keyword2() async {
+  Future<void> test_InstanceCreationExpression_keyword2() async {
     // InstanceCreationExpression  ExpressionStatement  Block
     await createTarget('class C {foo(){var f; {var x;} new^ C();}}');
     assertTarget('new C();', '{var f; {var x;} new C();}');
   }
 
-  test_MapLiteral_empty() async {
+  Future<void> test_MapLiteral_empty() async {
     // MapLiteral  VariableDeclaration
     await createTarget('foo = {^');
     // fasta scanner inserts synthetic closing '}'
     assertTarget('}', '{}');
   }
 
-  test_MapLiteral_expression() async {
+  Future<void> test_MapLiteral_expression() async {
     super.setUp();
     final experimentStatus =
-        (this.driver.analysisOptions as analyzer.AnalysisOptionsImpl)
+        (driver.analysisOptions as analyzer.AnalysisOptionsImpl)
             .experimentStatus;
     if (experimentStatus.control_flow_collections ||
         experimentStatus.spread_collections) {
@@ -691,13 +695,13 @@ class CompletionTargetTest extends _Base {
     }
   }
 
-  test_MapLiteralEntry() async {
+  Future<void> test_MapLiteralEntry() async {
     // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
     await createTarget('foo = {7:T^};');
     assertTarget('T', '7 : T');
   }
 
-  test_MethodDeclaration_inLineComment() async {
+  Future<void> test_MethodDeclaration_inLineComment() async {
     // Comment  ClassDeclaration  CompilationUnit
     await createTarget('''
       class C2 {
@@ -706,7 +710,7 @@ class CompletionTargetTest extends _Base {
     assertTarget('// normal comment ', 'class C2 {zoo(z) {} String name;}');
   }
 
-  test_MethodDeclaration_inLineComment2() async {
+  Future<void> test_MethodDeclaration_inLineComment2() async {
     // Comment  ClassDeclaration  CompilationUnit
     await createTarget('''
       class C2 {
@@ -715,7 +719,7 @@ class CompletionTargetTest extends _Base {
     assertTarget('// normal comment', 'class C2 {zoo(z) {} String name;}');
   }
 
-  test_MethodDeclaration_inLineComment3() async {
+  Future<void> test_MethodDeclaration_inLineComment3() async {
     // Comment  ClassDeclaration  CompilationUnit
     await createTarget('''
       class C2 {
@@ -725,7 +729,7 @@ class CompletionTargetTest extends _Base {
     assertTarget('// normal comment ', 'class C2 {zoo(z) {} String name;}');
   }
 
-  test_MethodDeclaration_inLineComment4() async {
+  Future<void> test_MethodDeclaration_inLineComment4() async {
     // Comment  ClassDeclaration  CompilationUnit
     await createTarget('''
       class C2 {
@@ -735,7 +739,7 @@ class CompletionTargetTest extends _Base {
     assertTarget('// normal comment 2', 'class C2 {zoo(z) {} String name;}');
   }
 
-  test_MethodDeclaration_inLineDocComment() async {
+  Future<void> test_MethodDeclaration_inLineDocComment() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     await createTarget('''
       class C2 {
@@ -746,7 +750,7 @@ class CompletionTargetTest extends _Base {
     expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
   }
 
-  test_MethodDeclaration_inLineDocComment2() async {
+  Future<void> test_MethodDeclaration_inLineDocComment2() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     await createTarget('''
       class C2 {
@@ -757,19 +761,19 @@ class CompletionTargetTest extends _Base {
     expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
   }
 
-  test_MethodDeclaration_inStarComment() async {
+  Future<void> test_MethodDeclaration_inStarComment() async {
     // Comment  ClassDeclaration  CompilationUnit
     await createTarget('class C2 {/* ^ */ zoo(z) {} String name;}');
     assertTarget('/*  */', 'class C2 {zoo(z) {} String name;}');
   }
 
-  test_MethodDeclaration_inStarComment2() async {
+  Future<void> test_MethodDeclaration_inStarComment2() async {
     // Comment  ClassDeclaration  CompilationUnit
     await createTarget('class C2 {/*  *^/ zoo(z) {} String name;}');
     assertTarget('/*  */', 'class C2 {zoo(z) {} String name;}');
   }
 
-  test_MethodDeclaration_inStarDocComment() async {
+  Future<void> test_MethodDeclaration_inStarDocComment() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     await createTarget('class C2 {/** ^ */ zoo(z) { } String name; }');
     assertTarget('/**  */', '');
@@ -777,7 +781,7 @@ class CompletionTargetTest extends _Base {
     expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
   }
 
-  test_MethodDeclaration_inStarDocComment2() async {
+  Future<void> test_MethodDeclaration_inStarDocComment2() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     await createTarget('class C2 {/**  *^/ zoo(z) { } String name; }');
     assertTarget('/**  */', '');
@@ -785,13 +789,13 @@ class CompletionTargetTest extends _Base {
     expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
   }
 
-  test_MethodDeclaration_returnType() async {
+  Future<void> test_MethodDeclaration_returnType() async {
     // ClassDeclaration  CompilationUnit
     await createTarget('class C2 {^ zoo(z) { } String name; }');
     assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
   }
 
-  test_MethodDeclaration_returnType_afterLineComment() async {
+  Future<void> test_MethodDeclaration_returnType_afterLineComment() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     await createTarget('''
       class C2 {
@@ -800,7 +804,7 @@ class CompletionTargetTest extends _Base {
     assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
   }
 
-  test_MethodDeclaration_returnType_afterLineComment2() async {
+  Future<void> test_MethodDeclaration_returnType_afterLineComment2() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     // TOD(danrubel) left align all test source
     await createTarget('''
@@ -810,7 +814,7 @@ class C2 {
     assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
   }
 
-  test_MethodDeclaration_returnType_afterLineDocComment() async {
+  Future<void> test_MethodDeclaration_returnType_afterLineDocComment() async {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration  CompilationUnit
     await createTarget('''
       class C2 {
@@ -819,7 +823,7 @@ class C2 {
     assertTarget('zoo', 'zoo(z) {}');
   }
 
-  test_MethodDeclaration_returnType_afterLineDocComment2() async {
+  Future<void> test_MethodDeclaration_returnType_afterLineDocComment2() async {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration  CompilationUnit
     await createTarget('''
 class C2 {
@@ -828,73 +832,73 @@ class C2 {
     assertTarget('zoo', 'zoo(z) {}');
   }
 
-  test_MethodDeclaration_returnType_afterStarComment() async {
+  Future<void> test_MethodDeclaration_returnType_afterStarComment() async {
     // ClassDeclaration  CompilationUnit
     await createTarget('class C2 {/* */ ^ zoo(z) { } String name; }');
     assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
   }
 
-  test_MethodDeclaration_returnType_afterStarComment2() async {
+  Future<void> test_MethodDeclaration_returnType_afterStarComment2() async {
     // ClassDeclaration  CompilationUnit
     await createTarget('class C2 {/* */^ zoo(z) { } String name; }');
     assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
   }
 
-  test_MethodDeclaration_returnType_afterStarDocComment() async {
+  Future<void> test_MethodDeclaration_returnType_afterStarDocComment() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     await createTarget('class C2 {/** */ ^ zoo(z) { } String name; }');
     assertTarget('zoo', 'zoo(z) {}');
   }
 
-  test_MethodDeclaration_returnType_afterStarDocComment2() async {
+  Future<void> test_MethodDeclaration_returnType_afterStarDocComment2() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     await createTarget('class C2 {/** */^ zoo(z) { } String name; }');
     assertTarget('zoo', 'zoo(z) {}');
   }
 
-  test_SwitchStatement_c() async {
+  Future<void> test_SwitchStatement_c() async {
     // Token('c') SwitchStatement
     await createTarget('main() { switch(x) {c^} }');
     assertTarget('}', 'switch (x) {}', droppedToken: 'c');
   }
 
-  test_SwitchStatement_c2() async {
+  Future<void> test_SwitchStatement_c2() async {
     // Token('c') SwitchStatement
     await createTarget('main() { switch(x) { c^ } }');
     assertTarget('}', 'switch (x) {}', droppedToken: 'c');
   }
 
-  test_SwitchStatement_empty() async {
+  Future<void> test_SwitchStatement_empty() async {
     // SwitchStatement
     await createTarget('main() { switch(x) {^} }');
     assertTarget('}', 'switch (x) {}');
   }
 
-  test_SwitchStatement_empty2() async {
+  Future<void> test_SwitchStatement_empty2() async {
     // SwitchStatement
     await createTarget('main() { switch(x) { ^ } }');
     assertTarget('}', 'switch (x) {}');
   }
 
-  test_TypeArgumentList() async {
+  Future<void> test_TypeArgumentList() async {
     // TypeName  TypeArgumentList  TypeName
     await createTarget('main() { C<^> c; }');
     assertTarget('', '<>');
   }
 
-  test_TypeArgumentList2() async {
+  Future<void> test_TypeArgumentList2() async {
     // TypeName  TypeArgumentList  TypeName
     await createTarget('main() { C<C^> c; }');
     assertTarget('C', '<C>');
   }
 
-  test_VariableDeclaration_lhs_identifier_after() async {
+  Future<void> test_VariableDeclaration_lhs_identifier_after() async {
     // VariableDeclaration  VariableDeclarationList
     await createTarget('main() {int b^ = 1;}');
     assertTarget('b = 1', 'int b = 1');
   }
 
-  test_VariableDeclaration_lhs_identifier_before() async {
+  Future<void> test_VariableDeclaration_lhs_identifier_before() async {
     // VariableDeclaration  VariableDeclarationList
     await createTarget('main() {int ^b = 1;}');
     assertTarget('b = 1', 'int b = 1');
@@ -911,9 +915,9 @@ class _Base extends AbstractContextTest {
   void assertTarget(
     String entityText,
     String nodeText, {
-    int argIndex: null,
+    int argIndex,
     String droppedToken,
-    bool isFunctionalArgument: false,
+    bool isFunctionalArgument = false,
     String expectedExecutable,
     String expectedParameter,
   }) {
@@ -964,7 +968,7 @@ class _Base extends AbstractContextTest {
     offset = content.indexOf('^');
     expect(offset, isNot(equals(-1)), reason: 'missing ^');
 
-    int nextOffset = content.indexOf('^', offset + 1);
+    var nextOffset = content.indexOf('^', offset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
 
     content = content.substring(0, offset) + content.substring(offset + 1);
@@ -975,7 +979,7 @@ class _Base extends AbstractContextTest {
     var result = await driver.getResult(path);
     findElement = FindElement(result.unit);
 
-    target = new CompletionTarget.forOffset(result.unit, offset);
+    target = CompletionTarget.forOffset(result.unit, offset);
   }
 
   static String _executableNameStr(ExecutableElement executable) {
@@ -996,11 +1000,12 @@ class _Base extends AbstractContextTest {
 
   static String _executableStr(ExecutableElement element) {
     var executableStr = _executableNameStr(element);
-
-    return '$executableStr: ${element.type}';
+    var typeStr = element.type.getDisplayString(withNullability: false);
+    return '$executableStr: $typeStr';
   }
 
   static String _parameterStr(ParameterElement element) {
-    return '${element.name}: ${element.type}';
+    var typeStr = element.type.getDisplayString(withNullability: false);
+    return '${element.name}: $typeStr';
   }
 }

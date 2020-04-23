@@ -112,17 +112,11 @@ void _isolateScheduleImmediate(void callback()) {
 
 @pragma("vm:entry-point", "call")
 void _runPendingImmediateCallback() {
-  if (_pendingImmediateCallback != null) {
-    var callback = _pendingImmediateCallback;
+  final callback = _pendingImmediateCallback;
+  if (callback != null) {
     _pendingImmediateCallback = null;
     callback();
   }
-}
-
-_ImmediateCallback _removePendingImmediateCallback() {
-  var callback = _pendingImmediateCallback;
-  _pendingImmediateCallback = null;
-  return callback;
 }
 
 /// The embedder can execute this function to get hold of
@@ -327,11 +321,7 @@ class Isolate {
 
   @patch
   static Future<Uri> get packageRoot {
-    var hook = VMLibraryHooks.packageRootUriFuture;
-    if (hook == null) {
-      throw new UnsupportedError("Isolate.packageRoot");
-    }
-    return hook();
+    return Future.value(null);
   }
 
   @patch

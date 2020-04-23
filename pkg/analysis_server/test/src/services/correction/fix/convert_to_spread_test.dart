@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToSpreadTest);
   });
@@ -24,11 +24,11 @@ class ConvertToSpreadTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_spread_collections;
 
   /// More coverage in the `convert_to_spread_test.dart` assist test.
-  test_addAll_expression() async {
+  Future<void> test_addAll_expression() async {
     await resolveTestUnit('''
 f() {
   var ints = [1, 2, 3];
-  print(['a']../*LINT*/addAll(ints.map((i) => i.toString()))..addAll(['c']));
+  print(['a']..addAll(ints.map((i) => i.toString()))..addAll(['c']));
 }
 ''');
     await assertHasFix('''

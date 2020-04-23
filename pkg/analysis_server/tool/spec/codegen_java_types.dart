@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Code generation for the file "AnalysisServer.java".
- */
+/// Code generation for the file "AnalysisServer.java".
 import 'package:analysis_tool/tools.dart';
 import 'package:html/dom.dart' as dom;
 
@@ -13,12 +11,10 @@ import 'codegen_java.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
 
-/**
- * A map between the field names and values for the Element object such as:
- *
- * private static final int ABSTRACT = 0x01;
- */
-const Map<String, String> _extraFieldsOnElement = const {
+/// A map between the field names and values for the Element object such as:
+///
+/// private static final int ABSTRACT = 0x01;
+const Map<String, String> _extraFieldsOnElement = {
   'ABSTRACT': '0x01',
   'CONST': '0x02',
   'FINAL': '0x04',
@@ -27,14 +23,13 @@ const Map<String, String> _extraFieldsOnElement = const {
   'DEPRECATED': '0x20',
 };
 
-/**
- * A map between the method names and field names to generate additional methods on the Element object:
- *
- * public boolean isFinal() {
- *   return (flags & FINAL) != 0;
- * }
- */
-const Map<String, String> _extraMethodsOnElement = const {
+/// A map between the method names and field names to generate additional
+/// methods on the Element object:
+///
+/// public boolean isFinal() {
+///   return (flags & FINAL) != 0;
+/// }
+const Map<String, String> _extraMethodsOnElement = {
   'isAbstract': 'ABSTRACT',
   'isConst': 'CONST',
   'isDeprecated': 'DEPRECATED',
@@ -43,38 +38,35 @@ const Map<String, String> _extraMethodsOnElement = const {
   'isTopLevelOrStatic': 'TOP_LEVEL_STATIC',
 };
 
-/**
- * Type references in the spec that are named something else in Java.
- */
-const Map<String, String> _typeRenames = const {
+/// Type references in the spec that are named something else in Java.
+const Map<String, String> _typeRenames = {
   'Override': 'OverrideMember',
 };
 
 final String pathToGenTypes = 'tool/spec/generated/java/types';
 
 final GeneratedDirectory targetDir =
-    new GeneratedDirectory(pathToGenTypes, (String pkgPath) {
-  Api api = readApi(pkgPath);
-  Map<String, ImpliedType> impliedTypes = computeImpliedTypes(api);
-  Map<String, FileContentsComputer> map =
-      new Map<String, FileContentsComputer>();
-  for (ImpliedType impliedType in impliedTypes.values) {
-    String typeNameInSpec = capitalize(impliedType.camelName);
-    bool isRefactoringFeedback = impliedType.kind == 'refactoringFeedback';
-    bool isRefactoringOption = impliedType.kind == 'refactoringOptions';
+    GeneratedDirectory(pathToGenTypes, (String pkgPath) {
+  var api = readApi(pkgPath);
+  var impliedTypes = computeImpliedTypes(api);
+  var map = <String, FileContentsComputer>{};
+  for (var impliedType in impliedTypes.values) {
+    var typeNameInSpec = capitalize(impliedType.camelName);
+    var isRefactoringFeedback = impliedType.kind == 'refactoringFeedback';
+    var isRefactoringOption = impliedType.kind == 'refactoringOptions';
     if (impliedType.kind == 'typeDefinition' ||
         isRefactoringFeedback ||
         isRefactoringOption) {
-      TypeDecl type = impliedType.type;
+      var type = impliedType.type;
       if (type is TypeObject || type is TypeEnum) {
         // This is for situations such as 'Override' where the name in the spec
         // doesn't match the java object that we generate:
-        String typeNameInJava = typeNameInSpec;
+        var typeNameInJava = typeNameInSpec;
         if (_typeRenames.containsKey(typeNameInSpec)) {
           typeNameInJava = _typeRenames[typeNameInSpec];
         }
         map['$typeNameInJava.java'] = (String pkgPath) async {
-          String superclassName = null;
+          String superclassName;
           if (isRefactoringFeedback) {
             superclassName = 'RefactoringFeedback';
           }
@@ -82,18 +74,18 @@ final GeneratedDirectory targetDir =
             superclassName = 'RefactoringOptions';
           }
           // configure accessors
-          bool generateGetters = true;
-          bool generateSetters = false;
+          var generateGetters = true;
+          var generateSetters = false;
           if (isRefactoringOption ||
               typeNameInSpec == 'Outline' ||
               typeNameInSpec == 'RefactoringMethodParameter') {
             generateSetters = true;
           }
           // create the visitor
-          CodegenJavaType visitor = new CodegenJavaType(api, typeNameInJava,
-              superclassName, generateGetters, generateSetters);
+          var visitor = CodegenJavaType(api, typeNameInJava, superclassName,
+              generateGetters, generateSetters);
           return visitor.collectCode(() {
-            dom.Element doc = type.html;
+            var doc = type.html;
             if (impliedType.apiNode is TypeDefinition) {
               doc = (impliedType.apiNode as TypeDefinition).html;
             }
@@ -116,9 +108,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
       this.generateGetters, this.generateSetters)
       : super(api);
 
-  /**
-   * Get the name of the consumer class for responses to this request.
-   */
+  /// Get the name of the consumer class for responses to this request.
+  @override
   String consumerName(Request request) {
     return camelJoin([request.method, 'consumer'], doCapitalize: true);
   }
@@ -135,7 +126,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
   }
 
   String _getAsTypeMethodName(TypeDecl typeDecl) {
-    String name = javaType(typeDecl, true);
+    var name = javaType(typeDecl, true);
     if (name == 'String') {
       return 'getAsString';
     } else if (name == 'boolean' || name == 'Boolean') {
@@ -155,7 +146,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
   }
 
   String _getEqualsLogicForField(TypeObjectField field, String other) {
-    String name = javaName(field.name);
+    var name = javaName(field.name);
     if (isPrimitive(field.type) && !field.optional) {
       return '$other.$name == $name';
     } else if (isArray(field.type)) {
@@ -165,12 +156,10 @@ class CodegenJavaType extends CodegenJavaVisitor {
     }
   }
 
-  /**
-   * For some [TypeObjectField] return the [String] source for the field value
-   * for the toString generation.
-   */
+  /// For some [TypeObjectField] return the [String] source for the field value
+  /// for the toString generation.
   String _getToStringForField(TypeObjectField field) {
-    String name = javaName(field.name);
+    var name = javaName(field.name);
     if (isArray(field.type) || isList(field.type)) {
       return 'StringUtils.join($name, ", ")';
     } else {
@@ -190,9 +179,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
     }
   }
 
-  /**
-   * This method writes extra fields and methods to the Element type.
-   */
+  /// This method writes extra fields and methods to the Element type.
   void _writeExtraContentInElementType() {
     //
     // Extra fields on the Element type such as:
@@ -219,17 +206,15 @@ class CodegenJavaType extends CodegenJavaVisitor {
     });
   }
 
-  /**
-   * For some [TypeObjectField] write out the source that adds the field
-   * information to the 'jsonObject'.
-   */
+  /// For some [TypeObjectField] write out the source that adds the field
+  /// information to the 'jsonObject'.
   void _writeOutJsonObjectAddStatement(TypeObjectField field) {
-    String name = javaName(field.name);
+    var name = javaName(field.name);
     if (isDeclaredInSpec(field.type)) {
       writeln('jsonObject.add("$name", $name.toJson());');
     } else if (field.type is TypeList) {
-      TypeDecl listItemType = (field.type as TypeList).itemType;
-      String jsonArrayName = 'jsonArray${capitalize(name)}';
+      var listItemType = (field.type as TypeList).itemType;
+      var jsonArrayName = 'jsonArray${capitalize(name)}';
       writeln('JsonArray $jsonArrayName = new JsonArray();');
       writeln('for (${javaType(listItemType)} elt : $name) {');
       indent(() {
@@ -253,12 +238,12 @@ class CodegenJavaType extends CodegenJavaVisitor {
       toHtmlVisitor.write('@coverage dart.server.generated.types');
     }));
     makeClass('public class $className', () {
-      TypeEnum typeEnum = type as TypeEnum;
-      List<TypeEnumValue> values = typeEnum.values;
+      var typeEnum = type as TypeEnum;
+      var values = typeEnum.values;
       //
       // enum fields
       //
-      for (TypeEnumValue value in values) {
+      for (var value in values) {
         privateField(javaName(value.value), () {
           javadocComment(toHtmlVisitor.collectHtml(() {
             toHtmlVisitor.translateHtml(value.html);
@@ -292,7 +277,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       toHtmlVisitor.write('@coverage dart.server.generated.types');
     }));
     writeln('@SuppressWarnings("unused")');
-    String header = 'public class $className';
+    var header = 'public class $className';
     if (superclassName != null) {
       header += ' extends $superclassName';
     }
@@ -303,7 +288,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       // public static final "EMPTY_ARRAY" field
       //
-      publicField(javaName("EMPTY_ARRAY"), () {
+      publicField(javaName('EMPTY_ARRAY'), () {
         writeln(
             'public static final $className[] EMPTY_ARRAY = new $className[0];');
       });
@@ -311,7 +296,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       // public static final "EMPTY_LIST" field
       //
-      publicField(javaName("EMPTY_LIST"), () {
+      publicField(javaName('EMPTY_LIST'), () {
         writeln(
             'public static final List<$className> EMPTY_LIST = Lists.newArrayList();');
       });
@@ -319,11 +304,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       // "private static String name;" fields:
       //
-      TypeObject typeObject = type as TypeObject;
-      List<TypeObjectField> fields = typeObject.fields;
-      for (TypeObjectField field in fields) {
-        String type = javaFieldType(field);
-        String name = javaName(field.name);
+      var typeObject = type as TypeObject;
+      var fields = typeObject.fields;
+      for (var field in fields) {
+        var type = javaFieldType(field);
+        var name = javaName(field.name);
         if (!(className == 'Outline' && name == 'children')) {
           privateField(name, () {
             javadocComment(toHtmlVisitor.collectHtml(() {
@@ -366,13 +351,13 @@ class CodegenJavaType extends CodegenJavaVisitor {
         }));
         write('public $className(');
         // write out parameters to constructor
-        List<String> parameters = new List();
+        var parameters = <String>[];
         if (className == 'Outline') {
           parameters.add('Outline parent');
         }
-        for (TypeObjectField field in fields) {
-          String type = javaFieldType(field);
-          String name = javaName(field.name);
+        for (var field in fields) {
+          var type = javaFieldType(field);
+          var name = javaName(field.name);
           if (!_isTypeFieldInUpdateContentUnionType(className, field.name) &&
               !(className == 'Outline' && name == 'children')) {
             parameters.add('$type $name');
@@ -385,8 +370,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
           if (className == 'Outline') {
             writeln('this.parent = parent;');
           }
-          for (TypeObjectField field in fields) {
-            String name = javaName(field.name);
+          for (var field in fields) {
+            var name = javaName(field.name);
             if (!_isTypeFieldInUpdateContentUnionType(className, field.name) &&
                 !(className == 'Outline' && name == 'children')) {
               writeln('this.$name = $name;');
@@ -406,9 +391,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
       // getter methods
       //
       if (generateGetters) {
-        for (TypeObjectField field in fields) {
-          String type = javaFieldType(field);
-          String name = javaName(field.name);
+        for (var field in fields) {
+          var type = javaFieldType(field);
+          var name = javaName(field.name);
           publicMethod('get$name', () {
             javadocComment(toHtmlVisitor.collectHtml(() {
               toHtmlVisitor.translateHtml(field.html);
@@ -428,14 +413,14 @@ class CodegenJavaType extends CodegenJavaVisitor {
       // setter methods
       //
       if (generateSetters) {
-        for (TypeObjectField field in fields) {
-          String type = javaFieldType(field);
-          String name = javaName(field.name);
+        for (var field in fields) {
+          var type = javaFieldType(field);
+          var name = javaName(field.name);
           publicMethod('set$name', () {
             javadocComment(toHtmlVisitor.collectHtml(() {
               toHtmlVisitor.translateHtml(field.html);
             }));
-            String setterName = 'set' + capitalize(name);
+            var setterName = 'set' + capitalize(name);
             writeln('public void $setterName($type $name) {');
             writeln('  this.$name = $name;');
             writeln('}');
@@ -483,7 +468,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
         publicMethod('fromJson', () {
           writeln('public static $className fromJson(JsonObject jsonObject) {');
           indent(() {
-            for (TypeObjectField field in fields) {
+            for (var field in fields) {
               write('${javaFieldType(field)} ${javaName(field.name)} = ');
               if (field.optional) {
                 write(
@@ -515,8 +500,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
               writeln(';');
             }
             write('return new $className(');
-            List<String> parameters = new List();
-            for (TypeObjectField field in fields) {
+            var parameters = <String>[];
+            for (var field in fields) {
               if (!_isTypeFieldInUpdateContentUnionType(
                   className, field.name)) {
                 parameters.add('${javaName(field.name)}');
@@ -600,7 +585,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
           writeln('public JsonObject toJson() {');
           indent(() {
             writeln('JsonObject jsonObject = new JsonObject();');
-            for (TypeObjectField field in fields) {
+            for (var field in fields) {
               if (!isObject(field.type)) {
                 if (field.optional) {
                   writeln('if (${javaName(field.name)} != null) {');
@@ -631,8 +616,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
             writeln('$className other = ($className) obj;');
             writeln('return');
             indent(() {
-              List<String> equalsForField = new List<String>();
-              for (TypeObjectField field in fields) {
+              var equalsForField = <String>[];
+              for (var field in fields) {
                 equalsForField.add(_getEqualsLogicForField(field, 'other'));
               }
               if (equalsForField.isNotEmpty) {
@@ -690,8 +675,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
         writeln('public int hashCode() {');
         indent(() {
           writeln('HashCodeBuilder builder = new HashCodeBuilder();');
-          for (int i = 0; i < fields.length; i++) {
-            writeln("builder.append(${javaName(fields[i].name)});");
+          for (var i = 0; i < fields.length; i++) {
+            writeln('builder.append(${javaName(fields[i].name)});');
           }
           writeln('return builder.toHashCode();');
         });
@@ -707,9 +692,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
         indent(() {
           writeln('StringBuilder builder = new StringBuilder();');
           writeln('builder.append(\"[\");');
-          for (int i = 0; i < fields.length; i++) {
-            writeln("builder.append(\"${javaName(fields[i].name)}=\");");
-            write("builder.append(${_getToStringForField(fields[i])}");
+          for (var i = 0; i < fields.length; i++) {
+            writeln('builder.append(\"${javaName(fields[i].name)}=\");');
+            write('builder.append(${_getToStringForField(fields[i])}');
             if (i + 1 != fields.length) {
               // this is not the last field
               write(' + \", \"');

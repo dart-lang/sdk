@@ -16,6 +16,7 @@ main() {
 
 @reflectiveTest
 class MustCallSuperTest extends DriverResolutionTest with PackageMixin {
+  @override
   setUp() {
     super.setUp();
     addMetaPackage();

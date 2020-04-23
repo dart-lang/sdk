@@ -21,11 +21,13 @@ void func1() {
 
 // -----------------------------------------------------------------------------
 
-// Gathering constraints for S from comparison Null <: Future<S>.
+// Gathering constraints for S from comparison bot <: Future<S>.
 void func2() {
   void foo<S>(Future<S> bar) {}
 
-  /*invoke: void*/ foo/*<dynamic>*/(/*Null*/ null);
+  /*invoke: void*/ foo/*<dynamic>*/(
+      /*cfe.<bottom>*/ /*cfe:nnbd.Never*/
+      throw /*cfe.int*/ /*cfe:nnbd.int!*/ 42);
 }
 
 // -----------------------------------------------------------------------------
@@ -51,8 +53,8 @@ void func4() {
 void func5() {
   void foo<S>(FutureOr<S> bar) {}
 
-  /*invoke: void*/ foo /*cfe|dart2js.<int>*/ /*cfe:nnbd.<int!>*/ (
-      /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 42);
+  /*invoke: void*/ foo /*cfe.<int>*/ /*cfe:nnbd.<int!>*/ (
+      /*cfe.int*/ /*cfe:nnbd.int!*/ 42);
 }
 
 // -----------------------------------------------------------------------------
@@ -61,8 +63,8 @@ void func5() {
 void func6() {
   void foo<S>(S bar) {}
 
-  /*invoke: void*/ foo /*cfe|dart2js.<int>*/ /*cfe:nnbd.<int!>*/ (
-      /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 42);
+  /*invoke: void*/ foo /*cfe.<int>*/ /*cfe:nnbd.<int!>*/ (
+      /*cfe.int*/ /*cfe:nnbd.int!*/ 42);
 }
 
 // -----------------------------------------------------------------------------
@@ -70,8 +72,8 @@ void func6() {
 void func7() {
   void foo<S>(FutureOr<FutureOr<S>> bar) {}
 
-  /*invoke: void*/ foo /*cfe|dart2js.<int>*/ /*cfe:nnbd.<int!>*/ (
-      /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 42);
+  /*invoke: void*/ foo /*cfe.<int>*/ /*cfe:nnbd.<int!>*/ (
+      /*cfe.int*/ /*cfe:nnbd.int!*/ 42);
 }
 
 // -----------------------------------------------------------------------------

@@ -18,8 +18,7 @@ class Glob {
    * The special characters are: \ ^ $ . | + [ ] ( ) { }
    * as defined here: http://ecma-international.org/ecma-262/5.1/#sec-15.10
    */
-  static final RegExp _specialChars =
-      new RegExp(r'([\\\^\$\.\|\+\[\]\(\)\{\}])');
+  static final RegExp _specialChars = RegExp(r'([\\\^\$\.\|\+\[\]\(\)\{\}])');
 
   /**
    * The path separator used to separate components in file paths.
@@ -47,6 +46,7 @@ class Glob {
   @override
   int get hashCode => _pattern.hashCode;
 
+  @override
   bool operator ==(other) => other is Glob && _pattern == other._pattern;
 
   /**
@@ -88,7 +88,7 @@ class Glob {
   }
 
   static RegExp _regexpFromGlobPattern(String pattern) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('^');
     List<String> chars = pattern.split('');
     for (int i = 0; i < chars.length; i++) {
@@ -110,6 +110,6 @@ class Glob {
       }
     }
     sb.write(r'$');
-    return new RegExp(sb.toString(), caseSensitive: false);
+    return RegExp(sb.toString(), caseSensitive: false);
   }
 }

@@ -11,7 +11,7 @@ import 'package:test/test.dart' hide ErrorFormatter;
 
 import 'mocks.dart';
 
-main() {
+void main() {
   group('reporter', () {
     StringBuffer out;
     AnalysisStats stats;
@@ -21,17 +21,17 @@ main() {
     setUp(() {
       ansi.runningTests = true;
 
-      out = new StringBuffer();
-      stats = new AnalysisStats();
+      out = StringBuffer();
+      stats = AnalysisStats();
 
-      options = new MockCommandLineOptions();
+      options = MockCommandLineOptions();
       options.enableTypeChecks = false;
       options.infosAreFatal = false;
       options.machineFormat = false;
       options.verbose = false;
       options.color = false;
 
-      reporter = new HumanErrorFormatter(out, options, stats);
+      reporter = HumanErrorFormatter(out, options, stats);
     });
 
     tearDown(() {
@@ -39,8 +39,7 @@ main() {
     });
 
     test('error', () {
-      ErrorsResultImpl error =
-          mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
+      var error = mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
       reporter.formatErrors([error]);
       reporter.flush();
 
@@ -49,7 +48,7 @@ main() {
     });
 
     test('hint', () {
-      ErrorsResultImpl error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
+      var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
       reporter.formatErrors([error]);
       reporter.flush();
 
@@ -58,7 +57,7 @@ main() {
     });
 
     test('stats', () {
-      ErrorsResultImpl error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
+      var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
       reporter.formatErrors([error]);
       reporter.flush();
       stats.print(out);
@@ -72,13 +71,13 @@ main() {
 
 ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
   // ErrorInfo
-  var location = new CharacterLocation(3, 3);
-  var lineInfo = new MockLineInfo(defaultLocation: location);
+  var location = CharacterLocation(3, 3);
+  var lineInfo = MockLineInfo(defaultLocation: location);
 
   // Details
-  var code = new MockErrorCode(type, severity, 'mock_code');
-  var source = new MockSource('/foo/bar/baz.dart');
-  var error = new MockAnalysisError(source, code, 20, 'MSG');
+  var code = MockErrorCode(type, severity, 'mock_code');
+  var source = MockSource('/foo/bar/baz.dart');
+  var error = MockAnalysisError(source, code, 20, 'MSG');
 
   return ErrorsResultImpl(
       null, source.fullName, null, lineInfo, false, [error]);

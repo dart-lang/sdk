@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
 import 'package:expect/expect.dart';
@@ -55,13 +57,21 @@ main() {
 
     // Skip comments.
     List<String> lines = jsOutput.split("\n");
-    RegExp commentLine = new RegExp(r' *//');
-    String filtered =
-        lines.where((String line) => !commentLine.hasMatch(line)).join("\n");
 
-    // TODO(floitsch): we will need to adjust this filter if we start using
-    // 'eval' or 'arguments' ourselves. Currently we disallow any 'eval' or
-    // 'arguments'.
+    // Filter out any lines unrelated to the code above where dart2js today
+    // produces the text "eval" or "arguments"
+    // Currently this includes comments, and a few lines in the body of
+    // Closure.cspForwardCall and Closure.cspForwardInterceptedCall.
+    List<RegExp> filters = [
+      RegExp(r' *//'), // skip comments
+      RegExp(r'"Intercepted function with no arguments."'),
+      RegExp(r'f.apply\(s\(this\), arguments\)'),
+      RegExp(r'Array.prototype.push.apply\(a, arguments\)'),
+    ];
+    String filtered = lines
+        .where((String line) => !filters.any((regexp) => regexp.hasMatch(line)))
+        .join("\n");
+
     RegExp re = new RegExp(r'[^\w$](arguments|eval)[^\w$]');
     Expect.isFalse(re.hasMatch(filtered));
   }

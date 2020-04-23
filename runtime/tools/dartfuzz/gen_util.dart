@@ -30,7 +30,7 @@ class GenUtil {
     if (packageRoot == null) {
       throw StateError('No environment variable DART_TOP');
     }
-    final sdkPath = '$packageRoot/tools/sdks/dart-sdk';
+    final sdkPath = '$packageRoot/sdk';
 
     // This does most of the hard work of getting the analyzer configured
     // correctly. Typically the included paths are the files and directories

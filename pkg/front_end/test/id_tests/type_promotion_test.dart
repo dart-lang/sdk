@@ -15,27 +15,12 @@ main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/flow_analysis/type_promotion/'
           'data'));
-  await runTests(dataDir,
+  await runTests<DartType>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const TypePromotionDataComputer(), [cfeNonNullableOnlyConfig]),
-      skipList: [
-        // TODO(johnniwinther): Run all type promotion tests.
-        'assignment_promoted.dart',
-        'bug39178.dart',
-        'constructor_initializer.dart',
-        'for.dart',
-        'not_promoted.dart',
-        'null_aware_assignment.dart',
-        'switch.dart',
-        'try_finally.dart',
-        'type_parameter.dart',
-        'while.dart',
-        'write_capture.dart',
-      ]);
+          const TypePromotionDataComputer(), [cfeNonNullableOnlyConfig]));
 }
 
 class TypePromotionDataComputer extends DataComputer<DartType> {
@@ -48,7 +33,10 @@ class TypePromotionDataComputer extends DataComputer<DartType> {
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
-  void computeMemberData(InternalCompilerResult compilerResult, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<DartType>> actualMap,
       {bool verbose}) {
     member.accept(new TypePromotionDataExtractor(compilerResult, actualMap));
@@ -74,7 +62,7 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
 
   @override
   String getText(DartType actualData) =>
-      typeToText(actualData, TypeRepresentation.nonNullableByDefault);
+      typeToText(actualData, TypeRepresentation.analyzerNonNullableByDefault);
 
   @override
   String isAsExpected(DartType actualData, String expectedData) {

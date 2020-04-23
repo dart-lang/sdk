@@ -128,7 +128,8 @@ class FlowGraphAllocator : public ValueObject {
 
   void ProcessInitialDefinition(Definition* defn,
                                 LiveRange* range,
-                                BlockEntryInstr* block);
+                                BlockEntryInstr* block,
+                                bool second_location_for_definition = false);
   void ConnectIncomingPhiMoves(JoinEntryInstr* join);
   void BlockLocation(Location loc, intptr_t from, intptr_t to);
   void BlockRegisterLocation(Location loc,

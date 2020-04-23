@@ -184,7 +184,7 @@ class RuntimeTypeGenerator {
             checkedClass, _namer.operatorIs(checkedClass), js('1'));
       }
       Substitution substitution = check.substitution;
-      if (substitution != null && !_options.experimentNewRti) {
+      if (substitution != null && !_options.useNewRti) {
         jsAst.Expression body =
             _getSubstitutionCode(emitterTask.emitter, substitution);
         result.addSubstitution(
@@ -196,7 +196,8 @@ class RuntimeTypeGenerator {
         classElement, generateFunctionTypeSignature, generateTypeCheck);
 
     if (classElement == _commonElements.jsJavaScriptFunctionClass) {
-      var type = jsInteropAnalysis.buildJsFunctionType();
+      var type =
+          jsInteropAnalysis.buildJsFunctionType(_commonElements.dartTypes);
       if (type != null) {
         jsAst.Expression thisAccess = new jsAst.This();
         jsAst.Expression encoding = _rtiEncoder.getSignatureEncoding(
@@ -350,11 +351,6 @@ class _TypeContainedInOutputUnitVisitor
 
   @override
   bool visitAnyType(AnyType type, OutputUnit argument) => true;
-
-  @override
-  bool visitTypedefType(TypedefType type, OutputUnit argument) {
-    return visit(type.unaliased, argument);
-  }
 
   @override
   bool visitInterfaceType(InterfaceType type, OutputUnit argument) {

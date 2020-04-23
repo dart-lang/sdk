@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /**
  * File, socket, HTTP, and other I/O support for non-web applications.
  *
@@ -193,6 +191,7 @@ import 'dart:collection'
     show HashMap, HashSet, Queue, ListQueue, MapBase, UnmodifiableMapView;
 import 'dart:convert';
 import 'dart:developer' hide log;
+import 'dart:_http' show HttpClient;
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';

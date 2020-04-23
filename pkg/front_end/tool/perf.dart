@@ -23,16 +23,15 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/physical_file_system.dart'
-    show PhysicalResourceProvider;
-import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/file_system/file_system.dart' show Folder;
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:package_config/discovery.dart';
 import 'package:path/path.dart' as path;
 
 main(List<String> args) async {
@@ -45,7 +44,7 @@ main(List<String> args) async {
   var bench = args[0];
   var entryUri = Uri.base.resolve(args[1]);
 
-  await setup(entryUri);
+  await setup(path.fromUri(entryUri));
 
   Set<Source> files = scanReachableFiles(entryUri);
   var handlers = {
@@ -101,9 +100,11 @@ void collectSources(Source start, Set<Source> files) {
 /// Uses the diet-parser to parse only directives in [source].
 CompilationUnit parseDirectives(Source source) {
   var token = tokenize(source);
-  var featureSet = FeatureSet.fromEnableFlags([]);
-  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER,
-      featureSet: featureSet);
+  var parser = new Parser(
+    source,
+    AnalysisErrorListener.NULL_LISTENER,
+    featureSet: FeatureSet.fromEnableFlags([]),
+  );
   return parser.parseDirectives(token);
 }
 
@@ -123,9 +124,11 @@ void parseFiles(Set<Source> files) {
 CompilationUnit parseFull(Source source) {
   var token = tokenize(source);
   parseTimer.start();
-  var featureSet = FeatureSet.fromEnableFlags([]);
-  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER,
-      featureSet: featureSet);
+  var parser = new Parser(
+    source,
+    AnalysisErrorListener.NULL_LISTENER,
+    featureSet: FeatureSet.fromEnableFlags([]),
+  );
   var unit = parser.parseCompilationUnit(token);
   parseTimer.stop();
   return unit;
@@ -196,10 +199,19 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 
 /// Sets up analyzer to be able to load and resolve app, packages, and sdk
 /// sources.
-Future setup(Uri entryUri) async {
+Future setup(String path) async {
   var provider = PhysicalResourceProvider.INSTANCE;
-  var packageMap = new ContextBuilder(provider, null, null)
-      .convertPackagesToMap(await findPackages(entryUri));
+
+  var packages = findPackagesFrom(
+    provider,
+    provider.getResource(path),
+  );
+
+  var packageMap = <String, List<Folder>>{};
+  for (var package in packages.packages) {
+    packageMap[package.name] = [package.libFolder];
+  }
+
   sources = new SourceFactory([
     new ResourceUriResolver(provider),
     new PackageMapUriResolver(provider, packageMap),

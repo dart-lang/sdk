@@ -5,7 +5,7 @@
 library inbound_references_test;
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 class Node {
@@ -46,8 +46,6 @@ var tests = <IsolateTest>[
         r['source'].clazz.name == 'Node');
     hasReferenceSuchThat(
         (r) => r['parentListIndex'] == 1 && r['source'].isList);
-    hasReferenceSuchThat(
-        (r) => r['source'] is Field && r['source'].name == 'e');
   }
 ];
 

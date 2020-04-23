@@ -21,19 +21,20 @@ CompilationUnit parseText(
   FeatureSet featureSet,
 ) {
   featureSet ??= FeatureSet.forTesting(sdkVersion: '2.3.0');
-  CharSequenceReader reader = new CharSequenceReader(text);
-  Scanner scanner =
-      new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER)
-        ..configureFeatures(featureSet);
+  CharSequenceReader reader = CharSequenceReader(text);
+  Scanner scanner = Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER)
+    ..configureFeatures(featureSet);
   Token token = scanner.tokenize();
   // Pass the feature set from the scanner to the parser
   // because the scanner may have detected a language version comment
   // and downgraded the feature set it holds.
-  Parser parser = new Parser(
-      NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER,
-      featureSet: scanner.featureSet);
+  Parser parser = Parser(
+    NonExistingSource.unknown,
+    AnalysisErrorListener.NULL_LISTENER,
+    featureSet: scanner.featureSet,
+  );
   CompilationUnit unit = parser.parseCompilationUnit(token);
-  unit.lineInfo = new LineInfo(scanner.lineStarts);
+  unit.lineInfo = LineInfo(scanner.lineStarts);
   return unit;
 }
 
@@ -47,13 +48,13 @@ abstract class ResynthesizeTestStrategy {
   /// The set of features enabled in this test.
   FeatureSet featureSet;
 
-  void set allowMissingFiles(bool value);
+  set allowMissingFiles(bool value);
 
   set declaredVariables(DeclaredVariables declaredVariables);
 
   MemoryResourceProvider get resourceProvider;
 
-  void set testFile(String value);
+  set testFile(String value);
 
   Source get testSource;
 
@@ -73,7 +74,7 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
   @override
   FeatureSet featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
 
-  final Set<Source> serializedSources = new Set<Source>();
+  final Set<Source> serializedSources = <Source>{};
 
-  PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
+  PackageBundleAssembler bundleAssembler = PackageBundleAssembler();
 }

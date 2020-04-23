@@ -9,6 +9,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
+#include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/hash_map.h"
 #include "vm/kernel.h"
@@ -333,6 +334,7 @@ class KernelLoader : public ValueObject {
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,
                               FieldHelper* field_helper);
+  bool FieldNeedsSetter(FieldHelper* field_helper);
 
   void LoadLibraryImportsAndExports(Library* library,
                                     const Class& toplevel_class);
@@ -404,6 +406,7 @@ class KernelLoader : public ValueObject {
   KernelProgramInfo& kernel_program_info_;
   BuildingTranslationHelper translation_helper_;
   KernelReaderHelper helper_;
+  ConstantReader constant_reader_;
   TypeTranslator type_translator_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   BytecodeMetadataHelper bytecode_metadata_helper_;
@@ -456,8 +459,6 @@ class KernelLoader : public ValueObject {
 RawFunction* CreateFieldInitializerFunction(Thread* thread,
                                             Zone* zone,
                                             const Field& field);
-
-ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field);
 
 }  // namespace kernel
 }  // namespace dart

@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/analysis/context_locator.dart';
  * path and convert it as appropriate for the actual platform.
  */
 mixin ResourceProviderMixin {
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+  MemoryResourceProvider resourceProvider = MemoryResourceProvider();
 
   String convertPath(String path) => resourceProvider.convertPath(path);
 

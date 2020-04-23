@@ -30,7 +30,7 @@ class TemporaryId extends Identifier {
   // However we may need to fix this if we want hover to work well for things
   // like library prefixes and field-initializing formals.
   @override
-  get sourceInformation => null;
+  dynamic get sourceInformation => null;
   @override
   set sourceInformation(Object obj) {}
 
@@ -123,7 +123,7 @@ class _FunctionScope {
 
   /// Nested scopes, these are visited after everything else so the names
   /// they might need are in scope.
-  final childScopes = Map<Node, _FunctionScope>();
+  final childScopes = <Node, _FunctionScope>{};
 
   /// New names assigned for temps and identifiers.
   final renames = HashMap<Object, String>();
@@ -133,7 +133,7 @@ class _FunctionScope {
 
 /// Collects all names used in the visited tree.
 class _RenameVisitor extends VariableDeclarationVisitor {
-  final pendingRenames = Map<Object, Set<_FunctionScope>>();
+  final pendingRenames = <Object, Set<_FunctionScope>>{};
 
   final _FunctionScope globalScope = _FunctionScope(null);
   final _FunctionScope rootScope = _FunctionScope(null);
@@ -147,7 +147,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   }
 
   @override
-  declare(Identifier node) {
+  void declare(Identifier node) {
     var id = identifierKey(node);
     var notAlreadyDeclared = scope.declared.add(id);
     // Normal identifiers can be declared multiple times, because we don't
@@ -157,7 +157,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   }
 
   @override
-  visitIdentifier(Identifier node) {
+  void visitIdentifier(Identifier node) {
     var id = identifierKey(node);
 
     // Find where the node was declared.
@@ -173,7 +173,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     _markUsed(node, id, declScope);
   }
 
-  _markUsed(Identifier node, Object id, _FunctionScope declScope) {
+  void _markUsed(Identifier node, Object id, _FunctionScope declScope) {
     // If it needs rename, we can't add it to the used name set yet, instead we
     // will record all scopes it is visible in.
     Set<_FunctionScope> usedIn;
@@ -191,13 +191,13 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   }
 
   @override
-  visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     // Visit nested functions after all identifiers are declared.
     scope.childScopes[node] = _FunctionScope(scope);
   }
 
   @override
-  visitClassExpression(ClassExpression node) {
+  void visitClassExpression(ClassExpression node) {
     scope.childScopes[node] = _FunctionScope(scope);
   }
 
@@ -245,7 +245,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
       // TODO(jmesserly): what's the most readable scheme here? Maybe 1-letter
       // names in some cases?
       candidate = name == 'function' ? 'func' : '${name}\$';
-      for (int i = 0;
+      for (var i = 0;
           scopes.any((scope) => scope.used.contains(candidate));
           i++) {
         candidate = '${name}\$$i';
@@ -266,55 +266,55 @@ Object /*String|TemporaryId*/ identifierKey(Identifier node) =>
 bool invalidVariableName(String keyword, {bool strictMode = true}) {
   switch (keyword) {
     // http://www.ecma-international.org/ecma-262/6.0/#sec-future-reserved-words
-    case "await":
+    case 'await':
 
-    case "break":
-    case "case":
-    case "catch":
-    case "class":
-    case "const":
-    case "continue":
-    case "debugger":
-    case "default":
-    case "delete":
-    case "do":
-    case "else":
-    case "enum":
-    case "export":
-    case "extends":
-    case "finally":
-    case "for":
-    case "function":
-    case "if":
-    case "import":
-    case "in":
-    case "instanceof":
-    case "new":
-    case "return":
-    case "super":
-    case "switch":
-    case "this":
-    case "throw":
-    case "try":
-    case "typeof":
-    case "var":
-    case "void":
-    case "while":
-    case "with":
+    case 'break':
+    case 'case':
+    case 'catch':
+    case 'class':
+    case 'const':
+    case 'continue':
+    case 'debugger':
+    case 'default':
+    case 'delete':
+    case 'do':
+    case 'else':
+    case 'enum':
+    case 'export':
+    case 'extends':
+    case 'finally':
+    case 'for':
+    case 'function':
+    case 'if':
+    case 'import':
+    case 'in':
+    case 'instanceof':
+    case 'new':
+    case 'return':
+    case 'super':
+    case 'switch':
+    case 'this':
+    case 'throw':
+    case 'try':
+    case 'typeof':
+    case 'var':
+    case 'void':
+    case 'while':
+    case 'with':
       return true;
-    case "arguments":
-    case "eval":
+    case 'arguments':
+    case 'eval':
     // http://www.ecma-international.org/ecma-262/6.0/#sec-future-reserved-words
     // http://www.ecma-international.org/ecma-262/6.0/#sec-identifiers-static-semantics-early-errors
-    case "implements":
-    case "interface":
-    case "let":
-    case "package":
-    case "private":
-    case "protected":
-    case "public":
-    case "static":
-    case "yield":
+    case 'implements':
+    case 'interface':
+    case 'let':
+    case 'package':
+    case 'private':
+    case 'protected':
+    case 'public':
+    case 'static':
+    case 'yield':
       return strictMode;
   }
   return false;
@@ -329,11 +329,11 @@ bool invalidVariableName(String keyword, {bool strictMode = true}) {
 /// class syntax.
 bool isFunctionPrototypeGetter(String name) {
   switch (name) {
-    case "arguments":
-    case "caller":
-    case "callee":
-    case "name":
-    case "length":
+    case 'arguments':
+    case 'caller':
+    case 'callee':
+    case 'name':
+    case 'length':
       return true;
   }
   return false;
@@ -343,20 +343,20 @@ bool isFunctionPrototypeGetter(String name) {
 ///
 /// http://www.ecma-international.org/ecma-262/6.0/#sec-properties-of-the-object-prototype-object
 /// http://www.ecma-international.org/ecma-262/6.0/#sec-additional-properties-of-the-object.prototype-object
-final objectProperties = <String>[
-  "constructor",
-  "toString",
-  "toLocaleString",
-  "valueOf",
-  "hasOwnProperty",
-  "isPrototypeOf",
-  "propertyIsEnumerable",
-  "__defineGetter__",
-  "__lookupGetter__",
-  "__defineSetter__",
-  "__lookupSetter__",
-  "__proto__"
-].toSet();
+final objectProperties = <String>{
+  'constructor',
+  'toString',
+  'toLocaleString',
+  'valueOf',
+  'hasOwnProperty',
+  'isPrototypeOf',
+  'propertyIsEnumerable',
+  '__defineGetter__',
+  '__lookupGetter__',
+  '__defineSetter__',
+  '__lookupSetter__',
+  '__proto__'
+};
 
 /// Returns the JS member name for a public Dart instance member, before it
 /// is symbolized; generally you should use [_emitMemberName] or
@@ -407,7 +407,7 @@ final friendlyNameForDartOperator = {
 };
 
 // Invalid characters for identifiers, which would need to be escaped.
-final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_$0-9]');
+final invalidCharInIdentifier = RegExp(r'[^A-Za-z_$0-9]');
 
 /// Escape [name] to make it into a valid identifier.
 String toJSIdentifier(String name) {
@@ -415,9 +415,9 @@ String toJSIdentifier(String name) {
 
   // Escape any invalid characters
   StringBuffer buffer;
-  for (int i = 0; i < name.length; i++) {
+  for (var i = 0; i < name.length; i++) {
     var ch = name[i];
-    var needsEscape = ch == r'$' || _invalidCharInIdentifier.hasMatch(ch);
+    var needsEscape = ch == r'$' || invalidCharInIdentifier.hasMatch(ch);
     if (needsEscape && buffer == null) {
       buffer = StringBuffer(name.substring(0, i));
     }

@@ -16,6 +16,26 @@ main() {
 
 @reflectiveTest
 class UndefinedClassTest extends DriverResolutionTest {
+  test_const() async {
+    await assertErrorsInCode(r'''
+f() {
+  return const A();
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 21, 1),
+    ]);
+  }
+
+  test_dynamic_coreWithPrefix() async {
+    await assertErrorsInCode('''
+import 'dart:core' as core;
+
+dynamic x;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 29, 7),
+    ]);
+  }
+
   test_instanceCreation() async {
     await assertErrorsInCode('''
 f() { new C(); }

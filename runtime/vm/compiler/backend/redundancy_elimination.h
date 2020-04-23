@@ -106,6 +106,9 @@ class DeadCodeElimination : public AllStatic {
 
   // Remove phis that are not marked alive from the graph.
   static void RemoveDeadAndRedundantPhisFromTheGraph(FlowGraph* graph);
+
+  // Remove instructions which do not have any effect.
+  static void EliminateDeadCode(FlowGraph* graph);
 };
 
 // Optimize spill stores inside try-blocks by identifying values that always

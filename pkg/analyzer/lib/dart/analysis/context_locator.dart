@@ -38,7 +38,7 @@ abstract class ContextLocator {
   @deprecated
   List<AnalysisContext> locateContexts(
       {@required List<String> includedPaths,
-      List<String> excludedPaths: const <String>[],
+      List<String> excludedPaths = const <String>[],
       String optionsFile,
       String packagesFile,
       String sdkPath});

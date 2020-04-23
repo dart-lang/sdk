@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -26,6 +27,30 @@ class A {
 }''', [
       error(StaticWarningCode.UNDEFINED_IDENTIFIER, 5, 1),
       error(StaticWarningCode.UNDEFINED_IDENTIFIER, 17, 1),
+    ]);
+  }
+
+  test_synthetic_whenExpression_defined() async {
+    await assertErrorsInCode(r'''
+print(x) {}
+main() {
+  print(is String);
+}
+''', [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 29, 2),
+    ]);
+  }
+
+  test_synthetic_whenMethodName_defined() async {
+    await assertErrorsInCode(r'''
+print(x) {}
+main(int p) {
+  p.();
+}
+''', [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 30, 1),
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 30, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 31, 1),
     ]);
   }
 
@@ -155,6 +180,6 @@ class B extends A {
 class UndefinedIdentifierWithNnbdTest extends UndefinedIdentifierTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
 }

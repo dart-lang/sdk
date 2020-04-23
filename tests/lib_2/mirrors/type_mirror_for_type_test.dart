@@ -8,7 +8,6 @@ library test.type_mirror_for_type;
 
 import 'package:expect/expect.dart';
 
-@MirrorsUsed(targets: 'test.type_mirror_for_type')
 import 'dart:mirrors';
 
 class C<T> {}

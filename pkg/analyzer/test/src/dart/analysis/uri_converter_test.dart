@@ -27,24 +27,24 @@ class DriverBasedUriConverterTest with ResourceProviderMixin {
     Folder barFolder = newFolder('/packages/bar/lib');
     Folder fooFolder = newFolder('/packages/foo/lib');
 
-    SourceFactory sourceFactory = new SourceFactory([
-      new DartUriResolver(new MockSdk(resourceProvider: resourceProvider)),
-      new PackageMapUriResolver(resourceProvider, {
+    SourceFactory sourceFactory = SourceFactory([
+      DartUriResolver(MockSdk(resourceProvider: resourceProvider)),
+      PackageMapUriResolver(resourceProvider, {
         'foo': [fooFolder],
         'bar': [barFolder],
       }),
-      new ResourceUriResolver(resourceProvider),
-    ], null, resourceProvider);
+      ResourceUriResolver(resourceProvider),
+    ]);
 
-    ContextRoot contextRoot = new ContextRoot(barFolder.path, [],
+    ContextRoot contextRoot = ContextRoot(barFolder.path, [],
         pathContext: resourceProvider.pathContext);
 
-    MockAnalysisDriver driver = new MockAnalysisDriver();
+    MockAnalysisDriver driver = MockAnalysisDriver();
     driver.resourceProvider = resourceProvider;
     driver.sourceFactory = sourceFactory;
     driver.contextRoot = contextRoot;
 
-    uriConverter = new DriverBasedUriConverter(driver);
+    uriConverter = DriverBasedUriConverter(driver);
   }
 
   test_pathToUri_dart() {
@@ -83,8 +83,13 @@ class DriverBasedUriConverterTest with ResourceProviderMixin {
 }
 
 class MockAnalysisDriver implements AnalysisDriver {
+  @override
   ResourceProvider resourceProvider;
+
+  @override
   SourceFactory sourceFactory;
+
+  @override
   ContextRoot contextRoot;
 
   @override

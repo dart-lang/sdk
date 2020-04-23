@@ -290,7 +290,7 @@ class Safari extends Browser {
       });
     });
     Future zoneWrapper() {
-      Uri safariUri = Uri.base.resolve(safariBundleLocation);
+      var safariUri = Uri.base.resolve(safariBundleLocation);
       return Future(() => killAndResetSafari(bundle: safariUri))
           .then(completer.complete);
     }
@@ -515,21 +515,18 @@ class IE extends Browser {
   // resetBrowserConfiguration flag is set.
   Future<bool> resetConfiguration() async {
     if (!Browser.resetBrowserConfiguration) return true;
-    // todo(athom) Move this into the puppet configuration
-    var args = [
-      "add",
-      r"HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\New Windows\Allow",
-      "/v",
-      "127.0.0.1",
-      "/f"
-    ];
-    var result = await Process.run("reg", args);
-    if (result.exitCode != 0) {
-      _logEvent("Failed to override user popup blocker settings");
-    }
+    const ieKey = r"HKCU\Software\Microsoft\Internet Explorer";
+    // Turn off popup blocker
+    await _setRegistryKey("$ieKey\\New Windows", "PopupMgr",
+        data: "0", type: "REG_DWORD");
+    // Allow popups from localhost
+    await _setRegistryKey("$ieKey\\New Windows\\Allow", "127.0.0.1");
+    // Disable IE first run wizard
+    await _setRegistryKey("$ieKey\Main", "DisableFirstRunCustomize",
+        data: "1", type: "REG_DWORD");
 
     var localAppData = Platform.environment['LOCALAPPDATA'];
-    Directory dir = Directory("$localAppData\\Microsoft\\"
+    var dir = Directory("$localAppData\\Microsoft\\"
         "Internet Explorer\\Recovery");
     return dir.delete(recursive: true).then((_) {
       return true;
@@ -548,6 +545,22 @@ class IE extends Browser {
   }
 
   String toString() => "IE";
+
+  Future<void> _setRegistryKey(String key, String value,
+      {String data, String type}) async {
+    var args = <String>[
+      "add",
+      key,
+      "/v",
+      value,
+      "/f",
+      if (type != null) ...["/t", type]
+    ];
+    var result = await Process.run("reg", args);
+    if (result.exitCode != 0) {
+      _logEvent("Failed to set '$key' to '$value'");
+    }
+  }
 }
 
 class AndroidChrome extends Browser {
@@ -852,7 +865,7 @@ class BrowserTestRunner {
 
     Browser browser;
     if (configuration.runtime == Runtime.chromeOnAndroid) {
-      AdbDevice device = idleAdbDevices.removeLast();
+      var device = idleAdbDevices.removeLast();
       adbDeviceMapping[id] = device;
       browser = AndroidChrome(device);
     } else {
@@ -1023,7 +1036,7 @@ class BrowserTestRunner {
       return null;
     }
 
-    BrowserTest test = testQueue.removeLast();
+    var test = testQueue.removeLast();
     // If our queue isn't empty, try starting more browsers
     if (testQueue.isEmpty) {
       lastEmptyTestQueueTime = DateTime.now();
@@ -1107,10 +1120,7 @@ class BrowserTestRunner {
 
     DebugLogger.warning("Double reporting tests:");
     for (var id in doubleReportingOutputs.keys) {
-      DebugLogger.warning("${testCache[id]}, output: ");
-      DebugLogger.warning("${doubleReportingOutputs[id]}");
-      DebugLogger.warning("");
-      DebugLogger.warning("");
+      DebugLogger.warning("${testCache[id]}");
     }
   }
 
@@ -1120,7 +1130,7 @@ class BrowserTestRunner {
     var browsers = <Browser>[];
     underTermination = true;
     testingServer.underTermination = true;
-    for (BrowserStatus status in browserStatus.values) {
+    for (var status in browserStatus.values) {
       browsers.add(status.browser);
       if (status.nextTestTimeout != null) {
         status.nextTestTimeout.cancel();

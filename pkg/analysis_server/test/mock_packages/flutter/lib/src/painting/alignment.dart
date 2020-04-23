@@ -6,21 +6,6 @@ import 'package:flutter/foundation.dart';
 
 import 'basic_types.dart';
 
-/// Base class for [Alignment] that allows for text-direction aware
-/// resolution.
-///
-/// A property or argument of this type accepts classes created either with [new
-/// Alignment] and its variants, or [new AlignmentDirectional].
-///
-/// To convert an [AlignmentGeometry] object of indeterminate type into an
-/// [Alignment] object, call the [resolve] method.
-@immutable
-abstract class AlignmentGeometry {
-  /// Abstract const constructor. This constructor enables subclasses to provide
-  /// const constructors so that they can be used in const expressions.
-  const AlignmentGeometry();
-}
-
 /// A point within a rectangle.
 ///
 /// `Alignment(0.0, 0.0)` represents the center of the rectangle. The distance
@@ -62,30 +47,6 @@ abstract class AlignmentGeometry {
 ///  * [AlignmentGeometry], which is an abstract type that is agnostic as to
 ///    whether the horizontal direction depends on the [TextDirection].
 class Alignment extends AlignmentGeometry {
-  /// Creates an alignment.
-  ///
-  /// The [x] and [y] arguments must not be null.
-  const Alignment(this.x, this.y)
-      : assert(x != null),
-        assert(y != null);
-
-  /// The distance fraction in the horizontal direction.
-  ///
-  /// A value of -1.0 corresponds to the leftmost edge. A value of 1.0
-  /// corresponds to the rightmost edge. Values are not limited to that range;
-  /// values less than -1.0 represent positions to the left of the left edge,
-  /// and values greater than 1.0 represent positions to the right of the right
-  /// edge.
-  final double x;
-
-  /// The distance fraction in the vertical direction.
-  ///
-  /// A value of -1.0 corresponds to the topmost edge. A value of 1.0
-  /// corresponds to the bottommost edge. Values are not limited to that range;
-  /// values less than -1.0 represent positions above the top, and values
-  /// greater than 1.0 represent positions below the bottom.
-  final double y;
-
   /// The top left corner.
   static const Alignment topLeft = Alignment(-1.0, -1.0);
 
@@ -112,6 +73,30 @@ class Alignment extends AlignmentGeometry {
 
   /// The bottom right corner.
   static const Alignment bottomRight = Alignment(1.0, 1.0);
+
+  /// The distance fraction in the horizontal direction.
+  ///
+  /// A value of -1.0 corresponds to the leftmost edge. A value of 1.0
+  /// corresponds to the rightmost edge. Values are not limited to that range;
+  /// values less than -1.0 represent positions to the left of the left edge,
+  /// and values greater than 1.0 represent positions to the right of the right
+  /// edge.
+  final double x;
+
+  /// The distance fraction in the vertical direction.
+  ///
+  /// A value of -1.0 corresponds to the topmost edge. A value of 1.0
+  /// corresponds to the bottommost edge. Values are not limited to that range;
+  /// values less than -1.0 represent positions above the top, and values
+  /// greater than 1.0 represent positions below the bottom.
+  final double y;
+
+  /// Creates an alignment.
+  ///
+  /// The [x] and [y] arguments must not be null.
+  const Alignment(this.x, this.y)
+      : assert(x != null),
+        assert(y != null);
 }
 
 /// An offset that's expressed as a fraction of a [Size], but whose horizontal
@@ -126,37 +111,6 @@ class Alignment extends AlignmentGeometry {
 ///  * [Alignment], a variant that is defined in physical terms (i.e.
 ///    whose horizontal component does not depend on the text direction).
 class AlignmentDirectional extends AlignmentGeometry {
-  /// Creates a directional alignment.
-  ///
-  /// The [start] and [y] arguments must not be null.
-  const AlignmentDirectional(this.start, this.y)
-      : assert(start != null),
-        assert(y != null);
-
-  /// The distance fraction in the horizontal direction.
-  ///
-  /// A value of -1.0 corresponds to the edge on the "start" side, which is the
-  /// left side in [TextDirection.ltr] contexts and the right side in
-  /// [TextDirection.rtl] contexts. A value of 1.0 corresponds to the opposite
-  /// edge, the "end" side. Values are not limited to that range; values less
-  /// than -1.0 represent positions beyond the start edge, and values greater than
-  /// 1.0 represent positions beyond the end edge.
-  ///
-  /// This value is normalized into an [Alignment.x] value by the [resolve]
-  /// method.
-  final double start;
-
-  /// The distance fraction in the vertical direction.
-  ///
-  /// A value of -1.0 corresponds to the topmost edge. A value of 1.0
-  /// corresponds to the bottommost edge. Values are not limited to that range;
-  /// values less than -1.0 represent positions above the top, and values
-  /// greater than 1.0 represent positions below the bottom.
-  ///
-  /// This value is passed through to [Alignment.y] unmodified by the
-  /// [resolve] method.
-  final double y;
-
   /// The top corner on the "start" side.
   static const AlignmentDirectional topStart = AlignmentDirectional(-1.0, -1.0);
 
@@ -195,6 +149,52 @@ class AlignmentDirectional extends AlignmentGeometry {
 
   /// The bottom corner on the "end" side.
   static const AlignmentDirectional bottomEnd = AlignmentDirectional(1.0, 1.0);
+
+  /// The distance fraction in the horizontal direction.
+  ///
+  /// A value of -1.0 corresponds to the edge on the "start" side, which is the
+  /// left side in [TextDirection.ltr] contexts and the right side in
+  /// [TextDirection.rtl] contexts. A value of 1.0 corresponds to the opposite
+  /// edge, the "end" side. Values are not limited to that range; values less
+  /// than -1.0 represent positions beyond the start edge, and values greater than
+  /// 1.0 represent positions beyond the end edge.
+  ///
+  /// This value is normalized into an [Alignment.x] value by the [resolve]
+  /// method.
+  final double start;
+
+  /// The distance fraction in the vertical direction.
+  ///
+  /// A value of -1.0 corresponds to the topmost edge. A value of 1.0
+  /// corresponds to the bottommost edge. Values are not limited to that range;
+  /// values less than -1.0 represent positions above the top, and values
+  /// greater than 1.0 represent positions below the bottom.
+  ///
+  /// This value is passed through to [Alignment.y] unmodified by the
+  /// [resolve] method.
+  final double y;
+
+  /// Creates a directional alignment.
+  ///
+  /// The [start] and [y] arguments must not be null.
+  const AlignmentDirectional(this.start, this.y)
+      : assert(start != null),
+        assert(y != null);
+}
+
+/// Base class for [Alignment] that allows for text-direction aware
+/// resolution.
+///
+/// A property or argument of this type accepts classes created either with [new
+/// Alignment] and its variants, or [new AlignmentDirectional].
+///
+/// To convert an [AlignmentGeometry] object of indeterminate type into an
+/// [Alignment] object, call the [resolve] method.
+@immutable
+abstract class AlignmentGeometry {
+  /// Abstract const constructor. This constructor enables subclasses to provide
+  /// const constructors so that they can be used in const expressions.
+  const AlignmentGeometry();
 }
 
 /// The vertical alignment of text within an input box.
@@ -213,16 +213,6 @@ class AlignmentDirectional extends AlignmentGeometry {
 ///  * [InputDecorator.textAlignVertical], which defines the alignment of
 ///    prefix, input, and suffix within an [InputDecorator].
 class TextAlignVertical {
-  /// Creates a TextAlignVertical from any y value between -1.0 and 1.0.
-  const TextAlignVertical({
-    @required this.y,
-  })  : assert(y != null),
-        assert(y >= -1.0 && y <= 1.0);
-
-  /// A value ranging from -1.0 to 1.0 that defines the topmost and bottommost
-  /// locations of the top and bottom of the input box.
-  final double y;
-
   /// Aligns a TextField's input Text with the topmost location within a
   /// TextField's input box.
   static const TextAlignVertical top = TextAlignVertical(y: -1.0);
@@ -233,6 +223,16 @@ class TextAlignVertical {
   /// Aligns a TextField's input Text with the bottommost location within a
   /// TextField.
   static const TextAlignVertical bottom = TextAlignVertical(y: 1.0);
+
+  /// A value ranging from -1.0 to 1.0 that defines the topmost and bottommost
+  /// locations of the top and bottom of the input box.
+  final double y;
+
+  /// Creates a TextAlignVertical from any y value between -1.0 and 1.0.
+  const TextAlignVertical({
+    @required this.y,
+  })  : assert(y != null),
+        assert(y >= -1.0 && y <= 1.0);
 
   @override
   String toString() {

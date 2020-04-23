@@ -41,11 +41,18 @@ class CallSpecializer : public FlowGraphVisitor {
 
   FlowGraph* flow_graph() const { return flow_graph_; }
 
+  void set_flow_graph(FlowGraph* flow_graph) {
+    flow_graph_ = flow_graph;
+    set_block_order(flow_graph->reverse_postorder());
+  }
+
   // Use ICData to optimize, replace or eliminate instructions.
   void ApplyICData();
 
   // Use propagated class ids to optimize, replace or eliminate instructions.
   void ApplyClassIds();
+
+  virtual void ReplaceInstanceCallsWithDispatchTableCalls();
 
   void InsertBefore(Instruction* next,
                     Instruction* instr,

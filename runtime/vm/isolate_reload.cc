@@ -62,8 +62,8 @@ DECLARE_FLAG(bool, trace_deoptimization);
 #define Z zone_
 
 #define TIMELINE_SCOPE(name)                                                   \
-  TimelineDurationScope tds##name(Thread::Current(),                           \
-                                  Timeline::GetIsolateStream(), #name)
+  TimelineBeginEndScope tbes##name(Thread::Current(),                          \
+                                   Timeline::GetIsolateStream(), #name)
 
 // The ObjectLocator is used for collecting instances that
 // needs to be morphed.
@@ -110,9 +110,9 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
 
   if (from.NumTypeArguments() > 0) {
     // Add copying of the optional type argument field.
-    intptr_t from_offset = from.type_arguments_field_offset();
+    intptr_t from_offset = from.host_type_arguments_field_offset();
     ASSERT(from_offset != Class::kNoTypeArguments);
-    intptr_t to_offset = to.type_arguments_field_offset();
+    intptr_t to_offset = to.host_type_arguments_field_offset();
     ASSERT(to_offset != Class::kNoTypeArguments);
     mapping->Add(from_offset);
     mapping->Add(to_offset);
@@ -152,8 +152,8 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
       from_name = from_field.name();
       if (from_name.Equals(to_name)) {
         // Success
-        mapping->Add(from_field.Offset());
-        mapping->Add(to_field.Offset());
+        mapping->Add(from_field.HostOffset());
+        mapping->Add(to_field.HostOffset());
         // Field did exist in old class deifnition.
         new_field = false;
       }
@@ -163,7 +163,7 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
       const Field& field = Field::Handle(to_field.raw());
       field.set_needs_load_guard(true);
       field.set_is_unboxing_candidate(false);
-      new_fields_offsets->Add(field.Offset());
+      new_fields_offsets->Add(field.HostOffset());
     }
   }
 
@@ -193,9 +193,34 @@ void InstanceMorpher::AddObject(RawObject* object) {
 }
 
 RawInstance* InstanceMorpher::Morph(const Instance& instance) const {
+  // Code can reference constants / canonical objects either directly in the
+  // instruction stream (ia32) or via an object pool.
+  //
+  // We have the following invariants:
+  //
+  //    a) Those canonical objects don't change state (i.e. are not mutable):
+  //       our optimizer can e.g. execute loads of such constants at
+  //       compile-time.
+  //
+  //       => We ensure that const-classes with live constants cannot be
+  //          reloaded to become non-const classes (see Class::CheckReload).
+  //
+  //    b) Those canonical objects live in old space: e.g. on ia32 the scavenger
+  //       does not make the RX pages writable and therefore cannot update
+  //       pointers embedded in the instruction stream.
+  //
+  // In order to maintain these invariants we ensure to always morph canonical
+  // objects to old space.
+  const bool is_canonical = instance.IsCanonical();
+  const Heap::Space space = is_canonical ? Heap::kOld : Heap::kNew;
   const auto& result = Instance::Handle(
-      Z, Instance::NewFromCidAndSize(shared_class_table_, cid_));
+      Z, Instance::NewFromCidAndSize(shared_class_table_, cid_, space));
 
+  // We preserve the canonical bit of the object, since this object is present
+  // in the class's constants.
+  if (is_canonical) {
+    result.SetCanonical();
+  }
 #if defined(HASH_IN_OBJECT_HEADER)
   const uint32_t hash = Object::GetCachedHash(instance.raw());
   Object::SetCachedHash(result.raw(), hash);
@@ -462,7 +487,7 @@ void IsolateGroupReloadContext::ReportError(const Error& error) {
   // TODO(dartbug.com/36097): We need to change the "reloadSources" service-api
   // call to accept an isolate group instead of an isolate.
   Isolate* isolate = Isolate::Current();
-  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(isolate)) {
+  if (Isolate::IsVMInternalIsolate(isolate)) {
     return;
   }
   TIR_Print("ISO-RELOAD: Error: %s\n", error.ToErrorCString());
@@ -475,7 +500,7 @@ void IsolateGroupReloadContext::ReportSuccess() {
   // TODO(dartbug.com/36097): We need to change the "reloadSources" service-api
   // call to accept an isolate group instead of an isolate.
   Isolate* isolate = Isolate::Current();
-  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(isolate)) {
+  if (Isolate::IsVMInternalIsolate(isolate)) {
     return;
   }
   ServiceEvent service_event(isolate, ServiceEvent::kIsolateReload);
@@ -597,9 +622,67 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         }
       }
       const auto& typed_data = ExternalTypedData::Handle(
-          Z, MakeRetainedTypedData(kernel_buffer, kernel_buffer_size));
+          Z, ExternalTypedData::NewFinalizeWithFree(
+                 const_cast<uint8_t*>(kernel_buffer), kernel_buffer_size));
+
       kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     }
+
+    ExternalTypedData& external_typed_data =
+        ExternalTypedData::Handle(Z, kernel_program.get()->typed_data()->raw());
+    IsolateGroupSource* source = Isolate::Current()->source();
+    Array& hot_reload_blobs = Array::Handle();
+    bool saved_external_typed_data = false;
+    if (source->hot_reload_blobs_ != nullptr) {
+      hot_reload_blobs = source->hot_reload_blobs_;
+
+      // Walk the array, and (if stuff was removed) compact and reuse the space.
+      // Note that the space has to be compacted as the ordering is important.
+      WeakProperty& weak_property = WeakProperty::Handle();
+      WeakProperty& weak_property_tmp = WeakProperty::Handle();
+      ExternalTypedData& existing_entry = ExternalTypedData::Handle(Z);
+      intptr_t next_entry_index = 0;
+      for (intptr_t i = 0; i < hot_reload_blobs.Length(); i++) {
+        weak_property ^= hot_reload_blobs.At(i);
+        if (weak_property.key() != ExternalTypedData::null()) {
+          if (i != next_entry_index) {
+            existing_entry = ExternalTypedData::RawCast(weak_property.key());
+            weak_property_tmp ^= hot_reload_blobs.At(next_entry_index);
+            weak_property_tmp.set_key(existing_entry);
+          }
+          next_entry_index++;
+        }
+      }
+      if (next_entry_index < hot_reload_blobs.Length()) {
+        // There's now space to re-use.
+        weak_property ^= hot_reload_blobs.At(next_entry_index);
+        weak_property.set_key(external_typed_data);
+        next_entry_index++;
+        saved_external_typed_data = true;
+      }
+      if (next_entry_index < hot_reload_blobs.Length()) {
+        ExternalTypedData& nullExternalTypedData = ExternalTypedData::Handle(Z);
+        while (next_entry_index < hot_reload_blobs.Length()) {
+          // Null out any extra spaces.
+          weak_property ^= hot_reload_blobs.At(next_entry_index);
+          weak_property.set_key(nullExternalTypedData);
+          next_entry_index++;
+        }
+      }
+    }
+    if (!saved_external_typed_data) {
+      const WeakProperty& weak_property =
+          WeakProperty::Handle(WeakProperty::New(Heap::kOld));
+      weak_property.set_key(external_typed_data);
+
+      intptr_t length =
+          hot_reload_blobs.IsNull() ? 0 : hot_reload_blobs.Length();
+      Array& new_array =
+          Array::Handle(Array::Grow(hot_reload_blobs, length + 1, Heap::kOld));
+      new_array.SetAt(length, weak_property);
+      source->hot_reload_blobs_ = new_array.raw();
+    }
+    source->num_hot_reloads_++;
 
     modified_libs_ = new (Z) BitVector(Z, num_old_libs_);
     kernel::KernelLoader::FindModifiedLibraries(
@@ -861,23 +944,18 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     success = false;
   }
 
-  // Once we --enable-isolate-groups in JIT again, we have to ensure unwind
-  // errors will be propagated to all isolates.
-  if (result.IsUnwindError()) {
-    const auto& error = Error::Cast(result);
-    if (thread->top_exit_frame_info() == 0) {
-      // We can only propagate errors when there are Dart frames on the stack.
-      // In this case there are no Dart frames on the stack and we set the
-      // thread's sticky error. This error will be returned to the message
-      // handler.
-      thread->set_sticky_error(error);
-    } else {
-      // If the tag handler returns with an UnwindError error, propagate it and
-      // give up.
-      Exceptions::PropagateError(error);
-      UNREACHABLE();
+  // Re-queue any shutdown requests so they can inform each isolate's own thread
+  // to shut down.
+  isolateIndex = 0;
+  ForEachIsolate([&](Isolate* isolate) {
+    tmp = results.At(isolateIndex);
+    if (tmp.IsUnwindError()) {
+      Isolate::KillIfExists(isolate, UnwindError::Cast(tmp).is_user_initiated()
+                                         ? Isolate::kKillMsg
+                                         : Isolate::kInternalKillMsg);
     }
-  }
+    isolateIndex++;
+  });
 
   return success;
 }
@@ -920,9 +998,10 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
 
   Dart_KernelCompilationResult retval = {};
   {
+    const char* root_lib_url = root_lib_url_.ToCString();
     TransitionVMToNative transition(Thread::Current());
-    retval = KernelIsolate::CompileToKernel(root_lib_url_.ToCString(), nullptr,
-                                            0, modified_scripts_count,
+    retval = KernelIsolate::CompileToKernel(root_lib_url, nullptr, 0,
+                                            modified_scripts_count,
                                             modified_scripts, true, nullptr);
   }
   if (retval.status != Dart_KernelCompilationStatus_Ok) {
@@ -934,30 +1013,6 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
   *kernel_buffer = retval.kernel;
   *kernel_buffer_size = retval.kernel_size;
   return nullptr;
-}
-
-RawExternalTypedData* IsolateGroupReloadContext::MakeRetainedTypedData(
-    const uint8_t* kernel_buffer,
-    intptr_t kernel_buffer_size) {
-  // The ownership of the kernel buffer goes now to the VM.
-  const auto& typed_data = ExternalTypedData::Handle(
-      Z, ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
-                                const_cast<uint8_t*>(kernel_buffer),
-                                kernel_buffer_size, Heap::kOld));
-  typed_data.AddFinalizer(
-      const_cast<uint8_t*>(kernel_buffer),
-      [](void* isolate_callback_data, Dart_WeakPersistentHandle handle,
-         void* data) { free(data); },
-      kernel_buffer_size);
-
-  // TODO(dartbug.com/33973): Change the heap objects to have a proper
-  // retaining path to the kernel blob and ensure the finalizer will free it
-  // once there are no longer references to it.
-  // (The [ExternalTypedData] currently referenced by e.g. functions point
-  // into the middle of c-allocated buffer and don't have a finalizer).
-  first_isolate_->RetainKernelBlob(typed_data);
-
-  return typed_data.raw();
 }
 
 void IsolateReloadContext::ReloadPhase1AllocateStorageMapsAndCheckpoint() {
@@ -1267,6 +1322,13 @@ void IsolateGroupReloadContext::FindModifiedSources(
     for (intptr_t script_idx = 0; script_idx < scripts.Length(); script_idx++) {
       script ^= scripts.At(script_idx);
       uri = script.url();
+      const bool dart_scheme = uri.StartsWith(Symbols::DartScheme());
+      if (dart_scheme) {
+        // If a user-defined class mixes in a mixin from dart:*, it's list of
+        // scripts will have a dart:* script as well. We don't consider those
+        // during reload.
+        continue;
+      }
       if (ContainsScriptUri(modified_sources_uris, uri.ToCString())) {
         // We've already accounted for this script in a prior library.
         continue;
@@ -2000,7 +2062,10 @@ class FieldInvalidator {
         delayed_function_type_arguments_(TypeArguments::Handle(zone)) {}
 
   void CheckStatics(const GrowableArray<const Field*>& fields) {
-    HANDLESCOPE(Thread::Current());
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    bool null_safety = isolate->null_safety();
+    HANDLESCOPE(thread);
     instantiator_type_arguments_ = TypeArguments::null();
     for (intptr_t i = 0; i < fields.length(); i++) {
       const Field& field = *fields[i];
@@ -2011,23 +2076,28 @@ class FieldInvalidator {
         continue;  // Already guarding.
       }
       value_ = field.StaticValue();
-      CheckValueType(value_, field);
+      if (value_.raw() != Object::sentinel().raw()) {
+        CheckValueType(null_safety, value_, field);
+      }
     }
   }
 
   void CheckInstances(const GrowableArray<const Instance*>& instances) {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    bool null_safety = isolate->null_safety();
     for (intptr_t i = 0; i < instances.length(); i++) {
       // This handle scope does run very frequently, but is a net-win by
       // preventing us from spending too much time in malloc for new handle
       // blocks.
-      HANDLESCOPE(Thread::Current());
-      CheckInstance(*instances[i]);
+      HANDLESCOPE(thread);
+      CheckInstance(null_safety, *instances[i]);
     }
   }
 
  private:
   DART_FORCE_INLINE
-  void CheckInstance(const Instance& instance) {
+  void CheckInstance(bool null_safety, const Instance& instance) {
     cls_ = instance.clazz();
     if (cls_.NumTypeArguments() > 0) {
       instantiator_type_arguments_ = instance.GetTypeArguments();
@@ -2041,12 +2111,14 @@ class FieldInvalidator {
         continue;
       }
       const Field& field = Field::Cast(entry_);
-      CheckInstanceField(instance, field);
+      CheckInstanceField(null_safety, instance, field);
     }
   }
 
   DART_FORCE_INLINE
-  void CheckInstanceField(const Instance& instance, const Field& field) {
+  void CheckInstanceField(bool null_safety,
+                          const Instance& instance,
+                          const Field& field) {
     if (field.needs_load_guard()) {
       return;  // Already guarding.
     }
@@ -2057,13 +2129,15 @@ class FieldInvalidator {
       field.set_needs_load_guard(true);
       return;
     }
-    CheckValueType(value_, field);
+    CheckValueType(null_safety, value_, field);
   }
 
   DART_FORCE_INLINE
-  void CheckValueType(const Instance& value, const Field& field) {
-    if (value.IsNull()) {
-      return;  // TODO(nnbd): Implement.
+  void CheckValueType(bool null_safety,
+                      const Instance& value,
+                      const Field& field) {
+    if (!null_safety && value.IsNull()) {
+      return;
     }
     type_ = field.type();
     if (type_.IsDynamicType()) {
@@ -2126,10 +2200,8 @@ class FieldInvalidator {
     }
 
     if (!cache_hit) {
-      // TODO(regis): Make type check nullability aware.
-      if (!value.IsInstanceOf(NNBDMode::kLegacy, type_,
-                              instantiator_type_arguments_,
-                              function_type_arguments_)) {
+      if (!value.IsAssignableTo(type_, instantiator_type_arguments_,
+                                function_type_arguments_)) {
         ASSERT(!FLAG_identity_reload);
         field.set_needs_load_guard(true);
       } else {

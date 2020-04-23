@@ -24,12 +24,13 @@ library stack_trace_mapper;
 
 import 'package:js/js.dart';
 import 'package:path/path.dart' as p;
-import 'source_map_stack_trace.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-typedef void ReadyCallback();
+import 'source_map_stack_trace.dart';
+
+typedef ReadyCallback = void Function();
 
 /// Global object DDC uses to see if a stack trace utility has been registered.
 @JS(r'$dartStackTraceUtility')
@@ -38,9 +39,9 @@ external set dartStackTraceUtility(DartStackTraceUtility value);
 @JS(r'$dartLoader.rootDirectories')
 external List get rootDirectories;
 
-typedef String StackTraceMapper(String stackTrace);
-typedef dynamic SourceMapProvider(String modulePath);
-typedef void SetSourceMapProvider(SourceMapProvider provider);
+typedef StackTraceMapper = String Function(String stackTrace);
+typedef SourceMapProvider = dynamic Function(String modulePath);
+typedef SetSourceMapProvider = void Function(SourceMapProvider);
 
 @JS()
 @anonymous
@@ -59,8 +60,8 @@ external String _stringify(dynamic json);
 /// The unparsed data for the source maps must still be loaded before
 /// LazyMapping is used.
 class LazyMapping extends Mapping {
-  MappingBundle _bundle = MappingBundle();
-  SourceMapProvider _provider;
+  final MappingBundle _bundle = MappingBundle();
+  final SourceMapProvider _provider;
 
   LazyMapping(this._provider);
 

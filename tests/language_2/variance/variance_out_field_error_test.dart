@@ -50,4 +50,5 @@ class D<out T> extends C<T> {
   var a;
   //  ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+  // [cfe] Can't use 'out' type variable 'T' in an 'in' position.
 }

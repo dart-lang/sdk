@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class ApiSignatureTest {
-  ApiSignature sig = new ApiSignature.unversioned();
+  ApiSignature sig = ApiSignature.unversioned();
 
   void checkBytes(List<int> bytes) {
     expect(sig.getBytes_forDebug(), bytes);

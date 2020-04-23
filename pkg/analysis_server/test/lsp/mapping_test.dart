@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MappingTest);
   });
@@ -20,11 +20,11 @@ main() {
 
 @reflectiveTest
 class MappingTest extends AbstractLspAnalysisServerTest {
-  test_completionItemKind_firstNotSupported() async {
+  Future<void> test_completionItemKind_firstNotSupported() async {
     // TYPE_PARAMETER maps to TypeParameter first, but since originally LSP
     // did not support it, it'll map to Variable if the client doesn't support
     // that.
-    var supportedKinds = new HashSet.of([
+    var supportedKinds = HashSet.of([
       lsp.CompletionItemKind.TypeParameter,
       lsp.CompletionItemKind.Variable,
     ]);
@@ -35,11 +35,11 @@ class MappingTest extends AbstractLspAnalysisServerTest {
     expect(result, equals(lsp.CompletionItemKind.TypeParameter));
   }
 
-  test_completionItemKind_firstSupported() async {
+  Future<void> test_completionItemKind_firstSupported() async {
     // TYPE_PARAMETER maps to TypeParameter first, but since originally LSP
     // did not support it, it'll map to Variable if the client doesn't support
     // that.
-    var supportedKinds = new HashSet.of([lsp.CompletionItemKind.Variable]);
+    var supportedKinds = HashSet.of([lsp.CompletionItemKind.Variable]);
     var result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.TYPE_PARAMETER,
@@ -47,8 +47,8 @@ class MappingTest extends AbstractLspAnalysisServerTest {
     expect(result, equals(lsp.CompletionItemKind.Variable));
   }
 
-  test_completionItemKind_knownMapping() async {
-    final supportedKinds = new HashSet.of([lsp.CompletionItemKind.Class]);
+  Future<void> test_completionItemKind_knownMapping() async {
+    final supportedKinds = HashSet.of([lsp.CompletionItemKind.Class]);
     final result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.CLASS,
@@ -56,8 +56,8 @@ class MappingTest extends AbstractLspAnalysisServerTest {
     expect(result, equals(lsp.CompletionItemKind.Class));
   }
 
-  test_completionItemKind_notMapped() async {
-    var supportedKinds = new HashSet<lsp.CompletionItemKind>();
+  Future<void> test_completionItemKind_notMapped() async {
+    var supportedKinds = HashSet<lsp.CompletionItemKind>();
     var result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.UNKNOWN, // Unknown is not mapped.
@@ -65,12 +65,27 @@ class MappingTest extends AbstractLspAnalysisServerTest {
     expect(result, isNull);
   }
 
-  test_completionItemKind_notSupported() async {
-    var supportedKinds = new HashSet<lsp.CompletionItemKind>();
+  Future<void> test_completionItemKind_notSupported() async {
+    var supportedKinds = HashSet<lsp.CompletionItemKind>();
     var result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.CLASS,
     );
     expect(result, isNull);
+  }
+
+  Future<void> test_selectionsInSnippets_empty() async {
+    var result = lsp.buildSnippetStringWithSelection('teststring', 4, 0);
+    expect(result, equals(r'test${1:}string'));
+  }
+
+  Future<void> test_selectionsInSnippets_escaping() async {
+    var result = lsp.buildSnippetStringWithSelection(r'te$tstri}ng', 4, 3);
+    expect(result, equals(r'te\$t${1:str}i\}ng'));
+  }
+
+  Future<void> test_selectionsInSnippets_selection() async {
+    var result = lsp.buildSnippetStringWithSelection('teststring', 4, 3);
+    expect(result, equals(r'test${1:str}ing'));
   }
 }

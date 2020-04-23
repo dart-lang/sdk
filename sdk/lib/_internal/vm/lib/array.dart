@@ -8,7 +8,8 @@
 
 @pragma("vm:entry-point")
 class _List<E> extends FixedLengthListBase<E> {
-  @pragma("vm:exact-result-type", _List)
+  @pragma(
+      "vm:exact-result-type", [_List, "result-type-uses-passed-type-arguments"])
   @pragma("vm:prefer-inline")
   factory _List(length) native "List_allocate";
 
@@ -144,7 +145,7 @@ class _List<E> extends FixedLengthListBase<E> {
       return result;
     }
     // _GrowableList._withData must not be called with empty list.
-    return growable ? <E>[] : new List<E>(0);
+    return growable ? <E>[] : new _List<E>(0);
   }
 }
 

@@ -89,8 +89,7 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
   void registerProcessedMember(MemberEntity member);
   Iterable<MemberEntity> get processedMembers;
 
-  /// Registers that [type] is checked in this world builder. The unaliased type
-  /// is returned.
+  /// Registers that [type] is checked in this world builder.
   void registerIsCheck(DartType type);
 
   void registerNamedTypeVariableNewRti(TypeVariableType typeVariable);
@@ -907,12 +906,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         memberUsed(usage.entity, useSet);
       }
     }
-  }
-
-  @override
-  Iterable<ClassEntity> allMixinUsesOf(ClassEntity cls) {
-    Iterable<ClassEntity> uses = _classHierarchyBuilder.mixinUses[cls];
-    return uses != null ? uses : const <ClassEntity>[];
   }
 
   @override

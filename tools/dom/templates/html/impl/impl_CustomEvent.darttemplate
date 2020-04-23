@@ -11,9 +11,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   var _dartDetail;
 
   factory $CLASSNAME(String type,
-      {bool canBubble: true, bool cancelable: true, Object detail}) {
+      {bool canBubble: true, bool cancelable: true, Object$NULLABLE detail}) {
 
-    final CustomEvent e = document._createEvent('CustomEvent');
+    final CustomEvent e = document._createEvent('CustomEvent') $#NULLSAFECAST(as CustomEvent);
 
     e._dartDetail = detail;
 

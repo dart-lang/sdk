@@ -18,15 +18,18 @@ main() {
     defineReflectiveTests(ExtensionMethodsDeclarationTest);
     defineReflectiveTests(ExtensionMethodsDeclarationWithNnbdTest);
     defineReflectiveTests(ExtensionMethodsExtendedTypeTest);
+    defineReflectiveTests(ExtensionMethodsExtendedTypeWithNnbdTest);
     defineReflectiveTests(ExtensionMethodsExternalReferenceTest);
+    defineReflectiveTests(ExtensionMethodsExternalReferenceWithNnbdTest);
     defineReflectiveTests(ExtensionMethodsInternalReferenceTest);
+    defineReflectiveTests(ExtensionMethodsInternalReferenceWithNnbdTest);
   });
 }
 
 abstract class BaseExtensionMethodsTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 }
 
@@ -34,6 +37,7 @@ abstract class BaseExtensionMethodsTest extends DriverResolutionTest {
 /// resolved correctly.
 @reflectiveTest
 class ExtensionMethodsDeclarationTest extends BaseExtensionMethodsTest {
+  @override
   List<MockSdkLibrary> get additionalMockSdkLibraries => [
         MockSdkLibrary([
           MockSdkLibraryUnit('dart:test1', 'test1/test1.dart', r'''
@@ -227,14 +231,16 @@ extension E on C {
   int get a => 1;
 }
 ''');
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'lib.dart';
 
 f(C c) {
   double E = 2.71;
   c.a;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
+    ]);
     var access = findNode.prefixed('c.a');
     var import = findElement.importFind('package:test/lib.dart');
     assertElement(access, import.extension_('E').getGetter('a'));
@@ -242,7 +248,7 @@ f(C c) {
   }
 
   test_visibility_shadowed_byLocal_local() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class C {}
 extension E on C {
   int get a => 1;
@@ -251,7 +257,9 @@ f(C c) {
   double E = 2.71;
   c.a;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+    ]);
     var access = findNode.prefixed('c.a');
     assertElement(access, findElement.getter('a'));
     assertType(access, 'int');
@@ -318,7 +326,7 @@ f(p.C c) {
 class ExtensionMethodsDeclarationWithNnbdTest extends BaseExtensionMethodsTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
@@ -479,6 +487,18 @@ extension on M {}
     assertElement(extendedType, findElement.mixin('M'));
     assertType(extendedType, 'M');
   }
+}
+
+@reflectiveTest
+class ExtensionMethodsExtendedTypeWithNnbdTest
+    extends ExtensionMethodsExtendedTypeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
 }
 
 /// Tests that extension members can be correctly resolved when referenced
@@ -1045,10 +1065,10 @@ f(C c) {
   test_instance_operator_postfix_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 extension E on C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 f(C c) {
   c++;
@@ -1061,7 +1081,7 @@ f(C c) {
   test_instance_operator_postfix_fromExtension_functionType() async {
     await assertNoErrorsInCode('''
 extension E on int Function(int) {
-  void operator +(int i) {}
+  int Function(int) operator +(int i) => this;
 }
 g(int Function(int) f) {
   f++;
@@ -1075,7 +1095,7 @@ g(int Function(int) f) {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 f(C c) {
   c++;
@@ -1088,10 +1108,10 @@ f(C c) {
   test_instance_operator_prefix_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 extension E on C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 f(C c) {
   ++c;
@@ -1104,7 +1124,7 @@ f(C c) {
   test_instance_operator_prefix_fromExtension_functionType() async {
     await assertNoErrorsInCode('''
 extension E on int Function(int) {
-  void operator +(int i) {}
+  int Function(int) operator +(int i) => this;
 }
 g(int Function(int) f) {
   ++f;
@@ -1118,7 +1138,7 @@ g(int Function(int) f) {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 f(C c) {
   ++c;
@@ -1131,10 +1151,10 @@ f(C c) {
   test_instance_operator_unary_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
-  void operator -() {}
+  C operator -() => this;
 }
 extension E on C {
-  void operator -() {}
+  C operator -() => this;
 }
 f(C c) {
   -c;
@@ -1161,7 +1181,7 @@ g(int Function(int) f) {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
-  void operator -() {}
+  C operator -() => this;
 }
 f(C c) {
   -c;
@@ -1419,6 +1439,236 @@ extension on Function {
   }
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class ExtensionMethodsExternalReferenceWithNnbdTest
+    extends ExtensionMethodsExternalReferenceTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_instance_getter_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  int get foo => 0;
+}
+
+f(int? a) {
+  a.foo;
+}
+''');
+    var access = findNode.prefixed('a.foo');
+    assertElement(access, findElement.getter('foo', of: 'E'));
+    assertType(access, 'int');
+  }
+
+  test_instance_getter_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int get foo => 0;
+}
+
+f(int? a) {
+  a?.foo;
+}
+''');
+    var identifier = findNode.simple('foo;');
+    assertElement(identifier, findElement.getter('foo', of: 'E'));
+    assertType(identifier, 'int');
+  }
+
+  test_instance_method_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  void foo() {}
+}
+
+f(int? a) {
+  a.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('a.foo()');
+    assertElement(invocation, findElement.method('foo', of: 'E'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromInstance_nullable_nullLiteral() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  void foo() {}
+}
+
+f(int? a) {
+  null.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('null.foo()');
+    assertElement(invocation, findElement.method('foo', of: 'E'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  void foo() {}
+}
+
+f(int? a) {
+  a?.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('a?.foo()');
+    assertElement(invocation, findElement.method('foo', of: 'E'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromInstance_nullLiteral() async {
+    await assertNoErrorsInCode('''
+extension E<T> on T {
+  void foo() {}
+}
+
+f() {
+  null.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('null.foo()');
+    assertMember(
+      invocation,
+      findElement.method('foo', of: 'E'),
+      {'T': 'Null'},
+    );
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_operator_binary_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  int operator +(int _) => 0;
+}
+
+f(A? a) {
+  a + 1;
+}
+''');
+    var binary = findNode.binary('a + 1');
+    assertElement(binary, findElement.method('+'));
+    assertType(binary, 'int');
+  }
+
+  test_instance_operator_index_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  int operator [](int index) => 0;
+}
+
+f(int? a) {
+  a[0];
+}
+''');
+    var index = findNode.index('a[0]');
+    assertElement(index, findElement.method('[]'));
+  }
+
+  test_instance_operator_index_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int operator [](int index) => 0;
+}
+
+f(int? a) {
+  a?.[0];
+}
+''');
+    var index = findNode.index('a?.[0]');
+    assertElement(index, findElement.method('[]'));
+  }
+
+  test_instance_operator_postfixInc_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  A? operator +(int _) => this;
+}
+
+f(A? a) {
+  a++;
+}
+''');
+    var expression = findNode.postfix('a++');
+    assertElement(expression, findElement.method('+'));
+    assertType(expression, 'A?');
+  }
+
+  test_instance_operator_prefixInc_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  A? operator +(int _) => this;
+}
+
+f(A? a) {
+  ++a;
+}
+''');
+    var expression = findNode.prefix('++a');
+    assertElement(expression, findElement.method('+'));
+    assertType(expression, 'A?');
+  }
+
+  test_instance_operator_unaryMinus_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  A? operator -() => this;
+}
+
+f(A? a) {
+  -a;
+}
+''');
+    var expression = findNode.prefix('-a');
+    assertElement(expression, findElement.method('unary-'));
+    assertType(expression, 'A?');
+  }
+
+  test_instance_setter_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  set foo(int _) {}
+}
+
+f(int? a) {
+  a.foo = 1;
+}
+''');
+    var access = findNode.prefixed('a.foo');
+    assertElement(access, findElement.setter('foo'));
+  }
+
+  test_instance_setter_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  set foo(int _) {}
+}
+
+f(int? a) {
+  a?.foo = 1;
+}
+''');
+    var access = findNode.propertyAccess('a?.foo');
+    assertElement(access, findElement.setter('foo'));
   }
 }
 
@@ -1959,4 +2209,16 @@ extension E on C {
     var identifier = findNode.simple('a = 0;');
     assertElement(identifier, findElement.topSet('a'));
   }
+}
+
+@reflectiveTest
+class ExtensionMethodsInternalReferenceWithNnbdTest
+    extends ExtensionMethodsInternalReferenceTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
 }

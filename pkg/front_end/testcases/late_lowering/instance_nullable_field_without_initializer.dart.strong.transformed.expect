@@ -1,27 +1,28 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class Class extends core::Object {
-  field core::int? _#field = null;
-  field dynamic _#field#isSet = false;
+  field core::int? _#Class#field = null;
+  field core::bool _#Class#field#isSet = false;
   constructor constructor1() → self::Class
     : super core::Object::•()
     ;
-  constructor constructor2(core::int field) → self::Class
-    : self::Class::_#field#isSet = true, self::Class::_#field = field, super core::Object::•()
+  constructor constructor2(core::int? field) → self::Class
+    : self::Class::_#Class#field#isSet = true, self::Class::_#Class#field = field, super core::Object::•()
     ;
   constructor constructor3(core::int value) → self::Class
-    : self::Class::_#field#isSet = true, self::Class::_#field = value.{core::num::+}(1), super core::Object::•()
+    : self::Class::_#Class#field#isSet = true, self::Class::_#Class#field = value.{core::num::+}(1), super core::Object::•()
     ;
-  constructor constructor4([core::int field = #C1]) → self::Class
-    : self::Class::_#field#isSet = true, self::Class::_#field = field, super core::Object::•()
+  constructor constructor4([core::int? field = #C1]) → self::Class
+    : self::Class::_#Class#field#isSet = true, self::Class::_#Class#field = field, super core::Object::•()
     ;
   get field() → core::int?
-    return this.{self::Class::_#field#isSet} ?{core::int?} this.{self::Class::_#field} : throw "Field 'field' has not been initialized.";
+    return this.{self::Class::_#Class#field#isSet} ?{core::int?} this.{self::Class::_#Class#field} : throw new _in::LateInitializationErrorImpl::•("Field 'field' has not been initialized.");
   set field(core::int? #t1) → void {
-    this.{self::Class::_#field#isSet} = true;
-    this.{self::Class::_#field} = #t1;
+    this.{self::Class::_#Class#field#isSet} = true;
+    this.{self::Class::_#Class#field} = #t1;
   }
 }
 class Subclass extends self::Class {
@@ -95,7 +96,7 @@ static method throws(() → dynamic f, core::String message) → dynamic {
   try {
     value = f.call();
   }
-  on dynamic catch(final dynamic e) {
+  on core::LateInitializationError catch(final core::LateInitializationError e) {
     core::print(e);
     return;
   }

@@ -369,8 +369,6 @@ class Enum extends Member {
     _parse(new Tokenizer(definition).tokenize());
   }
 
-  Enum._(this.name, this.docs);
-
   String get elementTypeName => '$servicePackage.element.$name';
 
   void generateEnum(JavaGenerator gen) {
@@ -754,8 +752,6 @@ class Type extends Member {
   Type(this.parent, String categoryName, String definition, [this.docs]) {
     _parse(new Tokenizer(definition).tokenize());
   }
-
-  Type._(this.parent, this.rawName, this.name, this.superName, this.docs);
 
   String get elementTypeName {
     if (isSimple) return null;

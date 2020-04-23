@@ -20,16 +20,6 @@ HTML_LIBRARY_NAMES = [
     'html', 'indexed_db', 'svg', 'web_audio', 'web_gl', 'web_sql'
 ]
 
-# The following two sets let us avoid shadowing fields with properties.
-# This information could be derived from the IDL files but would require
-# a significant refactor to compute accurately. Instead we manually compute
-# these sets based on manual triage of strong mode errors.
-_force_property_members = monitored.Set('systemhtml._force_property_members', [
-    'Element.outerHtml',
-    'Element.isContentEditable',
-    'AudioContext.createGain',
-    'AudioContext.createScriptProcessor',
-])
 _safe_to_ignore_shadowing_members = monitored.Set(
     'systemhtml._safe_to_ignore_shadowing_members', [
         'SVGElement.tabIndex',
@@ -150,6 +140,7 @@ _callback_list_generics_mapping = monitored.Set(
         'List<IntersectionObserverEntry>',
         'List<MutationRecord>',
         'List<_Report>',
+        'List<ResizeObserverEntry>',
     ])
 
 
@@ -182,8 +173,15 @@ class ElementConstructorInfo(object):
         info.constructor_name = self.name
         info.js_name = None
         info.type_name = interface_name
-        info.param_infos = map(lambda tXn: ParamInfo(tXn[1], tXn[0], True),
-                               self.opt_params)
+        # optional parameters are always nullable
+        info.param_infos = map(
+            lambda tXn: ParamInfo(
+                name=tXn[1],
+                type_id=tXn[0],
+                is_optional=True,
+                is_nullable=True,
+                default_value=None,
+                default_value_is_null=False), self.opt_params)
         info.requires_named_arguments = True
         info.factory_parameters = ['"%s"' % self.tag]
         info.pure_dart_constructor = True
@@ -593,6 +591,11 @@ class HtmlDartInterfaceGenerator(object):
         self._template_loader = options.templates
         self._type_registry = options.type_registry
         self._options = options
+        # TODO(srujzs): This sets the nnbd option globally inside generator.py
+        # since there is no options object there. This should should be cleaned
+        # up and passed as an option instead.
+        global_options_hack.nnbd = options.nnbd
+        self._nnbd = options.nnbd
         self._library_emitter = library_emitter
         self._event_generator = event_generator
         self._interface = interface
@@ -804,7 +807,10 @@ class HtmlDartInterfaceGenerator(object):
             DOMNAME=self._interface.doc_js_name,
             NATIVESPEC=native_spec,
             KEYTYPE=maplikeKeyType,
-            VALUETYPE=maplikeValueType)
+            VALUETYPE=maplikeValueType,
+            NULLABLE='?' if self._options.nnbd else '',
+            NULLSAFECAST=True if self._options.nnbd else False,
+            NULLASSERT='!' if self._options.nnbd else '')
         stream_getter_signatures_emitter = None
         element_stream_getters_emitter = None
         if type(implementation_members_emitter) == tuple:
@@ -925,7 +931,7 @@ promise_operations = monitored.Dict(
             "type": "FontFace"
         },
         "FontFaceSet.load": {
-            "type": "List<FontFace>"
+            "type": "List<dynamic>"
         },
         "OffscreenCanvas.load": {
             "type": "Blob"
@@ -937,13 +943,13 @@ promise_operations = monitored.Dict(
             "type": "BackgroundFetchRegistration"
         },
         "BackgroundFetchManager.getIds": {
-            "type": "List<String>"
+            "type": "List<dynamic>"
         },
         "BackgroundFetchRegistration.abort": {
             "type": "bool"
         },
         "SyncManager.getTags": {
-            "type": "List<String>"
+            "type": "List<dynamic>"
         },
         "BudgetService.getCost": {
             "type": "double"
@@ -988,13 +994,13 @@ promise_operations = monitored.Dict(
             "type": "MediaCapabilitiesInfo"
         },
         "MediaDevices.enumerateDevices": {
-            "type": "List<MediaDeviceInfo>"
+            "type": "List<dynamic>"
         },
         "MediaDevices.getUserMedia": {
             "type": "MediaStream"
         },
         "ServiceWorkerRegistration.getNotifications": {
-            "type": "List<Notification>"
+            "type": "List<dynamic>"
         },
         "PaymentInstruments.delete": {
             "type": "bool"
@@ -1003,7 +1009,7 @@ promise_operations = monitored.Dict(
             "type": "dictionary"
         },
         "PaymentInstruments.keys": {
-            "type": "List<String>"
+            "type": "List<dynamic>"
         },
         "PaymentInstrumentshas.": {
             "type": "bool"
@@ -1073,7 +1079,7 @@ promise_operations = monitored.Dict(
             "type": "int"
         },
         "Clients.matchAll": {
-            "type": "List<Client>"
+            "type": "List<dynamic>"
         },
         "Clients.openWindow": {
             "type": "WindowClient"
@@ -1088,7 +1094,7 @@ promise_operations = monitored.Dict(
             "type": "ServiceWorkerRegistration"
         },
         "ServiceWorkerContainer.getRegistrations": {
-            "type": "List<ServiceWorkerRegistration>"
+            "type": "List<dynamic>"
         },
         "ServiceWorkerGlobalScope.fetch": {
             "type": "Response"
@@ -1103,13 +1109,13 @@ promise_operations = monitored.Dict(
             "type": "WindowClient"
         },
         "BarcodeDetector.detect": {
-            "type": "List<DetectedBarcode>"
+            "type": "List<dynamic>"
         },
         "FaceDetector.detect": {
-            "type": "List<DetectedFace>"
+            "type": "List<dynamic>"
         },
         "TextDetector.detect": {
-            "type": "List<DetectedText>"
+            "type": "List<dynamic>"
         },
         "BaseAudioContext.decodeAudioData": {
             "type": "AudioBuffer"
@@ -1153,6 +1159,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         self._type_registry = options.type_registry
         self._renamer = options.renamer
         self._metadata = options.metadata
+        self._nnbd = options.nnbd
         self._interface_type_info = self._type_registry.TypeInfo(
             self._interface.id)
         self._current_secondary_parent = None
@@ -1174,6 +1181,9 @@ class Dart2JSBackend(HtmlDartGenerator):
         ):
             item_type = self._type_registry.TypeInfo(
                 self._interface_type_info.list_item_type()).dart_type()
+            if self._nnbd and \
+                    self._interface_type_info.list_item_type_nullable():
+                item_type += '?'
             implements.append('JavaScriptIndexingBehavior<%s>' % item_type)
         return implements
 
@@ -1228,17 +1238,22 @@ class Dart2JSBackend(HtmlDartGenerator):
             and not ',' in arguments \
             and not self._HasUnreliableFactoryConstructor():
             return emitter.Format(
-                "JS('returns:$INTERFACE_NAME;creates:$INTERFACE_NAME;new:true',"
+                "JS$CAST("
+                "'returns:$INTERFACE_NAME;creates:$INTERFACE_NAME;new:true',"
                 " '#.$METHOD(#)', $FACTORY, $ARGUMENTS)",
+                CAST='<' + self._interface_type_info.interface_name() +
+                '>' if self._nnbd else '',
                 INTERFACE_NAME=self._interface_type_info.interface_name(),
                 FACTORY=factory,
                 METHOD=method,
                 ARGUMENTS=arguments)
         return emitter.Format(
-            '$FACTORY.$METHOD($ARGUMENTS)',
+            '$FACTORY.$METHOD($ARGUMENTS)$CAST',
             FACTORY=factory,
             METHOD=method,
-            ARGUMENTS=arguments)
+            ARGUMENTS=arguments,
+            CAST=' as ' + self._interface_type_info.interface_name() \
+            if self._nnbd else '')
 
     def _HasUnreliableFactoryConstructor(self):
         return self._interface.doc_js_name in _js_unreliable_element_factories
@@ -1311,16 +1326,24 @@ class Dart2JSBackend(HtmlDartGenerator):
 
         has_indexed_getter = self.HasIndexedGetter()
 
+        indexed_getter = False
+        indexed_getter_nullable = nullable
         if has_indexed_getter:
             indexed_getter = ('JS("%s%s", "#[#]", this, index)' %
                               (self.SecureOutputType(element_type),
                                "|Null" if nullable else ""))
-        elif any(op.id == 'getItem' for op in self._interface.operations):
-            indexed_getter = 'this.getItem(index)'
-        elif any(op.id == 'item' for op in self._interface.operations):
-            indexed_getter = 'this.item(index)'
         else:
-            indexed_getter = False
+            for op in self._interface.operations:
+                if op.id == 'getItem':
+                    indexed_getter = 'this.getItem(index)'
+                    indexed_getter_nullable = OperationTypeIsNullable(op)
+                    break
+            if not indexed_getter:
+                for op in self._interface.operations:
+                    if op.id == 'item':
+                        indexed_getter = 'this.item(index)'
+                        indexed_getter_nullable = OperationTypeIsNullable(op)
+                        break
 
         if indexed_getter:
             self._members_emitter.Emit(
@@ -1329,17 +1352,25 @@ class Dart2JSBackend(HtmlDartGenerator):
                 '    if (JS("bool", "# >>> 0 !== # || # >= #", index,\n'
                 '        index, index, length))\n'
                 '      throw new RangeError.index(index, this);\n'
-                '    return $INDEXED_GETTER;\n'
+                '    return $INDEXED_GETTER$NULLASSERT;\n'
                 '  }',
                 INDEXED_GETTER=indexed_getter,
-                TYPE=self.SecureOutputType(element_type, False, True))
+                TYPE=self.SecureOutputType(element_type,
+                                           is_dart_type=False,
+                                           can_narrow_type=True,
+                                           nullable=nullable),
+                # If the type of the operation is not nullable but the getter
+                # is, we must assert non-null.
+                NULLASSERT='!' if self._nnbd and not nullable and \
+                    indexed_getter_nullable else '')
 
         if 'CustomIndexedSetter' in self._interface.ext_attrs:
             self._members_emitter.Emit(
                 '\n'
-                '  void operator[]=(int index, $TYPE value) {'
+                '  void operator[]=(int index, $TYPE$NULLABLE value) {'
                 ' JS("void", "#[#] = #", this, index, value); }',
-                TYPE=self._NarrowInputType(element_type))
+                TYPE=self._NarrowInputType(element_type),
+                NULLABLE='?' if self._nnbd and nullable else '')
         else:
             theType = self._NarrowInputType(element_type)
             if theType == 'DomRectList':
@@ -1347,10 +1378,11 @@ class Dart2JSBackend(HtmlDartGenerator):
 
             self._members_emitter.Emit(
                 '\n'
-                '  void operator[]=(int index, $TYPE value) {\n'
+                '  void operator[]=(int index, $TYPE$NULLABLE value) {\n'
                 '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
                 '  }\n',
-                TYPE=theType)
+                TYPE=theType,
+                NULLABLE='?' if self._nnbd and nullable else '')
 
         self.EmitListMixin(self._DartType(element_type), nullable)
 
@@ -1359,45 +1391,45 @@ class Dart2JSBackend(HtmlDartGenerator):
             return
 
         if IsPureInterface(self._interface.id, self._database):
-            self._AddInterfaceAttribute(attribute, html_name, read_only)
+            self._AddAttributeUsingProperties(attribute, html_name, read_only)
             return
 
         # If the attribute is shadowing, we can't generate a shadowing
-        # field (Issue 1633).
+        # getter or setter (Issue 1633).
         # TODO(sra): _FindShadowedAttribute does not take into account the html
-        #  renaming.  we should be looking for another attribute that has the same
-        #  html_name.  Two attributes with the same IDL name might not match if one
-        #  is renamed.
+        # renaming. We should be looking for another attribute that has the
+        # same html_name. Two attributes with the same IDL name might not match
+        # if one is renamed.
+        # TODO(srujzs): Determine if logic behind shadowing is still true here
+        # and below with the transition to natives.
         (super_attribute,
          super_attribute_interface) = self._FindShadowedAttribute(attribute)
-        if self._ForcePropertyMember(html_name):
-            self._members_emitter.Emit(
-                '\n  // Using property as subclass shadows.')
-            self._AddAttributeUsingProperties(attribute, html_name, read_only)
-            return
 
         if super_attribute:
             if read_only or self._SafeToIgnoreShadowingMember(html_name):
                 if attribute.type.id == super_attribute.type.id:
-                    # Compatible attribute, use the superclass property.  This works
-                    # because JavaScript will do its own dynamic dispatch.
+                    # Compatible attribute, use the superclass property.  This
+                    # works because JavaScript will do its own dynamic dispatch.
                     self._members_emitter.Emit(
                         '\n'
                         '  // Use implementation from $SUPER.\n'
-                        '  // final $TYPE $NAME;\n',
+                        '  // $TYPE get $NAME native;\n'
+                        '  // void set $NAME($TYPE value) native;\n',
                         SUPER=super_attribute_interface,
                         NAME=html_name,
-                        TYPE=self.SecureOutputType(attribute.type.id, False,
-                                                   read_only))
+                        TYPE=self.SecureOutputType(attribute.type.id,
+                            can_narrow_type=read_only,
+                            nullable=attribute.type.nullable))
                     return
             self._members_emitter.Emit('\n  // Shadowing definition.')
             self._AddAttributeUsingProperties(attribute, html_name, read_only)
             return
 
         # If the attribute is shadowed incompatibly in a subclass then we also
-        # can't just generate it as a field. In particular, this happens with
-        # DomMatrixReadOnly and its subclass DomMatrix. Force the superclass
-        # to generate getters. Hardcoding the known problem classes for now.
+        # can't just generate it as a getter/setter. In particular, this happens
+        # with DomMatrixReadOnly and its subclass DomMatrix. Force the
+        # superclass to generate getters. Hardcoding the known problem classes
+        # for now.
         # TODO(alanknight): Fix this more generally.
         if (self._interface.id == 'DOMMatrixReadOnly' or
                 self._interface.id == 'DOMPointReadOnly' or
@@ -1412,25 +1444,23 @@ class Dart2JSBackend(HtmlDartGenerator):
             self._AddAttributeUsingProperties(attribute, html_name, read_only)
             return
 
-        output_type = self.SecureOutputType(attribute.type.id, False, read_only)
-        input_type = self._NarrowInputType(attribute.type.id)
-        metadata = self._Metadata(attribute.type.id, attribute.id, output_type)
         rename = self._RenamingAnnotation(attribute.id, html_name)
-        static_attribute = 'static' if attribute.is_static else ''
+        output_type = self.SecureOutputType(attribute.type.id,
+                                            can_narrow_type=read_only,
+                                            nullable=attribute.type.nullable)
+        metadata = self._Metadata(attribute.type.id, attribute.id, output_type,
+            attribute.type.nullable)
+
+        input_type = self._NarrowInputType(attribute.type.id)
+        if self._nnbd and attribute.type.nullable:
+            input_type += '?'
         if not read_only:
             if attribute.type.id == 'Promise':
                 _logger.warn('R/W member is a Promise: %s.%s' %
                              (self._interface.id, html_name))
-            template = '\n  $RENAME$METADATA$STATIC $TYPE $NAME;\n'
-            self._members_emitter.Emit(
-                template,
-                RENAME=rename,
-                METADATA=metadata,
-                STATIC=static_attribute,
-                NAME=html_name,
-                TYPE=output_type)
+            self._AddAttributeUsingProperties(attribute, html_name, read_only,
+                                              rename, metadata)
         else:
-            template = '\n  $RENAME$(ANNOTATIONS)final $TYPE $NAME;\n'
             if attribute.type.id == 'Promise':
                 lookupOp = "%s.%s" % (self._interface.id, html_name)
                 promiseFound = _GetPromiseAttributeType(lookupOp)
@@ -1443,11 +1473,19 @@ class Dart2JSBackend(HtmlDartGenerator):
                     elif promiseFound['type'] == 'dictionary':
                         # It's a dictionary so return as a Map.
                         promiseCall = 'promiseToFutureAsMap'
-                        promiseType = 'Future<Map<String, dynamic>>'
+                        output_conversion = self._OutputConversion("Dictionary",
+                                                                   None)
+                        nullability = '?' if self._nnbd and \
+                            output_conversion.nullable_output else ''
+                        promiseType = 'Future<Map<String, dynamic>' + \
+                            nullability + '>'
                     else:
                         paramType = promiseFound['type']
                         promiseCall = 'promiseToFuture<%s>' % paramType
                         promiseType = 'Future<%s>' % paramType
+
+                if self._nnbd and attribute.type.nullable:
+                    promiseType += '?'
 
                 template = '\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => $PROMISE_CALL(JS("", "#.$NAME", this));\n'
 
@@ -1460,88 +1498,110 @@ class Dart2JSBackend(HtmlDartGenerator):
                     NAME=html_name)
             else:
                 template = '\n  $RENAME$(ANNOTATIONS)$STATIC final $TYPE $NAME;\n'
-                # Need to use a getter for list.length properties so we can add a
-                # setter which throws an exception, satisfying List API.
-                if self._interface_type_info.list_item_type(
-                ) and html_name == 'length':
-                    template = ('\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => ' +
-                                'JS("$TYPE", "#.$NAME", this);\n')
-                self._members_emitter.Emit(
-                    template,
-                    RENAME=rename,
-                    ANNOTATIONS=metadata,
-                    STATIC=static_attribute,
-                    NAME=html_name,
-                    TYPE=input_type if output_type == 'double' else output_type)
+                # Need to use a getter for list.length properties so we can
+                # add a setter which throws an exception, satisfying List
+                # API.
+                if self._interface_type_info.list_item_type() and \
+                    html_name == 'length':
+                    template = (
+                        '\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => ' +
+                        'JS("$TYPE", "#.$NAME", this);\n')
+                    self._members_emitter.Emit(
+                        template,
+                        RENAME=rename,
+                        ANNOTATIONS=metadata,
+                        NAME=html_name,
+                        TYPE=input_type
+                        if output_type == 'double' else output_type)
+                else:
+                    # Transform to native getters/setters.
+                    # TODO(srujzs): Should the logic for types and doubles from
+                    # above and before stay the same here?
+                    self._AddAttributeUsingProperties(attribute, html_name,
+                        read_only, rename, metadata)
 
-    def _AddAttributeUsingProperties(self, attribute, html_name, read_only):
-        self._AddRenamingGetter(attribute, html_name)
+    def _AddAttributeUsingProperties(self, attribute, html_name, read_only,
+                                     rename=None, metadata=None):
+        self._AddRenamingGetter(attribute, html_name, rename, metadata)
         if not read_only:
-            self._AddRenamingSetter(attribute, html_name)
+            # No metadata for setters.
+            self._AddRenamingSetter(attribute, html_name, rename)
 
-    def _AddInterfaceAttribute(self, attribute, html_name, read_only):
-        self._members_emitter.Emit(
-            '\n  $QUALIFIER$TYPE $NAME;'
-            '\n',
-            QUALIFIER='final ' if read_only else '',
-            NAME=html_name,
-            TYPE=self.SecureOutputType(attribute.type.id))
-
-    def _AddRenamingGetter(self, attr, html_name):
-
+    def _AddRenamingGetter(self, attr, html_name, rename, metadata):
         conversion = self._OutputConversion(attr.type.id, attr.id)
         if conversion:
             return self._AddConvertingGetter(attr, html_name, conversion)
-        return_type = self.SecureOutputType(attr.type.id)
+        return_type = self.SecureOutputType(attr.type.id,
+            nullable=attr.type.nullable)
         native_type = self._NarrowToImplementationType(attr.type.id)
         self._members_emitter.Emit(
-            # TODO(sra): Use metadata to provide native name.
-            '\n  $TYPE get $HTML_NAME => JS("$NATIVE_TYPE", "#.$NAME", this);'
+            '\n  $RENAME'
+            '\n  $METADATA'
+            '\n  $TYPE get $HTML_NAME native;'
             '\n',
+            RENAME=rename if rename else '',
+            METADATA=metadata if metadata else '',
             HTML_NAME=html_name,
-            NAME=attr.id,
-            TYPE=return_type,
-            NATIVE_TYPE=native_type)
+            TYPE=return_type)
 
-    def _AddRenamingSetter(self, attr, html_name):
-
+    def _AddRenamingSetter(self, attr, html_name, rename):
         conversion = self._InputConversion(attr.type.id, attr.id)
         if conversion:
             return self._AddConvertingSetter(attr, html_name, conversion)
+        nullable_type = attr.type.nullable
+        # If this attr has an output conversion, it is possible that there is a
+        # converting getter. We need to make sure the setter type matches the
+        # getter type.
+        conversion = self._OutputConversion(attr.type.id, attr.id)
+        if conversion and conversion.nullable_output:
+            nullable_type = True
         self._members_emitter.Emit(
-            # TODO(sra): Use metadata to provide native name.
-            '\n  set $HTML_NAME($TYPE value) {'
-            '\n    JS("void", "#.$NAME = #", this, value);'
-            '\n  }'
+            '\n  $RENAME'
+            '\n  set $HTML_NAME($TYPE value) native;'
             '\n',
+            RENAME=rename if rename else '',
             HTML_NAME=html_name,
-            NAME=attr.id,
-            TYPE=self._NarrowInputType(attr.type.id))
+            TYPE=self.SecureOutputType(attr.type.id, nullable=nullable_type))
 
     def _AddConvertingGetter(self, attr, html_name, conversion):
+        nullable_out = conversion.nullable_output and \
+            not conversion.output_type == 'dynamic'
+        # If the attribute is nullable, the getter should be nullable.
+        nullable_in = attr.type.nullable and \
+            not conversion.input_type == 'dynamic'
         self._members_emitter.Emit(
-            '\n  $(METADATA)$RETURN_TYPE get $HTML_NAME => '
-            '$CONVERT(this._get_$(HTML_NAME));'
+            '\n  $(METADATA)$RETURN_TYPE$NULLABLE_OUT get $HTML_NAME => '
+            '$CONVERT(this._get_$(HTML_NAME)$NULLASSERT);'
             "\n  @JSName('$NAME')"
-            '\n  $(JS_METADATA)final $NATIVE_TYPE _get_$HTML_NAME;'
+            '\n  $(JS_METADATA)$NATIVE_TYPE$NULLABLE_IN get _get_$HTML_NAME native;'
             '\n',
             METADATA=self._metadata.GetFormattedMetadata(
                 self._library_name, self._interface, html_name, '  '),
             JS_METADATA=self._Metadata(attr.type.id, html_name,
-                                       conversion.input_type),
+                                       conversion.input_type,
+                                       conversion.nullable_output),
             CONVERT=conversion.function_name,
             HTML_NAME=html_name,
             NAME=attr.id,
             RETURN_TYPE=conversion.output_type,
-            NATIVE_TYPE=conversion.input_type)
+            NULLABLE_OUT='?' if nullable_out and self._nnbd else '',
+            NATIVE_TYPE=conversion.input_type,
+            NULLABLE_IN='?' if nullable_in and self._nnbd else '',
+            NULLASSERT='!' if nullable_in and \
+                not conversion.nullable_input and self._nnbd else '')
 
     def _AddConvertingSetter(self, attr, html_name, conversion):
+        # If the attribute is nullable, the setter should be nullable.
+        nullable_in = attr.type.nullable and \
+            not conversion.input_type == 'dynamic'
+        nullable_out = conversion.nullable_output and \
+            not conversion.output_type == 'dynamic'
         self._members_emitter.Emit(
             # TODO(sra): Use metadata to provide native name.
-            '\n  set $HTML_NAME($INPUT_TYPE value) {'
-            '\n    this._set_$HTML_NAME = $CONVERT(value);'
+            '\n  set $HTML_NAME($INPUT_TYPE$NULLABLE_IN value) {'
+            '\n    this._set_$HTML_NAME = $CONVERT(value$NULLASSERT);'
             '\n  }'
-            '\n  set _set_$HTML_NAME(/*$NATIVE_TYPE*/ value) {'
+            '\n  set _set_$HTML_NAME(/*$NATIVE_TYPE$NULLABLE_OUT*/ value) {'
             '\n    JS("void", "#.$NAME = #", this, value);'
             '\n  }'
             '\n',
@@ -1549,7 +1609,11 @@ class Dart2JSBackend(HtmlDartGenerator):
             HTML_NAME=html_name,
             NAME=attr.id,
             INPUT_TYPE=conversion.input_type,
-            NATIVE_TYPE=conversion.output_type)
+            NULLABLE_IN='?' if nullable_in and self._nnbd else '',
+            NATIVE_TYPE=conversion.output_type,
+            NULLABLE_OUT='?' if nullable_out and self._nnbd else '',
+            NULLASSERT='!' if nullable_in and \
+                not conversion.nullable_input and self._nnbd else '')
 
     def AmendIndexer(self, element_type):
         pass
@@ -1691,7 +1755,12 @@ class Dart2JSBackend(HtmlDartGenerator):
                 elif paramType == 'dictionary':
                     # It's a dictionary so return as a Map.
                     promiseCall = 'promiseToFutureAsMap'
-                    promiseType = 'Future<Map<String, dynamic>>'
+                    output_conversion = self._OutputConversion("Dictionary",
+                                                               None)
+                    nullability = '?' if self._nnbd and \
+                        output_conversion.nullable_output else ''
+                    promiseType = 'Future<Map<String, dynamic>' + \
+                        nullability + '>'
                 else:
                     promiseCall = 'promiseToFuture<%s>' % paramType
                     promiseType = 'Future<%s>' % paramType
@@ -1700,11 +1769,15 @@ class Dart2JSBackend(HtmlDartGenerator):
             dictionary_argument = info.dictionaryArgumentName()
             codeTemplate = self._promiseToFutureCode(argsNames,
                                                      dictionary_argument)
+            if self._nnbd and info.type_nullable:
+                promiseType += '?'
             self._members_emitter.Emit(
                 codeTemplate,
                 RENAME=self._RenamingAnnotation(info.declared_name, html_name),
                 METADATA=self._Metadata(info.type_name, info.declared_name,
-                                        self.SecureOutputType(info.type_name)),
+                                        self.SecureOutputType(info.type_name,
+                                            nullable=info.type_nullable),
+                                        info.type_nullable),
                 MODIFIERS='static ' if info.IsStatic() else '',
                 TYPE=promiseType,
                 PROMISE_CALL=promiseCall,
@@ -1717,9 +1790,13 @@ class Dart2JSBackend(HtmlDartGenerator):
                 '  $RENAME$METADATA$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
                 RENAME=self._RenamingAnnotation(info.declared_name, html_name),
                 METADATA=self._Metadata(info.type_name, info.declared_name,
-                                        self.SecureOutputType(info.type_name)),
+                                        self.SecureOutputType(info.type_name,
+                                            nullable=info.type_nullable),
+                                        info.type_nullable),
                 MODIFIERS='static ' if info.IsStatic() else '',
-                TYPE=self.SecureOutputType(resultType, False, True),
+                TYPE=self.SecureOutputType(resultType,
+                                           can_narrow_type=True,
+                                           nullable=info.type_nullable),
                 NAME=html_name,
                 PARAMS=info.ParametersAsDeclaration(self._NarrowInputType,
                                                     force_optional))
@@ -1766,6 +1843,11 @@ class Dart2JSBackend(HtmlDartGenerator):
 
             if output_conversion:
                 call = '%s(%s)' % (output_conversion.function_name, call)
+                if self._nnbd and output_conversion.nullable_output and \
+                        not info.type_nullable:
+                    # Return type of operation is not nullable while conversion
+                    # is, so we need to assert non-null.
+                    call += '!'
 
             call_emitter.Emit(call)
 
@@ -1786,9 +1868,10 @@ class Dart2JSBackend(HtmlDartGenerator):
                     '      promiseToFuture(JS("", "#.$JSNAME($HASH_STR)", this$CALLING_PARAMS));\n',
                     RENAME=self._RenamingAnnotation(info.declared_name, target),
                     METADATA=self._Metadata(info.type_name, info.declared_name,
-                                            None),
+                                            None, info.type_nullable),
                     MODIFIERS='static ' if info.IsStatic() else '',
-                    TYPE=TypeOrNothing(native_return_type),
+                    TYPE=TypeOrNothing(native_return_type,
+                        nullable=info.type_nullable),
                     TARGET=target,
                     PARAMS=', '.join(target_parameters),
                     JSNAME=operation.id,
@@ -1799,9 +1882,10 @@ class Dart2JSBackend(HtmlDartGenerator):
                     '  $RENAME$METADATA$MODIFIERS$TYPE$TARGET($PARAMS) native;\n',
                     RENAME=self._RenamingAnnotation(info.declared_name, target),
                     METADATA=self._Metadata(info.type_name, info.declared_name,
-                                            None),
+                                            None, info.type_nullable),
                     MODIFIERS='static ' if info.IsStatic() else '',
-                    TYPE=TypeOrNothing(native_return_type),
+                    TYPE=TypeOrNothing(native_return_type,
+                        nullable=info.type_nullable),
                     TARGET=target,
                     PARAMS=', '.join(target_parameters))
 
@@ -1810,10 +1894,15 @@ class Dart2JSBackend(HtmlDartGenerator):
         force_optional = False if hasNamedFormals(full_name) and not (
             html_name.startswith('_')) else True
 
+        nullsafe_return_type = return_type;
+        if self._nnbd and info.type_nullable:
+            nullsafe_return_type += '?'
+
         declaration = '%s%s%s %s(%s)' % (
-            self._Metadata(info.type_name, info.declared_name, return_type),
-            'static ' if info.IsStatic() else '', return_type, html_name,
-            info.ParametersAsDeclaration(InputType, force_optional))
+            self._Metadata(info.type_name, info.declared_name, return_type,
+                info.type_nullable),
+            'static ' if info.IsStatic() else '', nullsafe_return_type,
+            html_name, info.ParametersAsDeclaration(InputType, force_optional))
         self._GenerateDispatcherBody(
             info,
             operations,
@@ -1826,7 +1915,8 @@ class Dart2JSBackend(HtmlDartGenerator):
         self._members_emitter.Emit(
             '\n'
             '  $TYPE $NAME($PARAMS);\n',
-            TYPE=self.SecureOutputType(info.type_name, False, True),
+            TYPE=self.SecureOutputType(info.type_name, can_narrow_type=True,
+                nullable=info.type_nullable),
             NAME=html_name,
             PARAMS=info.ParametersAsDeclaration(self._NarrowInputType))
 
@@ -1852,10 +1942,6 @@ class Dart2JSBackend(HtmlDartGenerator):
         member_name = '%s.%s' % (self._interface.doc_js_name, member_name)
         return member_name in _js_custom_members
 
-    def _ForcePropertyMember(self, member_name):
-        member_name = '%s.%s' % (self._interface.doc_js_name, member_name)
-        return member_name in _force_property_members
-
     def _SafeToIgnoreShadowingMember(self, member_name):
         member_name = '%s.%s' % (self._interface.doc_js_name, member_name)
         return member_name in _safe_to_ignore_shadowing_members
@@ -1865,7 +1951,8 @@ class Dart2JSBackend(HtmlDartGenerator):
             return "@JSName('%s')\n  " % idl_name
         return ''
 
-    def _Metadata(self, idl_type, idl_member_name, dart_type, indent='  '):
+    def _Metadata(self, idl_type, idl_member_name, dart_type, nullable,
+            indent='  '):
         anns = self._metadata.GetDart2JSMetadata(
             idl_type, self._library_name, self._interface, idl_member_name)
 
@@ -1874,12 +1961,18 @@ class Dart2JSBackend(HtmlDartGenerator):
             return_type = self.SecureOutputType(idl_type)
             native_type = self._NarrowToImplementationType(idl_type)
 
+            null_union = '' if self._nnbd and not nullable else '|Null'
             if native_type != return_type:
                 anns = anns + [
-                    "@Returns('%s|Null')" % native_type,
+                    "@Returns('%s%s')" % (native_type, null_union),
                     "@Creates('%s')" % native_type,
                 ]
-        if dart_type == 'dynamic' or dart_type == 'Object':
+        if dart_type == 'dynamic' or \
+            (not self._nnbd and dart_type == 'Object') or \
+            (self._nnbd and dart_type == 'Object?'):
+            # If we're generating nnbd code, we emit non-nullable Object
+            # annotations but exclude nullable Object annotations since that's
+            # the default.
 
             def js_type_annotation(ann):
                 return re.search('^@.*Returns', ann) or re.search(
@@ -1993,7 +2086,9 @@ class DartLibrary():
         library_file_dir = os.path.dirname(self._dart_path)
         auxiliary_dir = os.path.relpath(auxiliary_dir, library_file_dir)
         emitters = library_emitter.Emit(
-            self._template, AUXILIARY_DIR=massage_path(auxiliary_dir))
+            self._template,
+            AUXILIARY_DIR=massage_path(auxiliary_dir),
+            NULLABLE='?' if global_options_hack.nnbd else '')
         if isinstance(emitters, tuple):
             imports_emitter, map_emitter = emitters
         else:

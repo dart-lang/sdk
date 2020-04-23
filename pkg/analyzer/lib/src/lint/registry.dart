@@ -14,12 +14,10 @@ class Registry with IterableMixin<LintRule> {
   /**
    * The default registry to be used by clients.
    */
-  static final Registry ruleRegistry = new Registry();
+  static final Registry ruleRegistry = Registry();
 
-  /**
-   * A table mapping rule names to rules.
-   */
-  Map<String, LintRule> _ruleMap = <String, LintRule>{};
+  /// A table mapping rule names to rules.
+  final Map<String, LintRule> _ruleMap = <String, LintRule>{};
 
   @override
   Iterator<LintRule> get iterator => _ruleMap.values.iterator;

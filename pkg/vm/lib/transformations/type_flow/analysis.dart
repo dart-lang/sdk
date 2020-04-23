@@ -162,6 +162,12 @@ class _DirectInvocation extends _Invocation {
     if (selector.member.function != null) {
       typeChecksNeeded = selector.member.function.typeParameters
           .any((t) => t.isGenericCovariantImpl);
+    } else {
+      Field field = selector.member;
+      if (selector.callKind == CallKind.PropertySet) {
+        // TODO(dartbug.com/40615): Use TFA results to improve this criterion.
+        typeChecksNeeded = field.isGenericCovariantImpl;
+      }
     }
   }
 
@@ -399,11 +405,15 @@ class _DispatchableInvocation extends _Invocation {
 
           if (selector.callKind != CallKind.PropertyGet) {
             if (selector is DynamicSelector) {
-              typeFlowAnalysis._calledViaDynamicSelector.add(target);
+              typeFlowAnalysis._methodsAndSettersCalledDynamically.add(target);
             } else if (selector is VirtualSelector) {
               typeFlowAnalysis._calledViaThis.add(target);
             } else {
               typeFlowAnalysis._calledViaInterfaceSelector.add(target);
+            }
+          } else {
+            if (selector is DynamicSelector) {
+              typeFlowAnalysis._gettersCalledDynamically.add(target);
             }
           }
 
@@ -928,18 +938,19 @@ class GenericInterfacesInfoImpl implements GenericInterfacesInfo {
   final cachedFlattenedTypeArgs = <Class, List<DartType>>{};
   final cachedFlattenedTypeArgsForNonGeneric = <Class, List<Type>>{};
 
-  RuntimeTypeTranslator closedTypeTranslator;
+  RuntimeTypeTranslatorImpl closedTypeTranslator;
 
   GenericInterfacesInfoImpl(this.hierarchy) {
-    closedTypeTranslator = RuntimeTypeTranslator.forClosedTypes(this);
+    closedTypeTranslator = RuntimeTypeTranslatorImpl.forClosedTypes(this);
   }
 
   List<DartType> flattenedTypeArgumentsFor(Class klass, {bool useCache: true}) {
     final cached = useCache ? cachedFlattenedTypeArgs[klass] : null;
     if (cached != null) return cached;
 
-    final flattenedTypeArguments = List<DartType>.from(klass.typeParameters
-        .map((t) => new TypeParameterType(t, Nullability.legacy)));
+    final flattenedTypeArguments = List<DartType>.from(klass.typeParameters.map(
+        (t) => new TypeParameterType(
+            t, TypeParameterType.computeNullabilityFromBound(t))));
 
     for (final Supertype intf in hierarchy.genericSupertypesOf(klass)) {
       int offset = findOverlap(flattenedTypeArguments, intf.typeArguments);
@@ -1012,10 +1023,10 @@ class _ClassHierarchyCache extends TypeHierarchy {
       <DynamicSelector, _DynamicTargetSet>{};
 
   _ClassHierarchyCache(this._typeFlowAnalysis, this.hierarchy,
-      this.genericInterfacesInfo, this.environment)
+      this.genericInterfacesInfo, this.environment, bool nullSafety)
       : objectNoSuchMethod = hierarchy.getDispatchTarget(
             environment.coreTypes.objectClass, noSuchMethodName),
-        super(environment.coreTypes) {
+        super(environment.coreTypes, nullSafety) {
     assertx(objectNoSuchMethod != null);
   }
 
@@ -1034,6 +1045,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
 
   ConcreteType addAllocatedClass(Class cl) {
     assertx(!cl.isAbstract);
+    assertx(cl != coreTypes.futureOrClass);
     assertx(!_sealed);
 
     final _TFClassImpl classImpl = getTFClass(cl);
@@ -1221,7 +1233,7 @@ class _WorkList {
 
     // Test if tracing is enabled to avoid expensive message formatting.
     if (kPrintTrace) {
-      tracePrint('PROCESSING $invocation');
+      tracePrint('PROCESSING $invocation', 1);
     }
 
     if (processing.add(invocation)) {
@@ -1270,7 +1282,7 @@ class _WorkList {
 
       Statistics.invocationsProcessed++;
       if (kPrintTrace) {
-        tracePrint('END PROCESSING $invocation, RESULT $result');
+        tracePrint('END PROCESSING $invocation, RESULT $result', -1);
       }
       return result;
     } else {
@@ -1279,7 +1291,7 @@ class _WorkList {
       if (result != null) {
         if (kPrintTrace) {
           tracePrint("Already known type for recursive invocation: $result");
-          tracePrint('END PROCESSING $invocation, RESULT $result');
+          tracePrint('END PROCESSING $invocation, RESULT $result', -1);
         }
         return result;
       }
@@ -1290,7 +1302,7 @@ class _WorkList {
       if (kPrintTrace) {
         tracePrint(
             "Approximated recursive invocation with static type $staticType");
-        tracePrint('END PROCESSING $invocation, RESULT $staticType');
+        tracePrint('END PROCESSING $invocation, RESULT $staticType', -1);
       }
       return staticType;
     }
@@ -1312,7 +1324,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   final Map<Member, Summary> _summaries = <Member, Summary>{};
   final Map<Field, _FieldValue> _fieldValues = <Field, _FieldValue>{};
   final Set<Member> _tearOffTaken = new Set<Member>();
-  final Set<Member> _calledViaDynamicSelector = new Set<Member>();
+  final Set<Member> _methodsAndSettersCalledDynamically = new Set<Member>();
+  final Set<Member> _gettersCalledDynamically = new Set<Member>();
   final Set<Member> _calledViaInterfaceSelector = new Set<Member>();
   final Set<Member> _calledViaThis = new Set<Member>();
 
@@ -1328,8 +1341,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
       : annotationMatcher =
             matcher ?? new ConstantPragmaAnnotationParser(coreTypes) {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
-    hierarchyCache = new _ClassHierarchyCache(
-        this, hierarchy, _genericInterfacesInfo, environment);
+    hierarchyCache = new _ClassHierarchyCache(this, hierarchy,
+        _genericInterfacesInfo, environment, target.flags.enableNullSafety);
     summaryCollector = new SummaryCollector(target, environment, hierarchy,
         this, hierarchyCache, nativeCodeOracle, hierarchyCache);
     _invocationsCache = new _InvocationsCache(this);
@@ -1394,12 +1407,22 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   List<VariableDeclaration> uncheckedParameters(Member member) =>
       _summaries[member]?.uncheckedParameters;
 
+  // The set of optional and named parameters to this procedure which
+  // are passed at all call-sites.
+  Set<String> alwaysPassedOptionalParameters(Member member) =>
+      _summaries[member]?.alwaysPassedOptionalParameters() ?? const {};
+
   bool isTearOffTaken(Member member) => _tearOffTaken.contains(member);
 
-  /// Returns true if this member is called dynamically.
-  /// Getters are not tracked. For fields, only setter is tracked.
+  /// Returns true if this member is called on a receiver with static type
+  /// dynamic. Getters are not tracked. For fields, only setter is tracked.
   bool isCalledDynamically(Member member) =>
-      _calledViaDynamicSelector.contains(member);
+      _methodsAndSettersCalledDynamically.contains(member);
+
+  /// Returns true if this getter (or implicit getter for field) is called
+  /// on a receiver with static type dynamic.
+  bool isGetterCalledDynamically(Member member) =>
+      _gettersCalledDynamically.contains(member);
 
   /// Returns true if this member is called via this call.
   /// Getters are not tracked. For fields, only setter is tracked.
@@ -1408,7 +1431,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   /// Returns true if this member is called via non-this call.
   /// Getters are not tracked. For fields, only setter is tracked.
   bool isCalledNotViaThis(Member member) =>
-      _calledViaDynamicSelector.contains(member) ||
+      _methodsAndSettersCalledDynamically.contains(member) ||
       _calledViaInterfaceSelector.contains(member);
 
   /// ---- Implementation of [CallHandler] interface. ----

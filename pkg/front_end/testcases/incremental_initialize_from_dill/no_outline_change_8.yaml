@@ -1,0 +1,44 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Have both a setter and a getter with the same name.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    sources:
+      main.dart: |
+        class Foo {
+          String get x { return "x #1"; }
+          void set x(String x) {}
+        }
+
+        main() {
+          Foo foo = new Foo();
+          print(foo.x);
+          foo.x = "hello";
+        }
+    expectedLibraryCount: 1
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        class Foo {
+          String get x { return "x #2"; }
+          void set x(String x) {}
+        }
+
+        main() {
+          Foo foo = new Foo();
+          print(foo.x);
+          foo.x = "hello";
+        }
+    expectedLibraryCount: 1
+    expectsRebuildBodiesOnly: true

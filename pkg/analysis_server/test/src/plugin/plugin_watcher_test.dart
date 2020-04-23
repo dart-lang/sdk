@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -12,21 +11,17 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PluginWatcherTest);
   });
@@ -38,21 +33,21 @@ class PluginWatcherTest with ResourceProviderMixin {
   PluginWatcher watcher;
 
   void setUp() {
-    manager = new TestPluginManager();
-    watcher = new PluginWatcher(resourceProvider, manager);
+    manager = TestPluginManager();
+    watcher = PluginWatcher(resourceProvider, manager);
   }
 
-  test_addedDriver() async {
-    String pkg1Path = newFolder('/pkg1').path;
+  Future<void> test_addedDriver() async {
+    var pkg1Path = newFolder('/pkg1').path;
     newFile('/pkg1/lib/test1.dart');
     newFile('/pkg2/lib/pkg2.dart');
     newFile('/pkg2/pubspec.yaml', content: 'name: pkg2');
     newFile(
         '/pkg2/${PluginLocator.toolsFolderName}/${PluginLocator.defaultPluginFolderName}/bin/plugin.dart');
 
-    ContextRoot contextRoot = new ContextRoot(pkg1Path, [],
-        pathContext: resourceProvider.pathContext);
-    TestDriver driver = new TestDriver(resourceProvider, contextRoot);
+    var contextRoot =
+        ContextRoot(pkg1Path, [], pathContext: resourceProvider.pathContext);
+    var driver = TestDriver(resourceProvider, contextRoot);
     driver.analysisOptions.enabledPluginNames = ['pkg2'];
     expect(manager.addedContextRoots, isEmpty);
     watcher.addedDriver(driver, contextRoot);
@@ -72,17 +67,17 @@ class PluginWatcherTest with ResourceProviderMixin {
     // guaranteed to have expired and the list of changed files will have been
     // delivered.
     //
-    await new Future.delayed(new Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 1));
     expect(manager.addedContextRoots, hasLength(1));
   }
 
-  test_addedDriver_missingPackage() async {
-    String pkg1Path = newFolder('/pkg1').path;
+  Future<void> test_addedDriver_missingPackage() async {
+    var pkg1Path = newFolder('/pkg1').path;
     newFile('/pkg1/lib/test1.dart');
 
-    ContextRoot contextRoot = new ContextRoot(pkg1Path, [],
-        pathContext: resourceProvider.pathContext);
-    TestDriver driver = new TestDriver(resourceProvider, contextRoot);
+    var contextRoot =
+        ContextRoot(pkg1Path, [], pathContext: resourceProvider.pathContext);
+    var driver = TestDriver(resourceProvider, contextRoot);
     driver.analysisOptions.enabledPluginNames = ['pkg3'];
     watcher.addedDriver(driver, contextRoot);
     expect(manager.addedContextRoots, isEmpty);
@@ -91,7 +86,7 @@ class PluginWatcherTest with ResourceProviderMixin {
     // guaranteed to have expired and the list of changed files will have been
     // delivered.
     //
-    await new Future.delayed(new Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 1));
     expect(manager.addedContextRoots, isEmpty);
   }
 
@@ -100,11 +95,11 @@ class PluginWatcherTest with ResourceProviderMixin {
     expect(watcher.manager, manager);
   }
 
-  test_removedDriver() {
-    String pkg1Path = newFolder('/pkg1').path;
-    ContextRoot contextRoot = new ContextRoot(pkg1Path, [],
-        pathContext: resourceProvider.pathContext);
-    TestDriver driver = new TestDriver(resourceProvider, contextRoot);
+  void test_removedDriver() {
+    var pkg1Path = newFolder('/pkg1').path;
+    var contextRoot =
+        ContextRoot(pkg1Path, [], pathContext: resourceProvider.pathContext);
+    var driver = TestDriver(resourceProvider, contextRoot);
     watcher.addedDriver(driver, contextRoot);
     watcher.removedDriver(driver);
     expect(manager.removedContextRoots, equals([contextRoot]));
@@ -112,45 +107,40 @@ class PluginWatcherTest with ResourceProviderMixin {
 }
 
 class TestDriver implements AnalysisDriver {
+  @override
   final MemoryResourceProvider resourceProvider;
 
+  @override
   SourceFactory sourceFactory;
-  FileSystemState fsState;
+  @override
   AnalysisSession currentSession;
-  AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+  @override
+  AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
 
-  final _resultController = new StreamController<ResolvedUnitResult>();
+  final _resultController = StreamController<ResolvedUnitResult>();
 
   TestDriver(this.resourceProvider, ContextRoot contextRoot) {
-    path.Context pathContext = resourceProvider.pathContext;
-    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
-    String packageName = pathContext.basename(contextRoot.root);
-    String libPath = pathContext.join(contextRoot.root, 'lib');
-    sourceFactory = new SourceFactory([
-      new DartUriResolver(sdk),
-      new PackageMapUriResolver(resourceProvider, {
+    var pathContext = resourceProvider.pathContext;
+    var sdk = MockSdk(resourceProvider: resourceProvider);
+    var packageName = pathContext.basename(contextRoot.root);
+    var libPath = pathContext.join(contextRoot.root, 'lib');
+    sourceFactory = SourceFactory([
+      DartUriResolver(sdk),
+      PackageMapUriResolver(resourceProvider, {
         packageName: [resourceProvider.getFolder(libPath)],
         'pkg2': [
           resourceProvider.getFolder(resourceProvider.convertPath('/pkg2/lib'))
         ]
       })
     ]);
-    fsState = new FileSystemState(
-        new PerformanceLog(null),
-        new MemoryByteStore(),
-        new FileContentOverlay(),
-        resourceProvider,
-        'contextName',
-        sourceFactory,
-        new AnalysisOptionsImpl(),
-        new Uint32List(0),
-        new Uint32List(0));
-    currentSession = new AnalysisSessionImpl(this);
+    currentSession = AnalysisSessionImpl(this);
   }
 
+  @override
   Stream<ResolvedUnitResult> get results => _resultController.stream;
 
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class TestPluginManager implements PluginManager {
@@ -165,7 +155,8 @@ class TestPluginManager implements PluginManager {
     return null;
   }
 
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   void recordPluginFailure(String hostPackageName, String message) {}

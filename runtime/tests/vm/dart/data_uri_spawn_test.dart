@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:isolate";
-import "package:unittest/unittest.dart";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 Uri toDartDataUri(String source) {
   return Uri.parse("data:application/dart;charset=utf-8,"
@@ -11,19 +13,19 @@ Uri toDartDataUri(String source) {
 }
 
 main() {
-  test('Simple response', () {
-    String source = """
+  String source = """
 import "dart:isolate";
 main(List args, SendPort replyPort) {
-  replyPort.send(42);
+replyPort.send(42);
 }
 """;
 
-    RawReceivePort receivePort;
-    receivePort = new RawReceivePort(expectAsync((message) {
-      expect(message, equals(42));
-      receivePort.close();
-    }));
-    Isolate.spawnUri(toDartDataUri(source), [], receivePort.sendPort);
+  RawReceivePort receivePort;
+  asyncStart();
+  receivePort = new RawReceivePort((message) {
+    Expect.equals(message, 42);
+    receivePort.close();
+    asyncEnd();
   });
+  Isolate.spawnUri(toDartDataUri(source), [], receivePort.sendPort);
 }

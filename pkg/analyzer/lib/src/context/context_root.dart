@@ -77,11 +77,10 @@ class ContextRoot {
     return true;
   }
 
-  /**
-   * Compare the lists [listA] and [listB], using [itemEqual] to compare
-   * list elements.
-   */
-  bool _listEqual<T>(List<T> listA, List<T> listB, bool itemEqual(T a, T b)) {
+  /// Compare the lists [listA] and [listB], using [itemEqual] to compare list
+  /// elements.
+  bool _listEqual<T>(
+      List<T> listA, List<T> listB, bool Function(T a, T b) itemEqual) {
     if (listA == null) {
       return listB == null;
     }

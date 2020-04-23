@@ -66,13 +66,11 @@ class Object {
 
   // Everything is an Object.
   @JSExportName('is')
-  static bool _is_Object(Object o) => true;
+  static bool _is_Object(Object? o) => o != null;
 
   @JSExportName('as')
-  static Object _as_Object(Object o) => o;
-
-  @JSExportName('_check')
-  static Object _check_Object(Object o) => o;
+  static Object? _as_Object(Object? o) =>
+      o == null ? dart.cast(o, dart.unwrapType(Object)) : o;
 }
 
 @patch
@@ -81,20 +79,13 @@ class Null {
   int get hashCode => super.hashCode;
 
   @JSExportName('is')
-  static bool _is_Null(Object o) => o == null;
+  static bool _is_Null(Object? o) => o == null;
 
   @JSExportName('as')
-  static Object _as_Null(Object o) {
+  static Object? _as_Null(Object? o) {
     // Avoid extra function call to core.Null.is() by manually inlining.
     if (o == null) return o;
-    return dart.cast(o, dart.unwrapType(Null), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_Null(Object o) {
-    // Avoid extra function call to core.Null.is() by manually inlining.
-    if (o == null) return o;
-    return dart.cast(o, dart.unwrapType(Null), true);
+    return dart.cast(o, dart.unwrapType(Null));
   }
 }
 
@@ -126,21 +117,14 @@ class Function {
   }
 
   @JSExportName('is')
-  static bool _is_Function(Object o) =>
+  static bool _is_Function(Object? o) =>
       JS<bool>('!', 'typeof $o == "function"');
 
   @JSExportName('as')
-  static Object _as_Function(Object o) {
+  static Object? _as_Function(Object? o) {
     // Avoid extra function call to core.Function.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "function"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(Function), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_Function(Object o) {
-    // Avoid extra function call to core.Function.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "function"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(Function), true);
+    if (JS<bool>('!', 'typeof $o == "function"')) return o;
+    return dart.cast(o, dart.unwrapType(Function));
   }
 }
 
@@ -154,7 +138,9 @@ class Expando<T extends Object> {
   @patch
   T? operator [](Object object) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
-    return (values == null) ? null : Primitives.getProperty(values, _getKey());
+    return (values == null)
+        ? null
+        : Primitives.getProperty(values, _getKey()) as T?;
   }
 
   @patch
@@ -168,7 +154,7 @@ class Expando<T extends Object> {
   }
 
   String _getKey() {
-    String key = Primitives.getProperty(this, _KEY_PROPERTY_NAME);
+    var key = Primitives.getProperty(this, _KEY_PROPERTY_NAME) as String?;
     if (key == null) {
       key = "expando\$key\$${_keyCount++}";
       Primitives.setProperty(this, _KEY_PROPERTY_NAME, key);
@@ -188,7 +174,7 @@ class int {
   @patch
   static int parse(String source,
       {int? radix, @deprecated int onError(String source)?}) {
-    return Primitives.parseInt(source, radix, onError);
+    return Primitives.parseInt(source, radix, onError)!;
   }
 
   @patch
@@ -204,28 +190,17 @@ class int {
   }
 
   @JSExportName('is')
-  static bool _is_int(Object o) {
+  static bool _is_int(Object? o) {
     return JS<bool>('!', 'typeof $o == "number" && Math.floor($o) == $o');
   }
 
   @JSExportName('as')
-  static Object _as_int(Object o) {
+  static Object? _as_int(Object? o) {
     // Avoid extra function call to core.int.is() by manually inlining.
-    if (JS<bool>('!', '(typeof $o == "number" && Math.floor($o) == $o)') ||
-        o == null) {
+    if (JS<bool>('!', '(typeof $o == "number" && Math.floor($o) == $o)')) {
       return o;
     }
-    return dart.cast(o, dart.unwrapType(int), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_int(Object o) {
-    // Avoid extra function call to core.int.is() by manually inlining.
-    if (JS<bool>('!', '(typeof $o == "number" && Math.floor($o) == $o)') ||
-        o == null) {
-      return o;
-    }
-    return dart.cast(o, dart.unwrapType(int), true);
+    return dart.cast(o, dart.unwrapType(int));
   }
 }
 
@@ -234,7 +209,7 @@ class double {
   @patch
   static double parse(String source,
       [@deprecated double onError(String source)?]) {
-    return Primitives.parseDouble(source, onError);
+    return Primitives.parseDouble(source, onError)!;
   }
 
   @patch
@@ -243,44 +218,30 @@ class double {
   }
 
   @JSExportName('is')
-  static bool _is_double(o) {
+  static bool _is_double(Object? o) {
     return JS<bool>('!', 'typeof $o == "number"');
   }
 
   @JSExportName('as')
-  static Object _as_double(o) {
+  static Object? _as_double(Object? o) {
     // Avoid extra function call to core.double.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(double), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_double(o) {
-    // Avoid extra function call to core.double.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(double), true);
+    if (JS<bool>('!', 'typeof $o == "number"')) return o;
+    return dart.cast(o, dart.unwrapType(double));
   }
 }
 
 @patch
 abstract class num implements Comparable<num> {
   @JSExportName('is')
-  static bool _is_num(o) {
+  static bool _is_num(Object? o) {
     return JS<bool>('!', 'typeof $o == "number"');
   }
 
   @JSExportName('as')
-  static Object _as_num(o) {
+  static Object? _as_num(Object? o) {
     // Avoid extra function call to core.num.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(num), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_num(o) {
-    // Avoid extra function call to core.num.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(num), true);
+    if (JS<bool>('!', 'typeof $o == "number"')) return o;
+    return dart.cast(o, dart.unwrapType(num));
   }
 }
 
@@ -522,7 +483,7 @@ class List<E> {
   }
 
   @patch
-  factory List.empty({bool growable = true}) {
+  factory List.empty({bool growable = false}) {
     var list = JSArray<E>.of(JS('', 'new Array()'));
     if (!growable) JSArray.markFixedList(list);
     return list;
@@ -552,6 +513,23 @@ class List<E> {
     }
     if (!growable) JSArray.markFixedList(list);
     return list;
+  }
+
+  @patch
+  factory List.of(Iterable<E> elements, {bool growable = true}) {
+    // TODO(32937): Specialize to benefit from known element type.
+    return List.from(elements, growable: growable);
+  }
+
+  @patch
+  factory List.generate(int length, E generator(int index),
+      {bool growable = true}) {
+    final result = JSArray<E>.of(JS('', 'new Array(#)', length));
+    if (!growable) JSArray.markFixedList(result);
+    for (int i = 0; i < length; i++) {
+      result[i] = generator(i);
+    }
+    return result;
   }
 
   @patch
@@ -630,7 +608,7 @@ class String {
         throw RangeError.range(start, 0, i);
       }
     }
-    var list = <int>[];
+    var list = JSArray<int>.of(JS('', 'new Array()'));
     if (end == null) {
       while (it.moveNext()) list.add(it.current);
     } else {
@@ -645,22 +623,15 @@ class String {
   }
 
   @JSExportName('is')
-  static bool _is_String(Object o) {
+  static bool _is_String(Object? o) {
     return JS<bool>('!', 'typeof $o == "string"');
   }
 
   @JSExportName('as')
-  static Object _as_String(Object o) {
+  static Object? _as_String(Object? o) {
     // Avoid extra function call to core.String.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "string"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(String), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_String(Object o) {
-    // Avoid extra function call to core.String.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "string"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(String), true);
+    if (JS<bool>('!', 'typeof $o == "string"')) return o;
+    return dart.cast(o, dart.unwrapType(String));
   }
 }
 
@@ -674,24 +645,24 @@ class bool {
   }
 
   @patch
+  factory bool.hasEnvironment(String name) {
+    // ignore: const_constructor_throws_exception
+    throw UnsupportedError(
+        'bool.hasEnvironment can only be used as a const constructor');
+  }
+
+  @patch
   int get hashCode => super.hashCode;
 
   @JSExportName('is')
-  static bool _is_bool(Object o) =>
+  static bool _is_bool(Object? o) =>
       JS<bool>('!', '$o === true || $o === false');
 
   @JSExportName('as')
-  static Object _as_bool(Object o) {
+  static Object? _as_bool(Object? o) {
     // Avoid extra function call to core.bool.is() by manually inlining.
-    if (JS<bool>("!", '$o === true || $o === false') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(bool), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_bool(Object o) {
-    // Avoid extra function call to core.bool.is() by manually inlining.
-    if (JS<bool>("!", '$o === true || $o === false') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(bool), true);
+    if (JS<bool>("!", '$o === true || $o === false')) return o;
+    return dart.cast(o, dart.unwrapType(bool));
   }
 }
 
@@ -778,7 +749,7 @@ class StringBuffer {
     return string;
   }
 
-  static String _writeOne(String string, Object obj) {
+  static String _writeOne(String string, Object? obj) {
     return Primitives.stringConcatUnchecked(string, '$obj');
   }
 }

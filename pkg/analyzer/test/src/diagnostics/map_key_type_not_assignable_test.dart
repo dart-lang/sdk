@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -171,6 +172,12 @@ var v = const <int, String>{...{a: 'a'}};
               ]);
   }
 
+  test_key_type_is_assignable() async {
+    await assertNoErrorsInCode('''
+var v = <String, int > {'a' : 1};
+''');
+  }
+
   test_nonConst_ifElement_thenElseFalse_intInt_dynamic() async {
     await assertNoErrorsInCode('''
 const dynamic a = 0;
@@ -264,5 +271,7 @@ class MapKeyTypeNotAssignableWithConstantsTest
     extends MapKeyTypeNotAssignableTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.constant_update_2018];
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.constant_update_2018],
+    );
 }

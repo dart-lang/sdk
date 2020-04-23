@@ -4,7 +4,7 @@
 
 /// Jenkins hash function, optimized for small integers.
 ///
-/// Static methods borrowed from sdk/lib/math/jenkins_smi_hash.dart.  Non-static
+/// Static methods borrowed from sdk/lib/math/jenkins_smi_hash.dart. Non-static
 /// methods are an enhancement for the "front_end" package.
 ///
 /// Where performance is critical, use [hash2], [hash3], or [hash4], or the
@@ -13,10 +13,21 @@
 ///
 /// For ease of use, you may also use this pattern:
 /// `(new JenkinsSmiHash()..add(a)..add(b)....add(z)).hashCode`, where a..z are
-/// the sub-objects whose hashes should be combined.  This pattern performs the
+/// the sub-objects whose hashes should be combined. This pattern performs the
 /// same operations as the performance critical variant, but allocates an extra
 /// object.
 class JenkinsSmiHash {
+  int _hash = 0;
+
+  /// Finalizes the hash and return the resulting hashcode.
+  @override
+  int get hashCode => finish(_hash);
+
+  /// Accumulates the object [o] into the hash.
+  void add(Object o) {
+    _hash = combine(_hash, o.hashCode);
+  }
+
   /// Accumulates the hash code [value] into the running hash [hash].
   static int combine(int hash, int value) {
     hash = 0x1fffffff & (hash + value);
@@ -41,14 +52,4 @@ class JenkinsSmiHash {
   /// Combines together four hash codes.
   static int hash4(int a, int b, int c, int d) =>
       finish(combine(combine(combine(combine(0, a), b), c), d));
-
-  int _hash = 0;
-
-  /// Accumulates the object [o] into the hash.
-  void add(Object o) {
-    _hash = combine(_hash, o.hashCode);
-  }
-
-  /// Finalizes the hash and return the resulting hashcode.
-  int get hashCode => finish(_hash);
 }

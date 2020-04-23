@@ -4,8 +4,8 @@
 
 // TODO(jmesserly): import from its own package
 import '../js_ast/js_ast.dart';
-import 'shared_compiler.dart' show YieldFinder;
 import 'js_names.dart' show TemporaryId;
+import 'shared_compiler.dart' show YieldFinder;
 
 /// A synthetic `let*` node, similar to that found in Scheme.
 ///
@@ -216,7 +216,7 @@ class MetaLet extends Expression {
       // Since this is let*, subsequent variables can refer to previous ones,
       // so we need to substitute here.
       init = _substitute(init, substitutions);
-      int n = counter.counts[variable];
+      var n = counter.counts[variable];
       if (n == 1) {
         // Replace interpolated exprs with their value, if it only occurs once.
         substitutions[variable] = init;
@@ -278,7 +278,7 @@ class MetaLet extends Expression {
       }
 
       assert(body.isNotEmpty);
-      var newBody = Expression.binary([assign]..addAll(body), ',') as Binary;
+      var newBody = Expression.binary([assign, ...body], ',') as Binary;
       newBody = _substitute(newBody, {result: left});
       return MetaLet(vars, newBody.commaToExpressionList(),
           statelessResult: statelessResult);
@@ -296,9 +296,8 @@ T _substitute<T extends Node>(
       generator.analysis.containsInterpolatedNode.whereType<MetaLetVariable>());
   if (nodes.isEmpty) return tree;
 
-  return instantiator(Map.fromIterable(nodes,
-      key: (v) => (v as MetaLetVariable).nameOrPosition,
-      value: (v) => substitutions[v] ?? v)) as T;
+  return instantiator(
+      {for (var v in nodes) v.nameOrPosition: substitutions[v] ?? v}) as T;
 }
 
 /// A temporary variable used in a [MetaLet].
@@ -326,18 +325,18 @@ class MetaLetVariable extends InterpolatedExpression {
         super(displayName + '@${++_uniqueId}');
 }
 
-class _VariableUseCounter extends BaseVisitor {
+class _VariableUseCounter extends BaseVisitor<void> {
   final counts = <MetaLetVariable, int>{};
   @override
-  visitInterpolatedExpression(InterpolatedExpression node) {
+  void visitInterpolatedExpression(InterpolatedExpression node) {
     if (node is MetaLetVariable) {
-      int n = counts[node];
+      var n = counts[node];
       counts[node] = n == null ? 1 : n + 1;
     }
   }
 }
 
-class _IdentFinder extends BaseVisitor {
+class _IdentFinder extends BaseVisitor<void> {
   final String name;
   bool found = false;
   _IdentFinder(this.name);
@@ -352,12 +351,12 @@ class _IdentFinder extends BaseVisitor {
   }
 
   @override
-  visitIdentifier(Identifier node) {
+  void visitIdentifier(Identifier node) {
     if (node.name == name) found = true;
   }
 
   @override
-  visitNode(Node node) {
+  void visitNode(Node node) {
     if (!found) super.visitNode(node);
   }
 }

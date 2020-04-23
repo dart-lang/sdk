@@ -380,36 +380,28 @@ class LazyCompilationUnit {
 
   final LinkedNode data;
 
-  LazyCompilationUnit(this.data);
+  LazyCompilationUnit(CompilationUnit node, this.data) {
+    node.setProperty(_key, this);
+  }
 
   static LazyCompilationUnit get(CompilationUnit node) {
     return node.getProperty(_key);
   }
 
-  static int getCodeLength(
-    LinkedUnitContext context,
-    CompilationUnit node,
-  ) {
+  static int getLanguageVersionMajor(CompilationUnit node) {
     var lazy = get(node);
     if (lazy != null) {
-      return context.getInformativeData(lazy.data)?.codeLength ?? 0;
+      return lazy.data.compilationUnit_languageVersionMajor;
     }
-    return node.length;
+    return node.languageVersionToken.major;
   }
 
-  static int getCodeOffset(
-    LinkedUnitContext context,
-    CompilationUnit node,
-  ) {
+  static int getLanguageVersionMinor(CompilationUnit node) {
     var lazy = get(node);
     if (lazy != null) {
-      return context.getInformativeData(lazy.data)?.codeOffset ?? 0;
+      return lazy.data.compilationUnit_languageVersionMinor;
     }
-    return node.offset;
-  }
-
-  static void setData(CompilationUnit node, LinkedNode data) {
-    node.setProperty(_key, LazyCompilationUnit(data));
+    return node.languageVersionToken.minor;
   }
 }
 

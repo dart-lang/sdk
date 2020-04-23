@@ -5,6 +5,9 @@
 [ $arch == arm ]
 sample_extension/test/*: Skip # Issue 14705
 
+[ $builder_tag == asan ]
+ffi/samples_test: SkipByDesign # FFI skips, see ffi.status
+
 [ $builder_tag == optimization_counter_threshold ]
 sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # This test is too slow for testing with low optimization counter threshold.
 
@@ -17,8 +20,8 @@ sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # I
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
-[ $arch == simarm || $arch == simarm64 || $builder_tag == asan ]
-ffi/samples_test: SkipByDesign # FFI skips, see ffi.status
+[ $arch == simarm || $arch == simarm64 ]
+ffi/*: SkipByDesign # FFI skips, see ffi.status
 
 [ $arch != x64 || $compiler != dartk || $system != linux || $hot_reload || $hot_reload_rollback ]
 ffi/sqlite/test/sqlite_test: SkipByDesign # FFI not supported or libsqlite3.so not available.

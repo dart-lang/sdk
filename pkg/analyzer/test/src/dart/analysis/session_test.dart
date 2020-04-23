@@ -120,10 +120,11 @@ class B {}
   test_getParsedLibrary_getElementDeclaration_notThisLibrary() async {
     newFile(testPath, content: '');
 
-    var parsedLibrary = await session.getParsedLibrary(testPath);
-
-    var typeProvider = await session.typeProvider;
+    var resolvedUnit = await session.getResolvedUnit(testPath);
+    var typeProvider = resolvedUnit.typeProvider;
     var intClass = typeProvider.intType.element;
+
+    var parsedLibrary = await session.getParsedLibrary(testPath);
 
     expect(() {
       parsedLibrary.getElementDeclaration(intClass);
@@ -493,11 +494,13 @@ class B {}
     expect(session.resourceProvider, resourceProvider);
   }
 
+  @deprecated
   test_typeProvider() async {
     var typeProvider = await session.typeProvider;
     expect(typeProvider.intType.element.name, 'int');
   }
 
+  @deprecated
   test_typeSystem() async {
     var typeSystem = await session.typeSystem;
     var typeProvider = typeSystem.typeProvider;

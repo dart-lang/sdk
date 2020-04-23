@@ -1,9 +1,0 @@
-name: analyzer_fe_comparison
-publish_to: none
-author: Dart Team <misc@dartlang.org>
-description: Tool for comparing the behavior of the analyzer and the front end.
-homepage: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer_fe_comparison
-environment:
-  sdk: '>=2.0.0-dev-48.0 <3.0.0'
-dependencies:
-  kernel: ^0.3.4

@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:io';
+import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
@@ -19,7 +22,6 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/resolution_world_builder.dart';
 import 'package:compiler/src/universe/selector.dart';
-import 'package:front_end/src/testing/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/check_helpers.dart';
 import '../equivalence/id_equivalence.dart';
@@ -58,7 +60,7 @@ abstract class ComputeValueMixin {
 
   KernelFrontendStrategy get frontendStrategy => compiler.frontendStrategy;
   ResolutionWorldBuilder get resolutionWorldBuilder =>
-      compiler.resolutionWorldBuilder;
+      compiler.resolutionWorldBuilderForTesting;
   RuntimeTypesNeedBuilderImpl get rtiNeedBuilder =>
       frontendStrategy.runtimeTypesNeedBuilderForTesting;
   RuntimeTypesNeedImpl get rtiNeed =>
@@ -275,8 +277,8 @@ class RtiNeedDataComputer extends DataComputer<String> {
 abstract class IrMixin implements ComputeValueMixin {
   @override
   MemberEntity getFrontendMember(MemberEntity backendMember) {
-    ElementEnvironment elementEnvironment = compiler
-        .resolutionWorldBuilder.closedWorldForTesting.elementEnvironment;
+    ElementEnvironment elementEnvironment =
+        compiler.frontendClosedWorldForTesting.elementEnvironment;
     LibraryEntity frontendLibrary =
         elementEnvironment.lookupLibrary(backendMember.library.canonicalUri);
     if (backendMember.enclosingClass != null) {
@@ -300,8 +302,8 @@ abstract class IrMixin implements ComputeValueMixin {
   @override
   ClassEntity getFrontendClass(ClassEntity backendClass) {
     if (backendClass.isClosure) return null;
-    ElementEnvironment elementEnvironment = compiler
-        .resolutionWorldBuilder.closedWorldForTesting.elementEnvironment;
+    ElementEnvironment elementEnvironment =
+        compiler.frontendClosedWorldForTesting.elementEnvironment;
     LibraryEntity frontendLibrary =
         elementEnvironment.lookupLibrary(backendClass.library.canonicalUri);
     return elementEnvironment.lookupClass(frontendLibrary, backendClass.name);

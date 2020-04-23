@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../../../generated/test_analysis_context.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,11 +21,18 @@ main() {
 const int LONG_MAX_VALUE = 0x7fffffffffffffff;
 
 final Matcher throwsEvaluationException =
-    throwsA(new TypeMatcher<EvaluationException>());
+    throwsA(TypeMatcher<EvaluationException>());
 
 @reflectiveTest
 class DartObjectImplTest {
-  TypeProvider _typeProvider = new TestTypeProvider();
+  TypeProvider _typeProvider;
+  TypeSystemImpl _typeSystem;
+
+  void setUp() {
+    var analysisContext = TestAnalysisContext();
+    _typeProvider = analysisContext.typeProviderLegacy;
+    _typeSystem = analysisContext.typeSystemLegacy;
+  }
 
   void test_add_knownDouble_knownDouble() {
     _assertAdd(_doubleValue(3.0), _doubleValue(1.0), _doubleValue(2.0));
@@ -701,6 +711,12 @@ class DartObjectImplTest {
     _assertIdentical(_boolValue(null), _intValue(null), _intValue(3));
   }
 
+  void test_identical_intZero_doubleZero() {
+    // Used in Flutter:
+    // const bool kIsWeb = identical(0, 0.0);
+    _assertIdentical(_boolValue(true), _intValue(0), _doubleValue(0.0));
+  }
+
   void test_identical_list_empty() {
     _assertIdentical(
       _boolValue(true),
@@ -709,9 +725,42 @@ class DartObjectImplTest {
     );
   }
 
-  void test_identical_list_false() {
+  void test_identical_list_false_differentTypes() {
+    _assertIdentical(
+      _boolValue(false),
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.doubleType, []),
+    );
+  }
+
+  void test_identical_list_false_differentValues() {
     _assertIdentical(_boolValue(false), _listValue(_typeProvider.intType, []),
         _listValue(_typeProvider.intType, [_intValue(3)]));
+  }
+
+  void test_identical_list_true_equalTypes() {
+    _assertIdentical(
+      _boolValue(true),
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, []),
+    );
+  }
+
+  void test_identical_list_true_equalTypesRuntime() {
+    _assertIdentical(
+      _boolValue(true),
+      _listValue(
+        _typeProvider.objectType,
+        [],
+      ),
+      _listValue(
+        _typeProvider.futureOrElement.instantiate(
+          typeArguments: [_typeProvider.objectType],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+        [],
+      ),
+    );
   }
 
   void test_identical_map_empty() {
@@ -722,7 +771,7 @@ class DartObjectImplTest {
     );
   }
 
-  void test_identical_map_false() {
+  void test_identical_map_false_differentEntries() {
     _assertIdentical(
       _boolValue(false),
       _mapValue(_typeProvider.intType, _typeProvider.intType, []),
@@ -730,6 +779,39 @@ class DartObjectImplTest {
         _typeProvider.intType,
         _typeProvider.intType,
         [_intValue(1), _intValue(2)],
+      ),
+    );
+  }
+
+  void test_identical_map_false_differentTypes() {
+    _assertIdentical(
+      _boolValue(false),
+      _mapValue(_typeProvider.boolType, _typeProvider.intType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.intType, []),
+    );
+
+    _assertIdentical(
+      _boolValue(false),
+      _mapValue(_typeProvider.intType, _typeProvider.boolType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.intType, []),
+    );
+  }
+
+  void test_identical_map_true_equalTypesRuntime() {
+    _assertIdentical(
+      _boolValue(true),
+      _mapValue(
+        _typeProvider.intType,
+        _typeProvider.objectType,
+        [],
+      ),
+      _mapValue(
+        _typeProvider.intType,
+        _typeProvider.futureOrElement.instantiate(
+          typeArguments: [_typeProvider.objectType],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+        [],
       ),
     );
   }
@@ -1361,10 +1443,14 @@ class DartObjectImplTest {
 
   void test_shiftLeft_knownInt_tooLarge() {
     _assertShiftLeft(
-        _intValue(null),
-        _intValue(6),
-        new DartObjectImpl(
-            _typeProvider.intType, new IntState(LONG_MAX_VALUE)));
+      _intValue(null),
+      _intValue(6),
+      DartObjectImpl(
+        _typeSystem,
+        _typeProvider.intType,
+        IntState(LONG_MAX_VALUE),
+      ),
+    );
   }
 
   void test_shiftLeft_knownInt_unknownInt() {
@@ -1397,10 +1483,14 @@ class DartObjectImplTest {
 
   void test_shiftRight_knownInt_tooLarge() {
     _assertShiftRight(
-        _intValue(null),
-        _intValue(48),
-        new DartObjectImpl(
-            _typeProvider.intType, new IntState(LONG_MAX_VALUE)));
+      _intValue(null),
+      _intValue(48),
+      DartObjectImpl(
+        _typeSystem,
+        _typeProvider.intType,
+        IntState(LONG_MAX_VALUE),
+      ),
+    );
   }
 
   void test_shiftRight_knownInt_unknownInt() {
@@ -1494,10 +1584,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.add(_typeProvider, right);
+        left.add(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.add(_typeProvider, right);
+      DartObjectImpl result = left.add(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1510,10 +1600,10 @@ class DartObjectImplTest {
   void _assertBitNot(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
-        operand.bitNot(_typeProvider);
+        operand.bitNot(_typeSystem);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = operand.bitNot(_typeProvider);
+      DartObjectImpl result = operand.bitNot(_typeSystem);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1528,10 +1618,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.concatenate(_typeProvider, right);
+        left.concatenate(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.concatenate(_typeProvider, right);
+      DartObjectImpl result = left.concatenate(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1546,10 +1636,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.divide(_typeProvider, right);
+        left.divide(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.divide(_typeProvider, right);
+      DartObjectImpl result = left.divide(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1564,10 +1654,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.eagerAnd(_typeProvider, right, false);
+        left.eagerAnd(_typeSystem, right, false);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.eagerAnd(_typeProvider, right, false);
+      DartObjectImpl result = left.eagerAnd(_typeSystem, right, false);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1582,10 +1672,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.eagerOr(_typeProvider, right, false);
+        left.eagerOr(_typeSystem, right, false);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.eagerOr(_typeProvider, right, false);
+      DartObjectImpl result = left.eagerOr(_typeSystem, right, false);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1600,10 +1690,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.eagerXor(_typeProvider, right, false);
+        left.eagerXor(_typeSystem, right, false);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.eagerXor(_typeProvider, right, false);
+      DartObjectImpl result = left.eagerXor(_typeSystem, right, false);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1618,10 +1708,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.equalEqual(_typeProvider, right);
+        left.equalEqual(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.equalEqual(_typeProvider, right);
+      DartObjectImpl result = left.equalEqual(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1636,10 +1726,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.greaterThan(_typeProvider, right);
+        left.greaterThan(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.greaterThan(_typeProvider, right);
+      DartObjectImpl result = left.greaterThan(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1654,10 +1744,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.greaterThanOrEqual(_typeProvider, right);
+        left.greaterThanOrEqual(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.greaterThanOrEqual(_typeProvider, right);
+      DartObjectImpl result = left.greaterThanOrEqual(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1669,7 +1759,7 @@ class DartObjectImplTest {
    */
   void _assertIdentical(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
-    DartObjectImpl result = left.isIdentical(_typeProvider, right);
+    DartObjectImpl result = left.isIdentical2(_typeSystem, right);
     expect(result, isNotNull);
     expect(result, expected);
   }
@@ -1687,10 +1777,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.integerDivide(_typeProvider, right);
+        left.integerDivide(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.integerDivide(_typeProvider, right);
+      DartObjectImpl result = left.integerDivide(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1705,10 +1795,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.lazyAnd(_typeProvider, () => right);
+        left.lazyAnd(_typeSystem, () => right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.lazyAnd(_typeProvider, () => right);
+      DartObjectImpl result = left.lazyAnd(_typeSystem, () => right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1723,10 +1813,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.lazyOr(_typeProvider, () => right);
+        left.lazyOr(_typeSystem, () => right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.lazyOr(_typeProvider, () => right);
+      DartObjectImpl result = left.lazyOr(_typeSystem, () => right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1741,10 +1831,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.lessThan(_typeProvider, right);
+        left.lessThan(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.lessThan(_typeProvider, right);
+      DartObjectImpl result = left.lessThan(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1759,10 +1849,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.lessThanOrEqual(_typeProvider, right);
+        left.lessThanOrEqual(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.lessThanOrEqual(_typeProvider, right);
+      DartObjectImpl result = left.lessThanOrEqual(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1775,10 +1865,10 @@ class DartObjectImplTest {
   void _assertLogicalNot(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
-        operand.logicalNot(_typeProvider);
+        operand.logicalNot(_typeSystem);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = operand.logicalNot(_typeProvider);
+      DartObjectImpl result = operand.logicalNot(_typeSystem);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1793,10 +1883,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.minus(_typeProvider, right);
+        left.minus(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.minus(_typeProvider, right);
+      DartObjectImpl result = left.minus(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1809,10 +1899,10 @@ class DartObjectImplTest {
   void _assertNegated(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
-        operand.negated(_typeProvider);
+        operand.negated(_typeSystem);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = operand.negated(_typeProvider);
+      DartObjectImpl result = operand.negated(_typeSystem);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1827,10 +1917,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.notEqual(_typeProvider, right);
+        left.notEqual(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.notEqual(_typeProvider, right);
+      DartObjectImpl result = left.notEqual(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1843,10 +1933,10 @@ class DartObjectImplTest {
   void _assertPerformToString(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
-        operand.performToString(_typeProvider);
+        operand.performToString(_typeSystem);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = operand.performToString(_typeProvider);
+      DartObjectImpl result = operand.performToString(_typeSystem);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1861,10 +1951,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.remainder(_typeProvider, right);
+        left.remainder(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.remainder(_typeProvider, right);
+      DartObjectImpl result = left.remainder(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1879,10 +1969,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.shiftLeft(_typeProvider, right);
+        left.shiftLeft(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.shiftLeft(_typeProvider, right);
+      DartObjectImpl result = left.shiftLeft(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1897,10 +1987,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.shiftRight(_typeProvider, right);
+        left.shiftRight(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.shiftRight(_typeProvider, right);
+      DartObjectImpl result = left.shiftRight(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1913,10 +2003,10 @@ class DartObjectImplTest {
   void _assertStringLength(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
-        operand.stringLength(_typeProvider);
+        operand.stringLength(_typeSystem);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = operand.stringLength(_typeProvider);
+      DartObjectImpl result = operand.stringLength(_typeSystem);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1931,10 +2021,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.times(_typeProvider, right);
+        left.times(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.times(_typeProvider, right);
+      DartObjectImpl result = left.times(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1942,31 +2032,56 @@ class DartObjectImplTest {
 
   DartObjectImpl _boolValue(bool value) {
     if (value == null) {
-      return new DartObjectImpl(
-          _typeProvider.boolType, BoolState.UNKNOWN_VALUE);
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.boolType,
+        BoolState.UNKNOWN_VALUE,
+      );
     } else if (identical(value, false)) {
-      return new DartObjectImpl(_typeProvider.boolType, BoolState.FALSE_STATE);
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.boolType,
+        BoolState.FALSE_STATE,
+      );
     } else if (identical(value, true)) {
-      return new DartObjectImpl(_typeProvider.boolType, BoolState.TRUE_STATE);
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.boolType,
+        BoolState.TRUE_STATE,
+      );
     }
     fail("Invalid boolean value used in test");
   }
 
   DartObjectImpl _doubleValue(double value) {
     if (value == null) {
-      return new DartObjectImpl(
-          _typeProvider.doubleType, DoubleState.UNKNOWN_VALUE);
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.doubleType,
+        DoubleState.UNKNOWN_VALUE,
+      );
     } else {
-      return new DartObjectImpl(
-          _typeProvider.doubleType, new DoubleState(value));
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.doubleType,
+        DoubleState(value),
+      );
     }
   }
 
   DartObjectImpl _intValue(int value) {
     if (value == null) {
-      return new DartObjectImpl(_typeProvider.intType, IntState.UNKNOWN_VALUE);
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.intType,
+        IntState.UNKNOWN_VALUE,
+      );
     } else {
-      return new DartObjectImpl(_typeProvider.intType, new IntState(value));
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.intType,
+        IntState(value),
+      );
     }
   }
 
@@ -1975,44 +2090,64 @@ class DartObjectImplTest {
     List<DartObjectImpl> elements,
   ) {
     return DartObjectImpl(
+      _typeSystem,
       _typeProvider.listType2(elementType),
       ListState(elements),
     );
   }
 
   DartObjectImpl _mapValue(DartType keyType, DartType valueType,
-      List<DartObjectImpl> keyElementPairs) {
+      List<DartObjectImpl> keyValuePairs) {
     Map<DartObjectImpl, DartObjectImpl> map =
-        new Map<DartObjectImpl, DartObjectImpl>();
-    int count = keyElementPairs.length;
+        <DartObjectImpl, DartObjectImpl>{};
+    int count = keyValuePairs.length;
     for (int i = 0; i < count;) {
-      map[keyElementPairs[i++]] = keyElementPairs[i++];
+      map[keyValuePairs[i++]] = keyValuePairs[i++];
     }
     return DartObjectImpl(
+      _typeSystem,
       _typeProvider.mapType2(keyType, valueType),
       MapState(map),
     );
   }
 
   DartObjectImpl _nullValue() {
-    return new DartObjectImpl(_typeProvider.nullType, NullState.NULL_STATE);
+    return DartObjectImpl(
+      _typeSystem,
+      _typeProvider.nullType,
+      NullState.NULL_STATE,
+    );
   }
 
   DartObjectImpl _setValue(DartType type, Set<DartObjectImpl> elements) {
-    return DartObjectImpl(type, SetState(elements ?? Set<DartObjectImpl>()));
+    return DartObjectImpl(
+      _typeSystem,
+      type,
+      SetState(elements ?? <DartObjectImpl>{}),
+    );
   }
 
   DartObjectImpl _stringValue(String value) {
     if (value == null) {
-      return new DartObjectImpl(
-          _typeProvider.stringType, StringState.UNKNOWN_VALUE);
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.stringType,
+        StringState.UNKNOWN_VALUE,
+      );
     } else {
-      return new DartObjectImpl(
-          _typeProvider.stringType, new StringState(value));
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.stringType,
+        StringState(value),
+      );
     }
   }
 
   DartObjectImpl _symbolValue(String value) {
-    return new DartObjectImpl(_typeProvider.symbolType, new SymbolState(value));
+    return DartObjectImpl(
+      _typeSystem,
+      _typeProvider.symbolType,
+      SymbolState(value),
+    );
   }
 }

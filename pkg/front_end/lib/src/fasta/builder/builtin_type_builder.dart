@@ -20,7 +20,8 @@ abstract class BuiltinTypeBuilder extends TypeDeclarationBuilderImpl {
       : super(null, 0, name, compilationUnit, charOffset);
 
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
     // TODO(dmitryas): Use [nullabilityBuilder].
     return type;
   }

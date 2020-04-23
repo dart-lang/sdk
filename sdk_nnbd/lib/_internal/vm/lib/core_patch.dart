@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /// Note: the VM concatenates all patch files into a single patch file. This
 /// file is the first patch in "dart:core" which contains all the imports
 /// used by patches of that library. We plan to change this when we have a
@@ -117,16 +115,23 @@ class _SyncIterable<T> extends IterableBase<T> {
 }
 
 class _SyncIterator<T> implements Iterator<T> {
-  _SyncGeneratorCallback<T> _moveNextFn;
-  Iterator<T> _yieldEachIterator;
+  _SyncGeneratorCallback<T>? _moveNextFn;
+  Iterator<T>? _yieldEachIterator;
 
   // These two fields are set by generated code for the yield and yield*
   // statement.
-  T _current;
-  Iterable<T> _yieldEachIterable;
+  T? _current;
+  Iterable<T>? _yieldEachIterable;
 
-  T get current =>
-      _yieldEachIterator != null ? _yieldEachIterator.current : _current;
+  T get current {
+    final iterator = _yieldEachIterator;
+    if (iterator != null) {
+      return iterator.current;
+    } else {
+      final cur = _current;
+      return (cur != null) ? cur : cur as T;
+    }
+  }
 
   _SyncIterator(this._moveNextFn);
 
@@ -135,23 +140,25 @@ class _SyncIterator<T> implements Iterator<T> {
       return false;
     }
     while (true) {
-      if (_yieldEachIterator != null) {
-        if (_yieldEachIterator.moveNext()) {
+      final iterator = _yieldEachIterator;
+      if (iterator != null) {
+        if (iterator.moveNext()) {
           return true;
         }
         _yieldEachIterator = null;
       }
       // _moveNextFn() will update the values of _yieldEachIterable
       //  and _current.
-      if (!_moveNextFn(this)) {
+      if (!_moveNextFn!(this)) {
         _moveNextFn = null;
         _current = null;
         return false;
       }
-      if (_yieldEachIterable != null) {
+      final yieldEachIterable = _yieldEachIterable;
+      if (yieldEachIterable != null) {
         // Spec mandates: it is a dynamic error if the class of [the object
         // returned by yield*] does not implement Iterable.
-        _yieldEachIterator = _yieldEachIterable.iterator;
+        _yieldEachIterator = yieldEachIterable.iterator;
         _yieldEachIterable = null;
         _current = null;
         continue;

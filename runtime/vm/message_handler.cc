@@ -8,6 +8,7 @@
 
 #include "vm/dart.h"
 #include "vm/heap/safepoint.h"
+#include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -202,7 +203,7 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
   ml->Enter();
 
   auto idle_time_handler =
-      isolate() != nullptr ? isolate()->idle_time_handler() : nullptr;
+      isolate() != nullptr ? isolate()->group()->idle_time_handler() : nullptr;
 
   MessageStatus max_status = kOK;
   Message::Priority min_priority =
@@ -523,12 +524,17 @@ void MessageHandler::TaskCallback() {
 
 bool MessageHandler::CheckIfIdleLocked(MonitorLocker* ml) {
   if (isolate() == nullptr ||
-      !isolate()->idle_time_handler()->ShouldCheckForIdle()) {
+      !isolate()->group()->idle_time_handler()->ShouldCheckForIdle()) {
     // No idle task to schedule.
     return false;
   }
+  if (!isolate()->group()->initial_spawn_successful()) {
+    // The isolate has not started running application code yet.
+    return false;
+  }
   int64_t idle_expirary = 0;
-  if (isolate()->idle_time_handler()->ShouldNotifyIdle(&idle_expirary)) {
+  if (isolate()->group()->idle_time_handler()->ShouldNotifyIdle(
+          &idle_expirary)) {
     // We've been without a message long enough to hope we can do some
     // cleanup before the next message arrives.
     RunIdleTaskLocked(ml);
@@ -553,7 +559,7 @@ void MessageHandler::RunIdleTaskLocked(MonitorLocker* ml) {
   ml->Exit();
   {
     StartIsolateScope start_isolate(isolate());
-    isolate()->idle_time_handler()->NotifyIdleUsingDefaultDeadline();
+    isolate()->group()->idle_time_handler()->NotifyIdleUsingDefaultDeadline();
   }
   ml->Enter();
 }

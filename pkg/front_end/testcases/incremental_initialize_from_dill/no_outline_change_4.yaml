@@ -43,4 +43,4 @@ worlds:
           }
         }
     expectedLibraryCount: 2
-    # expectsRebuildBodiesOnly: true
+    expectsRebuildBodiesOnly: false

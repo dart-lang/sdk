@@ -801,6 +801,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endInvalidYieldStatement(Token beginToken, Token starToken,
+      Token endToken, MessageCode errorCode) {
+    listener?.endInvalidYieldStatement(
+        beginToken, starToken, endToken, errorCode);
+  }
+
+  @override
   void endLabeledStatement(int labelCount) {
     listener?.endLabeledStatement(labelCount);
   }
@@ -1214,8 +1221,9 @@ class ForwardingListener implements Listener {
 
   @override
   void handleIndexedExpression(
-      Token openSquareBracket, Token closeSquareBracket) {
-    listener?.handleIndexedExpression(openSquareBracket, closeSquareBracket);
+      Token question, Token openSquareBracket, Token closeSquareBracket) {
+    listener?.handleIndexedExpression(
+        question, openSquareBracket, closeSquareBracket);
   }
 
   @override
@@ -1491,8 +1499,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleStringJuxtaposition(int literalCount) {
-    listener?.handleStringJuxtaposition(literalCount);
+  void handleStringJuxtaposition(Token startToken, int literalCount) {
+    listener?.handleStringJuxtaposition(startToken, literalCount);
   }
 
   @override
@@ -1562,27 +1570,27 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleVoidKeywordWithTypeArguments(Token token) {
+    listener?.handleVoidKeywordWithTypeArguments(token);
+  }
+
+  @override
   void logEvent(String name) {
     listener?.logEvent(name);
   }
 
   @override
-  void reportErrorIfNullableType(Token questionMark) {
-    listener?.reportErrorIfNullableType(questionMark);
-  }
-
-  @override
-  void reportNonNullableModifierError(Token modifierToken) {
-    listener?.reportNonNullableModifierError(modifierToken);
-  }
-
-  @override
-  void reportNonNullAssertExpressionNotEnabled(Token bang) {
-    listener?.reportNonNullAssertExpressionNotEnabled(bang);
-  }
-
-  @override
   void reportVarianceModifierNotEnabled(Token variance) {
     listener?.reportVarianceModifierNotEnabled(variance);
+  }
+}
+
+class NullListener extends ForwardingListener {
+  bool hasErrors = false;
+
+  @override
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
+    hasErrors = true;
   }
 }

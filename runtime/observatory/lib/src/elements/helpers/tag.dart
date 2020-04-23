@@ -11,7 +11,7 @@ class CustomElement {
   static Expando reverseElements = new Expando();
   static CustomElement reverse(HtmlElement element) => reverseElements[element];
 
-  static List<CustomElement> toBeAttached = new List<CustomElement>();
+  static List<CustomElement> toBeAttached = <CustomElement>[];
   static void drainAttached() {
     // Send 'attached' to elements that have been attached to the document.
     bool fired = false;

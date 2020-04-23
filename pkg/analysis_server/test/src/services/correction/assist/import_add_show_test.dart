@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportAddShowTest);
   });
@@ -19,7 +19,7 @@ class ImportAddShowTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.IMPORT_ADD_SHOW;
 
-  test_hasShow() async {
+  Future<void> test_hasShow() async {
     await resolveTestUnit('''
 import 'dart:math' show PI;
 main() {
@@ -29,7 +29,7 @@ main() {
     await assertNoAssistAt('import ');
   }
 
-  test_hasUnresolvedIdentifier() async {
+  Future<void> test_hasUnresolvedIdentifier() async {
     await resolveTestUnit('''
 import 'dart:math';
 main(x) {
@@ -46,7 +46,7 @@ main(x) {
 ''');
   }
 
-  test_onDirective() async {
+  Future<void> test_onDirective() async {
     await resolveTestUnit('''
 import 'dart:math';
 main() {
@@ -65,7 +65,7 @@ main() {
 ''');
   }
 
-  test_onUri() async {
+  Future<void> test_onUri() async {
     await resolveTestUnit('''
 import 'dart:math';
 main() {
@@ -84,7 +84,27 @@ main() {
 ''');
   }
 
-  test_unresolvedUri() async {
+  Future<void> test_setterOnDirective() async {
+    addSource('/home/test/lib/a.dart', r'''
+void set setter(int i) {}
+''');
+    await resolveTestUnit('''
+import 'a.dart';
+
+main() {
+  setter = 42;
+}
+''');
+    await assertHasAssistAt('import ', '''
+import 'a.dart' show setter;
+
+main() {
+  setter = 42;
+}
+''');
+  }
+
+  Future<void> test_unresolvedUri() async {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
 import '/no/such/lib.dart';
@@ -92,7 +112,7 @@ import '/no/such/lib.dart';
     await assertNoAssistAt('import ');
   }
 
-  test_unused() async {
+  Future<void> test_unused() async {
     await resolveTestUnit('''
 import 'dart:math';
 ''');

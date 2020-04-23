@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /// This library defines the operations that define and manipulate Dart
 /// classes.  Included in this are:
 ///   - Generics
@@ -60,27 +58,29 @@ void _copyMember(to, from, name) {
   var setter = JS('', '#.set', desc);
   if (getter != null) {
     if (setter == null) {
-      var obj = JS(
-          '',
+      var obj = JS<Object>(
+          '!',
           '#.set = { __proto__: #.__proto__, '
               'set [#](x) { return super[#] = x; } }',
           desc,
           to,
           name,
           name);
-      JS('', '#.set = #.set', desc, getOwnPropertyDescriptor(obj, name));
+      JS<Object>(
+          '!', '#.set = #.set', desc, getOwnPropertyDescriptor(obj, name));
     }
   } else if (setter != null) {
     if (getter == null) {
-      var obj = JS(
-          '',
+      var obj = JS<Object>(
+          '!',
           '#.get = { __proto__: #.__proto__, '
               'get [#]() { return super[#]; } }',
           desc,
           to,
           name,
           name);
-      JS('', '#.get = #.get', desc, getOwnPropertyDescriptor(obj, name));
+      JS<Object>(
+          '!', '#.get = #.get', desc, getOwnPropertyDescriptor(obj, name));
     }
   }
   defineProperty(to, name, desc);
@@ -107,7 +107,7 @@ final mixinOn = JS('', 'Symbol("mixinOn")');
 @JSExportName('implements')
 final implements_ = JS('', 'Symbol("implements")');
 
-List Function() getImplements(clazz) => JS(
+List? Function() getImplements(clazz) => JS(
     '',
     'Object.hasOwnProperty.call(#, #) ? #[#] : null',
     clazz,
@@ -123,6 +123,52 @@ final _variances = JS('', 'Symbol("variances")');
 final _originalDeclaration = JS('', 'Symbol("originalDeclaration")');
 
 final mixinNew = JS('', 'Symbol("dart.mixinNew")');
+
+/// Normalizes `FutureOr` types when they are constructed at runtime.
+///
+/// This normalization should mirror the normalization performed at compile time
+/// in the method named `_normalizeFutureOr()`.
+///
+/// **NOTE** Normalization of FutureOr<T?>? --> FutureOr<T?> is handled in
+/// [nullable].
+normalizeFutureOr(typeConstructor, setBaseClass) {
+  // The canonical version of the generic FutureOr type constructor.
+  var genericFutureOrType =
+      JS('!', '#', generic(typeConstructor, setBaseClass));
+
+  normalize(typeArg) {
+    // Normalize raw FutureOr --> dynamic
+    if (JS<bool>('!', '# == void 0', typeArg)) return _dynamic;
+
+    // FutureOr<dynamic|void|Object?|Object*|Object> -->
+    //   dynamic|void|Object?|Object*|Object
+    if (_isTop(typeArg) ||
+        _equalType(typeArg, Object) ||
+        (_jsInstanceOf(typeArg, LegacyType) &&
+            JS<bool>('!', '#.type === #', typeArg, Object))) {
+      return typeArg;
+    }
+
+    // FutureOr<Never> --> Future<Never>
+    if (_equalType(typeArg, Never)) {
+      return JS('!', '#(#)', getGenericClass(Future), typeArg);
+    }
+    // FutureOr<Null> --> Future<Null>?
+    if (_equalType(typeArg, Null)) {
+      return nullable(JS('!', '#(#)', getGenericClass(Future), typeArg));
+    }
+    // Otherwise, create the FutureOr<T> type as a normal generic type.
+    var genericType = JS('!', '#(#)', genericFutureOrType, typeArg);
+    // Overwrite the original declaration so that it correctly points back to
+    // this method. This ensures that the we can test a type value returned here
+    // as a FutureOr because it is equal to 'async.FutureOr` (in the JS).
+    JS('!', '#[#] = #', genericType, _originalDeclaration, normalize);
+    JS('!', '#(#)', addTypeCaches, genericType);
+    return genericType;
+  }
+
+  return normalize;
+}
 
 /// Memoize a generic type constructor function.
 generic(typeConstructor, setBaseClass) => JS('', '''(() => {
@@ -173,16 +219,19 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
     return value;
   }
   makeGenericType[$_genericTypeCtor] = $typeConstructor;
+  $addTypeCaches(makeGenericType);
   return makeGenericType;
 })()''');
 
 getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 
-List getGenericArgs(type) =>
-    JS('List', '#', safeGetOwnProperty(type, _typeArguments));
+// TODO(markzipan): Make this non-nullable if we can ensure this returns
+// an empty list or if null and the empty list are semantically the same.
+List? getGenericArgs(type) =>
+    JS<List>('', '#', safeGetOwnProperty(type, _typeArguments));
 
-List getGenericArgVariances(type) =>
-    JS('List', '#', safeGetOwnProperty(type, _variances));
+List? getGenericArgVariances(type) =>
+    JS<List?>('', '#', safeGetOwnProperty(type, _variances));
 
 void setGenericArgVariances(f, variances) =>
     JS('', '#[#] = #', f, _variances, variances);
@@ -239,7 +288,7 @@ bool isJsInterop(obj) {
   // Note that it is still possible to call typed JS interop methods on
   // extension types but the calls must be statically typed.
   if (JS('!', '#[#] != null', obj, _extensionType)) return false;
-  return JS('!', '!($obj instanceof $Object)');
+  return !_jsInstanceOf(obj, Object);
 }
 
 /// Get the type of a method from a type using the stored signature
@@ -254,11 +303,6 @@ getSetterType(type, name) {
   if (setters != null) {
     var type = JS('', '#[#]', setters, name);
     if (type != null) {
-      if (JS('!', '# instanceof Array', type)) {
-        // The type has metadata attached.  Pull out just the type.
-        // TODO(jmesserly): remove when we remove mirrors
-        return JS('', '#[0]', type);
-      }
       return type;
     }
   }
@@ -340,19 +384,19 @@ void _installProperties(jsProto, dartType, installedParent) {
   }
   // If the extension methods of the parent have been installed on the parent
   // of [jsProto], the methods will be available via prototype inheritance.
-  var dartSupertype = JS('', '#.__proto__', dartType);
+  var dartSupertype = JS<Object>('!', '#.__proto__', dartType);
   if (JS('!', '# !== #', dartSupertype, installedParent)) {
     _installProperties(jsProto, dartSupertype, installedParent);
   }
 
-  var dartProto = JS('', '#.prototype', dartType);
+  var dartProto = JS<Object>('!', '#.prototype', dartType);
   copyTheseProperties(jsProto, dartProto, getOwnPropertySymbols(dartProto));
 }
 
 void _installPropertiesForObject(jsProto) {
   // core.Object members need to be copied from the non-symbol name to the
   // symbol name.
-  var coreObjProto = JS('', '#.prototype', Object);
+  var coreObjProto = JS<Object>('!', '#.prototype', Object);
   var names = getOwnPropertyNames(coreObjProto);
   for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
     var name = JS<String>('!', '#[#]', names, i);
@@ -371,7 +415,7 @@ void _installPropertiesForGlobalObject(jsProto) {
 
 final _extensionMap = JS('', 'new Map()');
 
-_applyExtension(jsType, dartExtType) {
+void _applyExtension(jsType, dartExtType) {
   // TODO(vsm): Not all registered js types are real.
   if (jsType == null) return;
   var jsProto = JS('', '#.prototype', jsType);
@@ -446,13 +490,13 @@ defineExtensionMethods(type, Iterable memberNames) {
 }
 
 /// Like [defineExtensionMethods], but for getter/setter pairs.
-defineExtensionAccessors(type, Iterable memberNames) {
-  var proto = JS('', '#.prototype', type);
+void defineExtensionAccessors(type, Iterable memberNames) {
+  var proto = JS<Object>('!', '#.prototype', type);
   for (var name in memberNames) {
     // Find the member. It should always exist (or we have a compiler bug).
     var member;
     var p = proto;
-    for (;; p = JS('', '#.__proto__', p)) {
+    for (;; p = JS<Object>('!', '#.__proto__', p)) {
       member = getOwnPropertyDescriptor(p, name);
       if (member != null) break;
     }
@@ -506,21 +550,25 @@ addTypeTests(ctor, isClass) {
   JS(
       '',
       '''#.as = function as_C(obj) {
-    if (obj == null || obj[#]) return obj;
-    return #(obj, this, false);
+    if (obj != null && obj[#]) return obj;
+    return #(obj, this);
   }''',
       ctor,
       isClass,
       cast);
-  JS(
-      '',
-      '''#._check = function check_C(obj) {
-    if (obj == null || obj[#]) return obj;
-    return #(obj, this, true);
-  }''',
-      ctor,
-      isClass,
-      cast);
+}
+
+/// Pre-initializes types with empty type caches.
+///
+/// Allows us to perform faster lookups on local caches without having to
+/// filter out the prototype chain. Also allows types to remain relatively
+/// monomorphic, which results in faster execution in V8.
+addTypeCaches(type) {
+  JS('', '#[#] = void 0', type, _cachedLegacy);
+  JS('', '#[#] = void 0', type, _cachedNullable);
+  var subtypeCacheMap = JS<Object>('!', 'new Map()');
+  JS('', '#[#] = #', type, _subtypeCache, subtypeCacheMap);
+  JS('', '#.push(#)', _cacheMaps, subtypeCacheMap);
 }
 
 // TODO(jmesserly): should we do this for all interfaces?

@@ -98,11 +98,11 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
    * The value returned for expressions (or non-expression nodes) that are not
    * compile-time constant expressions.
    */
-  static Object NOT_A_CONSTANT = new Object();
+  static Object NOT_A_CONSTANT = Object();
 
   @override
   Object visitAdjacentStrings(AdjacentStrings node) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     for (StringLiteral string in node.strings) {
       Object value = string.accept(this);
       if (identical(value, NOT_A_CONSTANT)) {
@@ -260,7 +260,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitListLiteral(ListLiteral node) {
-    List<Object> list = new List<Object>();
+    List<Object> list = <Object>[];
     for (CollectionElement element in node.elements) {
       if (element is Expression) {
         Object value = element.accept(this);
@@ -331,7 +331,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
     // There are a lot of constants that this class does not support, so we
     // didn't add support for set literals. As a result, this assumes that we're
     // looking at a map literal until we prove otherwise.
-    Map<String, Object> map = new HashMap<String, Object>();
+    Map<String, Object> map = HashMap<String, Object>();
     for (CollectionElement element in node.elements) {
       if (element is MapLiteralEntry) {
         Object key = element.key.accept(this);
@@ -359,7 +359,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitStringInterpolation(StringInterpolation node) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     for (InterpolationElement element in node.elements) {
       Object value = element.accept(this);
       if (identical(value, NOT_A_CONSTANT)) {
@@ -373,7 +373,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   @override
   Object visitSymbolLiteral(SymbolLiteral node) {
     // TODO(brianwilkerson) This isn't optimal because a Symbol is not a String.
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     for (Token component in node.components) {
       if (buffer.length > 0) {
         buffer.writeCharCode(0x2E);

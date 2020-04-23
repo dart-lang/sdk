@@ -30,8 +30,19 @@ namespace bin {
 
 bool SSLFilter::library_initialized_ = false;
 // To protect library initialization.
-Mutex* SSLFilter::mutex_ = new Mutex();
+Mutex* SSLFilter::mutex_ = nullptr;
 int SSLFilter::filter_ssl_index;
+
+void SSLFilter::Init() {
+  ASSERT(SSLFilter::mutex_ == nullptr);
+  SSLFilter::mutex_ = new Mutex();
+}
+
+void SSLFilter::Cleanup() {
+  ASSERT(SSLFilter::mutex_ != nullptr);
+  delete SSLFilter::mutex_;
+  SSLFilter::mutex_ = nullptr;
+}
 
 const intptr_t SSLFilter::kInternalBIOSize = 10 * KB;
 const intptr_t SSLFilter::kApproximateSize =
@@ -375,6 +386,7 @@ Dart_Handle SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
     int size = IsBufferEncrypted(i) ? encrypted_buffer_size_ : buffer_size_;
     buffers_[i] = new uint8_t[size];
     ASSERT(buffers_[i] != NULL);
+    memset(buffers_[i], 0, size);
     dart_buffer_objects_[i] = NULL;
   }
 

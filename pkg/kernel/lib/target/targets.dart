@@ -6,16 +6,48 @@ library kernel.target.targets;
 import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
+import '../reference_from_index.dart';
+import 'changed_structure_notifier.dart';
 
 final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
   final bool trackWidgetCreation;
   final bool forceLateLoweringForTesting;
+  final bool forceNoExplicitGetterCallsForTesting;
+  final bool enableNullSafety;
 
   TargetFlags(
       {this.trackWidgetCreation = false,
-      this.forceLateLoweringForTesting = false});
+      this.forceLateLoweringForTesting = false,
+      this.forceNoExplicitGetterCallsForTesting = false,
+      this.enableNullSafety = false});
+
+  bool operator ==(other) {
+    if (other is! TargetFlags) return false;
+    TargetFlags o = other;
+    if (trackWidgetCreation != o.trackWidgetCreation) return false;
+    if (forceLateLoweringForTesting != o.forceLateLoweringForTesting) {
+      return false;
+    }
+    if (forceNoExplicitGetterCallsForTesting !=
+        o.forceNoExplicitGetterCallsForTesting) {
+      return false;
+    }
+    if (enableNullSafety != o.enableNullSafety) return false;
+    return true;
+  }
+
+  int get hashCode {
+    int hash = 485786;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
+    hash = 0x3fffffff &
+        (hash * 31 + (hash ^ forceLateLoweringForTesting.hashCode));
+    hash = 0x3fffffff &
+        (hash * 31 + (hash ^ forceNoExplicitGetterCallsForTesting.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ enableNullSafety.hashCode));
+    return hash;
+  }
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);
@@ -25,7 +57,7 @@ final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
 };
 
 Target getTarget(String name, TargetFlags flags) {
-  var builder = targets[name];
+  _TargetBuilder builder = targets[name];
   if (builder == null) return null;
   return builder(flags);
 }
@@ -81,6 +113,7 @@ class ConstantsBackend {
 
 /// A target provides backend-specific options for generating kernel IR.
 abstract class Target {
+  TargetFlags get flags;
   String get name;
 
   /// A list of URIs of required libraries, not including dart:core.
@@ -156,7 +189,8 @@ abstract class Target {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg)}) {}
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {}
 
   /// Perform target-specific modular transformations on the given libraries.
   void performModularTransformationsOnLibraries(
@@ -168,7 +202,9 @@ abstract class Target {
       // transformations.
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg)});
+      ReferenceFromIndex referenceFromIndex,
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier});
 
   /// Perform target-specific modular transformations on the given program.
   ///
@@ -233,6 +269,13 @@ abstract class Target {
   /// details.
   bool get supportsLateFields;
 
+  /// Whether calls to getters and fields should be encoded as a .call
+  /// invocation on a property get.
+  ///
+  /// If `false`, calls to getters and fields are encoded as method invocations
+  /// with the accessed getter or field as the interface target.
+  bool get supportsExplicitGetterCalls;
+
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
@@ -255,6 +298,9 @@ abstract class Target {
   /// Returns the configured component.
   Component configureComponent(Component component) => component;
 
+  // Configure environment defines in a target-specific way.
+  Map<String, String> updateEnvironmentDefines(Map<String, String> map) => map;
+
   String toString() => 'Target($name)';
 
   Class concreteListLiteralClass(CoreTypes coreTypes) => null;
@@ -264,6 +310,7 @@ abstract class Target {
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
 
   Class concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
+  Class concreteDoubleLiteralClass(CoreTypes coreTypes, double value) => null;
   Class concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
 
   ConstantsBackend constantsBackend(CoreTypes coreTypes);
@@ -278,12 +325,23 @@ class NoneConstantsBackend extends ConstantsBackend {
 
 class NoneTarget extends Target {
   final TargetFlags flags;
-  final bool supportsLateFields;
 
-  NoneTarget(this.flags, {this.supportsLateFields: true});
+  NoneTarget(this.flags);
 
+  @override
+  bool get supportsLateFields => !flags.forceLateLoweringForTesting;
+
+  @override
+  bool get supportsExplicitGetterCalls =>
+      !flags.forceNoExplicitGetterCallsForTesting;
+
+  @override
   String get name => 'none';
+
+  @override
   List<String> get extraRequiredLibraries => <String>[];
+
+  @override
   void performModularTransformationsOnLibraries(
       Component component,
       CoreTypes coreTypes,
@@ -291,7 +349,9 @@ class NoneTarget extends Target {
       List<Library> libraries,
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg)}) {}
+      ReferenceFromIndex referenceFromIndex,
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {}
 
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,

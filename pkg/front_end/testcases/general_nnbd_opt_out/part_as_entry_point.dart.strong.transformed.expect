@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+part part_as_entry_point.dart;
+static method main() → dynamic {
+  core::print("Hello, World!");
+}

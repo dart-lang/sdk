@@ -21,7 +21,7 @@ BSD-style license that can be found in the LICENSE file.
     flex-grow: 3;
     overflow: hidden;
     white-space: nowrap;
-    padding: 5;
+    padding: 5px;
 }
 
 .edgeCell {
@@ -29,7 +29,7 @@ BSD-style license that can be found in the LICENSE file.
     flex-grow: 2;
     overflow: hidden;
     white-space: nowrap;
-    padding: 5;
+    padding: 5px;
 }
 
 .classCell {
@@ -37,21 +37,21 @@ BSD-style license that can be found in the LICENSE file.
     flex-grow: 1;
     overflow: hidden;
     white-space: nowrap;
-    padding: 5;
+    padding: 5px;
 }
 
 .sizeCell {
-    flex-basis: 7em;
+    flex-basis: 8em;
     flex-grow: 0;
     text-align: right;
-    padding: 5;
+    padding: 5px
 }
 
 .sizePercentCell {
     flex-basis: 2.5em;
     flex-grow: 0;
     text-align: right;
-    padding: 5;
+    padding: 5px;
     color: gray;
 }
 

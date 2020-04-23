@@ -25,13 +25,22 @@ class ExpectedError {
   /// The offset of the beginning of the error's region.
   final int length;
 
+  /// The message text of the error or `null` if the message should not be checked.
+  final String message;
+
+  /// A pattern that should be contained in the error message or `null` if the message
+  /// contents should not be checked.
+  final Pattern messageContains;
+
   /// The list of context messages that are expected to be associated with the
   /// error.
-  final List<ExpectedMessage> expectedMessages;
+  final List<ExpectedContextMessage> expectedContextMessages;
 
   /// Initialize a newly created error description.
   ExpectedError(this.code, this.offset, this.length,
-      {this.expectedMessages = const <ExpectedMessage>[]});
+      {this.message,
+      this.messageContains,
+      this.expectedContextMessages = const <ExpectedContextMessage>[]});
 
   /// Return `true` if the [error] matches this description of what it's
   /// expected to be.
@@ -39,6 +48,13 @@ class ExpectedError {
     if (error.offset != offset ||
         error.length != length ||
         error.errorCode != code) {
+      return false;
+    }
+    if (message != null && error.message != message) {
+      return false;
+    }
+    if (messageContains != null &&
+        error.message?.contains(messageContains) != true) {
       return false;
     }
     List<DiagnosticMessage> contextMessages = error.contextMessages.toList();
@@ -49,11 +65,11 @@ class ExpectedError {
       }
       return second.offset - first.offset;
     });
-    if (contextMessages.length != expectedMessages.length) {
+    if (contextMessages.length != expectedContextMessages.length) {
       return false;
     }
-    for (int i = 0; i < expectedMessages.length; i++) {
-      if (!expectedMessages[i].matches(contextMessages[i])) {
+    for (int i = 0; i < expectedContextMessages.length; i++) {
+      if (!expectedContextMessages[i].matches(contextMessages[i])) {
         return false;
       }
     }
@@ -62,7 +78,7 @@ class ExpectedError {
 }
 
 /// A description of a message that is expected to be reported with an error.
-class ExpectedMessage {
+class ExpectedContextMessage {
   /// The path of the file with which the message is associated.
   final String filePath;
 
@@ -72,14 +88,18 @@ class ExpectedMessage {
   /// The offset of the beginning of the error's region.
   final int length;
 
-  ExpectedMessage(this.filePath, this.offset, this.length);
+  /// The message text for the error.
+  final String text;
+
+  ExpectedContextMessage(this.filePath, this.offset, this.length, {this.text});
 
   /// Return `true` if the [message] matches this description of what it's
   /// expected to be.
   bool matches(DiagnosticMessage message) {
     return message.filePath == filePath &&
         message.offset == offset &&
-        message.length == length;
+        message.length == length &&
+        (text == null || message.message == text);
   }
 }
 
@@ -91,10 +111,10 @@ class GatheringErrorListener implements AnalysisErrorListener {
   final bool checkRanges;
 
   /// A list containing the errors that were collected.
-  List<AnalysisError> _errors = <AnalysisError>[];
+  final List<AnalysisError> _errors = <AnalysisError>[];
 
   /// A table mapping sources to the line information for the source.
-  Map<Source, LineInfo> _lineInfoMap = <Source, LineInfo>{};
+  final Map<Source, LineInfo> _lineInfoMap = <Source, LineInfo>{};
 
   /// Initialize a newly created error listener to collect errors.
   GatheringErrorListener({this.checkRanges = Parser.useFasta});
@@ -147,7 +167,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Write the results.
     //
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     if (unmatchedExpected.isNotEmpty) {
       buffer.writeln('Expected but did not find:');
       for (ExpectedError expected in unmatchedExpected) {
@@ -157,6 +177,10 @@ class GatheringErrorListener implements AnalysisErrorListener {
         buffer.write(expected.offset);
         buffer.write(', ');
         buffer.write(expected.length);
+        if (expected.message != null) {
+          buffer.write(', ');
+          buffer.write(expected.message);
+        }
         buffer.writeln(']');
       }
     }
@@ -172,6 +196,8 @@ class GatheringErrorListener implements AnalysisErrorListener {
         buffer.write(actual.offset);
         buffer.write(', ');
         buffer.write(actual.length);
+        buffer.write(', ');
+        buffer.write(actual.message);
         buffer.writeln(']');
       }
     }
@@ -188,7 +214,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
         buffer.write(', ');
         buffer.write(actual.length);
         if (contextMessages.isNotEmpty) {
-          buffer.write(', expectedMessages: [');
+          buffer.write(', contextMessages: [');
           for (int i = 0; i < contextMessages.length; i++) {
             DiagnosticMessage message = contextMessages[i];
             if (i > 0) {
@@ -215,7 +241,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /// codes. The order in which the errors were gathered is ignored.
   void assertErrorsWithCodes(
       [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     //
     // Compute the expected number of each type of error.
     //
@@ -352,7 +378,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /// Set the line information associated with the given [source] to the given
   /// list of [lineStarts].
   void setLineInfo(Source source, List<int> lineStarts) {
-    _lineInfoMap[source] = new LineInfo(lineStarts);
+    _lineInfoMap[source] = LineInfo(lineStarts);
   }
 }
 
@@ -368,7 +394,9 @@ class TestInstrumentor extends NoopInstrumentationService {
   }
 
   @override
-  void logException(dynamic exception, [StackTrace stackTrace]) {
+  void logException(dynamic exception,
+      [StackTrace stackTrace,
+      List<InstrumentationServiceAttachment> attachments]) {
     log.add("error: $exception $stackTrace");
   }
 
@@ -379,7 +407,7 @@ class TestInstrumentor extends NoopInstrumentationService {
 }
 
 class TestSource extends Source {
-  String _name;
+  final String _name;
   String _contents;
   int _modificationStamp = 0;
   bool exists2 = true;
@@ -393,23 +421,28 @@ class TestSource extends Source {
 
   TestSource([this._name = '/test.dart', this._contents]);
 
+  @override
   TimestampedData<String> get contents {
     readCount++;
     if (generateExceptionOnRead) {
       String msg = "I/O Exception while getting the contents of " + _name;
-      throw new Exception(msg);
+      throw Exception(msg);
     }
-    return new TimestampedData<String>(0, _contents);
+    return TimestampedData<String>(0, _contents);
   }
 
+  @override
   String get encoding => _name;
 
+  @override
   String get fullName {
     return _name;
   }
 
+  @override
   int get hashCode => 0;
 
+  @override
   bool get isInSystemLibrary {
     return false;
   }
@@ -418,16 +451,20 @@ class TestSource extends Source {
   int get modificationStamp =>
       generateExceptionOnRead ? -1 : _modificationStamp;
 
+  @override
   String get shortName {
     return _name;
   }
 
-  Uri get uri => new Uri.file(_name);
+  @override
+  Uri get uri => Uri.file(_name);
 
+  @override
   UriKind get uriKind {
-    throw new UnsupportedError('uriKind');
+    throw UnsupportedError('uriKind');
   }
 
+  @override
   bool operator ==(Object other) {
     if (other is TestSource) {
       return other._name == _name;
@@ -435,15 +472,16 @@ class TestSource extends Source {
     return false;
   }
 
+  @override
   bool exists() => exists2;
 
   Source resolve(String uri) {
-    throw new UnsupportedError('resolve');
+    throw UnsupportedError('resolve');
   }
 
   void setContents(String value) {
     generateExceptionOnRead = false;
-    _modificationStamp = new DateTime.now().millisecondsSinceEpoch;
+    _modificationStamp = DateTime.now().millisecondsSinceEpoch;
     _contents = value;
   }
 
@@ -452,13 +490,16 @@ class TestSource extends Source {
 }
 
 class TestSourceWithUri extends TestSource {
+  @override
   final Uri uri;
 
   TestSourceWithUri(String path, this.uri, [String content])
       : super(path, content);
 
+  @override
   String get encoding => uri.toString();
 
+  @override
   UriKind get uriKind {
     if (uri == null) {
       return UriKind.FILE_URI;
@@ -470,6 +511,7 @@ class TestSourceWithUri extends TestSource {
     return UriKind.FILE_URI;
   }
 
+  @override
   bool operator ==(Object other) {
     if (other is TestSource) {
       return other.uri == uri;

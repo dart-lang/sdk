@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 library instantiated_classes_test;
 
 import 'dart:async';
@@ -30,7 +32,7 @@ void main() {
         return env.getElement(name);
       });
       Iterable<ClassEntity> actualClasses = env
-          .compiler.resolutionWorldBuilder.directlyInstantiatedClasses
+          .compiler.resolutionWorldBuilderForTesting.directlyInstantiatedClasses
           .where((c) => c.library == mainLibrary);
       Expect.setEquals(
           expectedClasses,

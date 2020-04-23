@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 library dart2js.test.memory_source_file_helper;
 
 import 'dart:async' show Future;
@@ -10,8 +12,6 @@ export 'dart:io' show Platform;
 import 'package:compiler/compiler_new.dart';
 
 export 'package:compiler/src/apiimpl.dart' show CompilerImpl;
-
-export 'package:compiler/src/filenames.dart' show currentDirectory;
 
 import 'package:compiler/src/io/source_file.dart'
     show Binary, StringSourceFile, Utf8BytesSourceFile;

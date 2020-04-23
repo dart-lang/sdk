@@ -8,7 +8,9 @@ class ErrorNotifier extends NoopInstrumentationService {
   AbstractAnalysisServer server;
 
   @override
-  void logException(dynamic exception, [StackTrace stackTrace]) {
+  void logException(dynamic exception,
+      [StackTrace stackTrace,
+      List<InstrumentationServiceAttachment> attachments]) {
     if (exception is SilentException) {
       // Silent exceptions should not be reported to the user.
       return;

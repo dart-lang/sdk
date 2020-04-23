@@ -140,6 +140,8 @@ class LibraryViewElement extends CustomElement implements Renderable {
   }
 
   void render() {
+    final rootScript = library.rootScript;
+
     children = <Element>[
       navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue).element,
@@ -201,11 +203,13 @@ class LibraryViewElement extends CustomElement implements Renderable {
           _createVariables(),
           new BRElement(),
           _createFunctions(),
-          new HRElement(),
-          new ScriptInsetElement(
-                  _isolate, _library.rootScript, _scripts, _objects, _events,
-                  queue: _r.queue)
-              .element,
+          if (rootScript != null) ...[
+            new HRElement(),
+            new ScriptInsetElement(
+                    _isolate, rootScript, _scripts, _objects, _events,
+                    queue: _r.queue)
+                .element
+          ],
           new HRElement(),
           new ViewFooterElement(queue: _r.queue).element
         ]

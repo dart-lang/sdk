@@ -3,12 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "include/dart_api.h"
+#include "include/dart_native_api.h"
 #include "platform/globals.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
 #include "vm/class_id.h"
 #include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/ffi.h"
+#include "vm/compiler/ffi/call.h"
+#include "vm/compiler/ffi/callback.h"
+#include "vm/compiler/ffi/native_type.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -70,9 +73,10 @@ static const Double& AsDouble(const Instance& instance) {
 //
 // You must check [IsConcreteNativeType] and [CheckSized] first to verify that
 // this type has a defined size.
-static size_t SizeOf(const AbstractType& type) {
+static size_t SizeOf(const AbstractType& type, Zone* zone) {
   if (RawObject::IsFfiTypeClassId(type.type_class_id())) {
-    return compiler::ffi::ElementSizeInBytes(type.type_class_id());
+    return compiler::ffi::NativeType::FromAbstractType(type, zone)
+        .SizeInBytes();
   } else {
     Class& struct_class = Class::Handle(type.type_class());
     Object& result = Object::Handle(
@@ -100,11 +104,10 @@ DEFINE_NATIVE_ENTRY(Ffi_address, 0, 1) {
 static RawObject* LoadValueNumeric(Zone* zone,
                                    const Pointer& target,
                                    classid_t type_cid,
-                                   const Integer& index) {
+                                   const Integer& offset) {
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
   const size_t address =
-      target.NativeAddress() + static_cast<intptr_t>(index.AsInt64Value()) *
-                                   compiler::ffi::ElementSizeInBytes(type_cid);
+      target.NativeAddress() + static_cast<intptr_t>(offset.AsInt64Value());
   switch (type_cid) {
     case kFfiInt8Cid:
       return Integer::New(*reinterpret_cast<int8_t*>(address));
@@ -136,15 +139,15 @@ static RawObject* LoadValueNumeric(Zone* zone,
 #define DEFINE_NATIVE_ENTRY_LOAD(type)                                         \
   DEFINE_NATIVE_ENTRY(Ffi_load##type, 0, 2) {                                  \
     GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0)); \
-    GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));   \
-    return LoadValueNumeric(zone, pointer, kFfi##type##Cid, index);            \
+    GET_NON_NULL_NATIVE_ARGUMENT(Integer, offset, arguments->NativeArgAt(1));  \
+    return LoadValueNumeric(zone, pointer, kFfi##type##Cid, offset);           \
   }
 CLASS_LIST_FFI_NUMERIC(DEFINE_NATIVE_ENTRY_LOAD)
 #undef DEFINE_NATIVE_ENTRY_LOAD
 
 DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, offset, arguments->NativeArgAt(1));
 
   const auto& pointer_type_arg =
       AbstractType::Handle(zone, pointer.type_argument());
@@ -154,8 +157,7 @@ DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 2) {
 
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
   const size_t address =
-      pointer.NativeAddress() +
-      static_cast<intptr_t>(index.AsInt64Value()) * SizeOf(pointer_type_arg);
+      pointer.NativeAddress() + static_cast<intptr_t>(offset.AsInt64Value());
 
   return Pointer::New(type_arg, *reinterpret_cast<uword*>(address));
 }
@@ -193,8 +195,8 @@ DEFINE_NATIVE_ENTRY(Ffi_loadStruct, 0, 2) {
 
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
   const size_t address =
-      pointer.NativeAddress() +
-      static_cast<intptr_t>(index.AsInt64Value()) * SizeOf(pointer_type_arg);
+      pointer.NativeAddress() + static_cast<intptr_t>(index.AsInt64Value()) *
+                                    SizeOf(pointer_type_arg, zone);
   const Pointer& pointer_offset =
       Pointer::Handle(zone, Pointer::New(pointer_type_arg, address));
 
@@ -204,12 +206,11 @@ DEFINE_NATIVE_ENTRY(Ffi_loadStruct, 0, 2) {
 static void StoreValueNumeric(Zone* zone,
                               const Pointer& pointer,
                               classid_t type_cid,
-                              const Integer& index,
+                              const Integer& offset,
                               const Instance& new_value) {
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
   const size_t address =
-      pointer.NativeAddress() + static_cast<intptr_t>(index.AsInt64Value()) *
-                                    compiler::ffi::ElementSizeInBytes(type_cid);
+      pointer.NativeAddress() + static_cast<intptr_t>(offset.AsInt64Value());
   switch (type_cid) {
     case kFfiInt8Cid:
       *reinterpret_cast<int8_t*>(address) = AsInteger(new_value).AsInt64Value();
@@ -260,9 +261,9 @@ static void StoreValueNumeric(Zone* zone,
 #define DEFINE_NATIVE_ENTRY_STORE(type)                                        \
   DEFINE_NATIVE_ENTRY(Ffi_store##type, 0, 3) {                                 \
     GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0)); \
-    GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));   \
+    GET_NON_NULL_NATIVE_ARGUMENT(Integer, offset, arguments->NativeArgAt(1));  \
     GET_NON_NULL_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(2));  \
-    StoreValueNumeric(zone, pointer, kFfi##type##Cid, index, value);           \
+    StoreValueNumeric(zone, pointer, kFfi##type##Cid, offset, value);          \
     return Object::null();                                                     \
   }
 CLASS_LIST_FFI_NUMERIC(DEFINE_NATIVE_ENTRY_STORE)
@@ -270,15 +271,14 @@ CLASS_LIST_FFI_NUMERIC(DEFINE_NATIVE_ENTRY_STORE)
 
 DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, offset, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Pointer, new_value, arguments->NativeArgAt(2));
   AbstractType& pointer_type_arg =
       AbstractType::Handle(pointer.type_argument());
 
   auto& new_value_type =
       AbstractType::Handle(zone, new_value.GetType(Heap::kNew));
-  if (!new_value_type.IsSubtypeOf(NNBDMode::kLegacy, pointer_type_arg,
-                                  Heap::kNew)) {
+  if (!new_value_type.IsSubtypeOf(pointer_type_arg, Heap::kNew)) {
     const String& error = String::Handle(String::NewFormatted(
         "New value (%s) is not a subtype of '%s'.",
         String::Handle(new_value_type.UserVisibleName()).ToCString(),
@@ -289,8 +289,7 @@ DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 3) {
   ASSERT(IsPointerType(pointer_type_arg));
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
   const size_t address =
-      pointer.NativeAddress() +
-      static_cast<intptr_t>(index.AsInt64Value()) * SizeOf(pointer_type_arg);
+      pointer.NativeAddress() + static_cast<intptr_t>(offset.AsInt64Value());
   *reinterpret_cast<uword*>(address) = new_value.NativeAddress();
   return Object::null();
 }
@@ -299,7 +298,7 @@ DEFINE_NATIVE_ENTRY(Ffi_sizeOf, 1, 0) {
   GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
   CheckSized(type_arg);
 
-  return Integer::New(SizeOf(type_arg));
+  return Integer::New(SizeOf(type_arg, zone));
 }
 
 // Static invocations to this method are translated directly in streaming FGB
@@ -326,8 +325,7 @@ DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 1) {
   // the function so that we can reuse the function for each c function with
   // the same signature.
   const Context& context = Context::Handle(Context::New(1));
-  context.SetAt(0,
-                Integer::Handle(zone, Integer::New(pointer.NativeAddress())));
+  context.SetAt(0, pointer);
 
   return Closure::New(Object::null_type_arguments(),
                       Object::null_type_arguments(), function, context,
@@ -414,9 +412,11 @@ DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData, 0, 2) {
     Exceptions::PropagateError(error);
   }
 
+  // We disable msan initialization check because the memory may not be
+  // initialized yet - dart code might do that later on.
   return ExternalTypedData::New(
       cid, reinterpret_cast<uint8_t*>(pointer.NativeAddress()), element_count,
-      Heap::kNew);
+      Heap::kNew, /*perform_eager_msan_initialization_check=*/false);
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
@@ -466,14 +466,6 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   code = function.CurrentCode();
-
-  // Blobs snapshots don't support BSS-relative relocations required by native
-  // callbacks (yet). Issue an error if the code has an unpatched relocation.
-  if (!code.VerifyBSSRelocations()) {
-    Exceptions::ThrowUnsupportedError(
-        "FFI callbacks are not yet supported in blobs snapshots. Please use "
-        "ELF or Assembly snapshots instead.");
-  }
 #else
   // We compile the callback immediately because we need to return a pointer to
   // the entry-point. Native calls do not use patching like Dart calls, so we
@@ -499,6 +491,23 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
 #endif
 
   return Pointer::New(type_arg, entry_point);
+}
+
+DEFINE_NATIVE_ENTRY(NativeApiFunctionPointer, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name_dart, arguments->NativeArgAt(0));
+  const char* name = name_dart.ToCString();
+
+  if (strcmp(name, "Dart_PostCObject") == 0) {
+    return Integer::New(reinterpret_cast<int64_t>(Dart_PostCObject));
+  } else if (strcmp(name, "Dart_NewNativePort") == 0) {
+    return Integer::New(reinterpret_cast<int64_t>(Dart_NewNativePort));
+  } else if (strcmp(name, "Dart_CloseNativePort") == 0) {
+    return Integer::New(reinterpret_cast<int64_t>(Dart_CloseNativePort));
+  }
+
+  const String& error = String::Handle(
+      String::NewFormatted("Unknown dart_native_api.h symbol: %s.", name));
+  Exceptions::ThrowArgumentError(error);
 }
 
 }  // namespace dart

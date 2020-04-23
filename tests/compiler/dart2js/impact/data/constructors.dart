@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: main:
  static=[
   testConstRedirectingFactoryInvoke(0),
@@ -49,7 +51,7 @@ testConstructorInvoke() {
   new Class.generative();
 }
 
-/*member: testConstructorInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
+/*member: testConstructorInvokeGeneric:static=[GenericClass.generative(0),checkTypeBound(4),throwTypeError(1)]*/
 testConstructorInvokeGeneric() {
   new GenericClass<int, String>.generative();
 }
@@ -69,7 +71,7 @@ testFactoryInvoke() {
   new Class.fact();
 }
 
-/*member: testFactoryInvokeGeneric:static=[GenericClass.fact(0),assertIsSubtype(5),throwTypeError(1)]*/
+/*member: testFactoryInvokeGeneric:static=[GenericClass.fact(0),checkTypeBound(4),throwTypeError(1)]*/
 testFactoryInvokeGeneric() {
   new GenericClass<int, String>.fact();
 }
@@ -89,7 +91,7 @@ testRedirectingFactoryInvoke() {
   new Class.redirect();
 }
 
-/*member: testRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
+/*member: testRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),checkTypeBound(4),throwTypeError(1)]*/
 testRedirectingFactoryInvokeGeneric() {
   new GenericClass<int, String>.redirect();
 }
@@ -104,22 +106,22 @@ testRedirectingFactoryInvokeGenericDynamic() {
   new GenericClass<dynamic, dynamic>.redirect();
 }
 
-/*strong.member: testConstRedirectingFactoryInvoke:type=[const:Class]*/
+/*member: testConstRedirectingFactoryInvoke:type=[const:Class]*/
 testConstRedirectingFactoryInvoke() {
   const Class.redirect();
 }
 
-/*strong.member: testConstRedirectingFactoryInvokeGeneric:type=[const:GenericClass<int,String>]*/
+/*member: testConstRedirectingFactoryInvokeGeneric:type=[const:GenericClass<int,String>]*/
 testConstRedirectingFactoryInvokeGeneric() {
   const GenericClass<int, String>.redirect();
 }
 
-/*strong.member: testConstRedirectingFactoryInvokeGenericRaw:type=[const:GenericClass<dynamic,dynamic>]*/
+/*member: testConstRedirectingFactoryInvokeGenericRaw:type=[const:GenericClass<dynamic,dynamic>]*/
 testConstRedirectingFactoryInvokeGenericRaw() {
   const GenericClass.redirect();
 }
 
-/*strong.member: testConstRedirectingFactoryInvokeGenericDynamic:type=[const:GenericClass<dynamic,dynamic>]*/
+/*member: testConstRedirectingFactoryInvokeGenericDynamic:type=[const:GenericClass<dynamic,dynamic>]*/
 testConstRedirectingFactoryInvokeGenericDynamic() {
   const GenericClass<dynamic, dynamic>.redirect();
 }
@@ -152,7 +154,7 @@ class GenericClass<X, Y> {
   /*member: GenericClass.generative:static=[Object.(0)]*/
   const GenericClass.generative();
 
-  /*member: GenericClass.fact:type=[inst:JSBool,inst:JSNull,param:Object]*/
+  /*member: GenericClass.fact:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),findType(1),instanceType(1)],type=[inst:Closure,inst:JSBool,inst:JSNull,param:Object]*/
   factory GenericClass.fact() => null;
 
   const factory GenericClass.redirect() = GenericClass<X, Y>.generative;

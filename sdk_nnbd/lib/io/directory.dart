@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.io;
 
 /**
@@ -131,7 +129,7 @@ abstract class Directory implements FileSystemEntity {
    */
   @pragma("vm:entry-point")
   factory Directory(String path) {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return new _Directory(path);
     }
@@ -156,7 +154,7 @@ abstract class Directory implements FileSystemEntity {
    * directory.
    */
   static Directory get current {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _Directory.current;
     }
@@ -191,7 +189,7 @@ abstract class Directory implements FileSystemEntity {
    * are working with the file system, can lead to unexpected results.
    */
   static void set current(path) {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       _Directory.current = path;
       return;
@@ -232,7 +230,7 @@ abstract class Directory implements FileSystemEntity {
    * and may be set by an environment variable.
    */
   static Directory get systemTemp {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _Directory.systemTemp;
     }
@@ -248,7 +246,7 @@ abstract class Directory implements FileSystemEntity {
    * Returns a [:Future<Directory>:] that completes with the newly
    * created temporary directory.
    */
-  Future<Directory> createTemp([String prefix]);
+  Future<Directory> createTemp([String? prefix]);
 
   /**
    * Synchronously creates a temporary directory in this directory.
@@ -258,7 +256,7 @@ abstract class Directory implements FileSystemEntity {
    *
    * Returns the newly created temporary directory.
    */
-  Directory createTempSync([String prefix]);
+  Directory createTempSync([String? prefix]);
 
   Future<String> resolveSymbolicLinks();
 

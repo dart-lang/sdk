@@ -11,6 +11,7 @@
 
 #include "platform/assert.h"
 #include "platform/atomic.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/class_id.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/compiler/runtime_api.h"
@@ -28,6 +29,7 @@ typedef RawObject* RawCompressed;
 
 // Forward declarations.
 class Isolate;
+class IsolateGroup;
 #define DEFINE_FORWARD_DECLARATION(clazz) class Raw##clazz;
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
@@ -146,20 +148,22 @@ class RawObject {
   // Encodes the object size in the tag in units of object alignment.
   class SizeTag {
    public:
+    typedef intptr_t Type;
+
     static constexpr intptr_t kMaxSizeTagInUnitsOfAlignment =
         ((1 << RawObject::kSizeTagSize) - 1);
     static constexpr intptr_t kMaxSizeTag =
         kMaxSizeTagInUnitsOfAlignment * kObjectAlignment;
 
-    static uword encode(intptr_t size) {
+    static UNLESS_DEBUG(constexpr) uword encode(intptr_t size) {
       return SizeBits::encode(SizeToTagValue(size));
     }
 
-    static intptr_t decode(uword tag) {
+    static constexpr uword decode(uword tag) {
       return TagValueToSize(SizeBits::decode(tag));
     }
 
-    static uword update(intptr_t size, uword tag) {
+    static UNLESS_DEBUG(constexpr) uword update(intptr_t size, uword tag) {
       return SizeBits::update(SizeToTagValue(size), tag);
     }
 
@@ -168,11 +172,11 @@ class RawObject {
     class SizeBits
         : public BitField<uint32_t, intptr_t, kSizeTagPos, kSizeTagSize> {};
 
-    static intptr_t SizeToTagValue(intptr_t size) {
-      ASSERT(Utils::IsAligned(size, kObjectAlignment));
+    static UNLESS_DEBUG(constexpr) intptr_t SizeToTagValue(intptr_t size) {
+      DEBUG_ASSERT(Utils::IsAligned(size, kObjectAlignment));
       return (size > kMaxSizeTag) ? 0 : (size >> kObjectAlignmentLog2);
     }
-    static intptr_t TagValueToSize(intptr_t value) {
+    static constexpr intptr_t TagValueToSize(intptr_t value) {
       return value << kObjectAlignmentLog2;
     }
   };
@@ -197,6 +201,72 @@ class RawObject {
 
   class ReservedBits
       : public BitField<uint32_t, intptr_t, kReservedTagPos, kReservedTagSize> {
+  };
+
+  class Tags {
+   public:
+    Tags() : tags_(0) {}
+
+    NO_SANITIZE_THREAD
+    operator uint32_t() const {
+      return *reinterpret_cast<const uint32_t*>(&tags_);
+    }
+
+    NO_SANITIZE_THREAD
+    uint32_t operator=(uint32_t tags) {
+      return *reinterpret_cast<uint32_t*>(&tags_) = tags;
+    }
+
+    NO_SANITIZE_THREAD
+    bool StrongCAS(uint32_t old_tags, uint32_t new_tags) {
+      return tags_.compare_exchange_strong(old_tags, new_tags,
+                                           std::memory_order_relaxed);
+    }
+
+    NO_SANITIZE_THREAD
+    bool WeakCAS(uint32_t old_tags, uint32_t new_tags) {
+      return tags_.compare_exchange_weak(old_tags, new_tags,
+                                         std::memory_order_relaxed);
+    }
+
+    template <class TagBitField>
+    NO_SANITIZE_THREAD typename TagBitField::Type Read() const {
+      return TagBitField::decode(*reinterpret_cast<const uint32_t*>(&tags_));
+    }
+
+    template <class TagBitField>
+    NO_SANITIZE_THREAD void UpdateBool(bool value) {
+      if (value) {
+        tags_.fetch_or(TagBitField::encode(true), std::memory_order_relaxed);
+      } else {
+        tags_.fetch_and(~TagBitField::encode(true), std::memory_order_relaxed);
+      }
+    }
+
+    template <class TagBitField>
+    NO_SANITIZE_THREAD void UpdateUnsynchronized(
+        typename TagBitField::Type value) {
+      *reinterpret_cast<uint32_t*>(&tags_) =
+          TagBitField::update(value, *reinterpret_cast<uint32_t*>(&tags_));
+    }
+
+    template <class TagBitField>
+    NO_SANITIZE_THREAD bool TryAcquire() {
+      uint32_t mask = TagBitField::encode(true);
+      uint32_t old_tags = tags_.fetch_or(mask, std::memory_order_relaxed);
+      return !TagBitField::decode(old_tags);
+    }
+
+    template <class TagBitField>
+    NO_SANITIZE_THREAD bool TryClear() {
+      uint32_t mask = ~TagBitField::encode(true);
+      uint32_t old_tags = tags_.fetch_and(mask, std::memory_order_relaxed);
+      return TagBitField::decode(old_tags);
+    }
+
+   private:
+    std::atomic<uint32_t> tags_;
+    COMPILE_ASSERT(sizeof(std::atomic<uint32_t>) == sizeof(uint32_t));
   };
 
   bool IsWellFormed() const {
@@ -250,51 +320,51 @@ class RawObject {
   // visited) or black (already visited).
   bool IsMarked() const {
     ASSERT(IsOldObject());
-    return !OldAndNotMarkedBit::decode(ptr()->tags_);
+    return !ptr()->tags_.Read<OldAndNotMarkedBit>();
   }
   void SetMarkBit() {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    UpdateTagBit<OldAndNotMarkedBit>(false);
+    ptr()->tags_.UpdateBool<OldAndNotMarkedBit>(false);
   }
   void SetMarkBitUnsynchronized() {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    ptr()->tags_ = OldAndNotMarkedBit::update(false, ptr()->tags_);
+    ptr()->tags_.UpdateUnsynchronized<OldAndNotMarkedBit>(false);
   }
   void ClearMarkBit() {
     ASSERT(IsOldObject());
     ASSERT(IsMarked());
-    UpdateTagBit<OldAndNotMarkedBit>(true);
+    ptr()->tags_.UpdateBool<OldAndNotMarkedBit>(true);
   }
   // Returns false if the bit was already set.
   DART_WARN_UNUSED_RESULT
   bool TryAcquireMarkBit() {
     ASSERT(IsOldObject());
-    return TryClearTagBit<OldAndNotMarkedBit>();
+    return ptr()->tags_.TryClear<OldAndNotMarkedBit>();
   }
 
   // Canonical objects have the property that two canonical objects are
   // logically equal iff they are the same object (pointer equal).
-  bool IsCanonical() const { return CanonicalBit::decode(ptr()->tags_); }
-  void SetCanonical() { UpdateTagBit<CanonicalBit>(true); }
-  void ClearCanonical() { UpdateTagBit<CanonicalBit>(false); }
+  bool IsCanonical() const { return ptr()->tags_.Read<CanonicalBit>(); }
+  void SetCanonical() { ptr()->tags_.UpdateBool<CanonicalBit>(true); }
+  void ClearCanonical() { ptr()->tags_.UpdateBool<CanonicalBit>(false); }
 
   bool InVMIsolateHeap() const;
 
   // Support for GC remembered bit.
   bool IsRemembered() const {
     ASSERT(IsOldObject());
-    return !OldAndNotRememberedBit::decode(ptr()->tags_);
+    return !ptr()->tags_.Read<OldAndNotRememberedBit>();
   }
   void SetRememberedBit() {
     ASSERT(!IsRemembered());
     ASSERT(!IsCardRemembered());
-    UpdateTagBit<OldAndNotRememberedBit>(false);
+    ptr()->tags_.UpdateBool<OldAndNotRememberedBit>(false);
   }
   void ClearRememberedBit() {
     ASSERT(IsOldObject());
-    UpdateTagBit<OldAndNotRememberedBit>(true);
+    ptr()->tags_.UpdateBool<OldAndNotRememberedBit>(true);
   }
 
   DART_FORCE_INLINE
@@ -305,12 +375,12 @@ class RawObject {
   }
 
   bool IsCardRemembered() const {
-    return CardRememberedBit::decode(ptr()->tags_);
+    return ptr()->tags_.Read<CardRememberedBit>();
   }
   void SetCardRememberedBitUnsynchronized() {
     ASSERT(!IsRemembered());
     ASSERT(!IsCardRemembered());
-    ptr()->tags_ = CardRememberedBit::update(true, ptr()->tags_);
+    ptr()->tags_.UpdateUnsynchronized<CardRememberedBit>(true);
   }
 
 #define DEFINE_IS_CID(clazz)                                                   \
@@ -351,7 +421,7 @@ class RawObject {
     return IsFreeListElement() || IsForwardingCorpse();
   }
 
-  intptr_t GetClassId() const { return ClassIdTag::decode(ptr()->tags_); }
+  intptr_t GetClassId() const { return ptr()->tags_.Read<ClassIdTag>(); }
   intptr_t GetClassIdMayBeSmi() const {
     return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
   }
@@ -387,7 +457,7 @@ class RawObject {
     return (addr >= this_addr) && (addr < (this_addr + this_size));
   }
 
-  void Validate(Isolate* isolate) const;
+  void Validate(IsolateGroup* isolate_group) const;
   bool FindObject(FindObjectVisitor* visitor);
 
   // This function may access the class-ID in the header, but it cannot access
@@ -405,10 +475,27 @@ class RawObject {
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(RawObject);
     uword to = obj_addr + instance_size - kWordSize;
+    const auto first = reinterpret_cast<RawObject**>(from);
+    const auto last = reinterpret_cast<RawObject**>(to);
 
+#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
+    const auto unboxed_fields_bitmap =
+        visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+
+    if (!unboxed_fields_bitmap.IsEmpty()) {
+      intptr_t bit = sizeof(RawObject) / kWordSize;
+      for (RawObject** current = first; current <= last; current++) {
+        if (!unboxed_fields_bitmap.Get(bit++)) {
+          visitor->VisitPointer(current);
+        }
+      }
+    } else {
+      visitor->VisitPointers(first, last);
+    }
+#else
     // Call visitor function virtually
-    visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
-                           reinterpret_cast<RawObject**>(to));
+    visitor->VisitPointers(first, last);
+#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 
     return instance_size;
   }
@@ -426,17 +513,34 @@ class RawObject {
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(RawObject);
     uword to = obj_addr + instance_size - kWordSize;
+    const auto first = reinterpret_cast<RawObject**>(from);
+    const auto last = reinterpret_cast<RawObject**>(to);
 
+#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
+    const auto unboxed_fields_bitmap =
+        visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+
+    if (!unboxed_fields_bitmap.IsEmpty()) {
+      intptr_t bit = sizeof(RawObject) / kWordSize;
+      for (RawObject** current = first; current <= last; current++) {
+        if (!unboxed_fields_bitmap.Get(bit++)) {
+          visitor->V::VisitPointers(current, current);
+        }
+      }
+    } else {
+      visitor->V::VisitPointers(first, last);
+    }
+#else
     // Call visitor function non-virtually
-    visitor->V::VisitPointers(reinterpret_cast<RawObject**>(from),
-                              reinterpret_cast<RawObject**>(to));
+    visitor->V::VisitPointers(first, last);
+#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 
     return instance_size;
   }
 
   // This variant ensures that we do not visit the extra slot created from
   // rounding up instance sizes up to the allocation unit.
-  void VisitPointersPrecise(ObjectPointerVisitor* visitor);
+  void VisitPointersPrecise(Isolate* isolate, ObjectPointerVisitor* visitor);
 
   static RawObject* FromAddr(uword addr) {
     // We expect the untagged address here.
@@ -461,6 +565,7 @@ class RawObject {
   static bool IsTwoByteStringClassId(intptr_t index);
   static bool IsExternalStringClassId(intptr_t index);
   static bool IsBuiltinListClassId(intptr_t index);
+  static bool IsTypedDataBaseClassId(intptr_t index);
   static bool IsTypedDataClassId(intptr_t index);
   static bool IsTypedDataViewClassId(intptr_t index);
   static bool IsExternalTypedDataClassId(intptr_t index);
@@ -480,7 +585,7 @@ class RawObject {
   static intptr_t NumberOfTypedDataClasses();
 
  private:
-  RelaxedAtomic<uint32_t> tags_;  // Various object tags (bits).
+  Tags tags_;  // Various object tags (bits).
 #if defined(HASH_IN_OBJECT_HEADER)
   // On 64 bit there is a hash field in the header for the identity hash.
   uint32_t hash_;
@@ -503,29 +608,7 @@ class RawObject {
   intptr_t HeapSizeFromClass() const;
 
   void SetClassId(intptr_t new_cid) {
-    ptr()->tags_ = ClassIdTag::update(new_cid, ptr()->tags_);
-  }
-
-  template <class TagBitField>
-  void UpdateTagBit(bool value) {
-    if (value) {
-      ptr()->tags_.fetch_or(TagBitField::encode(true));
-    } else {
-      ptr()->tags_.fetch_and(~TagBitField::encode(true));
-    }
-  }
-
-  template <class TagBitField>
-  bool TryAcquireTagBit() {
-    uint32_t mask = TagBitField::encode(true);
-    uint32_t old_tags = ptr()->tags_.fetch_or(mask);
-    return !TagBitField::decode(old_tags);
-  }
-  template <class TagBitField>
-  bool TryClearTagBit() {
-    uint32_t mask = ~TagBitField::encode(true);
-    uint32_t old_tags = ptr()->tags_.fetch_and(mask);
-    return TagBitField::decode(old_tags);
+    ptr()->tags_.UpdateUnsynchronized<ClassIdTag>(new_cid);
   }
 
   // All writes to heap objects should ultimately pass through one of the
@@ -639,6 +722,12 @@ class RawObject {
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
   void StoreSmi(RawSmi* const* addr, RawSmi* value) {
+    // Can't use Contains, as array length is initialized through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
+    *const_cast<RawSmi**>(addr) = value;
+  }
+  NO_SANITIZE_THREAD
+  void StoreSmiIgnoreRace(RawSmi* const* addr, RawSmi* value) {
     // Can't use Contains, as array length is initialized through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
     *const_cast<RawSmi**>(addr) = value;
@@ -759,16 +848,33 @@ class RawClass : public RawObject {
     return NULL;
   }
 
-  cpp_vtable handle_vtable_;
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
-  int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
-  int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
-  int32_t next_field_offset_in_words_;  // Offset of the next instance field.
+
   classid_t id_;                // Class Id, also index in the class table.
   int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
   uint16_t num_native_fields_;
   uint32_t state_bits_;
+
+  // Size if fixed len or 0 if variable len.
+  int32_t host_instance_size_in_words_;
+
+  // Offset of type args fld.
+  int32_t host_type_arguments_field_offset_in_words_;
+
+  // Offset of the next instance field.
+  int32_t host_next_field_offset_in_words_;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Size if fixed len or 0 if variable len (target).
+  int32_t target_instance_size_in_words_;
+
+  // Offset of type args fld.
+  int32_t target_type_arguments_field_offset_in_words_;
+
+  // Offset of the next instance field (target).
+  int32_t target_next_field_offset_in_words_;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
@@ -902,6 +1008,63 @@ class RawFunction : public RawObject {
     kAsyncGen = kAsyncBit | kGeneratorBit,
   };
 
+  // Wraps a 64-bit integer to represent the bitmap for unboxed parameters and
+  // return value. Two bits are used for each of them - the first one indicates
+  // whether this value is unboxed or not, and the second one says whether it is
+  // an integer or a double. It includes the two bits for the receiver, even
+  // though currently we do not have information from TFA that allows the
+  // receiver to be unboxed.
+  class UnboxedParameterBitmap {
+   public:
+    static constexpr intptr_t kBitsPerParameter = 2;
+    static constexpr intptr_t kCapacity =
+        (kBitsPerByte * sizeof(uint64_t)) / kBitsPerParameter;
+
+    UnboxedParameterBitmap() : bitmap_(0) {}
+    explicit UnboxedParameterBitmap(uint64_t bitmap) : bitmap_(bitmap) {}
+    UnboxedParameterBitmap(const UnboxedParameterBitmap&) = default;
+    UnboxedParameterBitmap& operator=(const UnboxedParameterBitmap&) = default;
+
+    DART_FORCE_INLINE bool IsUnboxed(intptr_t position) const {
+      if (position >= kCapacity) {
+        return false;
+      }
+      ASSERT(Utils::TestBit(bitmap_, 2 * position) ||
+             !Utils::TestBit(bitmap_, 2 * position + 1));
+      return Utils::TestBit(bitmap_, 2 * position);
+    }
+    DART_FORCE_INLINE bool IsUnboxedInteger(intptr_t position) const {
+      if (position >= kCapacity) {
+        return false;
+      }
+      return Utils::TestBit(bitmap_, 2 * position) &&
+             !Utils::TestBit(bitmap_, 2 * position + 1);
+    }
+    DART_FORCE_INLINE bool IsUnboxedDouble(intptr_t position) const {
+      if (position >= kCapacity) {
+        return false;
+      }
+      return Utils::TestBit(bitmap_, 2 * position) &&
+             Utils::TestBit(bitmap_, 2 * position + 1);
+    }
+    DART_FORCE_INLINE void SetUnboxedInteger(intptr_t position) {
+      ASSERT(position < kCapacity);
+      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position);
+      ASSERT(!Utils::TestBit(bitmap_, 2 * position + 1));
+    }
+    DART_FORCE_INLINE void SetUnboxedDouble(intptr_t position) {
+      ASSERT(position < kCapacity);
+      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position);
+      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position + 1);
+    }
+    DART_FORCE_INLINE uint64_t Value() const { return bitmap_; }
+    DART_FORCE_INLINE bool IsEmpty() const { return bitmap_ == 0; }
+    DART_FORCE_INLINE void Reset() { bitmap_ = 0; }
+
+   private:
+    uint64_t bitmap_;
+  };
+
   static constexpr intptr_t kMaxFixedParametersBits = 15;
   static constexpr intptr_t kMaxOptionalParametersBits = 14;
 
@@ -996,6 +1159,8 @@ class RawFunction : public RawObject {
 #undef DECLARE
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  NOT_IN_PRECOMPILED(UnboxedParameterBitmap unboxed_parameters_info_);
 };
 
 class RawClosureData : public RawObject {
@@ -1074,17 +1239,11 @@ class RawField : public RawObject {
   RawObject* owner_;  // Class or patch class or mixin class
                       // where this field is defined or original field.
   RawAbstractType* type_;
-  union {
-    RawInstance* static_value_;  // Value for static fields.
-    RawSmi* offset_;             // Offset in words for instance fields.
-  } value_;
   RawFunction* initializer_function_;  // Static initializer function.
   // When generating APPJIT snapshots after running the application it is
   // necessary to save the initial value of static fields so that we can
   // restore the value back to the original initial value.
-  NOT_IN_PRECOMPILED(
-      RawInstance*
-          saved_initial_value_);  // Saved initial value - static fields.
+  NOT_IN_PRECOMPILED(RawInstance* saved_initial_value_);  // Saved initial value
   RawSmi* guarded_list_length_;
   RawArray* dependent_code_;
   RawObject** to_snapshot(Snapshot::Kind kind) {
@@ -1132,6 +1291,15 @@ class RawField : public RawObject {
   int8_t static_type_exactness_state_;
 
   uint16_t kind_bits_;  // static, final, const, has initializer....
+
+  // - for instance fields: offset in words to the value in the class instance.
+  // - for static fields: index into field_table.
+  intptr_t host_offset_or_field_id_;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // for instance fields, the offset in words in the target architecture
+  int32_t target_offset_;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class CidRewriteVisitor;
 };
@@ -1195,10 +1363,12 @@ class RawLibrary : public RawObject {
 
   enum LibraryFlags {
     kDartSchemeBit = 0,
-    kDebuggableBit,      // True if debugger can stop in library.
-    kInFullSnapshotBit,  // True if library is in a full snapshot.
-    kNnbdBit,            // True if library is non nullable by default.
-    kNumFlagBits,
+    kDebuggableBit,        // True if debugger can stop in library.
+    kInFullSnapshotBit,    // True if library is in a full snapshot.
+    kNnbdBit,              // True if library is non nullable by default.
+    kNnbdCompiledModePos,  // Encodes nnbd compiled mode of constants in lib.
+    kNnbdCompiledModeSize = 2,
+    kNumFlagBits = kNnbdCompiledModePos + kNnbdCompiledModeSize,
   };
   COMPILE_ASSERT(kNumFlagBits <= (sizeof(uint8_t) * kBitsPerByte));
   class DartSchemeBit : public BitField<uint8_t, bool, kDartSchemeBit, 1> {};
@@ -1206,6 +1376,10 @@ class RawLibrary : public RawObject {
   class InFullSnapshotBit
       : public BitField<uint8_t, bool, kInFullSnapshotBit, 1> {};
   class NnbdBit : public BitField<uint8_t, bool, kNnbdBit, 1> {};
+  class NnbdCompiledModeBits : public BitField<uint8_t,
+                                               uint8_t,
+                                               kNnbdCompiledModePos,
+                                               kNnbdCompiledModeSize> {};
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
 
@@ -1216,7 +1390,7 @@ class RawLibrary : public RawObject {
   RawArray* dictionary_;              // Top-level names in this library.
   RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
   RawClass* toplevel_class_;          // Class containing top-level elements.
-  RawGrowableObjectArray* owned_scripts_;
+  RawGrowableObjectArray* used_scripts_;
   RawArray* imports_;        // List of Namespaces imported without prefix.
   RawArray* exports_;        // List of re-exported Namespaces.
   RawExternalTypedData* kernel_data_;
@@ -1287,7 +1461,8 @@ class RawKernelProgramInfo : public RawObject {
   RawExternalTypedData* constants_table_;
   RawArray* libraries_cache_;
   RawArray* classes_cache_;
-  VISIT_TO(RawObject*, classes_cache_);
+  RawObject* retained_kernel_blob_;
+  VISIT_TO(RawObject*, retained_kernel_blob_);
 
   uint32_t kernel_binary_version_;
 
@@ -1296,8 +1471,28 @@ class RawKernelProgramInfo : public RawObject {
   }
 };
 
+class RawWeakSerializationReference : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(WeakSerializationReference);
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  VISIT_NOTHING();
+  classid_t cid_;
+#else
+  VISIT_FROM(RawObject*, target_);
+  RawObject* target_;
+  VISIT_TO(RawObject*, target_);
+#endif
+};
+
 class RawCode : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
+
+  // When in the precompiled runtime, there is no disabling of Code objects
+  // and thus no active_instructions_ field. Thus, the entry point caches are
+  // only set once during deserialization. If not using bare instructions,
+  // the caches should match the entry points for instructions_.
+  //
+  // Otherwise, they should contain entry points for active_instructions_.
 
   uword entry_point_;  // Accessed from generated code.
 
@@ -1374,19 +1569,24 @@ class RawCode : public RawObject {
 #endif
 
   // Compilation timestamp.
-  NOT_IN_PRODUCT(int64_t compile_timestamp_);
+  NOT_IN_PRODUCT(alignas(8) int64_t compile_timestamp_);
 
   // state_bits_ is a bitfield with three fields:
   // The optimized bit, the alive bit, and a count of the number of pointer
   // offsets.
   // Alive: If true, the embedded object pointers will be visited during GC.
   int32_t state_bits_;
+  // Caches the unchecked entry point offset for instructions_, in case we need
+  // to reset the active_instructions_ to instructions_.
+  NOT_IN_PRECOMPILED(uint32_t unchecked_offset_);
+  // Stores the instructions length when not using RawInstructions objects.
+  ONLY_IN_PRECOMPILED(uint32_t instructions_length_);
 
   // Variable length data follows here.
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
   const int32_t* data() const { OPEN_ARRAY_START(int32_t, int32_t); }
 
-  static bool ContainsPC(RawObject* raw_obj, uword pc);
+  static bool ContainsPC(const RawObject* raw_obj, uword pc);
 
   friend class Function;
   template <bool>
@@ -1452,6 +1652,7 @@ class RawObjectPool : public RawObject {
   }
 
   friend class Object;
+  friend class CodeSerializationCluster;
 };
 
 class RawInstructions : public RawObject {
@@ -1461,7 +1662,6 @@ class RawInstructions : public RawObject {
   // Instructions size in bytes and flags.
   // Currently, only flag indicates 1 or 2 entry points.
   uint32_t size_and_flags_;
-  uint32_t unchecked_entrypoint_pc_offset_;
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
@@ -1469,7 +1669,7 @@ class RawInstructions : public RawObject {
   // Private helper function used while visiting stack frames. The
   // code which iterates over dart frames is also called during GC and
   // is not allowed to create handles.
-  static bool ContainsPC(RawInstructions* raw_instr, uword pc);
+  static bool ContainsPC(const RawInstructions* raw_instr, uword pc);
 
   friend class RawCode;
   friend class RawFunction;
@@ -1482,6 +1682,19 @@ class RawInstructions : public RawObject {
   friend class ImageWriter;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
+};
+
+// Used only to provide memory accounting for the bare instruction payloads
+// we serialize, since they are no longer part of RawInstructions objects.
+class RawInstructionsSection : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(InstructionsSection);
+  VISIT_NOTHING();
+
+  // Instructions section payload length in bytes.
+  uword payload_length_;
+
+  // Variable length data follows here.
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
 };
 
 class RawPcDescriptors : public RawObject {
@@ -1619,12 +1832,13 @@ class RawCompressedStackMaps : public RawObject {
   // The low bits determine the expected payload contents, as described below.
   uint32_t flags_and_size_;
 
-  // Variable length data follows here. There are three types of
-  // CompressedStackMaps (CSM):
+  // Variable length data follows here. The contents of the payload depend on
+  // the type of CompressedStackMaps (CSM) being represented. There are three
+  // major types of CSM:
   //
-  // 1) kind == kInlined: CSMs that include all information about the stack
-  //    maps. The payload for these contain tightly packed entries with the
-  //    following information:
+  // 1) GlobalTableBit = false, UsesTableBit = false: CSMs that include all
+  //    information about the stack maps. The payload for these contain tightly
+  //    packed entries with the following information:
   //
   //   * A header containing the following three pieces of information:
   //     * An unsigned integer representing the PC offset as a delta from the
@@ -1636,17 +1850,20 @@ class RawCompressedStackMaps : public RawObject {
   //   * The body containing the bits for the stack map. The length of the body
   //     in bits is the sum of the spill slot and non-spill slot bit counts.
   //
-  // 2) kind == kUsesTable: CSMs where the majority of the stack map information
-  //    has been offloaded and canonicalized into a global table. The payload
-  //    contains tightly packed entries with the following information:
+  // 2) GlobalTableBit = false, UsesTableBit = true: CSMs where the majority of
+  //    the stack map information has been offloaded and canonicalized into a
+  //    global table. The payload contains tightly packed entries with the
+  //    following information:
   //
   //   * A header containing just an unsigned integer representing the PC offset
   //     delta as described above.
   //   * The body is just an unsigned integer containing the offset into the
   //     payload for the global table.
   //
-  // 3) kind == kGlobalTable: A CSM implementing the global table. Here, the
-  //    payload contains tightly packed entries with the following information:
+  // 3) GlobalTableBit = true, UsesTableBit = false: A CSM implementing the
+  //    global table. Here, the payload contains tightly packed entries with
+  //    the following information:
+  //
   //   * A header containing the following two pieces of information:
   //     * An unsigned integer representing the number of bits used for
   //       spill slot entries.
@@ -1666,23 +1883,14 @@ class RawCompressedStackMaps : public RawObject {
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
-  enum Kind {
-    kInlined = 0b00,
-    kUsesTable = 0b01,
-    kGlobalTable = 0b10,
-  };
-
-  static const uintptr_t kKindBits = 2;
-  using KindField = BitField<uint32_t, Kind, 0, kKindBits>;
-  using SizeField = BitField<uint32_t, uint32_t, kKindBits, 32 - kKindBits>;
-
-  uint32_t payload_size() const { return SizeField::decode(flags_and_size_); }
-  bool UsesGlobalTable() const {
-    return KindField::decode(flags_and_size_) == kUsesTable;
-  }
-  bool IsGlobalTable() const {
-    return KindField::decode(flags_and_size_) == kGlobalTable;
-  }
+  class GlobalTableBit : public BitField<uint32_t, bool, 0, 1> {};
+  class UsesTableBit
+      : public BitField<uint32_t, bool, GlobalTableBit::kNextBit, 1> {};
+  class SizeField : public BitField<uint32_t,
+                                    uint32_t,
+                                    UsesTableBit::kNextBit,
+                                    sizeof(flags_and_size_) * kBitsPerByte -
+                                        UsesTableBit::kNextBit> {};
 
   friend class ImageWriter;
 };
@@ -1804,8 +2012,11 @@ class RawContextScope : public RawObject {
     RawSmi* declaration_token_pos;
     RawSmi* token_pos;
     RawString* name;
-    RawBool* is_final;
-    RawBool* is_const;
+    RawSmi* flags;
+    static constexpr intptr_t kIsFinal = 0x1;
+    static constexpr intptr_t kIsConst = 0x2;
+    static constexpr intptr_t kIsLate = 0x4;
+    RawSmi* late_init_offset;
     union {
       RawAbstractType* type;
       RawInstance* value;  // iff is_const is true
@@ -1870,6 +2081,17 @@ class RawUnlinkedCall : public RawObject {
   RawString* target_name_;
   RawArray* args_descriptor_;
   VISIT_TO(RawObject*, args_descriptor_);
+  bool can_patch_to_monomorphic_;
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+};
+
+class RawMonomorphicSmiableCall : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(MonomorphicSmiableCall);
+  VISIT_FROM(RawObject*, target_);
+  RawCode* target_;  // Entrypoint PC in bare mode, Code in non-bare mode.
+  VISIT_TO(RawObject*, target_);
+  uword expected_cid_;
+  uword entrypoint_;
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
@@ -2008,12 +2230,10 @@ class RawTypeArguments : public RawInstance {
 
   VISIT_FROM(RawObject*, instantiations_)
   // The instantiations_ array remains empty for instantiated type arguments.
-  RawArray* instantiations_;  // Array of paired canonical vectors:
-                              // Even index: instantiator.
-                              // Odd index: instantiated (without bound error).
-  // Instantiations leading to bound errors do not get cached.
+  RawArray* instantiations_;  // Of 3-tuple: 2 instantiators, result.
   RawSmi* length_;
   RawSmi* hash_;
+  RawSmi* nullability_;
 
   // Variable length data follows here.
   RawAbstractType* const* types() const {
@@ -2177,6 +2397,7 @@ class RawMint : public RawInteger {
   ALIGN8 int64_t value_;
 
   friend class Api;
+  friend class Class;
   friend class Integer;
   friend class SnapshotReader;
 };
@@ -2190,6 +2411,7 @@ class RawDouble : public RawNumber {
 
   friend class Api;
   friend class SnapshotReader;
+  friend class Class;
 };
 COMPILE_ASSERT(sizeof(RawDouble) == 16);
 
@@ -2243,8 +2465,12 @@ class RawTwoByteString : public RawString {
   friend class String;
 };
 
-// Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView.
-class RawTypedDataBase : public RawInstance {
+// Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView/
+// Pointer.
+//
+// TypedData extends this with a length field, while Pointer extends this with
+// TypeArguments field.
+class RawPointerBase : public RawInstance {
  protected:
   // The contents of [data_] depends on what concrete subclass is used:
   //
@@ -2252,12 +2478,20 @@ class RawTypedDataBase : public RawInstance {
   //  - RawExternalTypedData: Start of the C-heap payload.
   //  - RawTypedDataView: The [data_] field of the backing store for the view
   //    plus the [offset_in_bytes_] the view has.
+  //  - RawPointer: Pointer into C memory (no length specified).
   //
   // During allocation or snapshot reading the [data_] can be temporarily
   // nullptr (which is the case for views which just got created but haven't
   // gotten the backing store set).
   uint8_t* data_;
 
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(PointerBase);
+};
+
+// Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView.
+class RawTypedDataBase : public RawPointerBase {
+ protected:
   // The length of the view in element sizes (obtainable via
   // [TypedDataBase::ElementSizeInBytes]).
   RawSmi* length_;
@@ -2460,6 +2694,7 @@ class RawFloat32x4 : public RawInstance {
   ALIGN8 float value_[4];
 
   friend class SnapshotReader;
+  friend class Class;
 
  public:
   float x() const { return value_[0]; }
@@ -2492,6 +2727,7 @@ class RawFloat64x2 : public RawInstance {
   ALIGN8 double value_[2];
 
   friend class SnapshotReader;
+  friend class Class;
 
  public:
   double x() const { return value_[0]; }
@@ -2520,12 +2756,12 @@ class RawExternalTypedData : public RawTypedDataBase {
   friend class RawBytecode;
 };
 
-class RawPointer : public RawInstance {
+class RawPointer : public RawPointerBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
+
   VISIT_FROM(RawCompressed, type_arguments_)
   RawTypeArguments* type_arguments_;
-  RawInteger* c_memory_address_;
-  VISIT_TO(RawCompressed, c_memory_address_)
+  VISIT_TO(RawCompressed, type_arguments_)
 
   friend class Pointer;
 };
@@ -2539,13 +2775,13 @@ class RawDynamicLibrary : public RawInstance {
 };
 
 // VM implementations of the basic types in the isolate.
-class RawCapability : public RawInstance {
+class alignas(8) RawCapability : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Capability);
   VISIT_NOTHING();
   uint64_t id_;
 };
 
-class RawSendPort : public RawInstance {
+class alignas(8) RawSendPort : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SendPort);
   VISIT_NOTHING();
   Dart_Port id_;
@@ -2683,6 +2919,16 @@ class RawUserTag : public RawInstance {
   uword tag() const { return tag_; }
 };
 
+class RawFutureOr : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(FutureOr);
+
+  VISIT_FROM(RawCompressed, type_arguments_)
+  RawTypeArguments* type_arguments_;
+  VISIT_TO(RawCompressed, type_arguments_)
+
+  friend class SnapshotReader;
+};
+
 // Class Id predicates.
 
 inline bool RawObject::IsErrorClassId(intptr_t index) {
@@ -2748,30 +2994,30 @@ inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
   // Make sure this function is updated when new builtin List types are added.
   COMPILE_ASSERT(kImmutableArrayCid == kArrayCid + 1);
   return ((index >= kArrayCid && index <= kImmutableArrayCid) ||
-          (index == kGrowableObjectArrayCid) || IsTypedDataClassId(index) ||
-          IsTypedDataViewClassId(index) || IsExternalTypedDataClassId(index) ||
+          (index == kGrowableObjectArrayCid) || IsTypedDataBaseClassId(index) ||
           (index == kByteBufferCid));
+}
+
+inline bool RawObject::IsTypedDataBaseClassId(intptr_t index) {
+  // Make sure this is updated when new TypedData types are added.
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 == kTypedDataUint8ArrayCid);
+  return index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
 }
 
 inline bool RawObject::IsTypedDataClassId(intptr_t index) {
   // Make sure this is updated when new TypedData types are added.
   COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 == kTypedDataUint8ArrayCid);
-
-  const bool is_typed_data_base =
-      index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
-  return is_typed_data_base && ((index - kTypedDataInt8ArrayCid) % 3) ==
-                                   kTypedDataCidRemainderInternal;
+  return IsTypedDataBaseClassId(index) && ((index - kTypedDataInt8ArrayCid) %
+                                           3) == kTypedDataCidRemainderInternal;
 }
 
 inline bool RawObject::IsTypedDataViewClassId(intptr_t index) {
   // Make sure this is updated when new TypedData types are added.
   COMPILE_ASSERT(kTypedDataInt8ArrayViewCid + 3 == kTypedDataUint8ArrayViewCid);
 
-  const bool is_typed_data_base =
-      index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
   const bool is_byte_data_view = index == kByteDataViewCid;
   return is_byte_data_view ||
-         (is_typed_data_base &&
+         (IsTypedDataBaseClassId(index) &&
           ((index - kTypedDataInt8ArrayCid) % 3) == kTypedDataCidRemainderView);
 }
 
@@ -2780,10 +3026,8 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
   COMPILE_ASSERT(kExternalTypedDataInt8ArrayCid + 3 ==
                  kExternalTypedDataUint8ArrayCid);
 
-  const bool is_typed_data_base =
-      index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
-  return is_typed_data_base && ((index - kTypedDataInt8ArrayCid) % 3) ==
-                                   kTypedDataCidRemainderExternal;
+  return IsTypedDataBaseClassId(index) && ((index - kTypedDataInt8ArrayCid) %
+                                           3) == kTypedDataCidRemainderExternal;
 }
 
 inline bool RawObject::IsFfiNativeTypeTypeClassId(intptr_t index) {
@@ -2847,8 +3091,9 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          RawObject::IsTwoByteStringClassId(index) ||
          RawObject::IsTypedDataClassId(index) || (index == kContextCid) ||
          (index == kTypeArgumentsCid) || (index == kInstructionsCid) ||
-         (index == kObjectPoolCid) || (index == kPcDescriptorsCid) ||
-         (index == kCodeSourceMapCid) || (index == kCompressedStackMapsCid) ||
+         (index == kInstructionsSectionCid) || (index == kObjectPoolCid) ||
+         (index == kPcDescriptorsCid) || (index == kCodeSourceMapCid) ||
+         (index == kCompressedStackMapsCid) ||
          (index == kLocalVarDescriptorsCid) ||
          (index == kExceptionHandlersCid) || (index == kCodeCid) ||
          (index == kContextScopeCid) || (index == kInstanceCid) ||

@@ -4,9 +4,7 @@
 
 import 'dart:io';
 
-/**
- * A string sink that write into a file.
- */
+/// A string sink that write into a file.
 class FileStringSink implements StringSink {
   IOSink _sink;
 
@@ -14,19 +12,23 @@ class FileStringSink implements StringSink {
     _sink = File(path).openWrite(mode: FileMode.append);
   }
 
+  @override
   void write(Object obj) {
     throw UnimplementedError();
   }
 
-  void writeAll(Iterable objects, [String separator = ""]) {
+  @override
+  void writeAll(Iterable objects, [String separator = '']) {
     throw UnimplementedError();
   }
 
+  @override
   void writeCharCode(int charCode) {
     throw UnimplementedError();
   }
 
-  void writeln([Object obj = ""]) {
+  @override
+  void writeln([Object obj = '']) {
     var currentTimeMillis = DateTime.now().millisecondsSinceEpoch;
     _sink.writeln('$currentTimeMillis $obj');
   }

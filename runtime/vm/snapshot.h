@@ -272,6 +272,8 @@ class BaseReader {
     return SerializedHeaderData::decode(value);
   }
 
+  uword ReadWordWith32BitReads() { return stream_.ReadWordWith32BitReads(); }
+
  private:
   ReadStream stream_;  // input stream.
 };
@@ -454,6 +456,7 @@ class SnapshotReader : public BaseReader {
   friend class TypeRef;
   friend class UnhandledException;
   friend class WeakProperty;
+  friend class WeakSerializationReference;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
 };
 
@@ -527,6 +530,10 @@ class BaseWriter : public StackResource {
 
   void WriteDouble(double value) {
     stream_.WriteBytes(reinterpret_cast<const uint8_t*>(&value), sizeof(value));
+  }
+
+  void WriteWordWith32BitWrites(uword value) {
+    stream_.WriteWordWith32BitWrites(value);
   }
 
  protected:
@@ -734,6 +741,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawTypeRef;
   friend class RawTypedDataView;
   friend class RawUserTag;
+  friend class RawWeakSerializationReference;
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
@@ -774,11 +782,11 @@ class MessageWriter : public SnapshotWriter {
 };
 
 // An object pointer visitor implementation which writes out
-// objects to a snap shot.
+// objects to a snapshot.
 class SnapshotWriterVisitor : public ObjectPointerVisitor {
  public:
   SnapshotWriterVisitor(SnapshotWriter* writer, bool as_references)
-      : ObjectPointerVisitor(Isolate::Current()),
+      : ObjectPointerVisitor(Isolate::Current()->group()),
         writer_(writer),
         as_references_(as_references) {}
 

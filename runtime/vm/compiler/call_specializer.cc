@@ -108,16 +108,16 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->ic_data()->NumArgsTested() <=
          call->ArgumentCountWithoutTypeArgs());
   for (intptr_t i = 0; i < call->ic_data()->NumArgsTested(); i++) {
-    class_ids.Add(
-        call->PushArgumentAt(receiver_index + i)->value()->Type()->ToCid());
+    class_ids.Add(call->ArgumentValueAt(receiver_index + i)->Type()->ToCid());
   }
 
   const Token::Kind op_kind = call->token_kind();
   if (FLAG_guess_icdata_cid) {
-    if (FLAG_precompiled_mode) {
+    if (CompilerState::Current().is_aot()) {
       // In precompiler speculate that both sides of bitwise operation
       // are Smi-s.
-      if (Token::IsBinaryBitwiseOperator(op_kind)) {
+      if (Token::IsBinaryBitwiseOperator(op_kind) &&
+          !call->HasNonSmiAssignableInterface(zone())) {
         class_ids[0] = kSmiCid;
         class_ids[1] = kSmiCid;
       }
@@ -126,13 +126,16 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
         Token::IsEqualityOperator(op_kind) ||
         Token::IsBinaryOperator(op_kind)) {
       // Guess cid: if one of the inputs is a number assume that the other
-      // is a number of same type.
-      const intptr_t cid_0 = class_ids[0];
-      const intptr_t cid_1 = class_ids[1];
-      if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
-        class_ids[0] = cid_1;
-      } else if (IsNumberCid(cid_0) && (cid_1 == kDynamicCid)) {
-        class_ids[1] = cid_0;
+      // is a number of same type, unless the interface target tells us this
+      // is impossible.
+      if (!call->HasNonSmiAssignableInterface(zone())) {
+        const intptr_t cid_0 = class_ids[0];
+        const intptr_t cid_1 = class_ids[1];
+        if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
+          class_ids[0] = cid_1;
+        } else if (IsNumberCid(cid_0) && (cid_1 == kDynamicCid)) {
+          class_ids[1] = cid_0;
+        }
       }
     }
   }
@@ -188,7 +191,7 @@ void CallSpecializer::SpecializePolymorphicInstanceCall(
     return;  // No information about receiver was infered.
   }
 
-  const ICData& ic_data = *call->instance_call()->ic_data();
+  const ICData& ic_data = *call->ic_data();
 
   const CallTargets* targets =
       FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
@@ -209,12 +212,7 @@ void CallSpecializer::SpecializePolymorphicInstanceCall(
 void CallSpecializer::ReplaceCallWithResult(Definition* call,
                                             Instruction* replacement,
                                             Definition* result) {
-  // Remove the original push arguments.
-  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = call->PushArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->definition());
-    push->RemoveFromGraph();
-  }
+  ASSERT(!call->HasPushArguments());
   if (result == nullptr) {
     ASSERT(replacement->IsDefinition());
     call->ReplaceWith(replacement->AsDefinition(), current_iterator());
@@ -744,6 +742,10 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
   if (field.needs_load_guard()) {
     return false;
   }
+  if (field.is_late()) {
+    // TODO(http://dartbug.com/40447): Inline implicit getters for late fields.
+    return false;
+  }
   if (should_clone_fields_) {
     field = field.CloneFromOriginal();
   }
@@ -755,7 +757,7 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
                    call->env(), call);
       break;
     case FlowGraph::ToCheck::kCheckCid:
-      if (FLAG_precompiled_mode) {
+      if (CompilerState::Current().is_aot()) {
         return false;  // AOT cannot class check
       }
       AddReceiverCheck(call);
@@ -811,7 +813,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
                    instr->env(), instr);
       break;
     case FlowGraph::ToCheck::kCheckCid:
-      if (FLAG_precompiled_mode) {
+      if (CompilerState::Current().is_aot()) {
         return false;  // AOT cannot class check
       }
       AddReceiverCheck(instr);
@@ -822,7 +824,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 
   // True if we can use unchecked entry into the setter.
   bool is_unchecked_call = false;
-  if (!FLAG_precompiled_mode) {
+  if (!CompilerState::Current().is_aot()) {
     if (targets.IsMonomorphic() && targets.MonomorphicExactness().IsExact()) {
       if (targets.MonomorphicExactness().IsTriviallyExact()) {
         flow_graph()->AddExactnessGuard(instr,
@@ -860,9 +862,9 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 
   // Build an AssertAssignable if necessary.
   const AbstractType& dst_type = AbstractType::ZoneHandle(zone(), field.type());
-  if (I->argument_type_checks() && !dst_type.IsTopType()) {
+  if (I->argument_type_checks() && !dst_type.IsTopTypeForAssignability()) {
     // Compute if we need to type check the value. Always type check if
-    // not in strong mode or if at a dynamic invocation.
+    // at a dynamic invocation.
     bool needs_check = true;
     if (!instr->interface_target().IsNull()) {
       if (field.is_covariant()) {
@@ -1100,16 +1102,21 @@ RawBool* CallSpecializer::InstanceOfAsBool(
     if (cls.NumTypeArguments() > 0) {
       return Bool::null();
     }
-    // As of Dart 1.5, the Null type is a subtype of (and is more specific than)
-    // any type. However, we are checking instances here and not types. The
-    // null instance is only an instance of Null, Object, and dynamic.
-    const bool is_subtype =
-        cls.IsNullClass()
-            ? (type_class.IsNullClass() || type_class.IsObjectClass() ||
-               type_class.IsDynamicClass())
-            : Class::IsSubtypeOf(NNBDMode::kLegacy, cls,
-                                 Object::null_type_arguments(), type_class,
-                                 Object::null_type_arguments(), Heap::kOld);
+    bool is_subtype = false;
+    if (cls.IsNullClass()) {
+      // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
+      // In addition, 'null' is an instance of any nullable type.
+      // It is also an instance of FutureOr<T> if it is an instance of T.
+      const AbstractType& unwrapped_type =
+          AbstractType::Handle(type.UnwrapFutureOr());
+      ASSERT(unwrapped_type.IsInstantiated());
+      is_subtype = unwrapped_type.IsTopType() || unwrapped_type.IsNullable() ||
+                   (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType());
+    } else {
+      is_subtype =
+          Class::IsSubtypeOf(cls, Object::null_type_arguments(),
+                             Nullability::kNonNullable, type, Heap::kOld);
+    }
     results->Add(cls.id());
     results->Add(static_cast<intptr_t>(is_subtype));
     if (prev.IsNull()) {
@@ -1141,7 +1148,7 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
   // Private classes cannot be subclassed by later loaded libs.
   if (!type_class.IsPrivate()) {
     // In AOT mode we can't use CHA deoptimizations.
-    ASSERT(!FLAG_precompiled_mode || !FLAG_use_cha_deopt);
+    ASSERT(!CompilerState::Current().is_aot() || !FLAG_use_cha_deopt);
     if (FLAG_use_cha_deopt || isolate()->all_classes_finalized()) {
       if (FLAG_trace_cha) {
         THR_Print(
@@ -1167,7 +1174,15 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
         TypeArguments::Handle(type.arguments());
     const bool is_raw_type = type_arguments.IsNull() ||
                              type_arguments.IsRaw(from_index, num_type_params);
-    return is_raw_type;
+    if (!is_raw_type) {
+      return false;
+    }
+  }
+  if (type.IsNullable() || type.IsTopType() || type.IsNeverType()) {
+    // A class id check is not sufficient, since a null instance also satisfies
+    // the test against a nullable type.
+    // TODO(regis): Add a null check in addition to the class id check?
+    return false;
   }
   return true;
 }
@@ -1184,18 +1199,39 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
     const AbstractType& type) {
   ASSERT(I->can_use_strong_mode_types());
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
-
-  if (type.IsDynamicType() || type.IsObjectType() || !type.IsInstantiated()) {
+  if (!type.IsInstantiated()) {
     return false;
   }
 
-  const intptr_t receiver_index = call->FirstArgIndex();
-  Value* left_value = call->PushArgumentAt(receiver_index)->value();
+  Value* left_value = call->Receiver();
+  if (left_value->Type()->IsInstanceOf(type)) {
+    ConstantInstr* replacement = flow_graph()->GetConstant(Bool::True());
+    call->ReplaceUsesWith(replacement);
+    ASSERT(current_iterator()->Current() == call);
+    current_iterator()->RemoveCurrentFromGraph();
+    return true;
+  }
 
-  if (left_value->Type()->IsSubtypeOf(type)) {
+  // The goal is to emit code that will determine the result of 'x is type'
+  // depending solely on the fact that x == null or not.
+  // Checking whether the receiver is null can only help if the tested type is
+  // non-nullable or legacy (including Never*) or the Null type.
+  // Also, testing receiver for null cannot help with FutureOr.
+  if ((type.IsNullable() && !type.IsNullType()) || type.IsFutureOrType()) {
+    return false;
+  }
+
+  // If type is Null or Never*, or the static type of the receiver is a
+  // subtype of the tested type, replace 'receiver is type' with
+  //  - 'receiver == null' if type is Null or Never*,
+  //  - 'receiver != null' otherwise.
+  if (type.IsNullType() || (type.IsNeverType() && type.IsLegacy()) ||
+      left_value->Type()->IsSubtypeOf(type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
         call->token_pos(),
-        type.IsNullType() ? Token::kEQ_STRICT : Token::kNE_STRICT,
+        (type.IsNullType() || (type.IsNeverType() && type.IsLegacy()))
+            ? Token::kEQ_STRICT
+            : Token::kNE_STRICT,
         left_value->CopyWithType(Z),
         new (Z) Value(flow_graph()->constant_null()),
         /* number_check = */ false, DeoptId::kNone);
@@ -1225,6 +1261,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
     type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
   } else {
+    ASSERT(call->ArgumentCount() == 4);
     instantiator_type_args = call->ArgumentAt(1);
     function_type_args = call->ArgumentAt(2);
     type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
@@ -1261,7 +1298,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
         new (Z) ZoneGrowableArray<intptr_t>(number_of_checks * 2);
     const Bool& as_bool =
         Bool::ZoneHandle(Z, InstanceOfAsBool(unary_checks, type, results));
-    if (as_bool.IsNull() || FLAG_precompiled_mode) {
+    if (as_bool.IsNull() || CompilerState::Current().is_aot()) {
       if (results->length() == number_of_checks * 2) {
         const bool can_deopt = SpecializeTestCidsForNumericTypes(results, type);
         if (can_deopt &&
@@ -1280,11 +1317,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       // One result only.
       AddReceiverCheck(call);
       ConstantInstr* bool_const = flow_graph()->GetConstant(as_bool);
-      for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-        PushArgumentInstr* push = call->PushArgumentAt(i);
-        push->ReplaceUsesWith(push->value()->definition());
-        push->RemoveFromGraph();
-      }
+      ASSERT(!call->HasPushArguments());
       call->ReplaceUsesWith(bool_const);
       ASSERT(current_iterator()->Current() == call);
       current_iterator()->RemoveCurrentFromGraph();
@@ -1420,10 +1453,9 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
   const ClassTable& class_table = *Isolate::Current()->class_table();
   if ((*results)[0] != kSmiCid) {
     const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
-    const Class& type_class = Class::Handle(type.type_class());
-    const bool smi_is_subtype = Class::IsSubtypeOf(
-        NNBDMode::kLegacy, smi_class, Object::null_type_arguments(), type_class,
-        Object::null_type_arguments(), Heap::kOld);
+    const bool smi_is_subtype =
+        Class::IsSubtypeOf(smi_class, Object::null_type_arguments(),
+                           Nullability::kNonNullable, type, Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {
@@ -1574,7 +1606,7 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
 
 void TypedDataSpecializer::ReplaceWithLengthGetter(TemplateDartCall<0>* call) {
   const intptr_t receiver_idx = call->FirstArgIndex();
-  auto array = call->PushArgumentAt(receiver_idx + 0)->value()->definition();
+  auto array = call->ArgumentAt(receiver_idx + 0);
 
   if (array->Type()->is_nullable()) {
     AppendNullCheck(call, &array);
@@ -1587,8 +1619,8 @@ void TypedDataSpecializer::ReplaceWithLengthGetter(TemplateDartCall<0>* call) {
 void TypedDataSpecializer::ReplaceWithIndexGet(TemplateDartCall<0>* call,
                                                classid_t cid) {
   const intptr_t receiver_idx = call->FirstArgIndex();
-  auto array = call->PushArgumentAt(receiver_idx + 0)->value()->definition();
-  auto index = call->PushArgumentAt(receiver_idx + 1)->value()->definition();
+  auto array = call->ArgumentAt(receiver_idx + 0);
+  auto index = call->ArgumentAt(receiver_idx + 1);
 
   if (array->Type()->is_nullable()) {
     AppendNullCheck(call, &array);
@@ -1605,9 +1637,9 @@ void TypedDataSpecializer::ReplaceWithIndexGet(TemplateDartCall<0>* call,
 void TypedDataSpecializer::ReplaceWithIndexSet(TemplateDartCall<0>* call,
                                                classid_t cid) {
   const intptr_t receiver_idx = call->FirstArgIndex();
-  auto array = call->PushArgumentAt(receiver_idx + 0)->value()->definition();
-  auto index = call->PushArgumentAt(receiver_idx + 1)->value()->definition();
-  auto value = call->PushArgumentAt(receiver_idx + 2)->value()->definition();
+  auto array = call->ArgumentAt(receiver_idx + 0);
+  auto index = call->ArgumentAt(receiver_idx + 1);
+  auto value = call->ArgumentAt(receiver_idx + 2);
 
   if (array->Type()->is_nullable()) {
     AppendNullCheck(call, &array);
@@ -1671,9 +1703,9 @@ Definition* TypedDataSpecializer::AppendLoadIndexed(TemplateDartCall<0>* call,
                         compiler::target::TypedDataBase::data_field_offset());
   flow_graph_->InsertBefore(call, data, call->env(), FlowGraph::kValue);
 
-  Definition* load = new (Z)
-      LoadIndexedInstr(new (Z) Value(data), new (Z) Value(index), index_scale,
-                       cid, kAlignedAccess, DeoptId::kNone, call->token_pos());
+  Definition* load = new (Z) LoadIndexedInstr(
+      new (Z) Value(data), new (Z) Value(index), /*index_unboxed=*/false,
+      index_scale, cid, kAlignedAccess, DeoptId::kNone, call->token_pos());
   flow_graph_->InsertBefore(call, load, call->env(), FlowGraph::kValue);
 
   if (cid == kTypedDataFloat32ArrayCid) {
@@ -1751,9 +1783,14 @@ void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
 
   auto store = new (Z) StoreIndexedInstr(
       new (Z) Value(data), new (Z) Value(index), new (Z) Value(value),
-      kNoStoreBarrier, index_scale, cid, kAlignedAccess, DeoptId::kNone,
-      call->token_pos(), Instruction::kNotSpeculative);
+      kNoStoreBarrier, /*index_unboxed=*/false, index_scale, cid,
+      kAlignedAccess, DeoptId::kNone, call->token_pos(),
+      Instruction::kNotSpeculative);
   flow_graph_->InsertBefore(call, store, call->env(), FlowGraph::kEffect);
+}
+
+void CallSpecializer::ReplaceInstanceCallsWithDispatchTableCalls() {
+  // Only implemented for AOT.
 }
 
 }  // namespace dart

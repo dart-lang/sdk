@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -17,11 +15,6 @@ main() {
 
 @reflectiveTest
 class SuperInExtensionTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
   test_binaryOperator_inMethod() async {
     await assertErrorsInCode('''
 extension E on int {
@@ -76,10 +69,10 @@ extension E on C {
   test_method_inGetter() async {
     await assertErrorsInCode('''
 extension E on int {
-  int get displayTest => super.toString();
+  String get displayText => super.toString();
 }
 ''', [
-      error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 46, 5),
+      error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 49, 5),
     ]);
   }
 

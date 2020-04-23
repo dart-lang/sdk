@@ -4,8 +4,7 @@
 
 library EventCustomEventTest;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'dart:html';
 import 'dart:js' as js;
 
@@ -16,8 +15,6 @@ class DartPayloadData {
 }
 
 main() {
-  useHtmlConfiguration();
-
   test('custom events', () {
     var provider = new EventStreamProvider<CustomEvent>('foo');
     var el = new DivElement();

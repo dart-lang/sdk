@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../sdk_args.gni")
 import("configs.gni")
 import("runtime_args.gni")
 
@@ -56,11 +57,6 @@ config("dart_precompiled_runtime_config") {
 config("dart_precompiler_config") {
   defines = []
   defines += [ "DART_PRECOMPILER" ]
-}
-
-config("dart_nosnapshot_config") {
-  defines = []
-  defines += [ "DART_NO_SNAPSHOT" ]
 }
 
 config("dart_os_config") {
@@ -144,6 +140,10 @@ config("dart_config") {
     }
   }
 
+  if (use_nnbd) {
+    defines += [ "DART_BUILT_WITH_NNBD_FLAG" ]
+  }
+
   if (!is_win) {
     cflags = [
       "-Werror",
@@ -211,8 +211,8 @@ source_set("dart_api") {
 library_for_all_configs("libdart") {
   target_type = dart_component_kind
   extra_deps = [
-    "third_party/double-conversion/src:libdouble_conversion",
     ":generate_version_cc_file",
+    "third_party/double-conversion/src:libdouble_conversion",
   ]
   if (dart_enable_wasm) {
     extra_deps += [ "//third_party/wasmer" ]
@@ -257,12 +257,10 @@ action("generate_version_cc_file") {
     "vm/version_in.cc",
   ]
   if (dart_version_git_info) {
-    inputs += [ "../.git/logs/HEAD" ]
+    inputs += [ "$default_git_folder/logs/HEAD" ]
   }
   output = "$target_gen_dir/version.cc"
-  outputs = [
-    output,
-  ]
+  outputs = [ output ]
 
   script = "../tools/make_version.py"
   args = [

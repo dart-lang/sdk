@@ -7,8 +7,6 @@
 //
 // SharedObjects=ffi_test_functions
 
-library FfiTest;
-
 import 'dart:ffi';
 
 import 'dylib_utils.dart';
@@ -23,8 +21,8 @@ typedef NativeCoordinateOp = Pointer<Coordinate> Function(Pointer<Coordinate>);
 
 void main() {
   testFunctionWithStruct();
-  // testFunctionWithStructArray();
-  // testFunctionWithVeryLargeStruct();
+  testFunctionWithStructArray();
+  testFunctionWithVeryLargeStruct();
 }
 
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");

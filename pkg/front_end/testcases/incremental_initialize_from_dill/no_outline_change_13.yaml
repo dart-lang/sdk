@@ -1,0 +1,42 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Prefixed imports with re-exports and the re-exported would have been part of
+# the "normal" invalidation.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    sources:
+      main.dart: |
+        import "lib1.dart" as prefix;
+        main() {
+          print(prefix.Foo.BAR);
+        }
+      lib1.dart: |
+        export "lib2.dart" show Foo;
+        import "main.dart";
+      lib2.dart: |
+        class Foo {
+          static const Foo BAR = const Foo("BAR");
+          const Foo(String x);
+        }
+    expectedLibraryCount: 3
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "lib1.dart" as prefix;
+        main() {
+          print(prefix.Foo.BAR);
+          print(prefix.Foo.BAR);
+        }
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true

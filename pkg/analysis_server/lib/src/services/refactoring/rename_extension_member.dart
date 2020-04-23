@@ -22,9 +22,7 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * A [Refactoring] for renaming extension member [Element]s.
- */
+/// A [Refactoring] for renaming extension member [Element]s.
 class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   final AnalysisSessionHelper sessionHelper;
 
@@ -38,12 +36,12 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   String get refactoringName {
     if (element is TypeParameterElement) {
-      return "Rename Type Parameter";
+      return 'Rename Type Parameter';
     }
     if (element is FieldElement) {
-      return "Rename Field";
+      return 'Rename Field';
     }
-    return "Rename Method";
+    return 'Rename Method';
   }
 
   @override
@@ -55,7 +53,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
-    RefactoringStatus result = await super.checkInitialConditions();
+    var result = await super.checkInitialConditions();
     if (element is MethodElement && (element as MethodElement).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }
@@ -64,7 +62,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   RefactoringStatus checkNewName() {
-    RefactoringStatus result = super.checkNewName();
+    var result = super.checkNewName();
     if (element is FieldElement) {
       result.addStatus(validateFieldName(newName));
     }
@@ -92,9 +90,8 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 }
 
-/**
- * Helper to check if the created or renamed [Element] will cause any conflicts.
- */
+/// Helper to check if the created or renamed [Element] will cause any
+/// conflicts.
 class _ExtensionMemberValidator {
   final SearchEngine searchEngine;
   final AnalysisSessionHelper sessionHelper;
@@ -118,7 +115,7 @@ class _ExtensionMemberValidator {
 
   Future<RefactoringStatus> validate() async {
     // Check if there is a member with "newName" in the extension.
-    for (Element newNameMember in getChildren(elementExtension, name)) {
+    for (var newNameMember in getChildren(elementExtension, name)) {
       result.addError(
         format(
           "Extension '{0}' already declares {1} with name '{2}'.",
@@ -134,9 +131,9 @@ class _ExtensionMemberValidator {
 
     // usage of the renamed Element is shadowed by a local element
     {
-      _MatchShadowedByLocal conflict = await _getShadowingLocalElement();
+      var conflict = await _getShadowingLocalElement();
       if (conflict != null) {
-        LocalElement localElement = conflict.localElement;
+        var localElement = conflict.localElement;
         result.addError(
           format(
             "Usage of renamed {0} will be shadowed by {1} '{2}'.",
@@ -157,7 +154,7 @@ class _ExtensionMemberValidator {
     var visibleRangeMap = <LocalElement, SourceRange>{};
 
     Future<List<LocalElement>> getLocalElements(Element element) async {
-      var unitElement = element.getAncestor((e) => e is CompilationUnitElement);
+      var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
       var localElements = localElementMap[unitElement];
 
       if (localElements == null) {
@@ -175,15 +172,15 @@ class _ExtensionMemberValidator {
       return localElements;
     }
 
-    for (SearchMatch match in references) {
+    for (var match in references) {
       // Qualified reference cannot be shadowed by local elements.
       if (match.isQualified) {
         continue;
       }
       // Check local elements that might shadow the reference.
       var localElements = await getLocalElements(match.element);
-      for (LocalElement localElement in localElements) {
-        SourceRange elementRange = visibleRangeMap[localElement];
+      for (var localElement in localElements) {
+        var elementRange = visibleRangeMap[localElement];
         if (elementRange != null &&
             elementRange.intersects(match.sourceRange)) {
           return _MatchShadowedByLocal(match, localElement);
@@ -193,9 +190,7 @@ class _ExtensionMemberValidator {
     return null;
   }
 
-  /**
-   * Fills [references] with references to the [element].
-   */
+  /// Fills [references] with references to the [element].
   Future<void> _prepareReferences() async {
     if (!isRename) return;
 
@@ -211,8 +206,9 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
 
   _LocalElementsCollector(this.name);
 
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.staticElement;
     if (element is LocalElement && element.name == name) {
       elements.add(element);
     }

@@ -351,6 +351,10 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
     declareTypeParameters(node.typeParameters);
     for (var typeParameter in node.typeParameters) {
       typeParameter.bound?.accept(this);
+      if (typeParameter.annotations.isNotEmpty) {
+        problem(
+            typeParameter, "Annotation on type parameter in function type.");
+      }
     }
     visitList(node.positionalParameters, this);
     visitList(node.namedParameters, this);

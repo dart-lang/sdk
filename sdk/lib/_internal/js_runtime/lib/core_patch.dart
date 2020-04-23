@@ -106,7 +106,7 @@ class Expando<T> {
   Expando([String name])
       : this.name = name,
         _jsWeakMapOrKey = JS('bool', 'typeof WeakMap == "function"')
-            ? JS('=Object|Null', 'new WeakMap()')
+            ? JS('=Object', 'new WeakMap()')
             : _createKey();
 
   @patch
@@ -438,6 +438,12 @@ class List<E> {
     }
     if (growable) return list;
     return makeListFixedLength(list);
+  }
+
+  @patch
+  factory List.of(Iterable<E> elements, {bool growable: true}) {
+    // TODO(32937): Specialize to benefit from known element type.
+    return List.from(elements, growable: growable);
   }
 
   @patch

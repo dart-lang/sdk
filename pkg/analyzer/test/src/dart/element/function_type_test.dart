@@ -5,9 +5,9 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -26,6 +26,7 @@ VoidTypeImpl get voidType => VoidTypeImpl.instance;
 
 @reflectiveTest
 class FunctionTypeTest with ElementsTypesMixin {
+  @override
   final TypeProvider typeProvider = TestTypeProvider();
 
   InterfaceType get intType => typeProvider.intType;
@@ -38,22 +39,24 @@ class FunctionTypeTest with ElementsTypesMixin {
 
   void basicChecks(FunctionType f,
       {element,
-      displayName: 'dynamic Function()',
+      displayName = 'dynamic Function()',
       returnType,
-      namedParameterTypes: isEmpty,
-      normalParameterNames: isEmpty,
-      normalParameterTypes: isEmpty,
-      optionalParameterNames: isEmpty,
-      optionalParameterTypes: isEmpty,
-      parameters: isEmpty,
-      typeFormals: isEmpty,
-      typeArguments: isEmpty,
-      typeParameters: isEmpty,
-      name: isNull}) {
+      namedParameterTypes = isEmpty,
+      normalParameterNames = isEmpty,
+      normalParameterTypes = isEmpty,
+      optionalParameterNames = isEmpty,
+      optionalParameterTypes = isEmpty,
+      parameters = isEmpty,
+      typeFormals = isEmpty,
+      typeArguments = isEmpty,
+      typeParameters = isEmpty}) {
     // DartType properties
-    expect(f.displayName, displayName, reason: 'displayName');
+    expect(
+      f.getDisplayString(withNullability: false),
+      displayName,
+      reason: 'displayName',
+    );
     expect(f.element, element, reason: 'element');
-    expect(f.name, name, reason: 'name');
     // ParameterizedType properties
     expect(f.typeArguments, typeArguments, reason: 'typeArguments');
     // FunctionType properties
@@ -74,10 +77,10 @@ class FunctionTypeTest with ElementsTypesMixin {
 
   GenericTypeAliasElementImpl genericTypeAliasElement(
     String name, {
-    List<ParameterElement> parameters: const [],
+    List<ParameterElement> parameters = const [],
     DartType returnType,
-    List<TypeParameterElement> typeParameters: const [],
-    List<TypeParameterElement> innerTypeParameters: const [],
+    List<TypeParameterElement> typeParameters = const [],
+    List<TypeParameterElement> innerTypeParameters = const [],
   }) {
     var aliasElement = GenericTypeAliasElementImpl(name, 0);
     aliasElement.typeParameters = typeParameters;
@@ -285,7 +288,7 @@ class FunctionTypeTest with ElementsTypesMixin {
   }
 
   test_synthetic() {
-    FunctionType f = new FunctionTypeImpl(
+    FunctionType f = FunctionTypeImpl(
       typeFormals: const [],
       parameters: const [],
       returnType: dynamicType,
@@ -298,7 +301,7 @@ class FunctionTypeTest with ElementsTypesMixin {
     // T Function<T>(T x)
     var t = typeParameter('T');
     var x = requiredParameter(name: 'x', type: typeParameterType(t));
-    FunctionType f = new FunctionTypeImpl(
+    FunctionType f = FunctionTypeImpl(
       typeFormals: [t],
       parameters: [x],
       returnType: typeParameterType(t),
@@ -317,17 +320,17 @@ class FunctionTypeTest with ElementsTypesMixin {
   test_synthetic_instantiate_argument_length_mismatch() {
     // dynamic Function<T>()
     var t = typeParameter('T');
-    FunctionType f = new FunctionTypeImpl(
+    FunctionType f = FunctionTypeImpl(
       typeFormals: [t],
       parameters: const [],
       returnType: dynamicType,
       nullabilitySuffix: NullabilitySuffix.star,
     );
-    expect(() => f.instantiate([]), throwsA(new TypeMatcher<ArgumentError>()));
+    expect(() => f.instantiate([]), throwsA(TypeMatcher<ArgumentError>()));
   }
 
   test_synthetic_instantiate_no_type_formals() {
-    FunctionType f = new FunctionTypeImpl(
+    FunctionType f = FunctionTypeImpl(
       typeFormals: const [],
       parameters: const [],
       returnType: dynamicType,
@@ -340,7 +343,7 @@ class FunctionTypeTest with ElementsTypesMixin {
     // T Function<T>(int x)
     var t = typeParameter('T');
     var x = requiredParameter(name: 'x', type: intType);
-    FunctionType f = new FunctionTypeImpl(
+    FunctionType f = FunctionTypeImpl(
       typeFormals: [t],
       parameters: [x],
       returnType: typeParameterType(t),
@@ -358,7 +361,7 @@ class FunctionTypeTest with ElementsTypesMixin {
 
   test_synthetic_namedParameter() {
     var p = namedParameter(name: 'x', type: objectType);
-    FunctionType f = new FunctionTypeImpl(
+    FunctionType f = FunctionTypeImpl(
       typeFormals: const [],
       parameters: [p],
       returnType: dynamicType,
@@ -366,7 +369,7 @@ class FunctionTypeTest with ElementsTypesMixin {
     );
     basicChecks(f,
         element: isNull,
-        displayName: 'dynamic Function({x: Object})',
+        displayName: 'dynamic Function({Object x})',
         namedParameterTypes: {'x': same(objectType)},
         parameters: hasLength(1));
     expect(f.parameters[0].isNamed, isTrue);
@@ -376,7 +379,7 @@ class FunctionTypeTest with ElementsTypesMixin {
 
   test_synthetic_normalParameter() {
     var p = requiredParameter(name: 'x', type: objectType);
-    FunctionType f = new FunctionTypeImpl(
+    FunctionType f = FunctionTypeImpl(
       typeFormals: const [],
       parameters: [p],
       returnType: dynamicType,
@@ -395,7 +398,7 @@ class FunctionTypeTest with ElementsTypesMixin {
 
   test_synthetic_optionalParameter() {
     var p = positionalParameter(name: 'x', type: objectType);
-    FunctionType f = new FunctionTypeImpl(
+    FunctionType f = FunctionTypeImpl(
       typeFormals: const [],
       parameters: [p],
       returnType: dynamicType,
@@ -413,7 +416,7 @@ class FunctionTypeTest with ElementsTypesMixin {
   }
 
   test_synthetic_returnType() {
-    FunctionType f = new FunctionTypeImpl(
+    FunctionType f = FunctionTypeImpl(
       typeFormals: const [],
       parameters: const [],
       returnType: objectType,
@@ -432,7 +435,7 @@ class FunctionTypeTest with ElementsTypesMixin {
     var u = typeParameter('U', bound: typeParameterType(t));
     var x = requiredParameter(name: 'x', type: typeParameterType(t));
     var y = requiredParameter(name: 'y', type: typeParameterType(u));
-    FunctionType f = new FunctionTypeImpl.synthetic(
+    FunctionType f = FunctionTypeImpl.synthetic(
         mapOf(typeParameterType(t), typeParameterType(u)), [u], [x, y],
         nullabilitySuffix: NullabilitySuffix.star);
     FunctionType substituted =
@@ -455,10 +458,10 @@ class FunctionTypeTest with ElementsTypesMixin {
   test_synthetic_substitute_argument_length_mismatch() {
     // dynamic Function()
     var t = typeParameter('T');
-    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [],
+    FunctionType f = FunctionTypeImpl.synthetic(dynamicType, [], [],
         nullabilitySuffix: NullabilitySuffix.star);
     expect(() => f.substitute2([], [typeParameterType(t)]),
-        throwsA(new TypeMatcher<ArgumentError>()));
+        throwsA(TypeMatcher<ArgumentError>()));
   }
 
   @deprecated
@@ -467,7 +470,7 @@ class FunctionTypeTest with ElementsTypesMixin {
     var t = typeParameter('T');
     var u = typeParameter('U');
     var x = requiredParameter(name: 'x', type: typeParameterType(u));
-    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [u], [x],
+    FunctionType f = FunctionTypeImpl.synthetic(dynamicType, [u], [x],
         nullabilitySuffix: NullabilitySuffix.star);
     FunctionType substituted =
         f.substitute2([objectType], [typeParameterType(t)]);
@@ -476,7 +479,7 @@ class FunctionTypeTest with ElementsTypesMixin {
 
   test_synthetic_typeFormals() {
     var t = typeParameter('T');
-    FunctionType f = new FunctionTypeImpl(
+    FunctionType f = FunctionTypeImpl(
       typeFormals: [t],
       parameters: const [],
       returnType: typeParameterType(t),
@@ -496,6 +499,7 @@ class MockCompilationUnitElement implements CompilationUnitElement {
   @override
   get enclosingElement => const MockLibraryElement();
 
+  @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
@@ -515,18 +519,19 @@ class MockFunctionTypedElement implements FunctionTypedElement {
   final Element enclosingElement;
 
   MockFunctionTypedElement(
-      {this.parameters: const [],
+      {this.parameters = const [],
       DartType returnType,
-      this.typeParameters: const [],
-      this.enclosingElement: const MockCompilationUnitElement()})
+      this.typeParameters = const [],
+      this.enclosingElement = const MockCompilationUnitElement()})
       : returnType = returnType ?? dynamicType;
 
   MockFunctionTypedElement.withNullReturn(
-      {this.parameters: const [],
-      this.typeParameters: const [],
-      this.enclosingElement: const MockCompilationUnitElement()})
+      {this.parameters = const [],
+      this.typeParameters = const [],
+      this.enclosingElement = const MockCompilationUnitElement()})
       : returnType = null;
 
+  @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
@@ -538,6 +543,7 @@ class MockLibraryElement implements LibraryElement {
   @override
   get enclosingElement => null;
 
+  @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }

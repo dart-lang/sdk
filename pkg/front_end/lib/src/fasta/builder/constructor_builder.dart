@@ -7,11 +7,12 @@ import 'dart:core' hide MapEntry;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
-
+import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/expression_generator_helper.dart'
     show ExpressionGeneratorHelper;
 
@@ -32,6 +33,7 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'builder.dart';
 import 'class_builder.dart';
+import 'field_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_builder.dart';
 import 'library_builder.dart';
@@ -63,8 +65,6 @@ abstract class ConstructorBuilder implements FunctionBuilder {
 
   bool get isRedirectingGenerativeConstructor;
 
-  bool get isEligibleForTopLevelInference;
-
   /// The [Constructor] built by this builder.
   Constructor get constructor;
 
@@ -75,11 +75,29 @@ abstract class ConstructorBuilder implements FunctionBuilder {
       Initializer initializer, ExpressionGeneratorHelper helper);
 
   void prepareInitializers();
+
+  /// Infers the types of any untyped initializing formals.
+  void inferFormalTypes();
+
+  /// Registers field as being initialized by this constructor.
+  ///
+  /// The field can be initialized either via an initializing formal or via an
+  /// entry in the constructor initializer list.
+  void registerInitializedField(FieldBuilder fieldBuilder);
+
+  /// Returns the fields registered as initialized by this constructor.
+  ///
+  /// Returns the set of fields previously registered via
+  /// [registerInitializedField] and passes on the ownership of the collection
+  /// to the caller.
+  Set<FieldBuilder> takeInitializedFields();
 }
 
 class ConstructorBuilderImpl extends FunctionBuilderImpl
     implements ConstructorBuilder {
   final Constructor _constructor;
+
+  Set<FieldBuilder> _initializedFields;
 
   @override
   final int charOpenParenOffset;
@@ -114,11 +132,15 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
+      Constructor referenceFrom,
       [String nativeMethodName])
-      : _constructor = new Constructor(null, fileUri: compilationUnit?.fileUri)
+      : _constructor = new Constructor(null,
+            fileUri: compilationUnit.fileUri,
+            reference: referenceFrom?.reference)
           ..startFileOffset = startCharOffset
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset,
+          ..fileEndOffset = charEndOffset
+          ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
@@ -158,16 +180,6 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
-  bool get isEligibleForTopLevelInference {
-    if (formals != null) {
-      for (FormalParameterBuilder formal in formals) {
-        if (formal.type == null && formal.isInitializingFormal) return true;
-      }
-    }
-    return false;
-  }
-
-  @override
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     Member member = build(library);
@@ -186,21 +198,40 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       _constructor.isExternal = isExternal;
       _constructor.name = new Name(name, libraryBuilder.library);
     }
-    if (isEligibleForTopLevelInference) {
+    if (formals != null) {
+      bool needsInference = false;
       for (FormalParameterBuilder formal in formals) {
         if (formal.type == null && formal.isInitializingFormal) {
           formal.variable.type = null;
+          needsInference = true;
         }
       }
-      libraryBuilder.loader.typeInferenceEngine.toBeInferred[_constructor] =
-          libraryBuilder;
+      if (needsInference) {
+        assert(
+            library == libraryBuilder,
+            "Unexpected library builder ${libraryBuilder} for"
+            " constructor $this in ${library}.");
+        libraryBuilder.loader.typeInferenceEngine.toBeInferred[_constructor] =
+            this;
+      }
     }
     return _constructor;
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library) {
-    super.buildOutlineExpressions(library);
+  void inferFormalTypes() {
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals) {
+        if (formal.type == null && formal.isInitializingFormal) {
+          formal.finalizeInitializingFormal(classBuilder);
+        }
+      }
+    }
+  }
+
+  @override
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+    super.buildOutlineExpressions(library, coreTypes);
 
     // For modular compilation purposes we need to include initializers
     // for const constructors into the outline.
@@ -217,7 +248,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
-  FunctionNode buildFunction(LibraryBuilder library) {
+  FunctionNode buildFunction(SourceLibraryBuilder library) {
     // According to the specification §9.3 the return type of a constructor
     // function is its enclosing class.
     FunctionNode functionNode = super.buildFunction(library);
@@ -344,5 +375,25 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     redirectingInitializer = null;
     superInitializer = null;
     hasMovedSuperInitializer = false;
+  }
+
+  @override
+  List<ClassMember> get localMembers =>
+      throw new UnsupportedError('${runtimeType}.localMembers');
+
+  @override
+  List<ClassMember> get localSetters =>
+      throw new UnsupportedError('${runtimeType}.localSetters');
+
+  @override
+  void registerInitializedField(FieldBuilder fieldBuilder) {
+    (_initializedFields ??= {}).add(fieldBuilder);
+  }
+
+  @override
+  Set<FieldBuilder> takeInitializedFields() {
+    Set<FieldBuilder> result = _initializedFields;
+    _initializedFields = null;
+    return result;
   }
 }

@@ -7,7 +7,7 @@
 
 import 'dart:core' show int;
 
-/*@warning=TypeNotFound*/ dynamic testDynamic() => 0;
+dynamic testDynamic() => 0;
 void testVoid() {}
 
 main() {}

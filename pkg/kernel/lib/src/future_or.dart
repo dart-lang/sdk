@@ -35,7 +35,7 @@ Nullability intersectNullabilities(Nullability a, Nullability b) {
 
 Nullability computeNullabilityOfFutureOr(
     InterfaceType futureOr, Class futureOrClass) {
-  assert(futureOr.classNode == futureOrClass);
+  assert(_isFutureOr(futureOr, futureOrClass));
 
   // Performance note: the algorithm is linear.
   DartType argument = futureOr.typeArguments.single;
@@ -46,8 +46,7 @@ Nullability computeNullabilityOfFutureOr(
   }
   if (argument is TypeParameterType && argument.promotedBound != null) {
     DartType promotedBound = argument.promotedBound;
-    if (promotedBound is InterfaceType &&
-        promotedBound.className == futureOrClass) {
+    if (_isFutureOr(promotedBound, futureOrClass)) {
       return uniteNullabilities(
           intersectNullabilities(argument.typeParameterTypeNullability,
               computeNullabilityOfFutureOr(promotedBound, futureOrClass)),
@@ -59,9 +58,34 @@ Nullability computeNullabilityOfFutureOr(
   return uniteNullabilities(argumentNullability, futureOr.nullability);
 }
 
+bool _isFutureOr(DartType type, Class futureOrClass) {
+  if (type is InterfaceType) {
+    if (futureOrClass != null) {
+      return type.classNode == futureOrClass;
+    } else {
+      return type.classNode.name == 'FutureOr' &&
+          type.classNode.enclosingLibrary.importUri.scheme == 'dart' &&
+          type.classNode.enclosingLibrary.importUri.path == 'async';
+    }
+  }
+  return false;
+}
+
 Nullability computeNullability(DartType type, Class futureOrClass) {
-  if (type is InterfaceType && type.classNode == futureOrClass) {
+  if (_isFutureOr(type, futureOrClass)) {
     return computeNullabilityOfFutureOr(type, futureOrClass);
   }
-  return type.nullability;
+  return type is InvalidType ? Nullability.undetermined : type.nullability;
+}
+
+bool isPotentiallyNullable(DartType type, Class futureOrClass) {
+  Nullability nullability = computeNullability(type, futureOrClass);
+  return nullability == Nullability.nullable ||
+      nullability == Nullability.undetermined;
+}
+
+bool isPotentiallyNonNullable(DartType type, Class futureOrClass) {
+  Nullability nullability = computeNullability(type, futureOrClass);
+  return nullability == Nullability.nonNullable ||
+      nullability == Nullability.undetermined;
 }

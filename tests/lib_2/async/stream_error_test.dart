@@ -72,6 +72,11 @@ void main() async {
     await onDone.future;
   }
 
+  // A null error argument is a synchronous error.
+  Expect.throwsArgumentError(() {
+    Stream.error(null);
+  });
+
   asyncEnd();
 }
 

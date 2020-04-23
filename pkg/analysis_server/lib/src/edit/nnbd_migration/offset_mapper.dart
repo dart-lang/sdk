@@ -22,12 +22,12 @@ abstract class OffsetMapper {
 class _EditMapper implements OffsetMapper {
   /// A list whose elements are the highest pre-edit offset for which the
   /// corresponding element of [_deltas] should be applied.
-  List<int> _offsets = [];
+  final List<int> _offsets = [];
 
   /// A list whose elements are the deltas to be applied for all pre-edit
   /// offsets that are less than or equal to the corresponding element of
   /// [_offsets].
-  List<int> _deltas = [];
+  final List<int> _deltas = [];
 
   /// Initialize a newly created mapper based on the given set of [edits].
   _EditMapper(List<SourceEdit> edits) {
@@ -40,8 +40,8 @@ class _EditMapper implements OffsetMapper {
   /// Return the delta to be added to the pre-edit [offset] to produce the
   /// post-edit offset.
   int _deltaFor(int offset) {
-    for (int i = 0; i < _offsets.length; i++) {
-      int currentOffset = _offsets[i];
+    for (var i = 0; i < _offsets.length; i++) {
+      var currentOffset = _offsets[i];
       if (currentOffset >= offset || currentOffset < 0) {
         return _deltas[i];
       }
@@ -53,10 +53,10 @@ class _EditMapper implements OffsetMapper {
 
   /// Initialize the list of old offsets and deltas used by [_deltaFor].
   void _initializeDeltas(List<SourceEdit> edits) {
-    int previousDelta = 0;
-    for (SourceEdit edit in edits) {
-      int offset = edit.offset;
-      int length = edit.length;
+    var previousDelta = 0;
+    for (var edit in edits) {
+      var offset = edit.offset;
+      var length = edit.length;
       _offsets.add(offset);
       _deltas.add(previousDelta);
       previousDelta += (edit.replacement.length - length);

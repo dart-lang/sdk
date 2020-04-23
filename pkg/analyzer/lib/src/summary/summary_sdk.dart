@@ -26,20 +26,20 @@ class SummaryBasedDartSdk implements DartSdk {
   /**
    * The [AnalysisContext] which is used for all of the sources in this sdk.
    */
-  InternalAnalysisContext _analysisContext;
+  SdkAnalysisContext _analysisContext;
 
   SummaryBasedDartSdk(String summaryPath, bool _, {this.resourceProvider}) {
-    _dataStore = new SummaryDataStore(<String>[summaryPath],
+    _dataStore = SummaryDataStore(<String>[summaryPath],
         resourceProvider: resourceProvider);
-    _uriResolver = new InSummaryUriResolver(resourceProvider, _dataStore);
+    _uriResolver = InSummaryUriResolver(resourceProvider, _dataStore);
     _bundle = _dataStore.bundles.single;
   }
 
   SummaryBasedDartSdk.fromBundle(bool _, PackageBundle bundle,
       {this.resourceProvider}) {
-    _dataStore = new SummaryDataStore([], resourceProvider: resourceProvider);
+    _dataStore = SummaryDataStore([], resourceProvider: resourceProvider);
     _dataStore.addBundle('dart_sdk.sum', bundle);
-    _uriResolver = new InSummaryUriResolver(resourceProvider, _dataStore);
+    _uriResolver = InSummaryUriResolver(resourceProvider, _dataStore);
     _bundle = bundle;
   }
 
@@ -52,31 +52,27 @@ class SummaryBasedDartSdk implements DartSdk {
   AnalysisContext get context {
     if (_analysisContext == null) {
       var analysisOptions = AnalysisOptionsImpl();
-      var factory = SourceFactory(
-        [DartUriResolver(this)],
-        null,
-        resourceProvider,
-      );
-      _analysisContext = new SdkAnalysisContext(analysisOptions, factory);
+      var factory = SourceFactory([DartUriResolver(this)]);
+      _analysisContext = SdkAnalysisContext(analysisOptions, factory);
     }
     return _analysisContext;
   }
 
   @override
   List<SdkLibrary> get sdkLibraries {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   String get sdkVersion {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   bool get strongMode => true;
 
   @override
   List<String> get uris {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override

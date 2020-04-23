@@ -16,12 +16,12 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
 
 
   Node get first {
-    Node result = JS('Node|Null', '#.firstChild', _this);
+    Node$NULLABLE result = JS('Node|Null', '#.firstChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
   Node get last {
-    Node result = JS('Node|Null', '#.lastChild', _this);
+    Node$NULLABLE result = JS('Node|Null', '#.lastChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -29,7 +29,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     int l = this.length;
     if (l == 0) throw new StateError("No elements");
     if (l > 1) throw new StateError("More than one element");
-    return JS('Node|Null', '#.firstChild', _this);
+    return JS('Node|Null', '#.firstChild', _this)$NULLASSERT;
   }
 
   void add(Node value) {
@@ -42,7 +42,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
       if (!identical(otherList._this, _this)) {
         // Optimized route for copying between nodes.
         for (var i = 0, len = otherList.length; i < len; ++i) {
-          _this.append(otherList._this.firstChild);
+          _this.append(otherList._this.firstChild$NULLASSERT);
         }
       }
       return;
@@ -92,7 +92,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     return result;
   }
 
-  bool remove(Object object) {
+  bool remove(Object$NULLABLE object) {
     if (object is! Node) return false;
     Node node = object;
     if (!identical(_this, node.parentNode)) return false;
@@ -104,9 +104,9 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     // This implementation of removeWhere/retainWhere is more efficient
     // than the default in ListBase. Child nodes can be removed in constant
     // time.
-    Node child = _this.firstChild;
+    Node$NULLABLE child = _this.firstChild;
     while (child != null) {
-      Node nextChild = child.nextNode;
+      Node$NULLABLE nextChild = child.nextNode;
       if (test(child) == removeMatching) {
         _this._removeChild(child);
       }
@@ -136,11 +136,11 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort([Comparator<Node> compare]) {
+  void sort([Comparator<Node>$NULLABLE compare]) {
     throw new UnsupportedError("Cannot sort Node list");
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random$NULLABLE random]) {
     throw new UnsupportedError("Cannot shuffle Node list");
   }
 
@@ -150,7 +150,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     throw new UnsupportedError("Cannot setRange on Node list");
   }
 
-  void fillRange(int start, int end, [Node fill]) {
+  void fillRange(int start, int end, [Node$NULLABLE fill]) {
     throw new UnsupportedError("Cannot fillRange on Node list");
   }
 
@@ -203,8 +203,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     // TODO(jacobr): should we throw an exception if parent is already null?
     // TODO(vsm): Use the native remove when available.
     if (this.parentNode != null) {
-      final Node parent = this.parentNode;
-      parentNode._removeChild(this);
+      final Node parent = this.parentNode$NULLASSERT;
+      parent._removeChild(this);
     }
   }
 
@@ -213,11 +213,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    */
   Node replaceWith(Node otherNode) {
     try {
-      final Node parent = this.parentNode;
+      final Node parent = this.parentNode$NULLASSERT;
       parent._replaceChild(otherNode, this);
-    } catch (e) {
-
-    };
+    } catch (e) {}
     return this;
   }
 
@@ -228,7 +226,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    *
    * * [insertBefore]
    */
-  Node insertAllBefore(Iterable<Node> newNodes, Node refChild) {
+  void insertAllBefore(Iterable<Node> newNodes, Node refChild) {
     if (newNodes is _ChildNodeListLazy) {
       _ChildNodeListLazy otherList = newNodes;
       if (identical(otherList._this, this)) {
@@ -237,7 +235,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
       // Optimized route for copying between nodes.
       for (var i = 0, len = otherList.length; i < len; ++i) {
-        this.insertBefore(otherList._this.firstChild, refChild);
+        this.insertBefore(otherList._this.firstChild$NULLASSERT, refChild);
       }
     } else {
       for (var node in newNodes) {
@@ -248,7 +246,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
   void _clearChildren() {
     while (firstChild != null) {
-      _removeChild(firstChild);
+      _removeChild(firstChild$NULLASSERT);
     }
   }
 
@@ -256,7 +254,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * Print out a String representation of this Node.
    */
   String toString() {
-    String value = nodeValue;  // Fetch DOM Node property once.
+    String$NULLABLE value = nodeValue;  // Fetch DOM Node property once.
     return value == null ? super.toString() : value;
   }
 
@@ -270,7 +268,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    */
   @Returns('NodeList')
   @Creates('NodeList')
-  final List<Node> childNodes;
+  List<Node> get childNodes native;
 
 $!MEMBERS
 }

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ShutdownTest);
   });
@@ -17,14 +17,14 @@ main() {
 
 @reflectiveTest
 class ShutdownTest extends AbstractAnalysisServerIntegrationTest {
-  test_shutdown() {
+  Future<void> test_shutdown() {
     return sendServerShutdown().then((_) {
-      return new Future.delayed(new Duration(seconds: 1)).then((_) {
+      return Future.delayed(Duration(seconds: 1)).then((_) {
         sendServerGetVersion().then((_) {
           fail('Server still alive after server.shutdown');
         });
         // Give the server time to respond before terminating the test.
-        return new Future.delayed(new Duration(seconds: 1));
+        return Future.delayed(Duration(seconds: 1));
       });
     });
   }

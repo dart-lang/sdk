@@ -26,7 +26,7 @@ main() {
   c.v2;
   //^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The getter 'v2' isn't defined for the class 'C'.
+  // [cfe] The property 'v2' is defined in multiple extensions for 'C' and neither is more specific.
 
   Expect.equals("EA.v3", a.v3);
   Expect.equals("EA.v3", b1.v3);
@@ -51,20 +51,20 @@ main() {
   li.i_num;
   // ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The getter 'i_num' isn't defined for the class 'List<int>'.
+  // [cfe] The property 'i_num' is defined in multiple extensions for 'List<int>' and neither is more specific.
 
   // no most specific because both are equally specific.
   c.cs;
   //^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The getter 'cs' isn't defined for the class 'C'.
+  // [cfe] The property 'cs' is defined in multiple extensions for 'C' and neither is more specific.
 
   // Both EIT.e1 and ELO.e1 apply, but their instantiated on
   // types are incomparable, and hence this is an error.
   ln.e1();
   // ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The method 'e1' isn't defined for the class 'List<num>'.
+  // [cfe] The method 'e1' is defined in multiple extensions for 'List<num>' and neither is more specific.
 }
 
 // Diamond class hierarchy.

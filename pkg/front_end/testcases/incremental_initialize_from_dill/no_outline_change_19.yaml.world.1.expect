@@ -1,0 +1,36 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  class A1 extends dart.core::Object {
+    synthetic constructor •() → main::A1*
+      : super dart.core::Object::•()
+      ;
+  }
+  extension A2 on main::A1* {
+    method method1 = main::A2|method1;
+    tearoff method1 = main::A2|get#method1;
+    get getter1 = main::A2|get#getter1;
+    static method method2 = main::A2|method2;
+    static get getter2 = get main::A2|getter2;
+    static field staticField = main::A2|staticField;
+    static field staticFinalField = main::A2|staticFinalField;
+    set setter1 = main::A2|set#setter1;
+    static set setter2 = set main::A2|setter2;
+  }
+  static field dart.core::int* A2|staticField = 42;
+  static final field dart.core::int* A2|staticFinalField = 42;
+  static method A2|method1(final main::A1* #this) → main::A1* {
+    return #this;
+  }
+  static method A2|get#method1(final main::A1* #this) → () →* main::A1*
+    return () → main::A1* => main::A2|method1(#this);
+  static method A2|get#getter1(final main::A1* #this) → dart.core::String*
+    return "42!";
+  static method A2|set#setter1(final main::A1* #this, dart.core::String* s) → void {}
+  static method A2|method2() → main::A1* {
+    return null;
+  }
+  static get A2|getter2() → dart.core::String*
+    return "42!";
+  static set A2|setter2(dart.core::String* s) → void {}
+}

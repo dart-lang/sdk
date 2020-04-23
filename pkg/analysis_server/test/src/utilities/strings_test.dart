@@ -6,7 +6,7 @@ import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:test/test.dart' hide isEmpty;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StringsTest);
   });
@@ -31,11 +31,11 @@ class StringsTest {
   }
 
   void test_computeSimpleDiff() {
-    assertDiff(String oldStr, String newStr) {
-      SimpleDiff diff = computeSimpleDiff(oldStr, newStr);
+    void assertDiff(String oldStr, String newStr) {
+      var diff = computeSimpleDiff(oldStr, newStr);
       expect(diff.offset, isNonNegative);
       expect(diff.length, isNonNegative);
-      String applied = oldStr.substring(0, diff.offset) +
+      var applied = oldStr.substring(0, diff.offset) +
           diff.replacement +
           oldStr.substring(diff.offset + diff.length);
       expect(applied, newStr);
@@ -83,7 +83,7 @@ class StringsTest {
   }
 
   void test_isDigit() {
-    for (int c in '0123456789'.codeUnits) {
+    for (var c in '0123456789'.codeUnits) {
       expect(isDigit(c), isTrue);
     }
     expect(isDigit(' '.codeUnitAt(0)), isFalse);
@@ -91,10 +91,10 @@ class StringsTest {
   }
 
   void test_isLetter() {
-    for (int c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
+    for (var c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
       expect(isLetter(c), isTrue);
     }
-    for (int c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
+    for (var c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
       expect(isLetter(c), isTrue);
     }
     expect(isLetter(' '.codeUnitAt(0)), isFalse);
@@ -102,13 +102,13 @@ class StringsTest {
   }
 
   void test_isLetterOrDigit() {
-    for (int c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
+    for (var c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
       expect(isLetterOrDigit(c), isTrue);
     }
-    for (int c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
+    for (var c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
       expect(isLetterOrDigit(c), isTrue);
     }
-    for (int c in '0123456789'.codeUnits) {
+    for (var c in '0123456789'.codeUnits) {
       expect(isLetterOrDigit(c), isTrue);
     }
     expect(isLetterOrDigit(' '.codeUnitAt(0)), isFalse);

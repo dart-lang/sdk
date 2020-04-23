@@ -7,33 +7,38 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
 
-final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
+final isDynamicType = TypeMatcher<DynamicTypeImpl>();
 
-final isNeverType = new TypeMatcher<NeverTypeImpl>();
+final isNeverType = TypeMatcher<NeverTypeImpl>();
 
-final isVoidType = new TypeMatcher<VoidTypeImpl>();
+final isVoidType = TypeMatcher<VoidTypeImpl>();
 
 /// Base for resolution tests.
 mixin ResolutionTest implements ResourceProviderMixin {
   ResolvedUnitResult result;
   FindNode findNode;
   FindElement findElement;
+
+  ClassElement get boolElement => typeProvider.boolElement;
 
   ClassElement get doubleElement => typeProvider.doubleType.element;
 
@@ -45,22 +50,38 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   bool get enableUnusedLocalVariable => false;
 
+  ClassElement get futureElement => typeProvider.futureElement;
+
   ClassElement get intElement => typeProvider.intType.element;
 
   InterfaceType get intType => typeProvider.intType;
+
+  bool get isNullSafetySdkAndLegacyLibrary {
+    if (FeatureSetProvider.isNullSafetySdk) {
+      return !result.libraryElement.isNonNullableByDefault;
+    }
+    return false;
+  }
 
   ClassElement get listElement => typeProvider.listElement;
 
   ClassElement get mapElement => typeProvider.mapElement;
 
+  NeverElementImpl get neverElement => NeverElementImpl.instance;
+
   ClassElement get numElement => typeProvider.numType.element;
+
+  ClassElement get objectElement => typeProvider.objectType.element;
 
   InterfaceType get objectType => typeProvider.objectType;
 
+  ClassElement get stringElement => typeProvider.stringType.element;
+
   InterfaceType get stringType => typeProvider.stringType;
 
-  TypeProvider get typeProvider =>
-      result.unit.declaredElement.context.typeProvider;
+  TypeProvider get typeProvider => result.typeProvider;
+
+  TypeSystemImpl get typeSystem => result.typeSystem;
 
   /// Whether `DartType.toString()` with nullability should be asked.
   bool get typeToStringWithNullability => false;
@@ -69,6 +90,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void addTestFile(String content) {
     newFile('/test/lib/test.dart', content: content);
+  }
+
+  void assertAssignment(
+    AssignmentExpression node, {
+    @required Object operatorElement,
+    @required String type,
+  }) {
+    assertElement(node.staticElement, operatorElement);
+    assertType(node, type);
   }
 
   void assertAuxElement(AstNode node, Element expected) {
@@ -88,14 +118,22 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertSubstitution(actual.substitution, expectedSubstitution);
   }
 
+  void assertBinaryExpression(
+    BinaryExpression node, {
+    @required Object element,
+    @required String type,
+  }) {
+    assertElement(node.staticElement, element);
+    assertType(node, type);
+  }
+
   /// Assert that the given [identifier] is a reference to a class, in the
   /// form that is not a separate expression, e.g. in a static method
   /// invocation like `C.staticMethod()`, or a type annotation `C c = null`.
   void assertClassRef(
       SimpleIdentifier identifier, ClassElement expectedElement) {
     assertElement(identifier, expectedElement);
-    // TODO(scheglov) Enforce this.
-//    assertTypeNull(identifier);
+    assertTypeNull(identifier);
   }
 
   void assertConstructorElement(
@@ -110,14 +148,53 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertConstructors(ClassElement class_, List<String> expected) {
     expect(
-      class_.constructors.map((c) => c.toString()).toList(),
+      class_.constructors.map((c) {
+        return c.getDisplayString(withNullability: false);
+      }).toList(),
       unorderedEquals(expected),
     );
   }
 
-  void assertElement(AstNode node, Element expected) {
-    Element actual = getNodeElement(node);
-    expect(actual, same(expected));
+  void assertElement(Object nodeOrElement, Object elementOrMatcher) {
+    Element element;
+    if (nodeOrElement is AstNode) {
+      element = getNodeElement(nodeOrElement);
+    } else {
+      element = nodeOrElement as Element;
+    }
+
+    expect(element, _elementMatcher(elementOrMatcher));
+  }
+
+  void assertElement2(
+    Object nodeOrElement, {
+    @required Element declaration,
+    bool isLegacy = false,
+    Map<String, String> substitution = const {},
+  }) {
+    Element element;
+    if (nodeOrElement is AstNode) {
+      element = getNodeElement(nodeOrElement);
+    } else {
+      element = nodeOrElement as Element;
+    }
+
+    var actualDeclaration = element?.declaration;
+    expect(actualDeclaration, same(declaration));
+
+    if (element is Member) {
+      expect(element.isLegacy, isLegacy);
+      assertSubstitution(element.substitution, substitution);
+    } else {
+      if (isLegacy || substitution.isNotEmpty) {
+        fail('Expected to be a Member: (${element.runtimeType}) $element');
+      }
+    }
+  }
+
+  void assertElementLibraryUri(Element element, String expected) {
+    var uri = element.library.source.uri;
+    expect('$uri', expected);
   }
 
   void assertElementName(Element element, String name,
@@ -134,12 +211,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, isNull);
   }
 
-  void assertElementType(DartType type, DartType expected) {
-    expect(type, expected);
-  }
-
-  void assertElementTypeDynamic(DartType type) {
-    expect(type, isDynamicType);
+  void assertElementString(Element element, String expected) {
+    var str = element.getDisplayString(
+      withNullability: typeToStringWithNullability,
+    );
+    expect(str, expected);
   }
 
   void assertElementTypes(List<DartType> types, List<DartType> expected,
@@ -151,12 +227,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertElementTypeString(DartType type, String expected) {
-    expect(typeString(type), expected);
-  }
-
   void assertElementTypeStrings(List<DartType> types, List<String> expected) {
-    expect(types.map((t) => t.displayName).toList(), expected);
+    expect(types.map(typeString).toList(), expected);
   }
 
   void assertEnclosingElement(Element element, Element expectedEnclosing) {
@@ -168,34 +240,41 @@ mixin ResolutionTest implements ResourceProviderMixin {
     addTestFile(code);
     await resolveTestFile();
 
-    GatheringErrorListener errorListener = new GatheringErrorListener();
+    assertErrorsInResolvedUnit(result, expectedErrors);
+  }
+
+  Future<void> assertErrorsInFile(
+    String path,
+    String content,
+    List<ExpectedError> expectedErrors,
+  ) async {
+    path = convertPath(path);
+    newFile(path, content: content);
+
+    var result = await resolveFile(path);
+    assertErrorsInResolvedUnit(result, expectedErrors);
+  }
+
+  void assertErrorsInResolvedUnit(
+    ResolvedUnitResult result,
+    List<ExpectedError> expectedErrors,
+  ) {
+    GatheringErrorListener errorListener = GatheringErrorListener();
     errorListener.addAll(result.errors);
     errorListener.assertErrors(expectedErrors);
   }
 
-  /**
-   * Assert that the number of error codes in reported [errors] matches the
-   * number of [expected] error codes. The order of errors is ignored.
-   */
-  void assertErrorsWithCodes(List<AnalysisError> errors,
-      [List<ErrorCode> expected = const <ErrorCode>[]]) {
-    var errorListener = new GatheringErrorListener();
-    for (AnalysisError error in result.errors) {
-      ErrorCode errorCode = error.errorCode;
-      if (!enableUnusedElement &&
-          (errorCode == HintCode.UNUSED_ELEMENT ||
-              errorCode == HintCode.UNUSED_FIELD)) {
-        continue;
-      }
-      if (!enableUnusedLocalVariable &&
-          (errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
-              errorCode == HintCode.UNUSED_CATCH_STACK ||
-              errorCode == HintCode.UNUSED_LOCAL_VARIABLE)) {
-        continue;
-      }
-      errorListener.onError(error);
-    }
-    errorListener.assertErrorsWithCodes(expected);
+  void assertFunctionExpressionInvocation(
+    FunctionExpressionInvocation node, {
+    @required ExecutableElement element,
+    @required List<String> typeArgumentTypes,
+    @required String invokeType,
+    @required String type,
+  }) {
+    assertElement(node, element);
+    assertTypeArgumentTypes(node, typeArgumentTypes);
+    assertInvokeType(node, invokeType);
+    assertType(node, type);
   }
 
   void assertHasTestErrors() {
@@ -223,10 +302,37 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertTypeNull(identifier);
   }
 
+  void assertIndexExpression(
+    IndexExpression node, {
+    @required Object readElement,
+    @required Object writeElement,
+    @required String type,
+  }) {
+    var isRead = node.inGetterContext();
+    var isWrite = node.inSetterContext();
+    if (isRead && isWrite) {
+      assertElement(node.auxiliaryElements?.staticElement, readElement);
+      assertElement(node.staticElement, writeElement);
+    } else if (isRead) {
+      assertElement(node.staticElement, readElement);
+    } else {
+      expect(isWrite, isTrue);
+      assertElement(node.staticElement, writeElement);
+    }
+
+    if (isRead) {
+      assertType(node, type);
+    } else {
+      // TODO(scheglov) enforce this
+//      expect(type, isNull);
+//      assertTypeNull(node);
+    }
+  }
+
   void assertInstanceCreation(InstanceCreationExpression creation,
       ClassElement expectedClassElement, String expectedType,
       {String constructorName,
-      bool expectedConstructorMember: false,
+      bool expectedConstructorMember = false,
       Map<String, String> expectedSubstitution,
       PrefixElement expectedPrefix}) {
     String expectedClassName = expectedClassElement.name;
@@ -294,20 +400,17 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertMember(
-    Expression node,
+    Object elementOrNode,
     Element expectedBase,
     Map<String, String> expectedSubstitution,
   ) {
-    Member actual = getNodeElement(node);
-    assertMember2(actual, expectedBase, expectedSubstitution);
-  }
+    Member actual;
+    if (elementOrNode is Member) {
+      actual = elementOrNode;
+    } else {
+      actual = getNodeElement(elementOrNode as AstNode);
+    }
 
-  void assertMember2(
-    Element actualElement,
-    Element expectedBase,
-    Map<String, String> expectedSubstitution,
-  ) {
-    var actual = actualElement as Member;
     expect(actual.declaration, same(expectedBase));
 
     assertSubstitution(actual.substitution, expectedSubstitution);
@@ -320,7 +423,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     String expectedMethodNameType,
     String expectedNameType,
     String expectedType,
-    List<String> expectedTypeArguments: const <String>[],
+    List<String> expectedTypeArguments = const <String>[],
   }) {
     MethodInvocationImpl invocationImpl = invocation;
 
@@ -346,8 +449,20 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(invocation, expectedType);
 
     expectedMethodNameType ??= expectedInvokeType;
-    assertElementTypeString(
-        invocationImpl.methodNameType, expectedMethodNameType);
+    assertType(invocationImpl.methodNameType, expectedMethodNameType);
+  }
+
+  void assertMethodInvocation2(
+    MethodInvocation node, {
+    @required Object element,
+    @required List<String> typeArgumentTypes,
+    @required String invokeType,
+    @required String type,
+  }) {
+    assertElement(node.methodName, element);
+    assertTypeArgumentTypes(node, typeArgumentTypes);
+    assertType(node.staticInvokeType, invokeType);
+    assertType(node.staticType, type);
   }
 
   void assertNamedParameterRef(String search, String name) {
@@ -356,14 +471,20 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertTypeNull(ref);
   }
 
+  void assertNamespaceDirectiveSelected(
+    NamespaceDirective directive, {
+    @required String expectedRelativeUri,
+    @required String expectedUri,
+  }) {
+    expect(directive.selectedUriContent, expectedRelativeUri);
+    expect('${directive.selectedSource.uri}', expectedUri);
+  }
+
   Future<void> assertNoErrorsInCode(String code) async {
     addTestFile(code);
     await resolveTestFile();
-    assertNoTestErrors();
-  }
 
-  void assertNoTestErrors() {
-    assertTestErrorsWithCodes(const <ErrorCode>[]);
+    assertErrorsInResolvedUnit(result, const []);
   }
 
   void assertParameterElement(
@@ -373,13 +494,36 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(expression.staticParameterElement, expected);
   }
 
-  void assertParameterType(Expression expression, String expected) {
-    var parameterElement = expression.staticParameterElement;
-    if (expected == null) {
-      expect(parameterElement, isNull);
-    } else {
-      assertElementTypeString(parameterElement.type, expected);
-    }
+  void assertParameterElementType(FormalParameter node, String expected) {
+    var parameterElement = node.declaredElement;
+    assertType(parameterElement.type, expected);
+  }
+
+  void assertPostfixExpression(
+    PostfixExpression node, {
+    @required Object element,
+    @required String type,
+  }) {
+    assertElement(node.staticElement, element);
+    assertType(node, type);
+  }
+
+  void assertPrefixedIdentifier(
+    PrefixedIdentifier node, {
+    @required Object element,
+    @required String type,
+  }) {
+    assertElement(node.staticElement, element);
+    assertType(node, type);
+  }
+
+  void assertPrefixExpression(
+    PrefixExpression node, {
+    @required Object element,
+    @required String type,
+  }) {
+    assertElement(node.staticElement, element);
+    assertType(node, type);
   }
 
   void assertPropertyAccess(
@@ -391,12 +535,37 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(access, expectedType);
   }
 
+  void assertPropertyAccess2(
+    PropertyAccess node, {
+    @required Object element,
+    @required String type,
+  }) {
+    assertElement(node.propertyName.staticElement, element);
+    assertType(node.staticType, type);
+  }
+
+  void assertSimpleIdentifier(
+    SimpleIdentifier node, {
+    @required Object element,
+    @required String type,
+  }) {
+    assertElement(node.staticElement, element);
+    assertType(node, type);
+  }
+
   void assertSubstitution(
     MapSubstitution substitution,
     Map<String, String> expected,
   ) {
-    var actualMapString = substitution.map.map(
-      (k, v) => MapEntry(k.name, '$v'),
+    var actualMapString = Map.fromEntries(
+      substitution.map.entries.where((entry) {
+        return entry.key.enclosingElement is! ExecutableElement;
+      }).map((entry) {
+        return MapEntry(
+          entry.key.name,
+          typeString(entry.value),
+        );
+      }),
     );
     expect(actualMapString, expected);
   }
@@ -408,27 +577,30 @@ mixin ResolutionTest implements ResourceProviderMixin {
 //    assertTypeNull(superExpression);
   }
 
-  void assertTestErrorsWithCodes(List<ErrorCode> expected) {
-    assertErrorsWithCodes(result.errors, expected);
-  }
-
   void assertTopGetRef(String search, String name) {
     var ref = findNode.simple(search);
     assertIdentifierTopGetRef(ref, name);
   }
 
-  void assertType(AstNode node, String expected) {
-    TypeImpl actual;
-    if (node is Expression) {
-      actual = node.staticType;
-    } else if (node is GenericFunctionType) {
-      actual = node.type;
-    } else if (node is TypeName) {
-      actual = node.type;
+  void assertType(Object typeOrNode, String expected) {
+    DartType actual;
+    if (typeOrNode is DartType) {
+      actual = typeOrNode;
+    } else if (typeOrNode is Expression) {
+      actual = typeOrNode.staticType;
+    } else if (typeOrNode is GenericFunctionType) {
+      actual = typeOrNode.type;
+    } else if (typeOrNode is TypeName) {
+      actual = typeOrNode.type;
     } else {
-      fail('Unsupported node: (${node.runtimeType}) $node');
+      fail('Unsupported node: (${typeOrNode.runtimeType}) $typeOrNode');
     }
-    expect(typeString(actual), expected);
+
+    if (expected == null) {
+      expect(actual, isNull);
+    } else {
+      expect(typeString(actual), expected);
+    }
   }
 
   void assertTypeArgumentTypes(
@@ -439,9 +611,21 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
-  void assertTypeDynamic(Expression expression) {
-    DartType actual = expression.staticType;
+  void assertTypeDynamic(Object typeOrExpression) {
+    DartType actual;
+    if (typeOrExpression is DartType) {
+      actual = typeOrExpression;
+      var type = typeOrExpression;
+      expect(type, isDynamicType);
+    } else {
+      actual = (typeOrExpression as Expression).staticType;
+    }
     expect(actual, isDynamicType);
+  }
+
+  void assertTypeLegacy(Expression expression) {
+    NullabilitySuffix actual = expression.staticType.nullabilitySuffix;
+    expect(actual, NullabilitySuffix.star);
   }
 
   void assertTypeName(
@@ -471,10 +655,39 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(node.staticType, isNull);
   }
 
+  Matcher elementMatcher(
+    Element declaration, {
+    bool isLegacy = false,
+    Map<String, String> substitution = const {},
+  }) {
+    return _ElementMatcher(
+      this,
+      declaration: declaration,
+      isLegacy: isLegacy,
+      substitution: substitution,
+    );
+  }
+
   ExpectedError error(ErrorCode code, int offset, int length,
-          {List<ExpectedMessage> expectedMessages =
-              const <ExpectedMessage>[]}) =>
-      ExpectedError(code, offset, length, expectedMessages: expectedMessages);
+          {String text,
+          Pattern messageContains,
+          List<ExpectedContextMessage> contextMessages =
+              const <ExpectedContextMessage>[]}) =>
+      ExpectedError(code, offset, length,
+          message: text,
+          messageContains: messageContains,
+          expectedContextMessages: contextMessages);
+
+  List<ExpectedError> expectedErrorsByNullability({
+    @required List<ExpectedError> nullable,
+    @required List<ExpectedError> legacy,
+  }) {
+    if (typeToStringWithNullability) {
+      return nullable;
+    } else {
+      return legacy;
+    }
+  }
 
   AuxiliaryElements getNodeAuxElements(AstNode node) {
     if (node is IndexExpression) {
@@ -520,8 +733,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  ExpectedMessage message(String filePath, int offset, int length) =>
-      ExpectedMessage(convertPath(filePath), offset, length);
+  ExpectedContextMessage message(String filePath, int offset, int length) =>
+      ExpectedContextMessage(convertPath(filePath), offset, length);
 
   Future<ResolvedUnitResult> resolveFile(String path);
 
@@ -534,18 +747,90 @@ mixin ResolutionTest implements ResourceProviderMixin {
   Future<void> resolveTestFile() async {
     var path = convertPath('/test/lib/test.dart');
     result = await resolveFile(path);
-    findNode = new FindNode(result.content, result.unit);
-    findElement = new FindElement(result.unit);
+    findNode = FindNode(result.content, result.unit);
+    findElement = FindElement(result.unit);
+  }
+
+  /// Choose the type display string, depending on whether the [result] is
+  /// non-nullable or legacy.
+  String typeStr(String nonNullable, String legacy) {
+    if (result.libraryElement.isNonNullableByDefault) {
+      return nonNullable;
+    } else {
+      return legacy;
+    }
   }
 
   /// Return a textual representation of the [type] that is appropriate for
   /// tests.
-  String typeString(DartType type) => (type as TypeImpl)
-      ?.toString(withNullability: typeToStringWithNullability);
+  String typeString(DartType type) =>
+      type.getDisplayString(withNullability: typeToStringWithNullability);
+
+  String typeStringByNullability({
+    @required String nullable,
+    @required String legacy,
+  }) {
+    if (typeToStringWithNullability) {
+      return nullable;
+    } else {
+      return legacy;
+    }
+  }
+
+  _ElementMatcher _elementMatcher(Object elementOrMatcher) {
+    if (elementOrMatcher is Element) {
+      return _ElementMatcher(this, declaration: elementOrMatcher);
+    } else {
+      return elementOrMatcher;
+    }
+  }
 
   static String _extractReturnType(String invokeType) {
     int functionIndex = invokeType.indexOf(' Function');
     expect(functionIndex, isNonNegative);
     return invokeType.substring(0, functionIndex);
+  }
+}
+
+class _ElementMatcher extends Matcher {
+  final ResolutionTest test;
+  final Element declaration;
+  final bool isLegacy;
+  final Map<String, String> substitution;
+
+  _ElementMatcher(
+    this.test, {
+    this.declaration,
+    this.isLegacy = false,
+    this.substitution = const {},
+  });
+
+  @override
+  Description describe(Description description) {
+    return description
+        .add('declaration: $declaration\n')
+        .add('isLegacy: $isLegacy\n')
+        .add('substitution: $substitution\n');
+  }
+
+  @override
+  bool matches(element, Map matchState) {
+    if (element is Element) {
+      if (!identical(element.declaration, declaration)) {
+        return false;
+      }
+
+      if (element is Member) {
+        if (element.isLegacy != isLegacy) {
+          return false;
+        }
+
+        test.assertSubstitution(element.substitution, substitution);
+        return true;
+      } else {
+        return !isLegacy && substitution.isEmpty;
+      }
+    }
+    return false;
   }
 }

@@ -467,7 +467,10 @@ struct is_double<double> {
 class AssemblerTest {
  public:
   AssemblerTest(const char* name, compiler::Assembler* assembler)
-      : name_(name), assembler_(assembler), code_(Code::ZoneHandle()) {
+      : name_(name),
+        assembler_(assembler),
+        code_(Code::ZoneHandle()),
+        disassembly_(Thread::Current()->zone()->Alloc<char>(DISASSEMBLY_SIZE)) {
     ASSERT(name != NULL);
     ASSERT(assembler != NULL);
   }
@@ -574,7 +577,7 @@ class AssemblerTest {
   compiler::Assembler* assembler_;
   Code& code_;
   static const intptr_t DISASSEMBLY_SIZE = 10240;
-  char disassembly_[DISASSEMBLY_SIZE];
+  char* disassembly_;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblerTest);
 };

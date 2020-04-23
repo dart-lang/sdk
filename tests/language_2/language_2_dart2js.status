@@ -5,27 +5,27 @@
 
 [ $compiler == dart2js ]
 mixin_method_override_test/G5: Skip # Issue 34354
+number/int64_literal_runtime*_test: Skip # This is testing Dart 2.0 int64 semantics
 vm/*: SkipByDesign # Tests for the VM.
 
 [ $compiler != dart2js ]
-minify_closure_variable_collision_test: SkipByDesign # Regression test for dart2js
+closure/minify_closure_variable_collision_test: SkipByDesign # Regression test for dart2js
 
 [ $builder_tag == dart2js_production && $compiler == dart2js ]
 control_flow_collections/for_non_bool_condition_test: Crash # Issue 36442
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
-override_field_test/02: Slow # TODO(kasperl): Please triage.
+override_field_test/02: Slow, Pass # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $runtime == d8 ]
-conditional_import_string_test: SkipByDesign # No XHR in d8
-conditional_import_test: SkipByDesign # No XHR in d8
+import/conditional_string_test: SkipByDesign # No XHR in d8
+import/conditional_test: SkipByDesign # No XHR in d8
 
 [ $compiler == dart2js && $runtime == jsshell ]
-await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
+await/for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 
 [ $compiler == dart2js && $system == windows ]
-canonicalization_hashing_memoize_array_test: Skip # Issue 37631
-canonicalization_hashing_memoize_instance_test: Skip # Issue 37631
-canonicalization_hashing_shallow_collision_array_test: Skip # Issue 37631
-canonicalization_hashing_shallow_collision_instance_test: Skip # Issue 37631
-
+canonicalize/hashing_memoize_array_test: Skip # Issue 37631
+canonicalize/hashing_memoize_instance_test: Skip # Issue 37631
+canonicalize/hashing_shallow_collision_array_test: Skip # Issue 37631
+canonicalize/hashing_shallow_collision_instance_test: Skip # Issue 37631

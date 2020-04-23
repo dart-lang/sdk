@@ -8,7 +8,7 @@ import 'dart:io' show BytesBuilder, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:kernel/clone.dart' show CloneVisitor;
+import 'package:kernel/clone.dart' show CloneVisitorWithMembers;
 
 import 'package:kernel/ast.dart'
     show
@@ -23,9 +23,6 @@ import 'package:kernel/ast.dart'
         TypeParameterType;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-
-import 'package:kernel/binary/limited_ast_to_binary.dart'
-    show LimitedBinaryPrinter;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
@@ -52,9 +49,7 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
   File output = new File.fromUri(uri);
   IOSink sink = output.openWrite();
   try {
-    BinaryPrinter printer = filter == null
-        ? new BinaryPrinter(sink)
-        : new LimitedBinaryPrinter(sink, filter ?? (_) => true, false);
+    BinaryPrinter printer = new BinaryPrinter(sink, libraryFilter: filter);
     printer.writeComponentFile(component);
   } finally {
     await sink.close();
@@ -67,11 +62,10 @@ Uint8List serializeComponent(Component component,
     bool includeSources: true,
     bool includeOffsets: true}) {
   ByteSink byteSink = new ByteSink();
-  BinaryPrinter printer = filter == null
-      ? new BinaryPrinter(byteSink,
-          includeSources: includeSources, includeOffsets: includeOffsets)
-      : new LimitedBinaryPrinter(byteSink, filter, !includeSources,
-          includeOffsets: includeOffsets);
+  BinaryPrinter printer = new BinaryPrinter(byteSink,
+      libraryFilter: filter,
+      includeSources: includeSources,
+      includeOffsets: includeOffsets);
   printer.writeComponentFile(component);
   return byteSink.builder.takeBytes();
 }
@@ -99,7 +93,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
       typeSubstitution[typeParam] =
           new TypeParameterType.forAlphaRenaming(typeParam, newNode);
     }
-    CloneVisitor cloner = new CloneVisitor(
+    CloneVisitorWithMembers cloner = new CloneVisitorWithMembers(
         typeSubstitution: typeSubstitution, typeParams: typeParams);
 
     for (TypeParameter typeParam in realClass.typeParameters) {
@@ -114,7 +108,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
     }
 
     // Rebind the type parameters in the procedure.
-    procedure = procedure.accept<TreeNode>(cloner);
+    procedure = cloner.cloneProcedure(procedure, null);
     procedure.parent = fakeClass;
     fakeClass.procedures.add(procedure);
     fakeLibrary.classes.add(fakeClass);

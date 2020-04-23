@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test that no parts are emitted when deferred loading isn't used.
 
 import 'package:async_helper/async_helper.dart';

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../src/utilities/mock_packages.dart';
 import 'code_actions_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodRefactorCodeActionsTest);
     defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class ExtractMethodRefactorCodeActionsTest extends AbstractCodeActionsTest {
   final extractMethodTitle = 'Extract Method';
-  test_appliesCorrectEdits() async {
+  Future<void> test_appliesCorrectEdits() async {
     const content = '''
 main() {
   print('Test!');
@@ -49,7 +49,7 @@ void newMethod() {
         codeAction, withoutMarkers(content), expectedContent);
   }
 
-  test_invalidLocation() async {
+  Future<void> test_invalidLocation() async {
     const content = '''
 import 'dart:convert';
 ^
@@ -82,7 +82,7 @@ meta:${metaLibFolder.toUri()}
 ''');
   }
 
-  test_appliesCorrectEdits() async {
+  Future<void> test_appliesCorrectEdits() async {
     const content = '''
 import 'package:flutter/material.dart';
 
@@ -149,7 +149,7 @@ class NewWidget extends StatelessWidget {
         codeAction, withoutMarkers(content), expectedContent);
   }
 
-  test_invalidLocation() async {
+  Future<void> test_invalidLocation() async {
     const content = '''
 import 'dart:convert';
 ^

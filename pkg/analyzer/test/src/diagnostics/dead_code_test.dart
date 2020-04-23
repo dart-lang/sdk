@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,7 +11,6 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadCodeTest);
-    defineReflectiveTests(UncheckedUseOfNullableValueTest);
   });
 }
 
@@ -167,12 +164,10 @@ f() {
 
   test_deadBlock_if_debugConst_prefixedIdentifier2() async {
     newFile('/test/lib/lib2.dart', content: r'''
-library lib2;
 class A {
   static const bool DEBUG = false;
 }''');
     await assertNoErrorsInCode(r'''
-library L;
 import 'lib2.dart';
 f() {
   if(A.DEBUG) {}
@@ -181,12 +176,10 @@ f() {
 
   test_deadBlock_if_debugConst_propertyAccessor() async {
     newFile('/test/lib/lib2.dart', content: r'''
-library lib2;
 class A {
   static const bool DEBUG = false;
 }''');
     await assertNoErrorsInCode(r'''
-library L;
 import 'lib2.dart' as LIB;
 f() {
   if(LIB.A.DEBUG) {}
@@ -308,12 +301,16 @@ f() {
   }
 
   test_deadCatch_onCatchSupertype() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 class B extends A {}
 f() {
   try {} on B catch (e) {} on A catch (e) {} catch (e) {}
-}''');
+}
+''', [
+      error(HintCode.UNUSED_CATCH_CLAUSE, 59, 1),
+      error(HintCode.UNUSED_CATCH_CLAUSE, 77, 1),
+    ]);
   }
 
   test_deadFinalBreakInCase() async {
@@ -411,11 +408,14 @@ f() {
   }
 
   test_deadOperandLHS_or_debugConst() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 const bool DEBUG = true;
 f() {
   bool b = DEBUG || true;
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
+    ]);
   }
 
   test_deadOperandLHS_or_nested() async {
@@ -698,98 +698,5 @@ f() {
 }''', [
       error(HintCode.DEAD_CODE, 41, 9),
     ]);
-  }
-}
-
-@reflectiveTest
-class UncheckedUseOfNullableValueTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
-
-  test_nullCoalesce_dynamic() async {
-    await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m() {
-  dynamic x;
-  x ?? 1;
-}
-''');
-  }
-
-  test_nullCoalesce_nonNullable() async {
-    await assertErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m(int x) {
-  x ?? 1;
-}
-''', [
-      error(HintCode.DEAD_CODE, 65, 1),
-    ]);
-  }
-
-  test_nullCoalesce_nullable() async {
-    await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m() {
-  int? x;
-  x ?? 1;
-}
-''');
-  }
-
-  test_nullCoalesce_nullType() async {
-    await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m() {
-  Null x;
-  x ?? 1;
-}
-''');
-  }
-
-  test_nullCoalesceAssign_dynamic() async {
-    await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m() {
-  dynamic x;
-  x ??= 1;
-}
-''');
-  }
-
-  test_nullCoalesceAssign_nonNullable() async {
-    await assertErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m(int x) {
-  x ??= 1;
-}
-''', [
-      error(HintCode.DEAD_CODE, 66, 1),
-    ]);
-  }
-
-  test_nullCoalesceAssign_nullable() async {
-    await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m() {
-  int? x;
-  x ??= 1;
-}
-''');
   }
 }

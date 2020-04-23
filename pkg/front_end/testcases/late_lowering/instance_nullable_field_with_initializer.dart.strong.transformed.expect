@@ -1,32 +1,32 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  field core::int? _#field = null;
-  field dynamic _#field#isSet = false;
+  field core::int? _#Class#field = null;
+  field core::bool _#Class#field#isSet = false;
   constructor constructor1() → self::Class
     : super core::Object::•()
     ;
-  constructor constructor2(core::int field) → self::Class
-    : self::Class::_#field#isSet = true, self::Class::_#field = field, super core::Object::•()
+  constructor constructor2(core::int? field) → self::Class
+    : self::Class::_#Class#field#isSet = true, self::Class::_#Class#field = field, super core::Object::•()
     ;
   constructor constructor3(core::int value) → self::Class
-    : self::Class::_#field#isSet = true, self::Class::_#field = value.{core::num::+}(1), super core::Object::•()
+    : self::Class::_#Class#field#isSet = true, self::Class::_#Class#field = value.{core::num::+}(1), super core::Object::•()
     ;
-  constructor constructor4([core::int field = #C1]) → self::Class
-    : self::Class::_#field#isSet = true, self::Class::_#field = field, super core::Object::•()
+  constructor constructor4([core::int? field = #C1]) → self::Class
+    : self::Class::_#Class#field#isSet = true, self::Class::_#Class#field = field, super core::Object::•()
     ;
   get field() → core::int? {
-    if(!this.{self::Class::_#field#isSet}) {
-      this.{self::Class::_#field#isSet} = true;
-      this.{self::Class::_#field} = self::initField();
+    if(!this.{self::Class::_#Class#field#isSet}) {
+      this.{self::Class::_#Class#field#isSet} = true;
+      this.{self::Class::_#Class#field} = self::initField();
     }
-    return this.{self::Class::_#field};
+    return this.{self::Class::_#Class#field};
   }
   set field(core::int? #t1) → void {
-    this.{self::Class::_#field#isSet} = true;
-    this.{self::Class::_#field} = #t1;
+    this.{self::Class::_#Class#field#isSet} = true;
+    this.{self::Class::_#Class#field} = #t1;
   }
 }
 class Subclass extends self::Class {

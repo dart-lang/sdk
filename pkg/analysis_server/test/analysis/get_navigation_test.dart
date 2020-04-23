@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../mocks.dart';
 import 'notification_navigation_test.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetNavigationTest);
   });
@@ -27,12 +27,12 @@ class GetNavigationTest extends AbstractNavigationTest {
     generateSummaryFiles = true;
     super.setUp();
     server.handlers = [
-      new AnalysisDomainHandler(server),
+      AnalysisDomainHandler(server),
     ];
     createProject();
   }
 
-  test_beforeAnalysisComplete() async {
+  Future<void> test_beforeAnalysisComplete() async {
     addTestFile('''
 main() {
   var test = 0;
@@ -44,10 +44,10 @@ main() {
     assertHasTarget('test = 0');
   }
 
-  test_fieldType() async {
+  Future<void> test_fieldType() async {
     // This test mirrors test_navigation() from
     // test/integration/analysis/get_navigation_test.dart
-    String text = r'''
+    var text = r'''
 class Foo {}
 
 class Bar {
@@ -57,7 +57,7 @@ class Bar {
     addTestFile(text);
     await _getNavigation(testFile, text.indexOf('Foo foo'), 0);
     expect(targets, hasLength(1));
-    NavigationTarget target = targets.first;
+    var target = targets.first;
     expect(target.kind, ElementKind.CLASS);
     expect(target.offset, text.indexOf('Foo {'));
     expect(target.length, 3);
@@ -65,17 +65,17 @@ class Bar {
     expect(target.startColumn, 7);
   }
 
-  test_fileDoesNotExist() async {
-    String file = convertPath('$projectPath/doesNotExist.dart');
-    Request request = _createGetNavigationRequest(file, 0, 100);
-    Response response = await serverChannel.sendRequest(request);
+  Future<void> test_fileDoesNotExist() async {
+    var file = convertPath('$projectPath/doesNotExist.dart');
+    var request = _createGetNavigationRequest(file, 0, 100);
+    var response = await serverChannel.sendRequest(request);
     expect(response.error, isNull);
     expect(response.result['files'], isEmpty);
     expect(response.result['targets'], isEmpty);
     expect(response.result['regions'], isEmpty);
   }
 
-  test_fileOutsideOfRoot() async {
+  Future<void> test_fileOutsideOfRoot() async {
     testFile = convertPath('/outside.dart');
     addTestFile('''
 main() {
@@ -88,7 +88,7 @@ main() {
     assertHasTarget('test = 0');
   }
 
-  test_importDirective() async {
+  Future<void> test_importDirective() async {
     addTestFile('''
 import 'dart:math';
 
@@ -102,7 +102,7 @@ main() {
     expect(testTargets[0].kind, ElementKind.LIBRARY);
   }
 
-  test_importKeyword() async {
+  Future<void> test_importKeyword() async {
     addTestFile('''
 import 'dart:math';
 
@@ -116,7 +116,7 @@ main() {
     expect(testTargets[0].kind, ElementKind.LIBRARY);
   }
 
-  test_importUri() async {
+  Future<void> test_importUri() async {
     addTestFile('''
 import 'dart:math';
 
@@ -130,7 +130,7 @@ main() {
     expect(testTargets[0].kind, ElementKind.LIBRARY);
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = _createGetNavigationRequest('test.dart', 0, 0);
     var response = await waitResponse(request);
     expect(
@@ -139,7 +139,7 @@ main() {
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request =
         _createGetNavigationRequest(convertPath('/foo/../bar/test.dart'), 0, 0);
     var response = await waitResponse(request);
@@ -149,7 +149,7 @@ main() {
     );
   }
 
-  test_multipleRegions() async {
+  Future<void> test_multipleRegions() async {
     addTestFile('''
 main() {
   var aaa = 1;
@@ -161,7 +161,7 @@ main() {
 ''');
     await waitForTasksFinished();
     // request navigation
-    String navCode = ' + bbb + ';
+    var navCode = ' + bbb + ';
     await _getNavigation(testFile, testCode.indexOf(navCode), navCode.length);
     // verify
     {
@@ -179,7 +179,7 @@ main() {
     assertNoRegionAt('ddd)');
   }
 
-  test_operator_index() async {
+  Future<void> test_operator_index() async {
     addTestFile('''
 class A {
   A operator [](index) => null;
@@ -194,38 +194,38 @@ main() {
 ''');
     await waitForTasksFinished();
     {
-      String search = '[0';
+      var search = '[0';
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[](index)', 2);
     }
     {
-      String search = '] // []';
+      var search = '] // []';
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[](index)', 2);
     }
     {
-      String search = '[1';
+      var search = '[1';
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
     {
-      String search = '] = 1';
+      var search = '] = 1';
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
     {
-      String search = '[2';
+      var search = '[2';
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
     {
-      String search = '] += 2';
+      var search = '] += 2';
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
   }
 
-  test_zeroLength_end() async {
+  Future<void> test_zeroLength_end() async {
     addTestFile('''
 main() {
   var test = 0;
@@ -238,7 +238,7 @@ main() {
     assertHasTarget('test = 0');
   }
 
-  test_zeroLength_start() async {
+  Future<void> test_zeroLength_start() async {
     addTestFile('''
 main() {
   var test = 0;
@@ -252,15 +252,14 @@ main() {
   }
 
   Request _createGetNavigationRequest(String file, int offset, int length) {
-    return new AnalysisGetNavigationParams(file, offset, length)
+    return AnalysisGetNavigationParams(file, offset, length)
         .toRequest(requestId);
   }
 
-  _getNavigation(String file, int offset, int length) async {
-    Request request = _createGetNavigationRequest(file, offset, length);
-    Response response = await serverChannel.sendRequest(request);
-    AnalysisGetNavigationResult result =
-        new AnalysisGetNavigationResult.fromResponse(response);
+  Future<void> _getNavigation(String file, int offset, int length) async {
+    var request = _createGetNavigationRequest(file, offset, length);
+    var response = await serverChannel.sendRequest(request);
+    var result = AnalysisGetNavigationResult.fromResponse(response);
     targetFiles = result.files;
     targets = result.targets;
     regions = result.regions;

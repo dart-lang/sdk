@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object /*hasConstConstructor*/  {
+  final field core::int x;
+  const constructor •(core::int x) → self::Class
+    : self::Class::x = x, super core::Object::•()
+    ;
+  method foo() → core::int
+    ;
+  method bar() → core::int
+    ;
+  method baz(core::int x) → core::int
+    ;
+  method boz(core::int x) → core::int
+    ;
+}
+static method foo() → core::int
+  ;
+static method bar() → core::int
+  ;
+static method baz(core::int x) → core::int
+  ;
+static method boz(core::int x) → core::int
+  ;
+static method main() → dynamic
+  ;

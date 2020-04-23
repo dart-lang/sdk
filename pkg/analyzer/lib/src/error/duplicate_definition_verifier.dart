@@ -39,8 +39,8 @@ class DuplicateDefinitionVerifier {
   void checkEnum(EnumDeclaration node) {
     ClassElement element = node.declaredElement;
 
-    Map<String, Element> instanceGetters = new HashMap<String, Element>();
-    Map<String, Element> staticGetters = new HashMap<String, Element>();
+    Map<String, Element> instanceGetters = HashMap<String, Element>();
+    Map<String, Element> staticGetters = HashMap<String, Element>();
 
     String indexName = 'index';
     String valuesName = 'values';
@@ -127,7 +127,7 @@ class DuplicateDefinitionVerifier {
   /// Check that the given list of variable declarations does not define
   /// multiple variables of the same name.
   void checkForVariables(VariableDeclarationList node) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
+    Map<String, Element> definedNames = HashMap<String, Element>();
     for (VariableDeclaration variable in node.variables) {
       _checkDuplicateIdentifier(definedNames, variable.name);
     }
@@ -141,7 +141,7 @@ class DuplicateDefinitionVerifier {
    * Check that all of the parameters have unique names.
    */
   void checkParameters(FormalParameterList node) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
+    Map<String, Element> definedNames = HashMap<String, Element>();
     for (FormalParameter parameter in node.parameters) {
       SimpleIdentifier identifier = parameter.identifier;
       if (identifier != null) {
@@ -154,7 +154,7 @@ class DuplicateDefinitionVerifier {
 
   /// Check that all of the variables have unique names.
   void checkStatements(List<Statement> statements) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
+    Map<String, Element> definedNames = HashMap<String, Element>();
     for (Statement statement in statements) {
       if (statement is VariableDeclarationStatement) {
         for (VariableDeclaration variable in statement.variables.variables) {
@@ -169,7 +169,7 @@ class DuplicateDefinitionVerifier {
 
   /// Check that all of the parameters have unique names.
   void checkTypeParameters(TypeParameterList node) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
+    Map<String, Element> definedNames = HashMap<String, Element>();
     for (TypeParameter parameter in node.typeParameters) {
       _checkDuplicateIdentifier(definedNames, parameter.name);
     }
@@ -177,8 +177,8 @@ class DuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void checkUnit(CompilationUnit node) {
-    Map<String, Element> definedGetters = new HashMap<String, Element>();
-    Map<String, Element> definedSetters = new HashMap<String, Element>();
+    Map<String, Element> definedGetters = HashMap<String, Element>();
+    Map<String, Element> definedSetters = HashMap<String, Element>();
 
     void addWithoutChecking(CompilationUnitElement element) {
       for (PropertyAccessorElement accessor in element.accessors) {
@@ -245,24 +245,23 @@ class DuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void _checkClassMembers(ClassElement element, List<ClassMember> members) {
-    Set<String> constructorNames = new HashSet<String>();
-    Map<String, Element> instanceGetters = new HashMap<String, Element>();
-    Map<String, Element> instanceSetters = new HashMap<String, Element>();
-    Map<String, Element> staticGetters = new HashMap<String, Element>();
-    Map<String, Element> staticSetters = new HashMap<String, Element>();
+    Set<String> constructorNames = HashSet<String>();
+    Map<String, Element> instanceGetters = HashMap<String, Element>();
+    Map<String, Element> instanceSetters = HashMap<String, Element>();
+    Map<String, Element> staticGetters = HashMap<String, Element>();
+    Map<String, Element> staticSetters = HashMap<String, Element>();
 
     for (ClassMember member in members) {
       if (member is ConstructorDeclaration) {
         var name = member.name?.name ?? '';
         if (!constructorNames.add(name)) {
           if (name.isEmpty) {
-            _errorReporter.reportErrorForNode(
+            _errorReporter.reportErrorForName(
                 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, member);
           } else {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
-                member,
-                [name]);
+            _errorReporter.reportErrorForName(
+                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, member,
+                arguments: [name]);
           }
         }
       } else if (member is FieldDeclaration) {
@@ -366,24 +365,18 @@ class DuplicateDefinitionVerifier {
       return CompileTimeErrorCode.DUPLICATE_DEFINITION;
     }
 
-    bool isGetterSetterPair(Element a, Element b) {
-      if (a is PropertyAccessorElement && b is PropertyAccessorElement) {
-        return a.isGetter && b.isSetter || a.isSetter && b.isGetter;
-      }
-      return false;
-    }
-
-    String name = identifier.name;
-    if (element is MethodElement && element.isOperator && name == '-') {
-      if (element.parameters.isEmpty) {
-        name = 'unary-';
-      }
+    var name = identifier.name;
+    if (element is MethodElement) {
+      name = element.name;
     }
 
     Element previous = getterScope[name];
     if (previous != null) {
-      if (isGetterSetterPair(element, previous)) {
+      if (_isGetterSetterPair(element, previous)) {
         // OK
+      } else if (element is FieldFormalParameterElement &&
+          previous is FieldFormalParameterElement) {
+        // Reported as CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES.
       } else {
         _errorReporter.reportErrorForNode(
           getError(previous, element),
@@ -407,5 +400,12 @@ class DuplicateDefinitionVerifier {
         setterScope[name] = element;
       }
     }
+  }
+
+  static bool _isGetterSetterPair(Element a, Element b) {
+    if (a is PropertyAccessorElement && b is PropertyAccessorElement) {
+      return a.isGetter && b.isSetter || a.isSetter && b.isGetter;
+    }
+    return false;
   }
 }

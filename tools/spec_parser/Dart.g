@@ -827,7 +827,7 @@ selector
     ;
 
 argumentPart
-    :    typeArguments? arguments
+    :    '?'? typeArguments? arguments
     ;
 
 incrementOperator
@@ -854,7 +854,7 @@ unconditionalAssignableSelector
 assignableSelector
     :    unconditionalAssignableSelector
     |    '?.' identifier
-    |    '?.[' expression ']'
+    |    '?' '[' expression ']'
     ;
 
 identifierNotFUNCTION

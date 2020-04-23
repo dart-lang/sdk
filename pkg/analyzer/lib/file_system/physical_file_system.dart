@@ -49,7 +49,7 @@ List<int> _pathsToTimes(List<String> paths) {
   return paths.map((path) {
     if (path != null) {
       try {
-        io.File file = new io.File(path);
+        io.File file = io.File(path);
         return file.lastModifiedSync().millisecondsSinceEpoch;
       } catch (_) {
         return -1;
@@ -65,10 +65,10 @@ List<int> _pathsToTimes(List<String> paths) {
  */
 class PhysicalResourceProvider implements ResourceProvider {
   static final String Function(String) NORMALIZE_EOL_ALWAYS =
-      (String string) => string.replaceAll(new RegExp('\r\n?'), '\n');
+      (String string) => string.replaceAll(RegExp('\r\n?'), '\n');
 
   static final PhysicalResourceProvider INSTANCE =
-      new PhysicalResourceProvider(null);
+      PhysicalResourceProvider(null);
 
   /**
    * The path to the base folder where state is stored.
@@ -89,19 +89,17 @@ class PhysicalResourceProvider implements ResourceProvider {
   @override
   File getFile(String path) {
     _ensureAbsoluteAndNormalized(path);
-    return new _PhysicalFile(new io.File(path));
+    return _PhysicalFile(io.File(path));
   }
 
   @override
   Folder getFolder(String path) {
     _ensureAbsoluteAndNormalized(path);
-    return new _PhysicalFolder(new io.Directory(path));
+    return _PhysicalFolder(io.Directory(path));
   }
 
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     List<String> paths = sources.map((source) => source.fullName).toList();
     return _pathsToTimes(paths);
   }
@@ -119,9 +117,9 @@ class PhysicalResourceProvider implements ResourceProvider {
   @override
   Folder getStateLocation(String pluginId) {
     if (_stateLocation != null) {
-      io.Directory directory = new io.Directory(join(_stateLocation, pluginId));
+      io.Directory directory = io.Directory(join(_stateLocation, pluginId));
       directory.createSync(recursive: true);
-      return new _PhysicalFolder(directory);
+      return _PhysicalFolder(directory);
     }
     return null;
   }
@@ -133,10 +131,10 @@ class PhysicalResourceProvider implements ResourceProvider {
   void _ensureAbsoluteAndNormalized(String path) {
     assert(() {
       if (!pathContext.isAbsolute(path)) {
-        throw new ArgumentError("Path must be absolute : $path");
+        throw ArgumentError("Path must be absolute : $path");
       }
       if (pathContext.normalize(path) != path) {
-        throw new ArgumentError("Path must be normalized : $path");
+        throw ArgumentError("Path must be normalized : $path");
       }
       return true;
     }());
@@ -150,14 +148,14 @@ class _PhysicalFile extends _PhysicalResource implements File {
   _PhysicalFile(io.File file) : super(file);
 
   @override
-  Stream<WatchEvent> get changes => new FileWatcher(_entry.path).events;
+  Stream<WatchEvent> get changes => FileWatcher(_entry.path).events;
 
   @override
   int get lengthSync {
     try {
       return _file.lengthSync();
     } on io.FileSystemException catch (exception) {
-      throw new FileSystemException(exception.path, exception.message);
+      throw FileSystemException(exception.path, exception.message);
     }
   }
 
@@ -166,7 +164,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     try {
       return _file.lastModifiedSync().millisecondsSinceEpoch;
     } on io.FileSystemException catch (exception) {
-      throw new FileSystemException(exception.path, exception.message);
+      throw FileSystemException(exception.path, exception.message);
     }
   }
 
@@ -185,7 +183,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
 
   @override
   Source createSource([Uri uri]) {
-    return new FileSource(this, uri ?? pathContext.toUri(path));
+    return FileSource(this, uri ?? pathContext.toUri(path));
   }
 
   @override
@@ -199,7 +197,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     try {
       return _file.readAsBytesSync();
     } on io.FileSystemException catch (exception) {
-      throw new FileSystemException(exception.path, exception.message);
+      throw FileSystemException(exception.path, exception.message);
     }
   }
 
@@ -209,37 +207,37 @@ class _PhysicalFile extends _PhysicalResource implements File {
     try {
       return FileBasedSource.fileReadMode(_file.readAsStringSync());
     } on io.FileSystemException catch (exception) {
-      throw new FileSystemException(exception.path, exception.message);
+      throw FileSystemException(exception.path, exception.message);
     }
   }
 
   @override
   File renameSync(String newPath) {
     try {
-      return new _PhysicalFile(_file.renameSync(newPath));
+      return _PhysicalFile(_file.renameSync(newPath));
     } on io.FileSystemException catch (exception) {
-      throw new FileSystemException(exception.path, exception.message);
+      throw FileSystemException(exception.path, exception.message);
     }
   }
 
   @override
   File resolveSymbolicLinksSync() {
     try {
-      return new _PhysicalFile(new io.File(_file.resolveSymbolicLinksSync()));
+      return _PhysicalFile(io.File(_file.resolveSymbolicLinksSync()));
     } on io.FileSystemException catch (exception) {
-      throw new FileSystemException(exception.path, exception.message);
+      throw FileSystemException(exception.path, exception.message);
     }
   }
 
   @override
-  Uri toUri() => new Uri.file(path);
+  Uri toUri() => Uri.file(path);
 
   @override
   void writeAsBytesSync(List<int> bytes) {
     try {
       _file.writeAsBytesSync(bytes);
     } on io.FileSystemException catch (exception) {
-      throw new FileSystemException(exception.path, exception.message);
+      throw FileSystemException(exception.path, exception.message);
     }
   }
 
@@ -248,7 +246,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     try {
       _file.writeAsStringSync(content);
     } on io.FileSystemException catch (exception) {
-      throw new FileSystemException(exception.path, exception.message);
+      throw FileSystemException(exception.path, exception.message);
     }
   }
 }
@@ -261,7 +259,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   Stream<WatchEvent> get changes =>
-      new DirectoryWatcher(_entry.path).events.handleError((error) {},
+      DirectoryWatcher(_entry.path).events.handleError((error) {},
           test: (error) =>
               error is io.FileSystemException &&
               // Don't suppress "Directory watcher closed," so the outer
@@ -309,15 +307,15 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
   @override
   _PhysicalFile getChildAssumingFile(String relPath) {
     String canonicalPath = canonicalizePath(relPath);
-    io.File file = new io.File(canonicalPath);
-    return new _PhysicalFile(file);
+    io.File file = io.File(canonicalPath);
+    return _PhysicalFile(file);
   }
 
   @override
   _PhysicalFolder getChildAssumingFolder(String relPath) {
     String canonicalPath = canonicalizePath(relPath);
-    io.Directory directory = new io.Directory(canonicalPath);
-    return new _PhysicalFolder(directory);
+    io.Directory directory = io.Directory(canonicalPath);
+    return _PhysicalFolder(directory);
   }
 
   @override
@@ -330,14 +328,14 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
       for (int i = 0; i < numEntries; i++) {
         io.FileSystemEntity entity = entries[i];
         if (entity is io.Directory) {
-          children.add(new _PhysicalFolder(entity));
+          children.add(_PhysicalFolder(entity));
         } else if (entity is io.File) {
-          children.add(new _PhysicalFile(entity));
+          children.add(_PhysicalFile(entity));
         }
       }
       return children;
     } on io.FileSystemException catch (exception) {
-      throw new FileSystemException(exception.path, exception.message);
+      throw FileSystemException(exception.path, exception.message);
     }
   }
 
@@ -352,15 +350,15 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
   @override
   Folder resolveSymbolicLinksSync() {
     try {
-      return new _PhysicalFolder(
-          new io.Directory(_directory.resolveSymbolicLinksSync()));
+      return _PhysicalFolder(
+          io.Directory(_directory.resolveSymbolicLinksSync()));
     } on io.FileSystemException catch (exception) {
-      throw new FileSystemException(exception.path, exception.message);
+      throw FileSystemException(exception.path, exception.message);
     }
   }
 
   @override
-  Uri toUri() => new Uri.directory(path);
+  Uri toUri() => Uri.directory(path);
 }
 
 /**
@@ -383,7 +381,7 @@ abstract class _PhysicalResource implements Resource {
     if (parentPath == path) {
       return null;
     }
-    return new _PhysicalFolder(new io.Directory(parentPath));
+    return _PhysicalFolder(io.Directory(parentPath));
   }
 
   @override
@@ -410,7 +408,7 @@ abstract class _PhysicalResource implements Resource {
     try {
       _entry.deleteSync(recursive: true);
     } on io.FileSystemException catch (exception) {
-      throw new FileSystemException(exception.path, exception.message);
+      throw FileSystemException(exception.path, exception.message);
     }
   }
 
@@ -438,7 +436,7 @@ abstract class _PhysicalResource implements Resource {
           shortName == r'COM2' ||
           shortName == r'COM3' ||
           shortName == r'COM4') {
-        throw new FileSystemException(
+        throw FileSystemException(
             path, 'Windows device drivers cannot be read.');
       }
     }

@@ -44,11 +44,6 @@ abstract class RecipeEncoder {
   jsAst.Literal encodeMetadataRecipe(ModularEmitter emitter,
       InterfaceType declaringType, DartType supertypeArgument);
 
-  /// Converts a recipe into a fragment of code that accesses the evaluated
-  /// recipe.
-  // TODO(33422): Remove need for this by pushing stubs through SSA.
-  jsAst.Expression evaluateRecipe(ModularEmitter emitter, jsAst.Literal recipe);
-
   // TODO(sra): Still need a $signature function when the function type is a
   // function of closed type variables. See if the $signature method can always
   // be generated through SSA in those cases.
@@ -89,13 +84,6 @@ class RecipeEncoderImpl implements RecipeEncoder {
             metadata: true)
         .run()
         .recipe;
-  }
-
-  @override
-  jsAst.Expression evaluateRecipe(
-      ModularEmitter emitter, jsAst.Literal recipe) {
-    return js('#(#)',
-        [emitter.staticFunctionAccess(commonElements.findType), recipe]);
   }
 
   @override
@@ -420,11 +408,6 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   }
 
   @override
-  void visitTypedefType(TypedefType type, _) {
-    visit(type.unaliased, _);
-  }
-
-  @override
   void visitFutureOrType(FutureOrType type, _) {
     visit(type.typeArgument, _);
     _emitCode(Recipe.wrapFutureOr);
@@ -472,7 +455,6 @@ int indexTypeVariable(
     return null;
   }
 
-  assert(world.rtiNeed.classNeedsTypeArguments(environment.classType.element));
   // Indexed class type variables come after the bound function type
   // variables.
   return 1 + environment.bindings.length + element.index;
@@ -502,8 +484,8 @@ class Ruleset {
   bool get isEmpty => _redirections.isEmpty && _entries.isEmpty;
   bool get isNotEmpty => _redirections.isNotEmpty || _entries.isNotEmpty;
 
-  void addRedirection(ClassEntity targetClass, ClassEntity redirection) {
-    _redirections[targetClass] = redirection;
+  void addRedirection(ClassEntity redirectee, ClassEntity target) {
+    _redirections[redirectee] = target;
   }
 
   void addEntry(InterfaceType targetType, Iterable<InterfaceType> supertypes,
@@ -633,5 +615,29 @@ class RulesetEncoder {
         js.quoteName(_emitter.typeAccessNewRti(entry.key)),
         _colon,
         js.number(entry.value),
+      ]);
+
+  jsAst.StringConcatenation encodeTypeParameterVariances(
+          Map<ClassEntity, List<Variance>> typeParameterVariances) =>
+      js.concatenateStrings([
+        _quote,
+        _leftBrace,
+        ...js.joinLiterals(
+            typeParameterVariances.entries
+                .map(_encodeTypeParameterVariancesForClass),
+            _comma),
+        _rightBrace,
+        _quote,
+      ]);
+
+  jsAst.StringConcatenation _encodeTypeParameterVariancesForClass(
+          MapEntry<ClassEntity, List<Variance>> classEntry) =>
+      js.concatenateStrings([
+        js.quoteName(_emitter.typeAccessNewRti(classEntry.key)),
+        _colon,
+        _leftBracket,
+        ...js.joinLiterals(
+            classEntry.value.map((v) => js.number(v.index)), _comma),
+        _rightBracket
       ]);
 }

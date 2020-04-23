@@ -28,6 +28,7 @@ namespace dart {
   V(Code)                                                                      \
   V(Bytecode)                                                                  \
   V(Instructions)                                                              \
+  V(InstructionsSection)                                                       \
   V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
   V(CodeSourceMap)                                                             \
@@ -39,6 +40,7 @@ namespace dart {
   V(ParameterTypeCheck)                                                        \
   V(SingleTargetCache)                                                         \
   V(UnlinkedCall)                                                              \
+  V(MonomorphicSmiableCall)                                                    \
   V(ICData)                                                                    \
   V(MegamorphicCache)                                                          \
   V(SubtypeTestCache)                                                          \
@@ -79,8 +81,10 @@ namespace dart {
   V(WeakProperty)                                                              \
   V(MirrorReference)                                                           \
   V(LinkedHashMap)                                                             \
+  V(FutureOr)                                                                  \
   V(UserTag)                                                                   \
-  V(TransferableTypedData)
+  V(TransferableTypedData)                                                     \
+  V(WeakSerializationReference)
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \

@@ -22,13 +22,8 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
     // End marker.
     {NULL, false}};
 
-Dart_Port Builtin::load_port_ = ILLEGAL_PORT;
 const int Builtin::num_libs_ =
     sizeof(Builtin::builtin_libraries_) / sizeof(Builtin::builtin_lib_props);
-
-Dart_Handle Builtin::PartSource(BuiltinLibraryId id, const char* part_uri) {
-  UNREACHABLE();
-}
 
 void Builtin::SetNativeResolver(BuiltinLibraryId id) {
   ASSERT(static_cast<int>(id) >= 0);
@@ -42,19 +37,6 @@ void Builtin::SetNativeResolver(BuiltinLibraryId id) {
     Dart_Handle result =
         Dart_SetNativeResolver(library, NativeLookup, NativeSymbol);
     ASSERT(!Dart_IsError(result));
-  }
-}
-
-Builtin::BuiltinLibraryId Builtin::FindId(const char* url_string) {
-  int id = 0;
-  while (true) {
-    if (builtin_libraries_[id].url_ == NULL) {
-      return kInvalidLibrary;
-    }
-    if (strcmp(url_string, builtin_libraries_[id].url_) == 0) {
-      return static_cast<BuiltinLibraryId>(id);
-    }
-    id++;
   }
 }
 

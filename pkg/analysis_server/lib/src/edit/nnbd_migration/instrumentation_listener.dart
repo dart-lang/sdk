@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/instrumentation.dart';
-import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// A listener used to gather instrumentation information from the migration
 /// engine.
@@ -18,6 +18,12 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
 
   /// Initialize a newly created listener.
   InstrumentationListener();
+
+  @override
+  void changes(Source source, Map<int, List<AtomicEdit>> changes) {
+    assert(_sourceInfo(source).changes == null);
+    _sourceInfo(source).changes = changes;
+  }
 
   @override
   void explicitTypeNullability(
@@ -37,12 +43,6 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
       TypeParameterElement typeParameter, DecoratedTypeInfo decoratedType) {
     _storeNodeInformation(
         decoratedType, typeParameter.source, null, typeParameter);
-  }
-
-  @override
-  void fix(SingleNullabilityFix fix, Iterable<FixReasonInfo> reasons) {
-    _sourceInfo(fix.source).fixes[fix] =
-        reasons.where((reason) => reason != null).toList();
   }
 
   @override
@@ -77,8 +77,10 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
   }
 
   @override
-  void propagationStep(PropagationInfo info) {
-    data.propagationSteps.add(info);
+  void prepareForUpdate() {
+    for (var source in data.sourceInformation.keys) {
+      _sourceInfo(source).changes = null;
+    }
   }
 
   String _filePathForSource(Source source) {
@@ -99,7 +101,7 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
         NodeInformation(_filePathForSource(source), astNode, element);
     var dartType = decoratedType.type;
     if (dartType is InterfaceType) {
-      for (int i = 0; i < dartType.typeArguments.length; i++) {
+      for (var i = 0; i < dartType.typeArguments.length; i++) {
         _storeNodeInformation(
             decoratedType.typeArgument(i), source, astNode, element);
       }
@@ -110,7 +112,7 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
         astNode,
         element,
       );
-      int i = 0;
+      var i = 0;
       for (var parameter in dartType.parameters) {
         if (parameter.isNamed) {
           var name = parameter.name;

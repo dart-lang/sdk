@@ -4,17 +4,15 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FormatTest);
   });
@@ -26,18 +24,18 @@ class FormatTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    handler = new EditDomainHandler(server);
+    handler = EditDomainHandler(server);
   }
 
   Future test_format_longLine() {
-    String content = '''
+    var content = '''
 fun(firstParam, secondParam, thirdParam, fourthParam) {
   if (firstParam.noNull && secondParam.noNull && thirdParam.noNull && fourthParam.noNull) {}
 }
 ''';
     addTestFile(content);
     return waitForTasksFinished().then((_) {
-      EditFormatResult formatResult = _formatAt(0, 3, lineLength: 100);
+      var formatResult = _formatAt(0, 3, lineLength: 100);
 
       expect(formatResult.edits, isNotNull);
       expect(formatResult.edits, hasLength(0));
@@ -55,7 +53,7 @@ main() {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      EditFormatResult formatResult = _formatAt(0, 3);
+      var formatResult = _formatAt(0, 3);
       expect(formatResult.edits, isNotNull);
       expect(formatResult.edits, hasLength(0));
     });
@@ -66,12 +64,12 @@ main() {
 main() { int x = 3; }
 ''');
     await waitForTasksFinished();
-    EditFormatResult formatResult = _formatAt(0, 0);
+    var formatResult = _formatAt(0, 0);
 
     expect(formatResult.edits, isNotNull);
     expect(formatResult.edits, hasLength(1));
 
-    SourceEdit edit = formatResult.edits[0];
+    var edit = formatResult.edits[0];
     expect(edit.replacement, equals('''
 main() {
   int x = 3;
@@ -86,12 +84,12 @@ main() {
 main() { int x = 3; }
 ''');
     return waitForTasksFinished().then((_) {
-      EditFormatResult formatResult = _formatAt(0, 3);
+      var formatResult = _formatAt(0, 3);
 
       expect(formatResult.edits, isNotNull);
       expect(formatResult.edits, hasLength(1));
 
-      SourceEdit edit = formatResult.edits[0];
+      var edit = formatResult.edits[0];
       expect(edit.replacement, equals('''
 main() {
   int x = 3;
@@ -107,19 +105,18 @@ main() {
 main() { int x =
 ''');
     return waitForTasksFinished().then((_) {
-      Request request = new EditFormatParams(testFile, 0, 3).toRequest('0');
-      Response response = handler.handleRequest(request);
+      var request = EditFormatParams(testFile, 0, 3).toRequest('0');
+      var response = handler.handleRequest(request);
       expect(response, isResponseFailure('0'));
     });
   }
 
   EditFormatResult _formatAt(int selectionOffset, int selectionLength,
       {int lineLength}) {
-    Request request = new EditFormatParams(
-            testFile, selectionOffset, selectionLength,
+    var request = EditFormatParams(testFile, selectionOffset, selectionLength,
             lineLength: lineLength)
         .toRequest('0');
-    Response response = handleSuccessfulRequest(request);
-    return new EditFormatResult.fromResponse(response);
+    var response = handleSuccessfulRequest(request);
+    return EditFormatResult.fromResponse(response);
   }
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /// Note: the VM concatenates all patch files into a single patch file. This
 /// file is the first patch in "dart:_internal" which contains all the imports
 /// used by patches of that library. We plan to change this when we have a
@@ -123,4 +121,10 @@ Int32List _growRegExpStack(Int32List stack) {
 // type of a value.
 //
 // Important: this is unsafe and must be used with care.
-T unsafeCast<T>(Object v) native "Internal_unsafeCast";
+T unsafeCast<T>(Object? v) native "Internal_unsafeCast";
+
+// This function can be used to keep an object alive til that point.
+//
+// This is implemented by a recognized method, but in bytecode through a native.
+@pragma('vm:prefer-inline')
+void reachabilityFence(Object object) native "Internal_reachabilityFence";

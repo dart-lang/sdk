@@ -66,7 +66,7 @@ main([List<String> arguments = const []]) =>
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
   return new Context(suite.name, environment["updateExpectations"] == "true",
-      environment["trace"] == "true");
+      environment["trace"] == "true", environment["annotateLines"] == "true");
 }
 
 ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
@@ -82,9 +82,11 @@ ScannerConfiguration scannerConfigurationNonNNBD = new ScannerConfiguration(
 class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
   final bool addTrace;
+  final bool annotateLines;
   final String suiteName;
 
-  Context(this.suiteName, this.updateExpectations, this.addTrace);
+  Context(this.suiteName, this.updateExpectations, this.addTrace,
+      this.annotateLines);
 
   final List<Step> steps = const <Step>[
     const TokenStep(true, ".scanner.expect"),
@@ -122,7 +124,7 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
 
     ParserTestListenerWithMessageFormatting parserTestListener =
         new ParserTestListenerWithMessageFormatting(
-            context.addTrace, source, shortName);
+            context.addTrace, context.annotateLines, source, shortName);
     Parser parser = new Parser(parserTestListener);
     parser.parseUnit(firstToken);
 
@@ -144,14 +146,22 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
 
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
-    Token firstToken = scanUri(description.uri, description.shortName);
+    List<int> lineStarts = new List<int>();
+    Token firstToken =
+        scanUri(description.uri, description.shortName, lineStarts: lineStarts);
 
     if (firstToken == null) {
       return Future.value(crash(description, StackTrace.current));
     }
 
+    File f = new File.fromUri(description.uri);
+    List<int> rawBytes = f.readAsBytesSync();
+    Source source =
+        new Source(lineStarts, rawBytes, description.uri, description.uri);
+
     ParserTestListenerForIntertwined parserTestListener =
-        new ParserTestListenerForIntertwined(context.addTrace);
+        new ParserTestListenerForIntertwined(
+            context.addTrace, context.annotateLines, source);
     TestParser parser = new TestParser(parserTestListener, context.addTrace);
     parserTestListener.parser = parser;
     parser.sb = parserTestListener.sb;
@@ -209,7 +219,8 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
     StringBuffer afterParserWithTypes =
         tokenStreamToString(firstToken, lineStarts, addTypes: true);
 
-    bool rewritten = beforeParser.toString() != afterParser.toString();
+    bool rewritten =
+        beforeParserWithTypes.toString() != afterParserWithTypes.toString();
     String rewrittenString =
         rewritten ? "NOTICE: Stream was rewritten by parser!\n\n" : "";
 
@@ -295,13 +306,30 @@ Token scanUri(Uri uri, String shortName, {List<int> lineStarts}) {
 }
 
 class ParserTestListenerWithMessageFormatting extends ParserTestListener {
+  final bool annotateLines;
   final Source source;
   final String shortName;
   final List<String> errors = new List<String>();
+  Location latestSeenLocation;
 
   ParserTestListenerWithMessageFormatting(
-      bool trace, this.source, this.shortName)
+      bool trace, this.annotateLines, this.source, this.shortName)
       : super(trace);
+
+  void seen(Token token) {
+    if (!annotateLines) return;
+    if (token == null) return;
+    if (source == null) return;
+    if (offsetForToken(token) < 0) return;
+    Location location =
+        source.getLocation(source.fileUri, offsetForToken(token));
+    if (latestSeenLocation == null || location.line > latestSeenLocation.line) {
+      latestSeenLocation = location;
+      String sourceLine = source.getTextLine(location.line);
+      doPrint("");
+      doPrint("// Line ${location.line}: $sourceLine");
+    }
+  }
 
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
@@ -328,12 +356,18 @@ class ParserTestListenerForIntertwined
     extends ParserTestListenerWithMessageFormatting {
   TestParser parser;
 
-  ParserTestListenerForIntertwined(bool trace) : super(trace, null, null);
+  ParserTestListenerForIntertwined(
+      bool trace, bool annotateLines, Source source)
+      : super(trace, annotateLines, source, null);
 
   void doPrint(String s) {
     int prevIndent = super.indent;
     super.indent = parser.indent;
-    super.doPrint("listener: " + s);
+    if (s.trim() == "") {
+      super.doPrint("");
+    } else {
+      super.doPrint("listener: " + s);
+    }
     super.indent = prevIndent;
   }
 }

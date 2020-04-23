@@ -213,11 +213,13 @@ class Configuration {
     var runtime = enumOption("runtime", Runtime.names, Runtime.find);
     var system = enumOption("system", System.names, System.find);
     var nnbdMode = enumOption("nnbd", NnbdMode.names, NnbdMode.find);
+    var sanitizer = enumOption("sanitizer", Sanitizer.names, Sanitizer.find);
 
     // Fill in any missing values using defaults when possible.
     architecture ??= Architecture.x64;
     system ??= System.host;
     nnbdMode ??= NnbdMode.legacy;
+    sanitizer ??= Sanitizer.none;
 
     // Infer from compiler from runtime or vice versa.
     if (compiler == null) {
@@ -242,6 +244,7 @@ class Configuration {
     var configuration = Configuration(
         name, architecture, compiler, mode, runtime, system,
         nnbdMode: nnbdMode,
+        sanitizer: sanitizer,
         babel: stringOption("babel"),
         builderTag: stringOption("builder-tag"),
         genKernelOptions: stringListOption("gen-kernel-options"),
@@ -256,11 +259,11 @@ class Configuration {
         isMinified: boolOption("minified"),
         useAnalyzerCfe: boolOption("use-cfe"),
         useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
-        useBlobs: boolOption("use-blobs"),
         useElf: boolOption("use-elf"),
         useHotReload: boolOption("hot-reload"),
         useHotReloadRollback: boolOption("hot-reload-rollback"),
-        useSdk: boolOption("use-sdk"));
+        useSdk: boolOption("use-sdk"),
+        useQemu: boolOption("use-qemu"));
 
     // Should have consumed the whole map.
     if (optionsCopy.isNotEmpty) {
@@ -284,6 +287,8 @@ class Configuration {
 
   /// Which NNBD mode to run the test files under.
   final NnbdMode nnbdMode;
+
+  final Sanitizer sanitizer;
 
   final String babel;
 
@@ -324,8 +329,6 @@ class Configuration {
   final bool useAnalyzerCfe;
   final bool useAnalyzerFastaParser;
 
-  // TODO(rnystrom): What is this?
-  final bool useBlobs;
   final bool useElf;
 
   final bool useHotReload;
@@ -333,9 +336,12 @@ class Configuration {
 
   final bool useSdk;
 
+  final bool useQemu;
+
   Configuration(this.name, this.architecture, this.compiler, this.mode,
       this.runtime, this.system,
       {NnbdMode nnbdMode,
+      Sanitizer sanitizer,
       String babel,
       String builderTag,
       List<String> genKernelOptions,
@@ -350,12 +356,13 @@ class Configuration {
       bool isMinified,
       bool useAnalyzerCfe,
       bool useAnalyzerFastaParser,
-      bool useBlobs,
       bool useElf,
       bool useHotReload,
       bool useHotReloadRollback,
-      bool useSdk})
+      bool useSdk,
+      bool useQemu})
       : nnbdMode = nnbdMode ?? NnbdMode.legacy,
+        sanitizer = sanitizer ?? Sanitizer.none,
         babel = babel ?? "",
         builderTag = builderTag ?? "",
         genKernelOptions = genKernelOptions ?? <String>[],
@@ -370,11 +377,11 @@ class Configuration {
         isMinified = isMinified ?? false,
         useAnalyzerCfe = useAnalyzerCfe ?? false,
         useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
-        useBlobs = useBlobs ?? false,
         useElf = useElf ?? false,
         useHotReload = useHotReload ?? false,
         useHotReloadRollback = useHotReloadRollback ?? false,
-        useSdk = useSdk ?? false;
+        useSdk = useSdk ?? false,
+        useQemu = useQemu ?? false;
 
   /// Returns `true` if this configuration's options all have the same values
   /// as [other].
@@ -385,6 +392,7 @@ class Configuration {
       runtime == other.runtime &&
       system == other.system &&
       nnbdMode == other.nnbdMode &&
+      sanitizer == other.sanitizer &&
       babel == other.babel &&
       builderTag == other.builderTag &&
       _listsEqual(genKernelOptions, other.genKernelOptions) &&
@@ -399,11 +407,11 @@ class Configuration {
       isMinified == other.isMinified &&
       useAnalyzerCfe == other.useAnalyzerCfe &&
       useAnalyzerFastaParser == other.useAnalyzerFastaParser &&
-      useBlobs == other.useBlobs &&
       useElf == other.useElf &&
       useHotReload == other.useHotReload &&
       useHotReloadRollback == other.useHotReloadRollback &&
-      useSdk == other.useSdk;
+      useSdk == other.useSdk &&
+      useQemu == other.useQemu;
 
   /// Whether [a] and [b] contain the same strings, regardless of order.
   bool _listsEqual(List<String> a, List<String> b) {
@@ -448,11 +456,11 @@ class Configuration {
         isMinified,
         useAnalyzerCfe,
         useAnalyzerFastaParser,
-        useBlobs,
         useElf,
         useHotReload,
         useHotReloadRollback,
-        useSdk
+        useSdk,
+        useQemu
       ]);
 
   String toString() {
@@ -488,10 +496,10 @@ class Configuration {
     if (isMinified) fields.add("minified");
     if (useAnalyzerCfe) fields.add("use-cfe");
     if (useAnalyzerFastaParser) fields.add("analyzer-use-fasta-parser");
-    if (useBlobs) fields.add("use-blobs");
     if (useHotReload) fields.add("hot-reload");
     if (useHotReloadRollback) fields.add("hot-reload-rollback");
     if (useSdk) fields.add("use-sdk");
+    if (useQemu) fields.add("use-qemu");
 
     buffer.write(fields.join(", "));
     buffer.write(")");
@@ -528,6 +536,7 @@ class Configuration {
     }
 
     fields.add("nnbd: $nnbdMode ${other.nnbdMode}");
+    fields.add("sanitizer: $sanitizer ${other.sanitizer}");
     stringField("babel", babel, other.babel);
     stringField("builder-tag", builderTag, other.builderTag);
     stringListField(
@@ -544,12 +553,12 @@ class Configuration {
     boolField("use-cfe", useAnalyzerCfe, other.useAnalyzerCfe);
     boolField("analyzer-use-fasta-parser", useAnalyzerFastaParser,
         other.useAnalyzerFastaParser);
-    boolField("use-blobs", useBlobs, other.useBlobs);
     boolField("host-checked", isHostChecked, other.isHostChecked);
     boolField("hot-reload", useHotReload, other.useHotReload);
     boolField("hot-reload-rollback", useHotReloadRollback,
         other.useHotReloadRollback);
     boolField("use-sdk", useSdk, other.useSdk);
+    boolField("use-qemu", useQemu, other.useQemu);
 
     buffer.write(fields.join("\n   "));
     buffer.write("\n");
@@ -750,6 +759,30 @@ class Mode extends NamedEnum {
   const Mode._(String name) : super(name);
 
   bool get isDebug => this == debug;
+}
+
+class Sanitizer extends NamedEnum {
+  static const none = Sanitizer._('none');
+  static const asan = Sanitizer._('asan');
+  static const lsan = Sanitizer._('lsan');
+  static const msan = Sanitizer._('msan');
+  static const tsan = Sanitizer._('tsan');
+  static const ubsan = Sanitizer._('ubsan');
+
+  static final List<String> names = _all.keys.toList();
+
+  static final _all = Map<String, Sanitizer>.fromIterable(
+      [none, asan, lsan, msan, tsan, ubsan],
+      key: (mode) => (mode as Sanitizer).name);
+
+  static Sanitizer find(String name) {
+    var mode = _all[name];
+    if (mode != null) return mode;
+
+    throw ArgumentError('Unknown sanitizer "$name".');
+  }
+
+  const Sanitizer._(String name) : super(name);
 }
 
 class Runtime extends NamedEnum {

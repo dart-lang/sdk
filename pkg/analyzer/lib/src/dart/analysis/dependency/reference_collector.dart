@@ -29,7 +29,7 @@ class ReferenceCollector {
   /// The list of names that are referenced using an import prefix.
   ///
   /// It is filled by [addImportPrefix] and shared across all nodes.
-  List<_ReferencedImportPrefixedNames> _importPrefixedReferences = [];
+  final List<_ReferencedImportPrefixedNames> _importPrefixedReferences = [];
 
   /// The list of names that are referenced with `super`.
   _NameSet _superReferences = _NameSet();
@@ -314,7 +314,7 @@ class ReferenceCollector {
     _visitConstructor(node.type, node.name);
   }
 
-  void _visitExpression(Expression node, {bool get: true, bool set: false}) {
+  void _visitExpression(Expression node, {bool get = true, bool set = false}) {
     if (node == null) return;
 
     if (node is AdjacentStrings) {

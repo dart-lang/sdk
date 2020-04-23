@@ -7,15 +7,23 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../clone.dart';
 import '../core_types.dart';
+import '../reference_from_index.dart';
 import '../target/targets.dart' show Target;
 import '../type_algebra.dart';
 
-void transformLibraries(Target targetInfo, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, List<Library> libraries,
+/// Transforms the libraries in [libraries].
+/// Note that [referenceFromIndex] can be null, and is generally only needed
+/// when (ultimately) called from the incremental compiler.
+void transformLibraries(
+    Target targetInfo,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    List<Library> libraries,
+    ReferenceFromIndex referenceFromIndex,
     {bool doSuperResolution: true}) {
   new MixinFullResolution(targetInfo, coreTypes, hierarchy,
           doSuperResolution: doSuperResolution)
-      .transform(libraries);
+      .transform(libraries, referenceFromIndex);
 }
 
 /// Replaces all mixin applications with regular classes, cloning all fields
@@ -46,7 +54,8 @@ class MixinFullResolution {
 
   /// Transform the given new [libraries].  It is expected that all other
   /// libraries have already been transformed.
-  void transform(List<Library> libraries) {
+  void transform(
+      List<Library> libraries, ReferenceFromIndex referenceFromIndex) {
     if (libraries.isEmpty) return;
 
     var transformedClasses = new Set<Class>();
@@ -55,11 +64,9 @@ class MixinFullResolution {
     // the mixin and constructors from the base class.
     var processedClasses = new Set<Class>();
     for (var library in libraries) {
-      // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-      if (library.isExternal) continue;
-
       for (var class_ in library.classes) {
-        transformClass(libraries, processedClasses, transformedClasses, class_);
+        transformClass(libraries, processedClasses, transformedClasses, class_,
+            referenceFromIndex);
       }
     }
 
@@ -72,9 +79,6 @@ class MixinFullResolution {
     }
     // Resolve all super call expressions and super initializers.
     for (var library in libraries) {
-      // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-      if (library.isExternal) continue;
-
       for (var class_ in library.classes) {
         for (var procedure in class_.procedures) {
           if (procedure.containsSuperCalls) {
@@ -91,13 +95,16 @@ class MixinFullResolution {
       List<Library> librariesToBeTransformed,
       Set<Class> processedClasses,
       Set<Class> transformedClasses,
-      Class class_) {
+      Class class_,
+      ReferenceFromIndex referenceFromIndex) {
     // If this class was already handled then so were all classes up to the
     // [Object] class.
     if (!processedClasses.add(class_)) return;
 
-    if (!librariesToBeTransformed.contains(class_.enclosingLibrary) &&
-        class_.enclosingLibrary.importUri?.scheme == "dart") {
+    Library enclosingLibrary = class_.enclosingLibrary;
+
+    if (!librariesToBeTransformed.contains(enclosingLibrary) &&
+        enclosingLibrary.importUri?.scheme == "dart") {
       // If we're not asked to transform the platform libraries then we expect
       // that they will be already transformed.
       return;
@@ -107,13 +114,13 @@ class MixinFullResolution {
     if (class_.superclass != null &&
         class_.superclass.level.index >= ClassLevel.Mixin.index) {
       transformClass(librariesToBeTransformed, processedClasses,
-          transformedClasses, class_.superclass);
+          transformedClasses, class_.superclass, referenceFromIndex);
     }
 
     // If this is not a mixin application we don't need to make forwarding
     // constructors in this class.
     if (!class_.isMixinApplication) return;
-    assert(librariesToBeTransformed.contains(class_.enclosingLibrary));
+    assert(librariesToBeTransformed.contains(enclosingLibrary));
 
     if (class_.mixedInClass.level.index < ClassLevel.Mixin.index) {
       throw new Exception(
@@ -125,7 +132,7 @@ class MixinFullResolution {
 
     // Clone fields and methods from the mixin class.
     var substitution = getSubstitutionMap(class_.mixedInType);
-    var cloner = new CloneVisitor(typeSubstitution: substitution);
+    var cloner = new CloneVisitorWithMembers(typeSubstitution: substitution);
 
     // When we copy a field from the mixed in class, we remove any
     // forwarding-stub getters/setters from the superclass, but copy their
@@ -139,8 +146,14 @@ class MixinFullResolution {
         nonSetters[procedure.name] = procedure;
       }
     }
+
+    IndexedLibrary indexedLibrary =
+        referenceFromIndex?.lookupLibrary(enclosingLibrary);
+    IndexedClass indexedClass = indexedLibrary?.lookupIndexedClass(class_.name);
+
     for (var field in class_.mixin.fields) {
-      Field clone = cloner.clone(field);
+      Field clone =
+          cloner.cloneField(field, indexedClass?.lookupField(field.name.name));
       Procedure setter = setters[field.name];
       if (setter != null) {
         setters.remove(field.name);
@@ -171,14 +184,23 @@ class MixinFullResolution {
       // NoSuchMethod forwarders aren't cloned.
       if (procedure.isNoSuchMethodForwarder) continue;
 
-      Procedure clone = cloner.clone(procedure);
+      Procedure referenceFrom;
+      if (procedure.isSetter) {
+        referenceFrom =
+            indexedClass?.lookupProcedureSetter(procedure.name.name);
+      } else {
+        referenceFrom =
+            indexedClass?.lookupProcedureNotSetter(procedure.name.name);
+      }
+
       // Linear search for a forwarding stub with the same name.
+      int originalIndex;
       for (int i = 0; i < originalLength; ++i) {
         var originalProcedure = class_.procedures[i];
-        if (originalProcedure.name == clone.name &&
-            originalProcedure.kind == clone.kind) {
+        if (originalProcedure.name == procedure.name &&
+            originalProcedure.kind == procedure.kind) {
           FunctionNode src = originalProcedure.function;
-          FunctionNode dst = clone.function;
+          FunctionNode dst = procedure.function;
 
           if (src.positionalParameters.length !=
                   dst.positionalParameters.length ||
@@ -187,27 +209,35 @@ class MixinFullResolution {
             // and don't add several procedures with the same name to the class.
             continue outer;
           }
-
-          assert(src.typeParameters.length == dst.typeParameters.length);
-          for (int j = 0; j < src.typeParameters.length; ++j) {
-            dst.typeParameters[j].flags = src.typeParameters[j].flags;
-          }
-          for (int j = 0; j < src.positionalParameters.length; ++j) {
-            dst.positionalParameters[j].flags =
-                src.positionalParameters[j].flags;
-          }
-          // TODO(kernel team): The named parameters are not sorted,
-          // this might not be correct.
-          for (int j = 0; j < src.namedParameters.length; ++j) {
-            dst.namedParameters[j].flags = src.namedParameters[j].flags;
-          }
-
-          originalProcedure.canonicalName?.unbind();
-          class_.procedures[i] = clone;
-          continue outer;
+          originalIndex = i;
+          break;
         }
       }
-      class_.addMember(clone);
+      if (originalIndex != null) {
+        referenceFrom ??= class_.procedures[originalIndex];
+      }
+      Procedure clone = cloner.cloneProcedure(procedure, referenceFrom);
+      if (originalIndex != null) {
+        Procedure originalProcedure = class_.procedures[originalIndex];
+        FunctionNode src = originalProcedure.function;
+        FunctionNode dst = clone.function;
+        assert(src.typeParameters.length == dst.typeParameters.length);
+        for (int j = 0; j < src.typeParameters.length; ++j) {
+          dst.typeParameters[j].flags = src.typeParameters[j].flags;
+        }
+        for (int j = 0; j < src.positionalParameters.length; ++j) {
+          dst.positionalParameters[j].flags = src.positionalParameters[j].flags;
+        }
+        // TODO(kernel team): The named parameters are not sorted,
+        // this might not be correct.
+        for (int j = 0; j < src.namedParameters.length; ++j) {
+          dst.namedParameters[j].flags = src.namedParameters[j].flags;
+        }
+
+        class_.procedures[originalIndex] = clone;
+      } else {
+        class_.addMember(clone);
+      }
     }
     assert(class_.constructors.isNotEmpty);
 

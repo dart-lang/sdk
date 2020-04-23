@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithConditionalAssignmentTest);
   });
@@ -23,17 +23,18 @@ class ReplaceWithConditionalAssignmentTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_conditional_assignment;
 
-  test_withCodeBeforeAndAfter() async {
+  Future<void> test_withCodeBeforeAndAfter() async {
     await resolveTestUnit('''
 class Person {
   String _fullName;
   void foo() {
     print('hi');
-    /*LINT*/if (_fullName == null) {
+    if (_fullName == null) {
       _fullName = getFullUserName(this);
     }
     print('hi');
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
     await assertHasFix('''
@@ -41,71 +42,78 @@ class Person {
   String _fullName;
   void foo() {
     print('hi');
-    /*LINT*/_fullName ??= getFullUserName(this);
+    _fullName ??= getFullUserName(this);
     print('hi');
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
   }
 
-  test_withOneBlock() async {
+  Future<void> test_withOneBlock() async {
     await resolveTestUnit('''
 class Person {
   String _fullName;
   void foo() {
-    /*LINT*/if (_fullName == null) {
+    if (_fullName == null) {
       _fullName = getFullUserName(this);
     }
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
     await assertHasFix('''
 class Person {
   String _fullName;
   void foo() {
-    /*LINT*/_fullName ??= getFullUserName(this);
+    _fullName ??= getFullUserName(this);
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
   }
 
-  test_withoutBlock() async {
+  Future<void> test_withoutBlock() async {
     await resolveTestUnit('''
 class Person {
   String _fullName;
   void foo() {
-    /*LINT*/if (_fullName == null)
+    if (_fullName == null)
       _fullName = getFullUserName(this);
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
     await assertHasFix('''
 class Person {
   String _fullName;
   void foo() {
-    /*LINT*/_fullName ??= getFullUserName(this);
+    _fullName ??= getFullUserName(this);
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
   }
 
-  test_withTwoBlock() async {
+  Future<void> test_withTwoBlock() async {
     await resolveTestUnit('''
 class Person {
   String _fullName;
   void foo() {
-    /*LINT*/if (_fullName == null) {{
+    if (_fullName == null) {{
       _fullName = getFullUserName(this);
     }}
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
     await assertHasFix('''
 class Person {
   String _fullName;
   void foo() {
-    /*LINT*/_fullName ??= getFullUserName(this);
+    _fullName ??= getFullUserName(this);
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
   }

@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 
 /// Cache of [AnalysisOptionsImpl] objects that correspond to directories
 /// with analyzed files, used to reduce searching for `analysis_options.yaml`
@@ -28,9 +30,9 @@ class ContextCache {
   ContextCacheEntry forSource(String path) {
     path = _normalizeSourcePath(path);
     return _byDirectory.putIfAbsent(path, () {
-      final builder = new ContextBuilder(resourceProvider, null, null,
+      final builder = ContextBuilder(resourceProvider, null, null,
           options: clOptions.contextBuilderOptions);
-      return new ContextCacheEntry(builder, path, clOptions, verbosePrint);
+      return ContextCacheEntry(builder, path, clOptions, verbosePrint);
     });
   }
 
@@ -82,18 +84,31 @@ class ContextCacheEntry {
   /// the analysis_options.yaml was defined.
   String get analysisRoot => _analysisRoot ??= _getAnalysisRoot();
 
+  void _buildContextFeatureSet(AnalysisOptionsImpl analysisOptions) {
+    var featureSet = FeatureSet.fromEnableFlags(
+      clOptions.enabledExperiments,
+    );
+
+    analysisOptions.contextFeatures = featureSet;
+
+    if (clOptions.defaultLanguageVersion != null) {
+      analysisOptions.nonPackageFeatureSet = featureSet.restrictToVersion(
+        Version.parse(clOptions.defaultLanguageVersion + '.0'),
+      );
+    }
+  }
+
   /// The actual calculation to get the [AnalysisOptionsImpl], with no caching.
   /// This should not be used except behind the getter which caches this result
   /// automatically.
   AnalysisOptionsImpl _getAnalysisOptions() {
-    AnalysisOptionsImpl contextOptions = builder.getAnalysisOptions(
-            requestedSourceDirectory,
+    var contextOptions = builder.getAnalysisOptions(requestedSourceDirectory,
             verbosePrint: clOptions.verbose ? verbosePrint : null)
         as AnalysisOptionsImpl;
 
     contextOptions.trackCacheDependencies = false;
     contextOptions.disableCacheFlushing = clOptions.disableCacheFlushing;
-    contextOptions.enabledExperiments = clOptions.enabledExperiments;
+    _buildContextFeatureSet(contextOptions);
     contextOptions.hint = !clOptions.disableHints;
     contextOptions.generateImplicitErrors = clOptions.showPackageWarnings;
     contextOptions.generateSdkErrors = clOptions.showSdkWarnings;

@@ -9,7 +9,7 @@ int? initLateTopLevelField1(int value) {
 
 late final int? lateTopLevelField1 = initLateTopLevelField1(123);
 
-class Class {
+class Class<T> {
   static int? lateStaticField1Init;
   static int? initLateStaticField1(int value) {
     return lateStaticField1Init = value;
@@ -37,10 +37,46 @@ class Class {
 
   late final int? lateInstanceField = initLateInstanceField(16);
 
+  T? lateGenericInstanceFieldInit;
+  T? initLateGenericInstanceField(T? value) {
+    return lateGenericInstanceFieldInit = value;
+  }
+
+  final T? field;
+  late final T? lateGenericInstanceField = initLateGenericInstanceField(field);
+
+  Class(this.field);
+
   instanceMethod() {
     expect(null, lateInstanceFieldInit);
     expect(16, lateInstanceField);
     expect(16, lateInstanceFieldInit);
+
+    expect(null, lateGenericInstanceFieldInit);
+    expect(field, lateGenericInstanceField);
+    expect(field, lateGenericInstanceFieldInit);
+  }
+}
+
+extension Extension<T> on Class<T> {
+  static int? lateExtensionField1Init;
+  static int? initLateExtensionField1(int value) {
+    return lateExtensionField1Init = value;
+  }
+
+  static late final int? lateExtensionField1 = initLateExtensionField1(87);
+
+  static int? lateExtensionField2Init;
+  static int? initLateExtensionField2(int value) {
+    return lateExtensionField2Init = value;
+  }
+
+  static late final int? lateExtensionField2 = initLateExtensionField2(42);
+
+  static staticMethod() {
+    expect(null, lateExtensionField2Init);
+    expect(42, lateExtensionField2);
+    expect(42, lateExtensionField2Init);
   }
 }
 
@@ -54,7 +90,15 @@ main() {
   expect(87, Class.lateStaticField1Init);
 
   Class.staticMethod();
-  new Class().instanceMethod();
+  new Class<int?>(null).instanceMethod();
+  new Class<int?>(0).instanceMethod();
+  new Class<int>(0).instanceMethod();
+
+  expect(null, Extension.lateExtensionField1Init);
+  expect(87, Extension.lateExtensionField1);
+  expect(87, Extension.lateExtensionField1Init);
+
+  Extension.staticMethod();
 }
 
 expect(expected, actual) {

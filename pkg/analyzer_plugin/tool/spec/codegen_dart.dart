@@ -4,34 +4,28 @@
 
 import 'api.dart';
 
-/**
- * Visitor specialized for generating Dart code.
- */
+/// Visitor specialized for generating Dart code.
 class DartCodegenVisitor extends HierarchicalApiVisitor {
-  /**
-   * Type references in the spec that are named something else in Dart.
-   */
-  static const Map<String, String> _typeRenames = const {
+  /// Type references in the spec that are named something else in Dart.
+  static const Map<String, String> _typeRenames = {
     'long': 'int',
     'object': 'Map',
   };
 
   DartCodegenVisitor(Api api) : super(api);
 
-  /**
-   * Convert the given [TypeDecl] to a Dart type.
-   */
+  /// Convert the given [TypeDecl] to a Dart type.
   String dartType(TypeDecl type) {
     if (type is TypeReference) {
-      String typeName = type.typeName;
-      TypeDefinition referencedDefinition = api.types[typeName];
+      var typeName = type.typeName;
+      var referencedDefinition = api.types[typeName];
       if (_typeRenames.containsKey(typeName)) {
         return _typeRenames[typeName];
       }
       if (referencedDefinition == null) {
         return typeName;
       }
-      TypeDecl referencedType = referencedDefinition.type;
+      var referencedType = referencedDefinition.type;
       if (referencedType is TypeObject || referencedType is TypeEnum) {
         return typeName;
       }
@@ -43,7 +37,7 @@ class DartCodegenVisitor extends HierarchicalApiVisitor {
     } else if (type is TypeUnion) {
       return 'dynamic';
     } else {
-      throw new Exception("Can't convert to a dart type");
+      throw Exception("Can't convert to a dart type");
     }
   }
 }

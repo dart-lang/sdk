@@ -837,7 +837,7 @@ class BoundsCheckGeneralizer {
     scheduler_.Start();
 
     // AOT should only see non-deopting GenericCheckBound.
-    ASSERT(!FLAG_precompiled_mode);
+    ASSERT(!CompilerState::Current().is_aot());
 
     ConstantInstr* max_smi = flow_graph_->GetConstant(
         Smi::Handle(Smi::New(compiler::target::kSmiMax)));
@@ -958,12 +958,21 @@ class BoundsCheckGeneralizer {
     return nullptr;
   }
 
+  // Returns true if x is invariant and is either based on a Smi definition
+  // or is a Smi constant.
+  static bool IsSmiInvariant(const InductionVar* x) {
+    return InductionVar::IsInvariant(x) && Smi::IsValid(x->offset()) &&
+           Smi::IsValid(x->mult()) &&
+           (x->mult() == 0 || x->def()->Type()->ToCid() == kSmiCid);
+  }
+
   // Only accept smi linear induction with unit stride.
   InductionVar* GetSmiInduction(LoopInfo* loop, Definition* def) {
     if (loop != nullptr && def->Type()->ToCid() == kSmiCid) {
       InductionVar* induc = loop->LookupInduction(def);
-      if (induc != nullptr && induc->kind() == InductionVar::kLinear &&
-          induc->next()->offset() == 1 && induc->next()->mult() == 0) {
+      int64_t stride;
+      if (induc != nullptr && InductionVar::IsLinear(induc, &stride) &&
+          stride == 1 && IsSmiInvariant(induc->initial())) {
         return induc;
       }
     }
@@ -1341,7 +1350,7 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
     // check earlier and we are not compiling precompiled code
     // (no optimistic hoisting of checks possible)
     const bool try_generalization =
-        !FLAG_precompiled_mode &&
+        !CompilerState::Current().is_aot() &&
         !function.ProhibitsBoundsCheckGeneralization();
     BoundsCheckGeneralizer generalizer(this, flow_graph_);
     for (CheckBoundBase* check : bounds_checks_) {
@@ -1655,7 +1664,8 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
     UnboxInstr* unbox = def->AsUnboxInt64();
     Value* value = unbox->value()->CopyWithType();
     intptr_t deopt_id = unbox->DeoptimizationTarget();
-    return new (Z) UnboxUint32Instr(value, deopt_id, def->speculative_mode());
+    return new (Z)
+        UnboxUint32Instr(value, deopt_id, def->SpeculativeModeOfInputs());
   } else if (def->IsUnaryInt64Op()) {
     UnaryInt64OpInstr* op = def->AsUnaryInt64Op();
     Token::Kind op_kind = op->op_kind();
@@ -1814,10 +1824,12 @@ RangeBoundary RangeBoundary::Shl(const RangeBoundary& value_boundary,
   int64_t limit = 64 - shift_count;
   int64_t value = value_boundary.ConstantValue();
 
-  if ((value == 0) || (shift_count == 0) ||
-      ((limit > 0) && Utils::IsInt(static_cast<int>(limit), value))) {
+  if (value == 0) {
+    return RangeBoundary(0);
+  } else if (shift_count == 0 ||
+             (limit > 0 && Utils::IsInt(static_cast<int>(limit), value))) {
     // Result stays in 64 bit range.
-    int64_t result = value << shift_count;
+    const int64_t result = value << shift_count;
     return RangeBoundary(result);
   }
 
@@ -2691,8 +2703,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosure_function:
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
-    case Slot::Kind::kPointer_c_memory_address:
-    case Slot::Kind::kTypedDataBase_data_field:
+    case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kTypedDataView_data:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
@@ -2710,6 +2721,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kArgumentsDescriptor_type_args_len:
     case Slot::Kind::kArgumentsDescriptor_positional_count:
     case Slot::Kind::kArgumentsDescriptor_count:
+    case Slot::Kind::kArgumentsDescriptor_size:
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
       break;
   }
@@ -2936,8 +2948,10 @@ void UnboxInt64Instr::InferRange(RangeAnalysis* analysis, Range* range) {
 
 void IntConverterInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   if (from() == kUntagged || to() == kUntagged) {
-    ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
-           (from() == kUnboxedIntPtr && to() == kUntagged));
+    ASSERT((from() == kUntagged &&
+            (to() == kUnboxedIntPtr || to() == kUnboxedFfiIntPtr)) ||
+           ((from() == kUnboxedIntPtr || from() == kUnboxedFfiIntPtr) &&
+            to() == kUntagged));
   } else {
     ASSERT(from() == kUnboxedInt32 || from() == kUnboxedInt64 ||
            from() == kUnboxedUint32);

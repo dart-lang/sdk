@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 @patch
@@ -12,6 +10,9 @@ class bool {
   @patch
   const factory bool.fromEnvironment(String name, {bool defaultValue: false})
       native "Bool_fromEnvironment";
+
+  @patch
+  const factory bool.hasEnvironment(String name) native "Bool_hasEnvironment";
 
   @patch
   int get hashCode => this ? 1231 : 1237;

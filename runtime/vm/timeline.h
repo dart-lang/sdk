@@ -15,12 +15,12 @@
 #include "vm/os.h"
 #include "vm/os_thread.h"
 
-#if defined(FUCHSIA_SDK)
+#if defined(FUCHSIA_SDK) || defined (HOST_OS_FUCHSIA)
 #include <lib/trace-engine/context.h>
 #include <lib/trace-engine/instrumentation.h>
-#elif defined(HOST_OS_FUCHSIA)
-#include <trace-engine/context.h>
-#include <trace-engine/instrumentation.h>
+#elif defined(HOST_OS_MACOS)
+#include <os/availability.h>
+#include <os/signpost.h>
 #endif
 
 namespace dart {
@@ -43,6 +43,7 @@ class Zone;
 #define CALLBACK_RECORDER_NAME "Callback"
 #define ENDLESS_RECORDER_NAME "Endless"
 #define FUCHSIA_RECORDER_NAME "Fuchsia"
+#define MACOS_RECORDER_NAME "Macos"
 #define RING_RECORDER_NAME "Ring"
 #define STARTUP_RECORDER_NAME "Startup"
 #define SYSTRACE_RECORDER_NAME "Systrace"
@@ -94,6 +95,8 @@ class TimelineStream {
 
 #if defined(HOST_OS_FUCHSIA)
   trace_site_t* trace_site() { return &trace_site_; }
+#elif defined(HOST_OS_MACOS)
+  os_log_t macos_log() { return macos_log_; }
 #endif
 
  private:
@@ -106,6 +109,8 @@ class TimelineStream {
 
 #if defined(HOST_OS_FUCHSIA)
   trace_site_t trace_site_ = {};
+#elif defined(HOST_OS_MACOS)
+  os_log_t macos_log_ = {};
 #endif
 };
 
@@ -336,6 +341,8 @@ class TimelineEvent {
 
   Dart_Port isolate_id() const { return isolate_id_; }
 
+  uint64_t isolate_group_id() const { return isolate_group_id_; }
+
   const char* label() const { return label_; }
 
   // Does this duration end before |micros| ?
@@ -452,6 +459,7 @@ class TimelineEvent {
   TimelineStream* stream_;
   ThreadId thread_;
   Dart_Port isolate_id_;
+  uint64_t isolate_group_id_;
 
   friend class TimelineEventRecorder;
   friend class TimelineEventEndlessRecorder;
@@ -459,6 +467,7 @@ class TimelineEvent {
   friend class TimelineEventStartupRecorder;
   friend class TimelineEventPlatformRecorder;
   friend class TimelineEventFuchsiaRecorder;
+  friend class TimelineEventMacosRecorder;
   friend class TimelineStream;
   friend class TimelineTestHelper;
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
@@ -466,20 +475,20 @@ class TimelineEvent {
 
 #ifdef SUPPORT_TIMELINE
 #define TIMELINE_DURATION(thread, stream, name)                                \
-  TimelineDurationScope tds(thread, Timeline::Get##stream##Stream(), name);
+  TimelineBeginEndScope tbes(thread, Timeline::Get##stream##Stream(), name);
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)         \
-  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(), name);      \
-  if (tds.enabled()) {                                                         \
-    tds.SetNumArguments(1);                                                    \
-    tds.CopyArgument(0, "function", function.ToQualifiedCString());            \
+  TimelineBeginEndScope tbes(thread, Timeline::GetCompilerStream(), name);     \
+  if (tbes.enabled()) {                                                        \
+    tbes.SetNumArguments(1);                                                   \
+    tbes.CopyArgument(0, "function", function.ToQualifiedCString());           \
   }
 
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)                            \
-  TimelineDurationScope tds(thread, Timeline::GetGCStream(), name);
+  TimelineBeginEndScope tbes(thread, Timeline::GetGCStream(), name);
 #define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)                      \
   TIMELINE_FUNCTION_GC_DURATION(thread, name)                                  \
-  tds.SetNumArguments(1);                                                      \
-  tds.CopyArgument(0, "mode", "basic");
+  tbes.SetNumArguments(1);                                                     \
+  tbes.CopyArgument(0, "mode", "basic");
 #else
 #define TIMELINE_DURATION(thread, stream, name)
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
@@ -487,7 +496,7 @@ class TimelineEvent {
 #define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)
 #endif  // !PRODUCT
 
-// See |TimelineDurationScope| and |TimelineBeginEndScope|.
+// See |TimelineBeginEndScope|.
 class TimelineEventScope : public StackResource {
  public:
   bool enabled() const { return enabled_; }
@@ -532,23 +541,6 @@ class TimelineEventScope : public StackResource {
   bool enabled_;
 
   DISALLOW_COPY_AND_ASSIGN(TimelineEventScope);
-};
-
-class TimelineDurationScope : public TimelineEventScope {
- public:
-  TimelineDurationScope(TimelineStream* stream, const char* label);
-
-  TimelineDurationScope(Thread* thread,
-                        TimelineStream* stream,
-                        const char* label);
-
-  virtual ~TimelineDurationScope();
-
- private:
-  int64_t timestamp_;
-  int64_t thread_timestamp_;
-
-  DISALLOW_COPY_AND_ASSIGN(TimelineDurationScope);
 };
 
 class TimelineBeginEndScope : public TimelineEventScope {
@@ -719,6 +711,8 @@ class TimelineEventRecorder {
 
   void FinishBlock(TimelineEventBlock* block);
 
+  virtual intptr_t Size() = 0;
+
  protected:
 #ifndef PRODUCT
   void WriteTo(const char* directory);
@@ -770,6 +764,8 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 #endif
+
+  intptr_t Size();
 
  protected:
   TimelineEvent* StartEvent();
@@ -857,6 +853,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 #endif
 
   const char* name() const { return ENDLESS_RECORDER_NAME; }
+  intptr_t Size() { return block_index_ * sizeof(TimelineEventBlock); }
 
  protected:
   TimelineEvent* StartEvent();
@@ -929,6 +926,7 @@ class TimelineEventFuchsiaRecorder : public TimelineEventPlatformRecorder {
   virtual ~TimelineEventFuchsiaRecorder() {}
 
   const char* name() const { return FUCHSIA_RECORDER_NAME; }
+  intptr_t Size() { return 0; }
 
  private:
   void OnEvent(TimelineEvent* event);
@@ -949,6 +947,7 @@ class TimelineEventSystraceRecorder : public TimelineEventPlatformRecorder {
                                 intptr_t buffer_size);
 
   const char* name() const { return SYSTRACE_RECORDER_NAME; }
+  intptr_t Size() { return 0; }
 
  private:
   void OnEvent(TimelineEvent* event);
@@ -957,29 +956,34 @@ class TimelineEventSystraceRecorder : public TimelineEventPlatformRecorder {
 };
 #endif  // defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
 
+#if defined(HOST_OS_MACOS)
+// A recorder that sends events to Macos's tracing app. See:
+// https://developer.apple.com/documentation/os/logging?language=objc
+class TimelineEventMacosRecorder : public TimelineEventPlatformRecorder {
+ public:
+  TimelineEventMacosRecorder() API_AVAILABLE(ios(12.0), macos(10.14));
+  virtual ~TimelineEventMacosRecorder() API_AVAILABLE(ios(12.0), macos(10.14));
+
+  const char* name() const { return MACOS_RECORDER_NAME; }
+  intptr_t Size() { return 0; }
+
+ private:
+  void OnEvent(TimelineEvent* event) API_AVAILABLE(ios(12.0), macos(10.14));
+};
+#endif  // defined(HOST_OS_MACOS)
+
 class DartTimelineEventHelpers : public AllStatic {
  public:
   static void ReportTaskEvent(Thread* thread,
                               TimelineEvent* event,
-                              int64_t start,
                               int64_t id,
                               const char* phase,
                               const char* category,
                               char* name,
                               char* args);
 
-  static void ReportCompleteEvent(Thread* thread,
-                                  TimelineEvent* event,
-                                  int64_t start,
-                                  int64_t start_cpu,
-                                  const char* category,
-                                  char* name,
-                                  char* args);
-
   static void ReportFlowEvent(Thread* thread,
                               TimelineEvent* event,
-                              int64_t start,
-                              int64_t start_cpu,
                               const char* category,
                               char* name,
                               int64_t type,
@@ -988,7 +992,6 @@ class DartTimelineEventHelpers : public AllStatic {
 
   static void ReportInstantEvent(Thread* thread,
                                  TimelineEvent* event,
-                                 int64_t start,
                                  const char* category,
                                  char* name,
                                  char* args);

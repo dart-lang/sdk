@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DefinitionTest);
   });
@@ -16,7 +15,7 @@ main() {
 
 @reflectiveTest
 class DefinitionTest extends AbstractLspAnalysisServerTest {
-  test_acrossFiles() async {
+  Future<void> test_acrossFiles() async {
     final mainContents = '''
     import 'referenced.dart';
 
@@ -48,12 +47,12 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
         await getDefinition(mainFileUri, positionFromMarker(mainContents));
 
     expect(res, hasLength(1));
-    Location loc = res.single;
+    var loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(referencedContents)));
     expect(loc.uri, equals(referencedFileUri.toString()));
   }
 
-  test_nonDartFile() async {
+  Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize();
 
@@ -61,7 +60,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     expect(res, isEmpty);
   }
 
-  test_singleFile() async {
+  Future<void> test_singleFile() async {
     final contents = '''
     [[foo]]() {
       fo^o();
@@ -73,12 +72,12 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     final res = await getDefinition(mainFileUri, positionFromMarker(contents));
 
     expect(res, hasLength(1));
-    Location loc = res.single;
+    var loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(contents)));
     expect(loc.uri, equals(mainFileUri.toString()));
   }
 
-  test_unopenFile() async {
+  Future<void> test_unopenFile() async {
     final contents = '''
     [[foo]]() {
       fo^o();
@@ -90,7 +89,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     final res = await getDefinition(mainFileUri, positionFromMarker(contents));
 
     expect(res, hasLength(1));
-    Location loc = res.single;
+    var loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(contents)));
     expect(loc.uri, equals(mainFileUri.toString()));
   }

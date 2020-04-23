@@ -26,7 +26,8 @@ class FakeTypesBuilder extends TypesBuilder {
   final Map<Class, TFClass> _classes = <Class, TFClass>{};
   int _classIdCounter = 0;
 
-  FakeTypesBuilder(CoreTypes coreTypes) : super(coreTypes);
+  FakeTypesBuilder(CoreTypes coreTypes)
+      : super(coreTypes, /*nullSafety=*/ false);
 
   @override
   TFClass getTFClass(Class c) =>
@@ -61,7 +62,7 @@ class PrintSummaries extends RecursiveVisitor<Null> {
   final StringBuffer _buf = new StringBuffer();
 
   PrintSummaries(Target target, TypeEnvironment environment,
-      CoreTypes coreTypes, ClassHierarchy hierarchy) {
+      CoreTypes coreTypes, ClosedWorldClassHierarchy hierarchy) {
     final typesBuilder = new FakeTypesBuilder(coreTypes);
     _summaryCollector = new SummaryCollector(
         target,
@@ -95,7 +96,7 @@ runTestCase(Uri source) async {
   final Library library = component.mainMethod.enclosingLibrary;
   final CoreTypes coreTypes = new CoreTypes(component);
 
-  final ClassHierarchy hierarchy = new ClassHierarchy(component);
+  final ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
   final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
 
   final actual =

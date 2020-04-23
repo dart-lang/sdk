@@ -17,12 +17,14 @@ import 'package:analyzer/source/line_info.dart';
 
 class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
   HoverHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_hover;
 
   @override
   LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
       TextDocumentPositionParams.jsonHandler;
 
+  @override
   Future<ErrorOr<Hover>> handle(
       TextDocumentPositionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
@@ -47,7 +49,7 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
       return null;
     }
 
-    final content = new StringBuffer();
+    final content = StringBuffer();
     const divider = '---';
 
     // Description.
@@ -75,14 +77,14 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
 
     final formats =
         server?.clientCapabilities?.textDocument?.hover?.contentFormat;
-    return new Hover(
+    return Hover(
       asStringOrMarkupContent(formats, content.toString().trimRight()),
       toRange(lineInfo, hover.offset, hover.length),
     );
   }
 
   ErrorOr<Hover> _getHover(ResolvedUnitResult unit, int offset) {
-    final hover = new DartUnitHoverComputer(
+    final hover = DartUnitHoverComputer(
             server.getDartdocDirectiveInfoFor(unit), unit.unit, offset)
         .compute();
     return success(toHover(unit.lineInfo, hover));

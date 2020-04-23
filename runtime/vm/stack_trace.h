@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_STACK_TRACE_H_
 #define RUNTIME_VM_STACK_TRACE_H_
 
+#include <functional>
+
 #include "vm/allocation.h"
 #include "vm/flag_list.h"
 #include "vm/object.h"
@@ -14,6 +16,30 @@ namespace dart {
 
 class StackTraceUtils : public AllStatic {
  public:
+  /// Collects all frames on the current stack until an async/async* frame is
+  /// hit which has yielded before (i.e. is not in sync-async case).
+  ///
+  /// From there on finds the closure of the async/async* frame and starts
+  /// traversing the listeners:
+  ///     while (closure != null) {
+  ///       yield_index = closure.context[Context::kAsyncJumpVarIndex]
+  ///       pc = closure.function.code.pc_descriptors.LookupPcFromYieldIndex(
+  ///           yield_index);
+  ///       <emit pc in frame>
+  ///       closure = closure.context[Context::kAsyncCompleterVarIndex]._future
+  ///           ._resultOrListeners.callback;
+  ///     }
+  ///
+  /// If [on_sync_frames] is non-nullptr, it will be called for every
+  /// synchronous frame which is collected.
+  static void CollectFramesLazy(
+      Thread* thread,
+      const GrowableObjectArray& code_array,
+      const GrowableObjectArray& pc_offset_array,
+      int skip_frames,
+      std::function<void(StackFrame*)>* on_sync_frames = nullptr,
+      bool* has_async = nullptr);
+
   /// Counts the number of stack frames.
   /// Skips over the first |skip_frames|.
   /// If |async_function| is not null, stops at the function that has
@@ -64,10 +90,15 @@ class StackTraceUtils : public AllStatic {
   static bool CheckAndSkipAsync(int* skip_sync_async_frames_count,
                                 const String& function_name) {
     ASSERT(*skip_sync_async_frames_count > 0);
+    // Make sure any function objects for methods used here are marked for
+    // retention by the precompiler, even if otherwise not needed at runtime.
+    //
+    // _AsyncAwaitCompleter.start is marked with the vm:entry-point pragma.
     if (function_name.Equals(Symbols::_AsyncAwaitCompleterStart())) {
       *skip_sync_async_frames_count = 0;
       return true;
     }
+    // _Closure.call is explicitly checked in Precompiler::MustRetainFunction.
     if (function_name.Equals(Symbols::_ClosureCall()) &&
         *skip_sync_async_frames_count == 2) {
       (*skip_sync_async_frames_count)--;

@@ -14,6 +14,12 @@
 #    should be the path to an external test. The external test will not be run,
 #    but the existence of the file will be verified.
 #
+# Note that it can be hard or impossible to write an example that only gives the
+# specific error. To allow for this, one can specify
+# "exampleAllowMoreCodes: true" which filters out every message with a
+# different code, and just verifies we got exactly one message of the code in
+# question (in addition too different codes).
+#
 # A message shouldn't indicate which kind of diagnostic it is, for example,
 # warning or error. Tools are expected to prepend "Warning: ", or "Error: ",
 # and should be allowed to change the kind of diagnostic without affecting the
@@ -103,6 +109,9 @@ ConstEvalElementImplementsEqual:
 ConstEvalKeyImplementsEqual:
   template: "The key '#constant' does not have a primitive operator '=='."
   analyzerCode: CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+
+ConstEvalCaseImplementsEqual:
+  template: "Case expression '#constant' does not have a primitive operator '=='."
 
 ConstEvalInvalidType:
   template: "Expected constant '#constant' to be of type '#type', but was of type '#type2'."
@@ -420,12 +429,23 @@ MultipleOnClauses:
   analyzerCode: ParserErrorCode.MULTIPLE_ON_CLAUSES
   script: "mixin A on B on C, D {}"
 
+ExtendsFutureOr:
+  template: "The type 'FutureOr' can't be used in an 'extends' clause."
+
 ImplementsFutureOr:
-  template: "'FutureOr' can't be used in an 'implements' clause."
-  script:
-    - >-
-      import 'dart:async';
-      class A implements FutureOr<int> {}
+  template: "The type 'FutureOr' can't be used in an 'implements' clause."
+
+ExtendsNever:
+  template: "The type 'Never' can't be used in an 'extends' clause."
+
+ImplementsNever:
+  template: "The type 'Never' can't be used in an 'implements' clause."
+
+ExtendsVoid:
+  template: "The type 'void' can't be used in an 'extends' clause."
+
+ImplementsVoid:
+  template: "The type 'void' can't be used in an 'implements' clause."
 
 ExpectedClassOrMixinBody:
   index: 8
@@ -716,10 +736,6 @@ InitializerForStaticField:
   template: "'#name' isn't an instance field of this class."
   analyzerCode: INITIALIZER_FOR_STATIC_FIELD
 
-InitializerOutsideConstructor:
-  template: "Only constructors can have initializers, and '#name' is not a constructor."
-  analyzerCode: INITIALIZER_OUTSIDE_CONSTRUCTOR
-
 MoreThanOneSuperOrThisInitializer:
   template: "Can't have more than one 'super' or 'this' initializer."
   analyzerCode: SUPER_IN_REDIRECTING_CONSTRUCTOR
@@ -780,6 +796,7 @@ ExtraneousModifierInExtension:
   template: "Can't have modifier '#lexeme' in an extension."
   tip: "Try removing '#lexeme'."
   analyzerCode: ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION
+  hasPublishedDocs: true
   script:
     - "extension on String { foo(covariant String child) {} }"
 
@@ -791,6 +808,16 @@ FinalAndCovariant:
   script:
     - "class C { covariant final f = 5; }"
     - "class C { final covariant f = 5; }"
+
+FinalAndCovariantLateWithInitializer:
+  index: 101
+  template: "Members marked 'late' with an initializer can't be declared to be both 'final' and 'covariant'."
+  tip: "Try removing either the 'final' or 'covariant' keyword, or removing the initializer."
+  analyzerCode: ParserErrorCode.FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER
+  # Weak and strong doesn't matter in this instance.
+  configuration: nnbd-strong
+  script:
+    - "class C { covariant late final f = 5; }"
 
 FinalAndVar:
   index: 81
@@ -809,6 +836,22 @@ StaticConstructor:
   script:
     - "class C { static C() {} }"
     - "class C { static C.m() {} }"
+
+GetterConstructor:
+  index: 103
+  template: "Constructors can't be a getter."
+  tip: "Try removing 'get'."
+  analyzerCode: ParserErrorCode.GETTER_CONSTRUCTOR
+  script:
+    - "class C { get C.m() {} }"
+
+SetterConstructor:
+  index: 104
+  template: "Constructors can't be a setter."
+  tip: "Try removing 'set'."
+  analyzerCode: ParserErrorCode.SETTER_CONSTRUCTOR
+  script:
+    - "class C { set C.m(x) {} }"
 
 StaticOperator:
   index: 17
@@ -940,6 +983,14 @@ InvalidVoid:
   script:
     - "void x; main() {}"
     - "foo(void x) {} main() { foo(null); }"
+
+VoidWithTypeArguments:
+  template: "Type 'void' can't have type arguments."
+  tip: "Try removing the type arguments."
+  index: 100
+  analyzerCode: ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS
+  script:
+    - "void<int> f() {}"
 
 # TODO(danrubel): Review where this error is generated and consider generating
 # FieldInitializedOutsideDeclaringClass instead of this in some situations.
@@ -1296,6 +1347,7 @@ ConstructorWithReturnType:
   analyzerCode: ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE
   script:
     - "class C { int C() {} }"
+    - "class C { void C.m() {} }"
 
 ConstructorWithTypeParameters:
   index: 99
@@ -1318,7 +1370,8 @@ ConstructorWithTypeArguments:
 
 ConstructorWithWrongName:
   template: "The name of a constructor must match the name of the enclosing class."
-  analyzerCode: INVALID_CONSTRUCTOR_NAME
+  analyzerCode: ParserErrorCode.INVALID_CONSTRUCTOR_NAME
+  index: 102
   script:
     - "class A { B.foo() {} }"
     - "class A { factory B() => null; }"
@@ -1692,6 +1745,10 @@ InternalProblemUnfinishedTypeVariable:
   template: "Unfinished type variable '#name' found in non-source library '#uri'."
   severity: INTERNAL_PROBLEM
 
+InternalProblemUnsupportedNullability:
+  template: "Unsupported nullability value '#string' on type '#type'."
+  severity: INTERNAL_PROBLEM
+
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
   severity: IGNORED
@@ -1964,6 +2021,10 @@ DeclaredMemberConflictsWithInheritedMemberCause:
   template: "This is the inherited member."
   severity: CONTEXT
 
+DeclaredMemberConflictsWithInheritedMembersCause:
+  template: "This is one of the inherited members."
+  severity: CONTEXT
+
 InheritedMembersConflict:
   template: "Can't inherit members that conflict with each other."
   analyzerCode: CONFLICTS_WITH_INHERITED_MEMBER
@@ -2009,6 +2070,9 @@ OverrideTypeVariablesMismatch:
   template: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
   analyzerCode: INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS
 
+OverrideTypeVariablesBoundMismatch:
+  template: "Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'."
+
 OverriddenMethodCause:
   template: "This is the overridden method ('#name')."
   severity: CONTEXT
@@ -2043,6 +2107,17 @@ OverrideTypeMismatchSetter:
   template: "The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'."
   analyzerCode: INVALID_METHOD_OVERRIDE
 
+OverrideMismatchRequiredNamedParameter:
+  template: "The required named parameter '#name' in method '#name2' is not required in overridden method '#name3'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      method({int? a});
+    }
+    abstract class B implements A {
+      method({required int? a});
+    }
+
 PartOfSelf:
   template: "A file can't be a part of itself."
   analyzerCode: PART_OF_NON_PART
@@ -2060,6 +2135,11 @@ TypeVariableDuplicatedNameCause:
 TypeVariableSameNameAsEnclosing:
   template: "A type variable can't have the same name as its enclosing declaration."
   analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_CLASS
+
+AnnotationOnFunctionTypeTypeVariable:
+  template: "A type variable on a function type can't have annotations."
+  script:
+    - "main() { Function<@Object() T>() x; }"
 
 ExpectedEnumBody:
   template: "Expected a enum body, but got '#lexeme'."
@@ -2100,6 +2180,14 @@ ExternalMethodWithBody:
     - "class C {foo() native {}}"
     - "class C {foo() native 'bar' {}}"
 
+ExternalConstructorWithInitializer:
+  index: 106
+  template: "An external constructor can't have any initializers."
+  analyzerCode: ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER
+  script:
+    - "class C { int x; external C() : x = 1; }"
+    - "class C { int x; external C.foo() : x = 1; }"
+
 ExternalTypedef:
   index: 76
   template: "Typedefs can't be declared to be 'external'."
@@ -2110,6 +2198,13 @@ ExternalTypedef:
 
 OperatorWithOptionalFormals:
   template: "An operator can't have optional parameters."
+
+OperatorWithTypeParameters:
+  template: "Types parameters aren't allowed when defining an operator."
+  tip: "Try removing the type parameters."
+  analyzerCode: TYPE_PARAMETER_ON_OPERATOR
+  script:
+    - "class C { operator []<T>(T t) => null; }"
 
 PlatformPrivateLibraryAccess:
   template: "Can't access platform private library."
@@ -2122,6 +2217,18 @@ TypedefNotFunction:
 TypedefNotType:
   template: "Can't create typedef from non-type."
   analyzerCode: INVALID_TYPE_IN_TYPEDEF
+
+TypedefTypeVariableNotConstructor:
+  template: "Can't use a typedef denoting a type variable as a constructor, nor for a static member access."
+
+TypedefTypeVariableNotConstructorCause:
+  template: "This is the type variable ultimately denoted."
+  severity: CONTEXT
+
+TypedefNullableType:
+  template: "Can't create typedef from nullable type."
+  configuration: nnbd-strong
+  script: typedef F = void Function()?;
 
 LibraryDirectiveNotFirst:
   index: 37
@@ -2425,6 +2532,16 @@ DuplicatedParameterNameCause:
 
 MemberWithSameNameAsClass:
   template: "A class member can't have the same name as the enclosing class."
+  tip: "Try renaming the member."
+  analyzerCode: ParserErrorCode.MEMBER_WITH_CLASS_NAME
+  index: 105
+  script:
+    - "class C { get C {} }"
+    - "class C { get C => 42; }"
+    - "class C { set C(x) {} }"
+    - "class C { set C(x) => 42; }"
+    - "class C { int C; }"
+    - "class C { int A, B, C, D, E; }"
 
 EnumConstantSameNameAsEnclosing:
   template: "Name of enum constant '#name' can't be the same as the enum's own name."
@@ -2560,6 +2677,9 @@ SwitchExpressionNotAssignable:
 SwitchExpressionNotAssignableCause:
   template: "The switch expression is here."
   severity: CONTEXT
+
+SwitchExpressionNotSubtype:
+  template: "Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression."
 
 SwitchHasCaseAfterDefault:
   index: 16
@@ -2700,6 +2820,13 @@ ConstConstructorNonFinalFieldCause:
   template: "Field isn't final, but constructor is 'const'."
   severity: CONTEXT
 
+ConstConstructorLateFinalFieldError:
+  template: "Constructor is marked 'const' so fields can't be late."
+
+ConstConstructorLateFinalFieldCause:
+  template: "Field is late, but constructor is 'const'."
+  severity: CONTEXT
+
 ConstConstructorRedirectionToNonConst:
   template: "A constant constructor can't call a non-constant constructor."
   script:
@@ -2781,11 +2908,11 @@ CannotReadSdkSpecification:
   template: "Unable to read the 'libraries.json' specification file:\n  #string."
 
 CantInferPackagesFromManyInputs:
-  template: "Can't infer a .packages file when compiling multiple inputs."
+  template: "Can't infer a packages file when compiling multiple inputs."
   tip: "Try specifying the file explicitly with the --packages option."
 
 CantInferPackagesFromPackageUri:
-  template: "Can't infer a .packages file from an input 'package:*' URI."
+  template: "Can't infer a packages file from an input 'package:*' URI."
   tip: "Try specifying the file explicitly with the --packages option."
 
 PackageNotFound:
@@ -2825,7 +2952,7 @@ ArgumentTypeNotAssignable:
   template: "The argument type '#type' can't be assigned to the parameter type '#type2'."
   analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
 
-InvalidAssignment:
+InvalidAssignmentError:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
   analyzerCode: INVALID_ASSIGNMENT
   script: >
@@ -2937,6 +3064,57 @@ UndefinedMethod:
       C c;
       c.foo();
     }
+
+UndefinedOperator:
+  template: "The operator '#name' isn't defined for the class '#type'."
+  tip: "Try correcting the operator to an existing operator, or defining a '#name' operator."
+  analyzerCode: UNDEFINED_METHOD
+  script: >
+    class C {}
+    main() {
+      C c;
+      c + 0;
+    }
+
+AmbiguousExtensionMethod:
+  template: "The method '#name' is defined in multiple extensions for '#type' and neither is more specific."
+  tip: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
+  script: |
+    class C {}
+    extension A on C { method() {} }
+    extension B on C { method() {} }
+    main() {
+      C c = new C();
+      c.method();
+    }
+
+AmbiguousExtensionProperty:
+  template: "The property '#name' is defined in multiple extensions for '#type' and neither is more specific."
+  tip: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
+  script: |
+    class C {}
+    extension A on C { get property => null; }
+    extension B on C { set property(_) {} }
+    main() {
+      C c = new C();
+      c.property;
+    }
+
+AmbiguousExtensionOperator:
+  template: "The operator '#name' is defined in multiple extensions for '#type' and neither is more specific."
+  tip: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
+  script: |
+    class C {}
+    extension A on C { operator +(int i) {} }
+    extension B on C { operator +(int i) {}  }
+    main() {
+      C c = new C();
+      c + 0;
+    }
+
+AmbiguousExtensionCause:
+  template: "This is one of the extension members."
+  severity: CONTEXT
 
 SourceOutlineSummary:
   template: |
@@ -3207,6 +3385,12 @@ ReturnWithoutExpression:
   severity: WARNING
   analyzerCode: RETURN_WITHOUT_VALUE
   declaration: "int foo() { return; }"
+
+ImplicitReturnNull:
+  template: "A non-null value must be returned since the return type '#type' doesn't allow null."
+  configuration: nnbd-strong
+  script: |
+    String method() {}
 
 RethrowNotCatch:
   template: "'rethrow' can only be used in catch clauses."
@@ -3675,11 +3859,22 @@ LanguageVersionTooHigh:
     // @dart = 100.200
 
 LanguageVersionInvalidInDotPackages:
-  template: "The language version is not specified correctly in the .packages file."
+  template: "The language version is not specified correctly in the packages file."
+  exampleAllowMoreCodes: true
   script:
     main.dart: "import 'package:foo/foo.dart';"
     lib/foo.dart: "// blah blah blah"
-    .packages: "foo:lib/#dart=arglebargle"
+    .dart_tool/package_config.json: >
+      {
+          "configVersion": 2,
+          "packages": [
+              {
+                  "name": "foo",
+                  "rootUri": "../lib/",
+                  "languageVersion": "arglebargle"
+              }
+          ]
+      }
 
 LanguageVersionMismatchInPart:
   template: "The language version override has to be the same in the library and its part(s)."
@@ -3692,6 +3887,21 @@ LanguageVersionMismatchInPart:
       // @dart = 2.3
 
       part of 'main.dart';
+
+LanguageVersionMismatchInPatch:
+  template: "The language version override has to be the same in the library and its patch(es)."
+
+LanguageVersionLibraryContext:
+  template: "This is language version annotation in the library."
+  severity: CONTEXT
+
+LanguageVersionPartContext:
+  template: "This is language version annotation in the part."
+  severity: CONTEXT
+
+LanguageVersionPatchContext:
+  template: "This is language version annotation in the patch."
+  severity: CONTEXT
 
 ExplicitExtensionArgumentMismatch:
   template: "Explicit extension application requires exactly 1 positional argument."
@@ -3717,3 +3927,174 @@ MultipleVarianceModifiers:
   template: "Each type parameter can have at most one variance modifier."
   tip: "Use at most one of the 'in', 'out', or 'inout' modifiers."
   analyzerCode: ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS
+
+NullablePropertyAccessError:
+  template: "Property '#name' cannot be accessed on '#type' because it is potentially null."
+  tip: "Try accessing using ?. instead."
+
+NullableMethodCallError:
+  template: "Method '#name' cannot be called on '#type' because it is potentially null."
+  tip: "Try calling using ?. instead."
+
+NullableExpressionCallError:
+  template: "Can't use an expression of type '#type' as a function because it's potentially null."
+  tip: "Try calling using ?.call instead."
+
+NullableOperatorCallError:
+  template: "Operator '#name' cannot be called on '#type' because it is potentially null."
+
+NullableTearoffError:
+  template: "Can't tear off method '#name' from a potentially null value."
+
+ThrowingNotAssignableToObjectError:
+  template: "Can't throw a value of '#type' since it is neither dynamic nor non-nullable."
+
+RequiredNamedParameterHasDefaultValueError:
+  template: "Named parameter '#name' is required and can't have a default value."
+
+ValueForRequiredParameterNotProvidedError:
+  template: "Required named parameter '#name' must be provided."
+
+OptionalNonNullableWithoutInitializerError:
+  template: "Optional parameter '#name' should have a default value because its type '#type' doesn't allow null."
+  configuration: nnbd-strong
+  script:
+    - method1({int a}) {}
+    - method2([int a]) {}
+
+FieldNonNullableWithoutInitializerError:
+  template: "Field '#name' should be initialized because its type '#type' doesn't allow null."
+
+FieldNonNullableNotInitializedByConstructorError:
+  template: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
+
+NonNullableOptOut:
+  template: "Null safety features are disabled for this library."
+  # Used to be this:
+  # tip: "Try removing the `@dart=` annotation or setting the language version higher."
+  # Once the version number is locked in, we can write something like that again.
+  tip: "Try removing the `@dart=` annotation or setting the language version higher."
+
+NonNullableOptOutComment:
+  template: "This is the annotation that opts out this library from null safety features."
+  severity: CONTEXT
+
+AwaitInLateLocalInitializer:
+  template: "`await` expressions are not supported in late local initializers."
+
+NullableSuperclassError:
+  template: "Can't extend '#name' because it's marked with '?'."
+
+NullableInterfaceError:
+  template: "Can't implement '#name' because it's marked with '?'."
+
+NullableMixinError:
+  template: "Can't mix '#name' in because it's marked with '?'."
+
+JsInteropIndexNotSupported:
+  template: "JS interop classes do not support [] and []= operator methods."
+  tip: "Try replacing with a normal method."
+
+JsInteropNonExternalConstructor:
+  template: "JS interop classes do not support non-external constructors."
+  tip: "Try annotating with `external`."
+
+DefaultListConstructorError:
+  template: "Can't use the default List constructor."
+  tip: "Try using List.filled instead."
+
+NonNullableInNullAware:
+  template: "Operand of null-aware operation '#name' has type '#type' which excludes null."
+  severity: WARNING
+
+NonNullableNotAssignedError:
+  template: "Non-nullable variable '#name' must be assigned before it can be used."
+  configuration: nnbd-strong
+  script: |
+    method<T>() {
+      T t; t;
+    }
+
+NonNullableLateDefinitelyUnassignedError:
+  template: "Non-nullable late variable '#name' without initializer is definitely unassigned."
+  configuration: nnbd-strong
+  script: |
+    method<T>() {
+      late T t; t;
+    }
+
+NonNullableLateDefinitelyAssignedError:
+  template: "Non-nullable late final variable '#name' definitely assigned."
+  configuration: nnbd-strong
+  script: |
+    method() {
+      late final int t;
+      t = 0;
+      t = 0;
+    }
+
+NonAgnosticConstant:
+  template: "Constant value is not strong/weak mode agnostic."
+
+ExportOptOutFromOptIn:
+  template: "Null safe libraries are not allowed to export declarations from of opt-out libraries."
+  configuration: nnbd-strong
+  script:
+    main.dart: |
+      export 'lib.dart';
+    lib.dart: |
+      // @dart=2.5
+      class A {}
+
+ExtendFunction:
+  template: "Extending 'Function' is deprecated."
+  tip: "Try removing 'Function' from the 'extends' clause."
+  severity: IGNORED
+  script: |
+    class A extends Function {}
+
+ImplementFunction:
+  template: "Implementing 'Function' is deprecated."
+  tip: "Try removing 'Function' from the 'implements' clause."
+  severity: IGNORED
+  script: |
+    class A implements Function {}
+
+MixinFunction:
+  template: "Mixing in 'Function' is deprecated."
+  tip: "Try removing 'Function' from the 'with' clause."
+  severity: IGNORED
+  script: |
+    class A extends Object with Function {}
+
+CannotAssignToFinalVariable:
+  template: "Can't assign to the final variable '#name'."
+  script: |
+     main() {
+       final int i = 0;
+       i = 42;
+     }
+
+CannotAssignToConstVariable:
+  template: "Can't assign to the const variable '#name'."
+  script: |
+    main() {
+      const int i = 0;
+      i = 42;
+    }
+
+CannotAssignToExtensionThis:
+  template: "Can't assign to 'this'."
+  script: |
+    extension E on String {
+      method() {
+        this = "";
+      }
+    }
+
+CannotAssignToTypeLiteral:
+  template: "Can't assign to a type literal."
+  script: |
+    main() {
+      Object = String;
+    }

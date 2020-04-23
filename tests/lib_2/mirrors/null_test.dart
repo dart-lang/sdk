@@ -64,7 +64,7 @@ confuse(x) {
   try {
     if (new DateTime.now().millisecondsSinceEpoch == 42) x = 42;
     throw [x];
-  } on dynamic catch (e) {
+  } catch (e) {
     return e[0];
   }
   return 42;

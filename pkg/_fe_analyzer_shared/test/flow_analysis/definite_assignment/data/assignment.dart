@@ -42,5 +42,5 @@ questionEq_rhs_not_guaranteed_to_execute() {
   late int v;
   int? i;
   /*cfe.unassigned*/ i ??= (v = 0);
-  /*analyzer.unassigned*/ v;
+  /*unassigned*/ v;
 }

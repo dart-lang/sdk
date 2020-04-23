@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
 main() {
@@ -17,7 +19,7 @@ main() {
 /*class: A1:checkedTypeArgument,checks=[],typeArgument*/
 class A1<T> {}
 
-/*class: B1:checks=[$asA1],typeArgument*/
+/*class: B1:checks=[],typeArgument*/
 class B1 extends A1<int> {}
 
 @pragma('dart2js:noInline')
@@ -38,8 +40,8 @@ bool _test1(f) => f is A1<int> Function();
 /*omit.class: A2:checkedTypeArgument,checks=[],typeArgument*/
 class A2<T> {}
 
-/*strong.class: B2:checkedInstance,checkedTypeArgument,checks=[$asA2],typeArgument*/
-/*omit.class: B2:checkedTypeArgument,checks=[$asA2],typeArgument*/
+/*strong.class: B2:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
+/*omit.class: B2:checkedTypeArgument,checks=[],typeArgument*/
 class B2 extends A2<int> {}
 
 @pragma('dart2js:noInline')
@@ -60,8 +62,8 @@ bool _test2(f) => f is void Function(A2<int>);
 /*omit.class: A3:checkedTypeArgument,checks=[],typeArgument*/
 class A3<T> {}
 
-/*strong.class: B3:checkedInstance,checkedTypeArgument,checks=[$asA3],typeArgument*/
-/*omit.class: B3:checkedTypeArgument,checks=[$asA3],typeArgument*/
+/*strong.class: B3:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
+/*omit.class: B3:checkedTypeArgument,checks=[],typeArgument*/
 class B3 extends A3<int> {}
 
 @pragma('dart3js:noInline')
@@ -101,7 +103,7 @@ _test4(f) => f is B4 Function();
 /*class: A5:checkedTypeArgument,checks=[],typeArgument*/
 class A5<T> {}
 
-/*class: B5:checks=[$asA5],typeArgument*/
+/*class: B5:checks=[],typeArgument*/
 class B5 extends A5<int> {}
 
 @pragma('dart2js:noInline')
@@ -121,7 +123,7 @@ bool _test5(f) => f is void Function(void Function(A5<int>));
 /*class: A6:checkedTypeArgument,checks=[],typeArgument*/
 class A6<T> {}
 
-/*class: B6:checkedTypeArgument,checks=[$asA6],typeArgument*/
+/*class: B6:checkedTypeArgument,checks=[],typeArgument*/
 class B6 extends A6<int> {}
 
 @pragma('dart6js:noInline')

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -37,9 +38,16 @@ class DocumentationValidator {
   /// ony include docs that cannot be verified because of missing support in the
   /// verifier.
   static const List<String> unverifiedDocs = [
+    // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
+    // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.INVALID_URI',
+    // Need a way to make auxiliary files that (a) are not included in the
+    // generated docs or (b) can be made persistent for fixes.
+    'CompileTimeErrorCode.PART_OF_NON_PART',
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
-    // Needs two expected errors.
+    // Needs to be able to specify two expected diagnostics.
     'StaticWarningCode.AMBIGUOUS_IMPORT',
   ];
 
@@ -61,19 +69,22 @@ class DocumentationValidator {
   /// buffer.
   bool hasWrittenFilePath = false;
 
+  /// The name of the variable currently being verified.
+  String variableName;
+
   /// The name of the error code currently being verified.
   String codeName;
 
-  /// A flag indicating whether the [codeName] has already been written to the
-  /// buffer.
-  bool hasWrittenCodeName = false;
+  /// A flag indicating whether the [variableName] has already been written to
+  /// the buffer.
+  bool hasWrittenVariableName = false;
 
   /// Initialize a newly created documentation validator.
   DocumentationValidator(this.codePaths);
 
   /// Validate the documentation.
   Future<void> validate() async {
-    AnalysisContextCollection collection = new AnalysisContextCollection(
+    AnalysisContextCollection collection = AnalysisContextCollection(
         includedPaths:
             codePaths.map((codePath) => codePath.documentationPath).toList(),
         resourceProvider: PhysicalResourceProvider.INSTANCE);
@@ -83,6 +94,16 @@ class DocumentationValidator {
     if (buffer.isNotEmpty) {
       fail(buffer.toString());
     }
+  }
+
+  /// Return the name of the code as defined in the [initializer].
+  String _extractCodeName(VariableDeclaration variable) {
+    Expression initializer = variable.initializer;
+    if (initializer is MethodInvocation) {
+      var firstArgument = initializer.argumentList.arguments[0];
+      return (firstArgument as StringLiteral).stringValue;
+    }
+    return variable.name.name;
   }
 
   /// Extract documentation from the given [field] declaration.
@@ -177,11 +198,11 @@ class DocumentationValidator {
   ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
     AnalysisSession session = collection.contextFor(path).currentSession;
     if (session == null) {
-      throw new StateError('No session for "$path"');
+      throw StateError('No session for "$path"');
     }
     ParsedUnitResult result = session.getParsedUnit(path);
     if (result.state != ResultState.VALID) {
-      throw new StateError('Unable to parse "$path"');
+      throw StateError('Unable to parse "$path"');
     }
     return result;
   }
@@ -193,9 +214,9 @@ class DocumentationValidator {
       buffer.writeln('In $filePath');
       hasWrittenFilePath = true;
     }
-    if (!hasWrittenCodeName) {
-      buffer.writeln('  $codeName');
-      hasWrittenCodeName = true;
+    if (!hasWrittenVariableName) {
+      buffer.writeln('  $variableName');
+      hasWrittenVariableName = true;
     }
     buffer.writeln('    $problem');
     for (AnalysisError error in errors) {
@@ -224,14 +245,14 @@ class DocumentationValidator {
             List<String> docs = _extractDoc(member);
             if (docs != null) {
               VariableDeclaration variable = member.fields.variables[0];
-              String variableName = variable.name.name;
-              codeName = '$className.$variableName';
-              if (unverifiedDocs.contains(codeName)) {
+              codeName = _extractCodeName(variable);
+              variableName = '$className.${variable.name.name}';
+              if (unverifiedDocs.contains(variableName)) {
                 continue;
               }
-              hasWrittenCodeName = false;
+              hasWrittenVariableName = false;
 
-              int exampleStart = docs.indexOf('#### Example');
+              int exampleStart = docs.indexOf('#### Examples');
               int fixesStart = docs.indexOf('#### Common fixes');
 
               List<_SnippetData> exampleSnippets =
@@ -284,7 +305,7 @@ class DocumentationValidator {
         _reportProblem('Expected one error but found none ($section $index).');
       } else if (errorCount == 1) {
         AnalysisError error = errors[0];
-        if (error.errorCode.uniqueName != codeName) {
+        if (error.errorCode.name != codeName) {
           _reportProblem('Expected an error with code $codeName, '
               'found ${error.errorCode} ($section $index).');
         }
@@ -360,7 +381,9 @@ class _SnippetTest extends DriverResolutionTest with PackageMixin {
 
   /// Initialize a newly created test to test the given [snippet].
   _SnippetTest(this.snippet) {
-    analysisOptions.enabledExperiments = ['extension-methods'];
+    analysisOptions.contextFeatures = FeatureSet.fromEnableFlags(
+      ['extension-methods'],
+    );
     String pubspecContent = snippet.auxiliaryFiles['pubspec.yaml'];
     if (pubspecContent != null) {
       for (String line in pubspecContent.split('\n')) {

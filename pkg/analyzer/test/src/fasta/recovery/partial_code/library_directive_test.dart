@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new LibraryDirectivesTest().buildAll();
+  LibraryDirectivesTest().buildAll();
 }
 
 class LibraryDirectivesTest extends PartialCodeTest {
@@ -15,7 +15,7 @@ class LibraryDirectivesTest extends PartialCodeTest {
     buildTests(
         'library_directive',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'library',
               [
@@ -24,9 +24,9 @@ class LibraryDirectivesTest extends PartialCodeTest {
               ],
               'library _s_;',
               failing: ['functionNonVoid', 'getter']),
-          new TestDescriptor('name', 'library lib',
+          TestDescriptor('name', 'library lib',
               [ParserErrorCode.EXPECTED_TOKEN], 'library lib;'),
-          new TestDescriptor(
+          TestDescriptor(
               'nameDot',
               'library lib.',
               [
@@ -35,7 +35,7 @@ class LibraryDirectivesTest extends PartialCodeTest {
               ],
               'library lib._s_;',
               failing: ['functionNonVoid', 'getter']),
-          new TestDescriptor('nameDotName', 'library lib.a',
+          TestDescriptor('nameDotName', 'library lib.a',
               [ParserErrorCode.EXPECTED_TOKEN], 'library lib.a;'),
         ],
         PartialCodeTest.prePartSuffixes);

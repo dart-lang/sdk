@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:async';
 import 'dart:io';
 
@@ -40,7 +42,7 @@ void main(List<String> args) {
           verbose: argResults['verbose'],
           printJs: argResults['print-js'],
           writeJs: argResults['write-js'],
-          inlineData: name.endsWith('_inlining.dart'));
+          inlineData: name.contains('_inlining'));
       if (argResults['continued']) {
         continuing = true;
       }

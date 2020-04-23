@@ -19,7 +19,7 @@ class MixMeIn extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class _Foo&NoUnnamedConstuctor&MixMeIn extends self::NoUnnamedConstuctor implements self::MixMeIn {
+abstract class _Foo&NoUnnamedConstuctor&MixMeIn extends self::NoUnnamedConstuctor implements self::MixMeIn /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor _() → self::_Foo&NoUnnamedConstuctor&MixMeIn*
     : super self::NoUnnamedConstuctor::_()
     ;

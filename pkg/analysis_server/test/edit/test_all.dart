@@ -7,7 +7,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'assists_test.dart' as assists;
 import 'fixes_test.dart' as fixes;
 import 'format_test.dart' as format;
-import 'nnbd_migration/test_all.dart' as nnbd_migration;
 import 'organize_directives_test.dart' as organize_directives;
 import 'postfix_completion_test.dart' as postfix_completion;
 import 'refactoring_test.dart' as refactoring;
@@ -15,12 +14,11 @@ import 'sort_members_test.dart' as sort_members;
 import 'statement_completion_test.dart' as statement_completion;
 import 'token_details_test.dart' as token_details;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     assists.main();
     fixes.main();
     format.main();
-    nnbd_migration.main();
     organize_directives.main();
     postfix_completion.main();
     refactoring.main();

@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 // Test starting isolate with static functions (and toplevel ones, for sanity).
 
 library static_function_test;
 
 import 'dart:isolate';
-import 'dart:async';
 import 'static_function_lib.dart' as lib;
-import 'package:unittest/unittest.dart';
-import 'remote_unittest_helper.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 void function(SendPort port) {
   port.send("TOP");
@@ -92,26 +94,28 @@ class _C {
 }
 
 void spawnTest(name, function, response) {
-  test(name, () {
-    ReceivePort r = new ReceivePort();
-    Isolate.spawn(function, r.sendPort);
-    r.listen(expectAsync((v) {
-      expect(v, response);
-      r.close();
-    }));
+  print(name);
+  ReceivePort r = new ReceivePort();
+  Isolate.spawn(function, r.sendPort);
+  asyncStart();
+  r.listen((v) {
+    Expect.equals(v, response);
+    r.close();
+    asyncEnd();
   });
 }
 
 void functionFailTest(name, function) {
-  test("throws on $name", () {
-    Isolate.spawn(function, null).catchError(expectAsync((e) {
-      /* do nothing */
-    }));
+  print("throws on $name");
+  asyncStart();
+  Isolate.spawn(function, null).catchError((e) {
+    /* do nothing */
+    asyncEnd();
   });
 }
 
 void main([args, port]) {
-  if (testRemote(main, port)) return;
+  asyncStart();
   // Sanity check.
   spawnTest("function", function, "TOP");
   spawnTest("_function", _function, "_TOP");
@@ -141,4 +145,5 @@ void main([args, port]) {
   functionFailTest(
       "named constructor closure", new C().namedConstructorBodyClosure);
   functionFailTest("instance method", new C().instanceMethod);
+  asyncEnd();
 }

@@ -76,7 +76,8 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
   }
 
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
     if (arguments != null) {
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri fileUri = null; // TODO(ahe): Provide these.
@@ -103,7 +104,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
       } else {
         library.addProblem(
             templateInternalProblemUnfinishedTypeVariable.withArguments(
-                name, library?.uri),
+                name, library?.importUri),
             parameter.fileOffset,
             name.length,
             fileUri);
@@ -127,15 +128,17 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
   }
 
   TypeBuilder asTypeBuilder() {
-    return new NamedTypeBuilder(name, const NullabilityBuilder.omitted(), null)
+    return new NamedTypeBuilder(
+        name, const NullabilityBuilder.omitted(), null, fileUri, charOffset)
       ..bind(this);
   }
 
   void finish(
       LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
     if (isPatch) return;
+    // TODO(jensj): Provide correct notInstanceContext.
     DartType objectType =
-        object.buildType(library, library.nullableBuilder, null);
+        object.buildType(library, library.nullableBuilder, null, null);
     parameter.bound ??= bound?.build(library) ?? objectType;
     // If defaultType is not set, initialize it to dynamic, unless the bound is
     // explicitly specified as Object, in which case defaultType should also be

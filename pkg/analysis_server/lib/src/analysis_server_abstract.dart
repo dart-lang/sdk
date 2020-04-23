@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
@@ -39,6 +40,9 @@ abstract class AbstractAnalysisServer {
   /// The options of this server instance.
   AnalysisServerOptions options;
 
+  /// The builder for attachments that should be included into crash reports.
+  final CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder;
+
   /// The [ContextManager] that handles the mapping from analysis roots to
   /// context directories.
   ContextManager contextManager;
@@ -57,7 +61,7 @@ abstract class AbstractAnalysisServer {
 
   /// A [RecentBuffer] of the most recent exceptions encountered by the analysis
   /// server.
-  final RecentBuffer<ServerException> exceptions = new RecentBuffer(10);
+  final RecentBuffer<ServerException> exceptions = RecentBuffer(10);
 
   /// Performance information after initial analysis is complete
   /// or `null` if the initial analysis is not yet complete
@@ -69,16 +73,15 @@ abstract class AbstractAnalysisServer {
   ServerPerformance performance;
 
   /// Performance information before initial analysis is complete.
-  final ServerPerformance performanceDuringStartup = new ServerPerformance();
+  final ServerPerformance performanceDuringStartup = ServerPerformance();
 
   /// The set of the files that are currently priority.
-  final Set<String> priorityFiles = new Set<String>();
+  final Set<String> priorityFiles = <String>{};
 
   final List<String> analyzableFilePatterns = <String>[
     '**/*.${AnalysisEngine.SUFFIX_DART}',
     '**/*.${AnalysisEngine.SUFFIX_HTML}',
     '**/*.${AnalysisEngine.SUFFIX_HTM}',
-    '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}',
     '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
     '**/${AnalysisEngine.PUBSPEC_YAML_FILE}',
     '**/${AnalysisEngine.ANDROID_MANIFEST_FILE}'
@@ -92,9 +95,12 @@ abstract class AbstractAnalysisServer {
 
   /// A list of the globs used to determine which files should be analyzed. The
   /// list is lazily created and should be accessed using [analyzedFilesGlobs].
-  List<Glob> _analyzedFilesGlobs = null;
+  List<Glob> _analyzedFilesGlobs;
 
-  AbstractAnalysisServer(this.options, this.diagnosticServer,
+  AbstractAnalysisServer(
+      this.options,
+      this.diagnosticServer,
+      this.crashReportingAttachmentsBuilder,
       ResourceProvider baseResourceProvider)
       : resourceProvider = OverlayResourceProvider(baseResourceProvider) {
     performance = performanceDuringStartup;
@@ -105,13 +111,13 @@ abstract class AbstractAnalysisServer {
   List<Glob> get analyzedFilesGlobs {
     if (_analyzedFilesGlobs == null) {
       _analyzedFilesGlobs = <Glob>[];
-      for (String pattern in analyzableFilePatterns) {
+      for (var pattern in analyzableFilePatterns) {
         try {
           _analyzedFilesGlobs
-              .add(new Glob(resourceProvider.pathContext.separator, pattern));
+              .add(Glob(resourceProvider.pathContext.separator, pattern));
         } catch (exception, stackTrace) {
           AnalysisEngine.instance.instrumentationService.logException(
-              new CaughtException.withMessage(
+              CaughtException.withMessage(
                   'Invalid glob pattern: "$pattern"', exception, stackTrace));
         }
       }
@@ -129,9 +135,9 @@ abstract class AbstractAnalysisServer {
 
   /// Return the total time the server's been alive.
   Duration get uptime {
-    DateTime start = new DateTime.fromMillisecondsSinceEpoch(
-        performanceDuringStartup.startTime);
-    return new DateTime.now().difference(start);
+    var start =
+        DateTime.fromMillisecondsSinceEpoch(performanceDuringStartup.startTime);
+    return DateTime.now().difference(start);
   }
 
   void addContextsToDeclarationsTracker() {
@@ -144,38 +150,37 @@ abstract class AbstractAnalysisServer {
   /// If the state location can be accessed, return the file byte store,
   /// otherwise return the memory byte store.
   ByteStore createByteStore(ResourceProvider resourceProvider) {
-    const int M = 1024 * 1024 /*1 MiB*/;
-    const int G = 1024 * 1024 * 1024 /*1 GiB*/;
+    const M = 1024 * 1024 /*1 MiB*/;
+    const G = 1024 * 1024 * 1024 /*1 GiB*/;
 
-    const int memoryCacheSize = 128 * M;
+    const memoryCacheSize = 128 * M;
 
     if (resourceProvider is OverlayResourceProvider) {
       OverlayResourceProvider overlay = resourceProvider;
       resourceProvider = overlay.baseProvider;
     }
     if (resourceProvider is PhysicalResourceProvider) {
-      Folder stateLocation =
-          resourceProvider.getStateLocation('.analysis-driver');
+      var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
-        return new MemoryCachingByteStore(
-            new EvictingFileByteStore(stateLocation.path, G), memoryCacheSize);
+        return MemoryCachingByteStore(
+            EvictingFileByteStore(stateLocation.path, G), memoryCacheSize);
       }
     }
 
-    return new MemoryCachingByteStore(new NullByteStore(), memoryCacheSize);
+    return MemoryCachingByteStore(NullByteStore(), memoryCacheSize);
   }
 
   /// Return an analysis driver to which the file with the given [path] is
   /// added if one exists, otherwise a driver in which the file was analyzed if
   /// one exists, otherwise the first driver, otherwise `null`.
   nd.AnalysisDriver getAnalysisDriver(String path) {
-    List<nd.AnalysisDriver> drivers = driverMap.values.toList();
+    var drivers = driverMap.values.toList();
     if (drivers.isNotEmpty) {
       // Sort the drivers so that more deeply nested contexts will be checked
       // before enclosing contexts.
       drivers.sort((first, second) =>
           second.contextRoot.root.length - first.contextRoot.root.length);
-      nd.AnalysisDriver driver = drivers.firstWhere(
+      var driver = drivers.firstWhere(
           (driver) => driver.contextRoot.containsFile(path),
           orElse: () => null);
       driver ??= drivers.firstWhere(
@@ -191,7 +196,7 @@ abstract class AbstractAnalysisServer {
     return declarationsTracker
             ?.getContext(result.session.analysisContext)
             ?.dartdocDirectiveInfo ??
-        new DartdocDirectiveInfo();
+        DartdocDirectiveInfo();
   }
 
   /// Return a [Future] that completes with the [Element] at the given
@@ -217,7 +222,7 @@ abstract class AbstractAnalysisServer {
       }
     }
 
-    AstNode node = await getNodeAtOffset(file, offset);
+    var node = await getNodeAtOffset(file, offset);
     return getElementOfNode(node);
   }
 
@@ -236,7 +241,7 @@ abstract class AbstractAnalysisServer {
     if (node is StringLiteral && node.parent is UriBasedDirective) {
       return null;
     }
-    Element element = ElementLocator.locate(node);
+    var element = ElementLocator.locate(node);
     if (node is SimpleIdentifier && element is PrefixElement) {
       element = getImportElement(node);
     }
@@ -249,10 +254,10 @@ abstract class AbstractAnalysisServer {
   Future<AstNode> getNodeAtOffset(String file, int offset) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolvedUnitResult result = await getResolvedUnit(file);
-    CompilationUnit unit = result?.unit;
+    var result = await getResolvedUnit(file);
+    var unit = result?.unit;
     if (unit != null) {
-      return new NodeLocator(offset).searchWithin(unit);
+      return NodeLocator(offset).searchWithin(unit);
     }
     return null;
   }
@@ -275,9 +280,9 @@ abstract class AbstractAnalysisServer {
       return null;
     }
 
-    nd.AnalysisDriver driver = getAnalysisDriver(path);
+    var driver = getAnalysisDriver(path);
     if (driver == null) {
-      return new Future.value();
+      return Future.value();
     }
 
     return driver
@@ -288,12 +293,33 @@ abstract class AbstractAnalysisServer {
     });
   }
 
+  void logExceptionResult(nd.ExceptionResult result) {
+    var message = 'Analysis failed: ${result.filePath}';
+    if (result.contextKey != null) {
+      message += ' context: ${result.contextKey}';
+    }
+
+    var attachments =
+        crashReportingAttachmentsBuilder.forExceptionResult(result);
+
+    // TODO(39284): should this exception be silent?
+    AnalysisEngine.instance.instrumentationService.logException(
+      SilentException.wrapInMessage(message, result.exception),
+      null,
+      attachments,
+    );
+  }
+
   /// Notify the declarations tracker that the file with the given [path] was
   /// changed - added, updated, or removed.  Schedule processing of the file.
   void notifyDeclarationsTracker(String path) {
     declarationsTracker?.changeFile(path);
     analysisDriverScheduler.notify(null);
   }
+
+  /// Notify the flutter widget properties support that the file with the
+  /// given [path] was changed - added, updated, or removed.
+  void notifyFlutterWidgetDescriptions(String path) {}
 
   /// Sends an error notification to the user.
   void sendServerErrorNotification(

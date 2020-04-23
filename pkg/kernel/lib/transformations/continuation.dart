@@ -15,8 +15,10 @@ import 'async.dart';
 
 class ContinuationVariables {
   static const awaitJumpVar = ':await_jump_var';
+  static const asyncCompleter = ':async_completer';
   static const awaitContextVar = ':await_ctx_var';
   static const asyncStackTraceVar = ':async_stack_trace';
+  static const controller = ':controller';
   static const controllerStreamVar = ':controller_stream';
   static const exceptionParam = ':exception';
   static const stackTraceParam = ':stack_trace';
@@ -129,6 +131,65 @@ class RecursiveContinuationRewriter extends Transformer {
       default:
         return null;
     }
+  }
+
+  @override
+  TreeNode visitForInStatement(ForInStatement stmt) {
+    if (stmt.isAsync) {
+      return super.visitForInStatement(stmt);
+    }
+
+    // Transform
+    //
+    //   for ({var/final} T <variable> in <iterable>) { ... }
+    //
+    // Into
+    //
+    //  {
+    //    final Iterator<T> :sync-for-iterator = <iterable>.iterator;
+    //    for (; :sync-for-iterator.moveNext() ;) {
+    //        {var/final} T variable = :iterator.current;
+    //        ...
+    //      }
+    //    }
+    //  }
+    final CoreTypes coreTypes = staticTypeContext.typeEnvironment.coreTypes;
+
+    // TODO(39565): We should be able to use forInElementType.
+    helper.unsafeCast;
+    final DartType iterableType =
+        stmt.iterable.getStaticType(staticTypeContext);
+    final DartType iterationType = iterableType is InterfaceType
+        ? staticTypeContext.typeEnvironment.forInElementType(stmt, iterableType)
+        : DynamicType();
+    final expectedIterableType = InterfaceType(
+        coreTypes.iterableClass, Nullability.legacy, [iterationType]);
+    final iteratorType = InterfaceType(
+        coreTypes.iteratorClass, Nullability.legacy, [iterationType]);
+
+    // TODO(39566): Iterable expression is not always well typed in the AST.
+    final typedIterable = StaticInvocation(helper.unsafeCast,
+        Arguments([stmt.iterable], types: [expectedIterableType]));
+    final iterator = VariableDeclaration(':sync-for-iterator',
+        initializer: PropertyGet(
+            typedIterable, Name('iterator'), coreTypes.iterableGetIterator)
+          ..fileOffset = stmt.iterable.fileOffset,
+        type: iteratorType)
+      ..fileOffset = stmt.iterable.fileOffset;
+
+    final condition = MethodInvocation(VariableGet(iterator), Name('moveNext'),
+        Arguments([]), coreTypes.iteratorMoveNext)
+      ..fileOffset = stmt.iterable.fileOffset;
+
+    final variable = stmt.variable
+      ..initializer = (PropertyGet(
+          VariableGet(iterator), Name('current'), coreTypes.iteratorGetCurrent)
+        ..fileOffset = stmt.bodyOffset);
+
+    final Block body = Block([variable, stmt.body]);
+
+    return Block([iterator, ForStatement([], condition, [], body)])
+        .accept<TreeNode>(this);
   }
 }
 
@@ -863,13 +924,11 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
         tryFinally
       ]);
       block.accept<TreeNode>(this);
+      return null;
     } else {
-      stmt.iterable = expressionRewriter.rewrite(stmt.iterable, statements)
-        ..parent = stmt;
-      stmt.body = visitDelimited(stmt.body)..parent = stmt;
-      statements.add(stmt);
+      super.visitForInStatement(stmt);
+      return null;
     }
-    return null;
   }
 
   TreeNode visitSwitchStatement(SwitchStatement stmt) {
@@ -964,7 +1023,8 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     final elementType = elementTypeFromReturnType(helper.streamClass);
 
     // _AsyncStarStreamController<T> :controller;
-    controllerVariable = new VariableDeclaration(":controller",
+    controllerVariable = new VariableDeclaration(
+        ContinuationVariables.controller,
         type: new InterfaceType(helper.asyncStarStreamControllerClass,
             staticTypeContext.nullable, [elementType]));
     statements.add(controllerVariable);

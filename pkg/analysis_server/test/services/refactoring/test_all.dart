@@ -22,8 +22,7 @@ import 'rename_library_test.dart' as rename_library_test;
 import 'rename_local_test.dart' as rename_local_test;
 import 'rename_unit_member_test.dart' as rename_unit_member_test;
 
-/// Utility for manually running all tests.
-main() {
+void main() {
   defineReflectiveSuite(() {
     convert_getter_to_method_test.main();
     convert_method_to_getter_test.main();

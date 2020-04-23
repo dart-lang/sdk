@@ -307,7 +307,7 @@ void DeferredObject::Fill() {
         // materialization of e.g. _ByteDataView objects which don't have
         // explicit fields in Dart (all accesses to the fields are done via
         // recognized native methods).
-        ASSERT(offset.Value() < cls.instance_size());
+        ASSERT(offset.Value() < cls.host_instance_size());
         obj.SetFieldAtOffset(offset.Value(), value);
         if (FLAG_trace_deoptimization_verbose) {
           OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",

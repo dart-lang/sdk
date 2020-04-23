@@ -35,8 +35,9 @@ class _InvocationMirror implements Invocation {
   // ArgumentsDescriptor layout. Keep in sync with enum in dart_entry.h.
   static const int _TYPE_ARGS_LEN = 0;
   static const int _COUNT = 1;
-  static const int _POSITIONAL_COUNT = 2;
-  static const int _FIRST_NAMED_ENTRY = 3;
+  static const int _SIZE = 2;
+  static const int _POSITIONAL_COUNT = 3;
+  static const int _FIRST_NAMED_ENTRY = 4;
 
   // Internal representation of the invocation mirror.
   String _functionName;

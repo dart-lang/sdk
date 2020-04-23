@@ -19,12 +19,12 @@ import 'package:dev_compiler/dev_compiler.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags;
 import 'package:front_end/src/api_unstable/vm.dart';
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' show Library, Procedure, LibraryDependency;
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart'
     show Component, loadComponentSourceFromBytes;
 import 'package:kernel/target/targets.dart' show targets, TargetFlags;
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
 
@@ -39,6 +39,7 @@ import 'package:vm/kernel_front_end.dart';
 
 import 'src/javascript_bundle.dart';
 import 'src/strong_components.dart';
+import 'src/expression_compiler.dart';
 
 ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -98,6 +99,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
           ' option',
       defaultsTo: 'org-dartlang-root',
       hide: true)
+  ..addFlag('enable-http-uris',
+      defaultsTo: false, hide: true, help: 'Enables support for http uris.')
   ..addFlag('verbose', help: 'Enables verbose output from the compiler.')
   ..addOption('initialize-from-dill',
       help: 'Normally the output dill is used to specify which dill to '
@@ -141,6 +144,10 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'Include only bytecode into the output file', defaultsTo: true)
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
+  ..addFlag('null-safety',
+      help:
+          'Respect the nullability of types at runtime in casts and instance checks.',
+      defaultsTo: false)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, eg set-literals.',
       hide: true)
@@ -151,7 +158,11 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('component-name', help: 'Name of the Fuchsia component')
   ..addOption('data-dir',
       help: 'Name of the subdirectory of //data for output files')
-  ..addOption('far-manifest', help: 'Path to output Fuchsia package manifest');
+  ..addOption('far-manifest', help: 'Path to output Fuchsia package manifest')
+  ..addOption('libraries-spec',
+      help: 'A path or uri to the libraries specification JSON file')
+  ..addFlag('debugger-module-names',
+      help: 'Use debugger-friendly modules names', defaultsTo: false);
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -183,12 +194,21 @@ ${argParser.usage}
 enum _State {
   READY_FOR_INSTRUCTION,
   RECOMPILE_LIST,
+  // compileExpression
   COMPILE_EXPRESSION_EXPRESSION,
   COMPILE_EXPRESSION_DEFS,
   COMPILE_EXPRESSION_TYPEDEFS,
   COMPILE_EXPRESSION_LIBRARY_URI,
   COMPILE_EXPRESSION_KLASS,
-  COMPILE_EXPRESSION_IS_STATIC
+  COMPILE_EXPRESSION_IS_STATIC,
+  // compileExpressionToJs
+  COMPILE_EXPRESSION_TO_JS_LIBRARYURI,
+  COMPILE_EXPRESSION_TO_JS_LINE,
+  COMPILE_EXPRESSION_TO_JS_COLUMN,
+  COMPILE_EXPRESSION_TO_JS_JSMODULUES,
+  COMPILE_EXPRESSION_TO_JS_JSFRAMEVALUES,
+  COMPILE_EXPRESSION_TO_JS_MODULENAME,
+  COMPILE_EXPRESSION_TO_JS_EXPRESSION,
 }
 
 /// Actions that every compiler should implement.
@@ -240,6 +260,33 @@ abstract class CompilerInterface {
       String klass,
       bool isStatic);
 
+  /// Compiles [expression] in [libraryUri] at [line]:[column] to JavaScript
+  /// in [moduleName].
+  ///
+  /// Values listed in [jsFrameValues] are substituted for their names in the
+  /// [expression].
+  ///
+  /// Ensures that all [jsModules] are loaded and accessible inside the
+  /// expression.
+  ///
+  /// Example values of parameters:
+  /// [moduleName] is of the form '/packages/hello_world_main.dart'
+  /// [jsFrameValues] is a map from js variable name to its primitive value
+  /// or another variable name, for example
+  /// { 'x': '1', 'y': 'y', 'o': 'null' }
+  /// [jsModules] is a map from variable name to the module name, where
+  /// variable name is the name originally used in JavaScript to contain the
+  /// module object, for example:
+  /// { 'dart':'dart_sdk', 'main': '/packages/hello_world_main.dart' }
+  Future<Null> compileExpressionToJs(
+      String libraryUri,
+      int line,
+      int column,
+      Map<String, String> jsModules,
+      Map<String, String> jsFrameValues,
+      String moduleName,
+      String expression);
+
   /// Communicates an error [msg] to the client.
   void reportError(String msg);
 }
@@ -252,8 +299,7 @@ abstract class ProgramTransformer {
 class BinaryPrinterFactory {
   /// Creates new [BinaryPrinter] to write to [targetSink].
   BinaryPrinter newBinaryPrinter(Sink<List<int>> targetSink) {
-    return LimitedBinaryPrinter(targetSink, (_) => true /* predicate */,
-        false /* excludeUriToSource */);
+    return BinaryPrinter(targetSink);
   }
 }
 
@@ -262,7 +308,8 @@ class FrontendCompiler implements CompilerInterface {
       {this.printerFactory,
       this.transformer,
       this.unsafePackageSerialization,
-      this.incrementalSerialization: true}) {
+      this.incrementalSerialization: true,
+      this.useDebuggerModuleNames: false}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
   }
@@ -271,6 +318,7 @@ class FrontendCompiler implements CompilerInterface {
   BinaryPrinterFactory printerFactory;
   bool unsafePackageSerialization;
   bool incrementalSerialization;
+  bool useDebuggerModuleNames;
 
   CompilerOptions _compilerOptions;
   BytecodeOptions _bytecodeOptions;
@@ -279,6 +327,9 @@ class FrontendCompiler implements CompilerInterface {
   ArgResults _options;
 
   IncrementalCompiler _generator;
+  JavaScriptBundler _bundler;
+  Component _component;
+
   String _kernelBinaryFilename;
   String _kernelBinaryFilenameIncremental;
   String _kernelBinaryFilenameFull;
@@ -298,8 +349,9 @@ class FrontendCompiler implements CompilerInterface {
   }) async {
     _options = options;
     _fileSystem = createFrontEndFileSystem(
-        options['filesystem-scheme'], options['filesystem-root']);
-    _mainSource = _getFileOrUri(entryPoint);
+        options['filesystem-scheme'], options['filesystem-root'],
+        allowHttp: options['enable-http-uris']);
+    _mainSource = resolveInputUri(entryPoint);
     _kernelBinaryFilenameFull = _options['output-dill'] ?? '$entryPoint.dill';
     _kernelBinaryFilenameIncremental = _options['output-incremental-dill'] ??
         (_options['output-dill'] != null
@@ -313,16 +365,19 @@ class FrontendCompiler implements CompilerInterface {
     final Uri sdkRoot = _ensureFolderPath(options['sdk-root']);
     final String platformKernelDill =
         options['platform'] ?? 'platform_strong.dill';
+    final String packagesOption = _options['packages'];
     final CompilerOptions compilerOptions = CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = _fileSystem
-      ..packagesFileUri = _getFileOrUri(_options['packages'])
+      ..packagesFileUri =
+          packagesOption != null ? resolveInputUri(packagesOption) : null
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
       ..verbose = options['verbose']
       ..embedSourceText = options['embed-source-text']
       ..experimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
+      ..nnbdMode = options['null-safety'] ? NnbdMode.Strong : NnbdMode.Weak
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {
@@ -342,6 +397,11 @@ class FrontendCompiler implements CompilerInterface {
           printDiagnosticMessage(message, _outputStream.writeln);
         }
       };
+
+    if (options.wasParsed('libraries-spec')) {
+      compilerOptions.librariesSpecificationUri =
+          resolveInputUri(options['libraries-spec']);
+    }
 
     if (options.wasParsed('filesystem-root')) {
       if (_options['output-dill'] == null) {
@@ -391,6 +451,7 @@ class FrontendCompiler implements CompilerInterface {
     compilerOptions.target = createFrontEndTarget(
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
+      nullSafety: options['null-safety'],
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
@@ -399,7 +460,7 @@ class FrontendCompiler implements CompilerInterface {
 
     final String importDill = options['import-dill'];
     if (importDill != null) {
-      compilerOptions.inputSummaries = <Uri>[
+      compilerOptions.additionalDills = <Uri>[
         Uri.base.resolveUri(Uri.file(importDill))
       ];
     }
@@ -419,7 +480,8 @@ class FrontendCompiler implements CompilerInterface {
     KernelCompilationResults results;
     IncrementalSerializer incrementalSerializer;
     if (options['incremental']) {
-      setVMEnvironmentDefines(environmentDefines, _compilerOptions);
+      _compilerOptions.environmentDefines =
+          _compilerOptions.target.updateEnvironmentDefines(environmentDefines);
 
       _compilerOptions.omitPlatform = false;
       _generator = generator ?? _createGenerator(Uri.file(_initializeFromDill));
@@ -434,11 +496,13 @@ class FrontendCompiler implements CompilerInterface {
           component.uriToSource.keys);
 
       incrementalSerializer = _generator.incrementalSerializer;
+      _component = component;
+      _component.computeCanonicalNames();
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
         // into VM snapshot and http://dartbug.com/30111 is fixed.
-        compilerOptions.linkedDependencies = <Uri>[
+        compilerOptions.additionalDills = <Uri>[
           sdkRoot.resolve(platformKernelDill)
         ];
       }
@@ -456,12 +520,12 @@ class FrontendCompiler implements CompilerInterface {
       transformer?.transform(results.component);
 
       if (_compilerOptions.target.name == 'dartdevc') {
-        await writeJavascriptBundle(results, _kernelBinaryFilename);
-      } else {
-        await writeDillFile(results, _kernelBinaryFilename,
-            filterExternal: importDill != null,
-            incrementalSerializer: incrementalSerializer);
+        await writeJavascriptBundle(
+            results, _kernelBinaryFilename, options['filesystem-scheme']);
       }
+      await writeDillFile(results, _kernelBinaryFilename,
+          filterExternal: importDill != null,
+          incrementalSerializer: incrementalSerializer);
 
       _outputStream.writeln(boundaryKey);
       await _outputDependenciesDelta(results.compiledSources);
@@ -526,16 +590,14 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   /// Write a JavaScript bundle containg the provided component.
-  Future<void> writeJavascriptBundle(
-      KernelCompilationResults results, String filename) async {
+  Future<void> writeJavascriptBundle(KernelCompilationResults results,
+      String filename, String fileSystemScheme) async {
+    var packageConfig = await loadPackageConfigUri(
+        _compilerOptions.packagesFileUri ?? File('.packages').absolute.uri);
     final Component component = results.component;
     // Compute strongly connected components.
-    final strongComponents = StrongComponents(
-        component,
-        results.loadedLibraries,
-        _mainSource,
-        _compilerOptions.packagesFileUri,
-        _compilerOptions.fileSystem);
+    final strongComponents = StrongComponents(component,
+        results.loadedLibraries, _mainSource, _compilerOptions.fileSystem);
     await strongComponents.computeModules();
 
     // Create JavaScript bundler.
@@ -545,11 +607,13 @@ class FrontendCompiler implements CompilerInterface {
     if (!sourceFile.parent.existsSync()) {
       sourceFile.parent.createSync(recursive: true);
     }
-    final bundler = JavaScriptBundler(component, strongComponents);
+    _bundler = JavaScriptBundler(
+        component, strongComponents, fileSystemScheme, packageConfig,
+        useDebuggerModuleNames: useDebuggerModuleNames);
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
-    bundler.compile(
+    await _bundler.compile(
         results.classHierarchy,
         results.coreTypes,
         results.loadedLibraries,
@@ -610,10 +674,9 @@ class FrontendCompiler implements CompilerInterface {
         final IOSink sink = file.openWrite();
         final Set<Library> loadedLibraries = results.loadedLibraries;
         final BinaryPrinter printer = filterExternal
-            ? LimitedBinaryPrinter(
-                sink,
-                (lib) => !loadedLibraries.contains(lib),
-                true /* excludeUriToSource */)
+            ? BinaryPrinter(sink,
+                libraryFilter: (lib) => !loadedLibraries.contains(lib),
+                includeSources: false)
             : printerFactory.newBinaryPrinter(sink);
 
         sortComponent(component);
@@ -626,8 +689,9 @@ class FrontendCompiler implements CompilerInterface {
       final IOSink sink = File(filename).openWrite();
       final Set<Library> loadedLibraries = results.loadedLibraries;
       final BinaryPrinter printer = filterExternal
-          ? LimitedBinaryPrinter(sink, (lib) => !loadedLibraries.contains(lib),
-              true /* excludeUriToSource */)
+          ? BinaryPrinter(sink,
+              libraryFilter: (lib) => !loadedLibraries.contains(lib),
+              includeSources: false)
           : printerFactory.newBinaryPrinter(sink);
 
       sortComponent(component);
@@ -754,10 +818,9 @@ class FrontendCompiler implements CompilerInterface {
     }
 
     final byteSink = ByteSink();
-    final BinaryPrinter printer = LimitedBinaryPrinter(
-        byteSink,
-        (lib) => packageFor(lib, result.loadedLibraries) == package,
-        false /* excludeUriToSource */);
+    final BinaryPrinter printer = BinaryPrinter(byteSink,
+        libraryFilter: (lib) =>
+            packageFor(lib, result.loadedLibraries) == package);
     printer.writeComponentFile(partComponent);
 
     final bytes = byteSink.builder.takeBytes();
@@ -773,7 +836,7 @@ class FrontendCompiler implements CompilerInterface {
     _outputStream.writeln('result $boundaryKey');
     await invalidateIfInitializingFromDill();
     if (entryPoint != null) {
-      _mainSource = _getFileOrUri(entryPoint);
+      _mainSource = resolveInputUri(entryPoint);
     }
     errors.clear();
 
@@ -790,7 +853,8 @@ class FrontendCompiler implements CompilerInterface {
         deltaProgram.uriToSource.keys);
 
     if (_compilerOptions.target.name == 'dartdevc') {
-      await writeJavascriptBundle(results, _kernelBinaryFilename);
+      await writeJavascriptBundle(
+          results, _kernelBinaryFilename, _options['filesystem-scheme']);
     } else {
       await writeDillFile(results, _kernelBinaryFilename,
           incrementalSerializer: _generator.incrementalSerializer);
@@ -826,6 +890,58 @@ class FrontendCompiler implements CompilerInterface {
       _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
     } else {
       _outputStream.writeln(boundaryKey);
+    }
+  }
+
+  @override
+  Future<Null> compileExpressionToJs(
+      String libraryUri,
+      int line,
+      int column,
+      Map<String, String> jsModules,
+      Map<String, String> jsFrameValues,
+      String moduleName,
+      String expression) async {
+    final String boundaryKey = Uuid().generateV4();
+    _outputStream.writeln('result $boundaryKey');
+
+    _generator.accept();
+    errors.clear();
+
+    if (_bundler != null) {
+      var kernel2jsCompiler = _bundler.compilers[moduleName];
+      if (kernel2jsCompiler == null) {
+        throw Exception('Cannot find kernel2js compiler for $moduleName. '
+            'Compilers are avaiable for modules: '
+            '\n\t${_bundler.compilers.keys.toString()}');
+      }
+      assert(kernel2jsCompiler != null);
+
+      var evaluator = new ExpressionCompiler(
+          _generator.generator, kernel2jsCompiler, _component,
+          verbose: _compilerOptions.verbose,
+          onDiagnostic: _compilerOptions.onDiagnostic);
+
+      var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
+          column, jsModules, jsFrameValues, moduleName, expression);
+
+      var result = errors.length > 0 ? errors[0] : procedure;
+
+      // TODO(annagrin): kernelBinaryFilename is too specific
+      // rename to _outputFileName?
+      await File(_kernelBinaryFilename).writeAsString(result);
+
+      _outputStream
+          .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
+
+      // TODO(annagrin): do we need to add asserts/error reporting if
+      // initial compilation didn't happen and _kernelBinaryFilename
+      // is different from below?
+      if (procedure != null) {
+        _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
+      }
+    } else {
+      _outputStream.writeln('$boundaryKey');
     }
   }
 
@@ -954,9 +1070,6 @@ class FrontendCompiler implements CompilerInterface {
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
   }
 
-  Uri _getFileOrUri(String fileOrUri) =>
-      convertFileOrUriArgumentToUri(_fileSystem, fileOrUri);
-
   IncrementalCompiler _createGenerator(Uri initializeFromDillUri) {
     return IncrementalCompiler(_compilerOptions, _mainSource,
         initializeFromDillUri: initializeFromDillUri,
@@ -1003,16 +1116,27 @@ class _CompileExpressionRequest {
   bool isStatic;
 }
 
+class _CompileExpressionToJsRequest {
+  String libraryUri;
+  int line;
+  int column;
+  Map<String, String> jsModules = <String, String>{};
+  Map<String, String> jsFrameValues = <String, String>{};
+  String moduleName;
+  String expression;
+}
+
 /// Listens for the compilation commands on [input] stream.
 /// This supports "interactive" recompilation mode of execution.
-void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
-    ArgResults options, Completer<int> completer,
+StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
+    Stream<List<int>> input, ArgResults options, Completer<int> completer,
     {IncrementalCompiler generator}) {
   _State state = _State.READY_FOR_INSTRUCTION;
   _CompileExpressionRequest compileExpressionRequest;
+  _CompileExpressionToJsRequest compileExpressionToJsRequest;
   String boundaryKey;
   String recompileEntryPoint;
-  input
+  return input
       .transform(utf8.decoder)
       .transform(const LineSplitter())
       .listen((String string) async {
@@ -1022,6 +1146,8 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
         const String RECOMPILE_INSTRUCTION_SPACE = 'recompile ';
         const String COMPILE_EXPRESSION_INSTRUCTION_SPACE =
             'compile-expression ';
+        const String COMPILE_EXPRESSION_TO_JS_INSTRUCTION_SPACE =
+            'compile-expression-to-js ';
         if (string.startsWith(COMPILE_INSTRUCTION_SPACE)) {
           final String entryPoint =
               string.substring(COMPILE_INSTRUCTION_SPACE.length);
@@ -1039,6 +1165,24 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
             boundaryKey = remainder;
           }
           state = _State.RECOMPILE_LIST;
+        } else if (string
+            .startsWith(COMPILE_EXPRESSION_TO_JS_INSTRUCTION_SPACE)) {
+          // 'compile-expression-to-js <boundarykey>
+          // libraryUri
+          // line
+          // column
+          // jsModules (one k-v pair per line)
+          // ...
+          // <boundarykey>
+          // jsFrameValues (one k-v pair per line)
+          // ...
+          // <boundarykey>
+          // moduleName
+          // expression
+          compileExpressionToJsRequest = _CompileExpressionToJsRequest();
+          boundaryKey = string
+              .substring(COMPILE_EXPRESSION_TO_JS_INSTRUCTION_SPACE.length);
+          state = _State.COMPILE_EXPRESSION_TO_JS_LIBRARYURI;
         } else if (string.startsWith(COMPILE_EXPRESSION_INSTRUCTION_SPACE)) {
           // 'compile-expression <boundarykey>
           // expression
@@ -1062,7 +1206,9 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
         } else if (string == 'reset') {
           compiler.resetIncrementalCompiler();
         } else if (string == 'quit') {
-          completer.complete(0);
+          if (!completer.isCompleted) {
+            completer.complete(0);
+          }
         }
         break;
       case _State.RECOMPILE_LIST:
@@ -1112,6 +1258,54 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
           compiler
               .reportError('Got $string. Expected either "true" or "false"');
         }
+        state = _State.READY_FOR_INSTRUCTION;
+        break;
+      case _State.COMPILE_EXPRESSION_TO_JS_LIBRARYURI:
+        compileExpressionToJsRequest.libraryUri = string;
+        state = _State.COMPILE_EXPRESSION_TO_JS_LINE;
+        break;
+      case _State.COMPILE_EXPRESSION_TO_JS_LINE:
+        compileExpressionToJsRequest.line = int.parse(string);
+        state = _State.COMPILE_EXPRESSION_TO_JS_COLUMN;
+        break;
+      case _State.COMPILE_EXPRESSION_TO_JS_COLUMN:
+        compileExpressionToJsRequest.column = int.parse(string);
+        state = _State.COMPILE_EXPRESSION_TO_JS_JSMODULUES;
+        break;
+      case _State.COMPILE_EXPRESSION_TO_JS_JSMODULUES:
+        if (string == boundaryKey) {
+          state = _State.COMPILE_EXPRESSION_TO_JS_JSFRAMEVALUES;
+        } else {
+          var list = string.split(':');
+          var key = list[0];
+          var value = list[1];
+          compileExpressionToJsRequest.jsModules[key] = value;
+        }
+        break;
+      case _State.COMPILE_EXPRESSION_TO_JS_JSFRAMEVALUES:
+        if (string == boundaryKey) {
+          state = _State.COMPILE_EXPRESSION_TO_JS_MODULENAME;
+        } else {
+          var list = string.split(':');
+          var key = list[0];
+          var value = list[1];
+          compileExpressionToJsRequest.jsFrameValues[key] = value;
+        }
+        break;
+      case _State.COMPILE_EXPRESSION_TO_JS_MODULENAME:
+        compileExpressionToJsRequest.moduleName = string;
+        state = _State.COMPILE_EXPRESSION_TO_JS_EXPRESSION;
+        break;
+      case _State.COMPILE_EXPRESSION_TO_JS_EXPRESSION:
+        compileExpressionToJsRequest.expression = string;
+        compiler.compileExpressionToJs(
+            compileExpressionToJsRequest.libraryUri,
+            compileExpressionToJsRequest.line,
+            compileExpressionToJsRequest.column,
+            compileExpressionToJsRequest.jsModules,
+            compileExpressionToJsRequest.jsFrameValues,
+            compileExpressionToJsRequest.moduleName,
+            compileExpressionToJsRequest.expression);
         state = _State.READY_FOR_INSTRUCTION;
         break;
     }
@@ -1181,7 +1375,8 @@ Future<int> starter(
   compiler ??= FrontendCompiler(output,
       printerFactory: binaryPrinterFactory,
       unsafePackageSerialization: options["unsafe-package-serialization"],
-      incrementalSerialization: options["incremental-serialization"]);
+      incrementalSerialization: options["incremental-serialization"],
+      useDebuggerModuleNames: options['debugger-module-names']);
 
   if (options.rest.isNotEmpty) {
     return await compiler.compile(options.rest[0], options,
@@ -1191,7 +1386,8 @@ Future<int> starter(
   }
 
   Completer<int> completer = Completer<int>();
-  listenAndCompile(compiler, input ?? stdin, options, completer,
+  var subscription = listenAndCompile(
+      compiler, input ?? stdin, options, completer,
       generator: generator);
-  return completer.future;
+  return completer.future..then((value) => subscription.cancel());
 }

@@ -7,13 +7,15 @@ library fasta.invalid_type_builder;
 import 'package:kernel/ast.dart' show DartType, InvalidType, Nullability;
 
 import '../fasta_codes.dart' show LocatedMessage;
+import '../scope.dart';
 
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_declaration_builder.dart';
 
-class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl {
+class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
+    with ErroneousMemberBuilderMixin {
   String get debugName => "InvalidTypeBuilder";
 
   final LocatedMessage message;
@@ -27,7 +29,8 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl {
       : super(null, 0, name, null, message.charOffset, message.uri);
 
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
     return buildTypesWithBuiltArguments(library, null, null);
   }
 

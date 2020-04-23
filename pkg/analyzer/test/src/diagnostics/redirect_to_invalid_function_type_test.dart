@@ -26,4 +26,15 @@ class B {
       error(StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE, 65, 1),
     ]);
   }
+
+  test_valid_redirect() async {
+    await assertNoErrorsInCode(r'''
+class A implements B {
+  A(int p) {}
+}
+class B {
+  factory B(int p) = A;
+}
+''');
+  }
 }

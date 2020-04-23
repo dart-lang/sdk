@@ -41,8 +41,7 @@ main() {
 @reflectiveTest
 class ClassDeclarationTest extends ParserTestCase {
   void test_getConstructor() {
-    List<ConstructorInitializer> initializers =
-        new List<ConstructorInitializer>();
+    List<ConstructorInitializer> initializers = <ConstructorInitializer>[];
     ConstructorDeclaration defaultConstructor =
         AstTestFactory.constructorDeclaration(
             AstTestFactory.identifier3("Test"),
@@ -339,6 +338,10 @@ class IndexExpressionTest {
         AstTestFactory.nullLiteral(),
         TokenType.PERIOD_PERIOD,
         TokenType.OPEN_SQUARE_BRACKET);
+    AstTestFactory.cascadeExpression(
+      AstTestFactory.nullLiteral(),
+      [expression],
+    );
     expect(expression.isNullAware, isFalse);
   }
 
@@ -348,6 +351,10 @@ class IndexExpressionTest {
         AstTestFactory.nullLiteral(),
         TokenType.QUESTION_PERIOD_PERIOD,
         TokenType.OPEN_SQUARE_BRACKET);
+    AstTestFactory.cascadeExpression(
+      AstTestFactory.nullLiteral(),
+      [expression],
+    );
     expect(expression.isNullAware, isTrue);
   }
 
@@ -417,18 +424,32 @@ class MethodDeclarationTest {
 @reflectiveTest
 class MethodInvocationTest extends ParserTestCase {
   void test_isNullAware_cascade() {
-    final invocation = AstTestFactory.methodInvocation3(
-        AstTestFactory.nullLiteral(), 'foo', null, [], TokenType.PERIOD_PERIOD);
+    var invocation = astFactory.methodInvocation(
+      null,
+      TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
+      AstTestFactory.identifier3('foo'),
+      null,
+      AstTestFactory.argumentList(),
+    );
+    AstTestFactory.cascadeExpression(
+      AstTestFactory.nullLiteral(),
+      [invocation],
+    );
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_cascade_true() {
-    final invocation = AstTestFactory.methodInvocation3(
-        AstTestFactory.nullLiteral(),
-        'foo',
-        null,
-        [],
-        TokenType.QUESTION_PERIOD_PERIOD);
+    var invocation = astFactory.methodInvocation(
+      null,
+      TokenFactory.tokenFromType(TokenType.QUESTION_PERIOD_PERIOD),
+      AstTestFactory.identifier3('foo'),
+      null,
+      AstTestFactory.argumentList(),
+    );
+    AstTestFactory.cascadeExpression(
+      AstTestFactory.nullLiteral(),
+      [invocation],
+    );
     expect(invocation.isNullAware, isTrue);
   }
 
@@ -498,7 +519,7 @@ class NodeListTest {
 
   void test_addAll() {
     AstNode parent = AstTestFactory.argumentList();
-    List<AstNode> firstNodes = new List<AstNode>();
+    List<AstNode> firstNodes = <AstNode>[];
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     firstNodes.add(firstNode);
@@ -510,7 +531,7 @@ class NodeListTest {
     expect(list[1], same(secondNode));
     expect(firstNode.parent, same(parent));
     expect(secondNode.parent, same(parent));
-    List<AstNode> secondNodes = new List<AstNode>();
+    List<AstNode> secondNodes = <AstNode>[];
     AstNode thirdNode = AstTestFactory.booleanLiteral(true);
     AstNode fourthNode = AstTestFactory.booleanLiteral(false);
     secondNodes.add(thirdNode);
@@ -588,7 +609,7 @@ class NodeListTest {
   }
 
   void test_indexOf() {
-    List<AstNode> nodes = new List<AstNode>();
+    List<AstNode> nodes = <AstNode>[];
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     AstNode thirdNode = AstTestFactory.booleanLiteral(true);
@@ -608,7 +629,7 @@ class NodeListTest {
   }
 
   void test_remove() {
-    List<AstNode> nodes = new List<AstNode>();
+    List<AstNode> nodes = <AstNode>[];
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     AstNode thirdNode = AstTestFactory.booleanLiteral(true);
@@ -648,7 +669,7 @@ class NodeListTest {
   }
 
   void test_set() {
-    List<AstNode> nodes = new List<AstNode>();
+    List<AstNode> nodes = <AstNode>[];
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     AstNode thirdNode = AstTestFactory.booleanLiteral(true);
@@ -711,15 +732,18 @@ E f() => g;
   CompilationUnit get unit {
     if (_unit == null) {
       GatheringErrorListener listener =
-          new GatheringErrorListener(checkRanges: true);
+          GatheringErrorListener(checkRanges: true);
       var source =
-          new StringSource(contents, 'PreviousTokenTest_findPrevious.dart');
-      var scanner = new Scanner.fasta(source, listener)
+          StringSource(contents, 'PreviousTokenTest_findPrevious.dart');
+      var scanner = Scanner.fasta(source, listener)
         ..configureFeatures(featureSet);
       Token tokens = scanner.tokenize();
-      _unit =
-          new Parser(source, listener, featureSet: featureSet, useFasta: true)
-              .parseCompilationUnit(tokens);
+      _unit = Parser(
+        source,
+        listener,
+        featureSet: featureSet,
+        useFasta: true,
+      ).parseCompilationUnit(tokens);
     }
     return _unit;
   }
@@ -761,10 +785,9 @@ E f() => g;
     BlockFunctionBody body = method.body;
     Statement statement = body.block.statements[0];
 
-    GatheringErrorListener listener =
-        new GatheringErrorListener(checkRanges: true);
-    var source = new StringSource('missing', 'PreviousTokenTest_missing.dart');
-    var scanner = new Scanner.fasta(source, listener)
+    GatheringErrorListener listener = GatheringErrorListener(checkRanges: true);
+    var source = StringSource('missing', 'PreviousTokenTest_missing.dart');
+    var scanner = Scanner.fasta(source, listener)
       ..configureFeatures(featureSet);
     Token missing = scanner.tokenize();
 
@@ -803,12 +826,20 @@ class PropertyAccessTest extends ParserTestCase {
   void test_isNullAware_cascade() {
     final invocation = AstTestFactory.propertyAccess2(
         AstTestFactory.nullLiteral(), 'foo', TokenType.PERIOD_PERIOD);
+    AstTestFactory.cascadeExpression(
+      AstTestFactory.nullLiteral(),
+      [invocation],
+    );
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_cascade_true() {
     final invocation = AstTestFactory.propertyAccess2(
-        AstTestFactory.nullLiteral(), 'foo', TokenType.QUESTION_PERIOD_PERIOD);
+        null, 'foo', TokenType.QUESTION_PERIOD_PERIOD);
+    AstTestFactory.cascadeExpression(
+      AstTestFactory.nullLiteral(),
+      [invocation],
+    );
     expect(invocation.isNullAware, isTrue);
   }
 
@@ -1328,7 +1359,7 @@ class StringInterpolationTest extends ParserTestCase {
     // 'a${bb}ccc'
     {
       var ae = AstTestFactory.interpolationString("'a", "a");
-      var cToken = new StringToken(TokenType.STRING, "ccc'", 10);
+      var cToken = StringToken(TokenType.STRING, "ccc'", 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 1);
@@ -1337,7 +1368,7 @@ class StringInterpolationTest extends ParserTestCase {
     // '''a${bb}ccc'''
     {
       var ae = AstTestFactory.interpolationString("'''a", "a");
-      var cToken = new StringToken(TokenType.STRING, "ccc'''", 10);
+      var cToken = StringToken(TokenType.STRING, "ccc'''", 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 3);
@@ -1346,7 +1377,7 @@ class StringInterpolationTest extends ParserTestCase {
     // """a${bb}ccc"""
     {
       var ae = AstTestFactory.interpolationString('"""a', "a");
-      var cToken = new StringToken(TokenType.STRING, 'ccc"""', 10);
+      var cToken = StringToken(TokenType.STRING, 'ccc"""', 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 3);
@@ -1355,7 +1386,7 @@ class StringInterpolationTest extends ParserTestCase {
     // r'a${bb}ccc'
     {
       var ae = AstTestFactory.interpolationString("r'a", "a");
-      var cToken = new StringToken(TokenType.STRING, "ccc'", 10);
+      var cToken = StringToken(TokenType.STRING, "ccc'", 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 2);
@@ -1364,7 +1395,7 @@ class StringInterpolationTest extends ParserTestCase {
     // r'''a${bb}ccc'''
     {
       var ae = AstTestFactory.interpolationString("r'''a", "a");
-      var cToken = new StringToken(TokenType.STRING, "ccc'''", 10);
+      var cToken = StringToken(TokenType.STRING, "ccc'''", 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 4);
@@ -1373,7 +1404,7 @@ class StringInterpolationTest extends ParserTestCase {
     // r"""a${bb}ccc"""
     {
       var ae = AstTestFactory.interpolationString('r"""a', "a");
-      var cToken = new StringToken(TokenType.STRING, 'ccc"""', 10);
+      var cToken = StringToken(TokenType.STRING, 'ccc"""', 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 4);
@@ -1459,7 +1490,7 @@ class VariableDeclarationTest extends ParserTestCase {
     VariableDeclaration varDecl = AstTestFactory.variableDeclaration("a");
     TopLevelVariableDeclaration decl =
         AstTestFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    Comment comment = astFactory.documentationComment(List<Token>(0));
     expect(varDecl.documentationComment, isNull);
     decl.documentationComment = comment;
     expect(varDecl.documentationComment, isNotNull);
@@ -1468,45 +1499,39 @@ class VariableDeclarationTest extends ParserTestCase {
 
   void test_getDocumentationComment_onNode() {
     VariableDeclaration decl = AstTestFactory.variableDeclaration("a");
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    Comment comment = astFactory.documentationComment(List<Token>(0));
     decl.documentationComment = comment;
     expect(decl.documentationComment, isNotNull);
   }
 }
 
 class _AssignmentKind {
-  static const _AssignmentKind BINARY = const _AssignmentKind('BINARY', 0);
+  static const _AssignmentKind BINARY = _AssignmentKind('BINARY', 0);
 
   static const _AssignmentKind COMPOUND_LEFT =
-      const _AssignmentKind('COMPOUND_LEFT', 1);
+      _AssignmentKind('COMPOUND_LEFT', 1);
 
   static const _AssignmentKind COMPOUND_RIGHT =
-      const _AssignmentKind('COMPOUND_RIGHT', 2);
+      _AssignmentKind('COMPOUND_RIGHT', 2);
 
-  static const _AssignmentKind POSTFIX_BANG =
-      const _AssignmentKind('POSTFIX_INC', 3);
+  static const _AssignmentKind POSTFIX_BANG = _AssignmentKind('POSTFIX_INC', 3);
 
-  static const _AssignmentKind POSTFIX_INC =
-      const _AssignmentKind('POSTFIX_INC', 4);
+  static const _AssignmentKind POSTFIX_INC = _AssignmentKind('POSTFIX_INC', 4);
 
-  static const _AssignmentKind PREFIX_DEC =
-      const _AssignmentKind('PREFIX_DEC', 5);
+  static const _AssignmentKind PREFIX_DEC = _AssignmentKind('PREFIX_DEC', 5);
 
-  static const _AssignmentKind PREFIX_INC =
-      const _AssignmentKind('PREFIX_INC', 6);
+  static const _AssignmentKind PREFIX_INC = _AssignmentKind('PREFIX_INC', 6);
 
-  static const _AssignmentKind PREFIX_NOT =
-      const _AssignmentKind('PREFIX_NOT', 7);
+  static const _AssignmentKind PREFIX_NOT = _AssignmentKind('PREFIX_NOT', 7);
 
-  static const _AssignmentKind SIMPLE_LEFT =
-      const _AssignmentKind('SIMPLE_LEFT', 8);
+  static const _AssignmentKind SIMPLE_LEFT = _AssignmentKind('SIMPLE_LEFT', 8);
 
   static const _AssignmentKind SIMPLE_RIGHT =
-      const _AssignmentKind('SIMPLE_RIGHT', 9);
+      _AssignmentKind('SIMPLE_RIGHT', 9);
 
-  static const _AssignmentKind NONE = const _AssignmentKind('NONE', 10);
+  static const _AssignmentKind NONE = _AssignmentKind('NONE', 10);
 
-  static const List<_AssignmentKind> values = const [
+  static const List<_AssignmentKind> values = [
     BINARY,
     COMPOUND_LEFT,
     COMPOUND_RIGHT,
@@ -1526,29 +1551,27 @@ class _AssignmentKind {
 
   const _AssignmentKind(this.name, this.ordinal);
 
+  @override
   int get hashCode => ordinal;
 
   int compareTo(_AssignmentKind other) => ordinal - other.ordinal;
 
+  @override
   String toString() => name;
 }
 
 class _WrapperKind {
-  static const _WrapperKind PREFIXED_LEFT =
-      const _WrapperKind('PREFIXED_LEFT', 0);
+  static const _WrapperKind PREFIXED_LEFT = _WrapperKind('PREFIXED_LEFT', 0);
 
-  static const _WrapperKind PREFIXED_RIGHT =
-      const _WrapperKind('PREFIXED_RIGHT', 1);
+  static const _WrapperKind PREFIXED_RIGHT = _WrapperKind('PREFIXED_RIGHT', 1);
 
-  static const _WrapperKind PROPERTY_LEFT =
-      const _WrapperKind('PROPERTY_LEFT', 2);
+  static const _WrapperKind PROPERTY_LEFT = _WrapperKind('PROPERTY_LEFT', 2);
 
-  static const _WrapperKind PROPERTY_RIGHT =
-      const _WrapperKind('PROPERTY_RIGHT', 3);
+  static const _WrapperKind PROPERTY_RIGHT = _WrapperKind('PROPERTY_RIGHT', 3);
 
-  static const _WrapperKind NONE = const _WrapperKind('NONE', 4);
+  static const _WrapperKind NONE = _WrapperKind('NONE', 4);
 
-  static const List<_WrapperKind> values = const [
+  static const List<_WrapperKind> values = [
     PREFIXED_LEFT,
     PREFIXED_RIGHT,
     PROPERTY_LEFT,
@@ -1562,9 +1585,11 @@ class _WrapperKind {
 
   const _WrapperKind(this.name, this.ordinal);
 
+  @override
   int get hashCode => ordinal;
 
   int compareTo(_WrapperKind other) => ordinal - other.ordinal;
 
+  @override
   String toString() => name;
 }

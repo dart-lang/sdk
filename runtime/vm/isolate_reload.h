@@ -216,8 +216,6 @@ class IsolateGroupReloadContext {
                         const char* packages_url,
                         const uint8_t** kernel_buffer,
                         intptr_t* kernel_buffer_size);
-  RawExternalTypedData* MakeRetainedTypedData(const uint8_t* kernel_buffer,
-                                              intptr_t kernel_buffer_size);
   void FindModifiedSources(bool force_reload,
                            Dart_SourceFile** modified_sources,
                            intptr_t* count,
@@ -296,7 +294,8 @@ class IsolateGroupReloadContext {
   friend class MarkFunctionsForRecompilation;  // IsDirty.
   friend class ReasonForCancelling;
   friend class IsolateReloadContext;
-  friend class Instance;  // GetClassSizeForHeapWalkAt
+  friend class IsolateGroup;  // GetClassSizeForHeapWalkAt
+  friend class RawObject;     // GetClassSizeForHeapWalkAt
 
   static Dart_FileModifiedCallback file_modified_callback_;
 };

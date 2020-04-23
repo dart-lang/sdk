@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithExtensionNameTest);
   });
@@ -26,7 +26,7 @@ class ReplaceWithExtensionNameTest extends FixProcessorTest {
     createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
   }
 
-  test_getter() async {
+  Future<void> test_getter() async {
     await resolveTestUnit('''
 extension E on String {
   static int get g => 0;
@@ -47,7 +47,7 @@ void f() {
 ''');
   }
 
-  test_method() async {
+  Future<void> test_method() async {
     await resolveTestUnit('''
 extension E on String {
   static int m() => 0;
@@ -68,7 +68,7 @@ void f() {
 ''');
   }
 
-  test_qualified() async {
+  Future<void> test_qualified() async {
     newFile('/home/test/lib/ext.dart', content: '''
 extension E on String {
   static int m() => 0;
@@ -90,7 +90,7 @@ void f() {
 ''');
   }
 
-  test_setter() async {
+  Future<void> test_setter() async {
     await resolveTestUnit('''
 extension E on String {
   static set s(int i) {}

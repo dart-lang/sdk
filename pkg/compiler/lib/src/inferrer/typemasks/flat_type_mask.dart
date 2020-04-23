@@ -309,7 +309,9 @@ class FlatTypeMask implements TypeMask {
     } else if (closedWorld.classHierarchy.isSubtypeOf(base, flatOther.base)) {
       return flatOther.unionStrictSubtype(this, closedWorld);
     } else {
-      return new UnionTypeMask._internal(<FlatTypeMask>[this, flatOther]);
+      return new UnionTypeMask._internal(
+          <FlatTypeMask>[this.nonNullable(), flatOther.nonNullable()],
+          isNullable || other.isNullable);
     }
   }
 
@@ -434,20 +436,12 @@ class FlatTypeMask implements TypeMask {
               : new TypeMask.nonNullSubclass(cls, closedWorld);
         }
 
-        List<FlatTypeMask> masks = <FlatTypeMask>[];
-        if (includeNull) {
-          for (ClassEntity cls in result.classes) {
-            masks.add(new TypeMask.subclass(cls, closedWorld));
-          }
-        } else {
-          for (ClassEntity cls in result.classes) {
-            masks.add(new TypeMask.nonNullSubclass(cls, closedWorld));
-          }
-        }
+        List<FlatTypeMask> masks = List.from(result.classes.map(
+            (ClassEntity cls) => TypeMask.nonNullSubclass(cls, closedWorld)));
         if (masks.length > UnionTypeMask.MAX_UNION_LENGTH) {
-          return UnionTypeMask.flatten(masks, closedWorld);
+          return UnionTypeMask.flatten(masks, includeNull, closedWorld);
         }
-        return new UnionTypeMask._internal(masks);
+        return new UnionTypeMask._internal(masks, includeNull);
     }
   }
 

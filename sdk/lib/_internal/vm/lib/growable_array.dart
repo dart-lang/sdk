@@ -17,10 +17,6 @@ class _GrowableList<T> extends ListBase<T> {
       return;
     }
     int oldLength = this.length;
-    // We are modifying the length just below the is-check. Without the check
-    // Array.copy could throw an exception, leaving the list in a bad state
-    // (with a length that has been increased, but without a new element).
-    if (index is! int) throw new ArgumentError(index);
     this.length++;
     Lists.copy(this, index, this, index + 1, oldLength - index);
     this[index] = element;
@@ -106,7 +102,8 @@ class _GrowableList<T> extends ListBase<T> {
     return new _GrowableList<T>._withData(data);
   }
 
-  @pragma("vm:exact-result-type", _GrowableList)
+  @pragma("vm:exact-result-type",
+      [_GrowableList, "result-type-uses-passed-type-arguments"])
   factory _GrowableList._withData(_List data) native "GrowableList_allocate";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
@@ -376,18 +373,28 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   List<T> toList({bool growable: true}) {
-    var length = this.length;
-    if (length > 0) {
-      List list = growable ? new _List(length) : new _List<T>(length);
-      for (int i = 0; i < length; i++) {
-        list[i] = this[i];
+    final length = this.length;
+    if (growable) {
+      if (length > 0) {
+        final list = new _List(length);
+        for (int i = 0; i < length; i++) {
+          list[i] = this[i];
+        }
+        final result = new _GrowableList<T>._withData(list);
+        result._setLength(length);
+        return result;
       }
-      if (!growable) return list;
-      var result = new _GrowableList<T>._withData(list);
-      result._setLength(length);
-      return result;
+      return <T>[];
+    } else {
+      if (length > 0) {
+        final list = new _List<T>(length);
+        for (int i = 0; i < length; i++) {
+          list[i] = this[i];
+        }
+        return list;
+      }
+      return new List<T>(0);
     }
-    return growable ? <T>[] : new List<T>(0);
   }
 
   Set<T> toSet() {

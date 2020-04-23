@@ -173,7 +173,7 @@ MapConstantValue createMap(
 
   bool hasProtoKey = (protoValue != null);
   InterfaceType keysType;
-  if (sourceType.treatAsRaw) {
+  if (commonElements.dartTypes.treatAsRawType(sourceType)) {
     keysType = commonElements.listType();
   } else {
     keysType = commonElements.listType(sourceType.typeArguments.first);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart' show Expect;
 
 /*class: A:checks=[],typeArgument*/
@@ -47,35 +49,35 @@ class M5<Tm5> {
   m5() => "M5<$Tm5>";
 }
 
-/*class: C1:checks=[$asM1,$asM2,$asM3,$asM4,$asM5],instance*/
+/*class: C1:checks=[],instance*/
 class C1 = Object with M1, M2<A>, M3, M4<B>, M5<C>;
 
-/*class: C2:checks=[$asM1,$asM2,$asM3,$asM4,$asM5],instance*/
+/*class: C2:checks=[],instance*/
 class C2 = Object with M1<A>, M2<B>, M3<C>, M4<D>, M5<E>;
 
-/*class: C3:checks=[$asM1,$asM3,$asM4,$asM5],instance*/
+/*class: C3:checks=[],instance*/
 class C3<T> = Object with M1<A>, M2<T>, M3, M4, M5<B>;
 
-/*class: C4:checks=[$asM1,$asM2,$asM3,$asM4,$asM5],instance*/
+/*class: C4:checks=[],instance*/
 class C4 extends Object with M1, M2<A>, M3, M4<B>, M5<C> {}
 
-/*class: C5:checks=[$asM1,$asM2,$asM3,$asM4,$asM5],instance*/
+/*class: C5:checks=[],instance*/
 class C5 extends Object with M1<A>, M2<B>, M3<C>, M4<D>, M5<E> {}
 
-/*class: C6:checks=[$asM1,$asM3,$asM4,$asM5],instance*/
+/*class: C6:checks=[],instance*/
 class C6<T> extends Object with M1<A>, M2<T>, M3, M4, M5<B> {}
 
-/*class: C7:checks=[$asM1,$asM2,$asM3,$asM4,$asM5],instance*/
+/*class: C7:checks=[],instance*/
 class C7 = Object with M1<A>, M2<A>, M3<A>, M4<A>, M5<A>;
 
-/*class: C8:checks=[$asM1,$asM2,$asM3,$asM4,$asM5],instance*/
+/*class: C8:checks=[],instance*/
 class C8 extends Object with M1<A>, M2<A>, M3<A>, M4<A>, M5<A> {}
 
-/*class: C9:checks=[$asM1,$asM2,$asM3,$asM4,$asM5],instance*/
+/*class: C9:checks=[],instance*/
 class C9 = Object
     with M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>;
 
-/*class: CA:checks=[$asM1,$asM2,$asM3,$asM4,$asM5],instance*/
+/*class: CA:checks=[],instance*/
 class CA extends Object
     with M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>> {}
 

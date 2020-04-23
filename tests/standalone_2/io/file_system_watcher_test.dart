@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -448,11 +451,11 @@ testWatchOverflow() async {
 }
 
 void watcher(SendPort sendPort) async {
-  runZoned(() {
+  runZonedGuarded(() {
     var watcher = Directory.systemTemp.watch(recursive: true);
     watcher.listen((data) async {});
     sendPort.send('start');
-  }, onError: (error) {
+  }, (error, stack) {
     print(error);
     sendPort.send('end');
   });

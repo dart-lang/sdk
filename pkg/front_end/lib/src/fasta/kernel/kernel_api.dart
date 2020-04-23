@@ -9,7 +9,7 @@ export 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
 export 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-export 'package:kernel/clone.dart' show CloneVisitor;
+export 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 
 export 'package:kernel/core_types.dart' show CoreTypes;
 

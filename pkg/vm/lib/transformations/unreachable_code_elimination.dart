@@ -136,6 +136,37 @@ class SimpleUnreachableCodeElimination extends Transformer {
     return super.visitAssertInitializer(node);
   }
 
+  @override
+  TreeNode visitTryFinally(TryFinally node) {
+    node.transformChildren(this);
+    final fin = node.finalizer;
+    if (fin == null || (fin is Block && fin.statements.isEmpty)) {
+      return node.body;
+    }
+    return node;
+  }
+
+  bool _isRethrow(Statement body) {
+    if (body is ExpressionStatement && body.expression is Rethrow) {
+      return true;
+    } else if (body is Block && body.statements.length == 1) {
+      return _isRethrow(body.statements.single);
+    }
+    return false;
+  }
+
+  @override
+  TreeNode visitTryCatch(TryCatch node) {
+    node.transformChildren(this);
+    // Can replace try/catch with its body if all catches are just rethow.
+    for (Catch catchClause in node.catches) {
+      if (!_isRethrow(catchClause.body)) {
+        return node;
+      }
+    }
+    return node.body;
+  }
+
   // Make sure we're not generating `null` bodies.
   // Try/catch, try/finally and switch/case statements
   // always have a Block in a body, so there is no

@@ -275,6 +275,8 @@ class EventCounterRecorder : public TimelineEventCallbackRecorder {
 
   intptr_t CountFor(TimelineEvent::EventType type) { return counts_[type]; }
 
+  intptr_t Size() { return -1; }
+
  private:
   intptr_t counts_[TimelineEvent::kNumEventTypes];
 };

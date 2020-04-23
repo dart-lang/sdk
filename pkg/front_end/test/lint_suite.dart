@@ -25,9 +25,7 @@ import 'package:front_end/src/fasta/command_line_reporting.dart'
 
 import 'package:kernel/kernel.dart';
 
-import 'package:package_config/packages.dart' show Packages;
-
-import 'package:package_config/discovery.dart' show loadPackagesFile;
+import 'package:package_config/package_config.dart';
 
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
@@ -68,7 +66,7 @@ class LintTestCache {
   List<int> lineStarts;
   Source source;
   Token firstToken;
-  Packages packages;
+  PackageConfig packages;
 }
 
 class Context extends ChainContext {
@@ -164,7 +162,7 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
 
       File dotPackagesFile = new File.fromUri(dotPackages);
       if (dotPackagesFile.existsSync()) {
-        description.cache.packages = await loadPackagesFile(dotPackages);
+        description.cache.packages = await loadPackageConfigUri(dotPackages);
       }
     }
 

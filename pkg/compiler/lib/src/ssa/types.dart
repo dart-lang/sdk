@@ -52,12 +52,10 @@ class AbstractValueFactory {
             .createNonNullExact(commonElements.objectClass);
       } else if (type is VoidType) {
         return abstractValueDomain.nullType;
-      } else if (type is DynamicType) {
+      } else if (closedWorld.dartTypes.isTopType(type)) {
         return abstractValueDomain.dynamicType;
       } else if (type == commonElements.nullType) {
         return abstractValueDomain.nullType;
-      } else if (type.treatAsDynamic) {
-        return abstractValueDomain.dynamicType;
       } else {
         return abstractValueDomain.createNonNullSubtype(type.element);
       }

@@ -54,6 +54,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   final ir.ClassHierarchy hierarchy;
 
   ThisInterfaceType _thisType;
+  ir.Library _currentLibrary;
 
   StaticTypeVisitor(ir.TypeEnvironment typeEnvironment, this.hierarchy)
       : super(typeEnvironment);
@@ -81,6 +82,16 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   void set thisType(ThisInterfaceType value) {
     assert(value == null || _thisType == null);
     _thisType = value;
+  }
+
+  ir.Library get currentLibrary {
+    assert(_currentLibrary != null);
+    return _currentLibrary;
+  }
+
+  void set currentLibrary(ir.Library value) {
+    assert(value == null || _currentLibrary == null);
+    _currentLibrary = value;
   }
 
   bool completes(ir.DartType type) => type != const DoesNotCompleteType();
@@ -180,23 +191,27 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     // subtypes of Object (not just interface types), and function types are
     // considered subtypes of Function.
     if (superclass.typeParameters.isEmpty) {
-      return typeEnvironment.coreTypes.legacyRawType(superclass);
+      return typeEnvironment.coreTypes
+          .rawType(superclass, currentLibrary.nonNullable);
     }
     while (type is ir.TypeParameterType) {
       type = (type as ir.TypeParameterType).parameter.bound;
     }
     if (type == typeEnvironment.nullType) {
-      return superclass.bottomType;
+      return typeEnvironment.coreTypes
+          .bottomInterfaceType(superclass, currentLibrary.nullable);
     }
     if (type is ir.InterfaceType) {
-      ir.InterfaceType upcastType =
-          typeEnvironment.getTypeAsInstanceOf(type, superclass);
+      ir.InterfaceType upcastType = typeEnvironment.getTypeAsInstanceOf(
+          type, superclass, currentLibrary, typeEnvironment.coreTypes);
       if (upcastType != null) return upcastType;
     } else if (type is ir.BottomType) {
-      return superclass.bottomType;
+      return typeEnvironment.coreTypes
+          .bottomInterfaceType(superclass, currentLibrary.nonNullable);
     }
     // TODO(johnniwinther): Should we assert that this doesn't happen?
-    return typeEnvironment.coreTypes.legacyRawType(superclass);
+    return typeEnvironment.coreTypes
+        .rawType(superclass, currentLibrary.nonNullable);
   }
 
   /// Computes the result type of the property access [node] on a receiver of
@@ -220,9 +235,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     // Treat the properties of Object specially.
     String nameString = node.name.name;
     if (nameString == 'hashCode') {
-      return typeEnvironment.coreTypes.intLegacyRawType;
+      return typeEnvironment.coreTypes.intNonNullableRawType;
     } else if (nameString == 'runtimeType') {
-      return typeEnvironment.coreTypes.typeLegacyRawType;
+      return typeEnvironment.coreTypes.typeNonNullableRawType;
     }
     return const ir.DynamicType();
   }
@@ -437,7 +452,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     /// [type].
     bool isTypeApplicable(ir.DartType type) {
       if (type is ir.DynamicType) return true;
-      if (type == typeEnvironment.coreTypes.functionLegacyRawType) return true;
+      if (type == typeEnvironment.coreTypes.functionLegacyRawType ||
+          type == typeEnvironment.coreTypes.functionNullableRawType ||
+          type == typeEnvironment.coreTypes.functionNonNullableRawType)
+        return true;
       if (type is ir.FunctionType) {
         return isFunctionTypeApplicable(
             type.typeParameters.length,
@@ -641,7 +659,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     }
     if (node.name.name == '==') {
       // We use this special case to simplify generation of '==' checks.
-      return typeEnvironment.coreTypes.boolLegacyRawType;
+      return typeEnvironment.coreTypes.boolNonNullableRawType;
     }
     return const ir.DynamicType();
   }
@@ -787,10 +805,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType visitConstructorInvocation(ir.ConstructorInvocation node) {
     ArgumentTypes argumentTypes = _visitArguments(node.arguments);
     ir.DartType resultType = node.arguments.types.isEmpty
-        ? new ExactInterfaceType.from(
-            typeEnvironment.coreTypes.legacyRawType(node.target.enclosingClass))
-        : new ExactInterfaceType(
-            node.target.enclosingClass, node.arguments.types);
+        ? new ExactInterfaceType.from(typeEnvironment.coreTypes
+            .nonNullableRawType(node.target.enclosingClass))
+        : new ExactInterfaceType(node.target.enclosingClass,
+            ir.Nullability.nonNullable, node.arguments.types);
     _expressionTypeCache[node] = resultType;
     handleConstructorInvocation(node, argumentTypes, resultType);
     return resultType;
@@ -810,8 +828,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       if (declaringClass.typeParameters.isEmpty) {
         resultType = node.interfaceTarget.getterType;
       } else {
-        ir.DartType receiver =
-            typeEnvironment.getTypeAsInstanceOf(thisType, declaringClass);
+        ir.DartType receiver = typeEnvironment.getTypeAsInstanceOf(thisType,
+            declaringClass, currentLibrary, typeEnvironment.coreTypes);
         resultType = ir.Substitution.fromInterfaceType(receiver)
             .substituteType(node.interfaceTarget.getterType);
       }
@@ -843,8 +861,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       returnType = const ir.DynamicType();
     } else {
       ir.Class superclass = node.interfaceTarget.enclosingClass;
-      ir.InterfaceType receiverType =
-          typeEnvironment.getTypeAsInstanceOf(thisType, superclass);
+      ir.InterfaceType receiverType = typeEnvironment.getTypeAsInstanceOf(
+          thisType, superclass, currentLibrary, typeEnvironment.coreTypes);
       returnType = ir.Substitution.fromInterfaceType(receiverType)
           .substituteType(node.interfaceTarget.function.returnType);
       returnType = ir.Substitution.fromPairs(
@@ -992,8 +1010,11 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitExpressionStatement(ir.ExpressionStatement node) {
-    visitNode(node.expression);
-    return null;
+    if (completes(visitNode(node.expression))) {
+      return null;
+    } else {
+      return const DoesNotCompleteType();
+    }
   }
 
   void handleAsExpression(ir.AsExpression node, ir.DartType operandType) {}
@@ -1003,6 +1024,19 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType operandType = visitNode(node.operand);
     handleAsExpression(node, operandType);
     return super.visitAsExpression(node);
+  }
+
+  void handleNullCheck(ir.NullCheck node, ir.DartType operandType) {}
+
+  @override
+  ir.DartType visitNullCheck(ir.NullCheck node) {
+    ir.DartType operandType = visitNode(node.operand);
+    handleNullCheck(node, operandType);
+    ir.DartType resultType = operandType == typeEnvironment.nullType
+        ? const ir.NeverType(ir.Nullability.nonNullable)
+        : operandType.withNullability(ir.Nullability.nonNullable);
+    _expressionTypeCache[node] = resultType;
+    return resultType;
   }
 
   void handleStringConcatenation(ir.StringConcatenation node) {}
@@ -1216,11 +1250,14 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     if (node.isAsync) {
       ir.InterfaceType streamInterfaceType = getInterfaceTypeOf(iterableType);
       ir.InterfaceType streamType = typeEnvironment.getTypeAsInstanceOf(
-          streamInterfaceType, typeEnvironment.coreTypes.streamClass);
+          streamInterfaceType,
+          typeEnvironment.coreTypes.streamClass,
+          currentLibrary,
+          typeEnvironment.coreTypes);
       if (streamType != null) {
         iteratorType = new ir.InterfaceType(
             typeEnvironment.coreTypes.streamIteratorClass,
-            ir.Nullability.legacy,
+            ir.Nullability.nonNullable,
             streamType.typeArguments);
       }
     } else {
@@ -1230,7 +1267,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       if (member != null) {
         iteratorType = ir.Substitution.fromInterfaceType(
                 typeEnvironment.getTypeAsInstanceOf(
-                    iterableInterfaceType, member.enclosingClass))
+                    iterableInterfaceType,
+                    member.enclosingClass,
+                    currentLibrary,
+                    typeEnvironment.coreTypes))
             .substituteType(member.getterType);
       }
     }
@@ -1382,12 +1422,14 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     thisType = new ThisInterfaceType.from(node.enclosingClass?.getThisType(
         typeEnvironment.coreTypes, node.enclosingLibrary.nonNullable));
     _currentVariables = {};
+    currentLibrary = node.enclosingLibrary;
     visitSignature(node.function);
     visitNode(node.function.body);
     handleProcedure(node);
     _invalidatedVariables.removeAll(_currentVariables);
     _currentVariables = null;
     thisType = null;
+    currentLibrary = null;
   }
 
   void handleConstructor(ir.Constructor node) {}
@@ -1397,6 +1439,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     thisType = new ThisInterfaceType.from(node.enclosingClass.getThisType(
         typeEnvironment.coreTypes, node.enclosingLibrary.nonNullable));
     _currentVariables = {};
+    currentLibrary = node.enclosingLibrary;
     visitSignature(node.function);
     visitNodes(node.initializers);
     visitNode(node.function.body);
@@ -1404,6 +1447,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     _invalidatedVariables.removeAll(_currentVariables);
     _currentVariables = null;
     thisType = null;
+    currentLibrary = null;
   }
 
   void handleField(ir.Field node) {}
@@ -1413,11 +1457,13 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     thisType = new ThisInterfaceType.from(node.enclosingClass?.getThisType(
         typeEnvironment.coreTypes, node.enclosingLibrary.nonNullable));
     _currentVariables = {};
+    currentLibrary = node.enclosingLibrary;
     visitNode(node.initializer);
     handleField(node);
     _invalidatedVariables.removeAll(_currentVariables);
     _currentVariables = null;
     thisType = null;
+    currentLibrary = null;
   }
 
   void handleVariableDeclaration(ir.VariableDeclaration node) {}

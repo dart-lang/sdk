@@ -1,8 +1,8 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/late.dart:40:5: Error: Setter not found: 'lateFinalVariableWithInit'.
+// pkg/front_end/testcases/nnbd/late.dart:40:5: Error: Can't assign to the final variable 'lateFinalVariableWithInit'.
 //     lateFinalVariableWithInit = 0;
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^
 //
@@ -35,8 +35,8 @@ import "dart:core" as core;
 
 class Class extends core::Object {
   late field core::int lateInstanceField;
-  late final field core::int lateFinalInstanceField1;
-  late final field core::int lateFinalInstanceField2;
+  late final [setter] field core::int lateFinalInstanceField1;
+  late final [setter] field core::int lateFinalInstanceField2;
   late final field core::int lateFinalInstanceFieldWithInit = 0;
   late field self::Class lateInstanceFieldThis = this;
   late final field self::Class lateFinalInstanceFieldThis = this;
@@ -44,7 +44,7 @@ class Class extends core::Object {
   late static final field core::int lateFinalStaticField1;
   late static final field core::int lateFinalStaticField2;
   late static final field core::int lateFinalStaticFieldWithInit = 0;
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     : super core::Object::•()
     ;
   method method() → dynamic {
@@ -60,7 +60,7 @@ class Class extends core::Object {
   }
   method methodWithErrors() → dynamic {
     late final core::int lateFinalVariableWithInit = 0;
-    invalid-expression "pkg/front_end/testcases/nnbd/late.dart:40:5: Error: Setter not found: 'lateFinalVariableWithInit'.
+    invalid-expression "pkg/front_end/testcases/nnbd/late.dart:40:5: Error: Can't assign to the final variable 'lateFinalVariableWithInit'.
     lateFinalVariableWithInit = 0;
     ^^^^^^^^^^^^^^^^^^^^^^^^^";
     invalid-expression "pkg/front_end/testcases/nnbd/late.dart:42:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the class 'Class'.

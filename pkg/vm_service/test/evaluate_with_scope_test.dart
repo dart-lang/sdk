@@ -22,13 +22,13 @@ Future evaluate(VmService service, isolate, target, x, y) async => await service
 final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final isolate = await service.getIsolate(isolateRef.id);
-    final lib = await service.getObject(isolate.id, isolate.rootLib.id);
+    final Library lib = await service.getObject(isolate.id, isolate.rootLib.id);
 
-    final field1 = await service.getObject(
+    final Field field1 = await service.getObject(
         isolate.id, lib.variables.singleWhere((v) => v.name == 'thing1').id);
     final thing1 = (await service.getObject(isolate.id, field1.staticValue.id));
 
-    final field2 = await service.getObject(
+    final Field field2 = await service.getObject(
         isolate.id, lib.variables.singleWhere((v) => v.name == 'thing2').id);
     final thing2 = (await service.getObject(isolate.id, field2.staticValue.id));
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /// Contains the names of globals that are embedded into the output by the
 /// compiler.
 ///
@@ -122,6 +120,11 @@ const GET_ISOLATE_TAG = 'getIsolateTag';
 // TODO(floitsch): should we rename this variable to avoid confusion with
 //    [INTERCEPTORS_BY_TAG] and [LEAF_TAGS].
 const ISOLATE_TAG = 'isolateTag';
+
+/// An embedded global that contains the property used to store type information
+/// on JavaScript Array instances. This is a Symbol (except for IE11, where is
+/// is a String).
+const ARRAY_RTI_PROPERTY = 'arrayRti';
 
 /// This embedded global (a function) returns the isolate-specific dispatch-tag
 /// that is used to accelerate interceptor calls.
@@ -281,9 +284,6 @@ enum JsGetName {
   /// instances of parameterized classes.
   RTI_NAME,
 
-  /// Name used to tag typedefs.
-  TYPEDEF_TAG,
-
   /// Name used to tag a function type.
   FUNCTION_TYPE_TAG,
 
@@ -338,20 +338,8 @@ enum JsGetName {
   /// String representation of the type of the JavaScriptFunction class.
   JS_FUNCTION_CLASS_TYPE_NAME,
 
-  /// String recipe for the [bool] type.
-  BOOL_RECIPE,
-
-  /// String recipe for the [double] type.
-  DOUBLE_RECIPE,
-
-  /// String recipe for the [int] type.
-  INT_RECIPE,
-
-  /// String recipe for the [num] type.
-  NUM_RECIPE,
-
-  /// String recipe for the [String] type.
-  STRING_RECIPE,
+  /// Property name for Rti._as field.
+  RTI_FIELD_AS,
 
   /// Property name for Rti._is field.
   RTI_FIELD_IS,
@@ -461,5 +449,6 @@ class RtiUniverseFieldNames {
   static String evalCache = 'eC';
   static String typeRules = 'tR';
   static String erasedTypes = 'eT';
+  static String typeParameterVariances = 'tPV';
   static String sharedEmptyArray = 'sEA';
 }

@@ -77,9 +77,6 @@ class C extends Int8 {}
 import 'dart:ffi';
 class C extends Pointer {}
 ''', [
-      // TODO(brianwilkerson) The following diagnostic should not be generated.
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          25, 1),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 7),
     ]);
   }
@@ -198,9 +195,6 @@ class C implements Int8 {}
 import 'dart:ffi';
 class C implements Pointer {}
 ''', [
-      // TODO(brianwilkerson) The following diagnostic should not be generated.
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          25, 1),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 7),
     ]);
   }
@@ -333,9 +327,6 @@ class C with Int8 {}
 import 'dart:ffi';
 class C with Pointer {}
 ''', [
-      // TODO(brianwilkerson) The following diagnostic should not be generated.
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          25, 1),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 7),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 7),
     ]);

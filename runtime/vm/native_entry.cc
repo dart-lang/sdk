@@ -50,8 +50,8 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
     Api::Scope api_scope(T);
     Dart_Handle api_function_name = Api::NewHandle(T, function_name.raw());
     {
-      TransitionVMToNative transition(T);
       Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+      TransitionVMToNative transition(T);
       native_function =
           resolver(api_function_name, number_of_arguments, auto_setup_scope);
     }
@@ -206,7 +206,7 @@ void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
   {
     Isolate* isolate = thread->isolate();
-    ApiState* state = isolate->api_state();
+    ApiState* state = isolate->group()->api_state();
     ASSERT(state != NULL);
     TRACE_NATIVE_CALL("0x%" Px "", reinterpret_cast<uintptr_t>(func));
     thread->EnterApiScope();

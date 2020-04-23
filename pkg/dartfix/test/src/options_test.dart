@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
-main() {
+void main() {
   TestContext context;
   TestLogger logger;
 
@@ -28,9 +28,8 @@ main() {
     List<String> excludeFixes = const <String>[],
     bool showHelp = false,
     String normalOut,
+    bool dependencies = false,
     bool pedanticFixes = false,
-    String previewDir,
-    String previewPort,
     bool requiredFixes = false,
     bool overwrite = false,
     String serverSnapshot,
@@ -56,9 +55,6 @@ main() {
     }
     expect(options.force, force);
     expect(options.pedanticFixes, pedanticFixes);
-    expect(options.previewDir, previewDir);
-    expect(options.previewPort, previewPort);
-    expect(options.requiredFixes, requiredFixes);
     expect(options.overwrite, overwrite);
     expect(options.serverSnapshot, serverSnapshot);
     expect(options.showHelp, showHelp);
@@ -127,18 +123,6 @@ main() {
     parse(['--pedantic', 'foo'], pedanticFixes: true);
   });
 
-  test('previewDir', () {
-    parse(['--preview-dir=bar', 'foo'], previewDir: 'bar');
-  });
-
-  test('previewPort', () {
-    parse(['--preview-port=8080', 'foo'], previewPort: '8080');
-  });
-
-  test('required fixes', () {
-    parse(['--required', 'foo'], requiredFixes: true);
-  });
-
   test('server snapshot', () {
     parse(['--server', 'some/path', 'foo'], serverSnapshot: 'some/path');
   });
@@ -164,10 +148,4 @@ void expectContains(Iterable<String> collection, String suffix) {
     }
   }
   fail('Expected one of $collection\n  to end with "$suffix"');
-}
-
-void expectOneFileTarget(Options options, String fileName) {
-  expect(options.targets, hasLength(1));
-  final target = options.targets[0];
-  expect(target.endsWith(fileName), isTrue);
 }

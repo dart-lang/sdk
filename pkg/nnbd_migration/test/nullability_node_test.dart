@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,6 +19,7 @@ main() {
 class NullabilityNodeTest {
   final graph = NullabilityGraphForTesting();
 
+  /// A list of all edges that couldn't be satisfied.  May contain duplicates.
   List<NullabilityEdge> unsatisfiedEdges;
 
   List<NullabilityNodeForSubstitution> unsatisfiedSubstitutions;
@@ -26,40 +29,42 @@ class NullabilityNodeTest {
   NullabilityNode get never => graph.never;
 
   void assertUnsatisfied(List<NullabilityEdge> expectedUnsatisfiedEdges) {
-    expect(unsatisfiedEdges, unorderedEquals(expectedUnsatisfiedEdges));
+    expect(unsatisfiedEdges.toSet(), expectedUnsatisfiedEdges.toSet());
   }
 
   NullabilityEdge connect(NullabilityNode source, NullabilityNode destination,
-      {bool hard = false, List<NullabilityNode> guards = const []}) {
+      {bool hard = false,
+      bool checkable = true,
+      List<NullabilityNode> guards = const []}) {
     return graph.connect(source, destination, _TestEdgeOrigin(),
-        hard: hard, guards: guards);
+        hard: hard, checkable: checkable, guards: guards);
   }
 
   NullabilityNode lub(NullabilityNode left, NullabilityNode right) {
     return NullabilityNode.forLUB(left, right);
   }
 
-  NullabilityNode newNode(int offset) =>
-      NullabilityNode.forTypeAnnotation(offset);
+  NullabilityNode newNode(int id) =>
+      NullabilityNode.forTypeAnnotation(NullabilityNodeTarget.text('node $id'));
 
   void propagate() {
-    graph.propagate();
-    unsatisfiedEdges = graph.unsatisfiedEdges.toList();
-    unsatisfiedSubstitutions = graph.unsatisfiedSubstitutions.toList();
+    var propagationResult = graph.propagate(null);
+    unsatisfiedEdges = propagationResult.unsatisfiedEdges;
+    unsatisfiedSubstitutions = propagationResult.unsatisfiedSubstitutions;
   }
 
   NullabilityNode subst(NullabilityNode inner, NullabilityNode outer) {
     return NullabilityNode.forSubstitution(inner, outer);
   }
 
-  test_always_and_never_state() {
+  void test_always_and_never_state() {
     propagate();
     expect(always.isNullable, isTrue);
     expect(never.isNullable, isFalse);
     assertUnsatisfied([]);
   }
 
-  test_always_and_never_unaffected_by_hard_edges() {
+  void test_always_and_never_unaffected_by_hard_edges() {
     var edge = connect(always, never, hard: true);
     propagate();
     expect(always.isNullable, isTrue);
@@ -67,7 +72,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([edge]);
   }
 
-  test_always_and_never_unaffected_by_soft_edges() {
+  void test_always_and_never_unaffected_by_soft_edges() {
     var edge = connect(always, never);
     propagate();
     expect(always.isNullable, isTrue);
@@ -75,7 +80,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([edge]);
   }
 
-  test_always_destination() {
+  void test_always_destination() {
     // always -> 1 -(hard)-> always
     var n1 = newNode(1);
     connect(always, n1);
@@ -87,7 +92,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_edge_satisfied_due_to_guard() {
+  void test_edge_satisfied_due_to_guard() {
     // always -> 1
     // 1 -(2) -> 3
     // 3 -(hard)-> never
@@ -106,7 +111,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_lubNode_relatesInBothDirections() {
+  void test_lubNode_relatesInBothDirections() {
     final nodeA = newNode(1);
     final nodeB = newNode(2);
     final lubNode = lub(nodeA, nodeB);
@@ -115,7 +120,7 @@ class NullabilityNodeTest {
     expect(nodeB.outerCompoundNodes, [lubNode]);
   }
 
-  test_never_source() {
+  void test_never_source() {
     // never -> 1
     var n1 = newNode(1);
     connect(never, n1);
@@ -126,7 +131,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_always_union() {
+  void test_propagation_always_union() {
     // always == 1
     // 1 -(hard)-> never
     // 1 -> 2
@@ -151,7 +156,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([edge_1_never, edge_1_3]);
   }
 
-  test_propagation_always_union_reversed() {
+  void test_propagation_always_union_reversed() {
     // always == 1
     // 1 -(hard)-> never
     // 1 -> 2
@@ -176,7 +181,33 @@ class NullabilityNodeTest {
     assertUnsatisfied([edge_1_never, edge_1_3]);
   }
 
-  test_propagation_downstream_guarded_multiple_guards_all_satisfied() {
+  void test_propagation_downstream_breadth_first() {
+    // always -> 1 -> 2
+    //           1 -> 3 -> 4
+    // always -> 5 -> 4
+    //           5 -> 6 -> 2
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    var n4 = newNode(4);
+    var n5 = newNode(5);
+    var n6 = newNode(6);
+    connect(always, n1);
+    connect(n1, n2);
+    connect(n1, n3);
+    connect(n3, n4);
+    connect(always, n5);
+    connect(n5, n4);
+    connect(n5, n6);
+    connect(n6, n2);
+    propagate();
+    // Node 2 should be caused by node 1, since that's the shortest path back to
+    // "always".  Similarly, node 4 should be caused by node 5.
+    expect(_downstreamCauseNode(n2), same(n1));
+    expect(_downstreamCauseNode(n4), same(n5));
+  }
+
+  void test_propagation_downstream_guarded_multiple_guards_all_satisfied() {
     // always -> 1
     // always -> 2
     // always -> 3
@@ -194,7 +225,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_guarded_multiple_guards_not_all_satisfied() {
+  void test_propagation_downstream_guarded_multiple_guards_not_all_satisfied() {
     // always -> 1
     // always -> 2
     // 1 -(2,3)-> 4
@@ -210,7 +241,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_guarded_satisfy_guard_first() {
+  void test_propagation_downstream_guarded_satisfy_guard_first() {
     // always -> 1
     // always -> 2
     // 2 -(1)-> 3
@@ -225,7 +256,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_guarded_satisfy_source_first() {
+  void test_propagation_downstream_guarded_satisfy_source_first() {
     // always -> 1
     // always -> 2
     // 1 -(2)-> 3
@@ -240,7 +271,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_guarded_unsatisfied_guard() {
+  void test_propagation_downstream_guarded_unsatisfied_guard() {
     // always -> 1
     // 1 -(2)-> 3
     var n1 = newNode(1);
@@ -253,7 +284,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_guarded_unsatisfied_source() {
+  void test_propagation_downstream_guarded_unsatisfied_source() {
     // always -> 1
     // 2 -(1)-> 3
     var n1 = newNode(1);
@@ -266,17 +297,17 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_reverse_substitution_exact() {
+  void test_propagation_downstream_reverse_substitution_exact() {
     // always -> subst(1, 2)
-    // 3 -> 1
-    // 4 -> 3
+    // 3 -(uncheckable)-> 1
+    // 4 -(uncheckable)-> 3
     var n1 = newNode(1);
     var n2 = newNode(2);
     var n3 = newNode(3);
     var n4 = newNode(4);
     connect(always, subst(n1, n2));
-    connect(n3, n1);
-    connect(n4, n3);
+    connect(n3, n1, checkable: false);
+    connect(n4, n3, checkable: false);
     propagate();
     expect(n1.isNullable, true);
     expect(n1.isExactNullable, true);
@@ -287,7 +318,28 @@ class NullabilityNodeTest {
     expect(n4.isExactNullable, true);
   }
 
-  test_propagation_downstream_reverse_substitution_inner_non_nullable() {
+  void test_propagation_downstream_reverse_substitution_exact_checkable() {
+    // always -> subst(1, 2)
+    // 3 -(uncheckable)-> 1
+    // 4 -(checkable)-> 3
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    var n4 = newNode(4);
+    connect(always, subst(n1, n2));
+    connect(n3, n1, checkable: false);
+    connect(n4, n3, checkable: true);
+    propagate();
+    expect(n1.isNullable, true);
+    expect(n1.isExactNullable, true);
+    expect(n2.isNullable, false);
+    expect(n3.isNullable, true);
+    expect(n3.isExactNullable, true);
+    expect(n4.isNullable, false);
+    expect(n4.isExactNullable, false);
+  }
+
+  void test_propagation_downstream_reverse_substitution_inner_non_nullable() {
     // 1 -> never (hard)
     // always -> subst(1, 2)
     // 3 -> 2
@@ -304,7 +356,31 @@ class NullabilityNodeTest {
     expect(n3.isNullable, false);
   }
 
-  test_propagation_downstream_reverse_substitution_outer_already_nullable() {
+  void test_propagation_downstream_reverse_substitution_non_null_intent() {
+    // always -> subst(1, 2)
+    // 3 -(uncheckable)-> 1
+    // 4 -(checkable)-> 3
+    // 4 -(hard) -> never
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    var n4 = newNode(4);
+    connect(always, subst(n1, n2));
+    connect(n3, n1, checkable: false);
+    connect(n4, n3, checkable: false);
+    connect(n4, never, hard: true);
+    propagate();
+    expect(n1.isNullable, true);
+    expect(n1.isExactNullable, true);
+    expect(n2.isNullable, false);
+    expect(n3.isNullable, true);
+    expect(n3.isExactNullable, true);
+    expect(n4.isNullable, false);
+    expect(n4.isExactNullable, false);
+  }
+
+  void
+      test_propagation_downstream_reverse_substitution_outer_already_nullable() {
     // always -> 2
     // always -> subst(1, 2)
     // 3 -> 2
@@ -321,7 +397,7 @@ class NullabilityNodeTest {
     expect(n3.isNullable, false);
   }
 
-  test_propagation_downstream_reverse_substitution_unsatisfiable() {
+  void test_propagation_downstream_reverse_substitution_unsatisfiable() {
     // 1 -> never (hard)
     // 2 -> never (hard)
     // always -> subst(1, 2)
@@ -334,11 +410,11 @@ class NullabilityNodeTest {
     propagate();
     expect(n1.isNullable, false);
     expect(n2.isNullable, false);
-    expect(unsatisfiedSubstitutions, hasLength(1));
-    expect(unsatisfiedSubstitutions[0], same(substitutionNode));
+    expect(substitutionNode.isNullable, false);
+    expect(unsatisfiedSubstitutions, isEmpty);
   }
 
-  test_propagation_downstream_through_lub_both() {
+  void test_propagation_downstream_through_lub_both() {
     // always -> 1
     // always -> 2
     // LUB(1, 2) -> 3
@@ -353,7 +429,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_through_lub_cascaded() {
+  void test_propagation_downstream_through_lub_cascaded() {
     // always -> 1
     // LUB(LUB(1, 2), 3) -> 4
     var n1 = newNode(1);
@@ -367,7 +443,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_through_lub_left() {
+  void test_propagation_downstream_through_lub_left() {
     // always -> 1
     // LUB(1, 2) -> 3
     var n1 = newNode(1);
@@ -380,7 +456,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_through_lub_neither() {
+  void test_propagation_downstream_through_lub_neither() {
     // LUB(1, 2) -> 3
     var n1 = newNode(1);
     var n2 = newNode(2);
@@ -391,7 +467,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_through_lub_right() {
+  void test_propagation_downstream_through_lub_right() {
     // always -> 2
     // LUB(1, 2) -> 3
     var n1 = newNode(1);
@@ -404,7 +480,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_through_substitution_both() {
+  void test_propagation_downstream_through_substitution_both() {
     // always -> 1
     // always -> 2
     // subst(1, 2) -> 3
@@ -419,7 +495,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_through_substitution_cascaded() {
+  void test_propagation_downstream_through_substitution_cascaded() {
     // always -> 1
     // subst(subst(1, 2), 3) -> 4
     var n1 = newNode(1);
@@ -433,7 +509,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_through_substitution_inner() {
+  void test_propagation_downstream_through_substitution_inner() {
     // always -> 1
     // subst(1, 2) -> 3
     var n1 = newNode(1);
@@ -446,7 +522,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_through_substitution_neither() {
+  void test_propagation_downstream_through_substitution_neither() {
     // subst(1, 2) -> 3
     var n1 = newNode(1);
     var n2 = newNode(2);
@@ -457,7 +533,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_through_substitution_outer() {
+  void test_propagation_downstream_through_substitution_outer() {
     // always -> 2
     // subst(1, 2) -> 3
     var n1 = newNode(1);
@@ -470,7 +546,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_through_union() {
+  void test_propagation_downstream_through_union() {
     // always -> 1
     // 1 == 2
     // 2 -> 3
@@ -487,7 +563,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_downstream_through_union_reversed() {
+  void test_propagation_downstream_through_union_reversed() {
     // always -> 1
     // 2 == 1
     // 2 -> 3
@@ -504,7 +580,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
-  test_propagation_simple() {
+  void test_propagation_simple() {
     // always -(soft)-> 1 -(soft)-> 2 -(hard) -> 3 -(hard)-> never
     var n1 = newNode(1);
     var n2 = newNode(2);
@@ -520,7 +596,33 @@ class NullabilityNodeTest {
     assertUnsatisfied([edge_1_2]);
   }
 
-  test_propagation_upstream_through_union() {
+  void test_propagation_upstream_breadth_first() {
+    // never <- 1 <- 2
+    //          1 <- 3 <- 4
+    // never <- 5 <- 4
+    //          5 <- 6 <- 2
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    var n4 = newNode(4);
+    var n5 = newNode(5);
+    var n6 = newNode(6);
+    connect(n1, never, hard: true);
+    connect(n2, n1, hard: true);
+    connect(n3, n1, hard: true);
+    connect(n4, n3, hard: true);
+    connect(n5, never, hard: true);
+    connect(n4, n5, hard: true);
+    connect(n6, n5, hard: true);
+    connect(n2, n6, hard: true);
+    propagate();
+    // Node 2 should be caused by node 1, since that's the shortest path back to
+    // "always".  Similarly, node 4 should be caused by node 5.
+    expect(_upstreamCauseNode(n2), same(n1));
+    expect(_upstreamCauseNode(n4), same(n5));
+  }
+
+  void test_propagation_upstream_through_union() {
     // always -> 1
     // always -> 2
     // always -> 3
@@ -543,7 +645,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([edge_always_1, edge_always_2, edge_always_3]);
   }
 
-  test_propagation_upstream_through_union_reversed() {
+  void test_propagation_upstream_through_union_reversed() {
     // always -> 1
     // always -> 2
     // always -> 3
@@ -566,7 +668,7 @@ class NullabilityNodeTest {
     assertUnsatisfied([edge_always_1, edge_always_2, edge_always_3]);
   }
 
-  test_satisfied_edge_destination_nullable() {
+  void test_satisfied_edge_destination_nullable() {
     var n1 = newNode(1);
     var edge = connect(always, n1);
     propagate();
@@ -574,7 +676,7 @@ class NullabilityNodeTest {
     expect(edge.isSatisfied, true);
   }
 
-  test_satisfied_edge_source_non_nullable() {
+  void test_satisfied_edge_source_non_nullable() {
     var n1 = newNode(1);
     var n2 = newNode(1);
     var edge = connect(n1, n2);
@@ -583,7 +685,7 @@ class NullabilityNodeTest {
     expect(edge.isSatisfied, true);
   }
 
-  test_satisfied_edge_two_sources_first_non_nullable() {
+  void test_satisfied_edge_two_sources_first_non_nullable() {
     var n1 = newNode(1);
     var n2 = newNode(1);
     connect(always, n2);
@@ -593,7 +695,7 @@ class NullabilityNodeTest {
     expect(edge.isSatisfied, true);
   }
 
-  test_satisfied_edge_two_sources_second_non_nullable() {
+  void test_satisfied_edge_two_sources_second_non_nullable() {
     var n1 = newNode(1);
     var n2 = newNode(1);
     connect(always, n1);
@@ -603,13 +705,13 @@ class NullabilityNodeTest {
     expect(edge.isSatisfied, true);
   }
 
-  test_substitution_simplify_null() {
+  void test_substitution_simplify_null() {
     var n1 = newNode(1);
     expect(subst(null, n1), same(n1));
     expect(subst(n1, null), same(n1));
   }
 
-  test_substitutionNode_relatesInBothDirections() {
+  void test_substitutionNode_relatesInBothDirections() {
     final nodeA = newNode(1);
     final nodeB = newNode(2);
     final substNode = subst(nodeA, nodeB);
@@ -618,14 +720,14 @@ class NullabilityNodeTest {
     expect(nodeB.outerCompoundNodes, [substNode]);
   }
 
-  test_unconstrainted_node_non_nullable() {
+  void test_unconstrainted_node_non_nullable() {
     var n1 = newNode(1);
     propagate();
     expect(n1.isNullable, false);
     assertUnsatisfied([]);
   }
 
-  test_unsatisfied_edge_multiple_sources() {
+  void test_unsatisfied_edge_multiple_sources() {
     var n1 = newNode(1);
     connect(always, n1);
     var edge = connect(always, never, guards: [n1]);
@@ -634,7 +736,7 @@ class NullabilityNodeTest {
     expect(edge.isSatisfied, false);
   }
 
-  test_unsatisfied_edge_single_source() {
+  void test_unsatisfied_edge_single_source() {
     var edge = connect(always, never);
     propagate();
     assertUnsatisfied([edge]);
@@ -644,8 +746,23 @@ class NullabilityNodeTest {
   void union(NullabilityNode x, NullabilityNode y) {
     graph.union(x, y, _TestEdgeOrigin());
   }
+
+  NullabilityNode _downstreamCauseNode(NullabilityNode node) =>
+      (node.whyNullable as SimpleDownstreamPropagationStep).edge.sourceNode;
+
+  NullabilityNode _upstreamCauseNode(NullabilityNode node) =>
+      node.whyNotNullable.principalCause.node;
 }
 
 class _TestEdgeOrigin implements EdgeOrigin {
+  @override
+  CodeReference get codeReference => null;
+
+  @override
+  String get description => 'Test edge';
+
+  @override
+  EdgeOriginKind get kind => null;
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Cat extends core::Object {
+  synthetic constructor •() → self::Cat*
+    ;
+  method eatFood(core::String* food) → core::bool*
+    ;
+}
+class MockCat extends core::Object implements self::Cat {
+  synthetic constructor •() → self::MockCat*
+    ;
+  method noSuchMethod(core::Invocation* invocation) → dynamic
+    ;
+  no-such-method-forwarder method eatFood(core::String* food) → core::bool*
+    return this.{self::MockCat::noSuchMethod}(new core::_InvocationMirror::_withType(#eatFood, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::bool*;
+}
+class MockCat2 extends self::MockCat {
+  synthetic constructor •() → self::MockCat2*
+    ;
+  abstract method noSuchMethod(core::Invocation* _) → dynamic;
+}
+class MockCat3 extends self::MockCat2 implements self::Cat {
+  synthetic constructor •() → self::MockCat3*
+    ;
+  no-such-method-forwarder method eatFood(core::String* food, {core::double* amount}) → core::bool*
+    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#eatFood, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#amount: amount}))) as{TypeError,ForDynamic} core::bool*;
+}
+class MockCat4 extends self::MockCat2 implements self::HungryCat {
+  synthetic constructor •() → self::MockCat4*
+    ;
+  no-such-method-forwarder method eatFood(core::String* food, {core::double* amount, core::double* yetAnother}) → core::bool*
+    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#eatFood, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#amount: amount, #yetAnother: yetAnother}))) as{TypeError,ForDynamic} core::bool*;
+}
+abstract class HungryCat extends core::Object {
+  synthetic constructor •() → self::HungryCat*
+    ;
+  abstract method eatFood(core::String* food, {core::double* amount, core::double* yetAnother}) → core::bool*;
+}
+static method main() → dynamic
+  ;

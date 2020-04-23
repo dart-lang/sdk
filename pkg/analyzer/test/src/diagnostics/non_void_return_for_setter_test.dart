@@ -24,6 +24,18 @@ int set x(int v) {
     ]);
   }
 
+  test_function_no_return() async {
+    await assertNoErrorsInCode('''
+set x(v) {}
+''');
+  }
+
+  test_function_void() async {
+    await assertNoErrorsInCode('''
+void set x(v) {}
+''');
+  }
+
   test_method() async {
     await assertErrorsInCode('''
 class A {
@@ -33,5 +45,21 @@ class A {
 }''', [
       error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 12, 3),
     ]);
+  }
+
+  test_method_no_return() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set x(v) {}
+}
+''');
+  }
+
+  test_method_void() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void set x(v) {}
+}
+''');
   }
 }

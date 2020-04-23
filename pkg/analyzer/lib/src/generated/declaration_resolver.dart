@@ -48,23 +48,24 @@ class ElementWalker {
 
   /// Creates an [ElementWalker] which walks the child elements of a compilation
   /// unit element.
-  ElementWalker.forCompilationUnit(CompilationUnitElement compilationUnit)
-      : element = compilationUnit,
-        _accessors = compilationUnit.accessors.where(_isNotSynthetic).toList(),
-        _classes = compilationUnit.types,
-        _enums = compilationUnit.enums,
-        _extensions = compilationUnit.extensions,
-        _functions = compilationUnit.functions,
-        _mixins = compilationUnit.mixins,
-        _typedefs = compilationUnit.functionTypeAliases,
-        _variables =
-            compilationUnit.topLevelVariables.where(_isNotSynthetic).toList();
+  ElementWalker.forCompilationUnit(CompilationUnitElement element)
+      : element = element,
+        _accessors = element.accessors.where(_isNotSynthetic).toList(),
+        _classes = element.types,
+        _enums = element.enums,
+        _extensions = element.extensions,
+        _functions = element.functions,
+        _mixins = element.mixins,
+        _typedefs = element.functionTypeAliases,
+        _variables = element.topLevelVariables.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a compilation
   /// unit element.
-  ElementWalker.forExecutable(
-      ExecutableElement element, CompilationUnitElement compilationUnit)
-      : this._forExecutable(element, compilationUnit);
+  ElementWalker.forExecutable(ExecutableElement element)
+      : element = element,
+        _functions = const <ExecutableElement>[],
+        _parameters = element.parameters,
+        _typeParameters = element.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of an extension
   /// element.
@@ -100,13 +101,6 @@ class ElementWalker {
   ElementWalker.forTypedef(GenericTypeAliasElementImpl element)
       : element = element,
         _parameters = element.function.parameters,
-        _typeParameters = element.typeParameters;
-
-  ElementWalker._forExecutable(
-      ExecutableElement element, CompilationUnitElement compilationUnit)
-      : element = element,
-        _functions = const <ExecutableElement>[],
-        _parameters = element.parameters,
         _typeParameters = element.typeParameters;
 
   void consumeLocalElements() {
@@ -168,7 +162,7 @@ class ElementWalker {
   void validate() {
     void check(List<Element> elements, int index) {
       if (elements != null && elements.length != index) {
-        throw new StateError(
+        throw StateError(
             'Unmatched ${elements[index].runtimeType} ${elements[index]}');
       }
     }

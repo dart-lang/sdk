@@ -694,16 +694,12 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
 }
 
 Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
-  if (object_id == kDynamicType || object_id == kDoubleType ||
-      object_id == kIntType || object_id == kBoolType ||
-      object_id == kStringType || object_id == kObjectType) {
+  if (object_id >= kFirstTypeSnapshotId && object_id <= kLastTypeSnapshotId) {
     // Always return dynamic type (this is only a marker).
     return &dynamic_type_marker;
   }
-  if (object_id == kIntTypeArguments || object_id == kDoubleTypeArguments ||
-      object_id == kStringTypeArguments ||
-      object_id == kStringDynamicTypeArguments ||
-      object_id == kStringStringTypeArguments) {
+  if (object_id >= kFirstTypeArgumentsSnapshotId &&
+      object_id <= kLastTypeArgumentsSnapshotId) {
     return &type_arguments_marker;
   }
 

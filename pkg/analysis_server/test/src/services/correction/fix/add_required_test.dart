@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddRequiredTest);
   });
@@ -23,14 +23,14 @@ class AddRequiredTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.always_require_non_null_named_parameters;
 
-  test_withAssert() async {
+  Future<void> test_withAssert() async {
     await resolveTestUnit('''
-void function({String /*LINT*/param}) {
+void function({String param}) {
   assert(param != null);
 }
 ''');
     await assertHasFix('''
-void function({@required String /*LINT*/param}) {
+void function({@required String param}) {
   assert(param != null);
 }
 ''');

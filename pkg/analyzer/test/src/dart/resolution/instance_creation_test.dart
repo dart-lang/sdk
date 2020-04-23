@@ -16,11 +16,10 @@ main() {
 @reflectiveTest
 class InstanceCreationDriverResolutionTest extends DriverResolutionTest {
   test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 final foo = Map<int>();
-''');
-    assertTestErrorsWithCodes([
-      StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS,
+''', [
+      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 12, 8),
     ]);
 
     var creation = findNode.instanceCreation('Map<int>');
@@ -34,7 +33,7 @@ final foo = Map<int>();
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class Foo<X> {
   Foo.bar();
 }
@@ -42,9 +41,9 @@ class Foo<X> {
 main() {
   new Foo.bar<int>();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+''', [
+      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          53, 5),
     ]);
 
     // TODO(brianwilkerson) Test this more carefully after we can re-write the
@@ -64,15 +63,15 @@ class Foo<X> {
   Foo.bar();
 }
 ''');
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 import 'a.dart' as p;
 
 main() {
   new p.Foo.bar<int>();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+''', [
+      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          44, 3),
     ]);
 
     // TODO(brianwilkerson) Test this more carefully after we can re-write the
@@ -89,7 +88,7 @@ main() {
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class Foo<X> {
   Foo.bar();
 }
@@ -97,9 +96,9 @@ class Foo<X> {
 main() {
   Foo.bar<int>();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+''', [
+      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          49, 5),
     ]);
 
     var creation = findNode.instanceCreation('Foo.bar<int>');
@@ -123,15 +122,15 @@ class Foo<X> {
   Foo.bar();
 }
 ''');
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 import 'a.dart' as p;
 
 main() {
   p.Foo.bar<int>();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+''', [
+      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          43, 5),
     ]);
 
     var import = findElement.import('package:test/a.dart');

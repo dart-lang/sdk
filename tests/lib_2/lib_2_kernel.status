@@ -55,7 +55,6 @@ isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading 
 isolate/static_function_test: Skip # Times out. Issue 31855. CompileTimeError. Issue 31402
 mirrors/invocation_fuzz_test: Crash
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
-mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 mirrors/native_class_test: SkipByDesign # Imports dart:html
 
 [ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]

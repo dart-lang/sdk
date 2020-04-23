@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:observatory/service_common.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 import 'service_test_common.dart';
@@ -14,8 +14,6 @@ testMain() async {
 }
 
 var tests = <IsolateTest>[
-  // Stopped at 'debugger' statement.
-  isolateIsRunning,
   // Kill the app
   (Isolate isolate) async {
     Map<String, dynamic> params = <String, dynamic>{};

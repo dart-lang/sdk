@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -56,10 +55,10 @@ class SubstituteFromInterfaceTypeTest extends _Base {
 
     // A<U>
     var type = interfaceTypeStar(A, typeArguments: [typeParameterType(U)]);
-    assertElementTypeString(type, 'A<U>');
+    assertType(type, 'A<U>');
 
     var result = substitution.substituteType(type);
-    assertElementTypeString(result, 'A<int>');
+    assertType(result, 'A<int>');
   }
 }
 
@@ -83,7 +82,7 @@ class SubstituteFromPairsTest extends _Base {
       [T, U],
       [intType, doubleType],
     ).substituteType(type);
-    assertElementTypeString(result, 'A<int, double>');
+    assertType(result, 'A<int, double>');
   }
 }
 
@@ -103,7 +102,7 @@ class SubstituteFromUpperAndLowerBoundsTest extends _Base {
       {T: typeProvider.intType},
       {T: NeverTypeImpl.instance},
     ).substituteType(type);
-    expect(result.toString(), 'int Function(Never)');
+    assertType(result, 'int Function(Never)');
   }
 }
 
@@ -143,7 +142,7 @@ class SubstituteTest extends _Base {
       returnType: typeParameterType(T),
     );
 
-    assertElementTypeString(type, 'T Function(U, bool)');
+    assertType(type, 'T Function(U, bool)');
     _assertSubstitution(
       type,
       {T: intType},
@@ -168,7 +167,7 @@ class SubstituteTest extends _Base {
       returnType: typeParameterType(T),
     );
 
-    assertElementTypeString(type, 'T Function<U extends T>(U)');
+    assertType(type, 'T Function<U extends T>(U)');
     _assertSubstitution(
       type,
       {T: intType},
@@ -198,13 +197,13 @@ class SubstituteTest extends _Base {
       returnType: boolType,
     );
 
-    assertElementTypeString(
+    assertType(
       type,
       'bool Function<T extends Triple<T, U, V>, U>()',
     );
 
     var result = substitute(type, {V: intType}) as FunctionType;
-    assertElementTypeString(
+    assertType(
       result,
       'bool Function<T extends Triple<T, U, int>, U>()',
     );
@@ -225,7 +224,7 @@ class SubstituteTest extends _Base {
       typeParameterType(U),
     ]);
 
-    assertElementTypeString(type, 'A<U>');
+    assertType(type, 'A<U>');
     _assertSubstitution(type, {U: intType}, 'A<int>');
   }
 
@@ -242,7 +241,7 @@ class SubstituteTest extends _Base {
         ],
       )
     ]);
-    assertElementTypeString(type, 'A<List<U>>');
+    assertType(type, 'A<List<U>>');
 
     _assertSubstitution(type, {U: intType}, 'A<List<int>>');
   }
@@ -268,18 +267,7 @@ class SubstituteTest extends _Base {
   }
 
   test_typeParameter_nullability() async {
-    var typeProvider = TestTypeProvider();
-
-    var intElement = typeProvider.intType.element;
-
-    var intQuestion = InterfaceTypeImpl.explicit(intElement, [],
-        nullabilitySuffix: NullabilitySuffix.question);
-    var intStar = InterfaceTypeImpl.explicit(intElement, [],
-        nullabilitySuffix: NullabilitySuffix.star);
-    var intNone = InterfaceTypeImpl.explicit(intElement, [],
-        nullabilitySuffix: NullabilitySuffix.star);
-
-    var tElement = TypeParameterElementImpl('T', -1);
+    var tElement = typeParameter('T');
 
     void check(
       NullabilitySuffix typeParameterNullability,
@@ -290,7 +278,7 @@ class SubstituteTest extends _Base {
         {tElement: typeArgument},
       ).substituteType(
         TypeParameterTypeImpl(
-          tElement,
+          element: tElement,
           nullabilitySuffix: typeParameterNullability,
         ),
       );
@@ -382,6 +370,7 @@ class SubstituteWithNullabilityTest extends _Base {
 }
 
 class _Base with ElementsTypesMixin {
+  @override
   final TestTypeProvider typeProvider;
 
   final bool useNnbd;
@@ -398,10 +387,11 @@ class _Base with ElementsTypesMixin {
   /// Whether `DartType.toString()` with nullability should be asked.
   bool get typeToStringWithNullability => useNnbd;
 
-  void assertElementTypeString(DartType type, String expected) {
-    TypeImpl typeImpl = type;
-    expect(typeImpl.toString(withNullability: typeToStringWithNullability),
-        expected);
+  void assertType(DartType type, String expected) {
+    var typeStr = type.getDisplayString(
+      withNullability: typeToStringWithNullability,
+    );
+    expect(typeStr, expected);
   }
 
   void _assertSubstitution(
@@ -410,6 +400,6 @@ class _Base with ElementsTypesMixin {
     String expected,
   ) {
     var result = substitute(type, substitution);
-    assertElementTypeString(result, expected);
+    assertType(result, expected);
   }
 }

@@ -20,6 +20,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show
         ErrorToken,
         LanguageVersionToken,
+        Scanner,
         ScannerConfiguration,
         ScannerResult,
         Token,
@@ -39,6 +40,7 @@ import 'package:kernel/ast.dart'
         LibraryDependency,
         Nullability,
         ProcedureKind,
+        Reference,
         Supertype,
         TreeNode;
 
@@ -47,11 +49,15 @@ import 'package:kernel/class_hierarchy.dart'
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
+import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+
 import '../../api_prototype/file_system.dart';
 
 import '../../base/common.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
+
+import '../../base/nnbd_mode.dart';
 
 import '../blacklisted_classes.dart' show blacklistedCoreClasses;
 
@@ -64,6 +70,7 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/procedure_builder.dart';
+import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 
@@ -99,7 +106,7 @@ import '../fasta_codes.dart'
         templateUntranslatableUri;
 
 import '../kernel/kernel_builder.dart'
-    show ClassHierarchyBuilder, DelayedMember, DelayedOverrideCheck;
+    show ClassHierarchyBuilder, ClassMember, DelayedOverrideCheck;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -142,12 +149,30 @@ class SourceLoader extends Loader {
 
   ClassHierarchyBuilder builderHierarchy;
 
-  // Used when building directly to kernel.
+  ReferenceFromIndex referenceFromIndex;
+
+  /// Used when building directly to kernel.
   ClassHierarchy hierarchy;
-  CoreTypes coreTypes;
-  // Used when checking whether a return type of an async function is valid.
+  CoreTypes _coreTypes;
+
+  /// For builders created with a reference, this maps from that reference to
+  /// that builder. This is used for looking up source builders when finalizing
+  /// exports in dill builders.
+  Map<Reference, Builder> buildersCreatedWithReferences = {};
+
+  /// Used when checking whether a return type of an async function is valid.
+  ///
+  /// The said return type is valid if it's a subtype of [futureOfBottom].
   DartType futureOfBottom;
+
+  /// Used when checking whether a return type of a sync* function is valid.
+  ///
+  /// The said return type is valid if it's a subtype of [iterableOfBottom].
   DartType iterableOfBottom;
+
+  /// Used when checking whether a return type of an async* function is valid.
+  ///
+  /// The said return type is valid if it's a subtype of [streamOfBottom].
   DartType streamOfBottom;
 
   TypeInferenceEngineImpl typeInferenceEngine;
@@ -165,6 +190,13 @@ class SourceLoader extends Loader {
             retainDataForTesting ? new SourceLoaderDataForTesting() : null,
         super(target);
 
+  NnbdMode get nnbdMode => target.context.options.nnbdMode;
+
+  CoreTypes get coreTypes {
+    assert(_coreTypes != null, "CoreTypes has not been computed.");
+    return _coreTypes;
+  }
+
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
 
@@ -180,16 +212,17 @@ class SourceLoader extends Loader {
     if (bytes == null) {
       // Error recovery.
       if (uri.scheme == untranslatableUriScheme) {
-        Message message = templateUntranslatableUri.withArguments(library.uri);
+        Message message =
+            templateUntranslatableUri.withArguments(library.importUri);
         library.addProblemAtAccessors(message);
-        bytes = synthesizeSourceForMissingFile(library.uri, null);
+        bytes = synthesizeSourceForMissingFile(library.importUri, null);
       } else if (!uri.hasScheme) {
         return internalProblem(
             templateInternalProblemUriMissingScheme.withArguments(uri),
             -1,
-            library.uri);
+            library.importUri);
       } else if (uri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
-        bytes = synthesizeSourceForMissingFile(library.uri, null);
+        bytes = synthesizeSourceForMissingFile(library.importUri, null);
       }
       if (bytes != null) {
         Uint8List zeroTerminatedBytes = new Uint8List(bytes.length + 1);
@@ -208,7 +241,7 @@ class SourceLoader extends Loader {
       } on FileSystemException catch (e) {
         Message message = templateCantReadFile.withArguments(uri, e.message);
         library.addProblemAtAccessors(message);
-        rawBytes = synthesizeSourceForMissingFile(library.uri, message);
+        rawBytes = synthesizeSourceForMissingFile(library.importUri, message);
       }
       Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
       zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
@@ -222,15 +255,20 @@ class SourceLoader extends Loader {
         configuration: new ScannerConfiguration(
             enableTripleShift: target.enableTripleShift,
             enableExtensionMethods: target.enableExtensionMethods,
-            enableNonNullable: target.enableNonNullable),
-        languageVersionChanged: (_, LanguageVersionToken version) {
+            enableNonNullable: library.isNonNullableByDefault),
+        languageVersionChanged:
+            (Scanner scanner, LanguageVersionToken version) {
       library.setLanguageVersion(version.major, version.minor,
           offset: version.offset, length: version.length, explicit: true);
+      scanner.configuration = new ScannerConfiguration(
+          enableTripleShift: target.enableTripleShift,
+          enableExtensionMethods: target.enableExtensionMethods,
+          enableNonNullable: library.isNonNullableByDefault);
     });
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
-      Uri importUri = library.uri;
+      Uri importUri = library.importUri;
       if (library.isPatch) {
         // For patch files we create a "fake" import uri.
         // We cannot use the import uri from the patched library because
@@ -302,10 +340,7 @@ class SourceLoader extends Loader {
       // We tokenize source files twice to keep memory usage low. This is the
       // second time, and the first time was in [buildOutline] above. So this
       // time we suppress lexical errors.
-      bool suppressLexicalErrors = true;
-      if (library.issueLexicalErrorsOnBodyBuild) suppressLexicalErrors = false;
-      Token tokens =
-          await tokenize(library, suppressLexicalErrors: suppressLexicalErrors);
+      Token tokens = await tokenize(library, suppressLexicalErrors: true);
       if (tokens == null) return;
       DietListener listener = createDietListener(library);
       DietParser parser = new DietParser(listener);
@@ -346,8 +381,21 @@ class SourceLoader extends Loader {
               "debugExpression in $enclosingClass");
       }
     }
-    ProcedureBuilder builder = new ProcedureBuilderImpl(null, 0, null,
-        "debugExpr", null, null, ProcedureKind.Method, library, 0, 0, -1, -1)
+    ProcedureBuilder builder = new SourceProcedureBuilder(
+        null,
+        0,
+        null,
+        "debugExpr",
+        null,
+        null,
+        ProcedureKind.Method,
+        library,
+        0,
+        0,
+        -1,
+        -1,
+        null,
+        null)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
@@ -537,13 +585,13 @@ class SourceLoader extends Loader {
     ticker.logMs("Computed variances of $count type variables");
   }
 
-  void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
-      ClassBuilder objectClass) {
+  void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
+      TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        count +=
-            library.computeDefaultTypes(dynamicType, bottomType, objectClass);
+        count += library.computeDefaultTypes(
+            dynamicType, nullType, bottomType, objectClass);
       }
     });
     ticker.logMs("Computed default types for $count type variables");
@@ -574,20 +622,20 @@ class SourceLoader extends Loader {
   void checkObjectClassHierarchy(ClassBuilder objectClass) {
     if (objectClass is SourceClassBuilder &&
         objectClass.library.loader == this) {
-      if (objectClass.supertype != null) {
-        objectClass.supertype = null;
+      if (objectClass.supertypeBuilder != null) {
+        objectClass.supertypeBuilder = null;
         objectClass.addProblem(
             messageObjectExtends, objectClass.charOffset, noLength);
       }
-      if (objectClass.interfaces != null) {
+      if (objectClass.interfaceBuilders != null) {
         objectClass.addProblem(
             messageObjectImplements, objectClass.charOffset, noLength);
-        objectClass.interfaces = null;
+        objectClass.interfaceBuilders = null;
       }
-      if (objectClass.mixedInType != null) {
+      if (objectClass.mixedInTypeBuilder != null) {
         objectClass.addProblem(
             messageObjectMixesIn, objectClass.charOffset, noLength);
-        objectClass.mixedInType = null;
+        objectClass.mixedInTypeBuilder = null;
       }
     }
   }
@@ -627,7 +675,7 @@ class SourceLoader extends Loader {
       workList = <SourceClassBuilder>[];
       for (int i = 0; i < previousWorkList.length; i++) {
         SourceClassBuilder cls = previousWorkList[i];
-        List<Builder> directSupertypes =
+        List<TypeDeclarationBuilder> directSupertypes =
             cls.computeDirectSupertypes(objectClass);
         bool allSupertypesProcessed = true;
         for (int i = 0; i < directSupertypes.length; i++) {
@@ -673,11 +721,32 @@ class SourceLoader extends Loader {
     return classes;
   }
 
-  void checkClassSupertypes(SourceClassBuilder cls,
-      List<Builder> directSupertypes, Set<ClassBuilder> blackListedClasses) {
+  void _checkConstructorsForMixin(
+      SourceClassBuilder cls, ClassBuilder builder) {
+    for (Builder constructor in builder.constructors.local.values) {
+      if (constructor.isConstructor && !constructor.isSynthetic) {
+        cls.addProblem(
+            templateIllegalMixinDueToConstructors
+                .withArguments(builder.fullNameForErrors),
+            cls.charOffset,
+            noLength,
+            context: [
+              templateIllegalMixinDueToConstructorsCause
+                  .withArguments(builder.fullNameForErrors)
+                  .withLocation(
+                      constructor.fileUri, constructor.charOffset, noLength)
+            ]);
+      }
+    }
+  }
+
+  void checkClassSupertypes(
+      SourceClassBuilder cls,
+      List<TypeDeclarationBuilder> directSupertypes,
+      Set<ClassBuilder> blackListedClasses) {
     // Check that the direct supertypes aren't black-listed or enums.
     for (int i = 0; i < directSupertypes.length; i++) {
-      Builder supertype = directSupertypes[i];
+      TypeDeclarationBuilder supertype = directSupertypes[i];
       if (supertype is EnumBuilder) {
         cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
             cls.charOffset, noLength);
@@ -692,35 +761,27 @@ class SourceLoader extends Loader {
     }
 
     // Check that the mixed-in type can be used as a mixin.
-    final TypeBuilder mixedInType = cls.mixedInType;
-    if (mixedInType != null) {
+    final TypeBuilder mixedInTypeBuilder = cls.mixedInTypeBuilder;
+    if (mixedInTypeBuilder != null) {
       bool isClassBuilder = false;
-      if (mixedInType is NamedTypeBuilder) {
-        TypeDeclarationBuilder builder = mixedInType.declaration;
+      if (mixedInTypeBuilder is NamedTypeBuilder) {
+        TypeDeclarationBuilder builder = mixedInTypeBuilder.declaration;
+        if (builder is TypeAliasBuilder) {
+          TypeAliasBuilder aliasBuilder = builder;
+          NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
+          builder = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+        }
         if (builder is ClassBuilder) {
           isClassBuilder = true;
-          for (Builder constructor in builder.constructors.local.values) {
-            if (constructor.isConstructor && !constructor.isSynthetic) {
-              cls.addProblem(
-                  templateIllegalMixinDueToConstructors
-                      .withArguments(builder.fullNameForErrors),
-                  cls.charOffset,
-                  noLength,
-                  context: [
-                    templateIllegalMixinDueToConstructorsCause
-                        .withArguments(builder.fullNameForErrors)
-                        .withLocation(constructor.fileUri,
-                            constructor.charOffset, noLength)
-                  ]);
-            }
-          }
+          _checkConstructorsForMixin(cls, builder);
         }
       }
       if (!isClassBuilder) {
         // TODO(ahe): Either we need to check this for superclass and
         // interfaces, or this shouldn't be necessary (or handled elsewhere).
         cls.addProblem(
-            templateIllegalMixin.withArguments(mixedInType.fullNameForErrors),
+            templateIllegalMixin
+                .withArguments(mixedInTypeBuilder.fullNameForErrors),
             cls.charOffset,
             noLength);
       }
@@ -813,6 +874,11 @@ class SourceLoader extends Loader {
         SourceLibraryBuilder sourceLibrary = library;
         Library target = sourceLibrary.build(coreLibrary);
         if (!library.isPatch) {
+          if (sourceLibrary.referencesFrom != null) {
+            referenceFromIndex ??= new ReferenceFromIndex();
+            referenceFromIndex.addIndexedLibrary(
+                target, sourceLibrary.referencesFromIndexed);
+          }
           libraries.add(target);
         }
       }
@@ -826,7 +892,7 @@ class SourceLoader extends Loader {
     builders.forEach((Uri uri, LibraryBuilder libraryBuilder) {
       if (!libraryBuilder.isPatch &&
           (libraryBuilder.loader == this ||
-              libraryBuilder.uri.scheme == "dart" ||
+              libraryBuilder.importUri.scheme == "dart" ||
               libraryBuilder == this.first)) {
         if (libraries.add(libraryBuilder.library)) {
           workList.add(libraryBuilder.library);
@@ -853,11 +919,12 @@ class SourceLoader extends Loader {
       }
     };
     if (hierarchy == null) {
-      hierarchy = new ClassHierarchy(computeFullComponent(),
+      hierarchy = new ClassHierarchy(computeFullComponent(), coreTypes,
           onAmbiguousSupertypes: onAmbiguousSupertypes);
     } else {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
       Component component = computeFullComponent();
+      hierarchy.coreTypes = coreTypes;
       hierarchy.applyTreeChanges(const [], component.libraries,
           reissueAmbiguousSupertypesFor: component);
     }
@@ -870,8 +937,8 @@ class SourceLoader extends Loader {
 
   void handleAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {
     addProblem(
-        templateAmbiguousSupertypes.withArguments(
-            cls.name, a.asInterfaceType, b.asInterfaceType),
+        templateAmbiguousSupertypes.withArguments(cls.name, a.asInterfaceType,
+            b.asInterfaceType, cls.enclosingLibrary.isNonNullableByDefault),
         cls.fileOffset,
         noLength,
         cls.fileUri);
@@ -880,14 +947,19 @@ class SourceLoader extends Loader {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
 
   void computeCoreTypes(Component component) {
-    coreTypes = new CoreTypes(component);
+    assert(_coreTypes == null, "CoreTypes has already been computed");
+    _coreTypes = new CoreTypes(component);
 
+    // These types are used on the left-hand side of the is-subtype-of relation
+    // to check if the return types of functions with async, sync*, and async*
+    // bodies are correct.  It's valid to use the non-nullable types on the
+    // left-hand side in both opt-in and opt-out code.
     futureOfBottom = new InterfaceType(coreTypes.futureClass,
-        Nullability.legacy, <DartType>[const BottomType()]);
+        Nullability.nonNullable, <DartType>[const BottomType()]);
     iterableOfBottom = new InterfaceType(coreTypes.iterableClass,
-        Nullability.legacy, <DartType>[const BottomType()]);
+        Nullability.nonNullable, <DartType>[const BottomType()]);
     streamOfBottom = new InterfaceType(coreTypes.streamClass,
-        Nullability.legacy, <DartType>[const BottomType()]);
+        Nullability.nonNullable, <DartType>[const BottomType()]);
 
     ticker.logMs("Computed core types");
   }
@@ -901,12 +973,12 @@ class SourceLoader extends Loader {
     ticker.logMs("Checked supertypes");
   }
 
-  void checkBounds() {
+  void checkTypes() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
         if (library.loader == this) {
           library
-              .checkBoundsInOutline(typeInferenceEngine.typeSchemaEnvironment);
+              .checkTypesInOutline(typeInferenceEngine.typeSchemaEnvironment);
         }
       }
     });
@@ -915,8 +987,7 @@ class SourceLoader extends Loader {
 
   void checkOverrides(List<SourceClassBuilder> sourceClasses) {
     List<DelayedOverrideCheck> overrideChecks =
-        builderHierarchy.overrideChecks.toList();
-    builderHierarchy.overrideChecks.clear();
+        builderHierarchy.takeDelayedOverrideChecks();
     for (int i = 0; i < overrideChecks.length; i++) {
       overrideChecks[i].check(builderHierarchy);
     }
@@ -927,12 +998,11 @@ class SourceLoader extends Loader {
   }
 
   void checkAbstractMembers(List<SourceClassBuilder> sourceClasses) {
-    List<DelayedMember> delayedMemberChecks =
-        builderHierarchy.delayedMemberChecks.toList();
-    builderHierarchy.delayedMemberChecks.clear();
+    List<ClassMember> delayedMemberChecks =
+        builderHierarchy.takeDelayedMemberChecks();
     Set<Class> changedClasses = new Set<Class>();
     for (int i = 0; i < delayedMemberChecks.length; i++) {
-      delayedMemberChecks[i].check(builderHierarchy);
+      delayedMemberChecks[i].getMember(builderHierarchy);
       changedClasses.add(delayedMemberChecks[i].classBuilder.cls);
     }
     ticker.logMs(
@@ -975,14 +1045,14 @@ class SourceLoader extends Loader {
       if (builder.library.loader == this && !builder.isPatch) {
         Class mixedInClass = builder.cls.mixedInClass;
         if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
-          builder.checkMixinApplication(hierarchy);
+          builder.checkMixinApplication(hierarchy, coreTypes);
         }
       }
     }
     ticker.logMs("Checked mixin declaration applications");
   }
 
-  void buildOutlineExpressions() {
+  void buildOutlineExpressions(CoreTypes coreTypes) {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
         library.buildOutlineExpressions();
@@ -990,15 +1060,16 @@ class SourceLoader extends Loader {
         while (iterator.moveNext()) {
           Builder declaration = iterator.current;
           if (declaration is ClassBuilder) {
-            declaration.buildOutlineExpressions(library);
+            declaration.buildOutlineExpressions(library, coreTypes);
           } else if (declaration is ExtensionBuilder) {
-            declaration.buildOutlineExpressions(library);
+            declaration.buildOutlineExpressions(library, coreTypes);
           } else if (declaration is MemberBuilder) {
-            declaration.buildOutlineExpressions(library);
+            declaration.buildOutlineExpressions(library, coreTypes);
           }
         }
       }
     });
+    ticker.logMs("Build outline expressions");
   }
 
   void buildClassHierarchy(
@@ -1019,6 +1090,8 @@ class SourceLoader extends Loader {
     /// might be subject to type inference, and records dependencies between
     /// them.
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
+    builderHierarchy.computeTypes();
+
     List<FieldBuilder> allImplicitlyTypedFields = <FieldBuilder>[];
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
@@ -1128,7 +1201,7 @@ class SourceLoader extends Loader {
     first = null;
     sourceBytes?.clear();
     target?.releaseAncillaryResources();
-    coreTypes = null;
+    _coreTypes = null;
     instrumentation = null;
     collectionTransformer = null;
     setLiteralTransformer = null;

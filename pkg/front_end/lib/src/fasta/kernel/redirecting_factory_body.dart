@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
         DartType,
         Expression,
         ExpressionStatement,
+        Field,
         FunctionNode,
         InvalidExpression,
         Let,
@@ -24,6 +25,21 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'body_builder.dart' show EnsureLoaded;
 
+/// Name used for a static field holding redirecting factory information.
+const String redirectingName = "_redirecting#";
+
+/// Returns `true` if [member] is synthesized field holding the names of
+/// redirecting factories declared in the same class.
+///
+/// This field should be special-cased by backends.
+bool isRedirectingFactoryField(Member member) {
+  return member is Field &&
+      member.isStatic &&
+      member.name.name == redirectingName;
+}
+
+/// Name used for a synthesized let variable used to encode redirecting factory
+/// information in a factory method body.
 const String letName = "#redirecting_factory";
 
 class RedirectingFactoryBody extends ExpressionStatement {
@@ -112,6 +128,16 @@ class RedirectingFactoryBody extends ExpressionStatement {
       encoded = head.body;
     }
     return result;
+  }
+
+  @override
+  String toString() {
+    return "RedirectingFactoryBody(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 

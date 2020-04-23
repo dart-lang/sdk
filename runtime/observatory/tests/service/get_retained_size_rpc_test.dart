@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
@@ -15,20 +15,25 @@ class _TestClass {
 
 var myVar;
 
-eval(Isolate isolate, String expression) async {
-  // Silence analyzer.
-  new _TestClass(null, null);
+@pragma("vm:entry-point")
+invoke1() => myVar = new _TestClass(null, null);
+
+@pragma("vm:entry-point")
+invoke2() => myVar = new _TestClass(new _TestClass(null, null), null);
+
+invoke(Isolate isolate, String selector) async {
   Map params = {
     'targetId': isolate.rootLibrary.id,
-    'expression': expression,
+    'selector': selector,
+    'argumentIds': <String>[],
   };
-  return await isolate.invokeRpcNoUpgrade('evaluate', params);
+  return await isolate.invokeRpcNoUpgrade('invoke', params);
 }
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
     // One instance of _TestClass retained.
-    var evalResult = await eval(isolate, 'myVar = new _TestClass(null, null)');
+    var evalResult = await invoke(isolate, 'invoke1');
     var params = {
       'targetId': evalResult['id'],
     };
@@ -39,8 +44,7 @@ var tests = <IsolateTest>[
     expect(value1, isPositive);
 
     // Two instances of _TestClass retained.
-    evalResult = await eval(
-        isolate, 'myVar = new _TestClass(new _TestClass(null, null), null)');
+    evalResult = await invoke(isolate, 'invoke2');
     params = {
       'targetId': evalResult['id'],
     };

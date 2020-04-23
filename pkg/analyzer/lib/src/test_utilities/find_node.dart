@@ -23,8 +23,16 @@ class FindNode {
     return _node(search, (n) => true);
   }
 
+  AsExpression as_(String search) {
+    return _node(search, (n) => n is AsExpression);
+  }
+
   AssignmentExpression assignment(String search) {
     return _node(search, (n) => n is AssignmentExpression);
+  }
+
+  AwaitExpression awaitExpression(String search) {
+    return _node(search, (n) => n is AwaitExpression);
   }
 
   BinaryExpression binary(String search) {
@@ -49,6 +57,10 @@ class FindNode {
 
   ClassDeclaration classDeclaration(String search) {
     return _node(search, (n) => n is ClassDeclaration);
+  }
+
+  CollectionElement collectionElement(String search) {
+    return _node(search, (n) => n is CollectionElement);
   }
 
   CommentReference commentReference(String search) {
@@ -141,6 +153,10 @@ class FindNode {
 
   GenericFunctionType genericFunctionType(String search) {
     return _node(search, (n) => n is GenericFunctionType);
+  }
+
+  IfElement ifElement(String search) {
+    return _node(search, (n) => n is IfElement);
   }
 
   ImportDirective import(String search) {
@@ -311,21 +327,21 @@ class FindNode {
   AstNode _node(String search, bool Function(AstNode) predicate) {
     var index = content.indexOf(search);
     if (content.contains(search, index + 1)) {
-      throw new StateError('The pattern |$search| is not unique in:\n$content');
+      throw StateError('The pattern |$search| is not unique in:\n$content');
     }
     if (index < 0) {
-      throw new StateError('The pattern |$search| is not found in:\n$content');
+      throw StateError('The pattern |$search| is not found in:\n$content');
     }
 
-    var node = new NodeLocator2(index).searchWithin(unit);
+    var node = NodeLocator2(index).searchWithin(unit);
     if (node == null) {
-      throw new StateError(
+      throw StateError(
           'The pattern |$search| had no corresponding node in:\n$content');
     }
 
     var result = node.thisOrAncestorMatching(predicate);
     if (result == null) {
-      throw new StateError(
+      throw StateError(
           'The node for |$search| had no matching ancestor in:\n$content');
     }
     return result;

@@ -46,10 +46,10 @@ def get_shard_links(uri):
     resp = requests.get(uri)
     soup = BeautifulSoup(resp.text, "html.parser")
     for a in soup.findAll("a"):
-        if a.text == "raw":
+        if "stdout" in a.text:
             href = a["href"]
             if ("make_a_fuzz_shard" in href and "__trigger__" not in href):
-                links.append(href)
+                links.append(href + "?format=raw")
     return links
 
 
@@ -76,7 +76,7 @@ def print_output_div(shard, text, keywords):
                 print_reencoded(x[0])
 
 
-def print_output_sum(shard, text, s=[0, 0, 0, 0, 0, 0], divs=[]):
+def get_output_sum(shard, text, should_print, s=[0, 0, 0, 0, 0, 0], divs=[]):
     m = P_SUM.findall(text)
     if not m:
         sys.stderr.write("Failed to parse shard %s stdout for summary" % shard)
@@ -86,14 +86,16 @@ def print_output_sum(shard, text, s=[0, 0, 0, 0, 0, 0], divs=[]):
             divs.append(shard)
         for i in range(len(s)):
             s[i] += int(test[i])
-    print(
-        "Tests: %d Success: %d (Rerun: %d) Skipped: %d Timeout: %d "
-        "Divergences: %d (failing shards: %s)    \r" %
-        tuple(s + [", ".join(divs) if divs else "none"]),
-        end="")
+    if should_print:
+        print(
+            "Tests: %d Success: %d (Rerun: %d) Skipped: %d Timeout: %d "
+            "Divergences: %d (failing shards: %s)    \r" %
+            tuple(s + [", ".join(divs) if divs else "none"]),
+            end="")
+    return s
 
 
-def get_stats(uri, output_type, keywords):
+def get_stats(uri, output_type, keywords, output_csv):
     resp = requests.get(uri)
 
     if output_type == "all":
@@ -103,7 +105,9 @@ def get_stats(uri, output_type, keywords):
         print_output_div(shard, resp.text, keywords)
     elif output_type == "sum":
         shard = P_SHARD.findall(uri)[0]
-        print_output_sum(shard, resp.text)
+        should_print = not output_csv
+        return get_output_sum(shard, resp.text, should_print)
+    return None
 
 
 def main():
@@ -121,16 +125,37 @@ def main():
         default=[],
         help="Do not include divergences containing these keywords.")
     parser.add_argument(
+        "--output-csv",
+        dest="output_csv",
+        action="store_true",
+        default=False,
+        help=
+        "Print output in CSV format to stdout. Only supported for --type=sum")
+    parser.add_argument(
         "uri",
         type=str,
         help=
         "Uri of one make_a_fuzz run from https://ci.chromium.org/p/dart/builders/ci.sandbox/fuzz-linux."
     )
     args = parser.parse_args()
+    if args.type != 'sum' and args.output_csv:
+        print('Error: --output-csv can only be provided for --type=sum')
+        return
+
     shard_links = get_shard_links(args.uri)
+
+    if len(shard_links) == 0:
+        print("Invalid run")
+        sys.exit(-1)
+        return
+
     for link in shard_links:
-        get_stats(link, args.type, args.filter)
-    print("")
+        stats = get_stats(link, args.type, args.filter, args.output_csv)
+    if args.output_csv:
+        print("%d,%d,%d,%d,%d,%d" % tuple(stats))
+    else:
+        print("")
+    sys.exit(0)
 
 
 if __name__ == "__main__":

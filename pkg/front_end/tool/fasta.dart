@@ -60,9 +60,6 @@ main(List<String> args) async {
     case 'scanner':
       script = '${toolDir}/scanner.dart';
       break;
-    case 'dump-partial':
-      script = '${toolDir}/dump_partial.dart';
-      break;
     case 'dump-ir':
       script = '${kernelBin}/dump.dart';
       if (remainingArguments.isEmpty || remainingArguments.length > 2) {

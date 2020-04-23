@@ -14,7 +14,7 @@ class LspJsonReporter {
 
   /// The path from the root object (usually `params`) to the current object
   /// being validated.
-  final ListQueue<String> path = new ListQueue<String>();
+  final ListQueue<String> path = ListQueue<String>();
 
   LspJsonReporter([String initialField]) {
     if (initialField != null) {

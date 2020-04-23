@@ -10,7 +10,9 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerOptions,
         DiagnosticMessage,
         computePlatformBinariesLocation,
-        kernelForProgram;
+        kernelForProgram,
+        parseExperimentalArguments,
+        parseExperimentalFlags;
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
@@ -35,6 +37,7 @@ class TestingVmTarget extends VmTarget {
 Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     {Target target,
     bool enableSuperMixins = false,
+    List<String> experimentalFlags,
     Map<String, String> environmentDefines}) async {
   final platformKernel =
       computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
@@ -43,8 +46,13 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
   environmentDefines ??= <String, String>{};
   final options = new CompilerOptions()
     ..target = target
-    ..linkedDependencies = <Uri>[platformKernel]
+    ..additionalDills = <Uri>[platformKernel]
     ..environmentDefines = environmentDefines
+    ..experimentalFlags =
+        parseExperimentalFlags(parseExperimentalArguments(experimentalFlags),
+            onError: (String message) {
+      throw message;
+    })
     ..onDiagnostic = (DiagnosticMessage message) {
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
     };
@@ -61,8 +69,7 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
 
 String kernelLibraryToString(Library library) {
   final StringBuffer buffer = new StringBuffer();
-  new Printer(buffer, showExternal: false, showMetadata: true)
-      .writeLibraryFile(library);
+  new Printer(buffer, showMetadata: true).writeLibraryFile(library);
   return buffer
       .toString()
       .replaceAll(library.importUri.toString(), library.name);
@@ -70,8 +77,7 @@ String kernelLibraryToString(Library library) {
 
 String kernelComponentToString(Component component) {
   final StringBuffer buffer = new StringBuffer();
-  new Printer(buffer, showExternal: false, showMetadata: true)
-      .writeComponentFile(component);
+  new Printer(buffer, showMetadata: true).writeComponentFile(component);
   final mainLibrary = component.mainMethod.enclosingLibrary;
   return buffer
       .toString()

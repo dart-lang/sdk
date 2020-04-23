@@ -75,8 +75,7 @@ class StubCode : public AllStatic {
 
   static const Code& UnoptimizedStaticCallEntry(intptr_t num_args_tested);
 
-  static const intptr_t kNoInstantiator = 0;
-  static const intptr_t kInstantiationSizeInWords = 3;
+  static const char* NameAt(intptr_t index) { return entries_[index].name; }
 
   static const Code& EntryAt(intptr_t index) { return *(entries_[index].code); }
   static void EntryAtPut(intptr_t index, Code* entry) {

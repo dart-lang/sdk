@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 typedef F<unrelated T extends core::Object* = dynamic> = () →* void;
-class Foo extends core::Object {
+class Foo extends core::Object /*hasConstConstructor*/  {
   const constructor •(core::List<core::String*>* l) → self::Foo*
     : super core::Object::•()
     ;

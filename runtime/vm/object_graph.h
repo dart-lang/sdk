@@ -16,6 +16,7 @@ namespace dart {
 class Array;
 class Object;
 class RawObject;
+class CountingPage;
 
 #if !defined(PRODUCT)
 
@@ -177,7 +178,7 @@ class HeapSnapshotWriter : public ThreadStackResource {
   }
 
   void AssignObjectId(RawObject* obj);
-  intptr_t GetObjectId(RawObject* obj);
+  intptr_t GetObjectId(RawObject* obj) const;
   void ClearObjectIds();
   void CountReferences(intptr_t count);
   void CountExternalProperty();
@@ -187,6 +188,10 @@ class HeapSnapshotWriter : public ThreadStackResource {
  private:
   static const intptr_t kMetadataReservation = 512;
   static const intptr_t kPreferredChunkSize = MB;
+
+  void SetupCountingPages();
+  bool OnImagePage(RawObject* obj) const;
+  CountingPage* FindCountingPage(RawObject* obj) const;
 
   void EnsureAvailable(intptr_t needed);
   void Flush(bool last = false);
@@ -199,6 +204,15 @@ class HeapSnapshotWriter : public ThreadStackResource {
   intptr_t object_count_ = 0;
   intptr_t reference_count_ = 0;
   intptr_t external_property_count_ = 0;
+
+  struct ImagePageRange {
+    uword base;
+    uword size;
+  };
+  // There are up to 4 images to consider:
+  // {instructions, data} x {vm isolate, current isolate}
+  static const intptr_t kMaxImagePages = 4;
+  ImagePageRange image_page_ranges_[kMaxImagePages];
 
   DISALLOW_COPY_AND_ASSIGN(HeapSnapshotWriter);
 };

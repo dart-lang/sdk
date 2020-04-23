@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--no-causal-async-stacks --lazy-async-stacks
+// VMOptions=--causal-async-stacks --no-lazy-async-stacks
+
 import 'test_helper.dart';
 import 'service_test_common.dart';
 import 'dart:io';
 
-const int LINE_A = 13;
+const int LINE_A = 16;
 const String file = "next_through_simple_async_test.dart";
 
 // line A is at the "code() async" line
@@ -30,10 +33,8 @@ List<String> expected = [
   "$file:${LINE_A+1}:16", // on File
   "$file:${LINE_A+2}:31", // on 'lastModified'
   "$file:${LINE_A+2}:23", // on 'await'
-  "$file:${LINE_A+2}:21", // on '='
   "$file:${LINE_A+3}:25", // on 'exists'
   "$file:${LINE_A+3}:17", // on 'await'
-  "$file:${LINE_A+3}:15", // on '='
   "$file:${LINE_A+4}:47", // on ')', i.e. before ';'
   "$file:${LINE_A+4}:3", // on call to 'print'
   "$file:${LINE_A+5}:3", // on call to 'foo'

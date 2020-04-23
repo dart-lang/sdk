@@ -106,8 +106,6 @@ class TestFragment {
   SuccessorAddressArray* false_successor_addresses = nullptr;
 };
 
-typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
-
 // Indicates which form of the unchecked entrypoint we are compiling.
 //
 // kNone:
@@ -154,7 +152,6 @@ class BaseFlowGraphBuilder {
         current_try_index_(kInvalidTryIndex),
         next_used_try_index_(0),
         stack_(NULL),
-        pending_argument_count_(0),
         exit_collector_(exit_collector),
         inlining_unchecked_entry_(inlining_unchecked_entry) {}
 
@@ -162,12 +159,14 @@ class BaseFlowGraphBuilder {
   Fragment LoadNativeField(const Slot& native_field);
   Fragment LoadIndexed(intptr_t index_scale);
   // Takes a [class_id] valid for StoreIndexed.
-  Fragment LoadIndexedTypedData(classid_t class_id);
+  Fragment LoadIndexedTypedData(classid_t class_id,
+                                intptr_t index_scale,
+                                bool index_unboxed);
 
   Fragment LoadUntagged(intptr_t offset);
   Fragment StoreUntagged(intptr_t offset);
-  Fragment ConvertUntaggedToIntptr();
-  Fragment ConvertIntptrToUntagged();
+  Fragment ConvertUntaggedToUnboxed(Representation to);
+  Fragment ConvertUnboxedToUntagged(Representation from);
   Fragment UnboxSmiToIntptr();
   Fragment FloatToDouble();
   Fragment DoubleToFloat();
@@ -197,12 +196,18 @@ class BaseFlowGraphBuilder {
   Fragment StoreInstanceFieldGuarded(const Field& field,
                                      StoreInstanceFieldInstr::Kind kind =
                                          StoreInstanceFieldInstr::Kind::kOther);
-  Fragment LoadStaticField();
+  Fragment LoadStaticField(const Field& field);
   Fragment RedefinitionWithType(const AbstractType& type);
+  Fragment ReachabilityFence();
   Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StoreIndexed(classid_t class_id);
   // Takes a [class_id] valid for StoreIndexed.
-  Fragment StoreIndexedTypedData(classid_t class_id);
+  Fragment StoreIndexedTypedData(classid_t class_id,
+                                 intptr_t index_scale,
+                                 bool index_unboxed);
+
+  // Sign-extends kUnboxedInt32 and zero-extends kUnboxedUint32.
+  Fragment Box(Representation from);
 
   void Push(Definition* definition);
   Definition* Peek(intptr_t depth = 0);
@@ -233,13 +238,14 @@ class BaseFlowGraphBuilder {
   //
   LocalVariable* MakeTemporary();
 
-  Fragment PushArgument();
-  ArgumentArray GetArguments(int count);
+  InputsArray* GetArguments(int count);
 
   TargetEntryInstr* BuildTargetEntry();
   FunctionEntryInstr* BuildFunctionEntry(GraphEntryInstr* graph_entry);
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
+  IndirectEntryInstr* BuildIndirectEntry(intptr_t indirect_id,
+                                         intptr_t try_index);
 
   Fragment StrictCompare(TokenPosition position,
                          Token::Kind kind,
@@ -254,7 +260,9 @@ class BaseFlowGraphBuilder {
   Fragment BinaryIntegerOp(Token::Kind op,
                            Representation representation,
                            bool is_truncating = false);
-  Fragment LoadFpRelativeSlot(intptr_t offset, CompileType result_type);
+  Fragment LoadFpRelativeSlot(intptr_t offset,
+                              CompileType result_type,
+                              Representation representation = kTagged);
   Fragment StoreFpRelativeSlot(intptr_t offset);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,
                         TargetEntryInstr** otherwise_entry,
@@ -273,7 +281,6 @@ class BaseFlowGraphBuilder {
                               intptr_t stack_depth,
                               intptr_t loop_depth);
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
-  Fragment ThrowException(TokenPosition position);
   Fragment TailCall(const Code& code);
 
   intptr_t GetNextDeoptId() {
@@ -410,6 +417,9 @@ class BaseFlowGraphBuilder {
   // Reset context level for the given deopt id (which was allocated earlier).
   void reset_context_depth_for_deopt_id(intptr_t deopt_id);
 
+  // Sets raw parameter variables to inferred constant values.
+  Fragment InitConstantParameters();
+
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
 
@@ -427,7 +437,6 @@ class BaseFlowGraphBuilder {
   intptr_t next_used_try_index_;
 
   Value* stack_;
-  intptr_t pending_argument_count_;
   InlineExitCollector* exit_collector_;
 
   const bool inlining_unchecked_entry_;

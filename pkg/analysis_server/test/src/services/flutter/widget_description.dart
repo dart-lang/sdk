@@ -61,7 +61,7 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
       fail('Not found: $search');
     }
 
-    if (content.indexOf(search, offset + search.length) != -1) {
+    if (content.contains(search, offset + search.length)) {
       fail('More than one: $search');
     }
 

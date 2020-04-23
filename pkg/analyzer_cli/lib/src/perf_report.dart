@@ -10,26 +10,26 @@ import 'package:analyzer/src/generated/utilities_general.dart'
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart' show CommandLineOptions;
 
-const _JSON = const JsonEncoder.withIndent("  ");
+const _JSON = JsonEncoder.withIndent('  ');
 
 final String _osType = () {
   if (Platform.isLinux) {
-    return "linux";
+    return 'linux';
   } else if (Platform.isMacOS) {
-    return "mac";
+    return 'mac';
   } else if (Platform.isWindows) {
-    return "windows";
+    return 'windows';
   } else if (Platform.isAndroid) {
-    return "android";
+    return 'android';
   } else {
-    return "unknown";
+    return 'unknown';
   }
 }();
 
 String makePerfReport(int startTime, int endTime, CommandLineOptions options,
     int analyzedFileCount, AnalysisStats stats) {
-  int totalTime = endTime - startTime;
-  int otherTime = totalTime;
+  var totalTime = endTime - startTime;
+  var otherTime = totalTime;
 
   var platformJson = <String, dynamic>{
     'osType': _osType,
@@ -50,9 +50,9 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options,
 
   // Convert performance tags to JSON representation.
   var perfTagsJson = <String, dynamic>{};
-  for (PerformanceTag tag in PerformanceTag.all) {
+  for (var tag in PerformanceTag.all) {
     if (tag != PerformanceTag.unknown) {
-      int tagTime = tag.elapsedMs;
+      var tagTime = tag.elapsedMs;
       perfTagsJson[tag.label] = tagTime;
       otherTime -= tagTime;
     }

@@ -161,7 +161,8 @@ int64_t File::Read(void* buffer, int64_t num_bytes) {
 }
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
-  ASSERT(handle_->fd() >= 0);
+  // Invalid argument error will pop if num_bytes exceeds the limit.
+  ASSERT(handle_->fd() >= 0 && num_bytes <= kMaxInt32);
   return TEMP_FAILURE_RETRY(write(handle_->fd(), buffer, num_bytes));
 }
 
@@ -286,15 +287,23 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   return new File(new FileHandle(fd));
 }
 
-File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+static Utils::CStringUniquePtr DecodeUri(const char* uri) {
   const char* path = (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0)
       ? uri + 7 : uri;
   UriDecoder uri_decoder(path);
-  if (uri_decoder.decoded() == NULL) {
+  if (uri_decoder.decoded() == nullptr) {
     errno = EINVAL;
-    return NULL;
+    return Utils::CreateCStringUniquePtr(nullptr);
   }
-  return File::Open(namespc, uri_decoder.decoded(), mode);
+  return Utils::CreateCStringUniquePtr(strdup(uri_decoder.decoded()));
+}
+
+File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+  auto path = DecodeUri(uri);
+  if (path == nullptr) {
+    return nullptr;
+  }
+  return File::Open(namespc, path.get(), mode);
 }
 
 File* File::OpenStdio(int fd) {
@@ -309,6 +318,14 @@ bool File::Exists(Namespace* namespc, const char* name) {
   } else {
     return false;
   }
+}
+
+bool File::ExistsUri(Namespace* namespc, const char* uri) {
+  auto path = DecodeUri(uri);
+  if (path == nullptr) {
+    return false;
+  }
+  return File::Exists(namespc, path.get());
 }
 
 bool File::Create(Namespace* namespc, const char* name) {
@@ -518,7 +535,10 @@ bool File::SetLastModified(Namespace* namespc,
   return utime(name, &times) == 0;
 }
 
-const char* File::LinkTarget(Namespace* namespc, const char* pathname) {
+const char* File::LinkTarget(Namespace* namespc,
+                             const char* pathname,
+                             char* dest,
+                             int dest_size) {
   struct stat link_stats;
   if (lstat(pathname, &link_stats) != 0) {
     return NULL;
@@ -536,11 +556,17 @@ const char* File::LinkTarget(Namespace* namespc, const char* pathname) {
   if (target_size <= 0) {
     return NULL;
   }
-  char* target_name = DartUtils::ScopedCString(target_size + 1);
-  ASSERT(target_name != NULL);
-  memmove(target_name, target, target_size);
-  target_name[target_size] = '\0';
-  return target_name;
+  if (dest == NULL) {
+    dest = DartUtils::ScopedCString(target_size + 1);
+  } else {
+    ASSERT(dest_size > 0);
+    if ((size_t)dest_size <= target_size) {
+      return NULL;
+    }
+  }
+  memmove(dest, target, target_size);
+  dest[target_size] = '\0';
+  return dest;
 }
 
 bool File::IsAbsolutePath(const char* pathname) {
@@ -576,7 +602,7 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   struct stat buf;
   int result = fstat(fd, &buf);
   if (result == -1) {
-    return kOther;
+    return kTypeError;
   }
   if (S_ISCHR(buf.st_mode)) {
     return kTerminal;
@@ -593,9 +619,12 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   return kOther;
 }
 
-File::Identical File::AreIdentical(Namespace* namespc,
+File::Identical File::AreIdentical(Namespace* namespc_1,
                                    const char* file_1,
+                                   Namespace* namespc_2,
                                    const char* file_2) {
+  USE(namespc_1);
+  USE(namespc_2);
   struct stat file_1_info;
   struct stat file_2_info;
   if ((NO_RETRY_EXPECTED(lstat(file_1, &file_1_info)) == -1) ||

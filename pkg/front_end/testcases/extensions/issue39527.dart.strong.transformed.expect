@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int* value = 0;
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+}
+extension Extension1 on self::C* {
+  operator [] = self::Extension1|[];
+  operator []= = self::Extension1|[]=;
+  operator - = self::Extension1|-;
+}
+static method Extension1|[](final self::C* #this, core::int* index) → self::C*
+  return let final self::C* #t1 = #this in let final void #t2 = let final self::C* #t3 = #t1 in #t3.{self::C::value} = #t3.{self::C::value}.{core::num::+}(index.{core::num::+}(1)) in #t1;
+static method Extension1|[]=(final self::C* #this, core::int* index, self::C* other) → void
+  return let final self::C* #t4 = #this in #t4.{self::C::value} = #t4.{self::C::value}.{core::num::+}(other.{self::C::value}.{core::num::+}(index).{core::num::+}(1));
+static method Extension1|-(final self::C* #this, core::int* val) → self::C*
+  return #this;
+static method main() → dynamic {
+  self::C* c = new self::C::•();
+  let final self::C* #t5 = c in let final core::int* #t6 = 42 in let final self::C* #t7 = self::Extension1|-(self::Extension1|[](#t5, #t6), 1) in let final void #t8 = self::Extension1|[]=(#t5, #t6, #t7) in #t7;
+  let final self::C* #t9 = c in let final core::int* #t10 = 42 in self::Extension1|[]=(#t9, #t10, self::Extension1|-(self::Extension1|[](#t9, #t10), 1));
+  self::Extension1|[]=(c, 42, self::Extension1|-(self::Extension1|[](c, 42), 1));
+}

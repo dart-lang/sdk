@@ -18,9 +18,9 @@ abstract class EmbedderRelatedTest {
   ResourceProvider resourceProvider;
 
   buildResourceProvider() {
-    MemoryResourceProvider rawProvider = new MemoryResourceProvider();
-    resourceProvider = new TestResourceProvider(rawProvider);
-    pathTranslator = new TestPathTranslator(rawProvider)
+    MemoryResourceProvider rawProvider = MemoryResourceProvider();
+    resourceProvider = TestResourceProvider(rawProvider);
+    pathTranslator = TestPathTranslator(rawProvider)
       ..newFolder('/home/.pub-cache/empty')
       ..newFolder('/home/.pub-cache/fox/lib')
       ..newFile('/home/.pub-cache/fox/lib/_embedder.yaml', r'''

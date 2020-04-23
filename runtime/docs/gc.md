@@ -12,19 +12,44 @@ A tag of 1 has no penalty on heap object access because removing the tag can be 
 
 Heap objects are always allocated in double-word increments. Objects in old-space are kept at double-word alignment, and objects in new-space are kept offset from double-word alignment. This allows checking an object's age without comparing to a boundry address, avoiding restrictions on heap placement and avoiding loading the boundry from thread-local storage. Additionally, the scavenger can quickly skip over both immediates and old objects with a single branch.
 
+| Pointer    | Referent                                |
+| ---        | ---                                     |
+| 0x00000002 | Small integer 1                         |
+| 0xFFFFFFFE | Small integer -1                        |
+| 0x00A00001 | Heap object at 0x00A00000, in old-space |
+| 0x00B00005 | Heap object at 0x00B00004, in new-space |
+
 Heap objects have a single-word header, which encodes the object's class, size, and some status flags.
 
 On 64-bit architectures, the header of heap objects also contains a 32-bit identity hash field. On 32-bit architectures, the identity hash for heap objects is kept in a side table.
 
 ## Scavenge
 
-See [Cheney's algorithm](https://dl.acm.org/citation.cfm?doid=362790.362798).
+See [Cheney's algorithm](https://en.wikipedia.org/wiki/Cheney's_algorithm).
 
 ## Mark-Sweep
+
+All objects have a bit in their header called the mark bit. At the start of a collection cycle, all objects have this bit clear.
+
+During the marking phase, the collector visits each of the root pointers. If the target object is an old-space object and its mark bit is clear, the mark bit is set and the target added to the marking stack (grey set). The collector then removes and visits objects in the marking stack, marking more old-space objects and adding them to the marking stack, until the marking stack is empty. At this point, all reachable objects have their mark bits set and all unreachable objects have their mark bits clear.
+
+During the sweeping phase, the collector visits each old-space object. If the mark bit is clear, the object's memory is added to a [free list](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/freelist.h) to be used for future allocations. Otherwise the object's mark bit is cleared. If every object on some page is unreachable, the page is released to the OS.
+
+Note that because we do not mark new-space objects, we treat every object in new-space as a root during old-space collections. This property makes new-space and old-space collections more independent, and in particular allows a scavenge to run at the same time as concurrent marking.
 
 ## Mark-Compact
 
 The Dart VM includes a sliding compactor. The forwarding table is compactly represented by dividing the heap into blocks and for each block recording its target address and the bitvector for each surviving double-word. The table is accessed in constant time by keeping heap pages aligned so the page header of any object can be accessed by masking the object.
+
+## Safepoints
+
+Any thread or task that can allocate, read or write to the heap is called a "mutator" (because it can mutate the object graph).
+
+Some phases of GC require that the heap is not being used by a mutator; we call these "[safepoint](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/safepoint.h) operations". Examples of safepoint operations include marking roots at the beginning of concurrent marking and the entirety of a scavenge.
+
+To perform these operations, all mutators need to temporarily stop accessing the heap; we say that these mutators have reached a "safepoint". A mutator that has reached a safepoint will not resume accessing the heap (leave the safepoint) until the safepoint operation is complete. In addition to not accessing the heap, a mutator at a safepoint must not hold any pointers into the heap unless these pointers can be visited by the GC. For code in the VM runtime, this last property means holding only handles and no RawObject pointers. Examples of places that might enter a safepoint include allocations, stack overflow checks, and transitions between compiled code and the runtime and native code.
+
+Note that a mutator can be at a safepoint without being suspended. It might be performing a long task that doesn't access the heap. It will, however, need to wait for any safepoint operation to complete in order to leave its safepoint and resume accessing the heap.
 
 ## Concurrent Marking
 
@@ -114,3 +139,46 @@ For old-space objects created after marking started, the marker may see uninitia
 New-space objects and roots are only visited during a safepoint, and safepoints establish synchronization.
 
 When the mutator's mark block becomes full, it transfered to the marker by an acquire-release operation, so the marker will see the stores into the block.
+
+## Write barrier elimination
+
+Whenever there is a store into the heap, ```container.slot = value```, we need to check if the store creates references that the GC needs to be informed about.
+
+The generational write barrier, needed by the scavenger, checks if
+
+* `container` is old and not in the remembered set, and
+* `value` is new
+
+When this occurs, we must insert `container` into the remembered set.
+
+The incremental marking write barrier, needed by the marker, checks if
+
+* `container` is old, and
+* `value` is old and not marked, and
+* marking is in progress
+
+When this occurs, we must insert `value` into the marking worklist.
+
+We can eliminate these checks when the compiler can prove these cases cannot happen, or are compensated for by the runtime. The compiler can prove this when
+
+* `value` is a constant. Constants are always old, and they will be marked via the constant pools even if we fail to mark them via `container`.
+* `value` has the static type bool. All possible values of the bool type (null, false, true) are constants.
+* `value` is known to be a Smi. Smis are not heap objects.
+* `container` is the same object as `value`. The GC never needs to retain an additional object if it sees a self-reference, so ignoring a self-reference cannot cause us to free a reachable object.
+* `container` is known to be a new object or known to be an old object that is in the remembered set and is marked if marking is in progress.
+
+We can know that `container` meets the last property if `container` is the result of an allocation (instead of a heap load), and there is no instruction that can trigger a GC between the allocation and the store. This is because the allocation stubs ensure the result of AllocateObject is either a new-space object (common case, bump pointer allocation succeeds), or has been pre-emptively added to the remembered set and marking worklist (uncommon case, entered runtime to allocate object, possibly triggering GC).
+
+```
+container <- AllocateObject
+<intructions that do not trigger GC>
+StoreInstanceField(container, value, NoBarrier)
+```
+
+We can further eliminate barriers when `container` is the result of an allocation, and there is no instruction that can create an additional Dart frame between the allocation and the store. This is because after a GC, any old-space objects in the frames below an exit frame will be pre-emptively added to the remembered set and marking worklist (Thread::RestoreWriteBarrierInvariant).
+
+```
+container <- AllocateObject
+<instructions that cannot directly call Dart functions>
+StoreInstanceField(container, value, NoBarrier)
+```

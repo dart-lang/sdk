@@ -353,8 +353,7 @@ class ActivationFrame : public ZoneAllocated {
       const GrowableObjectArray& param_values,
       const GrowableObjectArray& type_params_names);
 
-  RawObject* EvaluateCompiledExpression(const uint8_t* kernel_bytes,
-                                        intptr_t kernel_length,
+  RawObject* EvaluateCompiledExpression(const ExternalTypedData& kernel_data,
                                         const Array& arguments,
                                         const Array& type_definitions,
                                         const TypeArguments& type_arguments);
@@ -748,6 +747,7 @@ class Debugger {
                                Array* deopt_frame);
   static DebuggerStackTrace* CollectStackTrace();
   static DebuggerStackTrace* CollectAsyncCausalStackTrace();
+  static DebuggerStackTrace* CollectAsyncLazyStackTrace();
   void SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt);
 
   intptr_t nextId() { return next_id_++; }

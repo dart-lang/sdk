@@ -1721,62 +1721,80 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
+// Compares cid1 and cid2 to see if they're syntactically equivalent. If this
+// can be determined by this fast path, it jumps to either equal or not_equal,
+// otherwise it jumps to normal_ir_body. May clobber cid1, cid2, and scratch.
+static void EquivalentClassIds(Assembler* assembler,
+                               Label* normal_ir_body,
+                               Label* equal,
+                               Label* not_equal,
+                               Register cid1,
+                               Register cid2,
+                               Register scratch) {
+  Label different_cids, not_integer;
+
+  // Check if left hand side is a closure. Closures are handled in the runtime.
+  __ cmpl(cid1, Immediate(kClosureCid));
+  __ j(EQUAL, normal_ir_body);
+
+  // Check whether class ids match. If class ids don't match types may still be
+  // considered equivalent (e.g. multiple string implementation classes map to a
+  // single String type).
+  __ cmpl(cid1, cid2);
+  __ j(NOT_EQUAL, &different_cids);
+
+  // Types have the same class and neither is a closure type.
+  // Check if there are no type arguments. In this case we can return true.
+  // Otherwise fall through into the runtime to handle comparison.
+  __ LoadClassById(scratch, cid1);
+  __ movzxw(scratch,
+            FieldAddress(scratch, target::Class::num_type_arguments_offset()));
+  __ cmpl(scratch, Immediate(0));
+  __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
+  __ jmp(equal);
+
+  // Class ids are different. Check if we are comparing two string types (with
+  // different representations) or two integer types.
+  __ Bind(&different_cids);
+  __ cmpl(cid1, Immediate(kNumPredefinedCids));
+  __ j(ABOVE_EQUAL, not_equal);
+
+  // Check if both are integer types.
+  __ movl(scratch, cid1);
+  JumpIfNotInteger(assembler, scratch, &not_integer);
+
+  // First type is an integer. Check if the second is an integer too.
+  // Otherwise types are unequiv because only integers have the same runtime
+  // type as other integers.
+  JumpIfInteger(assembler, cid2, equal);
+  __ jmp(not_equal);
+
+  __ Bind(&not_integer);
+  // Check if the first type is String. If it is not then types are not
+  // equivalent because they have different class ids and they are not strings
+  // or integers.
+  JumpIfNotString(assembler, cid1, not_equal);
+  // First type is String. Check if the second is a string too.
+  JumpIfString(assembler, cid2, equal);
+  // String types are only equivalent to other String types.
+  __ jmp(not_equal);
+}
+
 void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  Label different_cids, equal, not_equal, not_integer;
-
   __ movl(EAX, Address(ESP, +1 * target::kWordSize));
   __ LoadClassIdMayBeSmi(EDI, EAX);
-
-  // Check if left hand size is a closure. Closures are handled in the runtime.
-  __ cmpl(EDI, Immediate(kClosureCid));
-  __ j(EQUAL, normal_ir_body);
 
   __ movl(EAX, Address(ESP, +2 * target::kWordSize));
   __ LoadClassIdMayBeSmi(EBX, EAX);
 
-  // Check whether class ids match. If class ids don't match objects can still
-  // have the same runtime type (e.g. multiple string implementation classes
-  // map to a single String type).
-  __ cmpl(EDI, EBX);
-  __ j(NOT_EQUAL, &different_cids);
-
-  // Objects have the same class and neither is a closure.
-  // Check if there are no type arguments. In this case we can return true.
-  // Otherwise fall through into the runtime to handle comparison.
-  __ LoadClassById(EBX, EDI);
-  __ movzxw(EBX, FieldAddress(EBX, target::Class::num_type_arguments_offset()));
-  __ cmpl(EBX, Immediate(0));
-  __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
+  Label equal, not_equal;
+  EquivalentClassIds(assembler, normal_ir_body, &equal, &not_equal, EDI, EBX,
+                     EAX);
 
   __ Bind(&equal);
   __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
-
-  // Class ids are different. Check if we are comparing runtime types of
-  // two strings (with different representations) or two integers.
-  __ Bind(&different_cids);
-  __ cmpl(EDI, Immediate(kNumPredefinedCids));
-  __ j(ABOVE_EQUAL, &not_equal);
-
-  __ movl(EAX, EDI);
-  JumpIfNotInteger(assembler, EAX, &not_integer);
-
-  // First object is an integer. Check if the second is an integer too.
-  // Otherwise types are unequal because only integers have the same runtime
-  // type as other integers.
-  JumpIfInteger(assembler, EBX, &equal);
-  __ jmp(&not_equal);
-
-  __ Bind(&not_integer);
-  // Check if the first object is a string. If it is not then
-  // objects don't have the same runtime type because they have
-  // different class ids and they are not strings or integers.
-  JumpIfNotString(assembler, EDI, &not_equal);
-  // First object is a string. Check if the second is a string too.
-  JumpIfString(assembler, EBX, &equal);
-  // Strings only have the same runtime type as other strings.
-  // Fall-through to the not equal case.
 
   __ Bind(&not_equal);
   __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
@@ -1805,6 +1823,59 @@ void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
   __ ret();
   __ Bind(normal_ir_body);
   // Hash not yet computed.
+}
+
+void AsmIntrinsifier::Type_equality(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  Label equal, not_equal, equiv_cids, check_legacy;
+
+  __ movl(EDI, Address(ESP, +1 * target::kWordSize));
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
+  __ cmpl(EDI, EBX);
+  __ j(EQUAL, &equal);
+
+  // EDI might not be a Type object, so check that first (EBX should be though,
+  // since this is a method on the Type class).
+  __ LoadClassIdMayBeSmi(EAX, EDI);
+  __ cmpl(EAX, Immediate(kTypeCid));
+  __ j(NOT_EQUAL, normal_ir_body);
+
+  // Check if types are syntactically equal.
+  __ movl(ECX, FieldAddress(EDI, target::Type::type_class_id_offset()));
+  __ SmiUntag(ECX);
+  __ movl(EDX, FieldAddress(EBX, target::Type::type_class_id_offset()));
+  __ SmiUntag(EDX);
+  EquivalentClassIds(assembler, normal_ir_body, &equiv_cids, &not_equal, ECX,
+                     EDX, EAX);
+
+  // Check nullability.
+  __ Bind(&equiv_cids);
+  __ movzxb(EDI, FieldAddress(EDI, target::Type::nullability_offset()));
+  __ movzxb(EBX, FieldAddress(EBX, target::Type::nullability_offset()));
+  __ cmpl(EDI, EBX);
+  __ j(NOT_EQUAL, &check_legacy, Assembler::kNearJump);
+  // Fall through to equal case if nullability is strictly equal.
+
+  __ Bind(&equal);
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
+  __ ret();
+
+  // At this point the nullabilities are different, so they can only be
+  // syntactically equivalent if they're both either kNonNullable or kLegacy.
+  // These are the two largest values of the enum, so we can just do a < check.
+  ASSERT(target::Nullability::kNullable < target::Nullability::kNonNullable &&
+         target::Nullability::kNonNullable < target::Nullability::kLegacy);
+  __ Bind(&check_legacy);
+  __ cmpl(EDI, Immediate(target::Nullability::kNonNullable));
+  __ j(LESS, &not_equal, Assembler::kNearJump);
+  __ cmpl(EBX, Immediate(target::Nullability::kNonNullable));
+  __ j(GREATER_EQUAL, &equal, Assembler::kNearJump);
+
+  __ Bind(&not_equal);
+  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
+  __ ret();
+
+  __ Bind(normal_ir_body);
 }
 
 // bool _substringMatches(int start, String other)

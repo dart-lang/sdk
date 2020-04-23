@@ -1,0 +1,42 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Adopted from vm/cc/IRTest_TypedDataAOT_FunctionalIndexError.
+
+type: newworld
+worlds:
+  - entry: set-Uint8List.dart
+    sources:
+      set-Uint8List.dart: |
+        import 'dart:typed_data';
+        void setUint8List(Uint8List list, int index, int value) {
+          list[index] = value;
+        }
+    expectedLibraryCount: 1
+  - entry: set-Int8List.dart
+    worldType: updated
+    checkInvalidatedFiles: false
+    expectInitializeFromDill: false
+    invalidate:
+      - set-Int8List.dart
+    sources:
+      set-Int8List.dart: |
+        import 'dart:typed_data';
+        void setInt8List(Int8List list, int index, int value) {
+          list[index] = value;
+        }
+    expectedLibraryCount: 1
+  - entry: set-Uint8List.dart
+    worldType: updated
+    checkInvalidatedFiles: false
+    expectInitializeFromDill: false
+    invalidate:
+      - set-Uint8List.dart
+    sources:
+      set-Uint8List.dart: |
+        import 'dart:typed_data';
+        void setUint8List(Uint8List list, int index, int value) {
+          list[index] = value;
+        }
+    expectedLibraryCount: 1

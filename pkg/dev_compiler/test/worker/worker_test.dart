@@ -17,14 +17,7 @@ Directory tmp = Directory.systemTemp.createTempSync('ddc_worker_test');
 File file(String path) => File(join(tmp.path, joinAll(path.split('/'))));
 
 void main() {
-  runTests(false);
-  runTests(true);
-}
-
-void runTests(bool isKernel) {
-  String mode = isKernel ? 'DDK' : 'DDC';
-  List<String> baseArgs = isKernel ? ['-k'] : [];
-  String ext = isKernel ? 'dill' : 'sum';
+  var baseArgs = <String>[];
   final binDir = dirname(Platform.resolvedExecutable);
   // Note, the bots use the dart binary in the top-level build directory.
   // On windows, this is a .bat file.
@@ -33,7 +26,7 @@ void runTests(bool isKernel) {
       ? join(binDir, dartdevc)
       : join(binDir, 'dart-sdk', 'bin', dartdevc);
   final executableArgs = <String>[];
-  group('$mode: Hello World', () {
+  group('DDC: Hello World', () {
     final argsFile = file('hello_world.args');
     final inputDartFile = file('hello_world.dart');
     final outputJsFile = file('out/hello_world.js');
@@ -165,16 +158,16 @@ void runTests(bool isKernel) {
     });
   });
 
-  group('$mode: Hello World with Summaries', () {
+  group('DDC: Hello World with Summaries', () {
     final greetingDart = file('greeting.dart');
     final helloDart = file('hello.dart');
 
     final greetingJS = file('greeting.js');
-    final greetingSummary = file('greeting.$ext');
+    final greetingSummary = file('greeting.dill');
     final helloJS = file('hello_world.js');
 
     final greeting2JS = file('greeting2.js');
-    final greeting2Summary = file('greeting2.$ext');
+    final greeting2Summary = file('greeting2.dill');
 
     setUp(() {
       greetingDart.writeAsStringSync('String greeting = "hello";');
@@ -285,7 +278,7 @@ void runTests(bool isKernel) {
     });
   });
 
-  group('$mode: Error handling', () {
+  group('DDC: Error handling', () {
     final badFileDart = file('bad.dart');
     final badFileJs = file('bad.js');
 
@@ -325,7 +318,7 @@ void runTests(bool isKernel) {
     });
   });
 
-  group('$mode: Parts', () {
+  group('DDC: Parts', () {
     final partFile = file('greeting.dart');
     final libraryFile = file('hello.dart');
 
@@ -381,27 +374,6 @@ void runTests(bool isKernel) {
       expect(result.exitCode, 0);
       expect(outJS.existsSync(), isTrue);
     });
-
-    if (!isKernel) {
-      // TODO(vsm): Consider dropping this test.  Kernel behavior is better.
-      test('part without library is silently ignored', () {
-        var result = Process.runSync(
-            executable,
-            executableArgs +
-                baseArgs +
-                [
-                  '--no-summarize',
-                  '--no-source-map',
-                  '-o',
-                  outJS.path,
-                  partFile.path,
-                ]);
-        expect(result.stdout, isEmpty);
-        expect(result.stderr, isEmpty);
-        expect(result.exitCode, 0);
-        expect(outJS.existsSync(), isTrue);
-      });
-    }
   });
 }
 

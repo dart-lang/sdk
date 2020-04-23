@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_foreign_helper' show JS, JS_GET_NAME;
+// @dart = 2.7
+
+import 'dart:_foreign_helper' show JS, JS_GET_NAME, TYPE_REF;
 import 'dart:_js_embedded_names' show JsGetName;
 import 'dart:_rti' as rti;
-import "package:expect/expect.dart";
+
+import 'subtype_utils.dart';
 
 final String objectName = JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME);
 final String futureName = JS_GET_NAME(JsGetName.FUTURE_CLASS_TYPE_NAME);
@@ -23,10 +26,11 @@ const typeRulesJson = r'''
 }
 ''';
 final typeRules = JS('=Object', 'JSON.parse(#)', typeRulesJson);
-final universe = rti.testingCreateUniverse();
 
 main() {
   rti.testingAddRules(universe, typeRules);
+  rti.testingUniverseEvalOverride(universe, objectName, TYPE_REF<Object>());
+  rti.testingUniverseEvalOverride(universe, nullName, TYPE_REF<Null>());
   runTests();
   runTests(); // Ensure caching didn't change anything.
 }
@@ -143,27 +147,4 @@ void testGenericFunctions() {
   equivalent('~()<@>', '~()<~>');
   equivalent('~()<List<@/>>', '~()<List<~/>>');
   unrelated('~()<List<int/>>', '~()<List<num/>>');
-}
-
-String reason(String s, String t) => "$s <: $t";
-
-void strictSubtype(String s, String t) {
-  var sRti = rti.testingUniverseEval(universe, s);
-  var tRti = rti.testingUniverseEval(universe, t);
-  Expect.isTrue(rti.testingIsSubtype(universe, sRti, tRti), reason(s, t));
-  Expect.isFalse(rti.testingIsSubtype(universe, tRti, sRti), reason(t, s));
-}
-
-void unrelated(String s, String t) {
-  var sRti = rti.testingUniverseEval(universe, s);
-  var tRti = rti.testingUniverseEval(universe, t);
-  Expect.isFalse(rti.testingIsSubtype(universe, sRti, tRti), reason(s, t));
-  Expect.isFalse(rti.testingIsSubtype(universe, tRti, sRti), reason(t, s));
-}
-
-void equivalent(String s, String t) {
-  var sRti = rti.testingUniverseEval(universe, s);
-  var tRti = rti.testingUniverseEval(universe, t);
-  Expect.isTrue(rti.testingIsSubtype(universe, sRti, tRti), reason(s, t));
-  Expect.isTrue(rti.testingIsSubtype(universe, tRti, sRti), reason(t, s));
 }

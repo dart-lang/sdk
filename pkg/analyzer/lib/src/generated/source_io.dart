@@ -35,7 +35,7 @@ class ExplicitSourceResolver extends UriResolver {
     if (file == null) {
       return null;
     } else {
-      return new FileBasedSource(file, actualUri);
+      return FileBasedSource(file, actualUri);
     }
   }
 
@@ -73,7 +73,7 @@ class FileBasedSource extends Source {
    * The URI and filepath are joined into a pair by separating them with an '@'
    * character.
    */
-  static final Map<String, int> _idTable = new HashMap<String, int>();
+  static final Map<String, int> _idTable = HashMap<String, int>();
 
   /**
    * The URI from which this source was originally derived.
@@ -131,7 +131,7 @@ class FileBasedSource extends Source {
    * See [contents].
    */
   TimestampedData<String> get contentsFromFile {
-    return new TimestampedData<String>(
+    return TimestampedData<String>(
         file.lastModified(), fileReadMode(file.readAsStringSync()));
   }
 
@@ -209,12 +209,12 @@ class FileUriResolver extends UriResolver {
     if (!isFileUri(uri)) {
       return null;
     }
-    return new FileBasedSource(new JavaFile.fromUri(uri), actualUri ?? uri);
+    return FileBasedSource(JavaFile.fromUri(uri), actualUri ?? uri);
   }
 
   @override
   Uri restoreAbsolute(Source source) {
-    return new Uri.file(source.fullName);
+    return Uri.file(source.fullName);
   }
 
   /**
@@ -234,19 +234,18 @@ abstract class LocalSourcePredicate {
   /**
    * Instance of [LocalSourcePredicate] that always returns `false`.
    */
-  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_FALSE();
+  static final LocalSourcePredicate FALSE = LocalSourcePredicate_FALSE();
 
   /**
    * Instance of [LocalSourcePredicate] that always returns `true`.
    */
-  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_TRUE();
+  static final LocalSourcePredicate TRUE = LocalSourcePredicate_TRUE();
 
   /**
    * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
    * except of SDK.
    */
-  static final LocalSourcePredicate NOT_SDK =
-      new LocalSourcePredicate_NOT_SDK();
+  static final LocalSourcePredicate NOT_SDK = LocalSourcePredicate_NOT_SDK();
 
   /**
    * Determines if the given [Source] is local.
@@ -306,8 +305,7 @@ class PackageUriResolver extends UriResolver {
    */
   PackageUriResolver(this._packagesDirectories) {
     if (_packagesDirectories.isEmpty) {
-      throw new ArgumentError(
-          "At least one package directory must be provided");
+      throw ArgumentError("At least one package directory must be provided");
     }
   }
 
@@ -318,7 +316,7 @@ class PackageUriResolver extends UriResolver {
   String get packagesDirectory_forTesting {
     int length = _packagesDirectories.length;
     if (length != 1) {
-      throw new Exception('Expected 1 package directory, found $length');
+      throw Exception('Expected 1 package directory, found $length');
     }
     return _packagesDirectories[0].getPath();
   }
@@ -334,27 +332,25 @@ class PackageUriResolver extends UriResolver {
    */
   JavaFile getCanonicalFile(
       JavaFile packagesDirectory, String pkgName, String relPath) {
-    JavaFile pkgDir = new JavaFile.relative(packagesDirectory, pkgName);
+    JavaFile pkgDir = JavaFile.relative(packagesDirectory, pkgName);
     try {
       pkgDir = pkgDir.getCanonicalFile();
     } catch (exception, stackTrace) {
       if (!exception.toString().contains("Required key not available")) {
         // TODO(39284): should this exception be silent?
         AnalysisEngine.instance.instrumentationService.logException(
-            new SilentException(
+            SilentException(
                 "Canonical failed: $pkgDir", exception, stackTrace));
       } else if (_CanLogRequiredKeyIoException) {
         _CanLogRequiredKeyIoException = false;
         // TODO(39284): should this exception be silent?
         AnalysisEngine.instance.instrumentationService.logException(
-            new SilentException(
+            SilentException(
                 "Canonical failed: $pkgDir", exception, stackTrace));
       }
     }
-    return new JavaFile.relative(
-        pkgDir,
-        relPath.replaceAll(
-            '/', new String.fromCharCode(JavaFile.separatorChar)));
+    return JavaFile.relative(pkgDir,
+        relPath.replaceAll('/', String.fromCharCode(JavaFile.separatorChar)));
   }
 
   @override
@@ -385,20 +381,20 @@ class PackageUriResolver extends UriResolver {
       relPath = path.substring(index + 1);
     }
     for (JavaFile packagesDirectory in _packagesDirectories) {
-      JavaFile resolvedFile = new JavaFile.relative(packagesDirectory, path);
+      JavaFile resolvedFile = JavaFile.relative(packagesDirectory, path);
       if (resolvedFile.exists()) {
         JavaFile canonicalFile =
             getCanonicalFile(packagesDirectory, pkgName, relPath);
         if (actualUri != null) {
-          return new FileBasedSource(canonicalFile, actualUri);
+          return FileBasedSource(canonicalFile, actualUri);
         }
         if (_isSelfReference(packagesDirectory, canonicalFile)) {
           uri = canonicalFile.toURI();
         }
-        return new FileBasedSource(canonicalFile, uri);
+        return FileBasedSource(canonicalFile, uri);
       }
     }
-    return new FileBasedSource(
+    return FileBasedSource(
         getCanonicalFile(_packagesDirectories[0], pkgName, relPath),
         actualUri ?? uri);
   }
@@ -417,7 +413,7 @@ class PackageUriResolver extends UriResolver {
               return Uri.parse(
                   "$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
             }
-          } catch (e) {}
+          } catch (_) {}
         }
       }
     }
@@ -491,9 +487,9 @@ class RelativeFileUriResolver extends UriResolver {
     if (uriPath != null && uriPath.startsWith(rootPath)) {
       String filePath = uri.path.substring(rootPath.length);
       for (JavaFile dir in _relativeDirectories) {
-        JavaFile file = new JavaFile.relative(dir, filePath);
+        JavaFile file = JavaFile.relative(dir, filePath);
         if (file.exists()) {
-          return new FileBasedSource(file, actualUri ?? uri);
+          return FileBasedSource(file, actualUri ?? uri);
         }
       }
     }

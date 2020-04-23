@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OffsetMapperTest);
   });
@@ -17,15 +17,15 @@ main() {
 
 @reflectiveTest
 class OffsetMapperTest extends AbstractAnalysisTest {
-  test_identity() {
-    OffsetMapper mapper = OffsetMapper.identity;
+  void test_identity() {
+    var mapper = OffsetMapper.identity;
     expect(mapper.map(0), 0);
     expect(mapper.map(20), 20);
     expect(mapper.map(0xFFFFFF), 0xFFFFFF);
   }
 
-  test_multipleEdits() {
-    OffsetMapper mapper = OffsetMapper.forEdits([
+  void test_multipleEdits() {
+    var mapper = OffsetMapper.forEdits([
       SourceEdit(13, 0, '?'),
       SourceEdit(21, 0, '!'),
       SourceEdit(32, 0, '?'),
@@ -40,8 +40,8 @@ class OffsetMapperTest extends AbstractAnalysisTest {
     expect(mapper.map(55), 58);
   }
 
-  test_singleEdit() {
-    OffsetMapper mapper = OffsetMapper.forEdits([
+  void test_singleEdit() {
+    var mapper = OffsetMapper.forEdits([
       SourceEdit(13, 0, '?'),
     ]);
     expect(mapper.map(0), 0);

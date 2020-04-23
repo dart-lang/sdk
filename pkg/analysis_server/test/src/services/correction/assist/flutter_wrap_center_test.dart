@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterWrapCenterTest);
   });
@@ -19,7 +19,7 @@ class FlutterWrapCenterTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_WRAP_CENTER;
 
-  test_aroundCenter() async {
+  Future<void> test_aroundCenter() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -32,7 +32,7 @@ class FakeFlutter {
     await assertNoAssist();
   }
 
-  test_aroundContainer() async {
+  Future<void> test_aroundContainer() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -52,7 +52,7 @@ class FakeFlutter {
 ''');
   }
 
-  test_aroundNamedConstructor() async {
+  Future<void> test_aroundNamedConstructor() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -82,7 +82,7 @@ main() {
 ''');
   }
 
-  test_assignment() async {
+  Future<void> test_assignment() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -102,7 +102,7 @@ main() {
 ''');
   }
 
-  test_expressionFunctionBody() async {
+  Future<void> test_expressionFunctionBody() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';

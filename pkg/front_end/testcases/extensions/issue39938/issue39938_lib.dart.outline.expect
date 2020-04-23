@@ -1,0 +1,19 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///issue39938_lib.dart";
+
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+extension Extension on core::bool* {
+  operator + = self2::Extension|+;
+}
+static method Extension|+(final core::bool* #this, core::bool* other) → core::bool*
+  ;

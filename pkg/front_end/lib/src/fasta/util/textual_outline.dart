@@ -9,6 +9,9 @@ import 'dart:io' show File;
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
 
+import 'package:_fe_analyzer_shared/src/parser/declaration_kind.dart'
+    show DeclarationKind;
+
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, LanguageVersionToken, Scanner;
 
@@ -19,7 +22,7 @@ import '../../fasta/source/directive_listener.dart' show DirectiveListener;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-String textualOutline(List<int> rawBytes) {
+String textualOutline(List<int> rawBytes, {bool makeMoreReadable: false}) {
   // TODO(jensj): We need to specify the scanner settings to match that of the
   // compiler!
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
@@ -34,12 +37,6 @@ String textualOutline(List<int> rawBytes) {
   });
   Token firstToken = scanner.tokenize();
   if (firstToken == null) return null;
-  List<int> lineStarts = scanner.lineStarts;
-  int lineStartsIteratorLine = 1;
-  Iterator<int> lineStartsIterator = lineStarts.iterator;
-  lineStartsIterator.moveNext();
-  lineStartsIterator.moveNext();
-  lineStartsIteratorLine++;
   Token token = firstToken;
 
   EndOffsetListener listener = new EndOffsetListener();
@@ -48,33 +45,38 @@ String textualOutline(List<int> rawBytes) {
 
   bool printed = false;
   int endOfLast = -1;
+  bool addLinebreak = false;
   while (token != null) {
     if (token is ErrorToken) {
       return null;
     }
-    int prevLine = lineStartsIteratorLine;
-    while (token.offset >= lineStartsIterator.current &&
-        lineStartsIterator.moveNext()) {
-      lineStartsIteratorLine++;
-    }
-    if (prevLine < lineStartsIteratorLine) {
+    if (addLinebreak) {
       sb.write("\n");
-      prevLine++;
-      if (prevLine < lineStartsIteratorLine) {
-        sb.write("\n");
-      }
     } else if (printed && token.offset > endOfLast) {
       sb.write(" ");
     }
+    addLinebreak = false;
 
     sb.write(token.lexeme);
     printed = true;
     endOfLast = token.end;
+    if (makeMoreReadable) {
+      if (token.lexeme == ";") {
+        addLinebreak = true;
+      } else if (token.endGroup != null &&
+          (listener.nonClassEndOffsets.contains(token.endGroup.offset) ||
+              listener.classEndOffsets.contains(token.endGroup.offset))) {
+        addLinebreak = true;
+      } else if (listener.nonClassEndOffsets.contains(token.offset) ||
+          listener.classEndOffsets.contains(token.offset)) {
+        addLinebreak = true;
+      }
+    }
 
     if (token.isEof) break;
 
     if (token.endGroup != null &&
-        listener.endOffsets.contains(token.endGroup.offset)) {
+        listener.nonClassEndOffsets.contains(token.endGroup.offset)) {
       token = token.endGroup;
     } else {
       token = token.next;
@@ -86,21 +88,39 @@ String textualOutline(List<int> rawBytes) {
 
 main(List<String> args) {
   File f = new File(args[0]);
-  print(textualOutline(f.readAsBytesSync()));
+  String outline = textualOutline(f.readAsBytesSync(), makeMoreReadable: true);
+  if (args.length > 1 && args[1] == "--overwrite") {
+    f.writeAsStringSync(outline);
+  } else {
+    print(outline);
+  }
 }
 
 class EndOffsetListener extends DirectiveListener {
-  Set<int> endOffsets = new Set<int>();
+  Set<int> nonClassEndOffsets = new Set<int>();
+  Set<int> classEndOffsets = new Set<int>();
 
   @override
   void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
-    endOffsets.add(endToken.offset);
+    nonClassEndOffsets.add(endToken.offset);
   }
 
   @override
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
-    endOffsets.add(endToken.offset);
+    nonClassEndOffsets.add(endToken.offset);
+  }
+
+  @override
+  void endClassFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    nonClassEndOffsets.add(endToken.offset);
+  }
+
+  @override
+  void endClassOrMixinBody(
+      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
+    classEndOffsets.add(endToken.offset);
   }
 
   @override

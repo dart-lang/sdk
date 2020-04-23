@@ -21,11 +21,13 @@ class DoesNotCompleteType extends ir.BottomType {
 /// Special interface type used to signal that the static type of an expression
 /// has precision of a this-expression.
 class ThisInterfaceType extends ir.InterfaceType {
-  ThisInterfaceType(ir.Class classNode, [List<ir.DartType> typeArguments])
-      : super(classNode, ir.Nullability.legacy, typeArguments);
+  ThisInterfaceType(ir.Class classNode, ir.Nullability nullability,
+      [List<ir.DartType> typeArguments])
+      : super(classNode, nullability, typeArguments);
 
   factory ThisInterfaceType.from(ir.InterfaceType type) => type != null
-      ? new ThisInterfaceType(type.classNode, type.typeArguments)
+      ? new ThisInterfaceType(
+          type.classNode, type.nullability, type.typeArguments)
       : null;
 
   @override
@@ -35,11 +37,13 @@ class ThisInterfaceType extends ir.InterfaceType {
 /// Special interface type used to signal that the static type of an expression
 /// is exact, i.e. the runtime type is not a subtype or subclass of the type.
 class ExactInterfaceType extends ir.InterfaceType {
-  ExactInterfaceType(ir.Class classNode, [List<ir.DartType> typeArguments])
-      : super(classNode, ir.Nullability.legacy, typeArguments);
+  ExactInterfaceType(ir.Class classNode, ir.Nullability nullability,
+      [List<ir.DartType> typeArguments])
+      : super(classNode, nullability, typeArguments);
 
   factory ExactInterfaceType.from(ir.InterfaceType type) => type != null
-      ? new ExactInterfaceType(type.classNode, type.typeArguments)
+      ? new ExactInterfaceType(
+          type.classNode, type.nullability, type.typeArguments)
       : null;
 
   @override
@@ -101,19 +105,19 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   @override
   ir.DartType visitBoolLiteral(ir.BoolLiteral node) =>
-      typeEnvironment.coreTypes.boolLegacyRawType;
+      typeEnvironment.coreTypes.boolNonNullableRawType;
 
   @override
   ir.DartType visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded node) =>
-      typeEnvironment.coreTypes.objectLegacyRawType;
+      typeEnvironment.coreTypes.objectNonNullableRawType;
 
   @override
   ir.DartType visitStringLiteral(ir.StringLiteral node) =>
-      typeEnvironment.coreTypes.stringLegacyRawType;
+      typeEnvironment.coreTypes.stringNonNullableRawType;
 
   @override
   ir.DartType visitStringConcatenation(ir.StringConcatenation node) {
-    return typeEnvironment.coreTypes.stringLegacyRawType;
+    return typeEnvironment.coreTypes.stringNonNullableRawType;
   }
 
   @override
@@ -121,32 +125,32 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   @override
   ir.DartType visitIntLiteral(ir.IntLiteral node) =>
-      typeEnvironment.coreTypes.intLegacyRawType;
+      typeEnvironment.coreTypes.intNonNullableRawType;
 
   @override
   ir.DartType visitDoubleLiteral(ir.DoubleLiteral node) =>
-      typeEnvironment.coreTypes.doubleLegacyRawType;
+      typeEnvironment.coreTypes.doubleNonNullableRawType;
 
   @override
   ir.DartType visitSymbolLiteral(ir.SymbolLiteral node) =>
-      typeEnvironment.coreTypes.symbolLegacyRawType;
+      typeEnvironment.coreTypes.symbolNonNullableRawType;
 
   @override
   ir.DartType visitListLiteral(ir.ListLiteral node) {
-    return typeEnvironment.literalListType(
-        node.typeArgument, ir.Nullability.legacy);
+    return typeEnvironment.listType(
+        node.typeArgument, ir.Nullability.nonNullable);
   }
 
   @override
   ir.DartType visitSetLiteral(ir.SetLiteral node) {
-    return typeEnvironment.literalSetType(
-        node.typeArgument, ir.Nullability.legacy);
+    return typeEnvironment.setType(
+        node.typeArgument, ir.Nullability.nonNullable);
   }
 
   @override
   ir.DartType visitMapLiteral(ir.MapLiteral node) {
-    return typeEnvironment.literalMapType(
-        node.keyType, node.valueType, ir.Nullability.legacy);
+    return typeEnvironment.mapType(
+        node.keyType, node.valueType, ir.Nullability.nonNullable);
   }
 
   @override
@@ -188,11 +192,11 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   @override
   ir.DartType visitLogicalExpression(ir.LogicalExpression node) =>
-      typeEnvironment.coreTypes.boolLegacyRawType;
+      typeEnvironment.coreTypes.boolNonNullableRawType;
 
   @override
   ir.DartType visitNot(ir.Not node) {
-    return typeEnvironment.coreTypes.boolLegacyRawType;
+    return typeEnvironment.coreTypes.boolNonNullableRawType;
   }
 
   @override
@@ -202,16 +206,16 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   @override
   ir.DartType visitIsExpression(ir.IsExpression node) {
-    return typeEnvironment.coreTypes.boolLegacyRawType;
+    return typeEnvironment.coreTypes.boolNonNullableRawType;
   }
 
   @override
   ir.DartType visitTypeLiteral(ir.TypeLiteral node) =>
-      typeEnvironment.coreTypes.typeLegacyRawType;
+      typeEnvironment.coreTypes.typeNonNullableRawType;
 
   @override
   ir.DartType visitFunctionExpression(ir.FunctionExpression node) {
-    return node.function.functionType;
+    return node.function.computeFunctionType(staticTypeContext.nonNullable);
   }
 
   @override
@@ -231,7 +235,7 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
   @override
   ir.DartType visitLoadLibrary(ir.LoadLibrary node) {
     return typeEnvironment.futureType(
-        const ir.DynamicType(), ir.Nullability.legacy);
+        const ir.DynamicType(), ir.Nullability.nonNullable);
   }
 
   @override

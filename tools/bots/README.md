@@ -90,6 +90,7 @@ from the builder name:
 - `${mode}`: the mode in which to run the tests; e.g., `release`, `debug`
 - `${arch}`: architecture to run the tests on; e.g., `ia32`, `x64`
 - `$[system}`: the system on which to run the tests; e.g., `win`, `linux`, `mac`
+- `${runtime}`: the runtime to use to run the tests; e.g., `vm`, `chrome`, `d8`
 
 ```json
 "steps": [

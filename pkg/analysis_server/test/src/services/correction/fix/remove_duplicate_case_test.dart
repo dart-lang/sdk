@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveDuplicateCaseTest);
   });
@@ -23,65 +23,65 @@ class RemoveDuplicateCaseTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.no_duplicate_case_values;
 
-  test_removeStringCase() async {
+  Future<void> test_removeIntCase() async {
     await resolveTestUnit('''
-void switchString() {
-  String v = 'a';
-  switch (v) {
-    case 'a':
+void switchInt() {
+  switch (2) {
+    case 1:
       print('a');
       break;
-    case 'b':
-      print('b');
-      break;
-    case 'a' /*LINT*/:
-      print('a');
-      break;
+    case 2:
+    case 2:
     default:
-      print('?);
+      print('?');
   }
 }
 ''');
     await assertHasFix('''
-void switchString() {
-  String v = 'a';
-  switch (v) {
-    case 'a':
+void switchInt() {
+  switch (2) {
+    case 1:
       print('a');
       break;
-    case 'b':
-      print('b');
-      break;
+    case 2:
     default:
-      print('?);
+      print('?');
   }
 }
 ''');
   }
 
-  test_removeIntCase() async {
+  Future<void> test_removeStringCase() async {
     await resolveTestUnit('''
-void switchInt() {
-  switch (2) {
-    case 1:
+void switchString() {
+  String v = 'a';
+  switch (v) {
+    case 'a':
       print('a');
       break;
-    case 2:
-    case 2 /*LINT*/:
+    case 'b':
+      print('b');
+      break;
+    case 'a' :
+      print('a');
+      break;
     default:
-      print('?);
+      print('?');
   }
 }
 ''');
     await assertHasFix('''
-void switchInt() {
-  switch (2) {
-    case 1:
+void switchString() {
+  String v = 'a';
+  switch (v) {
+    case 'a':
       print('a');
       break;
-    case 2:
+    case 'b':
+      print('b');
+      break;
     default:
-      print('?);
+      print('?');
   }
 }
 ''');

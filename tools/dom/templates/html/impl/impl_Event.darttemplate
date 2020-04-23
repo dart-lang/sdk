@@ -35,7 +35,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   }
 
   /** The CSS selector involved with event delegation. */
-  String _selector;
+  String$NULLABLE get _selector native;
+  set _selector(String$NULLABLE value) native;
 
   /**
    * A pointer to the element whose CSS selector matched within which an event
@@ -47,18 +48,18 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       throw new UnsupportedError('Cannot call matchingTarget if this Event did'
           ' not arise as a result of event delegation.');
     }
-    Element currentTarget = this.currentTarget;
-    Element target = this.target;
+    Element$NULLABLE currentTarget = this.currentTarget $#NULLSAFECAST(as Element$NULLABLE);
+    Element$NULLABLE target = this.target $#NULLSAFECAST(as Element$NULLABLE);
     var matchedTarget;
     do {
-      if (target.matches(_selector)) return target;
+      if (target$NULLASSERT.matches(_selector$NULLASSERT)) return target;
       target = target.parent;
-    } while (target != null && target != currentTarget.parent);
+    } while (target != null && target != currentTarget$NULLASSERT.parent);
     throw new StateError('No selector matched for populating matchedTarget.');
   }
 
   List<EventTarget> get path =>
-    JS('bool', '!!#.composedPath', this) ? composedPath() : [];
+    JS<bool>('bool', '!!#.composedPath', this) ? composedPath() : [];
 
 $!MEMBERS
 }

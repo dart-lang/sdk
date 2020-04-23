@@ -28,11 +28,13 @@ class C<T> {
 }
 
 main() {
-  ClosureMirror closure1 = reflect(new C<String>().makeClosure1());
+  ClosureMirror closure1 =
+      reflect(new C<String>().makeClosure1()) as ClosureMirror;
   Expect.equals(reflectClass(String), closure1.function.returnType);
   Expect.equals(reflectClass(String), closure1.function.parameters[0].type);
 
-  ClosureMirror closure2 = reflect(new C<String>().makeClosure2());
+  ClosureMirror closure2 =
+      reflect(new C<String>().makeClosure2()) as ClosureMirror;
   Expect.equals(reflectClass(String), closure2.function.returnType);
   Expect.equals(reflectClass(String), closure2.function.parameters[0].type);
 }

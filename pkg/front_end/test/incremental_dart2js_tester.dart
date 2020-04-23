@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:developer";
 import 'dart:io' show Platform;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_unstable/bazel_worker.dart';
+import 'package:front_end/src/fasta/kernel/utils.dart';
 
 import 'package:kernel/kernel.dart'
     show Component, Library, LibraryPart, Reference;
@@ -17,67 +18,73 @@ import "incremental_utils.dart" as util;
 main(List<String> args) async {
   bool fast = false;
   bool useExperimentalInvalidation = false;
+  bool addDebugBreaks = false;
+  int limit = -1;
   for (String arg in args) {
     if (arg == "--fast") {
       fast = true;
     } else if (arg == "--experimental") {
       useExperimentalInvalidation = true;
+    } else if (arg == "--addDebugBreaks") {
+      addDebugBreaks = true;
+    } else if (arg.startsWith("--limit=")) {
+      limit = int.parse(arg.substring("--limit=".length));
     } else {
       throw "Unsupported argument: $arg";
     }
   }
 
-  Stopwatch stopwatch = new Stopwatch()..start();
-  Uri input = Platform.script.resolve("../../compiler/bin/dart2js.dart");
-  CompilerOptions options = helper.getOptions(targetName: "None");
-  helper.TestIncrementalCompiler compiler =
-      new helper.TestIncrementalCompiler(options, input);
-  compiler.useExperimentalInvalidation = useExperimentalInvalidation;
-  Component c = await compiler.computeDelta();
-  print("Compiled dart2js to Component with ${c.libraries.length} libraries "
-      "in ${stopwatch.elapsedMilliseconds} ms.");
-  stopwatch.reset();
+  Dart2jsTester dart2jsTester = new Dart2jsTester(
+      useExperimentalInvalidation, fast, addDebugBreaks, limit);
+  await dart2jsTester.test();
+}
+
+class Dart2jsTester {
+  final bool useExperimentalInvalidation;
+  final bool fast;
+  final bool addDebugBreaks;
+  final int limit;
+
+  Stopwatch stopwatch = new Stopwatch();
   List<int> firstCompileData;
   Map<Uri, List<int>> libToData;
-  if (fast) {
-    libToData = {};
-    c.libraries.sort((l1, l2) {
-      return "${l1.fileUri}".compareTo("${l2.fileUri}");
-    });
-
-    c.problemsAsJson?.sort();
-
-    c.computeCanonicalNames();
-
-    for (Library library in c.libraries) {
-      library.additionalExports.sort((Reference r1, Reference r2) {
-        return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
-      });
-      library.problemsAsJson?.sort();
-
-      List<int> libSerialized =
-          serializeComponent(c, filter: (l) => l == library);
-      libToData[library.importUri] = libSerialized;
-    }
-  } else {
-    firstCompileData = util.postProcess(c);
-  }
-  print("Serialized in ${stopwatch.elapsedMilliseconds} ms");
-  stopwatch.reset();
-
-  List<Uri> uris = c.uriToSource.values
-      .map((s) => s != null ? s.importUri : null)
-      .where((u) => u != null && u.scheme != "dart")
-      .toSet()
-      .toList();
-
-  c = null;
+  List<Uri> uris;
 
   List<Uri> diffs = new List<Uri>();
+  Set<Uri> componentUris = new Set<Uri>();
 
-  Stopwatch localStopwatch = new Stopwatch()..start();
-  for (int i = 0; i < uris.length; i++) {
-    Uri uri = uris[i];
+  Dart2jsTester(this.useExperimentalInvalidation, this.fast,
+      this.addDebugBreaks, this.limit);
+
+  void test() async {
+    helper.TestIncrementalCompiler compiler = await setup();
+    if (addDebugBreaks) {
+      debugger();
+    }
+
+    diffs = new List<Uri>();
+    componentUris = new Set<Uri>();
+
+    Stopwatch localStopwatch = new Stopwatch()..start();
+    int recompiles = 0;
+    for (int i = 0; i < uris.length; i++) {
+      if (limit >= 0 && limit < i) break;
+      recompiles++;
+      Uri uri = uris[i];
+      await step(uri, i, compiler, localStopwatch);
+    }
+
+    print("A total of ${diffs.length} diffs:");
+    for (Uri uri in diffs) {
+      print(" - $uri");
+    }
+
+    print("Done after ${recompiles} recompiles in "
+        "${stopwatch.elapsedMilliseconds} ms");
+  }
+
+  Future step(Uri uri, int i, helper.TestIncrementalCompiler compiler,
+      Stopwatch localStopwatch) async {
     print("Invalidating $uri ($i)");
     compiler.invalidate(uri);
     localStopwatch.reset();
@@ -87,8 +94,20 @@ main(List<String> args) async {
         "${compiler.invalidatedImportUrisForTesting}");
     print("rebuildBodiesCount: ${compiler.rebuildBodiesCount}");
     localStopwatch.reset();
+    Set<Uri> thisUris = new Set<Uri>.from(c2.libraries.map((l) => l.importUri));
+    if (componentUris.isNotEmpty) {
+      Set<Uri> diffUris = {};
+      diffUris.addAll(thisUris.difference(componentUris));
+      diffUris.addAll(componentUris.difference(thisUris));
+      if (diffUris.isNotEmpty) {
+        print("Diffs for this compile: $diffUris");
+      }
+    }
+    componentUris.clear();
+    componentUris.addAll(thisUris);
 
     if (fast) {
+      print("Got ${c2.libraries.length} libraries");
       c2.libraries.sort((l1, l2) {
         return "${l1.fileUri}".compareTo("${l2.fileUri}");
       });
@@ -145,27 +164,71 @@ main(List<String> args) async {
         print("=====");
       }
     }
+    if (addDebugBreaks) {
+      debugger();
+    }
     print("-----");
   }
 
-  print("A total of ${diffs.length} diffs:");
-  for (Uri uri in diffs) {
-    print(" - $uri");
+  Future<helper.TestIncrementalCompiler> setup() async {
+    stopwatch.reset();
+    stopwatch.start();
+    Uri input = Platform.script.resolve("../../compiler/bin/dart2js.dart");
+    CompilerOptions options = helper.getOptions(targetName: "VM");
+    helper.TestIncrementalCompiler compiler =
+        new helper.TestIncrementalCompiler(options, input);
+    compiler.useExperimentalInvalidation = useExperimentalInvalidation;
+    Component c = await compiler.computeDelta();
+    print("Compiled dart2js to Component with ${c.libraries.length} libraries "
+        "in ${stopwatch.elapsedMilliseconds} ms.");
+    stopwatch.reset();
+    if (fast) {
+      libToData = {};
+      c.libraries.sort((l1, l2) {
+        return "${l1.fileUri}".compareTo("${l2.fileUri}");
+      });
+
+      c.problemsAsJson?.sort();
+
+      c.computeCanonicalNames();
+
+      for (Library library in c.libraries) {
+        library.additionalExports.sort((Reference r1, Reference r2) {
+          return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
+        });
+        library.problemsAsJson?.sort();
+
+        List<int> libSerialized =
+            serializeComponent(c, filter: (l) => l == library);
+        libToData[library.importUri] = libSerialized;
+      }
+    } else {
+      firstCompileData = util.postProcess(c);
+    }
+    print("Serialized in ${stopwatch.elapsedMilliseconds} ms");
+    stopwatch.reset();
+
+    uris = c.uriToSource.values
+        .map((s) => s != null ? s.importUri : null)
+        .where((u) => u != null && u.scheme != "dart")
+        .toSet()
+        .toList();
+
+    c = null;
+
+    return compiler;
   }
 
-  print("Done after ${uris.length} recompiles in "
-      "${stopwatch.elapsedMilliseconds} ms");
-}
-
-bool isEqual(List<int> a, List<int> b) {
-  int length = a.length;
-  if (b.length != length) {
-    return false;
-  }
-  for (int i = 0; i < length; ++i) {
-    if (a[i] != b[i]) {
+  bool isEqual(List<int> a, List<int> b) {
+    int length = a.length;
+    if (b.length != length) {
       return false;
     }
+    for (int i = 0; i < length; ++i) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
   }
-  return true;
 }

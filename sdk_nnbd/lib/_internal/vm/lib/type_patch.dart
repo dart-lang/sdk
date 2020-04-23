@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 // These Dart classes correspond to the VM internal implementation classes.
@@ -22,6 +20,9 @@ class _Type extends _AbstractType {
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get hashCode native "Type_getHashCode";
+
+  @pragma("vm:exact-result-type", bool)
+  bool operator ==(other) native "Type_equality";
 }
 
 // Equivalent of RawTypeRef.

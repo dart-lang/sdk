@@ -7,15 +7,12 @@ library interactive_test;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'package:async_helper/async_helper.dart';
 
 // NOTE: To test enable chrome://flags/#enable-experimental-web-platform-features
 
 main() async {
-  useHtmlConfiguration();
-
   if (MediaStream.supported) {
     test('getUserMedia audio', () async {
       try {

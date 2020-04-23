@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterConvertToStatefulWidgetTest);
   });
@@ -19,7 +19,7 @@ class FlutterConvertToStatefulWidgetTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET;
 
-  test_empty() async {
+  Future<void> test_empty() async {
     addFlutterPackage();
     await resolveTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -48,7 +48,7 @@ class _MyWidgetState extends State<MyWidget> {
 ''');
   }
 
-  test_empty_typeParam() async {
+  Future<void> test_empty_typeParam() async {
     addFlutterPackage();
     await resolveTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -65,7 +65,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget<T> extends StatefulWidget {
   @override
-  _MyWidgetState createState() => _MyWidgetState();
+  _MyWidgetState<T> createState() => _MyWidgetState<T>();
 }
 
 class _MyWidgetState<T> extends State<MyWidget<T>> {
@@ -77,7 +77,7 @@ class _MyWidgetState<T> extends State<MyWidget<T>> {
 ''');
   }
 
-  test_fields() async {
+  Future<void> test_fields() async {
     addFlutterPackage();
     await resolveTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -158,7 +158,7 @@ class _MyWidgetState extends State<MyWidget> {
 ''');
   }
 
-  test_getters() async {
+  Future<void> test_getters() async {
     addFlutterPackage();
     await resolveTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -217,7 +217,7 @@ class _MyWidgetState extends State<MyWidget> {
 ''');
   }
 
-  test_methods() async {
+  Future<void> test_methods() async {
     addFlutterPackage();
     await resolveTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -307,7 +307,7 @@ class _MyWidgetState extends State<MyWidget> {
 ''');
   }
 
-  test_notClass() async {
+  Future<void> test_notClass() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -316,7 +316,7 @@ import 'package:flutter/material.dart';
     await assertNoAssist();
   }
 
-  test_notStatelessWidget() async {
+  Future<void> test_notStatelessWidget() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -327,7 +327,7 @@ class /*caret*/MyWidget extends Text {
     await assertNoAssist();
   }
 
-  test_notWidget() async {
+  Future<void> test_notWidget() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -336,7 +336,7 @@ class /*caret*/MyWidget {}
     await assertNoAssist();
   }
 
-  test_simple() async {
+  Future<void> test_simple() async {
     addFlutterPackage();
     await resolveTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -389,7 +389,7 @@ class _MyWidgetState extends State<MyWidget> {
 ''');
   }
 
-  test_tail() async {
+  Future<void> test_tail() async {
     addFlutterPackage();
     await resolveTestUnit(r'''
 import 'package:flutter/material.dart';

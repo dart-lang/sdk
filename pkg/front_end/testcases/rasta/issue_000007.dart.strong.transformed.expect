@@ -14,7 +14,7 @@ class Mixin extends core::Object {
   method foo() → dynamic
     return core::print("foo");
 }
-abstract class _Sub&Base&Mixin extends self::Base implements self::Mixin {
+abstract class _Sub&Base&Mixin extends self::Base implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_Sub&Base&Mixin*
     : super self::Base::•()
     ;

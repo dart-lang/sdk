@@ -6,6 +6,7 @@
 #define RUNTIME_PLATFORM_UTILS_H_
 
 #include <limits>
+#include <memory>
 #include <type_traits>
 
 #include "platform/assert.h"
@@ -21,7 +22,7 @@ class Utils {
   }
 
   template <typename T>
-  static inline T Maximum(T x, T y) {
+  static constexpr inline T Maximum(T x, T y) {
     return x > y ? x : y;
   }
 
@@ -181,8 +182,10 @@ class Utils {
   static inline bool IsUint(int N, T value) {
     ASSERT((0 < N) &&
            (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
-    T limit = static_cast<T>(1) << N;
-    return (0 <= value) && (value < limit);
+    const auto limit =
+        (static_cast<typename std::make_unsigned<T>::type>(1) << N) - 1;
+    return (0 <= value) &&
+           (static_cast<typename std::make_unsigned<T>::type>(value) <= limit);
   }
 
   // Check whether the magnitude of value fits in N bits, i.e., whether an
@@ -352,10 +355,16 @@ class Utils {
     return bit_cast<word>(mask);
   }
 
-  static uword Bit(uint32_t n) {
-    ASSERT(n < kBitsPerWord);
-    uword bit = 1;
+  template <typename T = uword>
+  static T Bit(uint32_t n) {
+    ASSERT(n < sizeof(T) * kBitsPerByte);
+    T bit = 1;
     return bit << n;
+  }
+
+  template <typename T>
+  DART_FORCE_INLINE static bool TestBit(T mask, intptr_t position) {
+    return ((mask >> position) & 1) != 0;
   }
 
   // Decode integer in SLEB128 format from |data| and update |byte_index|.
@@ -410,6 +419,11 @@ class Utils {
   // Allocate a string and print formatted output into a malloc'd buffer.
   static char* SCreate(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
   static char* VSCreate(const char* format, va_list args);
+
+  typedef std::unique_ptr<char, decltype(std::free)*> CStringUniquePtr;
+
+  // Returns str in a unique_ptr with free used as its deleter.
+  static CStringUniquePtr CreateCStringUniquePtr(char* str);
 };
 
 }  // namespace dart

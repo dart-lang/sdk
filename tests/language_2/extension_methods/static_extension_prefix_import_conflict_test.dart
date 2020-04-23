@@ -12,5 +12,5 @@ void main() {
   o.onObject;
   //^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The getter 'onObject' isn't defined for the class 'Object'.
+  // [cfe] The property 'onObject' is defined in multiple extensions for 'Object' and neither is more specific.
 }

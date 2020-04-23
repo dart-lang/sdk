@@ -87,8 +87,8 @@ abstract class SetMixin<E> implements Set<E> {
     removeAll(toRemove);
   }
 
-  bool containsAll(Iterable<Object> other) {
-    for (Object o in other) {
+  bool containsAll(Iterable<Object?> other) {
+    for (var o in other) {
       if (!contains(o)) return false;
     }
     return true;
@@ -98,7 +98,7 @@ abstract class SetMixin<E> implements Set<E> {
     return toSet()..addAll(other);
   }
 
-  Set<E> intersection(Set<Object> other) {
+  Set<E> intersection(Set<Object?> other) {
     Set<E> result = toSet();
     for (E element in this) {
       if (!other.contains(element)) result.remove(element);
@@ -106,7 +106,7 @@ abstract class SetMixin<E> implements Set<E> {
     return result;
   }
 
-  Set<E> difference(Set<Object> other) {
+  Set<E> difference(Set<Object?> other) {
     Set<E> result = toSet();
     for (E element in this) {
       if (other.contains(element)) result.remove(element);
@@ -323,7 +323,7 @@ abstract class _SetBase<E> implements Set<E> {
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newSimilarSet);
 
-  Set<E> difference(Set<Object> other) {
+  Set<E> difference(Set<Object?> other) {
     Set<E> result = _newSet();
     for (var element in this) {
       if (!other.contains(element)) result.add(element);
@@ -331,7 +331,7 @@ abstract class _SetBase<E> implements Set<E> {
     return result;
   }
 
-  Set<E> intersection(Set<Object> other) {
+  Set<E> intersection(Set<Object?> other) {
     Set<E> result = _newSet();
     for (var element in this) {
       if (other.contains(element)) result.add(element);

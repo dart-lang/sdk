@@ -1,0 +1,2 @@
+cfe=pkg/front_end/test/id_testing/id_testing_test.dart
+dart2js=tests/compiler/dart2js/equivalence/id_testing_test.dart

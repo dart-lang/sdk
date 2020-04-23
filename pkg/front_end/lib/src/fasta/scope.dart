@@ -5,9 +5,9 @@
 library fasta.scope;
 
 import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/core_types.dart';
 
 import 'builder/builder.dart';
-import 'builder/class_builder.dart';
 import 'builder/extension_builder.dart';
 import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
@@ -130,6 +130,65 @@ class Scope extends MutableScope {
 
   NameIterator get nameIterator {
     return new ScopeLocalDeclarationNameIterator(this);
+  }
+
+  void debug() {
+    print("Locals:");
+    _local.forEach((key, value) {
+      print("  $key: $value (${identityHashCode(value)}) (${value.parent})");
+    });
+    print("Setters:");
+    _setters.forEach((key, value) {
+      print("  $key: $value (${identityHashCode(value)}) (${value.parent})");
+    });
+    print("Extensions:");
+    _extensions?.forEach((v) {
+      print("  $v");
+    });
+  }
+
+  /// Patch up the scope, using the two replacement maps to replace builders in
+  /// scope. The replacement maps maps from old LibraryBuilder to map, mapping
+  /// from name to new (replacement) builder.
+  void patchUpScope(Map<LibraryBuilder, Map<String, Builder>> replacementMap,
+      Map<LibraryBuilder, Map<String, Builder>> replacementMapSetters) {
+    _local.forEach((key, value) {
+      if (replacementMap.containsKey(value.parent)) {
+        _local[key] = replacementMap[value.parent][key];
+      }
+    });
+    _setters.forEach((key, value) {
+      if (replacementMapSetters.containsKey(value.parent)) {
+        _setters[key] = replacementMapSetters[value.parent][key];
+      }
+    });
+    if (_extensions != null) {
+      bool needsPatching = false;
+      for (ExtensionBuilder extensionBuilder in _extensions) {
+        if (replacementMap.containsKey(extensionBuilder.parent)) {
+          needsPatching = true;
+          break;
+        }
+      }
+      if (needsPatching) {
+        Set<ExtensionBuilder> extensionsReplacement =
+            new Set<ExtensionBuilder>();
+        for (ExtensionBuilder extensionBuilder in _extensions) {
+          if (replacementMap.containsKey(extensionBuilder.parent)) {
+            assert(replacementMap[extensionBuilder.parent]
+                    [extensionBuilder.name] !=
+                null);
+            extensionsReplacement.add(
+                replacementMap[extensionBuilder.parent][extensionBuilder.name]);
+            break;
+          } else {
+            extensionsReplacement.add(extensionBuilder);
+          }
+        }
+        _extensions.clear();
+        extensionsReplacement.addAll(extensionsReplacement);
+      }
+    }
   }
 
   Scope copyWithParent(Scope parent, String debugName) {
@@ -599,11 +658,7 @@ class AmbiguousBuilder extends ProblemBuilder {
   }
 }
 
-class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
-  AmbiguousMemberBuilder(
-      String name, Builder builder, int charOffset, Uri fileUri)
-      : super(name, builder, charOffset, fileUri);
-
+mixin ErroneousMemberBuilderMixin implements MemberBuilder {
   @override
   Member get member => null;
 
@@ -622,9 +677,6 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
   bool get isAssignable => false;
 
   @override
-  ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
-
-  @override
   void set parent(Builder value) {
     throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
   }
@@ -639,7 +691,7 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
   ProcedureKind get kind => null;
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
     throw new UnsupportedError(
         'AmbiguousMemberBuilder.buildOutlineExpressions');
   }
@@ -649,6 +701,13 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
 
   @override
   List<ClassMember> get localSetters => const <ClassMember>[];
+}
+
+class AmbiguousMemberBuilder extends AmbiguousBuilder
+    with ErroneousMemberBuilderMixin {
+  AmbiguousMemberBuilder(
+      String name, Builder builder, int charOffset, Uri fileUri)
+      : super(name, builder, charOffset, fileUri);
 }
 
 class ScopeLocalDeclarationIterator implements Iterator<Builder> {

@@ -11,8 +11,10 @@ template("rust_library") {
   cmd = [
     rebase_path("//buildtools/${current_os}-${current_cpu}/rust/bin/cargo"),
     "build",
-    "--target-dir", rebase_path(target_out_dir),
-    "--manifest-path", manifest,
+    "--target-dir",
+    rebase_path(target_out_dir),
+    "--manifest-path",
+    manifest,
   ]
   output = "$target_out_dir/lib${invoker.lib_name}.a"
   debug = defined(invoker.debug) && invoker.debug

@@ -21,20 +21,21 @@ class ExecuteCommandHandler
   final Map<String, CommandHandler> commandHandlers;
   ExecuteCommandHandler(LspAnalysisServer server)
       : commandHandlers = {
-          Commands.sortMembers: new SortMembersCommandHandler(server),
-          Commands.organizeImports: new OrganizeImportsCommandHandler(server),
-          Commands.performRefactor: new PerformRefactorCommandHandler(server),
-          Commands.sendWorkspaceEdit:
-              new SendWorkspaceEditCommandHandler(server),
+          Commands.sortMembers: SortMembersCommandHandler(server),
+          Commands.organizeImports: OrganizeImportsCommandHandler(server),
+          Commands.performRefactor: PerformRefactorCommandHandler(server),
+          Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
         },
         super(server);
 
+  @override
   Method get handlesMessage => Method.workspace_executeCommand;
 
   @override
   LspJsonHandler<ExecuteCommandParams> get jsonHandler =>
       ExecuteCommandParams.jsonHandler;
 
+  @override
   Future<ErrorOr<Object>> handle(
       ExecuteCommandParams params, CancellationToken token) async {
     final handler = commandHandlers[params.command];

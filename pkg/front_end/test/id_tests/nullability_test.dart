@@ -13,19 +13,12 @@ import 'package:kernel/ast.dart' hide Variance;
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data'));
-  await runTests(dataDir,
+  await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const NullabilityDataComputer(), [cfeNonNullableOnlyConfig]),
-      skipList: [
-        // TODO(johnniwinther): Run all nullability tests.
-        'null_aware_access.dart',
-        'try_finally.dart',
-        'while.dart',
-      ]);
+          const NullabilityDataComputer(), [cfeNonNullableOnlyConfig]));
 }
 
 class NullabilityDataComputer extends DataComputer<String> {
@@ -37,7 +30,10 @@ class NullabilityDataComputer extends DataComputer<String> {
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
-  void computeMemberData(InternalCompilerResult compilerResult, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     member.accept(new NullabilityDataExtractor(compilerResult, actualMap));

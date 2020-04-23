@@ -1,0 +1,10 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/annotation_eof.dart:12:1: Error: Expected a declaration, but got ''.
+//
+import self as self;
+
+static method main() → dynamic
+  ;

@@ -6,7 +6,7 @@ library typed_data_test;
 
 import 'dart:typed_data';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 var int8List;

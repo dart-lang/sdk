@@ -7,6 +7,6 @@ void main() {
   foo();
 }
 
-foo() {
-  print("hello");
+void foo() {
+  print('hello');
 }

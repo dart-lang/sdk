@@ -5,31 +5,25 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/parser.dart' show Parser;
-import 'package:analyzer/src/string_source.dart' show StringSource;
 import 'package:path/path.dart' as path;
 
-final _identifier = new RegExp(r'^([(_|$)a-zA-Z]+([_a-zA-Z0-9])*)$');
+final _identifier = RegExp(r'^([(_|$)a-zA-Z]+([_a-zA-Z0-9])*)$');
 
-final _lowerCamelCase =
-    new RegExp(r'^(_)*[?$a-z][a-z0-9?$]*([A-Z][a-z0-9?$]*)*$');
+final _lowerCamelCase = RegExp(r'^(_)*[?$a-z][a-z0-9?$]*([A-Z][a-z0-9?$]*)*$');
 
-final _lowerCaseUnderScore = new RegExp(r'^([a-z]+([_]?[a-z0-9]+)*)+$');
+final _lowerCaseUnderScore = RegExp(r'^([a-z]+([_]?[a-z0-9]+)*)+$');
 
 final _lowerCaseUnderScoreWithDots =
-    new RegExp(r'^[a-z][_a-z0-9]*(\.[a-z][_a-z0-9]*)*$');
+    RegExp(r'^[a-z][_a-z0-9]*(\.[a-z][_a-z0-9]*)*$');
 
-final _pubspec = new RegExp(r'^[_]?pubspec\.yaml$');
+final _pubspec = RegExp(r'^[_]?pubspec\.yaml$');
 
-final _underscores = new RegExp(r'^[_]+$');
+final _underscores = RegExp(r'^[_]+$');
 
 /// Create a library name prefix based on [libraryPath], [projectRoot] and
 /// current [packageName].
@@ -97,41 +91,15 @@ class Spelunker {
         featureSet = featureSet ?? FeatureSet.fromEnableFlags([]);
 
   void spelunk() {
-    var contents = new File(path).readAsStringSync();
+    var contents = File(path).readAsStringSync();
 
-    var errorListener = new _ErrorListener();
+    var parseResult = parseString(
+      content: contents,
+      featureSet: featureSet,
+    );
 
-    var reader = new CharSequenceReader(contents);
-    var stringSource = new StringSource(contents, path);
-    var scanner = new Scanner(stringSource, reader, errorListener)
-      ..configureFeatures(featureSet);
-    var startToken = scanner.tokenize();
-
-    errorListener.throwIfErrors();
-
-    var parser =
-        new Parser(stringSource, errorListener, featureSet: featureSet);
-    var node = parser.parseCompilationUnit(startToken);
-
-    errorListener.throwIfErrors();
-
-    var visitor = new _SourceVisitor(sink);
-    node.accept(visitor);
-  }
-}
-
-class _ErrorListener implements AnalysisErrorListener {
-  final errors = <AnalysisError>[];
-
-  @override
-  void onError(AnalysisError error) {
-    errors.add(error);
-  }
-
-  void throwIfErrors() {
-    if (errors.isNotEmpty) {
-      throw new Exception(errors);
-    }
+    var visitor = _SourceVisitor(sink);
+    parseResult.unit.accept(visitor);
   }
 }
 

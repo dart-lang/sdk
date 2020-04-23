@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToIfElementTest);
   });
@@ -21,13 +21,14 @@ class ConvertToIfElementTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_FOR_ELEMENT;
 
+  @override
   void setUp() {
     createAnalysisOptionsFile(
         experiments: [EnableString.control_flow_collections]);
     super.setUp();
   }
 
-  test_mapFromIterable_complexKey() async {
+  Future<void> test_mapFromIterable_complexKey() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (e) {
@@ -39,7 +40,7 @@ f(Iterable<int> i) {
     await assertNoAssist();
   }
 
-  test_mapFromIterable_complexValue() async {
+  Future<void> test_mapFromIterable_complexValue() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (e) => e * 2, value: (e) {
@@ -51,7 +52,8 @@ f(Iterable<int> i) {
     await assertNoAssist();
   }
 
-  test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue() async {
+  Future<void>
+      test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   var k = 3;
@@ -66,7 +68,8 @@ f(Iterable<int> i) {
 ''');
   }
 
-  test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue_noAssistWithLint() async {
+  Future<void>
+      test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue_noAssistWithLint() async {
     createAnalysisOptionsFile(
         lints: [LintNames.prefer_for_elements_to_map_fromIterable]);
     verifyNoTestUnitErrors = false;
@@ -79,7 +82,8 @@ f(Iterable<int> i) {
     await assertNoAssist();
   }
 
-  test_mapFromIterable_differentParameterNames_usedInKey_noConflictInValue() async {
+  Future<void>
+      test_mapFromIterable_differentParameterNames_usedInKey_noConflictInValue() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (k) => k * 2, value: (v) => 0);
@@ -92,7 +96,8 @@ f(Iterable<int> i) {
 ''');
   }
 
-  test_mapFromIterable_differentParameterNames_usedInKeyAndValue_conflictWithDefault() async {
+  Future<void>
+      test_mapFromIterable_differentParameterNames_usedInKeyAndValue_conflictWithDefault() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   var e = 2;
@@ -107,7 +112,8 @@ f(Iterable<int> i) {
 ''');
   }
 
-  test_mapFromIterable_differentParameterNames_usedInKeyAndValue_noConflictWithDefault() async {
+  Future<void>
+      test_mapFromIterable_differentParameterNames_usedInKeyAndValue_noConflictWithDefault() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (k) => k * 2, value: (v) => v + 3);
@@ -120,7 +126,8 @@ f(Iterable<int> i) {
 ''');
   }
 
-  test_mapFromIterable_differentParameterNames_usedInValue_conflictInKey() async {
+  Future<void>
+      test_mapFromIterable_differentParameterNames_usedInValue_conflictInKey() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   int v = 0;
@@ -135,7 +142,8 @@ f(Iterable<int> i) {
 ''');
   }
 
-  test_mapFromIterable_differentParameterNames_usedInValue_noConflictInKey() async {
+  Future<void>
+      test_mapFromIterable_differentParameterNames_usedInValue_noConflictInKey() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   int index = 0;
@@ -150,7 +158,7 @@ f(Iterable<int> i) {
 ''');
   }
 
-  test_mapFromIterable_missingKey() async {
+  Future<void> test_mapFromIterable_missingKey() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, value: (e) => e + 3);
@@ -159,7 +167,7 @@ f(Iterable<int> i) {
     await assertNoAssist();
   }
 
-  test_mapFromIterable_missingKeyAndValue() async {
+  Future<void> test_mapFromIterable_missingKeyAndValue() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i);
@@ -168,7 +176,7 @@ f(Iterable<int> i) {
     await assertNoAssist();
   }
 
-  test_mapFromIterable_missingValue() async {
+  Future<void> test_mapFromIterable_missingValue() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (e) => e * 2);
@@ -177,7 +185,7 @@ f(Iterable<int> i) {
     await assertNoAssist();
   }
 
-  test_mapFromIterable_notMapFromIterable() async {
+  Future<void> test_mapFromIterable_notMapFromIterable() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   return A.fromIt/*caret*/erable(i, key: (e) => e * 2, value: (e) => e + 3);
@@ -189,7 +197,7 @@ class A {
     await assertNoAssist();
   }
 
-  test_mapFromIterable_sameParameterNames() async {
+  Future<void> test_mapFromIterable_sameParameterNames() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (e) => e * 2, value: (e) => e + 3);
@@ -202,7 +210,7 @@ f(Iterable<int> i) {
 ''');
   }
 
-  test_undefinedConstructor() async {
+  Future<void> test_undefinedConstructor() async {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
 f() {

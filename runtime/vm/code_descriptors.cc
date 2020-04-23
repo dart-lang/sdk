@@ -6,6 +6,8 @@
 
 #include "vm/compiler/compiler_state.h"
 #include "vm/log.h"
+#include "vm/object_store.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -84,6 +86,38 @@ RawCompressedStackMaps* CompressedStackMapsBuilder::Finalize() const {
   if (encoded_bytes_.length() == 0) return CompressedStackMaps::null();
   return CompressedStackMaps::NewInlined(encoded_bytes_);
 }
+
+CompressedStackMapsIterator::CompressedStackMapsIterator(
+    const CompressedStackMaps& maps,
+    const CompressedStackMaps& global_table)
+    : maps_(maps),
+      bits_container_(maps_.UsesGlobalTable() ? global_table : maps_) {
+  ASSERT(!maps_.IsGlobalTable());
+  ASSERT(!maps_.UsesGlobalTable() || bits_container_.IsGlobalTable());
+}
+
+CompressedStackMapsIterator::CompressedStackMapsIterator(
+    const CompressedStackMaps& maps)
+    : CompressedStackMapsIterator(
+          maps,
+          // Only look up the global table if the map will end up using it.
+          maps.UsesGlobalTable() ? CompressedStackMaps::Handle(
+                                       Thread::Current()
+                                           ->isolate()
+                                           ->object_store()
+                                           ->canonicalized_stack_map_entries())
+                                 : Object::null_compressed_stack_maps()) {}
+
+CompressedStackMapsIterator::CompressedStackMapsIterator(
+    const CompressedStackMapsIterator& it)
+    : maps_(it.maps_),
+      bits_container_(it.bits_container_),
+      next_offset_(it.next_offset_),
+      current_pc_offset_(it.current_pc_offset_),
+      current_global_table_offset_(it.current_global_table_offset_),
+      current_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
+      current_non_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
+      current_bits_offset_(it.current_bits_offset_) {}
 
 // Decode unsigned integer in LEB128 format from the payload of |maps| and
 // update |byte_index|.
@@ -185,6 +219,33 @@ void CompressedStackMapsIterator::LazyLoadGlobalTableEntry() {
   ASSERT(stackmap_size <= (bits_container_.payload_size() - offset));
 
   current_bits_offset_ = offset;
+}
+
+const char* CompressedStackMapsIterator::ToCString(Zone* zone) const {
+  ZoneTextBuffer b(zone, 100);
+  CompressedStackMapsIterator it(*this);
+  // If we haven't loaded an entry yet, do so (but don't skip the current
+  // one if we have!)
+  if (!it.HasLoadedEntry()) {
+    if (!it.MoveNext()) return b.buffer();
+  }
+  bool first_entry = true;
+  do {
+    if (first_entry) {
+      first_entry = false;
+    } else {
+      b.AddString("\n");
+    }
+    b.Printf("0x%08x: ", it.pc_offset());
+    for (intptr_t i = 0, n = it.Length(); i < n; i++) {
+      b.AddString(it.IsObject(i) ? "1" : "0");
+    }
+  } while (it.MoveNext());
+  return b.buffer();
+}
+
+const char* CompressedStackMapsIterator::ToCString() const {
+  return ToCString(Thread::Current()->zone());
 }
 
 RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
@@ -463,7 +524,7 @@ void CodeSourceMapBuilder::NoteDescriptor(RawPcDescriptors::Kind kind,
   const uint8_t kCanThrow =
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall |
       RawPcDescriptors::kRuntimeCall | RawPcDescriptors::kOther;
-  if (stack_traces_only_ && ((kind & kCanThrow) != 0)) {
+  if ((kind & kCanThrow) != 0) {
     BufferChangePosition(pos);
     BufferAdvancePC(pc_offset - buffered_pc_offset_);
     FlushBuffer();
@@ -653,7 +714,8 @@ void CodeSourceMapReader::DumpInlineIntervals(uword start) {
   int32_t current_pc_offset = 0;
   function_stack.Add(&root_);
 
-  THR_Print("Inline intervals {\n");
+  THR_Print("Inline intervals for function '%s' {\n",
+            root_.ToFullyQualifiedCString());
   while (stream.PendingBytes() > 0) {
     uint8_t opcode = stream.Read<uint8_t>();
     switch (opcode) {
@@ -706,7 +768,8 @@ void CodeSourceMapReader::DumpSourcePositions(uword start) {
   function_stack.Add(&root_);
   token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
 
-  THR_Print("Source positions {\n");
+  THR_Print("Source positions for function '%s' {\n",
+            root_.ToFullyQualifiedCString());
   while (stream.PendingBytes() > 0) {
     uint8_t opcode = stream.Read<uint8_t>();
     switch (opcode) {

@@ -15,6 +15,32 @@ main() {
 
 @reflectiveTest
 class NotEnoughPositionalArgumentsTest extends DriverResolutionTest {
+  test_const() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int p);
+}
+main() {
+  const A();
+}
+''', [
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 48, 2),
+    ]);
+  }
+
+  test_const_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int p);
+}
+class B extends A {
+  const B() : super();
+}
+''', [
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 69, 2),
+    ]);
+  }
+
   test_functionExpression() async {
     await assertErrorsInCode('''
 main() {

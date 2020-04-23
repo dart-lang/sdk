@@ -5,15 +5,15 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../resolution/driver_resolution.dart';
+import '../../../generated/test_analysis_context.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,14 +21,13 @@ main() {
   });
 }
 
-/// Tests for the [ExitDetector] that require that the control flow and spread
-/// experiments be enabled.
 @reflectiveTest
-class LegacyTypeAsserterTest extends DriverResolutionTest {
+class LegacyTypeAsserterTest {
   TypeProvider typeProvider;
-  setUp() async {
-    await super.setUp();
-    typeProvider = await this.driver.currentSession.typeProvider;
+
+  void setUp() {
+    var analysisContext = TestAnalysisContext();
+    typeProvider = analysisContext.typeProviderLegacy;
   }
 
   test_nullableUnit_expressionStaticType_bottom() async {
@@ -99,7 +98,7 @@ class LegacyTypeAsserterTest extends DriverResolutionTest {
     T.bound = (typeProvider.intType as TypeImpl)
         .withNullability(NullabilitySuffix.none);
     identifier.staticType = TypeParameterTypeImpl(
-      T,
+      element: T,
       nullabilitySuffix: NullabilitySuffix.star,
     );
     expect(() {

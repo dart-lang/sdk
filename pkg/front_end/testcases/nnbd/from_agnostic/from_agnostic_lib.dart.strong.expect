@@ -1,0 +1,36 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///from_agnostic_lib.dart";
+
+static const field core::bool c1 = #C1;
+static const field core::Map<core::List<core::int?>, core::int> c2 = #C7;
+static const field core::Set<core::List<core::int?>> c3 = #C11;
+static const field core::List<core::int> c4 = #C2;
+static const field core::List<core::int?> c5 = #C4;
+static method main() → dynamic {
+  #C2;
+  #C4;
+}
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+static const field core::List<core::int> a = #C2;
+static const field core::List<core::int?> b = #C4;
+
+constants  {
+  #C1 = false
+  #C2 = <core::int>[]
+  #C3 = 0
+  #C4 = <core::int?>[]
+  #C5 = 1
+  #C6 = <dynamic>[#C2, #C3, #C4, #C5]
+  #C7 = core::_ImmutableMap<core::List<core::int?>, core::int> {_kvPairs:#C6}
+  #C8 = null
+  #C9 = <dynamic>[#C2, #C8, #C4, #C8]
+  #C10 = core::_ImmutableMap<core::List<core::int?>, core::Null?> {_kvPairs:#C9}
+  #C11 = col::_UnmodifiableSet<core::List<core::int?>> {_map:#C10}
+}

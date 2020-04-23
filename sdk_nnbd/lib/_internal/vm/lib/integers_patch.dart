@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 /// VM implementation of int.
 @patch
 class int {
   @patch
-  const factory int.fromEnvironment(String name, {int defaultValue})
+  const factory int.fromEnvironment(String name, {int defaultValue = 0})
       native "Integer_fromEnvironment";
 
   int _bitAndFromSmi(_Smi other);
@@ -20,7 +18,7 @@ class int {
   int _shrFromInteger(int other);
   int _shlFromInteger(int other);
 
-  static int _tryParseSmi(String str, int first, int last) {
+  static int? _tryParseSmi(String str, int first, int last) {
     assert(first <= last);
     var ix = first;
     var sign = 1;
@@ -49,23 +47,23 @@ class int {
   }
 
   @patch
-  static int parse(String source, {int radix, int onError(String source)}) {
+  static int parse(String source, {int? radix, int onError(String source)?}) {
     if (source == null) throw new ArgumentError("The source must not be null");
     if (source.isEmpty) {
       return _throwFormatException(onError, source, 0, radix, null);
     }
     if (radix == null || radix == 10) {
       // Try parsing immediately, without trimming whitespace.
-      int result = _tryParseSmi(source, 0, source.length - 1);
+      int? result = _tryParseSmi(source, 0, source.length - 1);
       if (result != null) return result;
     } else if (radix < 2 || radix > 36) {
       throw new RangeError("Radix $radix not in range 2..36");
     }
     // Split here so improve odds of parse being inlined and the checks omitted.
-    return _parse(source, radix, onError);
+    return _parse(unsafeCast<_StringBase>(source), radix, onError);
   }
 
-  static int _parse(_StringBase source, int radix, onError) {
+  static int _parse(_StringBase source, int? radix, onError) {
     int end = source._lastNonWhitespace() + 1;
     if (end == 0) {
       return _throwFormatException(onError, source, source.length, radix, null);
@@ -103,18 +101,18 @@ class int {
   }
 
   @patch
-  static int tryParse(String source, {int radix}) {
+  static int? tryParse(String source, {int? radix}) {
     if (source == null) throw new ArgumentError("The source must not be null");
     if (source.isEmpty) return null;
     if (radix == null || radix == 10) {
       // Try parsing immediately, without trimming whitespace.
-      int result = _tryParseSmi(source, 0, source.length - 1);
+      int? result = _tryParseSmi(source, 0, source.length - 1);
       if (result != null) return result;
     } else if (radix < 2 || radix > 36) {
       throw new RangeError("Radix $radix not in range 2..36");
     }
     try {
-      return _parse(source, radix, _kNull);
+      return _parse(unsafeCast<_StringBase>(source), radix, _kNull);
     } catch (e) {
       return null;
     }
@@ -139,7 +137,7 @@ class int {
     int blockSize = _PARSE_LIMITS[tableIndex];
     int length = end - start;
     if (length <= blockSize) {
-      _Smi smi = _parseBlock(source, radix, start, end);
+      int? smi = _parseBlock(source, radix, start, end);
       if (smi == null) {
         return _throwFormatException(onError, source, start, radix, null);
       }
@@ -154,7 +152,7 @@ class int {
     int result = 0;
     if (smallBlockSize > 0) {
       int blockEnd = start + smallBlockSize;
-      _Smi smi = _parseBlock(source, radix, start, blockEnd);
+      int? smi = _parseBlock(source, radix, start, blockEnd);
       if (smi == null) {
         return _throwFormatException(onError, source, start, radix, null);
       }
@@ -172,7 +170,7 @@ class int {
     negativeOverflowLimit = _int64OverflowLimits[tableIndex + 1];
     int blockEnd = start + blockSize;
     do {
-      _Smi smi = _parseBlock(source, radix, start, blockEnd);
+      int? smi = _parseBlock(source, radix, start, blockEnd);
       if (smi == null) {
         return _throwFormatException(onError, source, start, radix, null);
       }
@@ -208,13 +206,13 @@ class int {
   }
 
   // Parse block of digits into a Smi.
-  static _Smi _parseBlock(String source, int radix, int start, int end) {
-    _Smi result = 0;
+  static _Smi? _parseBlock(String source, int radix, int start, int end) {
+    _Smi result = unsafeCast<_Smi>(0);
     if (radix <= 10) {
       for (int i = start; i < end; i++) {
         int digit = source.codeUnitAt(i) ^ 0x30;
         if (digit >= radix) return null;
-        result = radix * result + digit;
+        result = (radix * result + digit) as _Smi;
       }
     } else {
       for (int i = start; i < end; i++) {
@@ -224,7 +222,7 @@ class int {
           digit = (char | 0x20) - (0x61 - 10);
           if (digit < 10 || digit >= radix) return null;
         }
-        result = radix * result + digit;
+        result = (radix * result + digit) as _Smi;
       }
     }
     return result;
@@ -301,8 +299,10 @@ class int {
   static int _initInt64OverflowLimits(int tableIndex, int multiplier) {
     _int64OverflowLimits[tableIndex] = _maxInt64 ~/ multiplier;
     _int64OverflowLimits[tableIndex + 1] = _minInt64 ~/ multiplier;
-    _int64OverflowLimits[tableIndex + 2] = _maxInt64.remainder(multiplier);
-    _int64OverflowLimits[tableIndex + 3] = -(_minInt64.remainder(multiplier));
+    _int64OverflowLimits[tableIndex + 2] =
+        unsafeCast<int>(_maxInt64.remainder(multiplier));
+    _int64OverflowLimits[tableIndex + 3] =
+        -unsafeCast<int>(_minInt64.remainder(multiplier));
     return _int64OverflowLimits[tableIndex];
   }
 }

@@ -17,12 +17,12 @@ import 'package:kernel/ast.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/unresolved_type.dart';
@@ -406,9 +406,10 @@ class VariableUseGenerator extends Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return _helper.buildMethodInvocation(buildSimpleRead(), callName, arguments,
+    return _helper.forest.createExpressionInvocation(
         adjustForImplicitCall(_plainNameForRead, offset),
-        isImplicitCall: true);
+        buildSimpleRead(),
+        arguments);
   }
 
   @override
@@ -492,10 +493,17 @@ class PropertyAccessGenerator extends Generator {
       {bool voidContext = false}) {
     VariableDeclaration variable =
         _helper.forest.createVariableDeclarationForValue(receiver);
-    PropertyGet read = _forest.createPropertyGet(fileOffset,
-        _helper.createVariableGet(variable, receiver.fileOffset), name);
-    PropertySet write = _helper.forest.createPropertySet(fileOffset,
-        _helper.createVariableGet(variable, receiver.fileOffset), name, value,
+    PropertyGet read = _forest.createPropertyGet(
+        fileOffset,
+        _helper.createVariableGet(variable, receiver.fileOffset,
+            forNullGuardedAccess: true),
+        name);
+    PropertySet write = _helper.forest.createPropertySet(
+        fileOffset,
+        _helper.createVariableGet(variable, receiver.fileOffset,
+            forNullGuardedAccess: true),
+        name,
+        value,
         forEffect: voidContext);
     return new IfNullPropertySet(variable, read, write, forEffect: voidContext)
       ..fileOffset = offset;
@@ -724,7 +732,8 @@ class NullAwarePropertyAccessGenerator extends Generator {
         _helper.forest.createVariableDeclarationForValue(receiverExpression);
     PropertyGet read = _forest.createPropertyGet(
         fileOffset,
-        _helper.createVariableGet(variable, receiverExpression.fileOffset),
+        _helper.createVariableGet(variable, receiverExpression.fileOffset,
+            forNullGuardedAccess: true),
         name);
     return new NullAwarePropertyGet(variable, read)
       ..fileOffset = receiverExpression.fileOffset;
@@ -736,7 +745,8 @@ class NullAwarePropertyAccessGenerator extends Generator {
         _helper.forest.createVariableDeclarationForValue(receiverExpression);
     PropertySet read = _helper.forest.createPropertySet(
         fileOffset,
-        _helper.createVariableGet(variable, receiverExpression.fileOffset),
+        _helper.createVariableGet(variable, receiverExpression.fileOffset,
+            forNullGuardedAccess: true),
         name,
         value,
         forEffect: voidContext,
@@ -887,12 +897,8 @@ class SuperPropertyAccessGenerator extends Generator {
       _helper.addProblem(messageNotAConstantExpression, offset, 1);
     }
     if (getter == null || isFieldOrGetter(getter)) {
-      return _helper.buildMethodInvocation(
-          buildSimpleRead(), callName, arguments, offset,
-          // This isn't a constant expression, but we have checked if a
-          // constant expression error should be emitted already.
-          isConstantExpression: true,
-          isImplicitCall: true);
+      return _helper.forest
+          .createExpressionInvocation(offset, buildSimpleRead(), arguments);
     } else {
       // TODO(ahe): This could be something like "super.property(...)" where
       // property is a setter.
@@ -945,7 +951,8 @@ class IndexedAccessGenerator extends Generator {
     Expression receiverValue;
     if (isNullAware) {
       variable = _forest.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset);
+      receiverValue = _helper.createVariableGet(variable, fileOffset,
+          forNullGuardedAccess: true);
     } else {
       receiverValue = receiver;
     }
@@ -965,7 +972,8 @@ class IndexedAccessGenerator extends Generator {
     bool readOnlyReceiver;
     if (isNullAware) {
       variable = _forest.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset);
+      receiverValue = _helper.createVariableGet(variable, fileOffset,
+          forNullGuardedAccess: true);
       readOnlyReceiver = true;
     } else {
       receiverValue = receiver;
@@ -989,7 +997,8 @@ class IndexedAccessGenerator extends Generator {
     bool readOnlyReceiver;
     if (isNullAware) {
       variable = _forest.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset);
+      receiverValue = _helper.createVariableGet(variable, fileOffset,
+          forNullGuardedAccess: true);
       readOnlyReceiver = true;
     } else {
       receiverValue = receiver;
@@ -1020,7 +1029,8 @@ class IndexedAccessGenerator extends Generator {
     bool readOnlyReceiver;
     if (isNullAware) {
       variable = _forest.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset);
+      receiverValue = _helper.createVariableGet(variable, fileOffset,
+          forNullGuardedAccess: true);
       readOnlyReceiver = true;
     } else {
       receiverValue = receiver;
@@ -1052,9 +1062,8 @@ class IndexedAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return _helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, arguments.fileOffset,
-        isImplicitCall: true);
+    return _helper.forest.createExpressionInvocation(
+        arguments.fileOffset, buildSimpleRead(), arguments);
   }
 
   @override
@@ -1154,9 +1163,8 @@ class ThisIndexedAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return _helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset,
-        isImplicitCall: true);
+    return _helper.forest
+        .createExpressionInvocation(offset, buildSimpleRead(), arguments);
   }
 
   @override
@@ -1254,9 +1262,8 @@ class SuperIndexedAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return _helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset,
-        isImplicitCall: true);
+    return _helper.forest
+        .createExpressionInvocation(offset, buildSimpleRead(), arguments);
   }
 
   @override
@@ -1428,12 +1435,10 @@ class StaticAccessGenerator extends Generator {
           readTarget?.name?.name?.length ?? 0);
     }
     if (readTarget == null || isFieldOrGetter(readTarget)) {
-      return _helper.buildMethodInvocation(buildSimpleRead(), callName,
-          arguments, offset + (readTarget?.name?.name?.length ?? 0),
-          // This isn't a constant expression, but we have checked if a
-          // constant expression error should be emitted already.
-          isConstantExpression: true,
-          isImplicitCall: true);
+      return _helper.forest.createExpressionInvocation(
+          offset + (readTarget?.name?.name?.length ?? 0),
+          buildSimpleRead(),
+          arguments);
     } else {
       return _helper.buildStaticInvocation(readTarget, arguments,
           charOffset: offset);
@@ -1552,7 +1557,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
         assert(!getterBuilder.isStatic);
         readTarget = getterBuilder.readTarget;
         invokeTarget = getterBuilder.invokeTarget;
-      } else if (getterBuilder is FunctionBuilder && getterBuilder.isOperator) {
+      } else if (getterBuilder.isOperator) {
         assert(!getterBuilder.isStatic);
         invokeTarget = getterBuilder.invokeTarget;
       }
@@ -1707,9 +1712,10 @@ class ExtensionInstanceAccessGenerator extends Generator {
               namedArguments: arguments.named),
           isTearOff: false);
     } else {
-      return _helper.buildMethodInvocation(buildSimpleRead(), callName,
-          arguments, adjustForImplicitCall(_plainNameForRead, offset),
-          isImplicitCall: true);
+      return _helper.forest.createExpressionInvocation(
+          adjustForImplicitCall(_plainNameForRead, offset),
+          buildSimpleRead(),
+          arguments);
     }
   }
 
@@ -1853,13 +1859,13 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         MemberBuilder procedureBuilder = getterBuilder;
         readTarget = procedureBuilder.readTarget;
         invokeTarget = procedureBuilder.invokeTarget;
-      } else if (getterBuilder is FunctionBuilder && getterBuilder.isOperator) {
+      } else if (getterBuilder.isOperator) {
         assert(!getterBuilder.isStatic);
         MemberBuilder memberBuilder = getterBuilder;
         invokeTarget = memberBuilder.invokeTarget;
       } else {
         return unhandled(
-            "${getterBuilder.runtimeType}",
+            "$getterBuilder (${getterBuilder.runtimeType})",
             "InstanceExtensionAccessGenerator.fromBuilder",
             offsetForToken(token),
             helper.uri);
@@ -1876,7 +1882,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         writeTarget = memberBuilder.writeTarget;
       } else {
         return unhandled(
-            "${setterBuilder.runtimeType}",
+            "$setterBuilder (${setterBuilder.runtimeType})",
             "InstanceExtensionAccessGenerator.fromBuilder",
             offsetForToken(token),
             helper.uri);
@@ -1919,8 +1925,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     if (isNullAware) {
       VariableDeclaration variable =
           _helper.forest.createVariableDeclarationForValue(receiver);
-      return new NullAwareExtension(variable,
-          _createRead(_helper.createVariableGet(variable, variable.fileOffset)))
+      return new NullAwareExtension(
+          variable,
+          _createRead(_helper.createVariableGet(variable, variable.fileOffset,
+              forNullGuardedAccess: true)))
         ..fileOffset = fileOffset;
     } else {
       return _createRead(receiver);
@@ -1951,9 +1959,13 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           _helper.forest.createVariableDeclarationForValue(receiver);
       return new NullAwareExtension(
           variable,
-          _createWrite(fileOffset,
-              _helper.createVariableGet(variable, variable.fileOffset), value,
-              forEffect: voidContext, readOnlyReceiver: true))
+          _createWrite(
+              fileOffset,
+              _helper.createVariableGet(variable, variable.fileOffset,
+                  forNullGuardedAccess: true),
+              value,
+              forEffect: voidContext,
+              readOnlyReceiver: true))
         ..fileOffset = fileOffset;
     } else {
       return _createWrite(fileOffset, receiver, value,
@@ -1981,11 +1993,16 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     if (isNullAware) {
       VariableDeclaration variable =
           _helper.forest.createVariableDeclarationForValue(receiver);
-      Expression read =
-          _createRead(_helper.createVariableGet(variable, receiver.fileOffset));
-      Expression write = _createWrite(fileOffset,
-          _helper.createVariableGet(variable, receiver.fileOffset), value,
-          forEffect: voidContext, readOnlyReceiver: true);
+      Expression read = _createRead(_helper.createVariableGet(
+          variable, receiver.fileOffset,
+          forNullGuardedAccess: true));
+      Expression write = _createWrite(
+          fileOffset,
+          _helper.createVariableGet(variable, receiver.fileOffset,
+              forNullGuardedAccess: true),
+          value,
+          forEffect: voidContext,
+          readOnlyReceiver: true);
       return new NullAwareExtension(
           variable,
           new IfNullSet(read, write, forEffect: voidContext)
@@ -2016,12 +2033,17 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           _helper.forest.createVariableDeclarationForValue(receiver);
       Expression binary = _helper.forest.createBinary(
           offset,
-          _createRead(_helper.createVariableGet(variable, receiver.fileOffset)),
+          _createRead(_helper.createVariableGet(variable, receiver.fileOffset,
+              forNullGuardedAccess: true)),
           binaryOperator,
           value);
-      Expression write = _createWrite(fileOffset,
-          _helper.createVariableGet(variable, receiver.fileOffset), binary,
-          forEffect: voidContext, readOnlyReceiver: true);
+      Expression write = _createWrite(
+          fileOffset,
+          _helper.createVariableGet(variable, receiver.fileOffset,
+              forNullGuardedAccess: true),
+          binary,
+          forEffect: voidContext,
+          readOnlyReceiver: true);
       return new NullAwareExtension(variable, write)..fileOffset = offset;
     } else {
       return new CompoundExtensionSet(extension, explicitTypeArguments,
@@ -2047,13 +2069,18 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           _helper.forest.createVariableDeclarationForValue(receiver);
       VariableDeclaration read = _helper.forest
           .createVariableDeclarationForValue(_createRead(
-              _helper.createVariableGet(variable, receiver.fileOffset)));
+              _helper.createVariableGet(variable, receiver.fileOffset,
+                  forNullGuardedAccess: true)));
       Expression binary = _helper.forest.createBinary(offset,
           _helper.createVariableGet(read, fileOffset), binaryOperator, value);
       VariableDeclaration write = _helper.forest
-          .createVariableDeclarationForValue(_createWrite(fileOffset,
-              _helper.createVariableGet(variable, receiver.fileOffset), binary,
-              forEffect: voidContext, readOnlyReceiver: true)
+          .createVariableDeclarationForValue(_createWrite(
+              fileOffset,
+              _helper.createVariableGet(variable, receiver.fileOffset,
+                  forNullGuardedAccess: true),
+              binary,
+              forEffect: voidContext,
+              readOnlyReceiver: true)
             ..fileOffset = fileOffset);
       return new NullAwareExtension(
           variable, new LocalPostIncDec(read, write)..fileOffset = offset)
@@ -2083,7 +2110,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       receiverVariable =
           _helper.forest.createVariableDeclarationForValue(receiver);
       receiverExpression = _helper.createVariableGet(
-          receiverVariable, receiverVariable.fileOffset);
+          receiverVariable, receiverVariable.fileOffset,
+          forNullGuardedAccess: true);
     }
     Expression invocation;
     if (invokeTarget != null) {
@@ -2103,12 +2131,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
               namedArguments: arguments.named),
           isTearOff: false);
     } else {
-      invocation = _helper.buildMethodInvocation(
-          _createRead(receiverExpression),
-          callName,
-          arguments,
+      invocation = _helper.forest.createExpressionInvocation(
           adjustForImplicitCall(_plainNameForRead, offset),
-          isImplicitCall: true);
+          _createRead(receiverExpression),
+          arguments);
     }
     if (isNullAware) {
       assert(receiverVariable != null);
@@ -2257,7 +2283,8 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     Expression receiverValue;
     if (isNullAware) {
       variable = _forest.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset);
+      receiverValue = _helper.createVariableGet(variable, fileOffset,
+          forNullGuardedAccess: true);
     } else {
       receiverValue = receiver;
     }
@@ -2286,7 +2313,8 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     Expression receiverValue;
     if (isNullAware) {
       variable = _forest.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset);
+      receiverValue = _helper.createVariableGet(variable, fileOffset,
+          forNullGuardedAccess: true);
     } else {
       receiverValue = receiver;
     }
@@ -2321,7 +2349,8 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     bool readOnlyReceiver;
     if (isNullAware) {
       variable = _forest.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset);
+      receiverValue = _helper.createVariableGet(variable, fileOffset,
+          forNullGuardedAccess: true);
       readOnlyReceiver = true;
     } else {
       receiverValue = receiver;
@@ -2358,7 +2387,8 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     bool readOnlyReceiver;
     if (isNullAware) {
       variable = _forest.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset);
+      receiverValue = _helper.createVariableGet(variable, fileOffset,
+          forNullGuardedAccess: true);
       readOnlyReceiver = true;
     } else {
       receiverValue = receiver;
@@ -2396,9 +2426,8 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return _helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset,
-        isImplicitCall: true);
+    return _helper.forest
+        .createExpressionInvocation(offset, buildSimpleRead(), arguments);
   }
 
   @override
@@ -2790,7 +2819,8 @@ class DeferredAccessGenerator extends Generator {
       message = templateDeferredTypeAnnotation
           .withArguments(
               _helper.buildDartType(new UnresolvedType(type, charOffset, _uri)),
-              prefixGenerator._plainNameForRead)
+              prefixGenerator._plainNameForRead,
+              _helper.libraryBuilder.isNonNullableByDefault)
           .withLocation(
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
@@ -2870,7 +2900,16 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
 
   TypeUseGenerator(ExpressionGeneratorHelper helper, Token token,
       this.declaration, String targetName)
-      : super(helper, token, null, targetName);
+      : super(
+            helper,
+            token,
+            null,
+            targetName,
+            // TODO(johnniwinther): InvalidTypeDeclarationBuilder is currently
+            // misused for import conflict.
+            declaration is InvalidTypeDeclarationBuilder
+                ? ReadOnlyAccessKind.InvalidDeclaration
+                : ReadOnlyAccessKind.TypeLiteral);
 
   @override
   String get _debugName => "TypeUseGenerator";
@@ -2913,7 +2952,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
       }
     }
     return new NamedTypeBuilder(
-        targetName, nullabilityBuilder, argumentBuilders)
+        targetName, nullabilityBuilder, argumentBuilders, _uri, fileOffset)
       ..bind(declaration);
   }
 
@@ -2976,8 +3015,16 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
     Name name = send.name;
     Arguments arguments = send.arguments;
 
-    if (declaration is DeclarationBuilder) {
-      DeclarationBuilder declaration = this.declaration;
+    TypeDeclarationBuilder declarationBuilder = declaration;
+    if (declarationBuilder is TypeAliasBuilder) {
+      TypeAliasBuilder aliasBuilder = declarationBuilder;
+      declarationBuilder = aliasBuilder.unaliasDeclaration(null,
+          isInvocation: true,
+          invocationCharOffset: this.fileOffset,
+          invocationFileUri: _uri);
+    }
+    if (declarationBuilder is DeclarationBuilder) {
+      DeclarationBuilder declaration = declarationBuilder;
       Builder member = declaration.findStaticBuilder(
           name.name, offsetForToken(send.token), _uri, _helper.libraryBuilder);
 
@@ -3065,6 +3112,16 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
   }
 }
 
+enum ReadOnlyAccessKind {
+  ConstVariable,
+  FinalVariable,
+  ExtensionThis,
+  LetVariable,
+  TypeLiteral,
+  ParenthesizedExpression,
+  InvalidDeclaration,
+}
+
 /// [ReadOnlyAccessGenerator] represents the subexpression whose prefix is the
 /// name of final local variable, final parameter, or catch clause variable or
 /// `this` in an instance method in an extension declaration.
@@ -3097,10 +3154,10 @@ class ReadOnlyAccessGenerator extends Generator {
 
   Expression expression;
 
-  VariableDeclaration value;
+  final ReadOnlyAccessKind kind;
 
   ReadOnlyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.expression, this.targetName)
+      this.expression, this.targetName, this.kind)
       : super(helper, token);
 
   @override
@@ -3113,6 +3170,38 @@ class ReadOnlyAccessGenerator extends Generator {
   Expression buildSimpleRead() => _createRead();
 
   Expression _createRead() => expression;
+
+  Expression _makeInvalidWrite(Expression value) {
+    switch (kind) {
+      case ReadOnlyAccessKind.ConstVariable:
+        assert(targetName != null);
+        return _helper.buildProblem(
+            templateCannotAssignToConstVariable.withArguments(targetName),
+            fileOffset,
+            lengthForToken(token));
+      case ReadOnlyAccessKind.FinalVariable:
+        assert(targetName != null);
+        return _helper.buildProblem(
+            templateCannotAssignToFinalVariable.withArguments(targetName),
+            fileOffset,
+            lengthForToken(token));
+      case ReadOnlyAccessKind.ExtensionThis:
+        return _helper.buildProblem(messageCannotAssignToExtensionThis,
+            fileOffset, lengthForToken(token));
+      case ReadOnlyAccessKind.TypeLiteral:
+        return _helper.buildProblem(messageCannotAssignToTypeLiteral,
+            fileOffset, lengthForToken(token));
+      case ReadOnlyAccessKind.ParenthesizedExpression:
+        return _helper.buildProblem(
+            messageCannotAssignToParenthesizedExpression,
+            fileOffset,
+            lengthForToken(token));
+      case ReadOnlyAccessKind.LetVariable:
+      case ReadOnlyAccessKind.InvalidDeclaration:
+        break;
+    }
+    return super._makeInvalidWrite(value);
+  }
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
@@ -3149,9 +3238,8 @@ class ReadOnlyAccessGenerator extends Generator {
 
   @override
   doInvocation(int offset, Arguments arguments) {
-    return _helper.buildMethodInvocation(_createRead(), callName, arguments,
-        adjustForImplicitCall(targetName, offset),
-        isImplicitCall: true);
+    return _helper.forest.createExpressionInvocation(
+        adjustForImplicitCall(targetName, offset), _createRead(), arguments);
   }
 
   @override
@@ -3171,8 +3259,8 @@ class ReadOnlyAccessGenerator extends Generator {
     printNodeOn(expression, sink, syntheticNames: syntheticNames);
     sink.write(", plainNameForRead: ");
     sink.write(targetName);
-    sink.write(", value: ");
-    printNodeOn(value, sink, syntheticNames: syntheticNames);
+    sink.write(", kind: ");
+    sink.write(kind);
   }
 }
 
@@ -3526,7 +3614,7 @@ class DelayedAssignment extends ContextAwareGenerator {
         generator is! ThisPropertyAccessGenerator) {
       return generator.buildFieldInitializer(initializedFields);
     }
-    return _helper.buildFieldInitializer(false, generator._plainNameForRead,
+    return _helper.buildFieldInitializer(generator._plainNameForRead,
         offsetForToken(generator.token), fileOffset, value);
   }
 
@@ -4030,9 +4118,8 @@ class ThisAccessGenerator extends Generator {
     } else if (isSuper) {
       return _helper.buildProblem(messageSuperAsExpression, offset, noLength);
     } else {
-      return _helper.buildMethodInvocation(
-          _forest.createThisExpression(fileOffset), callName, arguments, offset,
-          isImplicitCall: true);
+      return _helper.forest.createExpressionInvocation(
+          offset, _forest.createThisExpression(fileOffset), arguments);
     }
   }
 
@@ -4046,8 +4133,7 @@ class ThisAccessGenerator extends Generator {
           equalsName,
           _forest.createArguments(offset, <Expression>[right]),
           offset,
-          isSuper: true,
-          isImplicitCall: false);
+          isSuper: true);
       if (isNot) {
         result = _forest.createNot(offset, result);
       }
@@ -4065,8 +4151,7 @@ class ThisAccessGenerator extends Generator {
           binaryName,
           _forest.createArguments(offset, <Expression>[right]),
           offset,
-          isSuper: true,
-          isImplicitCall: false);
+          isSuper: true);
     }
     return super.buildBinaryOperation(token, binaryName, right);
   }
@@ -4080,8 +4165,7 @@ class ThisAccessGenerator extends Generator {
           unaryName,
           _forest.createArgumentsEmpty(offset),
           offset,
-          isSuper: true,
-          isImplicitCall: false);
+          isSuper: true);
     }
     return super.buildUnaryOperation(token, unaryName);
   }
@@ -4407,7 +4491,8 @@ class IncompletePropertyAccessGenerator extends Generator
 class ParenthesizedExpressionGenerator extends ReadOnlyAccessGenerator {
   ParenthesizedExpressionGenerator(
       ExpressionGeneratorHelper helper, Token token, Expression expression)
-      : super(helper, token, expression, null);
+      : super(helper, token, expression, null,
+            ReadOnlyAccessKind.ParenthesizedExpression);
 
   @override
   Expression buildSimpleRead() => expression;
@@ -4417,11 +4502,6 @@ class ParenthesizedExpressionGenerator extends ReadOnlyAccessGenerator {
       _helper.forest.createParenthesized(fileOffset, expression);
 
   String get _debugName => "ParenthesizedExpressionGenerator";
-
-  Expression _makeInvalidWrite(Expression value) {
-    return _helper.buildProblem(messageCannotAssignToParenthesizedExpression,
-        fileOffset, lengthForToken(token));
-  }
 
   /* Expression | Generator */ buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {

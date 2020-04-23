@@ -2973,6 +2973,195 @@ TEST_CASE(IsolateReload_ShapeChangeRetainsHash_Const) {
   EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_ShapeChange_Const_AddSlot) {
+  // On IA32, instructions can contain direct pointers to const objects. We need
+  // to be careful that if the const objects are reallocated because of a shape
+  // change, they are allocated old. Because instructions normally contain
+  // pointers only to old objects, the scavenger does not bother to ensure code
+  // pages are writable when visiting the remembered set. Visiting the
+  // remembered involes writing to update the pointer for any target that gets
+  // promoted.
+  const char* kScript = R"(
+    import 'file:///test:isolate_reload_helper';
+    class A {
+      final x;
+      const A(this.x);
+    }
+    var a;
+    main() {
+      a = const A(1);
+      collectNewSpace();
+      return 'okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    import 'file:///test:isolate_reload_helper';
+    class A {
+      final x, y, z;
+      const A(this.x, this.y, this.z);
+    }
+    var a;
+    main() {
+      a = const A(1, null, null);
+      collectNewSpace();
+      return 'okay';
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript2 = R"(
+    import 'file:///test:isolate_reload_helper';
+    class A {
+      final x, y, z, w, u;
+      const A(this.x, this.y, this.z, this.w, this.u);
+    }
+    var a;
+    main() {
+      a = const A(1, null, null, null, null);
+      collectNewSpace();
+      return 'okay';
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript2);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ShapeChange_Const_RemoveSlot) {
+  const char* kScript = R"(
+    import 'file:///test:isolate_reload_helper';
+    class A {
+      final x, y, z;
+      const A(this.x, this.y, this.z);
+    }
+    var a;
+    main() {
+      a = const A(1, 2, 3);
+      collectNewSpace();
+      return 'okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    import 'file:///test:isolate_reload_helper';
+    class A {
+      final x, y;
+      const A(this.x, this.y);
+    }
+    var a;
+    main() {
+      a = const A(1, null);
+      collectNewSpace();
+      return 'okay';
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib,
+               "Const class cannot remove fields: "
+               "Library:'file:///test-lib' Class: A");
+
+  // Rename is seen by the VM is unrelated add and remove.
+  const char* kReloadScript2 = R"(
+    import 'file:///test:isolate_reload_helper';
+    class A {
+      final x, y, w;
+      const A(this.x, this.y, this.w);
+    }
+    var a;
+    main() {
+      a = const A(1, null, null);
+      collectNewSpace();
+      return 'okay';
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript2);
+  EXPECT_ERROR(lib,
+               "Const class cannot remove fields: "
+               "Library:'file:///test-lib' Class: A");
+}
+
+TEST_CASE(IsolateReload_ConstToNonConstClass) {
+  const char* kScript = R"(
+    class A {
+      final dynamic x;
+      const A(this.x);
+    }
+    dynamic a;
+    main() {
+      a = const A(1);
+      return 'okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    class A {
+      dynamic x;
+      A(this.x);
+    }
+    dynamic a;
+    main() {
+      a.x = 10;
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib,
+               "Const class cannot become non-const: "
+               "Library:'file:///test-lib' Class: A");
+}
+
+TEST_CASE(IsolateReload_ConstToNonConstClass_Empty) {
+  const char* kScript = R"(
+    class A {
+      const A();
+    }
+    dynamic a;
+    main() {
+      a = const A();
+      return 'okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    class A {
+      dynamic x;
+      A(this.x);
+    }
+    dynamic a;
+    main() {
+      a.x = 10;
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib,
+               "Const class cannot become non-const: "
+               "Library:'file:///test-lib' Class: A");
+}
+
 TEST_CASE(IsolateReload_StaticTearOffRetainsHash) {
   const char* kScript =
       "foo() {}\n"
@@ -3752,6 +3941,130 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithGenerics) {
       SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_AddNewStaticField) {
+  const char* kScript =
+      "class C {\n"
+      "}\n"
+      "main() {\n"
+      "  return 'Okay';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C {\n"
+      "  static var x = 42;\n"
+      "}\n"
+      "main() {\n"
+      "  return '${C.x}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("42", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_StaticFieldInitialValueDoesnotChange) {
+  const char* kScript =
+      "class C {\n"
+      "  static var x = 42;\n"
+      "}\n"
+      "main() {\n"
+      "  return '${C.x}';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("42", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C {\n"
+      "  static var x = 13;\n"
+      "}\n"
+      "main() {\n"
+      "  return '${C.x}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  // Newly loaded field maintained old static value
+  EXPECT_STREQ("42", SimpleInvokeStr(lib, "main"));
+}
+
+class FindNoInstancesOfClass : public FindObjectVisitor {
+ public:
+  explicit FindNoInstancesOfClass(intptr_t cid) : cid_(cid) {
+#if defined(DEBUG)
+    EXPECT_GT(Thread::Current()->no_safepoint_scope_depth(), 0);
+#endif
+  }
+  virtual ~FindNoInstancesOfClass() {}
+
+  virtual bool FindObject(RawObject* obj) const {
+    return obj->GetClassId() == cid_;
+  }
+
+ private:
+  intptr_t cid_;
+};
+
+TEST_CASE(IsolateReload_DeleteStaticField) {
+  const char* kScript =
+      "class C {\n"
+      "}\n"
+      "class Foo {\n"
+      "static var x = C();\n"
+      "}\n"
+      "main() {\n"
+      "  return Foo.x;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  intptr_t cid = 1118;
+  {
+    Dart_EnterScope();
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    EXPECT_VALID(result);
+    {
+      TransitionNativeToVM transition(thread);
+      cid = Api::ClassId(result);
+    }
+    Dart_ExitScope();
+  }
+
+  const char* kReloadScript =
+      "class C {\n"
+      "}\n"
+      "class Foo {\n"
+      "}\n"
+      "main() {\n"
+      "  return '${Foo()}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectAllGarbage();
+
+    {
+      HeapIterationScope iteration(thread);
+      NoSafepointScope no_safepoint;
+      FindNoInstancesOfClass find_only(cid);
+      Isolate* isolate = Isolate::Current();
+      Heap* heap = isolate->heap();
+      // We still expect to find references to static field values
+      // because they are not deleted after hot reload.
+      EXPECT_NE(heap->FindObject(&find_only), Object::null());
+    }
+  }
+}
+
 TEST_CASE(IsolateReload_ExistingFieldChangesType) {
   const char* kScript = R"(
     class Foo {
@@ -4162,6 +4475,48 @@ TEST_CASE(IsolateReload_PatchStaticInitializerWithClosure) {
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
   EXPECT_STREQ("ac", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_StaticTargetArityChange) {
+  const char* kScript = R"(
+    class A {
+      final x;
+      final y;
+      const A(this.x, this.y);
+    }
+
+    dynamic closure;
+
+    main() {
+      closure = () => A(1, 2);
+      return "okay";
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    class A {
+      final x;
+      const A(this.x);
+    }
+
+    dynamic closure;
+
+    main() {
+      // Call the old closure, which will try to call A(1, 2).
+      closure();
+
+      return "okay";
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_ERROR(SimpleInvokeError(lib, "main"),
+               "Unimplemented handling of static target arity change");
 }
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

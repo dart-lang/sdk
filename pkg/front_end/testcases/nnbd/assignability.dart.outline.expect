@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Tearoffable extends core::Object {
+  synthetic constructor •() → self::Tearoffable
+    ;
+  method call() → void
+    ;
+}
+static method ok<XnonNull extends core::Object = core::Object, YnonNull extends self::ok::XnonNull = core::Object, XpotentiallyNull extends core::Object? = core::Object?, YpotentiallyNull extends self::ok::XpotentiallyNull% = core::Object?>(dynamic dynamicArg, core::Object objectArg, core::num numArg, core::int intArg, core::double doubleArg, core::Function functionArg, () → void toVoidArg, self::Tearoffable tearoffableArg, self::ok::XnonNull xNonNullArg, self::ok::XpotentiallyNull% xPotentiallyNullArg, self::ok::YnonNull yNonNullArg, self::ok::YpotentiallyNull% yPotentiallyNullArg) → dynamic
+  ;
+static method error<XnonNull extends core::Object = core::Object, YnonNull extends self::error::XnonNull = core::Object, XpotentiallyNull extends core::Object? = core::Object?, YpotentiallyNull extends self::error::XpotentiallyNull% = core::Object?>(core::Object objectArg, core::Object? objectNullableArg, core::num numArg, core::num? numNullableArg, core::int intArg, core::int? intNullableArg, core::double doubleArg, core::double? doubleNullableArg, core::Function functionArg, core::Function? functionNullableArg, () → void toVoidArg, () →? void toVoidNullableArg, self::Tearoffable tearoffableArg, self::Tearoffable? tearoffableNullableArg, self::error::XnonNull xNonNullArg, self::error::XnonNull? xNonNullNullableArg, self::error::XpotentiallyNull% xPotentiallyNullArg, self::error::XpotentiallyNull? xPotentiallyNullNullableArg, self::error::YnonNull yNonNullArg, self::error::YnonNull? yNonNullNullableArg, self::error::YpotentiallyNull% yPotentiallyNullArg, self::error::YpotentiallyNull? yPotentiallyNullNullableArg) → dynamic
+  ;
+static method main() → dynamic
+  ;

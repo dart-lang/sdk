@@ -56,7 +56,14 @@ import 'package:kernel/text/text_serialization_verifier.dart'
         TextSerializationVerifier;
 
 import 'package:testing/testing.dart'
-    show ChainContext, Expectation, ExpectationSet, Result, StdioProcess, Step;
+    show
+        ChainContext,
+        Expectation,
+        ExpectationSet,
+        Result,
+        StdioProcess,
+        Step,
+        TestDescription;
 
 final Uri platformBinariesLocation = computePlatformBinariesLocation();
 
@@ -125,39 +132,41 @@ $actual""",
   }
 }
 
-class Print extends Step<Component, Component, ChainContext> {
+class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
   const Print();
 
   String get name => "print";
 
-  Future<Result<Component>> run(Component component, _) async {
+  Future<Result<ComponentResult>> run(ComponentResult result, _) async {
+    Component component = result.component;
+
     StringBuffer sb = new StringBuffer();
     await CompilerContext.runWithDefaultOptions((compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
 
       Printer printer = new Printer(sb);
       for (Library library in component.libraries) {
-        if (library.importUri.scheme != "dart" &&
-            library.importUri.scheme != "package") {
+        if (result.userLibraries.contains(library.importUri)) {
           printer.writeLibraryFile(library);
         }
       }
       printer.writeConstantTable(component);
     });
     print("$sb");
-    return pass(component);
+    return pass(result);
   }
 }
 
-class Verify extends Step<Component, Component, ChainContext> {
+class Verify extends Step<ComponentResult, ComponentResult, ChainContext> {
   final bool fullCompile;
 
   const Verify(this.fullCompile);
 
   String get name => "verify";
 
-  Future<Result<Component>> run(
-      Component component, ChainContext context) async {
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, ChainContext context) async {
+    Component component = result.component;
     StringBuffer messages = new StringBuffer();
     ProcessedOptions options = new ProcessedOptions(
         options: new CompilerOptions()
@@ -174,32 +183,33 @@ class Verify extends Step<Component, Component, ChainContext> {
           isOutline: !fullCompile, skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);
       if (messages.isEmpty) {
-        return pass(component);
+        return pass(result);
       } else {
-        return new Result<Component>(null,
+        return new Result<ComponentResult>(null,
             context.expectationSet["VerificationError"], "$messages", null);
       }
     }, errorOnMissingInput: false);
   }
 }
 
-class TypeCheck extends Step<Component, Component, ChainContext> {
+class TypeCheck extends Step<ComponentResult, ComponentResult, ChainContext> {
   const TypeCheck();
 
   String get name => "typeCheck";
 
-  Future<Result<Component>> run(
-      Component component, ChainContext context) async {
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, ChainContext context) async {
+    Component component = result.component;
     ErrorFormatter errorFormatter = new ErrorFormatter();
     NaiveTypeChecker checker =
         new NaiveTypeChecker(errorFormatter, component, ignoreSdk: true);
     checker.checkComponent(component);
     if (errorFormatter.numberOfFailures == 0) {
-      return pass(component);
+      return pass(result);
     } else {
       errorFormatter.failures.forEach(print);
       print('------- Found ${errorFormatter.numberOfFailures} errors -------');
-      return new Result<Component>(
+      return new Result<ComponentResult>(
           null,
           context.expectationSet["TypeCheckError"],
           '${errorFormatter.numberOfFailures} type errors',
@@ -208,7 +218,8 @@ class TypeCheck extends Step<Component, Component, ChainContext> {
   }
 }
 
-class MatchExpectation extends Step<Component, Component, MatchContext> {
+class MatchExpectation
+    extends Step<ComponentResult, ComponentResult, MatchContext> {
   final String suffix;
   final bool serializeFirst;
 
@@ -220,19 +231,19 @@ class MatchExpectation extends Step<Component, Component, MatchContext> {
 
   String get name => "match expectations";
 
-  Future<Result<Component>> run(Component component, MatchContext context) {
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, MatchContext context) {
+    Component component = result.component;
+
     Component componentToText = component;
     if (serializeFirst) {
       component.computeCanonicalNames();
-      List<Library> sdkLibraries = component.libraries
-          .where((l) => l.importUri.scheme == "dart")
-          .toList();
+      List<Library> sdkLibraries =
+          component.libraries.where((l) => !result.isUserLibrary(l)).toList();
 
       ByteSink sink = new ByteSink();
       Component writeMe = new Component(
-          libraries: component.libraries
-              .where((l) => l.importUri.scheme != "dart")
-              .toList());
+          libraries: component.libraries.where(result.isUserLibrary).toList());
       writeMe.uriToSource.addAll(component.uriToSource);
       if (component.problemsAsJson != null) {
         writeMe.problemsAsJson =
@@ -252,10 +263,8 @@ class MatchExpectation extends Step<Component, Component, MatchContext> {
         (context as dynamic).componentToDiagnostics[component];
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
-    Iterable<Library> libraries = componentToText.libraries.where(
-        ((Library library) =>
-            library.importUri.scheme != "dart" &&
-            library.importUri.scheme != "package"));
+    Iterable<Library> libraries =
+        componentToText.libraries.where(result.isUserLibrary);
     Uri base = uri.resolve(".");
     Uri dartBase = Uri.base;
     StringBuffer buffer = new StringBuffer();
@@ -281,20 +290,22 @@ class MatchExpectation extends Step<Component, Component, MatchContext> {
     actual = actual.replaceAll("$base", "org-dartlang-testcase:///");
     actual = actual.replaceAll("$dartBase", "org-dartlang-testcase-sdk:///");
     actual = actual.replaceAll("\\n", "\n");
-    return context.match<Component>(suffix, actual, uri, component,
+    return context.match<ComponentResult>(suffix, actual, uri, result,
         onMismatch: serializeFirst
             ? context.expectationFileMismatchSerialized
             : context.expectationFileMismatch);
   }
 }
 
-class KernelTextSerialization extends Step<Component, Component, ChainContext> {
+class KernelTextSerialization
+    extends Step<ComponentResult, ComponentResult, ChainContext> {
   const KernelTextSerialization();
 
   String get name => "kernel text serialization";
 
-  Future<Result<Component>> run(
-      Component component, ChainContext context) async {
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, ChainContext context) async {
+    Component component = result.component;
     StringBuffer messages = new StringBuffer();
     ProcessedOptions options = new ProcessedOptions(
         options: new CompilerOptions()
@@ -347,36 +358,39 @@ class KernelTextSerialization extends Step<Component, Component, ChainContext> {
       }
 
       if (verifier.failures.isNotEmpty) {
-        return new Result<Component>(
+        return new Result<ComponentResult>(
             null,
             context.expectationSet["TextSerializationFailure"],
             "$messages",
             null);
       }
-      return pass(component);
+      return pass(result);
     });
   }
 }
 
-class WriteDill extends Step<Component, Uri, ChainContext> {
+class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
   const WriteDill();
 
   String get name => "write .dill";
 
-  Future<Result<Uri>> run(Component component, _) async {
+  Future<Result<ComponentResult>> run(ComponentResult result, _) async {
+    Component component = result.component;
     Directory tmp = await Directory.systemTemp.createTemp();
     Uri uri = tmp.uri.resolve("generated.dill");
     File generated = new File.fromUri(uri);
     IOSink sink = generated.openWrite();
+    result = new ComponentResult(
+        result.description, result.component, result.userLibraries, uri);
     try {
       new BinaryPrinter(sink).writeComponentFile(component);
     } catch (e, s) {
-      return fail(uri, e, s);
+      return fail(result, e, s);
     } finally {
       print("Wrote `${generated.path}`");
       await sink.close();
     }
-    return pass(uri);
+    return pass(result);
   }
 }
 
@@ -456,4 +470,18 @@ Future<void> openWrite(Uri uri, f(IOSink sink)) async {
     await sink.close();
   }
   print("Wrote $uri");
+}
+
+class ComponentResult {
+  final TestDescription description;
+  final Component component;
+  final Set<Uri> userLibraries;
+  final Uri outputUri;
+
+  ComponentResult(this.description, this.component, this.userLibraries,
+      [this.outputUri]);
+
+  bool isUserLibrary(Library library) {
+    return userLibraries.contains(library.importUri);
+  }
 }

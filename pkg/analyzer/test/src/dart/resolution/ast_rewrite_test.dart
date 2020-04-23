@@ -390,9 +390,6 @@ f(prefix.A a) {
       override.typeArgumentTypes,
       expectedTypeArguments,
     );
-    assertElementTypeString(
-      override.extendedType,
-      expectedExtendedType,
-    );
+    assertType(override.extendedType, expectedExtendedType);
   }
 }

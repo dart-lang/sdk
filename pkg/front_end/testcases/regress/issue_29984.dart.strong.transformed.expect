@@ -21,7 +21,7 @@ static method bad() → dynamic {
   for (int i = i;; false) {}
            ^" in invalid-expression "pkg/front_end/testcases/regress/issue_29984.dart:6:16: Error: Getter not found: 'i'.
   for (int i = i;; false) {}
-               ^") as{TypeError} core::int*; ; false) {
+               ^") as{TypeError,ForDynamic} core::int*; ; false) {
   }
 }
 static method main() → dynamic {}

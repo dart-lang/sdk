@@ -217,7 +217,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   ClassFinalizer::FinalizeTypesInClass(empty_class);
   empty_class.Finalize();
 
-  EXPECT_EQ(kObjectAlignment, empty_class.instance_size());
+  EXPECT_EQ(kObjectAlignment, empty_class.host_instance_size());
   Instance& instance = Instance::Handle(Instance::New(empty_class));
   EXPECT_EQ(empty_class.raw(), instance.clazz());
 
@@ -234,7 +234,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   const Array& one_fields = Array::Handle(Array::New(1));
   const String& field_name = String::Handle(Symbols::New(thread, "the_field"));
   const Field& field = Field::Handle(
-      Field::New(field_name, false, false, false, true, one_field_class,
+      Field::New(field_name, false, false, false, true, false, one_field_class,
                  Object::dynamic_type(), TokenPosition::kMinSource,
                  TokenPosition::kMinSource));
   one_fields.SetAt(0, field);
@@ -242,8 +242,8 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   one_field_class.Finalize();
   intptr_t header_size = sizeof(RawObject);
   EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),
-            one_field_class.instance_size());
-  EXPECT_EQ(header_size, field.Offset());
+            one_field_class.host_instance_size());
+  EXPECT_EQ(header_size, field.HostOffset());
   EXPECT(!one_field_class.is_implemented());
   one_field_class.set_is_implemented();
   EXPECT(one_field_class.is_implemented());
@@ -2309,7 +2309,7 @@ ISOLATE_UNIT_TEST_CASE(Context) {
 ISOLATE_UNIT_TEST_CASE(ContextScope) {
   // We need an active compiler context to manipulate scopes, since local
   // variables and slots can be canonicalized in the compiler state.
-  CompilerState compiler_state(Thread::Current());
+  CompilerState compiler_state(Thread::Current(), /*is_aot=*/false);
 
   const intptr_t parent_scope_function_level = 0;
   LocalScope* parent_scope =
@@ -2551,8 +2551,9 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
 class CodeTestHelper {
  public:
   static void SetInstructions(const Code& code,
-                              const Instructions& instructions) {
-    code.SetActiveInstructions(instructions);
+                              const Instructions& instructions,
+                              uword unchecked_offset) {
+    code.SetActiveInstructions(instructions, unchecked_offset);
     code.set_instructions(instructions);
   }
 };
@@ -2572,7 +2573,8 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
       function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
   Instructions& instructions = Instructions::Handle(code.instructions());
-  uword payload_start = instructions.PayloadStart();
+  uword payload_start = code.PayloadStart();
+  const uword unchecked_offset = code.UncheckedEntryPoint() - code.EntryPoint();
   EXPECT_EQ(instructions.raw(), Instructions::FromPayloadStart(payload_start));
   // Execute the executable view of the instructions (default).
   Object& result =
@@ -2583,7 +2585,7 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
   payload_start = instructions.PayloadStart();
   EXPECT_EQ(instructions.raw(), Instructions::FromPayloadStart(payload_start));
   // Hook up Code and Instructions objects.
-  CodeTestHelper::SetInstructions(code, instructions);
+  CodeTestHelper::SetInstructions(code, instructions, unchecked_offset);
   function.AttachCode(code);
   // Try executing the generated code, expected to crash.
   result = DartEntry::InvokeFunction(function, Array::empty_array());
@@ -2852,7 +2854,7 @@ static RawField* CreateTestField(const char* name) {
   const String& field_name =
       String::Handle(Symbols::New(Thread::Current(), name));
   const Field& field = Field::Handle(Field::New(
-      field_name, true, false, false, true, cls, Object::dynamic_type(),
+      field_name, true, false, false, true, false, cls, Object::dynamic_type(),
       TokenPosition::kMinSource, TokenPosition::kMinSource));
   return field.raw();
 }
@@ -2901,8 +2903,8 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
   const String& target_name = String::Handle(Symbols::New(thread, "Thun"));
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 1;
-  const Array& args_descriptor = Array::Handle(
-      ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs, Object::null_array()));
+  const Array& args_descriptor = Array::Handle(ArgumentsDescriptor::NewBoxed(
+      kTypeArgsLen, kNumArgs, Object::null_array()));
   ICData& o1 = ICData::Handle();
   o1 = ICData::New(function, target_name, args_descriptor, id, num_args_tested,
                    ICData::kInstance);
@@ -3704,7 +3706,7 @@ ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   // Add invocation dispatcher.
   const String& invocation_dispatcher_name =
       String::Handle(Symbols::New(thread, "myMethod"));
-  const Array& args_desc = Array::Handle(ArgumentsDescriptor::New(0, 1));
+  const Array& args_desc = Array::Handle(ArgumentsDescriptor::NewBoxed(0, 1));
   Function& invocation_dispatcher = Function::Handle();
   invocation_dispatcher ^= cls.GetInvocationDispatcher(
       invocation_dispatcher_name, args_desc,
@@ -4000,6 +4002,34 @@ class ObjectAccumulator : public ObjectVisitor {
  private:
   GrowableArray<Object*>* objects_;
 };
+
+ISOLATE_UNIT_TEST_CASE(ToCString) {
+  // Set native resolvers in case we need to read native methods.
+  {
+    TransitionVMToNative transition(thread);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+    bin::VmService::SetNativeResolver();
+  }
+
+  GCTestHelper::CollectAllGarbage();
+  GrowableArray<Object*> objects;
+  {
+    HeapIterationScope iteration(Thread::Current());
+    ObjectAccumulator acc(&objects);
+    iteration.IterateObjects(&acc);
+  }
+  for (intptr_t i = 0; i < objects.length(); ++i) {
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+
+    // All ToCString implementations should not allocate on the Dart heap so
+    // they remain useful in all parts of the VM.
+    NoSafepointScope no_safepoint;
+    objects[i]->ToCString();
+  }
+}
 
 ISOLATE_UNIT_TEST_CASE(PrintJSON) {
   // Set native resolvers in case we need to read native methods.
@@ -4542,11 +4572,11 @@ ISOLATE_UNIT_TEST_CASE(String_ScrubName) {
       {"_MyClass@6328321.named", "_MyClass.named"},
   };
   String& test = String::Handle();
-  String& result = String::Handle();
+  const char* result;
   for (size_t i = 0; i < ARRAY_SIZE(tests); i++) {
     test = String::New(tests[i].in);
     result = String::ScrubName(test);
-    EXPECT_STREQ(tests[i].out, result.ToCString());
+    EXPECT_STREQ(tests[i].out, result);
   }
 }
 

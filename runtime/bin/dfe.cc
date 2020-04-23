@@ -10,6 +10,7 @@
 #include "bin/dartutils.h"
 #include "bin/directory.h"
 #include "bin/error_exit.h"
+#include "bin/exe_utils.h"
 #include "bin/file.h"
 #include "bin/main_options.h"
 #include "bin/platform.h"
@@ -41,39 +42,6 @@ DFE dfe;
 const char kKernelServiceSnapshot[] = "kernel-service.dart.snapshot";
 const char kSnapshotsDirectory[] = "snapshots";
 
-static char* GetDirectoryPrefixFromExeName() {
-  const char* name = nullptr;
-  const int kTargetSize = 4096;
-  char target[kTargetSize];
-  intptr_t target_size =
-      Platform::ResolveExecutablePathInto(target, kTargetSize);
-  if (target_size > 0 && target_size < kTargetSize - 1) {
-    target[target_size] = 0;
-    name = target;
-  }
-  if (name == nullptr) {
-    name = Platform::GetExecutableName();
-    target_size = strlen(name);
-  }
-  const char* sep = File::PathSeparator();
-  const intptr_t sep_length = strlen(sep);
-
-  for (intptr_t i = target_size - 1; i >= 0; --i) {
-    const char* str = name + i;
-    if (strncmp(str, sep, sep_length) == 0
-#if defined(HOST_OS_WINDOWS)
-        // TODO(aam): GetExecutableName doesn't work reliably on Windows,
-        // the code below is a workaround for that (we would be using
-        // just single Platform::Separator instead of both slashes if it did).
-        || *str == '/'
-#endif
-    ) {
-      return Utils::StrNDup(name, i + 1);
-    }
-  }
-  return strdup("");
-}
-
 DFE::DFE()
     : use_dfe_(false),
       use_incremental_compiler_(false),
@@ -85,7 +53,7 @@ DFE::DFE()
   //
   // Only on X64 do we have kernel-service.dart.snapshot available otherwise we
   // need to fall back to the built-in one (if we have it).
-#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) || defined(DART_NO_SNAPSHOT) ||   \
+#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) ||                                \
     (defined(DART_PRECOMPILER) && defined(TARGET_ARCH_X64))
   kernel_service_dill_ = nullptr;
   kernel_service_dill_size_ = 0;
@@ -146,7 +114,7 @@ bool DFE::InitKernelServiceAndPlatformDills(int target_abi_version) {
 
   // |dir_prefix| includes the last path seperator.
   auto dir_prefix = std::unique_ptr<char, void (*)(void*)>(
-      GetDirectoryPrefixFromExeName(), free);
+      EXEUtils::GetDirectoryPrefixFromExeName(), free);
 
   if (target_abi_version != Options::kAbiVersionUnset) {
     kernel_service_dill_ = nullptr;
@@ -363,7 +331,7 @@ static bool TryReadFile(const char* script_uri, uint8_t** buffer,
   }
   DartUtils::ReadFile(buffer, size, script_file);
   DartUtils::CloseFile(script_file);
-  if (*size <= 0 || buffer == nullptr) {
+  if (buffer == nullptr) {
     return false;
   }
   return true;

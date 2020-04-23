@@ -45,6 +45,8 @@ Since those annotations side-step the normal type system, they are unsafe and we
 therefore restrict those annotations to only have an affect inside dart:
 libraries.
 
+See also https://github.com/dart-lang/sdk/issues/35244.
+
 ### Providing an exact result type
 
 ```dart
@@ -69,6 +71,14 @@ Note that since `null` is an instance of the `Null` type, which is a subtype of
 any other, exactness of the annotated result type implies that the result must
 be non-null.
 
+It is also possible to specify the type arguments of the result type if they are
+the same as the type arguments passed to the method itself. This is primarily
+useful for factory constructors:
+
+```dart
+@pragma("vm:exact-result-type", [<type>, "result-type-uses-passed-type-arguments"])
+```
+
 #### Examples for exact result types
 
 ```dart
@@ -91,6 +101,12 @@ class C {
   // Reference to type via path
   @pragma('vm:exact-result-type', "dart:core#_Smi")
   final int intValue;
+}
+
+class D<T> {
+  @pragma("vm:exact-result-type",
+          [D, "result-type-uses-passed-type-arguments"])
+  factory D();  // returns an instance of D<T>
 }
 ```
 

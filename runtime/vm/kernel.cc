@@ -770,8 +770,8 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
   auto& type = AbstractType::Handle(zone);
   for (intptr_t i = function.NumImplicitParameters(); i < num_params; ++i) {
     type = function.ParameterTypeAt(i);
-    if (!type.IsTopType() && !is_generic_covariant_impl.Contains(i) &&
-        !is_covariant.Contains(i)) {
+    if (!type.IsTopTypeForAssignability() &&
+        !is_generic_covariant_impl.Contains(i) && !is_covariant.Contains(i)) {
       return true;
     }
   }
@@ -797,21 +797,42 @@ static ProcedureAttributesMetadata ProcedureAttributesOf(
   return attrs;
 }
 
+static void BytecodeProcedureAttributesError(const Object& function_or_field,
+                                             const Object& value) {
+  FATAL3("Unexpected value of %s bytecode attribute on %s: %s",
+         Symbols::vm_procedure_attributes_metadata().ToCString(),
+         function_or_field.ToCString(), value.ToCString());
+}
+
 static ProcedureAttributesMetadata ProcedureAttributesFromBytecodeAttribute(
     Zone* zone,
     const Object& function_or_field) {
   ProcedureAttributesMetadata attrs;
-  const auto& value = Object::Handle(
+  const Object& value = Object::Handle(
       zone,
       BytecodeReader::GetBytecodeAttribute(
           function_or_field, Symbols::vm_procedure_attributes_metadata()));
   if (!value.IsNull()) {
-    if (!value.IsSmi()) {
-      FATAL3("Unexpected value of %s bytecode attribute on %s: %s",
-             Symbols::vm_procedure_attributes_metadata().ToCString(),
-             function_or_field.ToCString(), value.ToCString());
+    const intptr_t kBytecodeAttributeLength = 3;
+    int32_t elements[kBytecodeAttributeLength];
+    if (!value.IsArray()) {
+      BytecodeProcedureAttributesError(function_or_field, value);
     }
-    attrs.InitializeFromFlags(Smi::Cast(value).Value());
+    const Array& array = Array::Cast(value);
+    if (array.Length() != kBytecodeAttributeLength) {
+      BytecodeProcedureAttributesError(function_or_field, value);
+    }
+    Object& element = Object::Handle(zone);
+    for (intptr_t i = 0; i < kBytecodeAttributeLength; i++) {
+      element = array.At(i);
+      if (!element.IsSmi()) {
+        BytecodeProcedureAttributesError(function_or_field, value);
+      }
+      elements[i] = Smi::Cast(element).Value();
+    }
+    attrs.InitializeFromFlags(elements[0]);
+    attrs.method_or_setter_selector_id = elements[1];
+    attrs.getter_selector_id = elements[2];
   }
   return attrs;
 }
@@ -819,6 +840,10 @@ static ProcedureAttributesMetadata ProcedureAttributesFromBytecodeAttribute(
 ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone) {
   if (function.is_declared_in_bytecode()) {
+    if (function.IsImplicitGetterOrSetter()) {
+      const Field& field = Field::Handle(zone, function.accessor_field());
+      return ProcedureAttributesFromBytecodeAttribute(zone, field);
+    }
     return ProcedureAttributesFromBytecodeAttribute(zone, function);
   }
   const Script& script = Script::Handle(zone, function.script());
@@ -837,6 +862,18 @@ ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
   return ProcedureAttributesOf(
       zone, script, ExternalTypedData::Handle(zone, field.KernelData()),
       field.KernelDataProgramOffset(), field.kernel_offset());
+}
+
+TableSelectorMetadata* TableSelectorMetadataForProgram(
+    const KernelProgramInfo& info,
+    Zone* zone) {
+  TranslationHelper translation_helper(Thread::Current());
+  translation_helper.InitFromKernelProgramInfo(info);
+  const auto& data = ExternalTypedData::Handle(zone, info.metadata_payloads());
+  KernelReaderHelper reader_helper(zone, &translation_helper,
+                                   Script::Handle(zone), data, 0);
+  TableSelectorMetadataHelper table_selector_metadata_helper(&reader_helper);
+  return table_selector_metadata_helper.GetTableSelectorMetadata(zone);
 }
 
 }  // namespace kernel

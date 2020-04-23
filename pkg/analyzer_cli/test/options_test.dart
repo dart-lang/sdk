@@ -12,11 +12,11 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   group('CommandLineOptions', () {
     group('parse', () {
-      StringBuffer outStringBuffer = new StringBuffer();
-      StringBuffer errorStringBuffer = new StringBuffer();
+      var outStringBuffer = StringBuffer();
+      var errorStringBuffer = StringBuffer();
 
       StringSink savedOutSink, savedErrorSink;
       int savedExitCode;
@@ -40,8 +40,7 @@ main() {
       });
 
       test('defaults', () {
-        CommandLineOptions options =
-            CommandLineOptions.parse(['--dart-sdk', '.', 'foo.dart']);
+        var options = CommandLineOptions.parse(['--dart-sdk', '.', 'foo.dart']);
         expect(options, isNotNull);
         expect(options.buildMode, isFalse);
         expect(options.buildAnalysisOutput, isNull);
@@ -72,20 +71,19 @@ main() {
       });
 
       test('batch', () {
-        CommandLineOptions options =
-            CommandLineOptions.parse(['--dart-sdk', '.', '--batch']);
+        var options = CommandLineOptions.parse(['--dart-sdk', '.', '--batch']);
         expect(options.batchMode, isTrue);
       });
 
       test('defined variables', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '-Dfoo=bar', 'foo.dart']);
         expect(options.definedVariables['foo'], equals('bar'));
         expect(options.definedVariables['bar'], isNull);
       });
 
       test('disable cache flushing', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--disable-cache-flushing', 'foo.dart']);
         expect(options.disableCacheFlushing, isTrue);
       });
@@ -98,13 +96,13 @@ main() {
         };
 
         test('no values', () {
-          CommandLineOptions options = overrideKnownFeatures(
+          var options = overrideKnownFeatures(
               knownFeatures, () => CommandLineOptions.parse(['foo.dart']));
           expect(options.enabledExperiments, isEmpty);
         });
 
         test('single value', () {
-          CommandLineOptions options = overrideKnownFeatures(
+          var options = overrideKnownFeatures(
               knownFeatures,
               () => CommandLineOptions.parse(
                   ['--enable-experiment', 'a', 'foo.dart']));
@@ -113,7 +111,7 @@ main() {
 
         group('multiple values', () {
           test('single flag', () {
-            CommandLineOptions options = overrideKnownFeatures(
+            var options = overrideKnownFeatures(
                 knownFeatures,
                 () => CommandLineOptions.parse(
                     ['--enable-experiment', 'a,b', 'foo.dart']));
@@ -121,7 +119,7 @@ main() {
           });
 
           test('mixed single and multiple flags', () {
-            CommandLineOptions options = overrideKnownFeatures(
+            var options = overrideKnownFeatures(
                 knownFeatures,
                 () => CommandLineOptions.parse([
                       '--enable-experiment',
@@ -134,7 +132,7 @@ main() {
           });
 
           test('multiple flags', () {
-            CommandLineOptions options = overrideKnownFeatures(
+            var options = overrideKnownFeatures(
                 knownFeatures,
                 () => CommandLineOptions.parse([
                       '--enable-experiment',
@@ -149,80 +147,80 @@ main() {
       });
 
       test('hintsAreFatal', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--fatal-hints', 'foo.dart']);
         expect(options.infosAreFatal, isTrue);
       });
 
       test('infosAreFatal', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--fatal-infos', 'foo.dart']);
         expect(options.infosAreFatal, isTrue);
       });
 
       test('log', () {
-        CommandLineOptions options =
+        var options =
             CommandLineOptions.parse(['--dart-sdk', '.', '--log', 'foo.dart']);
         expect(options.log, isTrue);
       });
 
       test('machine format', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--format=machine', 'foo.dart']);
         expect(options.machineFormat, isTrue);
       });
 
       test('no-hints', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--no-hints', 'foo.dart']);
         expect(options.disableHints, isTrue);
       });
 
       test('options', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--options', 'options.yaml', 'foo.dart']);
         expect(options.analysisOptionsFile, equals('options.yaml'));
       });
 
       test('lints', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--lints', 'foo.dart']);
         expect(options.lints, isTrue);
       });
 
       test('package root', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--package-root', 'bar', 'foo.dart']);
         expect(options.packageRootPath, equals('bar'));
       });
 
       test('package warnings', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--package-warnings', 'foo.dart']);
         expect(options.showPackageWarnings, isTrue);
       });
 
       test('sdk warnings', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--sdk-warnings', 'foo.dart']);
         expect(options.showSdkWarnings, isTrue);
       });
 
       test('sourceFiles', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--log', 'foo.dart', 'foo2.dart', 'foo3.dart']);
         expect(options.sourceFiles,
             equals(['foo.dart', 'foo2.dart', 'foo3.dart']));
       });
 
       test('warningsAreFatal', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--fatal-warnings', 'foo.dart']);
         expect(options.warningsAreFatal, isTrue);
       });
 
       test('ignore unrecognized flags', () {
-        CommandLineOptions options = CommandLineOptions.parse([
+        var options = CommandLineOptions.parse([
           '--ignore-unrecognized-flags',
           '--bar',
           '--baz',
@@ -235,7 +233,7 @@ main() {
       });
 
       test('hintsAreFatal', () {
-        CommandLineOptions options = CommandLineOptions.parse(
+        var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--fatal-lints', 'foo.dart']);
         expect(options.lintsAreFatal, isTrue);
       });
@@ -249,7 +247,7 @@ main() {
             equals("Cannot specify both '--package-root' and '--packages."));
       });
 
-      test("bad SDK dir", () {
+      test('bad SDK dir', () {
         var failureMessage;
         CommandLineOptions.parse(['--dart-sdk', '&&&&&', 'foo.dart'],
             printAndFail: (msg) => failureMessage = msg);
@@ -257,13 +255,13 @@ main() {
       });
 
       test('--use-fasta-parser', () {
-        CommandLineOptions options =
+        var options =
             CommandLineOptions.parse(['--use-fasta-parser', 'foo.dart']);
         expect(options.useFastaParser, isTrue);
       });
 
       test('--train-snapshot', () {
-        CommandLineOptions options =
+        var options =
             CommandLineOptions.parse(['--train-snapshot', 'foo.dart']);
         expect(options.trainSnapshot, isTrue);
       });
@@ -275,14 +273,14 @@ main() {
 @reflectiveTest
 class AbstractStatusTest {
   int lastExitHandlerCode;
-  StringBuffer outStringBuffer = new StringBuffer();
-  StringBuffer errorStringBuffer = new StringBuffer();
+  StringBuffer outStringBuffer = StringBuffer();
+  StringBuffer errorStringBuffer = StringBuffer();
 
   StringSink savedOutSink, savedErrorSink;
   int savedExitCode;
   ExitHandler savedExitHandler;
 
-  setUp() {
+  void setUp() {
     savedOutSink = outSink;
     savedErrorSink = errorSink;
     savedExitHandler = exitHandler;
@@ -294,7 +292,7 @@ class AbstractStatusTest {
     errorSink = errorStringBuffer;
   }
 
-  tearDown() {
+  void tearDown() {
     outSink = savedOutSink;
     errorSink = savedErrorSink;
     exitCode = savedExitCode;
@@ -306,7 +304,7 @@ class AbstractStatusTest {
 class CommandLineOptionsTest extends AbstractStatusTest {
   CommandLineOptions options;
 
-  test_buildAnalysisOutput() {
+  void test_buildAnalysisOutput() {
     _parse([
       '--build-mode',
       '--build-analysis-output=//path/to/output.analysis',
@@ -316,18 +314,18 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     expect(options.buildAnalysisOutput, '//path/to/output.analysis');
   }
 
-  test_buildMode() {
+  void test_buildMode() {
     _parse(['--build-mode', 'package:p/foo.dart|/path/to/p/lib/foo.dart']);
     expect(options.buildMode, isTrue);
   }
 
-  test_buildMode_allowsEmptyFileList() {
+  void test_buildMode_allowsEmptyFileList() {
     _parse(['--build-mode']);
     expect(options.buildMode, isTrue);
     expect(options.sourceFiles, isEmpty);
   }
 
-  test_buildSummaryInputs_commaSeparated() {
+  void test_buildSummaryInputs_commaSeparated() {
     _parse([
       '--build-mode',
       '--build-summary-input=/path/to/aaa.sum,/path/to/bbb.sum',
@@ -338,7 +336,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }
 
-  test_buildSummaryInputs_commaSeparated_normalMode() {
+  void test_buildSummaryInputs_commaSeparated_normalMode() {
     _parse([
       '--build-summary-input=/path/to/aaa.sum,/path/to/bbb.sum',
       '/path/to/p/lib/foo.dart'
@@ -348,7 +346,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }
 
-  test_buildSummaryInputs_separateFlags() {
+  void test_buildSummaryInputs_separateFlags() {
     _parse([
       '--build-mode',
       '--build-summary-input=/path/to/aaa.sum',
@@ -360,7 +358,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }
 
-  test_buildSummaryInputs_separateFlags_normalMode() {
+  void test_buildSummaryInputs_separateFlags_normalMode() {
     _parse([
       '--build-summary-input=/path/to/aaa.sum',
       '--build-summary-input=/path/to/bbb.sum',
@@ -371,7 +369,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }
 
-  test_buildSummaryOnly() {
+  void test_buildSummaryOnly() {
     _parse([
       '--build-mode',
       '--build-summary-output=/path/to/aaa.sum',
@@ -382,7 +380,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     expect(options.buildSummaryOnly, isTrue);
   }
 
-  test_buildSummaryOutput() {
+  void test_buildSummaryOutput() {
     _parse([
       '--build-mode',
       '--build-summary-output=//path/to/output.sum',
@@ -392,7 +390,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     expect(options.buildSummaryOutput, '//path/to/output.sum');
   }
 
-  test_buildSummaryOutputSemantic() {
+  void test_buildSummaryOutputSemantic() {
     _parse([
       '--build-mode',
       '--build-summary-output-semantic=//path/to/output.sum',
@@ -402,7 +400,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     expect(options.buildSummaryOutputSemantic, '//path/to/output.sum');
   }
 
-  test_buildSuppressExitCode() {
+  void test_buildSuppressExitCode() {
     _parse([
       '--build-mode',
       '--build-suppress-exit-code',

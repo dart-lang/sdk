@@ -16,8 +16,8 @@ main() {
 class AnalysisOptionsImplTest {
   test_resetToDefaults() {
     // Note that this only tests options visible from the interface.
-    AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-    AnalysisOptionsImpl modifiedOptions = new AnalysisOptionsImpl();
+    AnalysisOptionsImpl defaultOptions = AnalysisOptionsImpl();
+    AnalysisOptionsImpl modifiedOptions = AnalysisOptionsImpl();
     modifiedOptions.dart2jsHint = true;
     modifiedOptions.disableCacheFlushing = true;
     modifiedOptions.enabledPluginNames = ['somePackage'];

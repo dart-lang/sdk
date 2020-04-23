@@ -14,11 +14,9 @@ import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_packet_transformer.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 
-/**
- * Instances of the class [LspByteStreamServerChannel] implement an
- * [LspServerCommunicationChannel] that uses a stream and a sink (typically,
- * standard input and standard output) to communicate with clients.
- */
+/// Instances of the class [LspByteStreamServerChannel] implement an
+/// [LspServerCommunicationChannel] that uses a stream and a sink (typically,
+/// standard input and standard output) to communicate with clients.
 class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   final Stream _input;
 
@@ -26,22 +24,17 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
 
   final InstrumentationService _instrumentationService;
 
-  /**
-   * Completer that will be signalled when the input stream is closed.
-   */
-  final Completer _closed = new Completer();
+  /// Completer that will be signalled when the input stream is closed.
+  final Completer _closed = Completer();
 
-  /**
-   * True if [close] has been called.
-   */
+  /// True if [close] has been called.
   bool _closeRequested = false;
 
   LspByteStreamServerChannel(
       this._input, this._output, this._instrumentationService);
 
-  /**
-   * Future that will be completed when the input stream is closed.
-   */
+  /// Future that will be completed when the input stream is closed.
+  @override
   Future get closed {
     return _closed.future;
   }
@@ -56,9 +49,9 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   }
 
   @override
-  void listen(void onMessage(Message message),
-      {Function onError, void onDone()}) {
-    _input.transform(new LspPacketTransformer()).listen(
+  void listen(void Function(Message message) onMessage,
+      {Function onError, void Function() onDone}) {
+    _input.transform(LspPacketTransformer()).listen(
       (String data) => _readMessage(data, onMessage),
       onError: onError,
       onDone: () {
@@ -80,11 +73,9 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   @override
   void sendResponse(ResponseMessage response) => _sendLsp(response.toJson());
 
-  /**
-   * Read a request from the given [data] and use the given function to handle
-   * the message.
-   */
-  void _readMessage(String data, void onMessage(Message request)) {
+  /// Read a request from the given [data] and use the given function to handle
+  /// the message.
+  void _readMessage(String data, void Function(Message request) onMessage) {
     // Ignore any further requests after the communication channel is closed.
     if (_closed.isCompleted) {
       return;
@@ -127,22 +118,19 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   }
 
   void _sendParseError() {
-    final error = new ResponseMessage(
+    final error = ResponseMessage(
         null,
         null,
-        new ResponseError(
-            ErrorCodes.ParseError, 'Unable to parse message', null),
+        ResponseError(ErrorCodes.ParseError, 'Unable to parse message', null),
         jsonRpcVersion);
     sendResponse(error);
   }
 
-  /**
-   * Send [bytes] to [_output].
-   */
+  /// Send [bytes] to [_output].
   void _write(List<int> bytes) {
-    runZoned(
+    runZonedGuarded(
       () => _output.add(bytes),
-      onError: (e) => close(),
+      (e, s) => close(),
     );
   }
 }

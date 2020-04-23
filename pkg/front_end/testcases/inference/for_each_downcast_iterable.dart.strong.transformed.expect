@@ -21,7 +21,12 @@ static method test() → dynamic /* originally async */ {
       #L1:
       {
         core::Object* o;
-        for (dynamic x in o as{TypeError} core::Iterable<dynamic>*) {
+        {
+          core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(o as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+          for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+            dynamic x = :sync-for-iterator.{core::Iterator::current};
+            {}
+          }
         }
         {
           dynamic :stream = o as{TypeError} asy::Stream<dynamic>*;
@@ -46,8 +51,14 @@ static method test() → dynamic /* originally async */ {
             }
         }
         core::int* y;
-        for (final dynamic #t4 in o as{TypeError} core::Iterable<dynamic>*) {
-          y = #t4 as{TypeError} core::int*;
+        {
+          core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(o as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+          for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+            final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
+            {
+              y = #t4 as{TypeError,ForDynamic} core::int*;
+            }
+          }
         }
         {
           dynamic :stream = o as{TypeError} asy::Stream<dynamic>*;
@@ -61,7 +72,7 @@ static method test() → dynamic /* originally async */ {
               if(_in::unsafeCast<core::bool*>(:result)) {
                 final dynamic #t7 = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  y = #t7 as{TypeError} core::int*;
+                  y = #t7 as{TypeError,ForDynamic} core::int*;
                 }
               }
               else

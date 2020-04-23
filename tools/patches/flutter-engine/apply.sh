@@ -67,15 +67,15 @@ if [ $need_runhooks = true ]; then
     repo=${line[1]}
     dependency_tag_or_hash=${line[2]}
 
+    # If the dependency does not exist (e.g. was newly added) we need to clone
+    # the repository first into the right location.
+    if [ ! -e ${dependency_path} ]; then
+      git clone ${repo} ${dependency_path}
+    fi
     # Inside dependency compare HEAD to specified tag-or-hash by rev-parse'ing
     # them and comparing resulting hashes.
     # Note: tag^0 forces rev-parse to return commit hash rather then the hash of
     # the tag object itself.
-    if [ ! -e ${dependency_path} ]; then
-      pushd $(dirname ${dependency_path}) > /dev/null
-      git clone ${repo}
-      popd
-    fi
     pushd ${dependency_path} > /dev/null
     if [ $(git rev-parse HEAD) != $(git rev-parse ${dependency_tag_or_hash}^0) ]; then
       echo "${dependency_path} requires update to match DEPS file"

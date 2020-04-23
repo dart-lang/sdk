@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method testString() → dynamic {
+  core::print("a");
+}
+static method testInt() → dynamic {
+  core::print(1);
+}
+static method testBool() → dynamic {
+  core::print(true);
+  core::print(false);
+}
+static method testDouble() → dynamic {
+  core::print(1.0);
+}
+static method testNull() → dynamic {
+  core::print(null);
+}
+static method testList() → dynamic {
+  core::print(<dynamic>[]);
+  core::print(<core::String*>["a", "b"]);
+}
+static method testMap() → dynamic {
+  core::print(<dynamic, dynamic>{});
+  core::print(<core::String*, core::String*>{"a": "b"});
+}
+static method testSymbol() → dynamic {
+  core::print(#C1);
+  core::print(#C2);
+  core::print(#C3);
+}
+static method main() → dynamic {
+  self::testString();
+  self::testInt();
+  self::testBool();
+  self::testDouble();
+  self::testNull();
+  self::testList();
+  self::testMap();
+  self::testSymbol();
+}
+
+constants  {
+  #C1 = #fisk
+  #C2 = #org-dartlang-testcase:///literals.dart::_fisk
+  #C3 = #fisk.hest.ko
+}

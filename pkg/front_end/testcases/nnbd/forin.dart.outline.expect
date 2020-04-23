@@ -1,0 +1,10 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, core::Object o1, core::Object? o2) → dynamic
+  ;
+static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic d) → dynamic
+  ;
+static method main() → dynamic
+  ;

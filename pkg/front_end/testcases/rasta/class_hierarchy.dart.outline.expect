@@ -37,7 +37,7 @@ class B extends core::Object {
   synthetic constructor •() → self::B*
     ;
 }
-class C extends core::Object {
+class C extends core::Object /*hasConstConstructor*/  {
   const synthetic constructor •() → self::C*
     : super core::Object::•()
     ;

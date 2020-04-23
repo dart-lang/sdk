@@ -11,7 +11,8 @@ import '../builder/builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/library_builder.dart';
 
-import '../kernel/class_hierarchy_builder.dart' show ClassMember;
+import '../kernel/class_hierarchy_builder.dart'
+    show ClassHierarchyBuilder, ClassMember;
 import '../kernel/kernel_builder.dart'
     show isRedirectingGenerativeConstructorImplementation;
 
@@ -130,12 +131,58 @@ class DillMemberBuilder extends MemberBuilderImpl {
   }
 
   @override
-  List<ClassMember> get localMembers =>
-      isSetter ? const <ClassMember>[] : <ClassMember>[this];
+  List<ClassMember> get localMembers => isSetter
+      ? const <ClassMember>[]
+      : <ClassMember>[new DillClassMember(this, forSetter: false)];
 
   @override
   List<ClassMember> get localSetters =>
-      isSetter ? <ClassMember>[this] : const <ClassMember>[];
+      isSetter || member is Field && member.hasSetter
+          ? <ClassMember>[new DillClassMember(this, forSetter: true)]
+          : const <ClassMember>[];
+}
+
+class DillClassMember extends BuilderClassMember {
+  @override
+  final DillMemberBuilder memberBuilder;
+
+  @override
+  final bool forSetter;
+
+  DillClassMember(this.memberBuilder, {this.forSetter})
+      : assert(forSetter != null);
+
+  @override
+  bool get isSourceDeclaration => false;
+
+  @override
+  bool get isProperty =>
+      memberBuilder.kind == null ||
+      memberBuilder.kind == ProcedureKind.Getter ||
+      memberBuilder.kind == ProcedureKind.Setter;
+
+  @override
+  bool get isSynthesized {
+    Member member = memberBuilder.member;
+    return member is Procedure &&
+        (member.isMemberSignature ||
+            (member.isForwardingStub && !member.isForwardingSemiStub));
+  }
+
+  @override
+  bool get isFunction => !isProperty;
+
+  @override
+  void inferType(ClassHierarchyBuilder hierarchy) {
+    // Do nothing; this is only for source members.
+  }
+
+  @override
+  void registerOverrideDependency(ClassMember overriddenMember) {
+    // Do nothing; this is only for source members.
+  }
+
+  String toString() => 'DillClassMember($memberBuilder,forSetter=${forSetter})';
 }
 
 int computeModifiers(Member member) {

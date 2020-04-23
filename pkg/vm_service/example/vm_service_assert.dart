@@ -365,6 +365,13 @@ vms.ClassList assertClassList(vms.ClassList obj) {
   return obj;
 }
 
+vms.ClientName assertClientName(vms.ClientName obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertString(obj.name);
+  return obj;
+}
+
 vms.CodeRef assertCodeRef(vms.CodeRef obj) {
   assertNotNull(obj);
   assertString(obj.type);
@@ -611,6 +618,8 @@ vms.Func assertFunc(vms.Func obj) {
   } else {
     throw "Unexpected value: ${obj.owner}";
   }
+  assertBool(obj.isStatic);
+  assertBool(obj.isConst);
   return obj;
 }
 

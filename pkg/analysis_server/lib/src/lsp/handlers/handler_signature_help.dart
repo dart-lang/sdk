@@ -14,12 +14,14 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 class SignatureHelpHandler
     extends MessageHandler<TextDocumentPositionParams, SignatureHelp> {
   SignatureHelpHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_signatureHelp;
 
   @override
   LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
       TextDocumentPositionParams.jsonHandler;
 
+  @override
   Future<ErrorOr<SignatureHelp>> handle(
       TextDocumentPositionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
@@ -32,7 +34,7 @@ class SignatureHelpHandler
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) {
-      final computer = new DartUnitSignatureComputer(
+      final computer = DartUnitSignatureComputer(
           server.getDartdocDirectiveInfoFor(unit.result),
           unit.result.unit,
           offset);

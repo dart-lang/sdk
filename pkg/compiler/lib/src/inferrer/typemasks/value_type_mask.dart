@@ -73,6 +73,6 @@ class ValueTypeMask extends ForwardingTypeMask {
 
   @override
   String toString() {
-    return 'Value($forwardTo, value: ${value.toDartText()})';
+    return 'Value($forwardTo, value: ${value.toDartText(null)})';
   }
 }

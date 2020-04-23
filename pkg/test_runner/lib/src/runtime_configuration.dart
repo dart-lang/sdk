@@ -48,12 +48,10 @@ abstract class RuntimeConfiguration {
       case Runtime.dartPrecompiled:
         if (configuration.system == System.android) {
           return DartPrecompiledAdbRuntimeConfiguration(
-            useBlobs: configuration.useBlobs,
             useElf: configuration.useElf,
           );
         } else {
           return DartPrecompiledRuntimeConfiguration(
-            useBlobs: configuration.useBlobs,
             useElf: configuration.useElf,
           );
         }
@@ -162,7 +160,7 @@ class CommandLineJavaScriptRuntime extends RuntimeConfiguration {
   CommandLineJavaScriptRuntime(this.moniker) : super._subclass();
 
   void checkArtifact(CommandArtifact artifact) {
-    String type = artifact.mimeType;
+    var type = artifact.mimeType;
     if (type != 'application/javascript') {
       throw "Runtime '$moniker' cannot run files of type '$type'.";
     }
@@ -213,6 +211,20 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
   }
 }
 
+class QemuConfig {
+  static const all = <Architecture, QemuConfig>{
+    Architecture.arm:
+        QemuConfig('qemu-arm', ['-L', '/usr/arm-linux-gnueabihf/']),
+    Architecture.arm64:
+        QemuConfig('qemu-aarch64', ['-L', '/usr/aarch64-linux-gnu/']),
+  };
+
+  final String executable;
+  final List<String> arguments;
+
+  const QemuConfig(this.executable, this.arguments);
+}
+
 /// Common runtime configuration for runtimes based on the Dart VM.
 class DartVmRuntimeConfiguration extends RuntimeConfiguration {
   DartVmRuntimeConfiguration() : super._subclass();
@@ -257,8 +269,8 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
       bool isCrashExpected) {
-    String script = artifact.filename;
-    String type = artifact.mimeType;
+    var script = artifact.filename;
+    var type = artifact.mimeType;
     if (script != null &&
         type != 'application/dart' &&
         type != 'application/dart-snapshot' &&
@@ -269,20 +281,23 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
     if (isCrashExpected) {
       arguments.insert(0, '--suppress-core-dump');
     }
-    String executable = dartVmBinaryFileName;
+    var executable = dartVmBinaryFileName;
     if (type == 'application/kernel-ir-fully-linked') {
       executable = dartVmExecutableFileName;
+    }
+    if (_configuration.useQemu) {
+      final config = QemuConfig.all[_configuration.architecture];
+      arguments.insert(0, executable);
+      arguments.insertAll(0, config.arguments);
+      executable = config.executable;
     }
     return [VMCommand(executable, arguments, environmentOverrides)];
   }
 }
 
 class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
-  final bool useBlobs;
   final bool useElf;
-  DartPrecompiledRuntimeConfiguration({bool useBlobs, bool useElf})
-      : useBlobs = useBlobs,
-        useElf = useElf;
+  DartPrecompiledRuntimeConfiguration({bool useElf}) : useElf = useElf;
 
   List<Command> computeRuntimeCommands(
       CommandArtifact artifact,
@@ -290,15 +305,22 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
       bool isCrashExpected) {
-    String script = artifact.filename;
-    String type = artifact.mimeType;
+    var script = artifact.filename;
+    var type = artifact.mimeType;
     if (script != null && type != 'application/dart-precompiled') {
       throw "dart_precompiled cannot run files of type '$type'.";
     }
 
-    return [
-      VMCommand(dartPrecompiledBinaryFileName, arguments, environmentOverrides)
-    ];
+    var executable = dartPrecompiledBinaryFileName;
+
+    if (_configuration.useQemu) {
+      final config = QemuConfig.all[_configuration.architecture];
+      arguments.insert(0, executable);
+      arguments.insertAll(0, config.arguments);
+      executable = config.executable;
+    }
+
+    return [VMCommand(executable, arguments, environmentOverrides)];
   }
 }
 
@@ -312,14 +334,14 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
       bool isCrashExpected) {
-    final String script = artifact.filename;
-    final String type = artifact.mimeType;
+    var script = artifact.filename;
+    var type = artifact.mimeType;
     if (script != null && type != 'application/kernel-ir-fully-linked') {
       throw "dart cannot run files of type '$type'.";
     }
 
-    final String buildPath = buildDir;
-    final String processTest = processTestBinaryFileName;
+    var buildPath = buildDir;
+    var processTest = processTestBinaryFileName;
     return [
       AdbDartkCommand(buildPath, processTest, script, arguments, extraLibs)
     ];
@@ -328,15 +350,11 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
 class DartPrecompiledAdbRuntimeConfiguration
     extends DartVmRuntimeConfiguration {
-  static const String deviceDir = '/data/local/tmp/precompilation-testing';
-  static const String deviceTestDir =
-      '/data/local/tmp/precompilation-testing/test';
+  static const deviceDir = '/data/local/tmp/precompilation-testing';
+  static const deviceTestDir = '/data/local/tmp/precompilation-testing/test';
 
-  final bool useBlobs;
   final bool useElf;
-  DartPrecompiledAdbRuntimeConfiguration({bool useBlobs, bool useElf})
-      : useBlobs = useBlobs,
-        useElf = useElf;
+  DartPrecompiledAdbRuntimeConfiguration({bool useElf}) : useElf = useElf;
 
   List<Command> computeRuntimeCommands(
       CommandArtifact artifact,
@@ -344,16 +362,16 @@ class DartPrecompiledAdbRuntimeConfiguration
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
       bool isCrashExpected) {
-    String script = artifact.filename;
-    String type = artifact.mimeType;
+    var script = artifact.filename;
+    var type = artifact.mimeType;
     if (script != null && type != 'application/dart-precompiled') {
       throw "dart_precompiled cannot run files of type '$type'.";
     }
 
-    String processTest = processTestBinaryFileName;
+    var processTest = processTestBinaryFileName;
     return [
       AdbPrecompilationCommand(
-          buildDir, processTest, script, arguments, useBlobs, useElf, extraLibs)
+          buildDir, processTest, script, arguments, useElf, extraLibs)
     ];
   }
 }
@@ -366,7 +384,7 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
   }
 
   void searchForSelfCheckers() {
-    Uri pkg = Repository.uri.resolve('pkg');
+    var pkg = Repository.uri.resolve('pkg');
     for (var entry in Directory.fromUri(pkg).listSync(recursive: true)) {
       if (entry is File && entry.path.endsWith('_self_check.dart')) {
         selfCheckers.add(entry.path);
@@ -380,7 +398,7 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
       bool isCrashExpected) {
-    String executable = dartVmBinaryFileName;
+    var executable = dartVmBinaryFileName;
     return selfCheckers
         .map((String tester) => VMBatchCommand(
             executable, tester, arguments, environmentOverrides,

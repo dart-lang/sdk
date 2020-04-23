@@ -77,7 +77,7 @@ external T max<T extends num>(T a, T b);
 /// and the vector ([b],[a]).
 /// The result is in the range -PI..PI.
 ///
-/// If [b] is positive, this is the same as `atan(b/a)`.
+/// If [b] is positive, this is the same as `atan(a/b)`.
 ///
 /// The result is negative when [a] is negative (including when [a] is the
 /// double -0.0).

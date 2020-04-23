@@ -4,8 +4,9 @@
 // VMOptions=
 // VMOptions=--interpret_irregexp
 
+import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 var regex0;
@@ -17,7 +18,7 @@ void script() {
   regex = new RegExp(r"(\w+)");
   String str = "Parse my string";
   Iterable<Match> matches = regex.allMatches(str); // Run to generate bytecode.
-  expect(matches.length, equals(3));
+  Expect.equals(matches.length, 3);
 }
 
 var tests = <IsolateTest>[

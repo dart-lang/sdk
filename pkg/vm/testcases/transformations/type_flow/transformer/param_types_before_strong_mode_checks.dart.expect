@@ -6,58 +6,58 @@ abstract class T0 extends core::Object {
   synthetic constructor •() → self::T0*
     : super core::Object::•()
     ;
-  abstract method foo() → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  abstract method foo() → void;
 }
 class T2 extends self::T0 {
   synthetic constructor •() → self::T2*
     : super self::T0::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method foo() → void {}
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → void {}
 }
 class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasNonThisUses:false]  method method1(self::T0* t0) → void {
-    [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method method1(self::T0* t0) → void {
+    [@vm.direct-call.metadata=T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
   }
 }
 abstract class B extends core::Object {
-  abstract method method2(covariant dynamic arg) → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  abstract method method2(covariant dynamic arg) → void;
 }
 class C extends core::Object implements self::B {
   synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method method2(covariant self::T0* t0) → void {
-    [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method method2(covariant self::T0* t0) → void {
+    [@vm.direct-call.metadata=T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
   }
 }
 class D extends core::Object {
   synthetic constructor •() → self::D*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method method3(self::T0* t0) → void {
-    [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method method3(self::T0* t0) → void {
+    [@vm.direct-call.metadata=T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
   }
 }
-[@vm.inferred-type.metadata=dart.core::Null?]static field core::Function* unknown;
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field core::Function* unknown;
 static method func1([@vm.inferred-type.metadata=#lib::T2?] self::T0* t0) → void {
-  [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
+  [@vm.direct-call.metadata=T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
 }
 static method func2(self::T0* t0) → void {
-  [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
+  [@vm.direct-call.metadata=T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
 }
 static method getDynamic() → dynamic
-  return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown.call();
+  return [@vm.call-site-attributes.metadata=receiverType:InterfaceType(Function*)] self::unknown.call();
 static method use(dynamic x) → dynamic
-  return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown.call(x);
+  return [@vm.call-site-attributes.metadata=receiverType:InterfaceType(Function*)] self::unknown.call(x);
 static method main(core::List<core::String*>* args) → dynamic {
-  self::func1(self::getDynamic() as{TypeError} self::T0*);
+  self::func1(self::getDynamic() as{TypeError,ForDynamic} self::T0*);
   self::use(#C1);
   self::use(new self::A::•().{self::A::method1});
-  self::B* bb = self::getDynamic() as{TypeError} self::B*;
-  [@vm.direct-call.metadata=#lib::C::method2??] [@vm.inferred-type.metadata=!? (skip check)] bb.{self::B::method2}(self::getDynamic());
+  self::B* bb = self::getDynamic() as{TypeError,ForDynamic} self::B*;
+  [@vm.direct-call.metadata=C::method2??] [@vm.inferred-type.metadata=!? (skip check)] bb.{self::B::method2}(self::getDynamic());
   self::getDynamic().method3(self::getDynamic());
   new self::T2::•();
   new self::A::•();

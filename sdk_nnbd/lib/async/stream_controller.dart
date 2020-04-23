@@ -15,8 +15,6 @@ typedef void ControllerCallback();
 
 /**
  * Type of stream controller `onCancel` callbacks.
- *
- * The callback may return either `void` or a future.
  */
 typedef FutureOr<void> ControllerCancelCallback();
 
@@ -407,7 +405,12 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
 
   /** The controller is in its initial state with no subscription. */
   static const int _STATE_INITIAL = 0;
-  /** The controller has a subscription, but hasn't been closed or canceled. */
+  /**
+   * The controller has a subscription, but hasn't been closed or canceled.
+   *
+   * Keep in sync with
+   * runtime/vm/stack_trace.cc:kStreamController_StateSubscribed.
+   */
   static const int _STATE_SUBSCRIBED = 1;
   /** The subscription is canceled. */
   static const int _STATE_CANCELED = 2;
@@ -446,9 +449,11 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
    * When [_state] is [_STATE_CANCELED] the field is currently not used,
    * and will contain `null`.
    */
+  @pragma("vm:entry-point")
   Object? _varData;
 
   /** Current state of the controller. */
+  @pragma("vm:entry-point")
   int _state = _STATE_INITIAL;
 
   /**
@@ -507,10 +512,10 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
   // stream is listened to.
   // While adding a stream, pending events are moved into the
   // state object to allow the state object to use the _varData field.
-  _PendingEvents<T> get _pendingEvents {
+  _PendingEvents<T>? get _pendingEvents {
     assert(_isInitialState);
     if (!_isAddingStream) {
-      return _varData as _PendingEvents<T>;
+      return _varData as _PendingEvents<T>?;
     }
     var state = _varData as _StreamControllerAddStreamState<T>;
     return state.varData;
@@ -543,7 +548,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     if (_isAddingStream) {
       varData = (varData as _StreamControllerAddStreamState<Object?>).varData;
     }
-    return _varData as _ControllerSubscription<T>;
+    return varData as _ControllerSubscription<T>;
   }
 
   /**
@@ -595,12 +600,17 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
    * Send or enqueue an error event.
    */
   void addError(Object error, [StackTrace? stackTrace]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(error, "error");
     if (!_mayAddEvent) throw _badEventState();
     AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
       error = replacement.error;
       stackTrace = replacement.stackTrace;
+    } else {
+      stackTrace ??= AsyncError.defaultStackTrace(error);
     }
+    if (stackTrace == null) throw "unreachable"; // TODO(40088)
     _addError(error, stackTrace);
   }
 
@@ -647,7 +657,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     }
   }
 
-  void _addError(Object error, StackTrace? stackTrace) {
+  void _addError(Object error, StackTrace stackTrace) {
     if (hasListener) {
       _sendError(error, stackTrace);
     } else if (_isInitialState) {
@@ -674,7 +684,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     _ControllerSubscription<T> subscription = _ControllerSubscription<T>(
         this, onData, onError, onDone, cancelOnError);
 
-    _PendingEvents<T> pendingEvents = _pendingEvents;
+    _PendingEvents<T>? pendingEvents = _pendingEvents;
     _state |= _STATE_SUBSCRIBED;
     if (_isAddingStream) {
       var addState = _varData as _StreamControllerAddStreamState<T>;
@@ -773,7 +783,7 @@ abstract class _SyncStreamControllerDispatch<T>
     _subscription._add(data);
   }
 
-  void _sendError(Object error, StackTrace? stackTrace) {
+  void _sendError(Object error, StackTrace stackTrace) {
     _subscription._addError(error, stackTrace);
   }
 
@@ -788,7 +798,7 @@ abstract class _AsyncStreamControllerDispatch<T>
     _subscription._addPending(_DelayedData<T>(data));
   }
 
-  void _sendError(Object error, StackTrace? stackTrace) {
+  void _sendError(Object error, StackTrace stackTrace) {
     _subscription._addPending(_DelayedError(error, stackTrace));
   }
 
@@ -896,7 +906,7 @@ class _AddStreamState<T> {
             onDone: controller._close,
             cancelOnError: cancelOnError);
 
-  static makeErrorHandler(_EventSink controller) => (Object e, StackTrace? s) {
+  static makeErrorHandler(_EventSink controller) => (Object e, StackTrace s) {
         controller._addError(e, s);
         controller._close();
       };

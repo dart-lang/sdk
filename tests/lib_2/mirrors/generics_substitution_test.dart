@@ -13,7 +13,7 @@ class SuperGeneric<R, S> {
 }
 
 class Generic<T> extends SuperGeneric<T, int> {
-  T t() {}
+  T t() => throw "does-not-return"; //
 }
 
 main() {

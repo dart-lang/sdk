@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToIfElementTest);
   });
@@ -25,10 +25,10 @@ class ConvertToIfElementTest extends FixProcessorLintTest {
       LintNames.prefer_if_elements_to_conditional_expressions;
 
   // More coverage in the `convert_to_if_element_test.dart` assist test.
-  test_conditional_list() async {
+  Future<void> test_conditional_list() async {
     await resolveTestUnit('''
 f(bool b) {
-  return ['a', b /*LINT*/? 'c' : 'd', 'e'];
+  return ['a', b ? 'c' : 'd', 'e'];
 }
 ''');
     await assertHasFix('''

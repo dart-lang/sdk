@@ -2,59 +2,59 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-analyses/analyze_test: Slow
-analyses/api_dynamic_test: Slow
-analyses/dart2js_dynamic_test: Slow
-closure/closure_test: Slow
-codegen/load_elimination_test: Slow
-codegen/model_test: Slow
-deferred_loading/deferred_loading_test: Slow
-end_to_end/dump_info_test: Slow
-equivalence/id_equivalence1_test: Slow
-equivalence/id_equivalence2_test: Slow
-impact/impact_test: Slow
-inference/inference0_test: Slow
-inference/inference1_test: Slow
-inference/inference2_test: Slow
-inference/inference3_test: Slow
-inference/swarm_test: Slow #
-inlining/inlining_test: Slow
-model/native_test: Slow
-model/no_such_method_enabled_test: Slow
-model/subtype_test: Slow
-modular/*: Slow
+analyses/analyze_test: Slow, Pass
+analyses/api_dynamic_test: Slow, Pass
+analyses/dart2js_dynamic_test: Slow, Pass
+closure/closure_test: Slow, Pass
+codegen/load_elimination_test: Slow, Pass
+codegen/model_test: Slow, Pass
+deferred_loading/deferred_loading_test: Slow, Pass
+end_to_end/dump_info_test: Slow, Pass
+equivalence/id_equivalence1_test: Slow, Pass
+equivalence/id_equivalence2_test: Slow, Pass
+impact/impact_test: Slow, Pass
+inference/inference0_test: Slow, Pass
+inference/inference1_test: Slow, Pass
+inference/inference2_test: Slow, Pass
+inference/inference3_test: Slow, Pass
+inference/swarm_test: Slow, Pass #
+inlining/inlining_test: Slow, Pass
+model/native_test: Slow, Pass
+model/no_such_method_enabled_test: Slow, Pass
+model/subtype_test: Slow, Pass
+modular/*: Slow, Pass
 packages/*: Skip # Skip packages folder
-rti/rti_emission_test: Slow
-rti/rti_need0_test: Slow
-rti/rti_need1_test: Slow
-serialization/serialization_test: Slow
-sourcemaps/source_mapping_invokes_test: Slow
-sourcemaps/source_mapping_operators_test: Slow
-sourcemaps/source_mapping_test: Slow
-sourcemaps/stacktrace_test: Slow
+rti/rti_emission_test: Slow, Pass
+rti/rti_need0_test: Slow, Pass
+rti/rti_need1_test: Slow, Pass
+serialization/serialization_test: Slow, Pass
+sourcemaps/source_mapping_invokes_test: Slow, Pass
+sourcemaps/source_mapping_operators_test: Slow, Pass
+sourcemaps/source_mapping_test: Slow, Pass
+sourcemaps/stacktrace_test: Slow, Pass
 
 [ $mode == debug ]
-deferred/load_graph_segmentation_test: Slow
-deferred/load_mapping_test: Slow
-end_to_end/dart2js_batch_test: Slow
-end_to_end/exit_code_test: Slow
-end_to_end/in_user_code_test: Slow
-end_to_end/show_package_warnings_test: Slow
+deferred/load_graph_segmentation_test: Slow, Pass
+deferred/load_mapping_test: Slow, Pass
+end_to_end/dart2js_batch_test: Slow, Pass
+end_to_end/exit_code_test: Slow, Pass
+end_to_end/in_user_code_test: Slow, Pass
+end_to_end/show_package_warnings_test: Slow, Pass
 
 [ $checked ]
-codegen/value_range_kernel_test: Slow
-codegen/value_range_test: Slow
-end_to_end/exit_code_test: Slow
-end_to_end/output_type_test: Slow
-end_to_end/uri_retention_test: Slow
-jsinterop/declaration_test: Slow
-jsinterop/interop_anonymous_unreachable_test: Slow
-jsinterop/world_test: Slow
-sourcemaps/stacktrace_test: Slow
+codegen/value_range_kernel_test: Slow, Pass
+codegen/value_range_test: Slow, Pass
+end_to_end/exit_code_test: Slow, Pass
+end_to_end/output_type_test: Slow, Pass
+end_to_end/uri_retention_test: Slow, Pass
+jsinterop/declaration_test: Slow, Pass
+jsinterop/interop_anonymous_unreachable_test: Slow, Pass
+jsinterop/world_test: Slow, Pass
+sourcemaps/stacktrace_test: Slow, Pass
 
 [ !$checked ]
 end_to_end/exit_code_test: Skip # This tests requires checked mode.
-jsinterop/declaration_test: Slow
+jsinterop/declaration_test: Slow, Pass
 
 [ $runtime == chrome || $runtime == ff || $runtime == firefox || $runtime == safari || $jscl ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).

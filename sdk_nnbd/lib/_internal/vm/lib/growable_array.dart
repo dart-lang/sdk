@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 @pragma("vm:entry-point")
@@ -12,16 +10,11 @@ class _GrowableList<T> extends ListBase<T> {
     if ((index < 0) || (index > length)) {
       throw new RangeError.range(index, 0, length);
     }
-    if (index == this.length) {
-      add(element);
+    int oldLength = this.length;
+    add(element);
+    if (index == oldLength) {
       return;
     }
-    int oldLength = this.length;
-    // We are modifying the length just below the is-check. Without the check
-    // Array.copy could throw an exception, leaving the list in a bad state
-    // (with a length that has been increased, but without a new element).
-    if (index is! int) throw new ArgumentError(index);
-    this.length++;
     Lists.copy(this, index, this, index + 1, oldLength - index);
     this[index] = element;
   }
@@ -36,7 +29,7 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
-  bool remove(Object element) {
+  bool remove(Object? element) {
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
         removeAt(i);
@@ -58,7 +51,15 @@ class _GrowableList<T> extends ListBase<T> {
     // There might be errors after the length change, in which case the list
     // will end up being modified but the operation not complete. Unless we
     // always go through a "toList" we can't really avoid that.
-    this.length += insertionLength;
+    int capacity = _capacity;
+    int newLength = length + insertionLength;
+    if (newLength > capacity) {
+      do {
+        capacity = _nextCapacity(capacity);
+      } while (newLength > capacity);
+      _grow(capacity);
+    }
+    _setLength(newLength);
     setRange(index + insertionLength, this.length, this, index);
     setAll(index, iterable);
   }
@@ -79,15 +80,15 @@ class _GrowableList<T> extends ListBase<T> {
     this.length = this.length - (end - start);
   }
 
-  List<T> sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    int length = end - start;
+  List<T> sublist(int start, [int? end]) {
+    final int actualEnd = RangeError.checkValidRange(start, end, this.length);
+    int length = actualEnd - start;
     if (length == 0) return <T>[];
-    List list = new _List(length);
+    final list = new _List(length);
     for (int i = 0; i < length; i++) {
       list[i] = this[start + i];
     }
-    var result = new _GrowableList<T>._withData(list);
+    final result = new _GrowableList<T>._withData(list);
     result._setLength(length);
     return result;
   }
@@ -106,7 +107,8 @@ class _GrowableList<T> extends ListBase<T> {
     return new _GrowableList<T>._withData(data);
   }
 
-  @pragma("vm:exact-result-type", _GrowableList)
+  @pragma("vm:exact-result-type",
+      [_GrowableList, "result-type-uses-passed-type-arguments"])
   factory _GrowableList._withData(_List data) native "GrowableList_allocate";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
@@ -121,6 +123,8 @@ class _GrowableList<T> extends ListBase<T> {
     int old_capacity = _capacity;
     int new_capacity = new_length;
     if (new_capacity > old_capacity) {
+      // Verify that element type is nullable.
+      null as T;
       _grow(new_capacity);
       _setLength(new_length);
       return;
@@ -136,7 +140,7 @@ class _GrowableList<T> extends ListBase<T> {
       _shrink(new_capacity, new_length);
     } else {
       for (int i = new_length; i < length; i++) {
-        this[i] = null;
+        _setIndexed(i, null);
       }
     }
     _setLength(new_length);
@@ -152,7 +156,7 @@ class _GrowableList<T> extends ListBase<T> {
     _setIndexed(index, value);
   }
 
-  void _setIndexed(int index, T value) native "GrowableList_setIndexed";
+  void _setIndexed(int index, T? value) native "GrowableList_setIndexed";
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:prefer-inline")
@@ -187,7 +191,7 @@ class _GrowableList<T> extends ListBase<T> {
           throw new ConcurrentModificationError(this);
         }
         this._setLength(newLen);
-        final ListBase<T> iterableAsList = iterable;
+        final ListBase<T> iterableAsList = iterable as ListBase<T>;
         for (int i = 0; i < iterLen; i++) {
           this[len++] = iterableAsList[i];
         }
@@ -376,21 +380,31 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   List<T> toList({bool growable: true}) {
-    var length = this.length;
-    if (length > 0) {
-      List list = growable ? new _List(length) : new _List<T>(length);
-      for (int i = 0; i < length; i++) {
-        list[i] = this[i];
+    final length = this.length;
+    if (growable) {
+      if (length > 0) {
+        final list = new _List(length);
+        for (int i = 0; i < length; i++) {
+          list[i] = this[i];
+        }
+        final result = new _GrowableList<T>._withData(list);
+        result._setLength(length);
+        return result;
       }
-      if (!growable) return list;
-      var result = new _GrowableList<T>._withData(list);
-      result._setLength(length);
-      return result;
+      return <T>[];
+    } else {
+      if (length > 0) {
+        final list = new _List<T>(length);
+        for (int i = 0; i < length; i++) {
+          list[i] = this[i];
+        }
+        return list;
+      }
+      return List<T>.empty(growable: false);
     }
-    return growable ? <T>[] : new List<T>(0);
   }
 
   Set<T> toSet() {
-    return new Set<T>.from(this);
+    return new Set<T>.of(this);
   }
 }

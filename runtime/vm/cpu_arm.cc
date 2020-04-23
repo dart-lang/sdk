@@ -183,10 +183,14 @@ void HostCPUFeatures::Init() {
 #endif
   }
 
+#if defined(DART_RUN_IN_QEMU_ARMv7)
+  vfp_supported_ = true;
+#else
   // Has floating point unit.
   vfp_supported_ =
       (CpuInfo::FieldContains(kCpuInfoFeatures, "vfp") || is_arm64) &&
       FLAG_use_vfp;
+#endif
 
   // Has integer division.
   // Special cases:
@@ -196,6 +200,8 @@ void HostCPUFeatures::Init() {
   bool is_krait = CpuInfo::FieldContains(kCpuInfoHardware, "QCT APQ8064");
   bool is_armada_370xp =
       CpuInfo::FieldContains(kCpuInfoHardware, "Marvell Armada 370/XP");
+  bool is_virtual_machine =
+      CpuInfo::FieldContains(kCpuInfoHardware, "Dummy Virtual Machine");
 #if defined(HOST_OS_ANDROID)
   bool is_android = true;
 #else
@@ -213,6 +219,10 @@ void HostCPUFeatures::Init() {
     integer_division_supported_ = false;
   } else if (is_armada_370xp) {
     integer_division_supported_ = false;
+  } else if (is_android && !is_arm64 && is_virtual_machine) {
+    // Some Android ARM emulators claim support for integer division in
+    // /proc/cpuinfo but do not actually support it.
+    integer_division_supported_ = false;
   } else {
     integer_division_supported_ =
         (CpuInfo::FieldContains(kCpuInfoFeatures, "idiva") || is_arm64) &&
@@ -224,7 +234,7 @@ void HostCPUFeatures::Init() {
 
 // Use the cross-compiler's predefined macros to determine whether we should
 // use the hard or soft float ABI.
-#if defined(__ARM_PCS_VFP)
+#if defined(__ARM_PCS_VFP) || defined(DART_RUN_IN_QEMU_ARMv7)
   hardfp_supported_ = true;
 #else
   hardfp_supported_ = false;

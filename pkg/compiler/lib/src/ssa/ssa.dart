@@ -206,7 +206,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     FunctionEntity startFunction = commonElements.asyncHelperStartSync;
     FunctionEntity completerFactory = commonElements.asyncAwaitCompleterFactory;
 
-    List<js.Expression> itemTypeExpression = _options.experimentNewRti
+    List<js.Expression> itemTypeExpression = _options.useNewRti
         ? _fetchItemTypeNewRti(commonElements, registry, elementType)
         : _fetchItemType(codegen, emitter, elementType);
 
@@ -243,7 +243,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
       js.Expression code,
       DartType asyncTypeParameter,
       js.Name name) {
-    List<js.Expression> itemTypeExpression = _options.experimentNewRti
+    List<js.Expression> itemTypeExpression = _options.useNewRti
         ? _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter)
         : _fetchItemType(codegen, emitter, asyncTypeParameter);
 
@@ -279,7 +279,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
       js.Expression code,
       DartType asyncTypeParameter,
       js.Name name) {
-    List<js.Expression> itemTypeExpression = _options.experimentNewRti
+    List<js.Expression> itemTypeExpression = _options.useNewRti
         ? _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter)
         : _fetchItemType(codegen, emitter, asyncTypeParameter);
 

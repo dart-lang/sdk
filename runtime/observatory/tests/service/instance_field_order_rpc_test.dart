@@ -5,7 +5,7 @@
 library get_object_rpc_test;
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 class Super {
@@ -18,18 +18,22 @@ class Sub extends Super {
   var x = 4;
 }
 
-eval(Isolate isolate, String expression) async {
+@pragma("vm:entry-point")
+getSub() => new Sub();
+
+invoke(Isolate isolate, String selector) async {
   Map params = {
     'targetId': isolate.rootLibrary.id,
-    'expression': expression,
+    'selector': selector,
+    'argumentIds': <String>[],
   };
-  return await isolate.invokeRpcNoUpgrade('evaluate', params);
+  return await isolate.invokeRpcNoUpgrade('invoke', params);
 }
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, 'new Sub()');
+    var evalResult = await invoke(isolate, 'getSub');
     var params = {
       'objectId': evalResult['id'],
     };

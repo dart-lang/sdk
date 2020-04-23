@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+extension Extension<T extends core::Object* = dynamic> on asy::Stream<T*>* {
+  method call = self::Extension|call;
+  tearoff call = self::Extension|get#call;
+}
+static method main() → void
+  ;
+static method Extension|call<T extends core::Object* = dynamic>(final asy::Stream<self::Extension|call::T*>* #this, core::Function* onData) → asy::StreamSubscription<self::Extension|call::T*>*
+  ;
+static method Extension|get#call<T extends core::Object* = dynamic>(final asy::Stream<self::Extension|get#call::T*>* #this) → (core::Function*) →* asy::StreamSubscription<self::Extension|get#call::T*>*
+  return (core::Function* onData) → asy::StreamSubscription<self::Extension|get#call::T*>* => self::Extension|call<self::Extension|get#call::T*>(#this, onData);

@@ -217,7 +217,7 @@ class JsBackendStrategy implements BackendStrategy {
       rtiSubstitutions = runtimeTypesImpl;
     }
 
-    RecipeEncoder rtiRecipeEncoder = _compiler.options.experimentNewRti
+    RecipeEncoder rtiRecipeEncoder = _compiler.options.useNewRti
         ? new RecipeEncoderImpl(
             closedWorld,
             rtiSubstitutions,
@@ -252,7 +252,7 @@ class JsBackendStrategy implements BackendStrategy {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
     BackendImpacts impacts =
-        new BackendImpacts(commonElements, _compiler.options.experimentNewRti);
+        new BackendImpacts(commonElements, _compiler.options);
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
         commonElements, elementEnvironment, closedWorld.nativeData);
     return new CodegenEnqueuer(
@@ -306,8 +306,8 @@ class JsBackendStrategy implements BackendStrategy {
     emitterTask.createEmitter(_namer, codegen, closedWorld);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
-    BackendImpacts impacts = new BackendImpacts(
-        closedWorld.commonElements, _compiler.options.experimentNewRti);
+    BackendImpacts impacts =
+        new BackendImpacts(closedWorld.commonElements, _compiler.options);
 
     _codegenImpactTransformer = new CodegenImpactTransformer(
         closedWorld,

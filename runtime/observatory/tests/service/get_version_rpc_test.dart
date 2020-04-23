@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
@@ -12,7 +12,7 @@ var tests = <VMTest>[
     var result = await vm.invokeRpcNoUpgrade('getVersion', {});
     expect(result['type'], equals('Version'));
     expect(result['major'], equals(3));
-    expect(result['minor'], equals(28));
+    expect(result['minor'], equals(30));
     expect(result['_privateMajor'], equals(0));
     expect(result['_privateMinor'], equals(0));
   },

@@ -39,7 +39,7 @@ class CharacterRangeReader extends CharacterReader {
   int get offset => baseReader.offset;
 
   @override
-  void set offset(int offset) {
+  set offset(int offset) {
     baseReader.offset = offset;
   }
 

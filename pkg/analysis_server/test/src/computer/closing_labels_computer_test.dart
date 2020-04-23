@@ -6,13 +6,12 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClosingLabelsComputerTest);
   });
@@ -22,20 +21,21 @@ main() {
 class ClosingLabelsComputerTest extends AbstractContextTest {
   String sourcePath;
 
-  setUp() {
+  @override
+  void setUp() {
     super.setUp();
     sourcePath = convertPath('/home/test/lib/test.dart');
   }
 
-  test_adjacentLinesExcluded() async {
-    String content = """
+  Future<void> test_adjacentLinesExcluded() async {
+    var content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/new Thing(1,
       2)/*2:Thing*/
   )/*1:Wrapper*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
@@ -44,14 +44,14 @@ void myMethod() {
   /// When constructors span many like this, the node's start position is on the first line
   /// of the expression and not where the opening paren is, so this test ensures we
   /// don't end up with lots of unwanted labels on each line here.
-  test_chainedConstructorOverManyLines() async {
-    String content = """
+  Future<void> test_chainedConstructorOverManyLines() async {
+    var content = '''
 main() {
   return new thing
     .whatIsSplit
     .acrossManyLines(1, 2);
 }
-    """;
+    ''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 0);
@@ -60,8 +60,8 @@ main() {
   /// When chaining methods like this, the node's start position is on the first line
   /// of the expression and not where the opening paren is, so this test ensures we
   /// don't end up with lots of unwanted labels on each line here.
-  test_chainedMethodsOverManyLines() async {
-    String content = """
+  Future<void> test_chainedMethodsOverManyLines() async {
+    var content = '''
 List<ClosingLabel> compute() {
   _unit.accept(new _DartUnitClosingLabelsComputerVisitor(this));
   return _closingLabelsByEndLine.values
@@ -70,14 +70,14 @@ List<ClosingLabel> compute() {
       .map((clwlc) => clwlc.label)
       .toList();
 }
-    """;
+    ''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 0);
   }
 
-  test_constConstructor() async {
-    String content = """
+  Future<void> test_constConstructor() async {
+    var content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/const Class(
@@ -86,14 +86,14 @@ void myMethod() {
     )/*2:Class*/
   )/*1:Wrapper*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_constNamedConstructor() async {
-    String content = """
+  Future<void> test_constNamedConstructor() async {
+    var content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/const Class.fromThing(
@@ -102,15 +102,15 @@ void myMethod() {
     )/*2:Class.fromThing*/
   )/*1:Wrapper*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_knownBadCode1() async {
+  Future<void> test_knownBadCode1() async {
     // This code crashed during testing when I accidentally inserted a test snippet.
-    String content = """
+    var content = """
 @override
 Widget build(BuildContext context) {
   new SliverGrid(
@@ -137,21 +137,21 @@ Widget build(BuildContext context) {
     await _computeElements(content);
   }
 
-  test_labelsShownForMultipleElements() async {
-    String content = """
+  Future<void> test_labelsShownForMultipleElements() async {
+    var content = '''
 Widget build(BuildContext context) {
   return /*1*/new Row(
     child: new RaisedButton(),
   )/*1:Row*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 1);
   }
 
-  test_labelsShownForMultipleElements_2() async {
-    String content = """
+  Future<void> test_labelsShownForMultipleElements_2() async {
+    var content = '''
 Widget build(BuildContext context) {
   return /*1*/new Row(
     child: /*2*/new RaisedButton(
@@ -159,14 +159,14 @@ Widget build(BuildContext context) {
     )/*2:RaisedButton*/,
   )/*1:Row*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_listLiterals() async {
-    String content = """
+  Future<void> test_listLiterals() async {
+    var content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     Widget.createWidget(/*2*/<Widget>[
@@ -175,7 +175,7 @@ void myMethod() {
     ]/*2:<Widget>[]*/)
   )/*1:Wrapper*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
@@ -184,8 +184,8 @@ void myMethod() {
   /// When a line contains the end of a label, we need to ensure we also include any
   /// other labels that end on the same line, even if they are 1-2 lines, otherwise
   /// it isn't obvious which closing bracket goes with the label.
-  test_mixedLineSpanning() async {
-    String content = """
+  Future<void> test_mixedLineSpanning() async {
+    var content = '''
 main() {
     /*1*/new Foo((m) {
       /*2*/new Bar(
@@ -195,14 +195,14 @@ main() {
     })/*1:Foo*/;
   }
 }
-  """;
+  ''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 3);
   }
 
-  test_multipleNested() async {
-    String content = """
+  Future<void> test_multipleNested() async {
+    var content = """
 Widget build(BuildContext context) {
   return /*1*/new Row(
     children: /*2*/<Widget>[
@@ -225,8 +225,8 @@ Widget build(BuildContext context) {
     _compareLabels(labels, content, expectedLabelCount: 4);
   }
 
-  test_newConstructor() async {
-    String content = """
+  Future<void> test_newConstructor() async {
+    var content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/new Class(
@@ -235,14 +235,14 @@ void myMethod() {
     )/*2:Class*/
   )/*1:Wrapper*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_newNamedConstructor() async {
-    String content = """
+  Future<void> test_newNamedConstructor() async {
+    var content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/new Class.fromThing(
@@ -251,26 +251,26 @@ void myMethod() {
     )/*2:Class.fromThing*/
   )/*1:Wrapper*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_noLabelsForOneElement() async {
-    String content = """
+  Future<void> test_noLabelsForOneElement() async {
+    var content = '''
 Widget build(BuildContext context) {
   return new Row(
   );
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 0);
   }
 
-  test_NoLabelsFromInterpolatedStrings() async {
-    String content = """
+  Future<void> test_NoLabelsFromInterpolatedStrings() async {
+    var content = """
 void main(HighlightRegionType type, int offset, int length) {
   /*1*/new Wrapper(
     /*2*/new Fail(
@@ -284,8 +284,8 @@ void main(HighlightRegionType type, int offset, int length) {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_prefixedConstConstructor() async {
-    String content = """
+  Future<void> test_prefixedConstConstructor() async {
+    var content = """
 import 'dart:async' as a;
 void myMethod() {
   return /*1*/new Wrapper(
@@ -301,8 +301,8 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_prefixedConstNamedConstructor() async {
-    String content = """
+  Future<void> test_prefixedConstNamedConstructor() async {
+    var content = """
 import 'dart:async' as a;
 void myMethod() {
   return /*1*/new Wrapper(
@@ -318,8 +318,8 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_prefixedNewConstructor() async {
-    String content = """
+  Future<void> test_prefixedNewConstructor() async {
+    var content = """
 import 'dart:async' as a;
 void myMethod() {
   return /*1*/new Wrapper(
@@ -335,8 +335,8 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_prefixedNewNamedConstructor() async {
-    String content = """
+  Future<void> test_prefixedNewNamedConstructor() async {
+    var content = """
 import 'dart:async' as a;
 void myMethod() {
   return /*1*/new Wrapper(
@@ -352,12 +352,12 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_sameLineExcluded() async {
-    String content = """
+  Future<void> test_sameLineExcluded() async {
+    var content = '''
 void myMethod() {
   return new Thing();
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 0);
@@ -373,7 +373,7 @@ void myMethod() {
     expect(labels, hasLength(expectedLabelCount));
 
     // Find all numeric markers for label starts.
-    var regex = new RegExp("/\\*(\\d+)\\*/");
+    var regex = RegExp('/\\*(\\d+)\\*/');
     var expectedLabels = regex.allMatches(content);
 
     // Check we didn't get more than expected, since the loop below only
@@ -385,24 +385,21 @@ void myMethod() {
     expectedLabels.forEach((m) {
       var i = m.group(1);
       // Find the end marker.
-      var endMatch = new RegExp("/\\*$i:(.+?)\\*/").firstMatch(content);
+      var endMatch = RegExp('/\\*$i:(.+?)\\*/').firstMatch(content);
 
       var expectedStart = m.end;
       var expectedLength = endMatch.start - expectedStart;
       var expectedLabel = endMatch.group(1);
 
-      expect(
-          labels,
-          contains(
-              new ClosingLabel(expectedStart, expectedLength, expectedLabel)));
+      expect(labels,
+          contains(ClosingLabel(expectedStart, expectedLength, expectedLabel)));
     });
   }
 
   Future<List<ClosingLabel>> _computeElements(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
-    ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
-    DartUnitClosingLabelsComputer computer =
-        new DartUnitClosingLabelsComputer(result.lineInfo, result.unit);
+    var result = await session.getResolvedUnit(sourcePath);
+    var computer = DartUnitClosingLabelsComputer(result.lineInfo, result.unit);
     return computer.compute();
   }
 }

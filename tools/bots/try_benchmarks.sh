@@ -81,35 +81,6 @@ for command; do
     ./tools/build.py --mode=release --arch=ia32 create_sdk
     ./tools/build.py --mode=release --arch=ia32 runtime
   elif [ "$command" = linux-ia32-archive ]; then
-    tar -czf linux-ia32_profile.tar.gz \
-      --exclude .git \
-      --exclude .gitignore \
-      --exclude pkg/analysis_server/language_model \
-      --exclude out/ReleaseIA32/dart-sdk/model \
-      -- \
-      third_party/d8/linux/ia32/natives_blob.bin \
-      third_party/d8/linux/ia32/snapshot_blob.bin \
-      out/ReleaseIA32/dart2js_platform.dill \
-      out/ReleaseIA32/vm_outline_strong.dill \
-      out/ReleaseIA32/vm_platform_strong.dill \
-      out/ReleaseIA32/gen/kernel_service.dill \
-      third_party/firefox_jsshell/linux/ \
-      out/ReleaseIA32/dart-sdk \
-      tools/dart2js/angular2_testing_deps \
-      out/ReleaseIA32/dart \
-      out/ReleaseIA32/gen_snapshot \
-      out/ReleaseIA32/gen_kernel_bytecode.dill \
-      out/ReleaseIA32/run_vm_tests \
-      third_party/d8/linux/ia32/d8 \
-      sdk samples-dev/swarm \
-      third_party/pkg \
-      third_party/pkg_tested \
-      .packages \
-      pkg \
-      runtime/bin \
-      runtime/lib \
-      benchmarks \
-      || (rm -f linux-ia32_profile.tar.gz; exit 1)
     strip -w \
       -K 'kDartVmSnapshotData' \
       -K 'kDartVmSnapshotInstructions' \
@@ -171,22 +142,19 @@ for command; do
       --exclude .git \
       --exclude .gitignore \
       --exclude pkg/analysis_server/language_model \
-      --exclude out/ReleaseIA32/dart-sdk/model \
+      --exclude out/ReleaseIA32/dart-sdk/bin/model \
+      --exclude pkg/front_end/testcases \
       -- \
-      third_party/d8/linux/ia32/natives_blob.bin \
-      third_party/d8/linux/ia32/snapshot_blob.bin \
       out/ReleaseIA32/dart2js_platform.dill \
       out/ReleaseIA32/vm_outline_strong.dill \
       out/ReleaseIA32/vm_platform_strong.dill \
       out/ReleaseIA32/gen/kernel_service.dill \
-      third_party/firefox_jsshell/linux/ \
       out/ReleaseIA32/dart-sdk \
       tools/dart2js/angular2_testing_deps \
       out/ReleaseIA32/dart \
       out/ReleaseIA32/gen_snapshot \
       out/ReleaseIA32/gen_kernel_bytecode.dill \
       out/ReleaseIA32/run_vm_tests \
-      third_party/d8/linux/ia32/d8 \
       sdk \
       samples-dev/swarm \
       third_party/pkg \
@@ -208,18 +176,6 @@ main() {
 }
 EOF
     out/ReleaseIA32/dart --profile-period=10000 --packages=.packages hello.dart
-    out/ReleaseIA32/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
-    third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseIA32/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
-    LD_LIBRARY_PATH=third_party/firefox_jsshell/linux/jsshell/ third_party/firefox_jsshell/linux/jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
-    out/ReleaseIA32/dart-sdk/bin/dart2js --benchmarking-production --packages=.packages --out=out.js -m hello.dart
-    third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseIA32/dart-sdk/bin/dart2js --benchmarking-x --packages=.packages --out=out.js -m hello.dart
-    third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseIA32/dart-sdk/bin/dart2js --use-kernel --packages=.packages --out=out.js -m hello.dart
-    third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseIA32/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/ia32/d8 hello.dart
-    out/ReleaseIA32/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/ia32/d8 --kernel hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/perf.dart parse hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/perf.dart scan hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart
@@ -248,35 +204,6 @@ EOF
     ./tools/build.py --mode=release --arch=x64 dart_precompiled_runtime
   elif [ "$command" = linux-x64-archive ] ||
        [ "$command" = linux-x64-bytecode-archive ]; then
-    tar -czf linux-x64_profile.tar.gz \
-      --exclude .git \
-      --exclude .gitignore \
-      --exclude pkg/analysis_server/language_model \
-      --exclude out/ReleaseX64/dart-sdk/model \
-      -- \
-      third_party/d8/linux/x64/natives_blob.bin \
-      third_party/d8/linux/x64/snapshot_blob.bin \
-      out/ReleaseX64/dart2js_platform.dill \
-      out/ReleaseX64/vm_outline_strong.dill \
-      out/ReleaseX64/vm_platform_strong.dill \
-      out/ReleaseX64/gen/kernel_service.dill \
-      out/ReleaseX64/dart-sdk \
-      out/ReleaseX64/dart \
-      out/ReleaseX64/gen_snapshot \
-      out/ReleaseX64/gen_kernel_bytecode.dill \
-      out/ReleaseX64/run_vm_tests \
-      third_party/d8/linux/x64/d8 \
-      out/ReleaseX64/dart_precompiled_runtime \
-      sdk \
-      samples-dev/swarm \
-      third_party/pkg \
-      third_party/pkg_tested \
-      .packages \
-      pkg \
-      runtime/bin \
-      runtime/lib \
-      benchmarks \
-      || (rm -f linux-x64_profile.tar.gz; exit 1)
     strip -w \
       -K 'kDartVmSnapshotData' \
       -K 'kDartVmSnapshotInstructions' \
@@ -357,10 +284,9 @@ EOF
       --exclude .git \
       --exclude .gitignore \
       --exclude pkg/analysis_server/language_model \
-      --exclude out/ReleaseX64/dart-sdk/model \
+      --exclude out/ReleaseX64/dart-sdk/bin/model \
+      --exclude pkg/front_end/testcases \
       -- \
-      third_party/d8/linux/x64/natives_blob.bin \
-      third_party/d8/linux/x64/snapshot_blob.bin \
       out/ReleaseX64/dart2js_platform.dill \
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
@@ -370,7 +296,8 @@ EOF
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
       out/ReleaseX64/run_vm_tests \
-      third_party/d8/linux/x64/d8 \
+      third_party/d8/linux/x64 \
+      third_party/firefox_jsshell/linux/ \
       out/ReleaseX64/dart_precompiled_runtime \
       sdk \
       samples-dev/swarm \
@@ -403,8 +330,18 @@ EOF
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --enable-interpreter --compilation-counter-threshold=-1 hello.dart
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --use-bytecode-compiler hello.dart
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --use-bytecode-compiler --optimization-counter-threshold=-1 hello.dart
-    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/ia32/d8 --mode=compile --compile-vm-options=--print-metrics --packages=.packages --out out.js hello.dart
-    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/ia32/d8 --mode=compile --compile-vm-options=--print-metrics --packages=.packages --out out.js --kernel hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
+    third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
+    out/ReleaseX64/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
+    LD_LIBRARY_PATH=third_party/firefox_jsshell/linux/jsshell/ third_party/firefox_jsshell/linux/jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
+    out/ReleaseX64/dart-sdk/bin/dart2js --benchmarking-production --packages=.packages --out=out.js -m hello.dart
+    third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
+    out/ReleaseX64/dart-sdk/bin/dart2js --benchmarking-x --packages=.packages --out=out.js -m hello.dart
+    third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
+    out/ReleaseX64/dart-sdk/bin/dart2js --use-kernel --packages=.packages --out=out.js -m hello.dart
+    third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
+    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --kernel hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --mode=compile --compile-vm-options=--print-metrics --packages=.packages --out out.js --kernel hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart parse hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart scan hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart

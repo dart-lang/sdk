@@ -38,6 +38,51 @@ def _CheckNnbdSdkSync(input_api, output_api):
     return []
 
 
+def _CheckNnbdTestSync(input_api, output_api):
+    """Make sure that any forked SDK tests are kept in sync. If a CL touches
+    a test, the test's counterpart (if it exists at all) should be in the CL
+    too.
+    """
+    DIRS = ["co19", "corelib", "language", "lib", "standalone"]
+
+    files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
+    unsynchronized = []
+    for file in files:
+        for dir in DIRS:
+            legacy_dir = "tests/{}_2/".format(dir)
+            nnbd_dir = "tests/{}/".format(dir)
+
+            counterpart = None
+            if file.startswith(legacy_dir):
+                counterpart = file.replace(legacy_dir, nnbd_dir)
+            elif file.startswith(nnbd_dir):
+                counterpart = file.replace(nnbd_dir, legacy_dir)
+
+            if counterpart:
+                # Changed one file with a potential counterpart. If it exists
+                # on disc, make sure it is also in the CL.
+                if counterpart not in files and os.path.exists(counterpart):
+                    unsynchronized.append("- {} -> {}".format(
+                        file, counterpart))
+                break
+
+    # TODO(rnystrom): Currently, we only warn if a test does exist in both
+    # places on disc but only one is touched by a CL. We don't warn for files
+    # that only exist on one side because the migration isn't complete and the
+    # CL may be migrating. Once the migration is complete, consider making
+    # these checks more rigorous.
+
+    if unsynchronized:
+        return [
+            output_api.PresubmitPromptWarning(
+                'Make sure to keep the forked legacy and NNBD tests in sync.\n'
+                'You may need to synchronize these files:\n' +
+                '\n'.join(unsynchronized))
+        ]
+
+    return []
+
+
 def _CheckFormat(input_api,
                  identification,
                  extension,
@@ -247,7 +292,7 @@ def _CheckClangTidy(input_api, output_api):
     files = []
     for f in input_api.AffectedFiles():
         path = f.LocalPath()
-        if is_cpp_file(path): files.append(path)
+        if is_cpp_file(path) and os.path.isfile(path): files.append(path)
 
     if not files:
         return []
@@ -271,6 +316,7 @@ def _CheckClangTidy(input_api, output_api):
 def _CommonChecks(input_api, output_api):
     results = []
     results.extend(_CheckNnbdSdkSync(input_api, output_api))
+    results.extend(_CheckNnbdTestSync(input_api, output_api))
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
     results.extend(_CheckDartFormat(input_api, output_api))
     results.extend(_CheckStatusFiles(input_api, output_api))

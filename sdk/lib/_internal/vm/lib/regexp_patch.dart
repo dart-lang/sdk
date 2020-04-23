@@ -218,18 +218,18 @@ class _RegExp implements RegExp {
       bool unicode: false,
       bool dotAll: false}) native "RegExp_factory";
 
-  RegExpMatch firstMatch(String str) {
-    if (str is! String) throw new ArgumentError(str);
-    List match = _ExecuteMatch(str, 0);
+  RegExpMatch firstMatch(String input) {
+    if (input == null) throw new ArgumentError.notNull('input');
+    List match = _ExecuteMatch(input, 0);
     if (match == null) {
       return null;
     }
-    return new _RegExpMatch._(this, str, match);
+    return new _RegExpMatch._(this, input, match);
   }
 
   Iterable<RegExpMatch> allMatches(String string, [int start = 0]) {
-    if (string is! String) throw new ArgumentError(string);
-    if (start is! int) throw new ArgumentError(start);
+    if (string == null) throw new ArgumentError.notNull('input');
+    if (start == null) throw new ArgumentError.notNull('start');
     if (0 > start || start > string.length) {
       throw new RangeError.range(start, 0, string.length);
     }
@@ -237,29 +237,29 @@ class _RegExp implements RegExp {
   }
 
   RegExpMatch matchAsPrefix(String string, [int start = 0]) {
-    if (string is! String) throw new ArgumentError(string);
-    if (start is! int) throw new ArgumentError(start);
+    if (string == null) throw new ArgumentError.notNull('string');
+    if (start == null) throw new ArgumentError.notNull('start');
     if (start < 0 || start > string.length) {
       throw new RangeError.range(start, 0, string.length);
     }
-    List<int> list = _ExecuteMatchSticky(string, start);
+    List list = _ExecuteMatchSticky(string, start);
     if (list == null) return null;
     return new _RegExpMatch._(this, string, list);
   }
 
-  bool hasMatch(String str) {
-    if (str is! String) throw new ArgumentError(str);
-    List match = _ExecuteMatch(str, 0);
+  bool hasMatch(String input) {
+    if (input == null) throw new ArgumentError.notNull('input');
+    List match = _ExecuteMatch(input, 0);
     return (match == null) ? false : true;
   }
 
-  String stringMatch(String str) {
-    if (str is! String) throw new ArgumentError(str);
-    List match = _ExecuteMatch(str, 0);
+  String stringMatch(String input) {
+    if (input == null) throw new ArgumentError.notNull('input');
+    List match = _ExecuteMatch(input, 0);
     if (match == null) {
       return null;
     }
-    return str._substringUnchecked(match[0], match[1]);
+    return input._substringUnchecked(match[0], match[1]);
   }
 
   String get pattern native "RegExp_getPattern";
@@ -274,13 +274,18 @@ class _RegExp implements RegExp {
 
   int get _groupCount native "RegExp_getGroupCount";
 
-  // Returns a List [String, int, String, int, ...] where each
-  // String is the name of a capture group and the following
-  // int is that capture group's index.
+  /// The names and indices of named capture group.
+  ///
+  /// Returns a [List] of alternating strings and integers,
+  /// `[String, int, String, int, ...]` where each
+  /// [String] is the name of a capture group and the following
+  /// [int] is that capture group's index.
+  /// Returns `null` if there are no group names.
   List get _groupNameList native "RegExp_getGroupNameMap";
 
   Iterable<String> get _groupNames sync* {
     final nameList = _groupNameList;
+    if (nameList == null) return;
     for (var i = 0; i < nameList.length; i += 2) {
       yield nameList[i] as String;
     }
@@ -288,9 +293,10 @@ class _RegExp implements RegExp {
 
   int _groupNameIndex(String name) {
     var nameList = _groupNameList;
+    if (nameList == null) return -1;
     for (var i = 0; i < nameList.length; i += 2) {
       if (name == nameList[i]) {
-        return nameList[i + 1];
+        return nameList[i + 1] as int;
       }
     }
     return -1;

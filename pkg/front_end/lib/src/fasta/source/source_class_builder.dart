@@ -5,18 +5,68 @@
 library fasta.source_class_builder;
 
 import 'package:kernel/ast.dart'
-    show Class, Constructor, Member, Supertype, TreeNode;
+    show
+        Class,
+        Constructor,
+        Expression,
+        ListLiteral,
+        Member,
+        StaticGet,
+        Supertype,
+        TreeNode,
+        DartType,
+        DynamicType,
+        Field,
+        FunctionNode,
+        Name,
+        Procedure,
+        ProcedureKind,
+        TypeParameter,
+        VariableDeclaration,
+        Variance,
+        VoidType;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import 'package:kernel/clone.dart' show CloneProcedureWithoutBody;
+
+import 'package:kernel/reference_from_index.dart' show IndexedClass;
+
+import 'package:kernel/type_algebra.dart' show Substitution;
+
+import 'package:kernel/type_algebra.dart' as type_algebra
+    show getSubstitutionMap;
+
+import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
+
 import '../builder/class_builder.dart';
+
 import '../builder/constructor_reference_builder.dart';
+
+import '../builder/function_builder.dart';
+
 import '../builder/invalid_type_declaration_builder.dart';
+
 import '../builder/library_builder.dart';
-import '../builder/metadata_builder.dart';
+
 import '../builder/member_builder.dart';
+
+import '../builder/metadata_builder.dart';
+
 import '../builder/named_type_builder.dart';
+
 import '../builder/nullability_builder.dart';
+
+import '../builder/procedure_builder.dart';
+
+import '../builder/type_alias_builder.dart';
+
 import '../builder/type_builder.dart';
+
+import '../builder/type_declaration_builder.dart';
+
 import '../builder/type_variable_builder.dart';
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
@@ -25,17 +75,30 @@ import '../fasta_codes.dart'
     show
         Message,
         noLength,
-        templateInvalidTypeVariableInSupertype,
-        templateInvalidTypeVariableInSupertypeWithVariance,
+        messageExtendFunction,
+        messageImplementFunction,
+        messageMixinFunction,
         templateConflictsWithConstructor,
         templateConflictsWithFactory,
         templateConflictsWithMember,
         templateConflictsWithSetter,
+        templateDuplicatedDeclarationUse,
+        templateInvalidTypeVariableInSupertype,
+        templateInvalidTypeVariableInSupertypeWithVariance,
+        templateRedirectionTargetNotFound,
         templateSupertypeIsIllegal;
+
+import '../kernel/redirecting_factory_body.dart' show redirectingName;
 
 import '../kernel/kernel_builder.dart' show compareProcedures;
 
+import '../kernel/kernel_target.dart' show KernelTarget;
+
+import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
+
 import '../kernel/type_algorithms.dart' show Variance, computeVariance;
+
+import '../names.dart' show noSuchMethodName;
 
 import '../problems.dart' show unexpected, unhandled;
 
@@ -50,11 +113,13 @@ Class initializeClass(
     SourceLibraryBuilder parent,
     int startCharOffset,
     int charOffset,
-    int charEndOffset) {
+    int charEndOffset,
+    Class referencesFrom) {
   cls ??= new Class(
       name: name,
       typeParameters:
-          TypeVariableBuilder.typeParametersFromBuilders(typeVariables));
+          TypeVariableBuilder.typeParametersFromBuilders(typeVariables),
+      reference: referencesFrom?.reference);
   cls.fileUri ??= parent.fileUri;
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
@@ -76,32 +141,41 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   final List<ConstructorReferenceBuilder> constructorReferences;
 
-  TypeBuilder mixedInType;
+  TypeBuilder mixedInTypeBuilder;
 
   bool isMixinDeclaration;
 
+  final Class referencesFrom;
+  final IndexedClass referencesFromIndexed;
+
   SourceClassBuilder(
-      List<MetadataBuilder> metadata,
-      int modifiers,
-      String name,
-      List<TypeVariableBuilder> typeVariables,
-      TypeBuilder supertype,
-      List<TypeBuilder> interfaces,
-      List<TypeBuilder> onTypes,
-      Scope scope,
-      ConstructorScope constructors,
-      LibraryBuilder parent,
-      this.constructorReferences,
-      int startCharOffset,
-      int nameOffset,
-      int charEndOffset,
-      {Class cls,
-      this.mixedInType,
-      this.isMixinDeclaration = false})
-      : actualCls = initializeClass(cls, typeVariables, name, parent,
-            startCharOffset, nameOffset, charEndOffset),
+    List<MetadataBuilder> metadata,
+    int modifiers,
+    String name,
+    List<TypeVariableBuilder> typeVariables,
+    TypeBuilder supertype,
+    List<TypeBuilder> interfaces,
+    List<TypeBuilder> onTypes,
+    Scope scope,
+    ConstructorScope constructors,
+    LibraryBuilder parent,
+    this.constructorReferences,
+    int startCharOffset,
+    int nameOffset,
+    int charEndOffset,
+    Class referencesFrom,
+    IndexedClass referencesFromIndexed, {
+    Class cls,
+    this.mixedInTypeBuilder,
+    this.isMixinDeclaration = false,
+  })  : actualCls = initializeClass(cls, typeVariables, name, parent,
+            startCharOffset, nameOffset, charEndOffset, referencesFrom),
+        referencesFrom = referencesFrom,
+        referencesFromIndexed = referencesFromIndexed,
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-            onTypes, scope, constructors, parent, nameOffset);
+            onTypes, scope, constructors, parent, nameOffset) {
+    actualCls.hasConstConstructor = declaresConstConstructor;
+  }
 
   @override
   Class get cls => origin.actualCls;
@@ -139,9 +213,19 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     scope.forEach(buildBuilders);
     constructors.forEach(buildBuilders);
-    supertype = checkSupertype(supertype);
-    actualCls.supertype =
-        supertype?.buildSupertype(library, charOffset, fileUri);
+    supertypeBuilder = checkSupertype(supertypeBuilder);
+    Supertype supertype =
+        supertypeBuilder?.buildSupertype(library, charOffset, fileUri);
+    if (supertype != null) {
+      Class superclass = supertype.classNode;
+      if (superclass.name == 'Function' &&
+          superclass.enclosingLibrary == coreLibrary.library) {
+        library.addProblem(
+            messageExtendFunction, charOffset, noLength, fileUri);
+        supertype = null;
+        supertypeBuilder = null;
+      }
+    }
     if (!isMixinDeclaration &&
         actualCls.supertype != null &&
         actualCls.superclass.isMixinDeclaration) {
@@ -154,27 +238,49 @@ class SourceClassBuilder extends ClassBuilderImpl
           charOffset,
           noLength,
           fileUri);
-      actualCls.supertype = null;
-    }
-    if (actualCls.supertype == null && supertype is! NamedTypeBuilder) {
       supertype = null;
     }
-    mixedInType = checkSupertype(mixedInType);
-    actualCls.mixedInType =
-        mixedInType?.buildMixedInType(library, charOffset, fileUri);
-    if (actualCls.mixedInType == null && mixedInType is! NamedTypeBuilder) {
-      mixedInType = null;
+    if (supertype == null && supertypeBuilder is! NamedTypeBuilder) {
+      supertypeBuilder = null;
+    }
+    actualCls.supertype = supertype;
+
+    mixedInTypeBuilder = checkSupertype(mixedInTypeBuilder);
+    Supertype mixedInType =
+        mixedInTypeBuilder?.buildMixedInType(library, charOffset, fileUri);
+    if (mixedInType != null) {
+      Class superclass = mixedInType.classNode;
+      if (superclass.name == 'Function' &&
+          superclass.enclosingLibrary == coreLibrary.library) {
+        library.addProblem(messageMixinFunction, charOffset, noLength, fileUri);
+        mixedInType = null;
+        mixedInTypeBuilder = null;
+        actualCls.isAnonymousMixin = false;
+        isMixinDeclaration = false;
+      }
+    }
+    if (mixedInType == null && mixedInTypeBuilder is! NamedTypeBuilder) {
+      mixedInTypeBuilder = null;
     }
     actualCls.isMixinDeclaration = isMixinDeclaration;
+    actualCls.mixedInType = mixedInType;
+
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
-    if (interfaces != null) {
-      for (int i = 0; i < interfaces.length; ++i) {
-        interfaces[i] = checkSupertype(interfaces[i]);
+    if (interfaceBuilders != null) {
+      for (int i = 0; i < interfaceBuilders.length; ++i) {
+        interfaceBuilders[i] = checkSupertype(interfaceBuilders[i]);
         Supertype supertype =
-            interfaces[i].buildSupertype(library, charOffset, fileUri);
+            interfaceBuilders[i].buildSupertype(library, charOffset, fileUri);
         if (supertype != null) {
+          Class superclass = supertype.classNode;
+          if (superclass.name == 'Function' &&
+              superclass.enclosingLibrary == coreLibrary.library) {
+            library.addProblem(
+                messageImplementFunction, charOffset, noLength, fileUri);
+            continue;
+          }
           // TODO(ahe): Report an error if supertype is null.
           actualCls.implementedTypes.add(supertype);
         }
@@ -268,6 +374,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     DillMemberBuilder memberBuilder = new DillMemberBuilder(constructor, this);
     memberBuilder.next = constructorScopeBuilder[name];
     constructorScopeBuilder.addMember(name, memberBuilder);
+    if (constructor.isConst) {
+      cls.hasConstConstructor = true;
+    }
   }
 
   @override
@@ -288,24 +397,47 @@ class SourceClassBuilder extends ClassBuilderImpl
     return count;
   }
 
-  List<Builder> computeDirectSupertypes(ClassBuilder objectClass) {
-    final List<Builder> result = <Builder>[];
-    final TypeBuilder supertype = this.supertype;
+  List<TypeDeclarationBuilder> computeDirectSupertypes(
+      ClassBuilder objectClass) {
+    final List<TypeDeclarationBuilder> result = <TypeDeclarationBuilder>[];
+    final TypeBuilder supertype = this.supertypeBuilder;
     if (supertype != null) {
-      result.add(supertype.declaration);
+      TypeDeclarationBuilder declarationBuilder = supertype.declaration;
+      if (declarationBuilder is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declarationBuilder;
+        NamedTypeBuilder namedBuilder = supertype;
+        declarationBuilder =
+            aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+      }
+      result.add(declarationBuilder);
     } else if (objectClass != this) {
       result.add(objectClass);
     }
-    final List<TypeBuilder> interfaces = this.interfaces;
+    final List<TypeBuilder> interfaces = this.interfaceBuilders;
     if (interfaces != null) {
       for (int i = 0; i < interfaces.length; i++) {
         TypeBuilder interface = interfaces[i];
-        result.add(interface.declaration);
+        TypeDeclarationBuilder declarationBuilder = interface.declaration;
+        if (declarationBuilder is TypeAliasBuilder) {
+          TypeAliasBuilder aliasBuilder = declarationBuilder;
+          NamedTypeBuilder namedBuilder = interface;
+          declarationBuilder =
+              aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+        }
+        result.add(declarationBuilder);
       }
     }
-    final TypeBuilder mixedInType = this.mixedInType;
-    if (mixedInType != null) {
-      result.add(mixedInType.declaration);
+    final TypeBuilder mixedInTypeBuilder = this.mixedInTypeBuilder;
+    if (mixedInTypeBuilder != null) {
+      TypeDeclarationBuilder declarationBuilder =
+          mixedInTypeBuilder.declaration;
+      if (declarationBuilder is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declarationBuilder;
+        NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
+        declarationBuilder =
+            aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+      }
+      result.add(declarationBuilder);
     }
     return result;
   }
@@ -315,5 +447,425 @@ class SourceClassBuilder extends ClassBuilderImpl
     int result = "$fileUri".compareTo("${other.fileUri}");
     if (result != 0) return result;
     return charOffset.compareTo(other.charOffset);
+  }
+
+  void addNoSuchMethodForwarderForProcedure(Member noSuchMethod,
+      KernelTarget target, Procedure procedure, ClassHierarchy hierarchy) {
+    Procedure referenceFrom;
+    if (referencesFromIndexed != null) {
+      if (procedure.isSetter) {
+        referenceFrom =
+            referencesFromIndexed.lookupProcedureSetter(procedure.name.name);
+      } else {
+        referenceFrom =
+            referencesFromIndexed.lookupProcedureNotSetter(procedure.name.name);
+      }
+    }
+
+    CloneProcedureWithoutBody cloner = new CloneProcedureWithoutBody(
+        typeSubstitution: type_algebra.getSubstitutionMap(
+            hierarchy.getClassAsInstanceOf(cls, procedure.enclosingClass)),
+        cloneAnnotations: false);
+    Procedure cloned = cloner.cloneProcedure(procedure, referenceFrom)
+      ..isExternal = false;
+    transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, cloned);
+    cls.procedures.add(cloned);
+    cloned.parent = cls;
+
+    library.forwardersOrigins.add(cloned);
+    library.forwardersOrigins.add(procedure);
+  }
+
+  void addNoSuchMethodForwarderGetterForField(
+      Field field, Member noSuchMethod, KernelTarget target) {
+    ClassHierarchy hierarchy = target.loader.hierarchy;
+    Substitution substitution = Substitution.fromSupertype(
+        hierarchy.getClassAsInstanceOf(cls, field.enclosingClass));
+
+    Procedure referenceFrom;
+    if (referencesFromIndexed != null) {
+      referenceFrom =
+          referencesFromIndexed.lookupProcedureNotSetter(field.name.name);
+    }
+    Procedure getter = new Procedure(
+        field.name,
+        ProcedureKind.Getter,
+        new FunctionNode(null,
+            typeParameters: <TypeParameter>[],
+            positionalParameters: <VariableDeclaration>[],
+            namedParameters: <VariableDeclaration>[],
+            requiredParameterCount: 0,
+            returnType: substitution.substituteType(field.type)),
+        fileUri: field.fileUri,
+        reference: referenceFrom?.reference)
+      ..fileOffset = field.fileOffset
+      ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
+    transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, getter);
+    cls.procedures.add(getter);
+    getter.parent = cls;
+  }
+
+  void addNoSuchMethodForwarderSetterForField(
+      Field field, Member noSuchMethod, KernelTarget target) {
+    ClassHierarchy hierarchy = target.loader.hierarchy;
+    Substitution substitution = Substitution.fromSupertype(
+        hierarchy.getClassAsInstanceOf(cls, field.enclosingClass));
+
+    Procedure referenceFrom;
+    if (referencesFromIndexed != null) {
+      referenceFrom =
+          referencesFromIndexed.lookupProcedureSetter(field.name.name);
+    }
+
+    Procedure setter = new Procedure(
+        field.name,
+        ProcedureKind.Setter,
+        new FunctionNode(null,
+            typeParameters: <TypeParameter>[],
+            positionalParameters: <VariableDeclaration>[
+              new VariableDeclaration("value",
+                  type: substitution.substituteType(field.type))
+            ],
+            namedParameters: <VariableDeclaration>[],
+            requiredParameterCount: 1,
+            returnType: const VoidType()),
+        fileUri: field.fileUri,
+        reference: referenceFrom?.reference)
+      ..fileOffset = field.fileOffset
+      ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
+    transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, setter);
+    cls.procedures.add(setter);
+    setter.parent = cls;
+  }
+
+  bool _addMissingNoSuchMethodForwarders(
+      KernelTarget target, Set<Member> existingForwarders,
+      {bool forSetters}) {
+    assert(forSetters != null);
+
+    ClassHierarchy hierarchy = target.loader.hierarchy;
+    TypeEnvironment typeEnvironment =
+        target.loader.typeInferenceEngine.typeSchemaEnvironment;
+
+    List<Member> allMembers =
+        hierarchy.getInterfaceMembers(cls, setters: forSetters);
+    List<Member> concreteMembers =
+        hierarchy.getDispatchTargets(cls, setters: forSetters);
+    List<Member> declaredMembers =
+        hierarchy.getDeclaredMembers(cls, setters: forSetters);
+
+    Member noSuchMethod = ClassHierarchy.findMemberByName(
+        hierarchy.getInterfaceMembers(cls), noSuchMethodName);
+    bool clsHasUserDefinedNoSuchMethod =
+        hasUserDefinedNoSuchMethod(cls, hierarchy, target.objectClass);
+
+    bool changed = false;
+
+    // It's possible to have multiple abstract members with the same name -- as
+    // long as there's one with function type that's a subtype of function types
+    // of all other members.  Such member is called "best" in the code below.
+    // Members with the same name are put into groups, and "best" is searched
+    // for in each group.
+    Map<Name, List<Member>> sameNameMembers = {};
+    for (Member member in allMembers) {
+      (sameNameMembers[member.name] ??= []).add(member);
+    }
+    for (Name name in sameNameMembers.keys) {
+      List<Member> members = sameNameMembers[name];
+      assert(members.isNotEmpty);
+      List<DartType> memberTypes = [];
+
+      // The most specific member has the type that is subtype of the types of
+      // all other members.
+      Member bestSoFar = members.first;
+      DartType bestSoFarType =
+          forSetters ? bestSoFar.setterType : bestSoFar.getterType;
+      bestSoFarType = Substitution.fromSupertype(
+              hierarchy.getClassAsInstanceOf(cls, bestSoFar.enclosingClass))
+          .substituteType(bestSoFarType);
+      for (int i = 1; i < members.length; ++i) {
+        Member candidate = members[i];
+        DartType candidateType =
+            forSetters ? candidate.setterType : candidate.getterType;
+        Substitution substitution = Substitution.fromSupertype(
+            hierarchy.getClassAsInstanceOf(cls, candidate.enclosingClass));
+        candidateType = substitution.substituteType(candidateType);
+        memberTypes.add(candidateType);
+        bool isMoreSpecific = forSetters
+            ? typeEnvironment.isSubtypeOf(bestSoFarType, candidateType,
+                SubtypeCheckMode.withNullabilities)
+            : typeEnvironment.isSubtypeOf(candidateType, bestSoFarType,
+                SubtypeCheckMode.withNullabilities);
+        if (isMoreSpecific) {
+          bestSoFar = candidate;
+          bestSoFarType = candidateType;
+        }
+      }
+      // Since isSubtypeOf isn't a linear order on types, we need to check once
+      // again that the found member is indeed the most specific one.
+      bool isActuallyBestSoFar = true;
+      for (DartType memberType in memberTypes) {
+        bool isMoreSpecific = forSetters
+            ? typeEnvironment.isSubtypeOf(
+                memberType, bestSoFarType, SubtypeCheckMode.withNullabilities)
+            : typeEnvironment.isSubtypeOf(
+                bestSoFarType, memberType, SubtypeCheckMode.withNullabilities);
+        if (!isMoreSpecific) {
+          isActuallyBestSoFar = false;
+          break;
+        }
+      }
+      if (!isActuallyBestSoFar) {
+        // It's a member conflict that is reported elsewhere.
+      } else {
+        Member member = bestSoFar;
+
+        if (_isForwarderRequired(
+                clsHasUserDefinedNoSuchMethod, member, cls, concreteMembers,
+                isPatch: member.fileUri != member.enclosingClass.fileUri) &&
+            !existingForwarders.contains(member)) {
+          if (member is Procedure) {
+            // If there's a declared member with such name, then it's abstract
+            // -- transform it into a noSuchMethod forwarder.
+            if (ClassHierarchy.findMemberByName(declaredMembers, member.name) !=
+                null) {
+              transformProcedureToNoSuchMethodForwarder(
+                  noSuchMethod, target, member);
+            } else {
+              addNoSuchMethodForwarderForProcedure(
+                  noSuchMethod, target, member, hierarchy);
+            }
+            changed = true;
+          } else if (member is Field) {
+            // Current class isn't abstract, so it can't have an abstract field
+            // with the same name -- just insert the forwarder.
+            if (forSetters) {
+              addNoSuchMethodForwarderSetterForField(
+                  member, noSuchMethod, target);
+            } else {
+              addNoSuchMethodForwarderGetterForField(
+                  member, noSuchMethod, target);
+            }
+            changed = true;
+          } else {
+            return unhandled(
+                "${member.runtimeType}",
+                "addNoSuchMethodForwarders",
+                cls.fileOffset,
+                cls.enclosingLibrary.fileUri);
+          }
+        }
+      }
+    }
+
+    return changed;
+  }
+
+  /// Adds noSuchMethod forwarding stubs to this class.
+  ///
+  /// Returns `true` if the class was modified.
+  bool addNoSuchMethodForwarders(
+      KernelTarget target, ClassHierarchy hierarchy) {
+    // Don't install forwarders in superclasses.
+    if (cls.isAbstract) return false;
+
+    // Compute signatures of existing noSuchMethod forwarders in superclasses.
+    Set<Member> existingForwarders = new Set<Member>.identity();
+    Set<Member> existingSetterForwarders = new Set<Member>.identity();
+    {
+      Class nearestConcreteSuperclass = cls.superclass;
+      while (nearestConcreteSuperclass != null &&
+          nearestConcreteSuperclass.isAbstract) {
+        nearestConcreteSuperclass = nearestConcreteSuperclass.superclass;
+      }
+      if (nearestConcreteSuperclass != null) {
+        bool superHasUserDefinedNoSuchMethod = hasUserDefinedNoSuchMethod(
+            nearestConcreteSuperclass, hierarchy, target.objectClass);
+        {
+          List<Member> concrete =
+              hierarchy.getDispatchTargets(nearestConcreteSuperclass);
+          for (Member member
+              in hierarchy.getInterfaceMembers(nearestConcreteSuperclass)) {
+            if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
+                nearestConcreteSuperclass, concrete,
+                isPatch: member.fileUri != member.enclosingClass.fileUri)) {
+              existingForwarders.add(member);
+            }
+          }
+        }
+
+        {
+          List<Member> concreteSetters = hierarchy
+              .getDispatchTargets(nearestConcreteSuperclass, setters: true);
+          for (Member member in hierarchy
+              .getInterfaceMembers(nearestConcreteSuperclass, setters: true)) {
+            if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
+                nearestConcreteSuperclass, concreteSetters)) {
+              existingSetterForwarders.add(member);
+            }
+          }
+        }
+      }
+    }
+
+    bool changed = false;
+
+    // Install noSuchMethod forwarders for methods and getters.
+    changed = _addMissingNoSuchMethodForwarders(target, existingForwarders,
+            forSetters: false) ||
+        changed;
+
+    // Install noSuchMethod forwarders for setters.
+    changed = _addMissingNoSuchMethodForwarders(
+            target, existingSetterForwarders,
+            forSetters: true) ||
+        changed;
+
+    return changed;
+  }
+
+  /// Tells if a noSuchMethod forwarder is required for [member] in [cls].
+  bool _isForwarderRequired(bool hasUserDefinedNoSuchMethod, Member member,
+      Class cls, List<Member> concreteMembers,
+      {bool isPatch = false}) {
+    // A noSuchMethod forwarder is allowed for an abstract member if the class
+    // has a user-defined noSuchMethod or if the member is private and is
+    // defined in a different library.  Private members in patches are assumed
+    // to be visible only to patches, so they are treated as if they were from
+    // another library.
+    bool isForwarderAllowed = hasUserDefinedNoSuchMethod ||
+        (member.name.isPrivate &&
+            cls.enclosingLibrary.compareTo(member.enclosingLibrary) != 0) ||
+        (member.name.isPrivate && isPatch);
+    // A noSuchMethod forwarder is required if it's allowed and if there's no
+    // concrete implementation or a forwarder already.
+    bool isForwarderRequired = isForwarderAllowed &&
+        ClassHierarchy.findMemberByName(concreteMembers, member.name) == null;
+    return isForwarderRequired;
+  }
+
+  void addRedirectingConstructor(ProcedureBuilder constructorBuilder,
+      SourceLibraryBuilder library, Field referenceFrom) {
+    // Add a new synthetic field to this class for representing factory
+    // constructors. This is used to support resolving such constructors in
+    // source code.
+    //
+    // The synthetic field looks like this:
+    //
+    //     final _redirecting# = [c1, ..., cn];
+    //
+    // Where each c1 ... cn are an instance of [StaticGet] whose target is
+    // [constructor.target].
+    //
+    // TODO(ahe): Add a kernel node to represent redirecting factory bodies.
+    DillMemberBuilder constructorsField =
+        origin.scope.lookupLocalMember(redirectingName, setter: false);
+    if (constructorsField == null) {
+      ListLiteral literal = new ListLiteral(<Expression>[]);
+      Name name = new Name(redirectingName, library.library);
+      Field field = new Field(name,
+          isStatic: true,
+          initializer: literal,
+          fileUri: cls.fileUri,
+          reference: referenceFrom?.reference)
+        ..fileOffset = cls.fileOffset;
+      cls.addMember(field);
+      constructorsField = new DillMemberBuilder(field, this);
+      origin.scope
+          .addLocalMember(redirectingName, constructorsField, setter: false);
+    }
+    Field field = constructorsField.member;
+    ListLiteral literal = field.initializer;
+    literal.expressions
+        .add(new StaticGet(constructorBuilder.procedure)..parent = literal);
+  }
+
+  @override
+  int resolveConstructors(LibraryBuilder library) {
+    if (constructorReferences == null) return 0;
+    for (ConstructorReferenceBuilder ref in constructorReferences) {
+      ref.resolveIn(scope, library);
+    }
+    int count = constructorReferences.length;
+    if (count != 0) {
+      Map<String, MemberBuilder> constructors = this.constructors.local;
+      // Copy keys to avoid concurrent modification error.
+      List<String> names = constructors.keys.toList();
+      for (String name in names) {
+        Builder declaration = constructors[name];
+        do {
+          if (declaration.parent != this) {
+            unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
+                fileUri);
+          }
+          if (declaration is RedirectingFactoryBuilder) {
+            // Compute the immediate redirection target, not the effective.
+            ConstructorReferenceBuilder redirectionTarget =
+                declaration.redirectionTarget;
+            if (redirectionTarget != null) {
+              Builder targetBuilder = redirectionTarget.target;
+              if (declaration.next == null) {
+                // Only the first one (that is, the last on in the linked list)
+                // is actually in the kernel tree. This call creates a StaticGet
+                // to [declaration.target] in a field `_redirecting#` which is
+                // only legal to do to things in the kernel tree.
+                Field referenceFrom =
+                    referencesFromIndexed?.lookupField("_redirecting#");
+                addRedirectingConstructor(declaration, library, referenceFrom);
+              }
+              if (targetBuilder is FunctionBuilder) {
+                List<DartType> typeArguments = declaration.typeArguments;
+                if (typeArguments == null) {
+                  // TODO(32049) If type arguments aren't specified, they should
+                  // be inferred.  Currently, the inference is not performed.
+                  // The code below is a workaround.
+                  typeArguments = new List<DartType>.filled(
+                      targetBuilder.member.enclosingClass.typeParameters.length,
+                      const DynamicType(),
+                      growable: true);
+                }
+                declaration.setRedirectingFactoryBody(
+                    targetBuilder.member, typeArguments);
+              } else if (targetBuilder is DillMemberBuilder) {
+                List<DartType> typeArguments = declaration.typeArguments;
+                if (typeArguments == null) {
+                  // TODO(32049) If type arguments aren't specified, they should
+                  // be inferred.  Currently, the inference is not performed.
+                  // The code below is a workaround.
+                  typeArguments = new List<DartType>.filled(
+                      targetBuilder.member.enclosingClass.typeParameters.length,
+                      const DynamicType(),
+                      growable: true);
+                }
+                declaration.setRedirectingFactoryBody(
+                    targetBuilder.member, typeArguments);
+              } else if (targetBuilder is AmbiguousBuilder) {
+                addProblem(
+                    templateDuplicatedDeclarationUse
+                        .withArguments(redirectionTarget.fullNameForErrors),
+                    redirectionTarget.charOffset,
+                    noLength);
+                // CoreTypes aren't computed yet, and this is the outline
+                // phase. So we can't and shouldn't create a method body.
+                declaration.body = new RedirectingFactoryBody.unresolved(
+                    redirectionTarget.fullNameForErrors);
+              } else {
+                addProblem(
+                    templateRedirectionTargetNotFound
+                        .withArguments(redirectionTarget.fullNameForErrors),
+                    redirectionTarget.charOffset,
+                    noLength);
+                // CoreTypes aren't computed yet, and this is the outline
+                // phase. So we can't and shouldn't create a method body.
+                declaration.body = new RedirectingFactoryBody.unresolved(
+                    redirectionTarget.fullNameForErrors);
+              }
+            }
+          }
+          declaration = declaration.next;
+        } while (declaration != null);
+      }
+    }
+    return count;
   }
 }

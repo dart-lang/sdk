@@ -23,8 +23,9 @@ class AnalysisException implements Exception {
    */
   AnalysisException([this.message = 'Exception', this.cause]);
 
+  @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('$runtimeType: ');
     buffer.writeln(message);
     if (cause != null) {
@@ -83,7 +84,7 @@ class CaughtException implements Exception {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     _writeOn(buffer);
     return buffer.toString();
   }

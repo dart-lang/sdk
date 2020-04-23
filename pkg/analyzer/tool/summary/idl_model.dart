@@ -154,6 +154,7 @@ class FieldType {
     return hash;
   }
 
+  @override
   bool operator ==(Object other) {
     if (other is FieldType) {
       return other.typeName == typeName && other.isList == isList;

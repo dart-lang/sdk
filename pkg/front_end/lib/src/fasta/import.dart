@@ -21,7 +21,7 @@ class Import {
   final LibraryBuilder importer;
 
   /// The library being imported.
-  final LibraryBuilder imported;
+  LibraryBuilder imported;
 
   final PrefixBuilder prefixBuilder;
 

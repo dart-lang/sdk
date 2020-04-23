@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'get_kythe_entries_test.dart' as get_kythe_entries_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     get_kythe_entries_test.main();
   }, name: 'kythe');

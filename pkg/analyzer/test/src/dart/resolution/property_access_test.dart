@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -10,94 +12,86 @@ import 'driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PropertyAccessResolutionTest);
+    defineReflectiveTests(PropertyAccessResolutionWithNnbdTest);
   });
 }
 
 @reflectiveTest
 class PropertyAccessResolutionTest extends DriverResolutionTest {
-  test_get_error_abstractSuperMemberReference_mixinHasNoSuchMethod() async {
-    await resolveTestCode('''
+  test_tearOff_method() async {
+    await assertNoErrorsInCode('''
 class A {
-  int get foo;
-  noSuchMethod(im) => 1;
+  void foo(int a) {}
 }
 
-class B extends Object with A {
-  get foo => super.foo; // ref
-  noSuchMethod(im) => 2;
+bar() {
+  A().foo;
 }
 ''');
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
 
-    var access = findNode.propertyAccess('foo; // ref');
-    assertPropertyAccess(access, findElement.getter('foo', of: 'A'), 'int');
-    assertSuperExpression(access.target);
+    var identifier = findNode.simple('foo;');
+    assertElement(identifier, findElement.method('foo'));
+    assertType(identifier, 'void Function(int)');
+  }
+}
+
+@reflectiveTest
+class PropertyAccessResolutionWithNnbdTest
+    extends PropertyAccessResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_implicitCall_tearOff_nullable() async {
+    await assertErrorsInCode('''
+class A {
+  int call() => 0;
+}
+
+class B {
+  A? a;
+}
+
+int Function() foo() {
+  return B().a; // ref
+}
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 85, 5),
+    ]);
+
+    var identifier = findNode.simple('a; // ref');
+    assertElement(identifier, findElement.getter('a'));
+    assertType(identifier, 'A?');
   }
 
-  test_get_error_abstractSuperMemberReference_OK_superHasNoSuchMethod() async {
-    await resolveTestCode(r'''
+  test_nullShorting_cascade() async {
+    await assertNoErrorsInCode(r'''
 class A {
-  int get foo;
-  noSuchMethod(im) => 1;
+  int get foo => 0;
+  int get bar => 0;
 }
 
-class B extends A {
-  get foo => super.foo; // ref
-  noSuchMethod(im) => 2;
+main(A? a) {
+  a?..foo..bar;
 }
 ''');
-    assertNoTestErrors();
 
-    var access = findNode.propertyAccess('super.foo; // ref');
-    assertPropertyAccess(access, findElement.getter('foo', of: 'A'), 'int');
-    assertSuperExpression(access.target);
-  }
-
-  test_set_error_abstractSuperMemberReference_mixinHasNoSuchMethod() async {
-    await resolveTestCode('''
-class A {
-  set foo(int a);
-  noSuchMethod(im) {}
-}
-
-class B extends Object with A {
-  set foo(v) => super.foo = v; // ref
-  noSuchMethod(im) {}
-}
-''');
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-
-    var access = findNode.propertyAccess('foo = v; // ref');
-    assertPropertyAccess(
-      access,
-      findElement.setter('foo', of: 'A'),
-      'int',
+    assertPropertyAccess2(
+      findNode.propertyAccess('..foo'),
+      element: findElement.getter('foo'),
+      type: 'int',
     );
-    assertSuperExpression(access.target);
-  }
 
-  test_set_error_abstractSuperMemberReference_OK_superHasNoSuchMethod() async {
-    await resolveTestCode(r'''
-class A {
-  set foo(int a);
-  noSuchMethod(im) => 1;
-}
-
-class B extends A {
-  set foo(v) => super.foo = v; // ref
-  noSuchMethod(im) => 2;
-}
-''');
-    assertNoTestErrors();
-
-    var access = findNode.propertyAccess('foo = v; // ref');
-    assertPropertyAccess(
-      access,
-      findElement.setter('foo', of: 'A'),
-      'int',
+    assertPropertyAccess2(
+      findNode.propertyAccess('..bar'),
+      element: findElement.getter('bar'),
+      type: 'int',
     );
-    assertSuperExpression(access.target);
+
+    assertType(findNode.cascade('a?'), 'A?');
   }
 }

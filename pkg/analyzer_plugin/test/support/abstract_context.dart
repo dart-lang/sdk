@@ -18,12 +18,10 @@ import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
-/**
- * Finds an [Element] with the given [name].
- */
+/// Finds an [Element] with the given [name].
 Element findChildElement(Element root, String name, [ElementKind kind]) {
-  Element result = null;
-  root.accept(new _ElementVisitorFunctionWrapper((Element element) {
+  Element result;
+  root.accept(_ElementVisitorFunctionWrapper((Element element) {
     if (element.name != name) {
       return;
     }
@@ -35,10 +33,8 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
   return result;
 }
 
-/**
- * A function to be called for every [Element].
- */
-typedef void _ElementVisitorFunction(Element element);
+/// A function to be called for every [Element].
+typedef _ElementVisitorFunction = void Function(Element element);
 
 class AbstractContextTest with ResourceProviderMixin {
   AnalysisDriver _driver;
@@ -68,7 +64,7 @@ class Required {
   }
 
   /// Add a new file with the given [pathInLib] to the package with the
-  /// given [packageName].  Then ensure that the test package depends on the
+  /// given [packageName]. Then ensure that the test package depends on the
   /// [packageName].
   File addPackageFile(String packageName, String pathInLib, String content) {
     var packagePath = '/.pub-cache/$packageName';
@@ -77,8 +73,8 @@ class Required {
   }
 
   Source addSource(String path, String content, [Uri uri]) {
-    File file = newFile(path, content: content);
-    Source source = file.createSource(uri);
+    var file = newFile(path, content: content);
+    var source = file.createSource(uri);
     driver.addFile(file.path);
     driver.changeFile(file.path);
     return source;
@@ -86,7 +82,7 @@ class Required {
 
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({List<String> experiments}) {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     buffer.writeln('analyzer:');
 
     if (experiments != null) {
@@ -115,11 +111,11 @@ class Required {
   }
 
   void setUp() {
-    new MockSdk(resourceProvider: resourceProvider);
+    MockSdk(resourceProvider: resourceProvider);
 
     newFolder('/home/test');
-    newFile('/home/test/.packages', content: r'''
-test:file:///home/test/lib
+    newFile('/home/test/.packages', content: '''
+test:${toUriStr('/home/test/lib')}
 ''');
 
     _createDriver();
@@ -160,17 +156,15 @@ test:file:///home/test/lib
   }
 }
 
-/**
- * Wraps the given [_ElementVisitorFunction] into an instance of
- * [engine.GeneralizingElementVisitor].
- */
+/// Wraps the given [_ElementVisitorFunction] into an instance of
+/// [engine.GeneralizingElementVisitor].
 class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
   final _ElementVisitorFunction function;
 
   _ElementVisitorFunctionWrapper(this.function);
 
   @override
-  visitElement(Element element) {
+  void visitElement(Element element) {
     function(element);
     super.visitElement(element);
   }

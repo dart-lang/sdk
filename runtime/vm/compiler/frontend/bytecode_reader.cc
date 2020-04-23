@@ -15,6 +15,7 @@
 #include "vm/dart_api_impl.h"  // For Api::IsFfiEnabled().
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/flags.h"
 #include "vm/hash.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
@@ -418,8 +419,8 @@ RawArray* BytecodeReaderHelper::CreateForwarderChecks(
   const bool has_optional_parameters = function.HasOptionalParameters();
   for (intptr_t i = function.NumImplicitParameters(); i < num_params; ++i) {
     type = function.ParameterTypeAt(i);
-    if (!type.IsTopType() && !is_generic_covariant_impl.Contains(i) &&
-        !is_covariant.Contains(i)) {
+    if (!type.IsTopTypeForAssignability() &&
+        !is_generic_covariant_impl.Contains(i) && !is_covariant.Contains(i)) {
       name = function.ParameterNameAt(i);
       intptr_t index;
       if (i >= num_pos_params) {
@@ -489,10 +490,12 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
     closure.set_modifier(RawFunction::kSyncGen);
   } else if ((flags & kIsAsyncFlag) != 0) {
     closure.set_modifier(RawFunction::kAsync);
-    closure.set_is_inlinable(!FLAG_causal_async_stacks);
+    closure.set_is_inlinable(!FLAG_causal_async_stacks &&
+                             !FLAG_lazy_async_stacks);
   } else if ((flags & kIsAsyncStarFlag) != 0) {
     closure.set_modifier(RawFunction::kAsyncGen);
-    closure.set_is_inlinable(!FLAG_causal_async_stacks);
+    closure.set_is_inlinable(!FLAG_causal_async_stacks &&
+                             !FLAG_lazy_async_stacks);
   }
   if (Function::Cast(parent).IsAsyncOrGenerator()) {
     closure.set_is_generated_body(true);
@@ -622,11 +625,17 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
   ASSERT(num_type_params > 0);
 
   intptr_t offset;
+  NNBDMode nnbd_mode;
   if (!parameterized_class.IsNull()) {
     offset = parameterized_class.NumTypeArguments() - num_type_params;
+    nnbd_mode = parameterized_class.nnbd_mode();
   } else {
     offset = parameterized_function.NumParentTypeParameters();
+    nnbd_mode = parameterized_function.nnbd_mode();
   }
+  const Nullability nullability = (nnbd_mode == NNBDMode::kOptedInLib)
+                                      ? Nullability::kNonNullable
+                                      : Nullability::kLegacy;
 
   // First setup the type parameters, so if any of the following code uses it
   // (in a recursive way) we're fine.
@@ -640,9 +649,10 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
   for (intptr_t i = 0; i < num_type_params; ++i) {
     name ^= ReadObject();
     ASSERT(name.IsSymbol());
-    parameter = TypeParameter::New(
-        parameterized_class, parameterized_function, i, name, bound,
-        /* is_generic_covariant_impl = */ false, TokenPosition::kNoSource);
+    parameter = TypeParameter::New(parameterized_class, parameterized_function,
+                                   i, name, bound,
+                                   /* is_generic_covariant_impl = */ false,
+                                   nullability, TokenPosition::kNoSource);
     parameter.set_index(offset + i);
     parameter.SetIsFinalized();
     type_parameters.SetTypeAt(i, parameter);
@@ -679,6 +689,27 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
       bound = I->object_store()->object_type();
     }
     parameter.set_bound(bound);
+  }
+
+  // Fix bounds in all derived type parameters (with different nullabilities).
+  if (active_class_->derived_type_parameters != nullptr) {
+    auto& derived = TypeParameter::Handle(Z);
+    auto& bound = AbstractType::Handle(Z);
+    for (intptr_t i = 0, n = active_class_->derived_type_parameters->Length();
+         i < n; ++i) {
+      derived ^= active_class_->derived_type_parameters->At(i);
+      if (derived.bound() == AbstractType::null() &&
+          ((!parameterized_class.IsNull() &&
+            derived.parameterized_class() == parameterized_class.raw()) ||
+           (!parameterized_function.IsNull() &&
+            derived.parameterized_function() ==
+                parameterized_function.raw()))) {
+        ASSERT(derived.IsFinalized());
+        parameter ^= type_parameters.TypeAt(derived.index() - offset);
+        bound = parameter.bound();
+        derived.set_bound(bound);
+      }
+    }
   }
 }
 
@@ -745,7 +776,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         field ^= ReadObject();
         // InstanceField constant occupies 2 entries.
         // The first entry is used for field offset.
-        obj = Smi::New(field.Offset() / kWordSize);
+        obj = Smi::New(field.HostOffset() / kWordSize);
         pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
                        ObjectPool::Patchability::kNotPatchable);
         pool.SetObjectAt(i, obj);
@@ -760,7 +791,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         break;
       case ConstantPoolTag::kTypeArgumentsField:
         cls ^= ReadObject();
-        obj = Smi::New(cls.type_arguments_field_offset() / kWordSize);
+        obj = Smi::New(cls.host_type_arguments_field_offset() / kWordSize);
         break;
       case ConstantPoolTag::kType:
         obj = ReadObject();
@@ -1161,14 +1192,8 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   reader_.ReadUInt32();  // Skip annotations.numItems
   const intptr_t annotations_offset = start_offset + reader_.ReadUInt32();
 
-  intptr_t num_protected_names = 0;
-  intptr_t protected_names_offset = 0;
-  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 23,
-                "Cleanup condition");
-  if (version >= 23) {
-    num_protected_names = reader_.ReadUInt32();
-    protected_names_offset = start_offset + reader_.ReadUInt32();
-  }
+  const intptr_t num_protected_names = reader_.ReadUInt32();
+  const intptr_t protected_names_offset = start_offset + reader_.ReadUInt32();
 
   // Read header of string table.
   reader_.set_offset(string_table_offset);
@@ -1444,19 +1469,15 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
     case kName: {
       if ((flags & kFlagIsPublic) == 0) {
         const Library& library = Library::CheckedHandle(Z, ReadObject());
-        static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 23,
-                      "Cleanup library.IsNull() condition");
-        if (!library.IsNull()) {
-          auto& name =
-              String::Handle(Z, ReadString(/* is_canonical = */ false));
-          name = library.PrivateName(name);
-          if (I->obfuscate()) {
-            const auto& library_key = String::Handle(Z, library.private_key());
-            Obfuscator obfuscator(thread_, library_key);
-            return obfuscator.Rename(name);
-          }
-          return name.raw();
+        ASSERT(!library.IsNull());
+        auto& name = String::Handle(Z, ReadString(/* is_canonical = */ false));
+        name = library.PrivateName(name);
+        if (I->obfuscate()) {
+          const auto& library_key = String::Handle(Z, library.private_key());
+          Obfuscator obfuscator(thread_, library_key);
+          return obfuscator.Rename(name);
         }
+        return name.raw();
       }
       if (I->obfuscate()) {
         Obfuscator obfuscator(thread_, Object::null_string());
@@ -1478,7 +1499,7 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       const intptr_t num_type_args =
           ((flags & kFlagHasTypeArgs) != 0) ? reader_.ReadUInt() : 0;
       if ((flags & kFlagHasNamedArgs) == 0) {
-        return ArgumentsDescriptor::New(num_type_args, num_arguments);
+        return ArgumentsDescriptor::NewBoxed(num_type_args, num_arguments);
       } else {
         const intptr_t num_arg_names = reader_.ReadListLength();
         const Array& array = Array::Handle(Z, Array::New(num_arg_names));
@@ -1487,7 +1508,8 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
           name ^= ReadObject();
           array.SetAt(i, name);
         }
-        return ArgumentsDescriptor::New(num_type_args, num_arguments, array);
+        return ArgumentsDescriptor::NewBoxed(num_type_args, num_arguments,
+                                             array);
       }
     }
     case kScript: {
@@ -1506,12 +1528,9 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
     }
     case kType: {
       const intptr_t tag = (flags & kTagMask) / kFlagBit0;
-      static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 24,
-                    "Cleanup condition");
       const Nullability nullability =
-          bytecode_component_->GetVersion() >= 24
-              ? static_cast<Nullability>((flags & kNullabilityMask) / kFlagBit4)
-              : Nullability::kLegacy;
+          Reader::ConvertNullability(static_cast<KernelNullability>(
+              (flags & kNullabilityMask) / kFlagBit4));
       return ReadType(tag, nullability);
     }
     default:
@@ -1666,13 +1685,14 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
     case kVoid:
       return AbstractType::void_type().raw();
     case kNever:
-      return AbstractType::never_type().raw();
+      return AbstractType::never_type().ToNullability(nullability, Heap::kOld);
     case kSimpleType: {
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
       if (!cls.is_declaration_loaded()) {
         LoadReferencedClass(cls);
       }
-      return cls.DeclarationType(nullability);
+      const Type& type = Type::Handle(Z, cls.DeclarationType());
+      return type.ToNullability(nullability, Heap::kOld);
     }
     case kTypeParameter: {
       Object& parent = Object::Handle(Z, ReadObject());
@@ -1697,6 +1717,13 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
       }
       TypeParameter& type_parameter = TypeParameter::Handle(Z);
       type_parameter ^= type_parameters.TypeAt(index_in_parent);
+      if (type_parameter.bound() == AbstractType::null()) {
+        AbstractType& derived = AbstractType::Handle(
+            Z, type_parameter.ToNullability(nullability, Heap::kOld));
+        active_class_->RecordDerivedTypeParameter(Z, type_parameter,
+                                                  TypeParameter::Cast(derived));
+        return derived.raw();
+      }
       return type_parameter.ToNullability(nullability, Heap::kOld);
     }
     case kGenericType: {
@@ -2015,8 +2042,8 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     }
 
     field = Field::New(name, is_static, is_final, is_const,
-                       (flags & kIsReflectableFlag) != 0, script_class, type,
-                       position, end_position);
+                       (flags & kIsReflectableFlag) != 0, is_late, script_class,
+                       type, position, end_position);
 
     field.set_is_declared_in_bytecode(true);
     field.set_has_pragma(has_pragma);
@@ -2024,11 +2051,17 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     field.set_is_generic_covariant_impl((flags & kIsGenericCovariantImplFlag) !=
                                         0);
     field.set_has_nontrivial_initializer(has_nontrivial_initializer);
-    field.set_is_late((flags & kIsLateFlag) != 0);
     field.set_is_extension_member(is_extension_member);
     field.set_has_initializer(has_initializer);
 
-    if (!has_nontrivial_initializer) {
+    if (has_nontrivial_initializer) {
+      if (field.is_late()) {
+        // Late fields are initialized to Object::sentinel, which is a flavor of
+        // null. So we need to record that store so that the field guard doesn't
+        // prematurely optimise out the late field's sentinel checking logic.
+        field.RecordStore(Object::null_object());
+      }
+    } else {
       value ^= ReadObject();
       if (is_static) {
         if (field.is_late() && !has_initializer) {
@@ -2132,13 +2165,13 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
 
   if (cls.is_enum_class()) {
     // Add static field 'const _deleted_enum_sentinel'.
-    field =
-        Field::New(Symbols::_DeletedEnumSentinel(),
-                   /* is_static = */ true,
-                   /* is_final = */ true,
-                   /* is_const = */ true,
-                   /* is_reflectable = */ false, cls, Object::dynamic_type(),
-                   TokenPosition::kNoSource, TokenPosition::kNoSource);
+    field = Field::New(Symbols::_DeletedEnumSentinel(),
+                       /* is_static = */ true,
+                       /* is_final = */ true,
+                       /* is_const = */ true,
+                       /* is_reflectable = */ false,
+                       /* is_late = */ false, cls, Object::dynamic_type(),
+                       TokenPosition::kNoSource, TokenPosition::kNoSource);
 
     fields.SetAt(num_fields, field);
   }
@@ -2213,6 +2246,10 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
   Array& parameter_names = Array::Handle(Z);
   AbstractType& type = AbstractType::Handle(Z);
 
+  name = cls.ScrubbedName();
+  const bool is_async_await_completer_owner =
+      Symbols::_AsyncAwaitCompleter().Equals(name);
+
   for (intptr_t i = 0; i < num_functions; ++i) {
     intptr_t flags = reader_.ReadUInt();
 
@@ -2265,20 +2302,35 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     function.set_is_declared_in_bytecode(true);
     function.set_has_pragma(has_pragma);
     function.set_end_token_pos(end_position);
-    function.set_is_no_such_method_forwarder(
-        (flags & kIsNoSuchMethodForwarderFlag) != 0);
+    function.set_is_synthetic((flags & kIsNoSuchMethodForwarderFlag) != 0);
     function.set_is_reflectable((flags & kIsReflectableFlag) != 0);
     function.set_is_debuggable((flags & kIsDebuggableFlag) != 0);
     function.set_is_extension_member(is_extension_member);
 
+    // _AsyncAwaitCompleter.start should be made non-visible in stack traces,
+    // since it is an implementation detail of our await/async desugaring.
+    if (is_async_await_completer_owner &&
+        Symbols::_AsyncAwaitStart().Equals(name)) {
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
+    }
+
     if ((flags & kIsSyncStarFlag) != 0) {
       function.set_modifier(RawFunction::kSyncGen);
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
     } else if ((flags & kIsAsyncFlag) != 0) {
       function.set_modifier(RawFunction::kAsync);
-      function.set_is_inlinable(!FLAG_causal_async_stacks);
+      function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                !FLAG_lazy_async_stacks);
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
     } else if ((flags & kIsAsyncStarFlag) != 0) {
       function.set_modifier(RawFunction::kAsyncGen);
-      function.set_is_inlinable(!FLAG_causal_async_stacks);
+      function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                !FLAG_lazy_async_stacks);
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
     }
 
     if ((flags & kHasTypeParamsFlag) != 0) {
@@ -2394,7 +2446,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
       if (!cls.IsTopLevel()) {
         scoped_function_class_ = H.GetExpressionEvaluationRealClass();
       }
-      CompilerState compiler_state(thread_);
+      CompilerState compiler_state(thread_, FLAG_precompiled_mode);
       ReadCode(function, function.bytecode_offset());
     }
 
@@ -2566,7 +2618,7 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
   ASSERT(!library.Loaded());
   ASSERT(library.toplevel_class() == Object::null());
 
-  // TODO(alexmarkov): fill in library.owned_scripts.
+  // TODO(alexmarkov): fill in library.used_scripts.
 
   const intptr_t flags = reader_.ReadUInt();
   if (((flags & kUsesDartMirrorsFlag) != 0) && !FLAG_enable_mirrors) {
@@ -3294,13 +3346,13 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
   VMTagScope tagScope(thread, VMTag::kLoadBytecodeTagId);
 
 #if defined(SUPPORT_TIMELINE)
-  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
-                            "BytecodeReader::ReadFunctionBytecode");
+  TimelineBeginEndScope tbes(thread, Timeline::GetCompilerStream(),
+                             "BytecodeReader::ReadFunctionBytecode");
   // This increases bytecode reading time by ~7%, so only keep it around for
   // debugging.
 #if defined(DEBUG)
-  tds.SetNumArguments(1);
-  tds.CopyArgument(0, "Function", function.ToQualifiedCString());
+  tbes.SetNumArguments(1);
+  tbes.CopyArgument(0, "Function", function.ToQualifiedCString());
 #endif  // defined(DEBUG)
 #endif  // !defined(SUPPORT_TIMELINE)
 
@@ -3376,7 +3428,7 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
     } else if (function.is_declared_in_bytecode()) {
       const intptr_t code_offset = function.bytecode_offset();
       if (code_offset != 0) {
-        CompilerState compiler_state(thread);
+        CompilerState compiler_state(thread, FLAG_precompiled_mode);
 
         const Script& script = Script::Handle(zone, function.script());
         TranslationHelper translation_helper(thread);

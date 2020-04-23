@@ -936,36 +936,38 @@ table AvailableDeclaration {
 
   isFinal:bool (id: 11);
 
+  isStatic:bool (id: 12);
+
   /// The kind of the declaration.
-  kind:AvailableDeclarationKind (id: 12);
+  kind:AvailableDeclarationKind (id: 13);
 
-  locationOffset:uint (id: 13);
+  locationOffset:uint (id: 14);
 
-  locationStartColumn:uint (id: 14);
+  locationStartColumn:uint (id: 15);
 
-  locationStartLine:uint (id: 15);
+  locationStartLine:uint (id: 16);
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  name:string (id: 16);
+  name:string (id: 17);
 
-  parameterNames:[string] (id: 17);
+  parameterNames:[string] (id: 18);
 
-  parameters:string (id: 18);
+  parameters:string (id: 19);
 
-  parameterTypes:[string] (id: 19);
+  parameterTypes:[string] (id: 20);
 
   /// The partial list of relevance tags.  Not every declaration has one (for
   /// example, function do not currently), and not every declaration has to
   /// store one (for classes it can be computed when we know the library that
   /// includes this file).
-  relevanceTags:[string] (id: 20);
+  relevanceTags:[string] (id: 21);
 
-  requiredParameterCount:uint (id: 21);
+  requiredParameterCount:uint (id: 22);
 
-  returnType:string (id: 22);
+  returnType:string (id: 23);
 
-  typeParameters:string (id: 23);
+  typeParameters:string (id: 24);
 }
 
 /// Information about an available, even if not yet imported file.
@@ -1008,6 +1010,27 @@ table AvailableFileExportCombinator {
 
   /// List of names which are shown.  Empty if this is a `hide` combinator.
   shows:[string] (id: 0);
+}
+
+/// Information about linked libraries, a group of libraries that form
+/// a library cycle.
+table CiderLinkedLibraryCycle {
+  bundle:LinkedNodeBundle (id: 1);
+
+  /// The hash signature for this linked cycle. It depends of API signatures
+  /// of all files in the cycle, and on the signatures of the transitive
+  /// closure of the cycle dependencies.
+  signature:[uint] (id: 0);
+}
+
+/// Information about a compilation unit, contains the content hash
+/// and unlinked summary.
+table CiderUnlinkedUnit {
+  /// The hash signature of the contents of the file.
+  contentDigest:[uint] (id: 0);
+
+  /// Unlinked summary of the compilation unit.
+  unlinkedUnit:UnlinkedUnit2 (id: 1);
 }
 
 table DiagnosticMessage {
@@ -1073,6 +1096,9 @@ table LinkedNode {
 
   variantField_3:[LinkedNode] (id: 3);
 
+  /// The minor component of the actual language version (not just override).
+  variantField_16:uint (id: 16);
+
   variantField_10:LinkedNode (id: 10);
 
   variantField_26:LinkedNodeFormalParameterKind (id: 26);
@@ -1090,8 +1116,6 @@ table LinkedNode {
   variantField_1:string (id: 1);
 
   variantField_36:uint (id: 36);
-
-  variantField_16:uint (id: 16);
 
   variantField_30:string (id: 30);
 
@@ -1263,6 +1287,29 @@ table UnlinkedInformativeData {
   kind:LinkedNodeKind (id: 0);
 }
 
+/// Unlinked summary information about a namespace directive.
+table UnlinkedNamespaceDirective {
+  /// The configurations that control which library will actually be used.
+  configurations:[UnlinkedNamespaceDirectiveConfiguration] (id: 0);
+
+  /// The URI referenced by this directive, nad used by default when none
+  /// of the [configurations] matches.
+  uri:string (id: 1);
+}
+
+/// Unlinked summary information about a namespace directive configuration.
+table UnlinkedNamespaceDirectiveConfiguration {
+  /// The name of the declared variable used in the condition.
+  name:string (id: 0);
+
+  /// The URI to be used if the condition is true.
+  uri:string (id: 2);
+
+  /// The value to which the value of the declared variable will be compared,
+  /// or the empty string if the condition does not include an equality test.
+  value:string (id: 1);
+}
+
 /// Unlinked summary information about a compilation unit.
 table UnlinkedUnit2 {
   /// The MD5 hash signature of the API portion of this unit. It depends on all
@@ -1270,7 +1317,7 @@ table UnlinkedUnit2 {
   apiSignature:[uint] (id: 0);
 
   /// URIs of `export` directives.
-  exports:[string] (id: 1);
+  exports:[UnlinkedNamespaceDirective] (id: 1);
 
   /// Is `true` if the unit contains a `library` directive.
   hasLibraryDirective:bool (id: 6);
@@ -1279,7 +1326,7 @@ table UnlinkedUnit2 {
   hasPartOfDirective:bool (id: 3);
 
   /// URIs of `import` directives.
-  imports:[string] (id: 2);
+  imports:[UnlinkedNamespaceDirective] (id: 2);
 
   informativeData:[UnlinkedInformativeData] (id: 7);
 

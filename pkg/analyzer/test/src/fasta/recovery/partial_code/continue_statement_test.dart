@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new ContinueStatementTest().buildAll();
+  ContinueStatementTest().buildAll();
 }
 
 class ContinueStatementTest extends PartialCodeTest {
@@ -15,7 +15,7 @@ class ContinueStatementTest extends PartialCodeTest {
     buildTests(
         'continue_statement',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'continue',
               [
@@ -27,7 +27,7 @@ class ContinueStatementTest extends PartialCodeTest {
                 ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP
               ],
               failing: ['labeled', 'localFunctionNonVoid']),
-          new TestDescriptor(
+          TestDescriptor(
               'label',
               'continue a',
               [

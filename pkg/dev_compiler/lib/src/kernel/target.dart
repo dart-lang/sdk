@@ -4,11 +4,18 @@
 
 import 'dart:collection';
 import 'dart:core' hide MapEntry;
-import 'package:kernel/kernel.dart';
-import 'package:kernel/core_types.dart';
+
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show Message, LocatedMessage;
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/kernel.dart';
+import 'package:kernel/reference_from_index.dart';
+import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
+import 'package:_js_interop_checks/js_interop_checks.dart';
+
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
 
@@ -16,6 +23,7 @@ import 'kernel_helpers.dart';
 class DevCompilerTarget extends Target {
   DevCompilerTarget(this.flags);
 
+  @override
   final TargetFlags flags;
 
   WidgetCreatorTracker _widgetTracker;
@@ -23,10 +31,13 @@ class DevCompilerTarget extends Target {
   @override
   bool get enableSuperMixins => true;
 
-  // TODO(johnniwinther): Change this to `false` when late field lowering is
-  // ready.
   @override
-  bool get supportsLateFields => true;
+  bool get supportsLateFields => false;
+
+  // TODO(johnniwinther,sigmund): Remove this when js-interop handles getter
+  //  calls encoded with an explicit property get or disallows getter calls.
+  @override
+  bool get supportsExplicitGetterCalls => false;
 
   @override
   String get name => 'dartdevc';
@@ -40,7 +51,6 @@ class DevCompilerTarget extends Target {
         'dart:_internal',
         'dart:_isolate_helper',
         'dart:_js_helper',
-        'dart:_js_mirrors',
         'dart:_js_primitives',
         'dart:_metadata',
         'dart:_native_typed_data',
@@ -53,7 +63,6 @@ class DevCompilerTarget extends Target {
         'dart:js',
         'dart:js_util',
         'dart:math',
-        'dart:mirrors',
         'dart:typed_data',
         'dart:indexed_db',
         'dart:html',
@@ -79,6 +88,7 @@ class DevCompilerTarget extends Target {
         'dart:_interceptors',
         'dart:_js_helper',
         'dart:_native_typed_data',
+        'dart:_runtime',
       ];
 
   @override
@@ -96,7 +106,7 @@ class DevCompilerTarget extends Target {
     // Multi-root scheme used by modular test framework.
     if (uri.scheme == 'dev-dart-app') return true;
 
-    String scriptName = uri.path;
+    var scriptName = uri.path;
     return scriptName.contains('tests/compiler/dartdevc_native');
   }
 
@@ -128,9 +138,14 @@ class DevCompilerTarget extends Target {
       List<Library> libraries,
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg)}) {
+      ReferenceFromIndex referenceFromIndex,
+      {void Function(String msg) logger,
+      ChangedStructureNotifier changedStructureNotifier}) {
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
+      JsInteropChecks(
+              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
+          .visitLibrary(library);
     }
   }
 
@@ -140,11 +155,10 @@ class DevCompilerTarget extends Target {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg)}) {
+      {void Function(String msg) logger,
+      ChangedStructureNotifier changedStructureNotifier}) {
     if (flags.trackWidgetCreation) {
-      if (_widgetTracker == null) {
-        _widgetTracker = WidgetCreatorTracker();
-      }
+      _widgetTracker ??= WidgetCreatorTracker();
       _widgetTracker.transform(component, libraries);
     }
   }
@@ -177,22 +191,19 @@ class DevCompilerTarget extends Target {
         arguments.positional.single
       ]);
     }
-    var ctorArgs = <Expression>[SymbolLiteral(name)];
-    bool isGeneric = arguments.types.isNotEmpty;
-    if (isGeneric) {
-      ctorArgs.add(
-          ListLiteral(arguments.types.map((t) => TypeLiteral(t)).toList()));
-    } else {
-      ctorArgs.add(NullLiteral());
-    }
-    ctorArgs.add(ListLiteral(arguments.positional));
-    if (arguments.named.isNotEmpty) {
-      ctorArgs.add(MapLiteral(
-          arguments.named
-              .map((n) => MapEntry(SymbolLiteral(n.name), n.value))
-              .toList(),
-          keyType: coreTypes.symbolLegacyRawType));
-    }
+    var ctorArgs = <Expression>[
+      SymbolLiteral(name),
+      if (arguments.types.isNotEmpty)
+        ListLiteral([for (var t in arguments.types) TypeLiteral(t)])
+      else
+        NullLiteral(),
+      ListLiteral(arguments.positional),
+      if (arguments.named.isNotEmpty)
+        MapLiteral([
+          for (var n in arguments.named)
+            MapEntry(SymbolLiteral(n.name), n.value)
+        ], keyType: coreTypes.symbolLegacyRawType),
+    ];
     return createInvocation('method', ctorArgs);
   }
 
@@ -236,13 +247,13 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
   ///
   /// [transform] uses this list to eliminate covariance flags for members that
   /// aren't in [_checkedMembers].
-  final _privateProcedures = List<Procedure>();
+  final _privateProcedures = <Procedure>[];
 
   /// List of private instance fields.
   ///
   /// [transform] uses this list to eliminate covariance flags for members that
   /// aren't in [_checkedMembers].
-  final _privateFields = List<Field>();
+  final _privateFields = <Field>[];
 
   final Library _library;
 

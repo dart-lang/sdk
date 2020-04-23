@@ -17,15 +17,16 @@ const overwriteOption = 'overwrite';
 const pedanticOption = 'pedantic';
 const previewDirOption = 'preview-dir';
 const previewPortOption = 'preview-port';
-const requiredOption = 'required';
 const sdkOption = 'sdk';
 
 const _binaryName = 'dartfix';
 const _colorOption = 'color';
-const _helpOption = 'help';
 
 // options only supported by server 1.22.2 and greater
+const _helpOption = 'help';
 const _serverSnapshot = 'server';
+
+// options not supported yet by any server
 const _verboseOption = 'verbose';
 
 /// Command line options for `dartfix`.
@@ -38,15 +39,12 @@ class Options {
   final String serverSnapshot;
 
   final bool pedanticFixes;
-  final bool requiredFixes;
   final List<String> includeFixes;
   final List<String> excludeFixes;
 
   final bool force;
   final bool showHelp;
-  final bool overwrite;
-  final String previewDir;
-  final String previewPort;
+  bool overwrite;
   final bool useColor;
   final bool verbose;
 
@@ -56,9 +54,6 @@ class Options {
         excludeFixes = (results[excludeFixOption] as List ?? []).cast<String>(),
         overwrite = results[overwriteOption] as bool,
         pedanticFixes = results[pedanticOption] as bool,
-        previewDir = results[previewDirOption] as String,
-        previewPort = results[previewPortOption] as String,
-        requiredFixes = results[requiredOption] as bool,
         sdkPath = results[sdkOption] as String ?? _getSdkPath(),
         serverSnapshot = results[_serverSnapshot] as String,
         showHelp = results[_helpOption] as bool || results.arguments.isEmpty,
@@ -84,8 +79,6 @@ class Options {
           help: 'Exclude a specific fix.', valueHelp: 'name-of-fix')
       ..addFlag(pedanticOption,
           help: 'Apply pedantic fixes.', defaultsTo: false, negatable: false)
-      ..addFlag(requiredOption,
-          help: 'Apply required fixes.', defaultsTo: false, negatable: false)
       ..addSeparator('Modifying files:')
       ..addFlag(overwriteOption,
           abbr: 'w',
@@ -118,14 +111,7 @@ class Options {
           negatable: false)
       ..addFlag(_colorOption,
           help: 'Use ansi colors when printing messages.',
-          defaultsTo: Ansi.terminalSupportsAnsi)
-      //
-      // Hidden options.
-      //
-      ..addOption(previewDirOption,
-          help: 'Path to the preview directory', hide: true)
-      ..addOption(previewPortOption,
-          help: 'The port used by the preview tool', hide: true);
+          defaultsTo: Ansi.terminalSupportsAnsi);
 
     context ??= Context();
 
@@ -147,9 +133,7 @@ class Options {
       } else {
         logger = Logger.standard(
             ansi: Ansi(
-          options.useColor != null
-              ? options.useColor
-              : Ansi.terminalSupportsAnsi,
+          options.useColor ?? Ansi.terminalSupportsAnsi,
         ));
       }
     }
@@ -204,12 +188,11 @@ class Options {
   }
 
   static String _getSdkPath() {
-    return Platform.environment['DART_SDK'] != null
-        ? Platform.environment['DART_SDK']
-        : path.dirname(path.dirname(Platform.resolvedExecutable));
+    return Platform.environment['DART_SDK'] ??
+        path.dirname(path.dirname(Platform.resolvedExecutable));
   }
 
-  static _showUsage(ArgParser parser, Logger logger,
+  static void _showUsage(ArgParser parser, Logger logger,
       {bool showHelpHint = true}) {
     Function(String message) out = showHelpHint ? logger.stderr : logger.stdout;
     // show help on stdout when showHelp is true and showHelpHint is false

@@ -4,17 +4,15 @@
 
 
 [ $compiler == app_jitk ]
-no_main_test/01: Crash
+main/no_main_test/01: Crash
+number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 vm/regress_27671_test: SkipByDesign # Relies on string comparison of exception message which may return '<optimized out>'
-web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == dartkp ]
-web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
+number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == fasta ]
-async_await_syntax_test/e5: Crash # Assertion error: continuation.dart: Failed assertion: 'node.expression == null || node.expression is NullLiteral': is not true.
-async_await_syntax_test/e6: Crash # Assertion error: continuation.dart: Failed assertion: 'node.expression == null || node.expression is NullLiteral': is not true.
-web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
+number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $fasta ]
 nnbd/*: Skip
@@ -33,15 +31,15 @@ superinterface_variance/mixin_error_test/47: Crash # Issue dart-lang/language#11
 superinterface_variance/mixin_error_test/48: Crash # Issue dart-lang/language#113
 
 [ $builder_tag == obfuscated && $compiler == dartkp ]
-generic_function_dcall_test/01: SkipByDesign # Prints type names
-many_named_arguments_test: SkipByDesign # Checks names of arguments
-mixin_generic_test: SkipByDesign # Prints type names
-mixin_mixin3_test: SkipByDesign # Prints type names
-mixin_mixin5_test: SkipByDesign # Prints type names
-mixin_mixin6_test: SkipByDesign # Prints type names
-mixin_mixin_bound2_test: SkipByDesign # Prints type names
-symbol_literal_test/02: SkipByDesign # We don't obfuscate const Symbol constructor
-type_literal_test: SkipByDesign # Uses lots of strings with type names in them
+generic/function_dcall_test/01: SkipByDesign # Prints type names
+mixin/generic_test: SkipByDesign # Prints type names
+mixin/mixin3_test: SkipByDesign # Prints type names
+mixin/mixin5_test: SkipByDesign # Prints type names
+mixin/mixin6_test: SkipByDesign # Prints type names
+mixin/mixin_bound2_test: SkipByDesign # Prints type names
+type_object/literal_test: SkipByDesign # Uses lots of strings with type names in them
+unsorted/many_named_arguments_test: SkipByDesign # Checks names of arguments
+unsorted/symbol_literal_test/02: SkipByDesign # We don't obfuscate const Symbol constructor
 vm/bool_check_stack_traces_test: SkipByDesign # Looks for filenames in stacktrace output
 vm/no_such_args_error_message_vm_test: SkipByDesign # Looks for function name in error message
 vm/no_such_method_error_message_callable_vm_test: SkipByDesign # Expects unobfuscated method names
@@ -49,44 +47,44 @@ vm/no_such_method_error_message_vm_test: SkipByDesign # Looks for unobfuscated n
 vm/regress_28325_test: SkipByDesign # Looks for filename in stack trace
 
 [ $compiler == dartk && $mode == debug && ($hot_reload || $hot_reload_rollback) ]
-inference_enum_list_test: Skip # Issue 35885
+unsorted/inference_enum_list_test: Skip # Issue 35885
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
-vm/precompiled_static_initializer_test: Slow
+vm/precompiled_static_initializer_test: Slow, Pass
 
 # ==== dartkp + dart_precompiled status lines ====
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-assert_with_type_test_or_cast_test: Crash
-const_evaluation_test: SkipByDesign
-ct_const2_test: Skip # Incompatible flag: --compile_all
-deferred_redirecting_factory_test: Crash # Issue 23408, KernelVM bug: Deferred loading kernel issue 30273.
-deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
-enum_mirror_test: SkipByDesign
-export_ambiguous_main_test: Skip # Issue 29895 Fail Issue 14763
-export_double_same_main_test: Skip # Issue 29895 Crash Issue 29895
-field_increment_bailout_test: SkipByDesign
+assert/with_type_test_or_cast_test: Crash
+closure/implicit_test: Skip # Incompatible flag: --use_slow_path
+const/const2_test: Skip # Incompatible flag: --compile_all
+const/evaluation_test: SkipByDesign
+deferred/redirecting_factory_test: Crash # Issue 23408, KernelVM bug: Deferred loading kernel issue 30273.
+enum/mirror_test: SkipByDesign
+export/ambiguous_main_test: Skip # Issue 29895 Fail Issue 14763
+export/double_same_main_test: Skip # Issue 29895 Crash Issue 29895
+field/increment_bailout_test: SkipByDesign
 generic_methods_recursive_bound_test/03: Crash
-hello_dart_test: Skip # Incompatible flag: --compile_all
-implicit_closure_test: Skip # Incompatible flag: --use_slow_path
-instance_creation_in_function_annotation_test: SkipByDesign
-invocation_mirror2_test: SkipByDesign
-invocation_mirror_invoke_on2_test: SkipByDesign
-invocation_mirror_invoke_on_test: SkipByDesign
-issue21079_test: SkipByDesign
-main_not_a_function_test: Skip
-many_overridden_no_such_method_test: SkipByDesign
-mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
-mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
-no_main_test/01: Skip
-no_such_method_test: SkipByDesign
+instance/creation_in_function_annotation_test: SkipByDesign
+main/no_main_test/01: Skip
+main/not_a_function_test: Skip
+mixin/illegal_super_use_test: Skip # Issues 24478 and 23773
+mixin/illegal_superclass_test: Skip # Issues 24478 and 23773
+no_such_method/many_overridden_test.dart: SkipByDesign
+no_such_method/overridden_test: SkipByDesign
+no_such_method/test: SkipByDesign
 null_test/mirrors: Skip # Uses mirrors.
 null_test/none: SkipByDesign
-overridden_no_such_method_test: SkipByDesign
-redirecting_factory_reflection_test: SkipByDesign
-regress_13462_0_test: SkipByDesign
-regress_13462_1_test: SkipByDesign
-regress_18535_test: SkipByDesign
-regress_28255_test: SkipByDesign
+optimize/deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
+redirecting/factory_reflection_test: SkipByDesign
+regress/regress13462_0_test: SkipByDesign
+regress/regress13462_1_test: SkipByDesign
+regress/regress18535_test: SkipByDesign
+regress/regress21079_test: SkipByDesign
+regress/regress28255_test: SkipByDesign
+unsorted/hello_dart_test: Skip # Incompatible flag: --compile_all
+unsorted/invocation_mirror2_test: SkipByDesign
+unsorted/invocation_mirror_invoke_on2_test: SkipByDesign
+unsorted/invocation_mirror_invoke_on_test: SkipByDesign
 vm/causal_async_exception_stack2_test: SkipByDesign
 vm/causal_async_exception_stack_test: SkipByDesign
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
@@ -95,33 +93,29 @@ vm/regress_27671_test: Skip # Unsupported
 vm/regress_29145_test: Skip # Issue 29145
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $checked ]
-assertion_initializer_const_error2_test/cc01: Crash
-assertion_initializer_const_error2_test/cc02: Crash
-assertion_initializer_const_error2_test/cc03: Crash
-assertion_initializer_const_error2_test/cc04: Crash
-assertion_initializer_const_error2_test/cc05: Crash
-assertion_initializer_const_error2_test/cc06: Crash
-assertion_initializer_const_error2_test/cc07: Crash
-assertion_initializer_const_error2_test/cc08: Crash
-assertion_initializer_const_error2_test/cc09: Crash
-assertion_initializer_const_error2_test/cc10: Crash
-assertion_initializer_const_error2_test/cc11: Crash
+assert/initializer_const_error2_test/cc01: Crash
+assert/initializer_const_error2_test/cc02: Crash
+assert/initializer_const_error2_test/cc03: Crash
+assert/initializer_const_error2_test/cc04: Crash
+assert/initializer_const_error2_test/cc05: Crash
+assert/initializer_const_error2_test/cc06: Crash
+assert/initializer_const_error2_test/cc07: Crash
+assert/initializer_const_error2_test/cc08: Crash
+assert/initializer_const_error2_test/cc09: Crash
+assert/initializer_const_error2_test/cc10: Crash
+assert/initializer_const_error2_test/cc11: Crash
 
 [ $compiler == dartkp && $system == windows ]
-disassemble_test: Slow
+unsorted/disassemble_test: Slow, Pass
 
 [ $mode == debug && $runtime == vm && ($compiler == app_jitk || $compiler == dartk || $compiler == dartkb) ]
-deopt_inlined_function_lazy_test: Skip
-
-[ $mode == debug && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
-async_star_test/01: Crash
-async_star_test/05: Crash
+optimize/deopt_inlined_function_lazy_test: Skip
 
 [ $mode == debug && ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-enum_duplicate_test/02: Crash # Issue 34606
-enum_duplicate_test/none: Crash # Issue 34606
-enum_private_test/01: Crash # Issue 34606
-enum_test: Crash # Issue 34606
+enum/duplicate_test/02: Crash # Issue 34606
+enum/duplicate_test/none: Crash # Issue 34606
+enum/private_test/01: Crash # Issue 34606
+enum/test: Crash # Issue 34606
 
 [ $mode == product && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 vm/causal_async_exception_stack2_test: SkipByDesign
@@ -129,24 +123,17 @@ vm/causal_async_exception_stack_test: SkipByDesign
 
 # ===== dartk + vm status lines =====
 [ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
-ct_const2_test: Crash # Flaky
-disassemble_test: Slow, Crash # dartbug.com/34971
-mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
-mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
-no_main_test/01: Skip
+const/const2_test: Crash # Flaky
+main/no_main_test/01: Skip
+mixin/illegal_super_use_test: Skip # Issues 24478 and 23773
+mixin/illegal_superclass_test: Skip # Issues 24478 and 23773
+unsorted/disassemble_test: Slow, Crash # dartbug.com/34971
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
 vm/regress_29145_test: Skip # Issue 29145
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
-symbol_conflict_test: Slow
+symbol/conflict_test: Slow, Pass
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-async_star_test/01: Skip # Timeout
-async_star_test/02: Skip # Timeout
-async_star_test/03: Skip # Timeout
-async_star_test/04: Skip # Timeout
-async_star_test/05: Skip # Timeout
-async_star_test/none: Skip # Timeout
 type_constants_test/none: Skip # Deferred libraries and hot reload.
-

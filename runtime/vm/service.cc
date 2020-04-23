@@ -238,25 +238,25 @@ static void PrintSuccess(JSONStream* js) {
 }
 
 static bool CheckDebuggerDisabled(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled, "Debugger is disabled in AOT mode.");
-    return true;
-  }
-  if (isolate->debugger() == NULL) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled, "Debugger is disabled in AOT mode.");
+  return true;
+#else
+  if (thread->isolate()->debugger() == NULL) {
     js->PrintError(kFeatureDisabled, "Debugger is disabled.");
     return true;
   }
   return false;
+#endif
 }
 
 static bool CheckCompilerDisabled(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
-    return true;
-  }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
+  return true;
+#else
   return false;
+#endif
 }
 
 static bool CheckProfilerDisabled(Thread* thread, JSONStream* js) {
@@ -2221,6 +2221,7 @@ static bool PrintRetainingPath(Thread* thread,
         intptr_t offset = slot_offset.Value();
         if (offset > 0 && offset < element_field_map.Length()) {
           field ^= element_field_map.At(offset);
+          ASSERT(!field.IsNull());
           // TODO(bkonyi): check for mapping between C++ name and Dart name (V8
           // snapshot writer?)
           name ^= field.name();
@@ -2365,10 +2366,6 @@ static const MethodParameter* invoke_params[] = {
 };
 
 static bool Invoke(Thread* thread, JSONStream* js) {
-  if (CheckDebuggerDisabled(thread, js)) {
-    return true;
-  }
-
   const char* receiver_id = js->LookupParam("targetId");
   if (receiver_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -2385,10 +2382,12 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     return true;
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   bool disable_breakpoints =
       BoolParameter::Parse(js->LookupParam("disableBreakpoints"), false);
   DisableBreakpointsScope db(thread->isolate()->debugger(),
                              disable_breakpoints);
+#endif
 
   Zone* zone = thread->zone();
   ObjectIdRing::LookupResult lookup_result;
@@ -2809,7 +2808,7 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
     return true;
   }
 
-  if (!KernelIsolate::IsRunning()) {
+  if (!KernelIsolate::IsRunning() && !KernelIsolate::Start()) {
     // Assume we are in dart1 mode where separate compilation is not required.
     // 0-length kernelBytes signals that we should evaluate expression in dart1
     // mode.
@@ -2870,6 +2869,12 @@ static const MethodParameter* evaluate_compiled_expression_params[] = {
     NULL,
 };
 
+RawExternalTypedData* DecodeKernelBuffer(const char* kernel_buffer_base64) {
+  intptr_t kernel_length;
+  uint8_t* kernel_buffer = DecodeBase64(kernel_buffer_base64, &kernel_length);
+  return ExternalTypedData::NewFinalizeWithFree(kernel_buffer, kernel_length);
+}
+
 static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
     return true;
@@ -2898,9 +2903,8 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
   const GrowableObjectArray& type_params_names =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
 
-  intptr_t kernel_length;
-  const char* kernel_bytes_str = js->LookupParam("kernelBytes");
-  uint8_t* kernel_bytes = DecodeBase64(zone, kernel_bytes_str, &kernel_length);
+  const ExternalTypedData& kernel_data = ExternalTypedData::Handle(
+      zone, DecodeKernelBuffer(js->LookupParam("kernelBytes")));
 
   if (js->HasParam("frameIndex")) {
     DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
@@ -2918,7 +2922,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
     const Object& result = Object::Handle(
         zone,
         frame->EvaluateCompiledExpression(
-            kernel_bytes, kernel_length,
+            kernel_data,
             Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
             Array::Handle(zone, Array::MakeFixedLength(param_values)),
             type_arguments));
@@ -2951,7 +2955,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
       const Object& result = Object::Handle(
           zone,
           lib.EvaluateCompiledExpression(
-              kernel_bytes, kernel_length,
+              kernel_data,
               Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
               Array::Handle(zone, Array::MakeFixedLength(param_values)),
               type_arguments));
@@ -2963,7 +2967,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
       const Object& result = Object::Handle(
           zone,
           cls.EvaluateCompiledExpression(
-              kernel_bytes, kernel_length,
+              kernel_data,
               Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
               Array::Handle(zone, Array::MakeFixedLength(param_values)),
               type_arguments));
@@ -2978,7 +2982,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
       const Object& result = Object::Handle(
           zone,
           instance.EvaluateCompiledExpression(
-              receiver_cls, kernel_bytes, kernel_length,
+              receiver_cls, kernel_data,
               Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
               Array::Handle(zone, Array::MakeFixedLength(param_values)),
               type_arguments));
@@ -3436,26 +3440,41 @@ static bool HandleNativeMetricsList(Thread* thread, JSONStream* js) {
   obj.AddProperty("type", "MetricList");
   {
     JSONArray metrics(&obj, "metrics");
-    Metric* current = thread->isolate()->metrics_list_head();
-    while (current != NULL) {
-      metrics.AddValue(current);
-      current = current->next();
-    }
+
+    auto isolate = thread->isolate();
+#define ADD_METRIC(type, variable, name, unit)                                 \
+  metrics.AddValue(isolate->Get##variable##Metric());
+    ISOLATE_METRIC_LIST(ADD_METRIC);
+#undef ADD_METRIC
+
+    auto isolate_group = thread->isolate_group();
+#define ADD_METRIC(type, variable, name, unit)                                 \
+  metrics.AddValue(isolate_group->Get##variable##Metric());
+    ISOLATE_GROUP_METRIC_LIST(ADD_METRIC);
+#undef ADD_METRIC
   }
   return true;
 }
 
 static bool HandleNativeMetric(Thread* thread, JSONStream* js, const char* id) {
-  Metric* current = thread->isolate()->metrics_list_head();
-  while (current != NULL) {
-    const char* name = current->name();
-    ASSERT(name != NULL);
-    if (strcmp(name, id) == 0) {
-      current->PrintJSON(js);
-      return true;
-    }
-    current = current->next();
+  auto isolate = thread->isolate();
+#define ADD_METRIC(type, variable, name, unit)                                 \
+  if (strcmp(id, name) == 0) {                                                 \
+    isolate->Get##variable##Metric()->PrintJSON(js);                           \
+    return true;                                                               \
   }
+  ISOLATE_METRIC_LIST(ADD_METRIC);
+#undef ADD_METRIC
+
+  auto isolate_group = thread->isolate_group();
+#define ADD_METRIC(type, variable, name, unit)                                 \
+  if (strcmp(id, name) == 0) {                                                 \
+    isolate_group->Get##variable##Metric()->PrintJSON(js);                     \
+    return true;                                                               \
+  }
+  ISOLATE_GROUP_METRIC_LIST(ADD_METRIC);
+#undef ADD_METRIC
+
   PrintInvalidParamError(js, "metricId");
   return true;
 }
@@ -3961,13 +3980,14 @@ static bool GetAllocationProfileImpl(Thread* thread,
       return true;
     }
   }
-  Isolate* isolate = thread->isolate();
+  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   if (should_reset_accumulator) {
-    isolate->UpdateLastAllocationProfileAccumulatorResetTimestamp();
+    isolate_group->UpdateLastAllocationProfileAccumulatorResetTimestamp();
   }
   if (should_collect) {
-    isolate->UpdateLastAllocationProfileGCTimestamp();
-    isolate->heap()->CollectAllGarbage();
+    isolate_group->UpdateLastAllocationProfileGCTimestamp();
+    isolate_group->heap()->CollectAllGarbage();
   }
   isolate->class_table()->AllocationProfilePrintJSON(js, internal);
   return true;
@@ -4135,9 +4155,9 @@ class PersistentHandleVisitor : public HandleVisitor {
         reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()));
     // Attempt to include a native symbol name.
     char* name = NativeSymbolResolver::LookupSymbolName(
-        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()), NULL);
-    obj.AddProperty("callbackSymbolName", (name == NULL) ? "" : name);
-    if (name != NULL) {
+        reinterpret_cast<uword>(weak_persistent_handle->callback()), nullptr);
+    obj.AddProperty("callbackSymbolName", (name == nullptr) ? "" : name);
+    if (name != nullptr) {
       NativeSymbolResolver::FreeSymbolName(name);
     }
     obj.AddPropertyF("externalSize", "%" Pd "",
@@ -4157,7 +4177,7 @@ static bool GetPersistentHandles(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
 
-  ApiState* api_state = isolate->api_state();
+  ApiState* api_state = isolate->group()->api_state();
   ASSERT(api_state != NULL);
 
   {
@@ -4166,19 +4186,22 @@ static bool GetPersistentHandles(Thread* thread, JSONStream* js) {
     // Persistent handles.
     {
       JSONArray persistent_handles(&obj, "persistentHandles");
-      PersistentHandles& handles = api_state->persistent_handles();
-      PersistentHandleVisitor<PersistentHandle> visitor(thread,
-                                                        &persistent_handles);
-      handles.Visit(&visitor);
+      api_state->RunWithLockedPersistentHandles(
+          [&](PersistentHandles& handles) {
+            PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
+                thread, &persistent_handles);
+            handles.Visit(&visitor);
+          });
     }
     // Weak persistent handles.
     {
       JSONArray weak_persistent_handles(&obj, "weakPersistentHandles");
-      FinalizablePersistentHandles& handles =
-          api_state->weak_persistent_handles();
-      PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
-          thread, &weak_persistent_handles);
-      handles.VisitHandles(&visitor);
+      api_state->RunWithLockedWeakPersistentHandles(
+          [&](FinalizablePersistentHandles& handles) {
+            PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
+                thread, &weak_persistent_handles);
+            handles.VisitHandles(&visitor);
+          });
     }
   }
 
@@ -4428,7 +4451,15 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   {
     JSONArray jsarr_isolate_groups(&jsobj, "isolateGroups");
     IsolateGroup::ForEach([&jsarr_isolate_groups](IsolateGroup* isolate_group) {
-      jsarr_isolate_groups.AddValue(isolate_group);
+      bool has_internal = false;
+      isolate_group->ForEachIsolate([&has_internal](Isolate* isolate) {
+        if (Isolate::IsVMInternalIsolate(isolate)) {
+          has_internal = true;
+        }
+      });
+      if (FLAG_show_invisible_isolates || !has_internal) {
+        jsarr_isolate_groups.AddValue(isolate_group);
+      }
     });
   }
 }

@@ -82,6 +82,7 @@ namespace bin {
   V(Filter_Process, 4)                                                         \
   V(Filter_Processed, 3)                                                       \
   V(InternetAddress_Parse, 1)                                                  \
+  V(InternetAddress_RawAddrToString, 1)                                        \
   V(IOService_NewServicePort, 0)                                               \
   V(Namespace_Create, 2)                                                       \
   V(Namespace_GetDefault, 0)                                                   \
@@ -130,11 +131,15 @@ namespace bin {
   V(SecurityContext_UseCertificateChainBytes, 3)                               \
   V(ServerSocket_Accept, 2)                                                    \
   V(ServerSocket_CreateBindListen, 7)                                          \
+  V(ServerSocket_CreateUnixDomainBindListen, 5)                                \
   V(SocketBase_IsBindError, 2)                                                 \
   V(Socket_Available, 1)                                                       \
+  V(Socket_AvailableDatagram, 1)                                               \
   V(Socket_CreateBindConnect, 5)                                               \
+  V(Socket_CreateUnixDomainBindConnect, 4)                                     \
   V(Socket_CreateBindDatagram, 6)                                              \
   V(Socket_CreateConnect, 4)                                                   \
+  V(Socket_CreateUnixDomainConnect, 3)                                         \
   V(Socket_GetPort, 1)                                                         \
   V(Socket_GetRemotePeer, 1)                                                   \
   V(Socket_GetError, 1)                                                        \

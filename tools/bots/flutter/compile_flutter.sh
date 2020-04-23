@@ -7,17 +7,35 @@
 
 set -e
 
+prepareOnly=false
+if [ $# -eq 1 ]
+then
+  if [ $1 = "--prepareOnly" ]
+  then
+    prepareOnly=true
+  fi
+fi
+
+if $prepareOnly
+then
+  echo "Will prepare only!"
+fi
+
 checkout=$(pwd)
 dart=$checkout/out/ReleaseX64/dart-sdk/bin/dart
 sdk=$checkout/out/ReleaseX64/dart-sdk
 tmpdir=$(mktemp -d)
 cleanup() {
-  rm -rf "$tmpdir"
+  if ! $prepareOnly
+  then
+    rm -rf "$tmpdir"
+  fi
 }
 trap cleanup EXIT HUP INT QUIT TERM PIPE
 pushd "$tmpdir"
 
-git clone -vv https://chromium.googlesource.com/external/github.com/flutter/flutter
+git clone --single-branch -vv \
+  https://dart.googlesource.com/external/github.com/flutter/flutter
 
 pushd flutter
 bin/flutter config --no-analytics
@@ -26,13 +44,15 @@ patch=$checkout/tools/patches/flutter-engine/${pinned_dart_sdk}.flutter.patch
 if [ -e "$patch" ]; then
   git apply $patch
 fi
+
 bin/flutter update-packages
 popd
 
 # Directly in temp directory again.
 mkdir src
 pushd src
-git clone -vv --depth 1 https://chromium.googlesource.com/external/github.com/flutter/engine flutter
+git clone --single-branch --depth=1 -vv \
+  https://dart.googlesource.com/external/github.com/flutter/engine flutter
 mkdir third_party
 pushd third_party
 ln -s $checkout dart
@@ -48,4 +68,11 @@ $checkout/tools/sdks/dart-sdk/bin/dart --packages=$checkout/.packages $checkout/
 
 popd
 
-$dart --enable-asserts pkg/frontend_server/test/frontend_server_flutter.dart --flutterDir=$tmpdir/flutter --flutterPlatformDir=$tmpdir/flutter_patched_sdk
+if $prepareOnly
+then
+  echo "Preparations complete!"
+  echo "Flutter is now in $tmpdir/flutter and the patched sdk in $tmpdir/flutter_patched_sdk"
+  echo "You can run the test with $dart --enable-asserts pkg/frontend_server/test/frontend_server_flutter.dart --flutterDir=$tmpdir/flutter --flutterPlatformDir=$tmpdir/flutter_patched_sdk"
+else
+  $dart --enable-asserts pkg/frontend_server/test/frontend_server_flutter_suite.dart -v --flutterDir=$tmpdir/flutter --flutterPlatformDir=$tmpdir/flutter_patched_sdk $@
+fi

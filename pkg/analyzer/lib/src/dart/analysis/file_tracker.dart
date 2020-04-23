@@ -2,18 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 
-/**
- * Callback used by [FileTracker] to report to its client that files have been
- * added, changed, or removed, and therefore more analysis may be necessary.
- * [path] is the path of the file that was added, changed, or removed,
- * or `null` if multiple files were added, changed, or removed.
- */
-typedef void FileTrackerChangeHook(String path);
+/// Callback used by [FileTracker] to report to its client that files have been
+/// added, changed, or removed, and therefore more analysis may be necessary.
+/// [path] is the path of the file that was added, changed, or removed, or
+/// `null` if multiple files were added, changed, or removed.
+typedef FileTrackerChangeHook = void Function(String path);
 
 /**
  * Maintains the file system state needed by the analysis driver, as well as
@@ -47,37 +43,37 @@ class FileTracker {
   /**
    * The set of added files.
    */
-  final addedFiles = new LinkedHashSet<String>();
+  final addedFiles = <String>{};
 
   /**
    * The set of files were reported as changed through [changeFile] and not
    * checked for actual changes yet.
    */
-  final _changedFiles = new LinkedHashSet<String>();
+  final _changedFiles = <String>{};
 
   /**
    * The set of files that are currently scheduled for analysis, which were
    * reported as changed through [changeFile].
    */
-  var _pendingChangedFiles = new LinkedHashSet<String>();
+  var _pendingChangedFiles = <String>{};
 
   /**
    * The set of files that are currently scheduled for analysis, which directly
    * import a changed file.
    */
-  var _pendingImportFiles = new LinkedHashSet<String>();
+  var _pendingImportFiles = <String>{};
 
   /**
    * The set of files that are currently scheduled for analysis, which have an
    * error or a warning, which might be fixed by a changed file.
    */
-  var _pendingErrorFiles = new LinkedHashSet<String>();
+  var _pendingErrorFiles = <String>{};
 
   /**
    * The set of files that are currently scheduled for analysis, and don't
    * have any special relation with changed files.
    */
-  var _pendingFiles = new LinkedHashSet<String>();
+  var _pendingFiles = <String>{};
 
   FileTracker(this._logger, this._fsState, this._changeHook);
 
@@ -227,6 +223,11 @@ class FileTracker {
     return _logger.run('Verify API signature of $path', () {
       _logger.writeln('Work in ${_fsState.contextName}');
 
+      var file = _fsState.getFileForPath(path);
+      if (file.isInExternalSummaries) {
+        return file;
+      }
+
       bool anyApiChanged = false;
       List<FileState> files = _fsState.getFilesForPath(path);
       for (FileState file in files) {
@@ -238,10 +239,10 @@ class FileTracker {
       if (anyApiChanged) {
         _logger.writeln('API signatures mismatch found.');
         // TODO(scheglov) schedule analysis of only affected files
-        var pendingChangedFiles = new LinkedHashSet<String>();
-        var pendingImportFiles = new LinkedHashSet<String>();
-        var pendingErrorFiles = new LinkedHashSet<String>();
-        var pendingFiles = new LinkedHashSet<String>();
+        var pendingChangedFiles = <String>{};
+        var pendingImportFiles = <String>{};
+        var pendingErrorFiles = <String>{};
+        var pendingFiles = <String>{};
 
         // Add the changed file.
         if (addedFiles.contains(path)) {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -10,9 +11,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddAsyncTest);
+    defineReflectiveTests(AvoidReturningNullForFutureTest);
   });
 }
 
@@ -21,7 +23,7 @@ class AddAsyncTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_ASYNC;
 
-  test_asyncFor() async {
+  Future<void> test_asyncFor() async {
     await resolveTestUnit('''
 import 'dart:async';
 void main(Stream<String> names) {
@@ -40,7 +42,7 @@ Future<void> main(Stream<String> names) async {
 ''');
   }
 
-  test_blockFunctionBody_function() async {
+  Future<void> test_blockFunctionBody_function() async {
     await resolveTestUnit('''
 foo() {}
 main() {
@@ -55,7 +57,7 @@ main() async {
 ''');
   }
 
-  test_blockFunctionBody_getter() async {
+  Future<void> test_blockFunctionBody_getter() async {
     await resolveTestUnit('''
 int get foo => null;
 int f() {
@@ -70,12 +72,11 @@ Future<int> f() async {
   return 1;
 }
 ''', errorFilter: (AnalysisError error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE;
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
     });
   }
 
-  test_closure() async {
+  Future<void> test_closure() async {
     await resolveTestUnit('''
 import 'dart:async';
 
@@ -94,7 +95,7 @@ void doStuff() => takeFutureCallback(() async => await 1);
     });
   }
 
-  test_expressionFunctionBody() async {
+  Future<void> test_expressionFunctionBody() async {
     await resolveTestUnit('''
 foo() {}
 main() => await foo();
@@ -105,14 +106,14 @@ main() async => await foo();
 ''');
   }
 
-  test_nullFunctionBody() async {
+  Future<void> test_nullFunctionBody() async {
     await resolveTestUnit('''
 var F = await;
 ''');
     await assertNoFix();
   }
 
-  test_returnFuture_alreadyFuture() async {
+  Future<void> test_returnFuture_alreadyFuture() async {
     await resolveTestUnit('''
 import 'dart:async';
 foo() {}
@@ -133,7 +134,7 @@ Future<int> main() async {
     });
   }
 
-  test_returnFuture_dynamic() async {
+  Future<void> test_returnFuture_dynamic() async {
     await resolveTestUnit('''
 foo() {}
 dynamic main() {
@@ -150,7 +151,7 @@ dynamic main() async {
 ''');
   }
 
-  test_returnFuture_nonFuture() async {
+  Future<void> test_returnFuture_nonFuture() async {
     await resolveTestUnit('''
 foo() {}
 int main() {
@@ -167,7 +168,7 @@ Future<int> main() async {
 ''');
   }
 
-  test_returnFuture_noType() async {
+  Future<void> test_returnFuture_noType() async {
     await resolveTestUnit('''
 foo() {}
 main() {
@@ -180,6 +181,28 @@ foo() {}
 main() async {
   await foo();
   return 42;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AvoidReturningNullForFutureTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_ASYNC;
+
+  @override
+  String get lintCode => LintNames.avoid_returning_null_for_future;
+
+  Future<void> test_asyncFor() async {
+    await resolveTestUnit('''
+Future<String> f() {
+  return null;
+}
+''');
+    await assertHasFix('''
+Future<String> f() async {
+  return null;
 }
 ''');
   }

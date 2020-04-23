@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ServerTest);
   });
@@ -18,10 +18,7 @@ main() {
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
-  @SkippedTest(
-      reason: 'flaky timeouts',
-      issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_diagnosticServer() async {
+  Future<void> test_diagnosticServer() async {
     await initialize();
 
     // Send the custom request to the LSP server to get the Dart diagnostic
@@ -33,18 +30,15 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(server.port, isPositive);
 
     // Ensure the server was actually started.
-    final client = new HttpClient();
-    HttpClientRequest request = await client
+    final client = HttpClient();
+    var request = await client
         .getUrl(Uri.parse('http://localhost:${server.port}/status'));
     final response = await request.close();
     final responseBody = await utf8.decodeStream(response.cast<List<int>>());
     expect(responseBody, contains('<title>Analysis Server</title>'));
   }
 
-  @SkippedTest(
-      reason: 'flaky timeouts',
-      issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_exit_inintializedWithShutdown() async {
+  Future<void> test_exit_inintializedWithShutdown() async {
     await initialize();
     await sendShutdown();
     sendExit();
@@ -59,10 +53,7 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(exitCode, equals(0));
   }
 
-  @SkippedTest(
-      reason: 'flaky timeouts',
-      issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_exit_initializedWithoutShutdown() async {
+  Future<void> test_exit_initializedWithoutShutdown() async {
     // Send a request that we can wait for, to ensure the server is fully ready
     // before we send exit. Otherwise the exit notification won't be handled for
     // a long time (while the server starts up) and will exceed the 10s timeout.
@@ -79,10 +70,7 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(exitCode, equals(1));
   }
 
-  @SkippedTest(
-      reason: 'flaky timeouts',
-      issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_exit_uninintializedWithShutdown() async {
+  Future<void> test_exit_uninintializedWithShutdown() async {
     await sendShutdown();
     sendExit();
 
@@ -96,10 +84,7 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(exitCode, equals(0));
   }
 
-  @SkippedTest(
-      reason: 'flaky timeouts',
-      issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_exit_uninitializedWithoutShutdown() async {
+  Future<void> test_exit_uninitializedWithoutShutdown() async {
     // This tests the same as test_exit_withoutShutdown but without sending
     // initialize. It can't be as strict with the timeout as the server may take
     // time to start up (we can't tell when it's ready without sending a request).

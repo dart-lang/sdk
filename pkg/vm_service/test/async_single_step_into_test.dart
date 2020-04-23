@@ -1,15 +1,17 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--no-causal-async-stacks --lazy-async-stacks
+// VMOptions=--causal-async-stacks --no-lazy-async-stacks
 
 import 'dart:developer';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const LINE_A = 15;
-const LINE_B = 16;
-const LINE_C = 21;
-const LINE_D = 22;
+const LINE_A = 17;
+const LINE_B = 18;
+const LINE_C = 23;
+const LINE_D = 24;
 
 helper() async {
   print('helper'); // LINE_A.
@@ -27,16 +29,25 @@ var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),
   stepOver, // print.
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_D),
   stepInto,
+
+  ...ifLazyAsyncStacks(<IsolateTest>[
+    hasStoppedAtBreakpoint,
+    stoppedAtLine(16), // helper() async { ... }
+    stepInto,
+  ]),
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   stepOver, // print.
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   resumeIsolate
 ];
 
-main([args = const <String>[]]) =>
-    runIsolateTestsSynchronous(args, tests, testeeConcurrent: testMain);
+main([args = const <String>[]]) => runIsolateTestsSynchronous(args, tests,
+    testeeConcurrent: testMain, extraArgs: extraDebuggingArgs);

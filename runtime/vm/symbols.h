@@ -61,11 +61,13 @@ class ObjectPointerVisitor;
   V(ConstructorStacktracePrefix, "new ")                                       \
   V(Context, "Context")                                                        \
   V(ContextScope, "ContextScope")                                              \
+  V(Controller, ":controller")                                                 \
   V(ControllerStream, ":controller_stream")                                    \
   V(Current, "current")                                                        \
   V(CurrentContextVar, ":current_context_var")                                 \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
   V(LateInitializationError, "_LateInitializationError")                       \
+  V(DartAsync, "dart:async")                                                   \
   V(DartCollection, "dart:collection")                                         \
   V(DartCore, "dart:core")                                                     \
   V(DartDeveloper, "dart:developer")                                           \
@@ -139,6 +141,7 @@ class ObjectPointerVisitor;
   V(FfiVoid, "Void")                                                           \
   V(Field, "Field")                                                            \
   V(FinallyRetVal, ":finally_ret_val")                                         \
+  V(FirstArg, "x")                                                             \
   V(Float32List, "Float32List")                                                \
   V(Float32x4, "Float32x4")                                                    \
   V(Float32x4List, "Float32x4List")                                            \
@@ -176,6 +179,7 @@ class ObjectPointerVisitor;
   V(IndexToken, "[]")                                                          \
   V(InitPrefix, "init:")                                                       \
   V(Instructions, "Instructions")                                              \
+  V(InstructionsSection, "InstructionsSection")                                \
   V(Int, "int")                                                                \
   V(Int16List, "Int16List")                                                    \
   V(Int32List, "Int32List")                                                    \
@@ -205,6 +209,7 @@ class ObjectPointerVisitor;
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
   V(MegamorphicCache, "MegamorphicCache")                                      \
   V(MegamorphicMiss, "megamorphic_miss")                                       \
+  V(MonomorphicSmiableCall, "MonomorphicSmiableCall")                          \
   V(MoveNext, "moveNext")                                                      \
   V(Namespace, "Namespace")                                                    \
   V(Native, "native")                                                          \
@@ -238,6 +243,7 @@ class ObjectPointerVisitor;
   V(RightShiftOperator, ">>")                                                  \
   V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(Script, "Script")                                                          \
+  V(SecondArg, "y")                                                            \
   V(Set, "set")                                                                \
   V(SetAsyncThreadStackTrace, "_setAsyncThreadStackTrace")                     \
   V(SetterPrefix, "set:")                                                      \
@@ -252,6 +258,7 @@ class ObjectPointerVisitor;
   V(StackTraceParameter, ":stack_trace")                                       \
   V(StackTraceVar, ":stack_trace_var")                                         \
   V(Stream, "stream")                                                          \
+  V(StreamController, "StreamController")                                      \
   V(StreamIterator, "StreamIterator")                                          \
   V(StreamIteratorConstructor, "StreamIterator.")                              \
   V(StringBase, "_StringBase")                                                 \
@@ -300,7 +307,9 @@ class ObjectPointerVisitor;
   V(_AsyncStarListenHelper, "_asyncStarListenHelper")                          \
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
   V(_AsyncStarStreamControllerConstructor, "_AsyncStarStreamController.")      \
+  V(_AsyncStreamController, "_AsyncStreamController")                          \
   V(_Awaiter, "_awaiter")                                                      \
+  V(_BufferingStreamSubscription, "_BufferingStreamSubscription")              \
   V(_ByteBuffer, "_ByteBuffer")                                                \
   V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
   V(_ByteDataView, "_ByteDataView")                                            \
@@ -311,6 +320,7 @@ class ObjectPointerVisitor;
   V(_CombinatorMirror, "_CombinatorMirror")                                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(_CompleteOnAsyncReturn, "_completeOnAsyncReturn")                          \
+  V(_ControllerSubscription, "_ControllerSubscription")                        \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \
@@ -343,6 +353,7 @@ class ObjectPointerVisitor;
   V(_Float64x2ArrayView, "_Float64x2ArrayView")                                \
   V(_Float64x2List, "_Float64x2List")                                          \
   V(_FunctionTypeMirror, "_FunctionTypeMirror")                                \
+  V(_FutureListener, "_FutureListener")                                        \
   V(_GrowableList, "_GrowableList")                                            \
   V(_GrowableListFactory, "_GrowableList.")                                    \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
@@ -385,7 +396,9 @@ class ObjectPointerVisitor;
   V(_SourceLocation, "_SourceLocation")                                        \
   V(_SpecialTypeMirror, "_SpecialTypeMirror")                                  \
   V(_StackTrace, "_StackTrace")                                                \
+  V(_StreamController, "_StreamController")                                    \
   V(_StreamImpl, "_StreamImpl")                                                \
+  V(_StreamIterator, "_StreamIterator")                                        \
   V(_String, "String")                                                         \
   V(_SyncIterable, "_SyncIterable")                                            \
   V(_SyncIterableConstructor, "_SyncIterable.")                                \
@@ -417,12 +430,15 @@ class ObjectPointerVisitor;
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
+  V(_future, "_future")                                                        \
   V(_get, "_get")                                                              \
   V(_handleMessage, "_handleMessage")                                          \
   V(_instanceOf, "_instanceOf")                                                \
   V(_lookupHandler, "_lookupHandler")                                          \
   V(_name, "_name")                                                            \
+  V(_onData, "_onData")                                                        \
   V(_rehashObjects, "_rehashObjects")                                          \
+  V(_resultOrListeners, "_resultOrListeners")                                  \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
   V(_setLength, "_setLength")                                                  \
@@ -431,13 +447,17 @@ class ObjectPointerVisitor;
   V(_simpleInstanceOfTrue, "_simpleInstanceOfTrue")                            \
   V(_stackTrace, "_stackTrace")                                                \
   V(_state, "_state")                                                          \
+  V(_stateData, "_stateData")                                                  \
+  V(_varData, "_varData")                                                      \
   V(_wordCharacterMap, "_wordCharacterMap")                                    \
   V(add, "add")                                                                \
+  V(callback, "callback")                                                      \
   V(capture_length, ":capture_length")                                         \
   V(capture_start_index, ":capture_start_index")                               \
   V(char_in_capture, ":char_in_capture")                                       \
   V(char_in_match, ":char_in_match")                                           \
   V(clear, "clear")                                                            \
+  V(controller, "controller")                                                  \
   V(current_character, ":current_character")                                   \
   V(current_position, ":current_position")                                     \
   V(getID, "getID")                                                            \
@@ -445,6 +465,7 @@ class ObjectPointerVisitor;
   V(identityHashCode, "identityHashCode")                                      \
   V(index_temp, ":index_temp")                                                 \
   V(isPaused, "isPaused")                                                      \
+  V(isSync, "isSync")                                                          \
   V(last, "last")                                                              \
   V(match_end_index, ":match_end_index")                                       \
   V(match_start_index, ":match_start_index")                                   \

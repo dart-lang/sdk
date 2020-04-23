@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "collection_patch.dart";
 
 // Hash table with open addressing that separates the index from keys/values.
@@ -43,7 +41,7 @@ abstract class _HashFieldBase {
   // Note: All fields are initialized in a single constructor so that the VM
   // recognizes they cannot hold null values. This makes a big (20%) performance
   // difference on some operations.
-  _HashFieldBase(int dataSize) : this._data = new List(dataSize);
+  _HashFieldBase(int dataSize) : this._data = new List.filled(dataSize, null);
 }
 
 // Base class for VM-internal classes; keep in sync with _HashFieldBase.
@@ -122,7 +120,7 @@ abstract class _HashBase implements _HashVMBase {
   static int _nextProbe(int i, int sizeMask) => (i + 1) & sizeMask;
 
   // A self-loop is used to mark a deleted key or value.
-  static bool _isDeleted(List data, Object keyOrValue) =>
+  static bool _isDeleted(List data, Object? keyOrValue) =>
       identical(keyOrValue, data);
   static void _setDeletedAt(List data, int d) {
     data[d] = data;
@@ -159,7 +157,7 @@ class _InternalLinkedHashMap<K, V> extends _HashVMBase
   _InternalLinkedHashMap() {
     _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
     _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
-    _data = new List(_HashBase._INITIAL_INDEX_SIZE);
+    _data = new List.filled(_HashBase._INITIAL_INDEX_SIZE, null);
     _usedData = 0;
     _deletedKeys = 0;
   }
@@ -193,12 +191,12 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
   }
 
   // Allocate new _index and _data, and optionally copy existing contents.
-  void _init(int size, int hashMask, List oldData, int oldUsed) {
+  void _init(int size, int hashMask, List? oldData, int oldUsed) {
     assert(size & (size - 1) == 0);
     assert(_HashBase._UNUSED_PAIR == 0);
     _index = new Uint32List(size);
     _hashMask = hashMask;
-    _data = new List(size);
+    _data = new List.filled(size, null);
     _usedData = 0;
     _deletedKeys = 0;
     if (oldData != null) {
@@ -300,7 +298,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
     return value;
   }
 
-  V remove(Object key) {
+  V? remove(Object? key) {
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
@@ -330,7 +328,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
   }
 
   // If key is absent, return _data (which is never a value).
-  Object _getValueOrData(Object key) {
+  Object? _getValueOrData(Object? key) {
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
@@ -354,14 +352,14 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
     return _data;
   }
 
-  bool containsKey(Object key) => !identical(_data, _getValueOrData(key));
+  bool containsKey(Object? key) => !identical(_data, _getValueOrData(key));
 
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     var v = _getValueOrData(key);
     return identical(_data, v) ? null : internal.unsafeCast<V>(v);
   }
 
-  bool containsValue(Object value) {
+  bool containsValue(Object? value) {
     for (var v in values) {
       // Spec. says this should always use "==", also for identity maps, etc.
       if (v == value) {
@@ -407,9 +405,9 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
   int _hashCode(e) => _hasher(e);
   bool _equals(e1, e2) => _equality(e1, e2);
 
-  bool containsKey(Object o) => _validKey(o) ? super.containsKey(o) : false;
-  V operator [](Object o) => _validKey(o) ? super[o] : null;
-  V remove(Object o) => _validKey(o) ? super.remove(o) : null;
+  bool containsKey(Object? o) => _validKey(o) ? super.containsKey(o) : false;
+  V? operator [](Object? o) => _validKey(o) ? super[o] : null;
+  V? remove(Object? o) => _validKey(o) ? super.remove(o) : null;
 
   _CompactLinkedCustomHashMap(this._equality, this._hasher, validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test,
@@ -443,7 +441,7 @@ class _CompactIterator<E> implements Iterator<E> {
   int _offset;
   final int _step;
   final int _checkSum;
-  E current;
+  E? _current;
 
   _CompactIterator(
       _HashBase table, this._data, this._len, this._offset, this._step)
@@ -458,16 +456,22 @@ class _CompactIterator<E> implements Iterator<E> {
       _offset += _step;
     } while (_offset < _len && _HashBase._isDeleted(_data, _data[_offset]));
     if (_offset < _len) {
-      current = internal.unsafeCast<E>(_data[_offset]);
+      _current = internal.unsafeCast<E>(_data[_offset]);
       return true;
     } else {
-      current = null;
+      _current = null;
       return false;
     }
+  }
+
+  E get current {
+    final cur = _current;
+    return (cur != null) ? cur : cur as E;
   }
 }
 
 // Set implementation, analogous to _CompactLinkedHashMap.
+@pragma('vm:entry-point')
 class _CompactLinkedHashSet<E> extends _HashFieldBase
     with _HashBase, _OperatorEqualsAndHashCode, SetMixin<E>
     implements LinkedHashSet<E> {
@@ -482,9 +486,9 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
 
   E get first {
     for (int offset = 0; offset < _usedData; offset++) {
-      Object current = _data[offset];
+      Object? current = _data[offset];
       if (!_HashBase._isDeleted(_data, current)) {
-        return current;
+        return current as E;
       }
     }
     throw IterableElementError.noElement();
@@ -492,9 +496,9 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
 
   E get last {
     for (int offset = _usedData - 1; offset >= 0; offset--) {
-      Object current = _data[offset];
+      Object? current = _data[offset];
       if (!_HashBase._isDeleted(_data, current)) {
-        return current;
+        return current as E;
       }
     }
     throw IterableElementError.noElement();
@@ -514,10 +518,10 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
     }
   }
 
-  void _init(int size, int hashMask, List oldData, int oldUsed) {
+  void _init(int size, int hashMask, List? oldData, int oldUsed) {
     _index = new Uint32List(size);
     _hashMask = hashMask;
-    _data = new List(size >> 1);
+    _data = new List.filled(size >> 1, null);
     _usedData = 0;
     _deletedKeys = 0;
     if (oldData != null) {
@@ -567,7 +571,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
   }
 
   // If key is absent, return _data (which is never a value).
-  Object _getKeyOrData(Object key) {
+  Object? _getKeyOrData(Object? key) {
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
@@ -588,14 +592,14 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
     return _data;
   }
 
-  E lookup(Object key) {
+  E? lookup(Object? key) {
     var k = _getKeyOrData(key);
-    return identical(_data, k) ? null : k;
+    return identical(_data, k) ? null : internal.unsafeCast<E>(k);
   }
 
-  bool contains(Object key) => !identical(_data, _getKeyOrData(key));
+  bool contains(Object? key) => !identical(_data, _getKeyOrData(key));
 
-  bool remove(Object key) {
+  bool remove(Object? key) {
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
@@ -650,9 +654,9 @@ class _CompactLinkedCustomHashSet<E> extends _CompactLinkedHashSet<E> {
   int _hashCode(e) => _hasher(e);
   bool _equals(e1, e2) => _equality(e1, e2);
 
-  bool contains(Object o) => _validKey(o) ? super.contains(o) : false;
-  E lookup(Object o) => _validKey(o) ? super.lookup(o) : null;
-  bool remove(Object o) => _validKey(o) ? super.remove(o) : false;
+  bool contains(Object? o) => _validKey(o) ? super.contains(o) : false;
+  E? lookup(Object? o) => _validKey(o) ? super.lookup(o) : null;
+  bool remove(Object? o) => _validKey(o) ? super.remove(o) : false;
 
   _CompactLinkedCustomHashSet(this._equality, this._hasher, validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;

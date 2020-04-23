@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveAnnotationTest);
   });
@@ -25,7 +25,7 @@ class RemoveAnnotationTest extends FixProcessorTest {
     addMetaPackage();
   }
 
-  test_factory() async {
+  Future<void> test_factory() async {
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 
@@ -39,7 +39,7 @@ f() {}
 ''');
   }
 
-  test_immutable() async {
+  Future<void> test_immutable() async {
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 
@@ -53,7 +53,7 @@ f() {}
 ''');
   }
 
-  test_literal() async {
+  Future<void> test_literal() async {
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 
@@ -67,7 +67,7 @@ f() {}
 ''');
   }
 
-  test_override_field() async {
+  Future<void> test_override_field() async {
     await resolveTestUnit('''
 class A {
   @override
@@ -81,7 +81,7 @@ class A {
 ''');
   }
 
-  test_override_getter() async {
+  Future<void> test_override_getter() async {
     await resolveTestUnit('''
 class A {
   @override
@@ -95,7 +95,7 @@ class A {
 ''');
   }
 
-  test_override_method() async {
+  Future<void> test_override_method() async {
     await resolveTestUnit('''
 class A {
   @override
@@ -109,7 +109,7 @@ class A {
 ''');
   }
 
-  test_override_setter() async {
+  Future<void> test_override_setter() async {
     await resolveTestUnit('''
 class A {
   @override
@@ -123,7 +123,7 @@ class A {
 ''');
   }
 
-  test_required_namedWithDefault() async {
+  Future<void> test_required_namedWithDefault() async {
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 
@@ -136,7 +136,7 @@ f({int x = 0}) {}
 ''');
   }
 
-  test_required_positional() async {
+  Future<void> test_required_positional() async {
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 
@@ -149,7 +149,7 @@ f([int x]) {}
 ''');
   }
 
-  test_required_required() async {
+  Future<void> test_required_required() async {
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 
@@ -162,7 +162,7 @@ f(int x) {}
 ''');
   }
 
-  test_sealed() async {
+  Future<void> test_sealed() async {
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 

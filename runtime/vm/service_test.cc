@@ -547,8 +547,7 @@ ISOLATE_UNIT_TEST_CASE(Service_PersistentHandles) {
   {
     TransitionVMToNative transition(thread);
     Dart_DeletePersistentHandle(persistent_handle);
-    Dart_DeleteWeakPersistentHandle(Dart_CurrentIsolate(),
-                                    weak_persistent_handle);
+    Dart_DeleteWeakPersistentHandle(weak_persistent_handle);
   }
 
   // Get persistent handles (again).

@@ -351,7 +351,7 @@ void printTypeMap3(String name, Map<String, Map<String, List<String>>> types,
     for (var op in ops.keys.toList()..sort()) {
       var paramTypes = ops[op];
       stdout.write("      '${op}': [");
-      for (String paramType in paramTypes.toList()..sort()) {
+      for (String paramType in paramTypes.toList()) {
         stdout.write("${prefix}${paramType}, ");
       }
       print("], ");
@@ -866,6 +866,20 @@ void filterOperators(Set<InterfaceType> allTypes) {
   }
 }
 
+// Filters methods based on a manually maintained blacklist.
+//
+// Blacklisted methods should be associated with an issue number so they can be
+// re-enabled after the issue is resolved.
+bool isBlacklistedMethod(InterfaceType tp, MethodElement method) {
+  // TODO(bkonyi): Enable operator / for these types after we resolve
+  // https://github.com/dart-lang/sdk/issues/39890
+  if (((tp.displayName == 'Float32x4') && (method.name == '/')) ||
+      ((tp.displayName == 'Float64x2') && (method.name == '/'))) {
+    return true;
+  }
+  return false;
+}
+
 // Extract all binary and unary operators for tp.
 // Operators are stored by return type in the following way:
 // return type: { operator: { parameter types } }
@@ -874,6 +888,9 @@ void filterOperators(Set<InterfaceType> allTypes) {
 // Does not recurse into interfaces and superclasses of tp.
 void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
   for (MethodElement method in tp.methods) {
+    // If the method is manually blacklisted, skip it.
+    if (isBlacklistedMethod(tp, method)) continue;
+
     // Detect whether tp can be parsed from a literal (dartfuzz.dart can
     // already handle that).
     // This is usually indicated by the presence of the static constructor
@@ -986,14 +1003,15 @@ void getOperators(Set<InterfaceType> allTypes) {
       continue;
     }
     for (ConstructorElement constructor in tp.constructors) {
-      if (constructor.name.startsWith('_')) continue;
+      if (shouldFilterConstructor(tp, constructor)) continue;
       List<String> params = new List<String>();
       bool canConstruct = true;
       for (var p in constructor.parameters) {
         String tstr = getConstName(p.type.displayName);
-        // Only allow trivially constructable parameters. If a constructor
-        // parameter is not constructable from a literal, skip the constructor.
-        if (!fromLiteral.contains(tstr)) {
+        if (tstr == "DYNAMIC" || tstr == "OBJECT") {
+          tstr = "INT";
+        } else if (!allTypes.contains(p.type)) {
+          // Exclude constructors that have an unsupported parameter type.
           canConstruct = false;
           break;
         }
@@ -1010,6 +1028,20 @@ void getOperators(Set<InterfaceType> allTypes) {
   // Removed redundant specialized parameter types.
   // E.g. if num is already contained remove bool and int.
   filterOperators(allTypes);
+}
+
+bool shouldFilterConstructor(InterfaceType tp, ConstructorElement cons) {
+  // Filter private constructors.
+  if (cons.name.startsWith('_')) {
+    return true;
+  }
+  // Constructor blacklist
+  // TODO(bkonyi): Enable Float32x4.fromInt32x4Bits after we resolve
+  // https://github.com/dart-lang/sdk/issues/39890
+  if ((tp.displayName == 'Float32x4') && (cons.name == 'fromInt32x4Bits')) {
+    return true;
+  }
+  return false;
 }
 
 // Analyze types to extract element and subscript relations
@@ -1056,21 +1088,23 @@ void analyzeTypes(Set<InterfaceType> allTypes) {
         fpTypes.add(typName);
       }
     } else if (iTyp.typeArguments.length == 2) {
-      // Analyze Map types.
-      String argName0 = getConstName(iTyp.typeArguments[0].displayName);
-      String argName1 = getConstName(iTyp.typeArguments[1].displayName);
-      subscriptsTo[typName] = argName1;
-      elementOf[argName1] ??= new Set<String>();
-      elementOf[argName1].add(typName);
-      indexableElementOf[argName1] ??= new Set<String>();
-      indexableElementOf[argName1].add(typName);
-      indexedBy[typName] = argName0;
-      indexableTypes.add(typName);
-      // Check if type is floating point precision.
-      if (fpTypes.contains(typName) ||
-          fpTypes.contains(argName0) ||
-          fpTypes.contains(argName1)) {
-        fpTypes.add(typName);
+      if (isIndexable(iTyp)) {
+        // Analyze Map and MapEntry types.
+        String argName0 = getConstName(iTyp.typeArguments[0].displayName);
+        String argName1 = getConstName(iTyp.typeArguments[1].displayName);
+        subscriptsTo[typName] = argName1;
+        elementOf[argName1] ??= new Set<String>();
+        elementOf[argName1].add(typName);
+        indexableElementOf[argName1] ??= new Set<String>();
+        indexableElementOf[argName1].add(typName);
+        indexedBy[typName] = argName0;
+        indexableTypes.add(typName);
+        // Check if type is floating point precision.
+        if (fpTypes.contains(typName) ||
+            fpTypes.contains(argName0) ||
+            fpTypes.contains(argName1)) {
+          fpTypes.add(typName);
+        }
       }
     }
   }
@@ -1085,7 +1119,8 @@ void getParameterizedTypes(
     Set<InterfaceType> iTypes) {
   // Out: types with no parameters.
   for (var tp in allTypes) {
-    if (tp.typeArguments.length == 1 && tp.typeArguments[0].name == 'E')
+    if (tp.typeArguments.length == 1 &&
+        (tp.typeArguments[0].name == 'E' || tp.typeArguments[0].name == 'T'))
       pTypes1.add(tp);
     else if (tp.typeArguments.length == 2 &&
         tp.typeArguments[0].name == 'K' &&
@@ -1104,7 +1139,7 @@ Set<InterfaceType> instantiatePTypes(
     Set<InterfaceType> pTypes1, // Types with one parameter.
     Set<InterfaceType> pTypes2, // Types with two parameters.
     Set<InterfaceType> iTypes, // Types with no parameters.
-    {double maxNew = 64.0}) {
+    {double maxNew = 10000.0}) {
   // Maximum number of newly generated types.
   Set<InterfaceType> newITypes = new Set<InterfaceType>();
 
@@ -1165,7 +1200,7 @@ Set<InterfaceType> instantiatePTypes(
 
 Set<InterfaceType> instantiateAllTypes(
     Set<InterfaceType> allTypes, Set<String> iTypeFilter, int depth,
-    {double maxNew = 64.0}) {
+    {double maxNew = 10000.0}) {
   // Types with one parameter (List, Set).
   Set<InterfaceType> pTypes1 = new Set<InterfaceType>();
   // Types with two parameters (Map).
@@ -1196,7 +1231,7 @@ Set<InterfaceType> instantiateAllTypes(
     filteredITypes = filteredITypes
         .union(instantiatePTypes(pTypes1, pTypes2, filteredITypes, maxNew: mn));
   }
-  // Return list of instantiated types.
+
   return iTypes.union(filteredITypes);
 }
 
@@ -1260,18 +1295,39 @@ visitCompilationUnit(CompilationUnitElement unit, Set<InterfaceType> allTypes) {
   // to visit typedefs, etc.
   for (ClassElement classElement in unit.types) {
     if (classElement.isPublic) {
-      // Hack: Filter out some difficult types.
+      // Hack: Filter out some difficult types, abstract types and types that
+      // have methods with abstract type parameters.
       // TODO (felih): include filtered types.
-      if (classElement.name.startsWith('Unmodifiable')) continue;
-      if (classElement.name.startsWith('Iterable')) continue;
-      if (classElement.name.startsWith('BigInt')) continue;
-      if (classElement.name.startsWith('DateTime')) continue;
-      if (classElement.name.startsWith('Uri')) continue;
-      // Compute heuristic to decide whether to include the type.
-      int no = countOperators(classElement);
-      if (no > operatorCountThreshold) {
-        allTypes.add(classElement.thisType);
+      if (classElement.name.startsWith('Unmodifiable') ||
+          classElement.name.startsWith('Iterable') ||
+          classElement.name.startsWith('BigInt') ||
+          classElement.name.startsWith('DateTime') ||
+          classElement.name.startsWith('Uri') ||
+          (classElement.name == 'Function') ||
+          (classElement.name == 'Object') ||
+          (classElement.name == 'Match') ||
+          (classElement.name == 'RegExpMatch') ||
+          (classElement.name == 'pragma') ||
+          (classElement.name == 'LateInitializationError') ||
+          (classElement.name == 'ByteBuffer') ||
+          (classElement.name == 'TypedData') ||
+          (classElement.name == 'Sink') ||
+          (classElement.name == 'Pattern') ||
+          (classElement.name == 'StackTrace') ||
+          (classElement.name == 'StringSink') ||
+          (classElement.name == 'Type') ||
+          (classElement.name == 'Pattern') ||
+          (classElement.name == 'Invocation') ||
+          (classElement.name == 'StackTrace') ||
+          (classElement.name == 'NoSuchMethodError') ||
+          (classElement.name == 'Comparable') ||
+          (classElement.name == 'BidirectionalIterator') ||
+          (classElement.name == 'Iterator') ||
+          (classElement.name == 'Stopwatch') ||
+          (classElement.name == 'OutOfMemoryError')) {
+        continue;
       }
+      allTypes.add(classElement.thisType);
     }
   }
 }
@@ -1337,7 +1393,8 @@ main(List<String> arguments) async {
     // Extract basic types from dart::core and dart::typed_data.
     await getDataTypes(allTypes, results['dart-top']);
     // Instantiate parameterized types like List<E>.
-    allTypes = instantiateAllTypes(allTypes, iTypeFilter, depth, maxNew: 64);
+    allTypes =
+        instantiateAllTypes(allTypes, iTypeFilter, depth, maxNew: 10000.0);
     // Extract interface Relations between types.
     getInterfaceRels(allTypes);
     // Extract operators from instantiated types.

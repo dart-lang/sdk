@@ -103,14 +103,14 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
       Class::RawCast(reader->ReadObjectImpl(as_reference));
   type.set_type_class(*reader->ClassHandle());
 
-  if (is_canonical) {
-    type ^= type.Canonicalize();
-  }
-
   // Fill in the type testing stub.
   Code& code = *reader->CodeHandle();
   code = TypeTestingStubGenerator::DefaultCodeForType(type);
   type.SetTypeTestingStub(code);
+
+  if (is_canonical) {
+    type ^= type.Canonicalize();
+  }
 
   return type.raw();
 }
@@ -120,6 +120,13 @@ void RawType::WriteTo(SnapshotWriter* writer,
                       Snapshot::Kind kind,
                       bool as_reference) {
   ASSERT(writer != NULL);
+
+  if (ptr()->signature_ != Function::null()) {
+    writer->SetWriteException(Exceptions::kArgument,
+                              "Illegal argument in isolate message"
+                              " : (function types are not supported yet)");
+    UNREACHABLE();
+  }
 
   // Only resolved and finalized types should be written to a snapshot.
   ASSERT((ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
@@ -534,6 +541,7 @@ MESSAGE_SNAPSHOT_UNREACHABLE(Field);
 MESSAGE_SNAPSHOT_UNREACHABLE(Function);
 MESSAGE_SNAPSHOT_UNREACHABLE(ICData);
 MESSAGE_SNAPSHOT_UNREACHABLE(Instructions);
+MESSAGE_SNAPSHOT_UNREACHABLE(InstructionsSection);
 MESSAGE_SNAPSHOT_UNREACHABLE(KernelProgramInfo);
 MESSAGE_SNAPSHOT_UNREACHABLE(Library);
 MESSAGE_SNAPSHOT_UNREACHABLE(LibraryPrefix);
@@ -552,7 +560,10 @@ MESSAGE_SNAPSHOT_UNREACHABLE(String);
 MESSAGE_SNAPSHOT_UNREACHABLE(SubtypeTestCache);
 MESSAGE_SNAPSHOT_UNREACHABLE(TypedDataBase);
 MESSAGE_SNAPSHOT_UNREACHABLE(UnlinkedCall);
+MESSAGE_SNAPSHOT_UNREACHABLE(MonomorphicSmiableCall);
 MESSAGE_SNAPSHOT_UNREACHABLE(UnwindError);
+MESSAGE_SNAPSHOT_UNREACHABLE(FutureOr);
+MESSAGE_SNAPSHOT_UNREACHABLE(WeakSerializationReference);
 
 MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
 MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
@@ -1703,7 +1714,7 @@ void RawTransferableTypedData::WriteTo(SnapshotWriter* writer,
       [](void* data, Dart_WeakPersistentHandle handle, void* peer) {
         TransferableTypedDataPeer* tpeer =
             reinterpret_cast<TransferableTypedDataPeer*>(peer);
-        tpeer->handle()->EnsureFreeExternal(Isolate::Current());
+        tpeer->handle()->EnsureFreeExternal(IsolateGroup::Current());
         tpeer->ClearData();
       });
 }

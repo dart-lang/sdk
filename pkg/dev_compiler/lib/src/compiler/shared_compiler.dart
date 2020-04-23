@@ -38,7 +38,6 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
   /// The identifier used to reference DDC's core "dart:_runtime" library from
   /// generated JS code, typically called "dart" e.g. `dart.dcall`.
-  @protected
   js_ast.Identifier runtimeModule;
 
   /// The identifier used to reference DDC's "extension method" symbols, used to
@@ -162,19 +161,6 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   @protected
   js_ast.Block exitFunction(
       String name, List<js_ast.Parameter> formals, js_ast.Block code) {
-    if (name == "==" &&
-        formals.isNotEmpty &&
-        currentLibraryUri.scheme != 'dart') {
-      // In Dart `operator ==` methods are not called with a null argument.
-      // This is handled before calling them. For performance reasons, we push
-      // this check inside the method, to simplify our `equals` helper.
-      //
-      // TODO(jmesserly): in most cases this check is not necessary, because
-      // the Dart code already handles it (typically by an `is` check).
-      // Eliminate it when possible.
-      code = js
-          .block('{ if (# == null) return false; #; }', [formals.first, code]);
-    }
     var setOperatorResult = _operatorSetResultStack.removeLast();
     if (setOperatorResult != null) {
       // []= methods need to return the value. We could also address this at
@@ -260,9 +246,11 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     /// runtime call.
     js_ast.TemporaryId initPrivateNameSymbol() {
       var idName = name.endsWith('=') ? name.replaceAll('=', '_') : name;
-      idName = idName.replaceAll('.', '_');
+      idName = idName.replaceAll(js_ast.invalidCharInIdentifier, '_');
       id ??= js_ast.TemporaryId(idName);
-      moduleItems.add(js.statement('const # = #.privateName(#, #)',
+      // TODO(vsm): Change back to `const`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
+      moduleItems.add(js.statement('var # = #.privateName(#, #)',
           [id, runtimeModule, emitLibraryName(library), js.string(name)]));
       return id;
     }
@@ -417,8 +405,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       var alias = jsLibraryAlias(library);
       var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
 
+      // TODO(vsm): Change back to `const`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
       items.add(js.statement(
-          'const # = Object.create(#.library)', [libraryId, runtimeModule]));
+          'var # = Object.create(#.library)', [libraryId, runtimeModule]));
       exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
     }
 
@@ -426,8 +416,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     // TODO(jmesserly): find a cleaner design for this.
     if (isBuildingSdk) {
       var id = extensionSymbolsModule;
-      items.add(js.statement(
-          'const # = Object.create(#.library)', [id, runtimeModule]));
+      // TODO(vsm): Change back to `const`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
+      items.add(js
+          .statement('var # = Object.create(#.library)', [id, runtimeModule]));
       exports.add(js_ast.NameSpecifier(id));
     }
 
@@ -468,7 +460,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// Emits imports and extension methods into [items].
   @protected
   void emitImportsAndExtensionSymbols(List<js_ast.ModuleItem> items) {
-    var modules = Map<String, List<Library>>();
+    var modules = <String, List<Library>>{};
 
     for (var import in _imports.keys) {
       modules.putIfAbsent(libraryToModule(import), () => []).add(import);
@@ -510,9 +502,11 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       js_ast.Expression value =
           js_ast.PropertyAccess(extensionSymbolsModule, propertyName(name));
       if (isBuildingSdk) {
-        value = js.call('# = Symbol(#)', [value, js.string("dartx.$name")]);
+        value = js.call('# = Symbol(#)', [value, js.string('dartx.$name')]);
       }
-      items.add(js.statement('const # = #;', [id, value]));
+      // TODO(vsm): Change back to `const`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
+      items.add(js.statement('var # = #;', [id, value]));
     });
   }
 
@@ -600,13 +594,17 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   @protected
   js_ast.LiteralString propertyName(String name) => js.string(name, "'");
 
-  /// Unique identifier indicating the location to inline the source map.
+  /// Unique identifiers indicating the locations to inline the corresponding
+  /// information.
   ///
   /// We cannot generate the source map before the script it is for is
   /// generated so we have generate the script including this identifier in the
-  /// JS AST, and then replace it once the source map is generated.
+  /// JS AST, and then replace it once the source map is generated.  Similarly,
+  /// metrics include the size of the source map.
   static const String sourceMapLocationID =
       'SourceMap3G5a8h6JVhHfdGuDxZr1EF9GQC8y0e6u';
+  static const String metricsLocationID =
+      'MetricsJ7xFWBfSv6ZjrW9yLb21GNzisZr3anSf5h';
 }
 
 /// Whether a variable with [name] is referenced in the [node].
@@ -625,28 +623,28 @@ class _IdentifierFinder extends js_ast.BaseVisitor<void> {
   static final instance = _IdentifierFinder();
 
   @override
-  visitIdentifier(node) {
+  void visitIdentifier(node) {
     if (node.name == nameToFind) found = true;
   }
 
   @override
-  visitNode(node) {
+  void visitNode(node) {
     if (!found) super.visitNode(node);
   }
 }
 
-class YieldFinder extends js_ast.BaseVisitor {
+class YieldFinder extends js_ast.BaseVisitor<void> {
   bool hasYield = false;
   bool hasThis = false;
   bool _nestedFunction = false;
 
   @override
-  visitThis(js_ast.This node) {
+  void visitThis(js_ast.This node) {
     hasThis = true;
   }
 
   @override
-  visitFunctionExpression(js_ast.FunctionExpression node) {
+  void visitFunctionExpression(js_ast.FunctionExpression node) {
     var savedNested = _nestedFunction;
     _nestedFunction = true;
     super.visitFunctionExpression(node);
@@ -654,13 +652,13 @@ class YieldFinder extends js_ast.BaseVisitor {
   }
 
   @override
-  visitYield(js_ast.Yield node) {
+  void visitYield(js_ast.Yield node) {
     if (!_nestedFunction) hasYield = true;
     super.visitYield(node);
   }
 
   @override
-  visitNode(js_ast.Node node) {
+  void visitNode(js_ast.Node node) {
     if (hasYield && hasThis) return; // found both, nothing more to do.
     super.visitNode(node);
   }
@@ -691,17 +689,17 @@ class _ThisOrSuperFinder extends js_ast.BaseVisitor<void> {
   static final instance = _ThisOrSuperFinder();
 
   @override
-  visitThis(js_ast.This node) {
+  void visitThis(js_ast.This node) {
     found = true;
   }
 
   @override
-  visitSuper(js_ast.Super node) {
+  void visitSuper(js_ast.Super node) {
     found = true;
   }
 
   @override
-  visitNode(js_ast.Node node) {
+  void visitNode(js_ast.Node node) {
     if (!found) super.visitNode(node);
   }
 }

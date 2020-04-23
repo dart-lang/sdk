@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Partial test that the closed world computed from [WorldImpact]s derived from
 // kernel is equivalent to the original computed from resolution.
 library dart2js.kernel.compiler_helper;
@@ -12,7 +14,7 @@ import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/dart2js.dart' as dart2js;
-import 'package:compiler/src/filenames.dart';
+import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 import '../helpers/memory_compiler.dart';

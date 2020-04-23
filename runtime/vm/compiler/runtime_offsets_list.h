@@ -51,6 +51,7 @@
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
   FIELD(AbstractType, type_test_stub_entry_point_offset)                       \
   FIELD(ArgumentsDescriptor, count_offset)                                     \
+  FIELD(ArgumentsDescriptor, size_offset)                                      \
   FIELD(ArgumentsDescriptor, first_named_entry_offset)                         \
   FIELD(ArgumentsDescriptor, named_entry_size)                                 \
   FIELD(ArgumentsDescriptor, name_offset)                                      \
@@ -64,7 +65,7 @@
   FIELD(Class, declaration_type_offset)                                        \
   FIELD(Class, num_type_arguments_offset)                                      \
   FIELD(Class, super_type_offset)                                              \
-  FIELD(Class, type_arguments_field_offset_in_words_offset)                    \
+  FIELD(Class, host_type_arguments_field_offset_in_words_offset)               \
   FIELD(ClassTable, shared_class_table_offset)                                 \
   FIELD(ClassTable, table_offset)                                              \
   NOT_IN_PRODUCT(FIELD(SharedClassTable, class_heap_stats_table_offset))       \
@@ -88,12 +89,12 @@
   PRECOMP_NO_CHECK(FIELD(Field, guarded_list_length_in_object_offset_offset))  \
   PRECOMP_NO_CHECK(FIELD(Field, guarded_list_length_offset))                   \
   PRECOMP_NO_CHECK(FIELD(Field, is_nullable_offset))                           \
-  FIELD(Field, static_value_offset)                                            \
   PRECOMP_NO_CHECK(FIELD(Field, kind_bits_offset))                             \
   FIELD(Function, code_offset)                                                 \
-  FIELD(Function, entry_point_offset)                                          \
-  FIELD(Function, unchecked_entry_point_offset)                                \
+  RANGE(Function, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,   \
+        CodeEntryKind::kUnchecked, [](CodeEntryKind value) { return true; })   \
   PRECOMP_NO_CHECK(FIELD(Function, usage_counter_offset))                      \
+  FIELD(FutureOr, type_arguments_offset)                                       \
   FIELD(GrowableObjectArray, data_offset)                                      \
   FIELD(GrowableObjectArray, length_offset)                                    \
   FIELD(GrowableObjectArray, type_arguments_offset)                            \
@@ -116,6 +117,7 @@
   FIELD(LinkedHashMap, deleted_keys_offset)                                    \
   FIELD(LinkedHashMap, hash_mask_offset)                                       \
   FIELD(LinkedHashMap, index_offset)                                           \
+  FIELD(LinkedHashMap, type_arguments_offset)                                  \
   FIELD(LinkedHashMap, used_data_offset)                                       \
   FIELD(MarkingStackBlock, pointers_offset)                                    \
   FIELD(MarkingStackBlock, top_offset)                                         \
@@ -131,7 +133,8 @@
   FIELD(ObjectStore, int_type_offset)                                          \
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(OneByteString, data_offset)                                            \
-  FIELD(Pointer, c_memory_address_offset)                                      \
+  FIELD(PointerBase, data_field_offset)                                        \
+  FIELD(Pointer, type_arguments_offset)                                        \
   FIELD(SingleTargetCache, entry_point_offset)                                 \
   FIELD(SingleTargetCache, lower_limit_offset)                                 \
   FIELD(SingleTargetCache, target_offset)                                      \
@@ -146,6 +149,10 @@
   FIELD(Thread, active_stacktrace_offset)                                      \
   FIELD(Thread, array_write_barrier_code_offset)                               \
   FIELD(Thread, array_write_barrier_entry_point_offset)                        \
+  FIELD(Thread, allocate_mint_with_fpu_regs_entry_point_offset)                \
+  FIELD(Thread, allocate_mint_with_fpu_regs_stub_offset)                       \
+  FIELD(Thread, allocate_mint_without_fpu_regs_entry_point_offset)             \
+  FIELD(Thread, allocate_mint_without_fpu_regs_stub_offset)                    \
   FIELD(Thread, async_stack_trace_offset)                                      \
   FIELD(Thread, auto_scope_native_wrapper_entry_point_offset)                  \
   FIELD(Thread, bool_false_offset)                                             \
@@ -154,6 +161,7 @@
   FIELD(Thread, call_to_runtime_entry_point_offset)                            \
   FIELD(Thread, call_to_runtime_stub_offset)                                   \
   FIELD(Thread, dart_stream_offset)                                            \
+  FIELD(Thread, dispatch_table_array_offset)                                   \
   FIELD(Thread, optimize_entry_offset)                                         \
   FIELD(Thread, optimize_stub_offset)                                          \
   FIELD(Thread, deoptimize_entry_offset)                                       \
@@ -177,6 +185,7 @@
   FIELD(Thread, invoke_dart_code_from_bytecode_stub_offset)                    \
   FIELD(Thread, invoke_dart_code_stub_offset)                                  \
   FIELD(Thread, isolate_offset)                                                \
+  FIELD(Thread, field_table_values_offset)                                     \
   FIELD(Thread, lazy_deopt_from_return_stub_offset)                            \
   FIELD(Thread, lazy_deopt_from_throw_stub_offset)                             \
   FIELD(Thread, lazy_specialize_type_test_stub_offset)                         \
@@ -187,9 +196,13 @@
   FIELD(Thread, no_scope_native_wrapper_entry_point_offset)                    \
   FIELD(Thread, null_error_shared_with_fpu_regs_entry_point_offset)            \
   FIELD(Thread, null_error_shared_with_fpu_regs_stub_offset)                   \
+  FIELD(Thread, null_arg_error_shared_with_fpu_regs_entry_point_offset)        \
+  FIELD(Thread, null_arg_error_shared_with_fpu_regs_stub_offset)               \
                                                                                \
   FIELD(Thread, null_error_shared_without_fpu_regs_entry_point_offset)         \
   FIELD(Thread, null_error_shared_without_fpu_regs_stub_offset)                \
+  FIELD(Thread, null_arg_error_shared_without_fpu_regs_entry_point_offset)     \
+  FIELD(Thread, null_arg_error_shared_without_fpu_regs_stub_offset)            \
   FIELD(Thread, object_null_offset)                                            \
   FIELD(Thread, predefined_symbols_address_offset)                             \
   FIELD(Thread, resume_pc_offset)                                              \
@@ -221,43 +234,112 @@
   FIELD(Type, signature_offset)                                                \
   FIELD(Type, type_class_id_offset)                                            \
   FIELD(Type, type_state_offset)                                               \
+  FIELD(Type, nullability_offset)                                              \
   FIELD(TypeArguments, instantiations_offset)                                  \
+  FIELD(TypeArguments, nullability_offset)                                     \
   FIELD(TypeRef, type_offset)                                                  \
-  FIELD(TypedDataBase, data_field_offset)                                      \
   FIELD(TypedDataBase, length_offset)                                          \
   FIELD(TypedDataView, data_offset)                                            \
   FIELD(TypedDataView, offset_in_bytes_offset)                                 \
   FIELD(TypedData, data_offset)                                                \
   FIELD(UserTag, tag_offset)                                                   \
+  FIELD(MonomorphicSmiableCall, expected_cid_offset)                           \
+  FIELD(MonomorphicSmiableCall, entrypoint_offset)                             \
+  FIELD(MonomorphicSmiableCall, target_offset)                                 \
   ARRAY(Array, element_offset)                                                 \
   ARRAY(TypeArguments, type_at_offset)                                         \
   NOT_IN_PRODUCT(ARRAY(ClassTable, ClassOffsetFor))                            \
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \
         CodeEntryKind::kMonomorphicUnchecked,                                  \
         [](CodeEntryKind value) { return true; })                              \
-  RANGE(Code, function_entry_point_offset, CodeEntryKind,                      \
-        CodeEntryKind::kNormal, CodeEntryKind::kUnchecked,                     \
-        [](CodeEntryKind value) { return true; })                              \
   ONLY_IN_ARM_ARM64_X64(RANGE(                                                 \
       Thread, write_barrier_wrappers_thread_offset, Register, 0,               \
       kNumberOfCpuRegisters - 1,                                               \
       [](Register reg) { return (kDartAvailableCpuRegs & (1 << reg)) != 0; })) \
+                                                                               \
+  SIZEOF(ApiError, InstanceSize, RawApiError)                                  \
+  SIZEOF(Array, InstanceSize, RawArray)                                        \
   SIZEOF(Array, header_size, RawArray)                                         \
+  SIZEOF(Bool, InstanceSize, RawBool)                                          \
+  SIZEOF(Bytecode, InstanceSize, RawBytecode)                                  \
+  SIZEOF(Capability, InstanceSize, RawCapability)                              \
+  SIZEOF(Class, InstanceSize, RawClass)                                        \
+  SIZEOF(Closure, InstanceSize, RawClosure)                                    \
+  SIZEOF(ClosureData, InstanceSize, RawClosureData)                            \
+  SIZEOF(Code, InstanceSize, RawCode)                                          \
+  SIZEOF(CodeSourceMap, InstanceSize, RawCodeSourceMap)                        \
+  SIZEOF(CompressedStackMaps, InstanceSize, RawCompressedStackMaps)            \
+  SIZEOF(CompressedStackMaps, HeaderSize, RawCompressedStackMaps)              \
+  SIZEOF(Context, InstanceSize, RawContext)                                    \
   SIZEOF(Context, header_size, RawContext)                                     \
+  SIZEOF(ContextScope, InstanceSize, RawContextScope)                          \
   SIZEOF(Double, InstanceSize, RawDouble)                                      \
+  SIZEOF(DynamicLibrary, InstanceSize, RawDynamicLibrary)                      \
+  SIZEOF(ExceptionHandlers, InstanceSize, RawExceptionHandlers)                \
+  SIZEOF(ExternalOneByteString, InstanceSize, RawExternalOneByteString)        \
+  SIZEOF(ExternalTwoByteString, InstanceSize, RawExternalTwoByteString)        \
+  SIZEOF(ExternalTypedData, InstanceSize, RawExternalTypedData)                \
+  SIZEOF(FfiTrampolineData, InstanceSize, RawFfiTrampolineData)                \
+  SIZEOF(Field, InstanceSize, RawField)                                        \
   SIZEOF(Float32x4, InstanceSize, RawFloat32x4)                                \
   SIZEOF(Float64x2, InstanceSize, RawFloat64x2)                                \
-  SIZEOF(Instructions, UnalignedHeaderSize, RawInstructions)                   \
-  SIZEOF(Int32x4, InstanceSize, RawInt32x4)                                    \
-  SIZEOF(Mint, InstanceSize, RawMint)                                          \
-  SIZEOF(NativeArguments, StructSize, NativeArguments)                         \
-  SIZEOF(String, InstanceSize, RawString)                                      \
-  SIZEOF(TypedData, InstanceSize, RawTypedData)                                \
-  SIZEOF(Object, InstanceSize, RawObject)                                      \
-  SIZEOF(TypedDataBase, InstanceSize, RawTypedDataBase)                        \
-  SIZEOF(Closure, InstanceSize, RawClosure)                                    \
+  SIZEOF(Function, InstanceSize, RawFunction)                                  \
+  SIZEOF(FutureOr, InstanceSize, RawFutureOr)                                  \
   SIZEOF(GrowableObjectArray, InstanceSize, RawGrowableObjectArray)            \
+  SIZEOF(ICData, InstanceSize, RawICData)                                      \
   SIZEOF(Instance, InstanceSize, RawInstance)                                  \
-  SIZEOF(LinkedHashMap, InstanceSize, RawLinkedHashMap)
+  SIZEOF(Instructions, InstanceSize, RawInstructions)                          \
+  SIZEOF(Instructions, UnalignedHeaderSize, RawInstructions)                   \
+  SIZEOF(InstructionsSection, InstanceSize, RawInstructionsSection)            \
+  SIZEOF(InstructionsSection, UnalignedHeaderSize, RawInstructionsSection)     \
+  SIZEOF(Int32x4, InstanceSize, RawInt32x4)                                    \
+  SIZEOF(Integer, InstanceSize, RawInteger)                                    \
+  SIZEOF(KernelProgramInfo, InstanceSize, RawKernelProgramInfo)                \
+  SIZEOF(LanguageError, InstanceSize, RawLanguageError)                        \
+  SIZEOF(Library, InstanceSize, RawLibrary)                                    \
+  SIZEOF(LibraryPrefix, InstanceSize, RawLibraryPrefix)                        \
+  SIZEOF(LinkedHashMap, InstanceSize, RawLinkedHashMap)                        \
+  SIZEOF(LocalVarDescriptors, InstanceSize, RawLocalVarDescriptors)            \
+  SIZEOF(MegamorphicCache, InstanceSize, RawMegamorphicCache)                  \
+  SIZEOF(Mint, InstanceSize, RawMint)                                          \
+  SIZEOF(MirrorReference, InstanceSize, RawMirrorReference)                    \
+  SIZEOF(MonomorphicSmiableCall, InstanceSize, RawMonomorphicSmiableCall)      \
+  SIZEOF(Namespace, InstanceSize, RawNamespace)                                \
+  SIZEOF(NativeArguments, StructSize, NativeArguments)                         \
+  SIZEOF(Number, InstanceSize, RawNumber)                                      \
+  SIZEOF(Object, InstanceSize, RawObject)                                      \
+  SIZEOF(ObjectPool, InstanceSize, RawObjectPool)                              \
+  SIZEOF(OneByteString, InstanceSize, RawOneByteString)                        \
+  SIZEOF(ParameterTypeCheck, InstanceSize, RawParameterTypeCheck)              \
+  SIZEOF(PatchClass, InstanceSize, RawPatchClass)                              \
+  SIZEOF(PcDescriptors, InstanceSize, RawPcDescriptors)                        \
+  SIZEOF(Pointer, InstanceSize, RawPointer)                                    \
+  SIZEOF(ReceivePort, InstanceSize, RawReceivePort)                            \
+  SIZEOF(RedirectionData, InstanceSize, RawRedirectionData)                    \
+  SIZEOF(RegExp, InstanceSize, RawRegExp)                                      \
+  SIZEOF(Script, InstanceSize, RawScript)                                      \
+  SIZEOF(SendPort, InstanceSize, RawSendPort)                                  \
+  SIZEOF(SignatureData, InstanceSize, RawSignatureData)                        \
+  SIZEOF(SingleTargetCache, InstanceSize, RawSingleTargetCache)                \
+  SIZEOF(Smi, InstanceSize, RawSmi)                                            \
+  SIZEOF(StackTrace, InstanceSize, RawStackTrace)                              \
+  SIZEOF(String, InstanceSize, RawString)                                      \
+  SIZEOF(SubtypeTestCache, InstanceSize, RawSubtypeTestCache)                  \
+  SIZEOF(TransferableTypedData, InstanceSize, RawTransferableTypedData)        \
+  SIZEOF(TwoByteString, InstanceSize, RawTwoByteString)                        \
+  SIZEOF(Type, InstanceSize, RawType)                                          \
+  SIZEOF(TypeArguments, InstanceSize, RawTypeArguments)                        \
+  SIZEOF(TypeParameter, InstanceSize, RawTypeParameter)                        \
+  SIZEOF(TypeRef, InstanceSize, RawTypeRef)                                    \
+  SIZEOF(TypedData, InstanceSize, RawTypedData)                                \
+  SIZEOF(TypedDataBase, InstanceSize, RawTypedDataBase)                        \
+  SIZEOF(TypedDataView, InstanceSize, RawTypedDataView)                        \
+  SIZEOF(UnhandledException, InstanceSize, RawUnhandledException)              \
+  SIZEOF(UnlinkedCall, InstanceSize, RawUnlinkedCall)                          \
+  SIZEOF(UnwindError, InstanceSize, RawUnwindError)                            \
+  SIZEOF(UserTag, InstanceSize, RawUserTag)                                    \
+  SIZEOF(WeakProperty, InstanceSize, RawWeakProperty)                          \
+  SIZEOF(WeakSerializationReference, InstanceSize,                             \
+         RawWeakSerializationReference)
 
 #endif  // RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_LIST_H_

@@ -22,7 +22,7 @@ import 'list_postfix_completion_templates_test.dart'
 import 'organize_directives_test.dart' as organize_directives_test;
 import 'sort_members_test.dart' as sort_members_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     dartfix_test.main();
     format_test.main();

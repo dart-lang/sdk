@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:async_helper/async_helper.dart';
@@ -24,9 +26,7 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script
         .resolve('../../../../pkg/front_end/test/id_testing/data'));
     await checkTests(dataDir, new IdTestingDataComputer(),
-        args: args,
-        testedConfigs: [sharedConfig],
-        supportedMarkers: sharedMarkers);
+        args: args, testedConfigs: [sharedConfig]);
   });
 }
 

@@ -4,7 +4,7 @@
 
 library dart2js.common.resolution;
 
-import '../constants/expressions.dart' show ConstantExpression;
+import '../constants/values.dart' show ConstantValue;
 import '../elements/entities.dart';
 import '../universe/world_impact.dart' show WorldImpact;
 import '../universe/feature.dart';
@@ -17,8 +17,7 @@ class ResolutionImpact extends WorldImpact {
   Iterable<SetLiteralUse> get setLiterals => const <SetLiteralUse>[];
   Iterable<ListLiteralUse> get listLiterals => const <ListLiteralUse>[];
   Iterable<String> get constSymbolNames => const <String>[];
-  Iterable<ConstantExpression> get constantLiterals =>
-      const <ConstantExpression>[];
+  Iterable<ConstantValue> get constantLiterals => const <ConstantValue>[];
   Iterable<ClassEntity> get seenClasses => const <ClassEntity>[];
   Iterable<RuntimeTypeUse> get runtimeTypeUses => const <RuntimeTypeUse>[];
 

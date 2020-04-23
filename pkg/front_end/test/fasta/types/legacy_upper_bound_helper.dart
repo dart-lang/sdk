@@ -7,13 +7,14 @@ import "package:async_helper/async_helper.dart" show asyncTest;
 import "package:expect/expect.dart" show Expect;
 
 import "package:kernel/ast.dart"
-    show Class, Component, DartType, InterfaceType, Nullability;
+    show Class, Component, DartType, InterfaceType, Library, Nullability;
 
 import "package:kernel/core_types.dart";
 
 import "package:kernel/library_index.dart" show LibraryIndex;
 
-import "kernel_type_parser.dart" as kernel_type_parser show parseComponent;
+import 'package:kernel/testing/type_parser_environment.dart'
+    as kernel_type_parser show parseComponent;
 
 final Uri libraryUri = Uri.parse("org-dartlang-test:///library.dart");
 
@@ -49,11 +50,11 @@ abstract class LegacyUpperBoundTest {
   }
 
   DartType getLegacyLeastUpperBound(
-      DartType a, DartType b, CoreTypes coreTypes);
+      DartType a, DartType b, Library clientLibrary, CoreTypes coreTypes);
 
   void checkGetLegacyLeastUpperBound(
-      DartType a, DartType b, DartType expected) {
-    DartType actual = getLegacyLeastUpperBound(a, b, coreTypes);
+      DartType a, DartType b, Library clientLibrary, DartType expected) {
+    DartType actual = getLegacyLeastUpperBound(a, b, clientLibrary, coreTypes);
     Expect.equals(expected, actual);
   }
 
@@ -76,6 +77,7 @@ class C2<T> extends N<N<C2<N<C2<T*>*>*>*>*>;
     Class N = getClass("N");
     Class C1 = getClass("C1");
     Class C2 = getClass("C2");
+    Library testLib = N.enclosingLibrary;
 
     // The least upper bound of C1<int> and N<C1<String>> is Object since the
     // supertypes are
@@ -87,6 +89,7 @@ class C2<T> extends N<N<C2<N<C2<T*>*>*>*>*>;
         new InterfaceType(N, Nullability.legacy, [
           new InterfaceType(C1, Nullability.legacy, [stringType])
         ]),
+        testLib,
         objectType);
 
     // The least upper bound of C2<int> and N<C2<String>> is Object since the
@@ -99,6 +102,7 @@ class C2<T> extends N<N<C2<N<C2<T*>*>*>*>*>;
         new InterfaceType(N, Nullability.legacy, [
           new InterfaceType(C2, Nullability.legacy, [stringType])
         ]),
+        testLib,
         objectType);
   }
 
@@ -118,26 +122,32 @@ class F implements D<int*, bool*>;
     Class d = getClass("D");
     Class e = getClass("E");
     Class f = getClass("F");
+    Library testLib = a.enclosingLibrary;
 
     checkGetLegacyLeastUpperBound(
         new InterfaceType(d, Nullability.legacy, [intType, doubleType]),
         new InterfaceType(d, Nullability.legacy, [intType, doubleType]),
+        testLib,
         new InterfaceType(d, Nullability.legacy, [intType, doubleType]));
     checkGetLegacyLeastUpperBound(
         new InterfaceType(d, Nullability.legacy, [intType, doubleType]),
         new InterfaceType(d, Nullability.legacy, [intType, boolType]),
+        testLib,
         new InterfaceType(b, Nullability.legacy, [intType]));
     checkGetLegacyLeastUpperBound(
         new InterfaceType(d, Nullability.legacy, [intType, doubleType]),
         new InterfaceType(d, Nullability.legacy, [boolType, doubleType]),
+        testLib,
         new InterfaceType(c, Nullability.legacy, [doubleType]));
     checkGetLegacyLeastUpperBound(
         new InterfaceType(d, Nullability.legacy, [intType, doubleType]),
         new InterfaceType(d, Nullability.legacy, [boolType, intType]),
+        testLib,
         coreTypes.legacyRawType(a));
     checkGetLegacyLeastUpperBound(
         coreTypes.legacyRawType(e),
         coreTypes.legacyRawType(f),
+        testLib,
         new InterfaceType(b, Nullability.legacy, [intType]));
   }
 
@@ -162,22 +172,23 @@ class I implements C, D, E;
     Class g = getClass("G");
     Class h = getClass("H");
     Class i = getClass("I");
+    Library testLib = a.enclosingLibrary;
 
-    checkGetLegacyLeastUpperBound(
-        coreTypes.legacyRawType(a), coreTypes.legacyRawType(b), objectType);
-    checkGetLegacyLeastUpperBound(
-        coreTypes.legacyRawType(a), objectType, objectType);
-    checkGetLegacyLeastUpperBound(
-        objectType, coreTypes.legacyRawType(b), objectType);
-    checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(c),
-        coreTypes.legacyRawType(d), coreTypes.legacyRawType(a));
-    checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(c),
-        coreTypes.legacyRawType(a), coreTypes.legacyRawType(a));
     checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(a),
-        coreTypes.legacyRawType(d), coreTypes.legacyRawType(a));
+        coreTypes.legacyRawType(b), testLib, objectType);
+    checkGetLegacyLeastUpperBound(
+        coreTypes.legacyRawType(a), objectType, testLib, objectType);
+    checkGetLegacyLeastUpperBound(
+        objectType, coreTypes.legacyRawType(b), testLib, objectType);
+    checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(c),
+        coreTypes.legacyRawType(d), testLib, coreTypes.legacyRawType(a));
+    checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(c),
+        coreTypes.legacyRawType(a), testLib, coreTypes.legacyRawType(a));
+    checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(a),
+        coreTypes.legacyRawType(d), testLib, coreTypes.legacyRawType(a));
     checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(f),
-        coreTypes.legacyRawType(g), coreTypes.legacyRawType(a));
+        coreTypes.legacyRawType(g), testLib, coreTypes.legacyRawType(a));
     checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(h),
-        coreTypes.legacyRawType(i), coreTypes.legacyRawType(a));
+        coreTypes.legacyRawType(i), testLib, coreTypes.legacyRawType(a));
   }
 }

@@ -57,12 +57,12 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   Uri get fileUri => cls.fileUri;
 
-  TypeBuilder get supertype {
-    TypeBuilder supertype = super.supertype;
+  TypeBuilder get supertypeBuilder {
+    TypeBuilder supertype = super.supertypeBuilder;
     if (supertype == null) {
       Supertype targetSupertype = cls.supertype;
       if (targetSupertype == null) return null;
-      super.supertype =
+      super.supertypeBuilder =
           supertype = computeTypeBuilder(library, targetSupertype);
     }
     return supertype;
@@ -88,7 +88,8 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder> arguments) {
+      LibraryBuilder library, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
     // For performance reasons, [typeVariables] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
@@ -106,7 +107,7 @@ class DillClassBuilder extends ClassBuilderImpl {
     List<DartType> result =
         new List<DartType>.filled(arguments.length, null, growable: true);
     for (int i = 0; i < result.length; ++i) {
-      result[i] = arguments[i].build(library);
+      result[i] = arguments[i].build(library, null, notInstanceContext);
     }
     return result;
   }
@@ -115,25 +116,33 @@ class DillClassBuilder extends ClassBuilderImpl {
   /// superclass.
   bool get isMixinApplication => cls.isMixinApplication;
 
-  TypeBuilder get mixedInType {
+  @override
+  bool get declaresConstConstructor => cls.hasConstConstructor;
+
+  TypeBuilder get mixedInTypeBuilder {
     return computeTypeBuilder(library, cls.mixedInType);
   }
 
-  List<TypeBuilder> get interfaces {
+  List<TypeBuilder> get interfaceBuilders {
     if (cls.implementedTypes.isEmpty) return null;
-    if (super.interfaces == null) {
+    if (super.interfaceBuilders == null) {
       List<TypeBuilder> result =
           new List<TypeBuilder>(cls.implementedTypes.length);
       for (int i = 0; i < result.length; i++) {
         result[i] = computeTypeBuilder(library, cls.implementedTypes[i]);
       }
-      super.interfaces = result;
+      super.interfaceBuilders = result;
     }
-    return super.interfaces;
+    return super.interfaceBuilders;
   }
 
-  void set mixedInType(TypeBuilder mixin) {
+  void set mixedInTypeBuilder(TypeBuilder mixin) {
     unimplemented("mixedInType=", -1, null);
+  }
+
+  void clearCachedValues() {
+    supertypeBuilder = null;
+    interfaceBuilders = null;
   }
 }
 

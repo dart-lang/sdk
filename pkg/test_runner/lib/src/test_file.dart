@@ -7,9 +7,6 @@ import 'feature.dart';
 import 'path.dart';
 import 'static_error.dart';
 
-final _multiHtmlTestGroupRegExp = RegExp(r"\s*[^/]\s*group\('[^,']*");
-final _multiHtmlTestRegExp = RegExp(r"useHtmlIndividualConfiguration\(\)");
-
 // TODO(rnystrom): Remove support for "///" once tests have been migrated.
 // https://dart-review.googlesource.com/c/sdk/+/106201
 // https://github.com/dart-lang/co19/issues/391
@@ -18,7 +15,6 @@ final _multitestRegExp = RegExp(r"\S *//[#/] \w+:(.*)");
 
 final _vmOptionsRegExp = RegExp(r"// VMOptions=(.*)");
 final _environmentRegExp = RegExp(r"// Environment=(.*)");
-final _packageRootRegExp = RegExp(r"// PackageRoot=(.*)");
 final _packagesRegExp = RegExp(r"// Packages=(.*)");
 final _experimentRegExp = RegExp(r"^--enable-experiment=([a-z,-]+)$");
 
@@ -180,7 +176,6 @@ class TestFile extends _TestFileBase {
           dart2jsOptions: [],
           ddcOptions: [],
           dartOptions: [],
-          packageRoot: null,
           packages: null,
           hasSyntaxError: false,
           hasCompileError: false,
@@ -188,8 +183,6 @@ class TestFile extends _TestFileBase {
           hasStaticWarning: false,
           hasCrash: false,
           isMultitest: false,
-          isMultiHtmlTest: false,
-          subtestNames: [],
           sharedObjects: [],
           otherResources: []);
     }
@@ -259,49 +252,23 @@ class TestFile extends _TestFileBase {
     }
 
     // Packages.
-    String packageRoot;
     String packages;
-    matches = _packageRootRegExp.allMatches(contents);
-    for (var match in matches) {
-      if (packageRoot != null || packages != null) {
-        throw Exception('More than one "// Package... line in test $filePath');
-      }
-      packageRoot = match[1];
-      if (packageRoot != 'none') {
-        // PackageRoot=none means that no packages or package-root option
-        // should be given. Any other value overrides package-root and
-        // removes any packages option.  Don't use with // Packages=.
-        packageRoot = Uri.file(filePath)
-            .resolveUri(Uri.directory(packageRoot))
-            .toFilePath();
-      }
-    }
 
     matches = _packagesRegExp.allMatches(contents);
     for (var match in matches) {
-      if (packages != null || packageRoot != null) {
+      if (packages != null) {
         throw Exception('More than one "// Package..." line in test $filePath');
       }
       packages = match[1];
       if (packages != 'none') {
-        // Packages=none means that no packages or package-root option
-        // should be given. Any other value overrides packages and removes
-        // any package-root option. Don't use with // PackageRoot=.
+        // Packages=none means that no packages option should be given. Any
+        // other value overrides packages.
         packages =
             Uri.file(filePath).resolveUri(Uri.file(packages)).toFilePath();
       }
     }
 
     var isMultitest = _multitestRegExp.hasMatch(contents);
-    var isMultiHtmlTest = _multiHtmlTestRegExp.hasMatch(contents);
-
-    var subtestNames = <String>[];
-    if (isMultiHtmlTest) {
-      for (var match in _multiHtmlTestGroupRegExp.allMatches(contents)) {
-        var fullMatch = match.group(0);
-        subtestNames.add(fullMatch.substring(fullMatch.indexOf("'") + 1));
-      }
-    }
 
     // TODO(rnystrom): During the migration of the existing tests to Dart 2.0,
     // we have a number of tests that used to both generate static type warnings
@@ -338,17 +305,14 @@ class TestFile extends _TestFileBase {
     }
 
     return TestFile._(suiteDirectory, Path(filePath), errorExpectations,
-        packageRoot: packageRoot,
         packages: packages,
         environment: environment,
         isMultitest: isMultitest,
-        isMultiHtmlTest: isMultiHtmlTest,
         hasSyntaxError: hasSyntaxError,
         hasCompileError: hasCompileError,
         hasRuntimeError: contents.contains("@runtime-error"),
         hasStaticWarning: contents.contains("@static-warning"),
         hasCrash: false,
-        subtestNames: subtestNames,
         requirements: requirements,
         sharedOptions: sharedOptions,
         dartOptions: dartOptions,
@@ -367,12 +331,9 @@ class TestFile extends _TestFileBase {
       this.hasRuntimeError,
       this.hasStaticWarning,
       this.hasCrash})
-      : packageRoot = null,
-        packages = null,
+      : packages = null,
         environment = null,
         isMultitest = false,
-        isMultiHtmlTest = false,
-        subtestNames = [],
         requirements = [],
         sharedOptions = [],
         dartOptions = [],
@@ -385,17 +346,14 @@ class TestFile extends _TestFileBase {
         super(null, null, []);
 
   TestFile._(Path suiteDirectory, Path path, List<StaticError> expectedErrors,
-      {this.packageRoot,
-      this.packages,
+      {this.packages,
       this.environment,
       this.isMultitest,
-      this.isMultiHtmlTest,
       this.hasSyntaxError,
       this.hasCompileError,
       this.hasRuntimeError,
       this.hasStaticWarning,
       this.hasCrash,
-      this.subtestNames,
       this.requirements,
       this.sharedOptions,
       this.dartOptions,
@@ -413,20 +371,16 @@ class TestFile extends _TestFileBase {
 
   String get multitestKey => "";
 
-  final String packageRoot;
   final String packages;
 
   final Map<String, String> environment;
 
   final bool isMultitest;
-  final bool isMultiHtmlTest;
   final bool hasSyntaxError;
   final bool hasCompileError;
   final bool hasRuntimeError;
   final bool hasStaticWarning;
   final bool hasCrash;
-
-  final List<String> subtestNames;
 
   /// The features that a test configuration must support in order to run this
   /// test.
@@ -465,17 +419,14 @@ class TestFile extends _TestFileBase {
           hasSyntaxError: hasSyntaxError ?? false);
 
   String toString() => """TestFile(
-  packageRoot: $packageRoot
   packages: $packages
   environment: $environment
   isMultitest: $isMultitest
-  isMultiHtmlTest: $isMultiHtmlTest
   hasSyntaxError: $hasSyntaxError
   hasCompileError: $hasCompileError
   hasRuntimeError: $hasRuntimeError
   hasStaticWarning: $hasStaticWarning
   hasCrash: $hasCrash
-  subtestNames: $subtestNames
   requirements: $requirements
   sharedOptions: $sharedOptions
   dartOptions: $dartOptions
@@ -514,7 +465,6 @@ class _MultitestFile extends _TestFileBase implements TestFile {
 
   Path get originPath => _origin.path;
 
-  String get packageRoot => _origin.packageRoot;
   String get packages => _origin.packages;
 
   List<Feature> get requirements => _origin.requirements;
@@ -523,14 +473,12 @@ class _MultitestFile extends _TestFileBase implements TestFile {
   List<String> get ddcOptions => _origin.ddcOptions;
   Map<String, String> get environment => _origin.environment;
 
-  bool get isMultiHtmlTest => _origin.isMultiHtmlTest;
   bool get isMultitest => _origin.isMultitest;
 
   List<String> get otherResources => _origin.otherResources;
   List<String> get sharedObjects => _origin.sharedObjects;
   List<String> get experiments => _origin.experiments;
   List<String> get sharedOptions => _origin.sharedOptions;
-  List<String> get subtestNames => _origin.subtestNames;
   List<List<String>> get vmOptions => _origin.vmOptions;
 
   TestFile split(Path path, String multitestKey, String contents,

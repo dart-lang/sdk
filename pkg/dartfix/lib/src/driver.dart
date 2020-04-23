@@ -19,6 +19,9 @@ import 'package:dartfix/src/util.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
+import 'migrate/display.dart';
+import 'util.dart';
+
 class Driver {
   Context context;
   _Handler handler;
@@ -32,30 +35,13 @@ class Driver {
 
   Ansi get ansi => logger.ansi;
 
-  Future applyFixes() async {
-    showDescriptions('Recommended changes that cannot be automatically applied',
-        result.otherSuggestions);
-    showDetails(result.details);
-    if (result.edits.isEmpty) {
-      logger.stdout('');
-      logger.stdout(result.otherSuggestions.isNotEmpty
-          ? 'None of the recommended changes can be automatically applied.'
-          : 'No recommended changes.');
-      return;
-    }
-    logger.stdout('');
-    logger.stdout(ansi.emphasized('Files to be changed:'));
+  /// Apply the fixes that were computed.
+  void applyFixes() {
     for (SourceFileEdit fileEdit in result.edits) {
-      logger.stdout('  ${_relativePath(fileEdit.file)}');
-    }
-    if (checkIfChangesShouldBeApplied(result)) {
-      for (SourceFileEdit fileEdit in result.edits) {
-        final file = File(fileEdit.file);
-        String code = file.existsSync() ? file.readAsStringSync() : '';
-        code = SourceEdit.applySequence(code, fileEdit.edits);
-        await file.writeAsString(code);
-      }
-      logger.stdout(ansi.emphasized('Changes applied.'));
+      final file = File(fileEdit.file);
+      String code = file.existsSync() ? file.readAsStringSync() : '';
+      code = SourceEdit.applySequence(code, fileEdit.edits);
+      file.writeAsStringSync(code);
     }
   }
 
@@ -63,7 +49,7 @@ class Driver {
     logger.stdout('');
     if (result.hasErrors) {
       logger.stdout('WARNING: The analyzed source contains errors'
-          ' that may affect the accuracy of these changes.');
+          ' that might affect the accuracy of these changes.');
       logger.stdout('');
       if (!force) {
         logger.stdout('Rerun with --$forceOption to apply these changes.');
@@ -98,21 +84,38 @@ class Driver {
       _unsupportedOption(includeFixOption);
       return false;
     }
-    if (options.requiredFixes) {
-      _unsupportedOption(requiredOption);
-      return false;
-    }
     if (options.showHelp) {
       return false;
     }
     return true;
   }
 
+  void printAndApplyFixes() {
+    showDescriptions('Recommended changes that cannot be automatically applied',
+        result.otherSuggestions);
+    showDetails(result.details);
+    if (result.edits.isEmpty) {
+      logger.stdout('');
+      logger.stdout(result.otherSuggestions.isNotEmpty
+          ? 'None of the recommended changes can be automatically applied.'
+          : 'No recommended changes.');
+      return;
+    }
+    logger.stdout('');
+    logger.stdout(ansi.emphasized('Files to be changed:'));
+    for (SourceFileEdit fileEdit in result.edits) {
+      logger.stdout('  ${_relativePath(fileEdit.file)}');
+    }
+    if (checkIfChangesShouldBeApplied(result)) {
+      applyFixes();
+      logger.stdout(ansi.emphasized('Changes have been applied.'));
+    }
+  }
+
   Future<EditDartfixResult> requestFixes(
     Options options, {
     Progress progress,
   }) async {
-    logger.trace('Requesting fixes');
     Future isAnalysisComplete = handler.analysisComplete();
 
     final params = EditDartfixParams(options.targets);
@@ -122,27 +125,8 @@ class Driver {
     if (options.includeFixes.isNotEmpty) {
       params.includedFixes = options.includeFixes;
     }
-    if (options.requiredFixes) {
-      params.includeRequiredFixes = true;
-    }
     if (options.pedanticFixes) {
       params.includePedanticFixes = true;
-    }
-    String previewDir = options.previewDir;
-    if (previewDir != null) {
-      if (!path.isAbsolute(previewDir)) {
-        previewDir = path.absolute(previewDir);
-      }
-      previewDir = path.canonicalize(previewDir);
-      params.outputDir = previewDir;
-    }
-    String previewPort = options.previewPort;
-    if (previewPort != null) {
-      try {
-        params.port = int.parse(previewPort);
-      } on FormatException {
-        logger.stderr('Invalid port number: ignored');
-      }
     }
     Map<String, dynamic> json =
         await server.send(EDIT_REQUEST_DARTFIX, params.toJson());
@@ -156,6 +140,11 @@ class Driver {
     progress.finish(showTiming: true);
     ResponseDecoder decoder = ResponseDecoder(null);
     return EditDartfixResult.fromJson(decoder, 'result', json);
+  }
+
+  /// Return `true` if the changes should be applied.
+  bool shouldApplyFixes(EditDartfixResult result) {
+    return overwrite || force;
   }
 
   void showDescriptions(String title, List<DartFixSuggestion> suggestions) {
@@ -215,16 +204,9 @@ Analysis Details:
 
     logger.stdout('''
 
-The following fixes are automatically applied unless at least one --$includeFixOption option is specified
-(and --$requiredOption is not specified). They may be individually disabled using --$excludeFixOption.''');
+These fixes can be enabled using --$includeFixOption:''');
 
-    fixes.where((fix) => fix.isRequired).forEach(showFix);
-
-    logger.stdout('''
-
-These fixes are NOT automatically applied, but may be enabled using --$includeFixOption:''');
-
-    fixes.where((fix) => !fix.isRequired).toList()
+    fixes
       ..sort(compareFixes)
       ..forEach(showFix);
 
@@ -244,7 +226,7 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
     context = testContext ?? options.context;
     logger = testLogger ?? options.logger;
     server = Server(listener: _Listener(logger));
-    handler = _Handler(this);
+    handler = _Handler(this, context);
 
     // Start showing progress before we start the analysis server.
     Progress progress;
@@ -272,12 +254,42 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
       context.exit(0);
     }
 
+    if (options.includeFixes.isEmpty && !options.pedanticFixes) {
+      logger.stdout('No fixes specified.');
+      context.exit(1);
+    }
+
     Future serverStopped;
     try {
       await startServerAnalysis(options);
       result = await requestFixes(options, progress: progress);
+      var fileEdits = result.edits;
+      var editCount = 0;
+      for (SourceFileEdit fileEdit in fileEdits) {
+        editCount += fileEdit.edits.length;
+      }
+      logger.stdout('Found $editCount changes in ${fileEdits.length} files.');
+
+      previewFixes(logger, result);
+
+      //
+      // Stop the server.
+      //
       serverStopped = server.stop();
-      await applyFixes();
+
+      logger.stdout('');
+
+      // Check if we should apply fixes.
+      if (result.edits.isEmpty) {
+        logger.stdout(result.otherSuggestions.isNotEmpty
+            ? 'None of the recommended changes can be automatically applied.'
+            : 'There are no recommended changes.');
+      } else if (shouldApplyFixes(result)) {
+        applyFixes();
+        logger.stdout('Changes have been applied.');
+      } else {
+        logger.stdout('Re-run with --overwrite to apply the above changes.');
+      }
       await serverStopped;
     } finally {
       // If we didn't already try to stop the server, then stop it now.
@@ -346,16 +358,66 @@ analysis server
 The --$option option is not supported by analysis server version $version.
 Please upgrade to a newer version of the Dart SDK to use this option.''');
   }
+
+  void previewFixes(
+    Logger logger,
+    EditDartfixResult results,
+  ) {
+    final Ansi ansi = logger.ansi;
+
+    Map<String, List<DartFixSuggestion>> fileSuggestions = {};
+    for (DartFixSuggestion suggestion in results.suggestions) {
+      String file = suggestion.location.file;
+      fileSuggestions.putIfAbsent(file, () => <DartFixSuggestion>[]);
+      fileSuggestions[file].add(suggestion);
+    }
+
+    // present a diff-like view
+    for (SourceFileEdit sourceFileEdit in results.edits) {
+      String file = sourceFileEdit.file;
+      String relPath = path.relative(file);
+      int count = sourceFileEdit.edits.length;
+
+      logger.stdout('');
+      logger.stdout('${ansi.emphasized(relPath)} '
+          '($count ${pluralize('change', count)}):');
+
+      String source;
+      try {
+        source = File(file).readAsStringSync();
+      } catch (_) {}
+
+      if (source == null) {
+        logger.stdout('  (unable to retrieve source for file)');
+      } else {
+        SourcePrinter sourcePrinter = SourcePrinter(source);
+
+        List<SourceEdit> edits = sortEdits(sourceFileEdit);
+
+        // Apply edits.
+        sourcePrinter.applyEdits(edits);
+
+        // Render the changed lines.
+        sourcePrinter.processChangedLines((lineNumber, lineText) {
+          String prefix = '  line ${lineNumber.toString().padRight(3)} •';
+          logger.stdout('$prefix ${lineText.trim()}');
+        });
+      }
+    }
+  }
 }
 
 class _Handler
     with NotificationHandler, ConnectionHandler, AnalysisCompleteHandler {
   final Driver driver;
   final Logger logger;
+  final Context context;
+
+  @override
   final Server server;
   Version serverProtocolVersion;
 
-  _Handler(this.driver)
+  _Handler(this.driver, this.context)
       : logger = driver.logger,
         server = driver.server;
 
@@ -380,11 +442,15 @@ class _Handler
             ' • ${loc.startLine}:${loc.startColumn}');
       }
     }
+    super.onAnalysisErrors(params);
+    // Analysis errors are non-fatal; no need to exit.
   }
 
   @override
   void onFailedToConnect() {
     logger.stderr('Failed to connect to server');
+    super.onFailedToConnect();
+    // Exiting on connection failure is already handled by [Driver.start].
   }
 
   @override
@@ -395,19 +461,21 @@ class _Handler
     if (version > expectedVersion) {
       logger.stdout('''
 This version of dartfix is incompatible with the current Dart SDK.
-Try installing a newer version of dartfix by running
+Try installing a newer version of dartfix by running:
 
     pub global activate dartfix
 ''');
     } else {
       logger.stdout('''
-This version of dartfix is too new to be used with the current Dart SDK.
-Try upgrading the Dart SDK to a newer version
-or installing an older version of dartfix using
+This version of dartfix is too new to be used with the current Dart SDK. Try
+upgrading the Dart SDK to a newer version or installing an older version of
+dartfix using:
 
     pub global activate dartfix <version>
 ''');
     }
+    super.onProtocolNotSupported(version);
+    // This is handled by the connection failure case; no need to exit here.
   }
 
   @override
@@ -421,6 +489,8 @@ or installing an older version of dartfix using
       logger.stderr(params.stackTrace);
     }
     super.onServerError(params);
+    // Server is stopped by super method, so we can safely exit here.
+    context.exit(16);
   }
 }
 

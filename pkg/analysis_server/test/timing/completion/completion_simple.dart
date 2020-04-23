@@ -10,12 +10,10 @@ import 'package:path/path.dart';
 
 import '../timing_framework.dart';
 
-/**
- * Perform the timing test, printing the minimum, average and maximum times, as
- * well as the standard deviation to the output.
- */
+/// Perform the timing test, printing the minimum, average and maximum times, as
+/// well as the standard deviation to the output.
 void main(List<String> args) {
-  SimpleTest test = new SimpleTest();
+  var test = SimpleTest();
   test.run().then((TimingResult result) {
     print('minTime = ${result.minTime}');
     print('averageTime = ${result.averageTime}');
@@ -27,35 +25,23 @@ void main(List<String> args) {
   });
 }
 
-/**
- * A test of how long it takes to get code completion results after making a
- * minor change inside a method body.
- */
+/// A test of how long it takes to get code completion results after making a
+/// minor change inside a method body.
 class SimpleTest extends TimingTest {
-  /**
-   * The path to the file in which code completion is to be performed.
-   */
+  /// The path to the file in which code completion is to be performed.
   String mainFilePath;
 
-  /**
-   * The original content of the file.
-   */
+  /// The original content of the file.
   String originalContent;
 
-  /**
-   * The offset of the cursor when requesting code completion.
-   */
+  /// The offset of the cursor when requesting code completion.
   int cursorOffset;
 
-  /**
-   * A completer that will be completed when code completion results have been
-   * received from the server.
-   */
+  /// A completer that will be completed when code completion results have been
+  /// received from the server.
   Completer completionReceived;
 
-  /**
-   * Initialize a newly created test.
-   */
+  /// Initialize a newly created test.
   SimpleTest();
 
   @override
@@ -81,8 +67,7 @@ f(C c) {
   @override
   Future perform() {
     sendAnalysisUpdateContent({
-      mainFilePath:
-          new ChangeContentOverlay([new SourceEdit(cursorOffset, 0, '.')])
+      mainFilePath: ChangeContentOverlay([SourceEdit(cursorOffset, 0, '.')])
     });
     sendCompletionGetSuggestions(mainFilePath, cursorOffset + 1);
     return completionReceived.future;
@@ -90,7 +75,7 @@ f(C c) {
 
   @override
   Future setUp() {
-    completionReceived = new Completer();
+    completionReceived = Completer();
     onCompletionResults.listen((_) {
       // We only care about the time to the first response.
       if (!completionReceived.isCompleted) {
@@ -99,13 +84,13 @@ f(C c) {
     });
     sendAnalysisSetAnalysisRoots([dirname(mainFilePath)], []);
     sendAnalysisUpdateContent(
-        {mainFilePath: new AddContentOverlay(originalContent)});
-    return new Future.value();
+        {mainFilePath: AddContentOverlay(originalContent)});
+    return Future.value();
   }
 
   @override
   Future tearDown() {
     sendAnalysisSetAnalysisRoots([], []);
-    return new Future.value();
+    return Future.value();
   }
 }

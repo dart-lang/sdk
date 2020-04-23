@@ -14,6 +14,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/code_entry_kind.h"
+#include "vm/compiler/assembler/assembler_base.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
 #include "vm/cpu.h"
@@ -370,14 +371,48 @@ class Assembler : public AssemblerBase {
   void PushRegister(Register r) { Push(r); }
   void PopRegister(Register r) { Pop(r); }
 
+  // Push two registers to the stack; r0 to lower address location.
+  void PushRegisterPair(Register r0, Register r1) {
+    if ((r0 < r1) && (r0 != SP) && (r1 != SP)) {
+      RegList reg_list = (1 << r0) | (1 << r1);
+      PushList(reg_list);
+    } else {
+      PushRegister(r1);
+      PushRegister(r0);
+    }
+  }
+
+  // Pop two registers from the stack; r0 from lower address location.
+  void PopRegisterPair(Register r0, Register r1) {
+    if ((r0 < r1) && (r0 != SP) && (r1 != SP)) {
+      RegList reg_list = (1 << r0) | (1 << r1);
+      PopList(reg_list);
+    } else {
+      PopRegister(r0);
+      PopRegister(r1);
+    }
+  }
+
   void Bind(Label* label);
   void Jump(Label* label) { b(label); }
 
   void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+  void LoadMemoryValue(Register dst, Register base, int32_t offset) {
+    LoadFromOffset(kWord, dst, base, offset, AL);
+  }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
+    CompareWithMemoryValue(value, address);
+  }
+
+  void CompareWithMemoryValue(Register value, Address address) {
     ldr(TMP, address);
     cmp(value, Operand(TMP));
+  }
+
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
+    ldrb(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()));
+    cmp(TMP, Operand(value));
   }
 
   // Misc. functionality
@@ -393,9 +428,6 @@ class Assembler : public AssemblerBase {
 
   // Debugging and bringup support.
   void Breakpoint() override { bkpt(0); }
-  void Stop(const char* message) override;
-
-  static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
   // Data-processing instructions.
   void and_(Register rd, Register rn, Operand o, Condition cond = AL);
@@ -705,6 +737,8 @@ class Assembler : public AssemblerBase {
 
   void CallNullErrorShared(bool save_fpu_registers);
 
+  void CallNullArgErrorShared(bool save_fpu_registers);
+
   // Branch and link to an entry address. Call sequence can be patched.
   void BranchLinkPatchable(const Code& code,
                            CodeEntryKind entry_kind = CodeEntryKind::kNormal);
@@ -733,6 +767,10 @@ class Assembler : public AssemblerBase {
                             Register rn,
                             int32_t value,
                             Condition cond = AL);
+  void SubImmediate(Register rd,
+                    Register rn,
+                    int32_t value,
+                    Condition cond = AL);
   void SubImmediateSetFlags(Register rd,
                             Register rn,
                             int32_t value,
@@ -773,6 +811,7 @@ class Assembler : public AssemblerBase {
 
   void RestoreCodePointer();
   void LoadPoolPointer(Register reg = PP);
+  void SetupGlobalPoolAndDispatchTable();
 
   void LoadIsolate(Register rd);
 
@@ -1113,6 +1152,7 @@ class Assembler : public AssemblerBase {
                                     bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
+                                    bool index_unboxed,
                                     Register array,
                                     Register index);
 
@@ -1121,6 +1161,7 @@ class Assembler : public AssemblerBase {
                                      bool is_external,
                                      intptr_t cid,
                                      intptr_t index_scale,
+                                     bool index_unboxed,
                                      Register array,
                                      Register index);
 

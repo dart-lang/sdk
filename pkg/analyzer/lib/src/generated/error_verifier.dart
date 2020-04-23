@@ -6,11 +6,13 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -21,7 +23,10 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/constructor_fields_verifier.dart';
+import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/duplicate_definition_verifier.dart';
+import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
 import 'package:analyzer/src/error/type_arguments_verifier.dart';
@@ -31,23 +36,13 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
-import 'package:meta/meta.dart';
+import 'package:analyzer/src/task/strong/checker.dart';
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
  * warnings not covered by the parser and resolver.
  */
 class ErrorVerifier extends RecursiveAstVisitor<void> {
-  /**
-   * Properties on the object class which are safe to call on nullable types.
-   *
-   * Note that this must include tear-offs.
-   *
-   * TODO(mfairhurst): Calculate these fields rather than hard-code them.
-   */
-  static final _objectPropertyNames =
-      Set.from(['hashCode', 'runtimeType', 'noSuchMethod', 'toString']);
-
   /**
    * The error reporter by which errors will be reported.
    */
@@ -57,11 +52,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * The current library that is being analyzed.
    */
   final LibraryElement _currentLibrary;
-
-  /**
-   * The type representing the type 'bool'.
-   */
-  InterfaceType _boolType;
 
   /**
    * The type representing the type 'int'.
@@ -125,6 +115,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * creation expression.
    */
   bool _isInConstInstanceCreation = false;
+
+  /// The stack of flags, where `true` at the top (last) of the stack indicates
+  /// that the visitor is in the initializer of a lazy local variable. When the
+  /// top is `false`, we might be not in a local variable, or it is not `lazy`,
+  /// etc.
+  final List<bool> _isInLateLocalVariable = [false];
 
   /**
    * A flag indicating whether the visitor is currently within a native class
@@ -209,54 +205,30 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * The return statements found in the method or function that we are currently
    * visiting that have a return value.
    */
-  List<ReturnStatement> _returnsWith = new List<ReturnStatement>();
+  List<ReturnStatement> _returnsWith = <ReturnStatement>[];
 
   /**
    * The return statements found in the method or function that we are currently
    * visiting that do not have a return value.
    */
-  List<ReturnStatement> _returnsWithout = new List<ReturnStatement>();
+  List<ReturnStatement> _returnsWithout = <ReturnStatement>[];
 
-  /**
-   * This map is initialized when visiting the contents of a class declaration.
-   * If the visitor is not in an enclosing class declaration, then the map is
-   * set to `null`.
-   *
-   * When set the map maps the set of [FieldElement]s in the class to an
-   * [INIT_STATE.NOT_INIT] or [INIT_STATE.INIT_IN_DECLARATION]. The `checkFor*`
-   * methods, specifically [_checkForAllFinalInitializedErrorCodes], can make a
-   * copy of the map to compute error code states. The `checkFor*` methods
-   * should only ever make a copy, or read from this map after it has been set
-   * in [visitClassDeclaration].
-   *
-   * See [visitClassDeclaration], and [_checkForAllFinalInitializedErrorCodes].
-   */
-  Map<FieldElement, INIT_STATE> _initialFieldElementsMap;
+  /// A table mapping name of the library to the export directive which export
+  /// this library.
+  final Map<String, LibraryElement> _nameToExportElement =
+      HashMap<String, LibraryElement>();
 
-  /**
-   * A table mapping name of the library to the export directive which export
-   * this library.
-   */
-  Map<String, LibraryElement> _nameToExportElement =
-      new HashMap<String, LibraryElement>();
+  /// A table mapping name of the library to the import directive which import
+  /// this library.
+  final Map<String, LibraryElement> _nameToImportElement =
+      HashMap<String, LibraryElement>();
 
-  /**
-   * A table mapping name of the library to the import directive which import
-   * this library.
-   */
-  Map<String, LibraryElement> _nameToImportElement =
-      new HashMap<String, LibraryElement>();
+  /// A table mapping names to the exported elements.
+  final Map<String, Element> _exportedElements = HashMap<String, Element>();
 
-  /**
-   * A table mapping names to the exported elements.
-   */
-  Map<String, Element> _exportedElements = new HashMap<String, Element>();
-
-  /**
-   * A set of the names of the variable initializers we are visiting now.
-   */
-  HashSet<String> _namesForReferenceToDeclaredVariableInInitializer =
-      new HashSet<String>();
+  /// A set of the names of the variable initializers we are visiting now.
+  final HashSet<String> _namesForReferenceToDeclaredVariableInInitializer =
+      HashSet<String>();
 
   /**
    * The elements that will be defined later in the current scope, but right
@@ -280,16 +252,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   final RequiredParametersVerifier _requiredParametersVerifier;
   final DuplicateDefinitionVerifier _duplicateDefinitionVerifier;
   TypeArgumentsVerifier _typeArgumentsVerifier;
+  ConstructorFieldsVerifier _constructorFieldsVerifier;
 
   /**
    * Initialize a newly created error verifier.
    */
   ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
       this._typeProvider, this._inheritanceManager, bool enableSuperMixins,
-      {this.disableConflictingGenericsCheck: false})
+      {this.disableConflictingGenericsCheck = false})
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
-            new _UninstantiatedBoundChecker(errorReporter),
+            _UninstantiatedBoundChecker(errorReporter),
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
         _duplicateDefinitionVerifier =
             DuplicateDefinitionVerifier(_currentLibrary, errorReporter) {
@@ -300,12 +273,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _isInStaticVariableDeclaration = false;
     _isInConstructorInitializer = false;
     _isInStaticMethod = false;
-    _boolType = _typeProvider.boolType;
     _intType = _typeProvider.intType;
-    _typeSystem = _currentLibrary.context.typeSystem;
+    _typeSystem = _currentLibrary.typeSystem;
     _options = _currentLibrary.context.analysisOptions;
     _typeArgumentsVerifier =
-        TypeArgumentsVerifier(_options, _typeSystem, _errorReporter);
+        TypeArgumentsVerifier(_options, _currentLibrary, _errorReporter);
+    _constructorFieldsVerifier = ConstructorFieldsVerifier(
+      typeSystem: _typeSystem,
+      errorReporter: _errorReporter,
+    );
   }
 
   /**
@@ -333,7 +309,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _enclosingClass = classElement;
   }
 
-  bool get _isNonNullable =>
+  bool get _isNonNullableByDefault =>
       _featureSet?.isEnabled(Feature.non_nullable) ?? false;
 
   @override
@@ -358,20 +334,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitAssertInitializer(AssertInitializer node) {
-    _checkForNonBoolExpression(node.condition,
-        errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION);
-    super.visitAssertInitializer(node);
-  }
-
-  @override
-  void visitAssertStatement(AssertStatement node) {
-    _checkForNonBoolExpression(node.condition,
-        errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION);
-    super.visitAssertStatement(node);
-  }
-
-  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     TokenType operatorType = node.operator.type;
     Expression lhs = node.leftHandSide;
@@ -381,7 +343,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForInvalidAssignment(lhs, rhs);
     } else {
       _checkForArgumentTypeNotAssignableForArgument(rhs);
-      _checkForNullableDereference(lhs);
+    }
+    if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
+      _checkForDeadNullCoalesce(
+          getReadType(node.leftHandSide), node.rightHandSide);
     }
     _checkForAssignmentToFinal(lhs);
     super.visitAssignmentExpression(node);
@@ -393,6 +358,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, node.awaitKeyword);
     }
+    _checkForAwaitInLateLocalVariableInitializer(node);
     super.visitAwaitExpression(node);
   }
 
@@ -401,20 +367,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     Token operator = node.operator;
     TokenType type = operator.type;
     if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
-      String lexeme = operator.lexeme;
-      _checkForAssignability(node.leftOperand, _boolType,
-          StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
-      _checkForAssignability(node.rightOperand, _boolType,
-          StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
       _checkForUseOfVoidResult(node.rightOperand);
     } else if (type == TokenType.EQ_EQ || type == TokenType.BANG_EQ) {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand,
           promoteParameterToNullable: true);
     } else if (type != TokenType.QUESTION_QUESTION) {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
-      _checkForNullableDereference(node.leftOperand);
     } else {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
+    }
+
+    if (type == TokenType.QUESTION_QUESTION) {
+      _checkForDeadNullCoalesce(
+          getReadType(node.leftOperand), node.rightOperand);
     }
 
     _checkForUseOfVoidResult(node.leftOperand);
@@ -424,7 +389,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
-    _hiddenElements = new HiddenElements(_hiddenElements, node);
+    _hiddenElements = HiddenElements(_hiddenElements, node);
     try {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitBlock(node);
@@ -442,8 +407,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     try {
       _inAsync = node.isAsynchronous;
       _inGenerator = node.isGenerator;
-      _returnsWith = new List<ReturnStatement>();
-      _returnsWithout = new List<ReturnStatement>();
+      _returnsWith = <ReturnStatement>[];
+      _returnsWithout = <ReturnStatement>[];
       super.visitBlockFunctionBody(node);
     } finally {
       _inAsync = wasInAsync;
@@ -460,7 +425,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       Element labelElement = labelNode.staticElement;
       if (labelElement is LabelElementImpl && labelElement.isOnSwitchMember) {
         _errorReporter.reportErrorForNode(
-            ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode);
+            CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode);
       }
     }
   }
@@ -472,7 +437,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     try {
       _isInCatchClause = true;
       _checkForTypeAnnotationDeferredClass(node.exceptionType);
-      _checkForPotentiallyNullableType(node.exceptionType);
+      _checkForNullableTypeInCatchClause(node.exceptionType);
       super.visitCatchClause(node);
     } finally {
       _isInCatchClause = previousIsInCatchClause;
@@ -490,7 +455,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _duplicateDefinitionVerifier.checkClass(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-      _checkForMemberWithClassName();
       _checkForNoDefaultSuperConstructorImplicit(node);
       _checkForConflictingTypeVariableErrorCodes();
       TypeName superclass = node.extendsClause?.superclass;
@@ -504,14 +468,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkClassInheritance(node, superclass, withClause, implementsClause);
       }
 
-      _initializeInitialFieldElementsMap(_enclosingClass.fields);
+      _constructorFieldsVerifier.enterClass(node);
       _checkForFinalNotInitializedInClass(members);
       _checkForBadFunctionUse(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       super.visitClassDeclaration(node);
     } finally {
       _isInNativeClass = false;
-      _initialFieldElementsMap = null;
+      _constructorFieldsVerifier.leaveClass();
       _enclosingClass = outerClass;
     }
   }
@@ -552,12 +516,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitConditionalExpression(ConditionalExpression node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitConditionalExpression(node);
-  }
-
-  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -569,7 +527,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
       _checkForConstConstructorWithNonFinalField(node, constructorElement);
       _checkForConstConstructorWithNonConstSuper(node);
-      _checkForAllFinalInitializedErrorCodes(node);
+      _constructorFieldsVerifier.verify(node);
       _checkForRedirectingConstructorErrorCodes(node);
       _checkForMultipleSuperInitializers(node);
       _checkForRecursiveConstructorRedirect(node, constructorElement);
@@ -610,7 +568,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       if (labelElement is LabelElementImpl &&
           labelElement.isOnSwitchStatement) {
         _errorReporter.reportErrorForNode(
-            ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH, labelNode);
+            CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH, labelNode);
       }
     }
   }
@@ -620,12 +578,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForInvalidAssignment(node.identifier, node.defaultValue);
     _checkForDefaultValueInFunctionTypedParameter(node);
     super.visitDefaultFormalParameter(node);
-  }
-
-  @override
-  void visitDoStatement(DoStatement node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitDoStatement(node);
   }
 
   @override
@@ -648,6 +600,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForAmbiguousExport(node, exportElement, exportedLibrary);
       _checkForExportDuplicateLibraryName(node, exportElement, exportedLibrary);
       _checkForExportInternalLibrary(node, exportElement);
+      _checkForExportLegacySymbol(node);
     }
     super.visitExportDirective(node);
   }
@@ -683,7 +636,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _enclosingExtension = node.declaredElement;
     _duplicateDefinitionVerifier.checkExtension(node);
     _checkForFinalNotInitializedInClass(node.members);
-    _checkForMismatchedAccessorTypesInExtension(node);
+
+    GetterSetterTypesVerifier(
+      typeSystem: _typeSystem,
+      errorReporter: _errorReporter,
+    ).checkExtension(node);
+
     final name = node.name;
     if (name != null) {
       _checkForBuiltInIdentifierAsName(
@@ -708,6 +666,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     try {
       _checkForNotInitializedNonNullableStaticField(node);
       _checkForWrongTypeParameterVarianceInField(node);
+      _checkForLateFinalFieldWithConstConstructor(node);
       super.visitFieldDeclaration(node);
     } finally {
       _isInStaticVariableDeclaration = false;
@@ -764,21 +723,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    if (node.condition != null) {
-      _checkForNonBoolCondition(node.condition);
-    }
     if (node.variables != null) {
       _duplicateDefinitionVerifier.checkForVariables(node.variables);
     }
     super.visitForPartsWithDeclarations(node);
-  }
-
-  @override
-  void visitForPartsWithExpression(ForPartsWithExpression node) {
-    if (node.condition != null) {
-      _checkForNonBoolCondition(node.condition);
-    }
-    super.visitForPartsWithExpression(node);
   }
 
   @override
@@ -791,24 +739,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
       SimpleIdentifier identifier = node.name;
-      String methodName = "";
-      if (identifier != null) {
-        methodName = identifier.name;
-      }
       _enclosingFunction = functionElement;
       TypeAnnotation returnType = node.returnType;
-      if (node.isSetter || node.isGetter) {
-        _checkForMismatchedAccessorTypes(node, methodName);
-        if (node.isSetter) {
-          FunctionExpression functionExpression = node.functionExpression;
-          if (functionExpression != null) {
-            _checkForWrongNumberOfParametersForSetter(
-                identifier, functionExpression.parameters);
-          }
-          _checkForNonVoidReturnTypeForSetter(returnType);
-        }
+      if (node.isGetter) {
+        GetterSetterTypesVerifier(
+          typeSystem: _typeSystem,
+          errorReporter: _errorReporter,
+        ).checkGetter(node.name, node.declaredElement);
       }
       if (node.isSetter) {
+        FunctionExpression functionExpression = node.functionExpression;
+        if (functionExpression != null) {
+          _checkForWrongNumberOfParametersForSetter(
+              identifier, functionExpression.parameters);
+        }
+        _checkForNonVoidReturnTypeForSetter(returnType);
         _checkForInvalidModifierOnBody(node.functionExpression.body,
             CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
       }
@@ -823,6 +768,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
+    _isInLateLocalVariable.add(false);
     // If this function expression is wrapped in a function declaration, don't
     // change the enclosingFunction field.
     if (node.parent is! FunctionDeclaration) {
@@ -836,6 +782,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else {
       super.visitFunctionExpression(node);
     }
+    _isInLateLocalVariable.removeLast();
   }
 
   @override
@@ -847,8 +794,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     DartType expressionType = functionExpression.staticType;
-    if (!_checkForNullableDereference(functionExpression) &&
-        !_checkForUseOfVoidResult(functionExpression) &&
+    if (!_checkForUseOfVoidResult(functionExpression) &&
         !_checkForUseOfNever(functionExpression) &&
         node.staticElement == null &&
         !_isFunctionType(expressionType)) {
@@ -858,7 +804,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else if (expressionType is FunctionType) {
       _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
     }
-    _checkForNullableDereference(functionExpression);
     _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
     super.visitFunctionExpressionInvocation(node);
   }
@@ -867,7 +812,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
-    _checkForDefaultValueInFunctionTypeAlias(node);
     _checkForTypeAliasCannotReferenceItself(node, node.declaredElement);
     super.visitFunctionTypeAlias(node);
   }
@@ -906,18 +850,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitIfElement(IfElement node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitIfElement(node);
-  }
-
-  @override
-  void visitIfStatement(IfStatement node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitIfStatement(node);
-  }
-
-  @override
   void visitImplementsClause(ImplementsClause node) {
     node.interfaces.forEach(_checkForImplicitDynamicType);
     super.visitImplementsClause(node);
@@ -943,8 +875,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     _checkForArgumentTypeNotAssignableForArgument(node.index);
-    if (!node.isNullAware) {
-      _checkForNullableDereference(node.realTarget);
+    if (node.isNullAware) {
+      _checkForUnnecessaryNullAware(
+        node.realTarget,
+        node.question ?? node.period ?? node.leftBracket,
+      );
     }
     super.visitIndexExpression(node);
   }
@@ -1013,6 +948,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _isInStaticMethod = node.isStatic;
       _enclosingFunction = node.declaredElement;
       TypeAnnotation returnType = node.returnType;
+      if (node.isStatic && node.isGetter) {
+        GetterSetterTypesVerifier(
+          typeSystem: _typeSystem,
+          errorReporter: _errorReporter,
+        ).checkGetter(node.name, node.declaredElement);
+      }
       if (node.isSetter) {
         _checkForInvalidModifierOnBody(
             node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
@@ -1048,16 +989,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForUnnecessaryNullAware(target, node.operator);
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
-      _checkForNullableDereference(node.function);
     }
     _typeArgumentsVerifier.checkMethodInvocation(node);
-    _checkForNullableDereference(methodName);
     _requiredParametersVerifier.visitMethodInvocation(node);
-    if (!node.isNullAware &&
-        methodName.name != 'toString' &&
-        methodName.name != 'noSuchMethod') {
-      _checkForNullableDereference(target);
-    }
     super.visitMethodInvocation(node);
   }
 
@@ -1072,7 +1006,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _duplicateDefinitionVerifier.checkMixin(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-      _checkForMemberWithClassName();
       _checkForConflictingTypeVariableErrorCodes();
 
       OnClause onClause = node.onClause;
@@ -1083,13 +1016,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkMixinInheritance(node, onClause, implementsClause);
       }
 
-      _initializeInitialFieldElementsMap(_enclosingClass.fields);
       _checkForFinalNotInitializedInClass(members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);
       super.visitMixinDeclaration(node);
     } finally {
-      _initialFieldElementsMap = null;
       _enclosingClass = outerClass;
     }
   }
@@ -1119,7 +1050,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else {
       _checkForAssignmentToFinal(node.operand);
       _checkForIntNotAssignable(node.operand);
-      _checkForNullableDereference(node.operand);
     }
     super.visitPostfixExpression(node);
   }
@@ -1133,11 +1063,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForStaticAccessToInstanceMember(typeReference, name);
       _checkForInstanceAccessToStaticMember(typeReference, node.prefix, name);
     }
-    String property = node.identifier.name;
-    if (node.staticElement is ExecutableElement &&
-        !_objectPropertyNames.contains(property)) {
-      _checkForNullableDereference(node.prefix);
-    }
     super.visitPrefixedIdentifier(node);
   }
 
@@ -1145,13 +1070,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitPrefixExpression(PrefixExpression node) {
     TokenType operatorType = node.operator.type;
     Expression operand = node.operand;
-    if (operatorType == TokenType.BANG) {
-      _checkForNonBoolNegationExpression(operand);
-    } else {
+    if (operatorType != TokenType.BANG) {
       if (operatorType.isIncrementOperator) {
         _checkForAssignmentToFinal(operand);
       }
-      _checkForNullableDereference(operand);
       _checkForUseOfVoidResult(operand);
       _checkForIntNotAssignable(operand);
     }
@@ -1160,17 +1082,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    ClassElement typeReference =
-        ElementResolver.getTypeReference(node.realTarget);
+    var target = node.realTarget;
+    ClassElement typeReference = ElementResolver.getTypeReference(target);
     SimpleIdentifier propertyName = node.propertyName;
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
         typeReference, node.target, propertyName);
-    if (!node.isNullAware &&
-        !_objectPropertyNames.contains(propertyName.name)) {
-      _checkForNullableDereference(node.realTarget);
-    }
-    _checkForUnnecessaryNullAware(node.target, node.operator);
+    _checkForUnnecessaryNullAware(target, node.operator);
     super.visitPropertyAccess(node);
   }
 
@@ -1247,9 +1165,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSpreadElement(SpreadElement node) {
-    if (!node.isNullAware) {
-      _checkForNullableDereference(node.expression);
-    } else {
+    if (node.isNullAware) {
       _checkForUnnecessaryNullAware(node.expression, node.spreadOperator);
     }
     super.visitSpreadElement(node);
@@ -1295,7 +1211,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitThrowExpression(ThrowExpression node) {
     _checkForConstEvalThrowsException(node);
-    _checkForNullableDereference(node.expression);
     _checkForUseOfVoidResult(node.expression);
     super.visitThrowExpression(node);
   }
@@ -1380,40 +1295,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    _isInLateLocalVariable.add(node.variables.isLate);
+
     _checkForFinalNotInitialized(node.variables);
     super.visitVariableDeclarationStatement(node);
-  }
 
-  @override
-  void visitWhileStatement(WhileStatement node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitWhileStatement(node);
+    _isInLateLocalVariable.removeLast();
   }
 
   @override
   void visitWithClause(WithClause node) {
     node.mixinTypes.forEach(_checkForImplicitDynamicType);
     super.visitWithClause(node);
-  }
-
-  @override
-  void visitYieldStatement(YieldStatement node) {
-    if (_inGenerator) {
-      _checkForYieldOfInvalidType(node.expression, node.star != null);
-      if (node.star != null) {
-        _checkForNullableDereference(node.expression);
-      }
-    } else {
-      CompileTimeErrorCode errorCode;
-      if (node.star != null) {
-        errorCode = CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR;
-      } else {
-        errorCode = CompileTimeErrorCode.YIELD_IN_NON_GENERATOR;
-      }
-      _errorReporter.reportErrorForNode(errorCode, node);
-    }
-    _checkForUseOfVoidResult(node.expression);
-    super.visitYieldStatement(node);
   }
 
   /**
@@ -1483,165 +1376,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     // If we reach here, this is an invalid return
-    _errorReporter.reportErrorForNode(
-        StaticWarningCode.RETURN_WITHOUT_VALUE, statement);
+    _errorReporter.reportErrorForToken(
+        StaticWarningCode.RETURN_WITHOUT_VALUE, statement.returnKeyword);
     return;
-  }
-
-  /**
-   * Verify that the given [constructor] declaration does not violate any of the
-   * error codes relating to the initialization of fields in the enclosing
-   * class.
-   *
-   * See [_initialFieldElementsMap],
-   * [StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR], and
-   * [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES].
-   */
-  void _checkForAllFinalInitializedErrorCodes(
-      ConstructorDeclaration constructor) {
-    if (constructor.factoryKeyword != null ||
-        constructor.redirectedConstructor != null ||
-        constructor.externalKeyword != null) {
-      return;
-    }
-    // Ignore if native class.
-    if (_isInNativeClass) {
-      return;
-    }
-
-    Map<FieldElement, INIT_STATE> fieldElementsMap =
-        new HashMap<FieldElement, INIT_STATE>.from(_initialFieldElementsMap);
-    // Visit all of the field formal parameters
-    NodeList<FormalParameter> formalParameters =
-        constructor.parameters.parameters;
-    for (FormalParameter formalParameter in formalParameters) {
-      FormalParameter baseParameter(FormalParameter parameter) {
-        if (parameter is DefaultFormalParameter) {
-          return parameter.parameter;
-        }
-        return parameter;
-      }
-
-      FormalParameter parameter = baseParameter(formalParameter);
-      if (parameter is FieldFormalParameter) {
-        FieldElement fieldElement =
-            (parameter.declaredElement as FieldFormalParameterElementImpl)
-                .field;
-        INIT_STATE state = fieldElementsMap[fieldElement];
-        if (state == INIT_STATE.NOT_INIT) {
-          fieldElementsMap[fieldElement] = INIT_STATE.INIT_IN_FIELD_FORMAL;
-        } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
-          if (fieldElement.isFinal || fieldElement.isConst) {
-            _errorReporter.reportErrorForNode(
-                StaticWarningCode
-                    .FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
-                formalParameter.identifier,
-                [fieldElement.displayName]);
-          }
-        } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
-          if (fieldElement.isFinal || fieldElement.isConst) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
-                formalParameter.identifier,
-                [fieldElement.displayName]);
-          }
-        }
-      }
-    }
-    // Visit all of the initializers
-    NodeList<ConstructorInitializer> initializers = constructor.initializers;
-    for (ConstructorInitializer constructorInitializer in initializers) {
-      if (constructorInitializer is RedirectingConstructorInvocation) {
-        return;
-      }
-      if (constructorInitializer is ConstructorFieldInitializer) {
-        SimpleIdentifier fieldName = constructorInitializer.fieldName;
-        Element element = fieldName.staticElement;
-        if (element is FieldElement) {
-          INIT_STATE state = fieldElementsMap[element];
-          if (state == INIT_STATE.NOT_INIT) {
-            fieldElementsMap[element] = INIT_STATE.INIT_IN_INITIALIZERS;
-          } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
-            if (element.isFinal || element.isConst) {
-              _errorReporter.reportErrorForNode(
-                  StaticWarningCode
-                      .FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
-                  fieldName);
-            }
-          } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode
-                    .FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-                fieldName);
-          } else if (state == INIT_STATE.INIT_IN_INITIALIZERS) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-                fieldName,
-                [element.displayName]);
-          }
-        }
-      }
-    }
-
-    // Prepare lists of not initialized fields.
-    List<FieldElement> notInitFinalFields = <FieldElement>[];
-    List<FieldElement> notInitNonNullableFields = <FieldElement>[];
-    fieldElementsMap.forEach((FieldElement field, INIT_STATE state) {
-      if (state != INIT_STATE.NOT_INIT) return;
-      if (field.isLate) return;
-
-      if (field.isFinal) {
-        notInitFinalFields.add(field);
-      } else if (_isNonNullable &&
-          _typeSystem.isPotentiallyNonNullable(field.type)) {
-        notInitNonNullableFields.add(field);
-      }
-    });
-
-    // Visit all of the states in the map to ensure that none were never
-    // initialized.
-    fieldElementsMap.forEach((FieldElement fieldElement, INIT_STATE state) {
-      if (state == INIT_STATE.NOT_INIT) {
-        if (fieldElement.isConst) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
-              constructor.returnType,
-              [fieldElement.name]);
-        }
-      }
-    });
-
-    if (notInitFinalFields.isNotEmpty) {
-      List<String> names = notInitFinalFields.map((item) => item.name).toList();
-      names.sort();
-      if (names.length == 1) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
-            constructor.returnType,
-            names);
-      } else if (names.length == 2) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
-            constructor.returnType,
-            names);
-      } else {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
-            constructor.returnType,
-            [names[0], names[1], names.length - 2]);
-      }
-    }
-
-    if (notInitNonNullableFields.isNotEmpty) {
-      var names = notInitNonNullableFields.map((f) => f.name).toList()..sort();
-      for (var name in names) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode
-                .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
-            constructor.returnType,
-            [name]);
-      }
-    }
   }
 
   /**
@@ -1728,7 +1465,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR,
             redirectedConstructor,
-            [constructorStrName, redirectedType.displayName]);
+            [constructorStrName, redirectedType]);
       }
       return;
     }
@@ -1738,14 +1475,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // Report specific problem when return type is incompatible
     FunctionType constructorType = declaration.declaredElement.type;
     DartType constructorReturnType = constructorType.returnType;
-    if (!_typeSystem.isAssignableTo(redirectedReturnType, constructorReturnType,
-        featureSet: _featureSet)) {
+    if (!_typeSystem.isAssignableTo2(
+        redirectedReturnType, constructorReturnType)) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE,
           redirectedConstructor,
           [redirectedReturnType, constructorReturnType]);
       return;
-    } else if (!_typeSystem.isSubtypeOf(redirectedType, constructorType)) {
+    } else if (!_typeSystem.isSubtypeOf2(redirectedType, constructorType)) {
       // Check parameters.
       _errorReporter.reportErrorForNode(
           StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE,
@@ -1817,7 +1554,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     // check exported names
     Namespace namespace =
-        new NamespaceBuilder().createExportNamespaceForDirective(exportElement);
+        NamespaceBuilder().createExportNamespaceForDirective(exportElement);
     Map<String, Element> definedNames = namespace.definedNames;
     for (String name in definedNames.keys) {
       Element element = definedNames[name];
@@ -1846,7 +1583,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       String name = element.displayName;
       List<Element> conflictingMembers = element.conflictingElements;
       int count = conflictingMembers.length;
-      List<String> libraryNames = new List<String>(count);
+      List<String> libraryNames = List<String>(count);
       for (int i = 0; i < count; i++) {
         libraryNames[i] = _getLibraryName(conflictingMembers[i]);
       }
@@ -1942,34 +1679,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check that the static type of the given expression is assignable to the
-   * given type. If it isn't, report an error with the given error code. The
-   * [type] is the type that the expression must be assignable to. The
-   * [errorCode] is the error code to be reported. The [arguments] are the
-   * arguments to pass in when creating the error.
-   */
-  void _checkForAssignability(Expression expression, InterfaceType type,
-      ErrorCode errorCode, List<Object> arguments) {
-    if (expression == null) {
-      return;
-    }
-    DartType expressionType = expression.staticType;
-    if (expressionType == null) {
-      return;
-    }
-    if (_typeSystem.isAssignableTo(expressionType, type,
-        featureSet: _featureSet)) {
-      return;
-    }
-    if (expressionType.element == type.element) {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, expression);
-    } else {
-      _errorReporter.reportErrorForNode(errorCode, expression, arguments);
-    }
-  }
-
   bool _checkForAssignableExpression(
       Expression expression, DartType expectedStaticType, ErrorCode errorCode) {
     DartType actualStaticType = getStaticType(expression);
@@ -1983,9 +1692,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType actualStaticType,
       DartType expectedStaticType,
       ErrorCode errorCode) {
-    if (!_typeSystem.isAssignableTo(actualStaticType, expectedStaticType,
-        featureSet: _featureSet)) {
-      _errorReporter.reportTypeErrorForNode(
+    if (!_typeSystem.isAssignableTo2(actualStaticType, expectedStaticType)) {
+      _errorReporter.reportErrorForNode(
           errorCode, expression, [actualStaticType, expectedStaticType]);
       return false;
     }
@@ -2056,6 +1764,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForAwaitInLateLocalVariableInitializer(AwaitExpression node) {
+    if (_isInLateLocalVariable.last) {
+      _errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
+        node.awaitKeyword,
+      );
+    }
+  }
+
   /**
    * Verifies that the class is not named `Function` and that it doesn't
    * extends/implements/mixes in `Function`.
@@ -2070,9 +1787,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (extendsClause != null) {
-      InterfaceType superclassType = _enclosingClass.supertype;
-      ClassElement superclassElement = superclassType?.element;
-      if (superclassElement != null && superclassElement.name == "Function") {
+      Element superElement = extendsClause.superclass.name.staticElement;
+      if (superElement != null && superElement.name == "Function") {
         _errorReporter.reportErrorForNode(
             HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
       }
@@ -2158,6 +1874,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
    */
   void _checkForCaseBlocksNotTerminated(SwitchStatement statement) {
+    if (_isNonNullableByDefault) return;
+
     NodeList<SwitchMember> members = statement.members;
     int lastMember = members.length - 1;
     for (int i = 0; i < lastMember; i++) {
@@ -2189,9 +1907,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
       // find inherited property accessor
       ExecutableElement inherited = _inheritanceManager.getInherited(
-          enclosingType, new Name(libraryUri, name));
+          enclosingType, Name(libraryUri, name));
       inherited ??= _inheritanceManager.getInherited(
-          enclosingType, new Name(libraryUri, '$name='));
+          enclosingType, Name(libraryUri, '$name='));
 
       if (method.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(
@@ -2216,9 +1934,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
       // find inherited method or property accessor
       ExecutableElement inherited = _inheritanceManager.getInherited(
-          enclosingType, new Name(libraryUri, name));
+          enclosingType, Name(libraryUri, name));
       inherited ??= _inheritanceManager.getInherited(
-          enclosingType, new Name(libraryUri, '$name='));
+          enclosingType, Name(libraryUri, '$name='));
 
       if (accessor.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(
@@ -2250,16 +1968,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       visitedClasses.add(element);
 
       if (element.typeParameters.isNotEmpty) {
-        type = _toLegacyType(type);
-        var oldType = interfaces[element];
-        if (oldType == null) {
-          interfaces[element] = type;
-        } else if (type != oldType) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-            node,
-            [_enclosingClass.name, oldType, type],
-          );
+        if (_typeSystem.isNonNullableByDefault) {
+          type = _typeSystem.normalize(type);
+          var oldType = interfaces[element];
+          if (oldType == null) {
+            interfaces[element] = type;
+          } else {
+            try {
+              var result = _typeSystem.topMerge(oldType, type);
+              interfaces[element] = result;
+            } catch (_) {
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+                node,
+                [_enclosingClass.name, oldType, type],
+              );
+            }
+          }
+        } else {
+          type = _toLegacyType(type);
+          var oldType = interfaces[element];
+          if (oldType == null) {
+            interfaces[element] = type;
+          } else if (type != oldType) {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+              node,
+              [_enclosingClass.name, oldType, type],
+            );
+          }
         }
       }
 
@@ -2370,15 +2107,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
         constructor.returnType,
-        [supertype.displayName]);
+        [supertype]);
   }
 
   /**
    * Verify that if the given [constructor] declaration is 'const' then there
    * are no non-final instance variable. The [constructorElement] is the
    * constructor element.
-   *
-   * See [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD].
    */
   void _checkForConstConstructorWithNonFinalField(
       ConstructorDeclaration constructor,
@@ -2391,8 +2126,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!classElement.hasNonFinalField) {
       return;
     }
-
-    _errorReporter.reportErrorForNode(
+    // TODO(brianwilkerson) Stop generating
+    //  CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD when either
+    //  CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER or
+    //  CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD is also generated.
+    _errorReporter.reportErrorForName(
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
         constructor);
   }
@@ -2446,9 +2184,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * [ConstructorName] from the [InstanceCreationExpression], this is the AST
    * node that the error is attached to. The [type] is the type being
    * constructed with this [InstanceCreationExpression].
-   *
-   * See [StaticWarningCode.CONST_WITH_ABSTRACT_CLASS], and
-   * [StaticWarningCode.NEW_WITH_ABSTRACT_CLASS].
    */
   void _checkForConstOrNewWithAbstractClass(
       InstanceCreationExpression expression,
@@ -2461,15 +2196,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             (expression as InstanceCreationExpressionImpl).isImplicit;
         if (!isImplicit) {
           _errorReporter.reportErrorForNode(
-              expression.isConst
-                  ? StaticWarningCode.CONST_WITH_ABSTRACT_CLASS
-                  : StaticWarningCode.NEW_WITH_ABSTRACT_CLASS,
-              typeName);
+              StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS, typeName);
         } else {
-          // TODO(brianwilkerson/jwren) Create a new different StaticWarningCode
-          // which does not call out the new keyword so explicitly.
           _errorReporter.reportErrorForNode(
-              StaticWarningCode.NEW_WITH_ABSTRACT_CLASS, typeName);
+              StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS, typeName);
         }
       }
     }
@@ -2515,8 +2245,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForConstWithNonConst(InstanceCreationExpression expression) {
     ConstructorElement constructorElement = expression.staticElement;
     if (constructorElement != null && !constructorElement.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_WITH_NON_CONST, expression);
+      if (expression.keyword != null) {
+        _errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.CONST_WITH_NON_CONST, expression.keyword);
+      } else {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_WITH_NON_CONST, expression);
+      }
     }
   }
 
@@ -2564,22 +2299,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that there are no default parameters in the given function type
-   * [alias].
-   *
-   * See [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS].
-   */
-  void _checkForDefaultValueInFunctionTypeAlias(FunctionTypeAlias alias) {
-    FormalParameterList formalParameterList = alias.parameters;
-    NodeList<FormalParameter> parameters = formalParameterList.parameters;
-    for (FormalParameter parameter in parameters) {
-      if (parameter is DefaultFormalParameter) {
-        if (parameter.defaultValue != null) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS, alias);
-        }
-      }
+  void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
+    if (!_isNonNullableByDefault) return;
+
+    if (_typeSystem.isStrictlyNonNullable(lhsType)) {
+      _errorReporter.reportErrorForNode(
+        StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION,
+        rhs,
+      );
     }
   }
 
@@ -2633,7 +2360,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     int count = directives.length;
     if (count > 0) {
       Map<PrefixElement, List<ImportDirective>> prefixToDirectivesMap =
-          new HashMap<PrefixElement, List<ImportDirective>>();
+          HashMap<PrefixElement, List<ImportDirective>>();
       for (int i = 0; i < count; i++) {
         Directive directive = directives[i];
         if (directive is ImportDirective) {
@@ -2643,7 +2370,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             if (element is PrefixElement) {
               List<ImportDirective> elements = prefixToDirectivesMap[element];
               if (elements == null) {
-                elements = new List<ImportDirective>();
+                elements = <ImportDirective>[];
                 prefixToDirectivesMap[element] = elements;
               }
               elements.add(directive);
@@ -2662,17 +2389,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * information in the for-each part.
    */
   bool _checkForEachParts(ForEachParts node, SimpleIdentifier variable) {
-    if (_checkForNullableDereference(node.iterable)) {
-      return false;
-    }
-
     if (_checkForUseOfVoidResult(node.iterable)) {
       return false;
     }
 
     DartType iterableType = getStaticType(node.iterable);
-    if (iterableType.isDynamic) {
-      return false;
+
+    // TODO(scheglov) use NullableDereferenceVerifier
+    if (_isNonNullableByDefault) {
+      if (_typeSystem.isNullable(iterableType)) {
+        return false;
+      }
     }
 
     // The type of the loop variable.
@@ -2700,38 +2427,46 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
     iterableType = iterableType.resolveToBound(_typeProvider.objectType);
 
-    ClassElement sequenceElement = awaitKeyword != null
-        ? _typeProvider.streamElement
-        : _typeProvider.iterableElement;
+    var requiredSequenceType = awaitKeyword != null
+        ? _typeProvider.streamDynamicType
+        : _typeProvider.iterableDynamicType;
 
-    DartType bestIterableType;
+    if (_typeSystem.isTop(iterableType)) {
+      iterableType = requiredSequenceType;
+    }
+
+    if (!_typeSystem.isAssignableTo2(iterableType, requiredSequenceType)) {
+      _errorReporter.reportErrorForNode(
+        StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
+        node.iterable,
+        [iterableType, loopTypeName],
+      );
+      return false;
+    }
+
+    DartType sequenceElementType;
     if (iterableType is InterfaceTypeImpl) {
+      var sequenceElement = awaitKeyword != null
+          ? _typeProvider.streamElement
+          : _typeProvider.iterableElement;
       var sequenceType = iterableType.asInstanceOf(sequenceElement);
       if (sequenceType != null) {
-        bestIterableType = sequenceType.typeArguments[0];
+        sequenceElementType = sequenceType.typeArguments[0];
       }
     }
 
-    // Allow it to be a supertype of Iterable<T> (basically just Object) and do
-    // an implicit downcast to Iterable<dynamic>.
-    if (bestIterableType == null) {
-      if (iterableType == _typeProvider.objectType) {
-        bestIterableType = DynamicTypeImpl.instance;
-      }
+    if (sequenceElementType == null) {
+      return true;
     }
 
-    if (bestIterableType == null) {
-      _errorReporter.reportTypeErrorForNode(
-          StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
-          node.iterable,
-          [iterableType, loopTypeName]);
-    } else if (!_typeSystem.isAssignableTo(bestIterableType, variableType,
-        featureSet: _featureSet)) {
-      _errorReporter.reportTypeErrorForNode(
-          StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
-          node.iterable,
-          [iterableType, loopTypeName, variableType]);
+    if (!_typeSystem.isAssignableTo2(sequenceElementType, variableType)) {
+      _errorReporter.reportErrorForNode(
+        StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+        node.iterable,
+        [iterableType, loopTypeName, variableType],
+      );
     }
+
     return true;
   }
 
@@ -2803,6 +2538,33 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
         directive,
         [directive.uri]);
+  }
+
+  /**
+   * See [CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL].
+   */
+  void _checkForExportLegacySymbol(ExportDirective node) {
+    if (!_isNonNullableByDefault) {
+      return;
+    }
+
+    var element = node.element as ExportElement;
+    // TODO(scheglov) Expose from ExportElement.
+    var namespace =
+        NamespaceBuilder().createExportNamespaceForDirective(element);
+
+    for (var element in namespace.definedNames.values) {
+      if (!element.library.isNonNullableByDefault) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL,
+          node.uri,
+          [element.displayName],
+        );
+        // Stop after the first symbol.
+        // We don't want to list them all.
+        break;
+      }
+    }
   }
 
   /**
@@ -2917,21 +2679,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (staticType == null) {
       return;
     }
-    if (_typeSystem.isAssignableTo(staticType, fieldType,
-        featureSet: _featureSet)) {
+    if (_typeSystem.isAssignableTo2(staticType, fieldType)) {
       return;
     }
     // report problem
     if (_isEnclosingConstructorConst) {
       // TODO(paulberry): this error should be based on the actual type of the
       // constant, not the static type.  See dartbug.com/21119.
-      _errorReporter.reportTypeErrorForNode(
+      _errorReporter.reportErrorForNode(
           CheckedModeCompileTimeErrorCode
               .CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
           expression,
           [staticType, fieldType]);
     }
-    _errorReporter.reportTypeErrorForNode(
+    _errorReporter.reportErrorForNode(
         StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
         expression,
         [staticType, fieldType]);
@@ -3021,7 +2782,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               CompileTimeErrorCode.CONST_NOT_INITIALIZED,
               variable.name,
               [variable.name.name]);
-        } else if (!_isNonNullable || !variable.isLate) {
+        } else if (!_isNonNullableByDefault || !variable.isLate) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.FINAL_NOT_INITIALIZED,
               variable.name,
@@ -3042,7 +2803,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForFinalNotInitializedInClass(List<ClassMember> members) {
     for (ClassMember classMember in members) {
       if (classMember is ConstructorDeclaration) {
-        return;
+        if (_isNonNullableByDefault) {
+          if (classMember.factoryKeyword == null) {
+            return;
+          }
+        } else {
+          return;
+        }
       }
     }
     for (ClassMember classMember in members) {
@@ -3133,7 +2900,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       typeArguments: [NeverTypeImpl.instance],
       nullabilitySuffix: NullabilitySuffix.star,
     );
-    if (!_typeSystem.isSubtypeOf(lowerBound, returnType)) {
+    if (!_typeSystem.isSubtypeOf2(lowerBound, returnType)) {
       _errorReporter.reportErrorForNode(errorCode, returnTypeName);
     }
   }
@@ -3436,6 +3203,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (lhs == null || rhs == null) {
       return;
     }
+
+    if (identical(lhs.staticType, NeverTypeImpl.instance)) {
+      return;
+    }
+
     VariableElement leftVariableElement = getVariableElement(lhs);
     DartType leftType = (leftVariableElement == null)
         ? getStaticType(lhs)
@@ -3502,17 +3274,34 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForLateFinalFieldWithConstConstructor(FieldDeclaration node) {
+    if (node.isStatic) return;
+
+    var variableList = node.fields;
+    if (!variableList.isFinal) return;
+
+    var lateKeyword = variableList.lateKeyword;
+    if (lateKeyword == null) return;
+
+    var hasConstConstructor =
+        _enclosingClass.constructors.any((c) => c.isConst);
+    if (!hasConstConstructor) return;
+
+    _errorReporter.reportErrorForToken(
+      CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
+      lateKeyword,
+    );
+  }
+
   void _checkForListConstructor(
       InstanceCreationExpression node, InterfaceType type) {
-    if (!_isNonNullable) return;
+    if (!_isNonNullableByDefault) return;
 
-    if (node.constructorName.name == null &&
-        node.argumentList.arguments.length == 1 &&
-        type.isDartCoreList &&
-        _typeSystem.isPotentiallyNonNullable(type.typeArguments[0])) {
+    if (node.constructorName.name == null && type.isDartCoreList) {
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH,
-          node.constructorName);
+        CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR,
+        node.constructorName,
+      );
     }
   }
 
@@ -3589,113 +3378,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * Verify that the [_enclosingClass] does not define members with the same name
-   * as the enclosing class.
-   *
-   * See [CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME].
-   */
-  void _checkForMemberWithClassName() {
-    if (_enclosingClass == null) {
-      return;
-    }
-    String className = _enclosingClass.name;
-    if (className == null) {
-      return;
-    }
-
-    // check accessors
-    for (PropertyAccessorElement accessor in _enclosingClass.accessors) {
-      if (className == accessor.displayName) {
-        _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, accessor);
-      }
-    }
-    // don't check methods, they would be constructors
-  }
-
-  /**
-   * Check to make sure that all similarly typed accessors are of the same type
-   * (including inherited accessors).
-   *
-   * See [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES].
-   */
-  void _checkForMismatchedAccessorTypes(
-      Declaration accessorDeclaration, String accessorTextName) {
-    ExecutableElement accessorElement =
-        accessorDeclaration.declaredElement as ExecutableElement;
-    if (accessorElement is PropertyAccessorElement) {
-      PropertyAccessorElement counterpartAccessor;
-      if (accessorElement.isGetter) {
-        counterpartAccessor = accessorElement.correspondingSetter;
-      } else {
-        counterpartAccessor = accessorElement.correspondingGetter;
-        // If the setter and getter are in the same enclosing element, return,
-        // this prevents having MISMATCHED_GETTER_AND_SETTER_TYPES reported twice.
-        if (counterpartAccessor != null &&
-            identical(counterpartAccessor.enclosingElement,
-                accessorElement.enclosingElement)) {
-          return;
-        }
-      }
-      if (counterpartAccessor == null) {
-        return;
-      }
-      // Default of null == no accessor or no type (dynamic)
-      DartType getterType;
-      DartType setterType;
-      // Get an existing counterpart accessor if any.
-      if (accessorElement.isGetter) {
-        getterType = _getGetterType(accessorElement);
-        setterType = _getSetterType(counterpartAccessor);
-      } else if (accessorElement.isSetter) {
-        setterType = _getSetterType(accessorElement);
-        getterType = _getGetterType(counterpartAccessor);
-      }
-      // If either types are not assignable to each other, report an error
-      // (if the getter is null, it is dynamic which is assignable to everything).
-      if (setterType != null &&
-          getterType != null &&
-          !_typeSystem.isAssignableTo(getterType, setterType,
-              featureSet: _featureSet)) {
-        _errorReporter.reportTypeErrorForNode(
-            StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
-            accessorDeclaration,
-            [accessorTextName, getterType, setterType, accessorTextName]);
-      }
-    }
-  }
-
-  /**
-   * Check whether all similarly named accessors have consistent types.
-   */
-  void _checkForMismatchedAccessorTypesInExtension(
-      ExtensionDeclaration extension) {
-    for (ClassMember member in extension.members) {
-      if (member is MethodDeclaration && member.isGetter) {
-        PropertyAccessorElement getterElement =
-            member.declaredElement as PropertyAccessorElement;
-        PropertyAccessorElement setterElement =
-            getterElement.correspondingSetter;
-        if (setterElement != null) {
-          DartType getterType = _getGetterType(getterElement);
-          DartType setterType = _getSetterType(setterElement);
-          if (setterType != null &&
-              getterType != null &&
-              !_typeSystem.isAssignableTo(getterType, setterType,
-                  featureSet: _featureSet)) {
-            SimpleIdentifier nameNode = member.name;
-            String name = nameNode.name;
-            _errorReporter.reportTypeErrorForNode(
-                StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
-                nameNode,
-                [name, getterType, setterType, name]);
-          }
-        }
-      }
-    }
-  }
-
-  /**
    * Check to make sure that the given switch [statement] whose static type is
    * an enum type either have a default case or include all of the enum
    * constants.
@@ -3703,49 +3385,53 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForMissingEnumConstantInSwitch(SwitchStatement statement) {
     // TODO(brianwilkerson) This needs to be checked after constant values have
     // been computed.
-    Expression expression = statement.expression;
-    DartType expressionType = getStaticType(expression);
-    if (expressionType == null) {
-      return;
-    }
-    Element expressionElement = expressionType.element;
-    if (expressionElement is ClassElement) {
-      if (!expressionElement.isEnum) {
-        return;
-      }
-      List<String> constantNames = <String>[];
-      List<FieldElement> fields = expressionElement.fields;
-      int fieldCount = fields.length;
-      for (int i = 0; i < fieldCount; i++) {
-        FieldElement field = fields[i];
-        if (field.isStatic && !field.isSynthetic) {
-          constantNames.add(field.name);
+    var expressionType = getStaticType(statement.expression);
+
+    var hasCaseNull = false;
+    if (expressionType is InterfaceType) {
+      var enumElement = expressionType.element;
+      if (enumElement.isEnum) {
+        var constantNames = enumElement.fields
+            .where((field) => field.isStatic && !field.isSynthetic)
+            .map((field) => field.name)
+            .toSet();
+
+        for (var member in statement.members) {
+          if (member is SwitchCase) {
+            var expression = member.expression;
+            if (expression is NullLiteral) {
+              hasCaseNull = true;
+            } else {
+              var constantName = _getConstantName(expression);
+              constantNames.remove(constantName);
+            }
+          }
+          if (member is SwitchDefault) {
+            return;
+          }
         }
-      }
-      NodeList<SwitchMember> members = statement.members;
-      int memberCount = members.length;
-      for (int i = 0; i < memberCount; i++) {
-        SwitchMember member = members[i];
-        if (member is SwitchDefault) {
-          return;
-        }
-        String constantName =
-            _getConstantName((member as SwitchCase).expression);
-        if (constantName != null) {
-          constantNames.remove(constantName);
-        }
-      }
-      if (constantNames.isEmpty) {
-        return;
-      }
-      for (int i = 0; i < constantNames.length; i++) {
-        int offset = statement.offset;
-        int end = statement.rightParenthesis.end;
-        _errorReporter.reportErrorForOffset(
+
+        for (var constantName in constantNames) {
+          int offset = statement.offset;
+          int end = statement.rightParenthesis.end;
+          _errorReporter.reportErrorForOffset(
             StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
             offset,
             end - offset,
-            [constantNames[i]]);
+            [constantName],
+          );
+        }
+
+        if (_typeSystem.isNullable(expressionType) && !hasCaseNull) {
+          int offset = statement.offset;
+          int end = statement.rightParenthesis.end;
+          _errorReporter.reportErrorForOffset(
+            StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+            offset,
+            end - offset,
+            ['null'],
+          );
+        }
       }
     }
   }
@@ -3827,22 +3513,28 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   bool _checkForMixinSuperclassConstraints(int mixinIndex, TypeName mixinName) {
     InterfaceType mixinType = mixinName.type;
     for (var constraint in mixinType.superclassConstraints) {
-      bool isSatisfied =
-          _typeSystem.isSubtypeOf(_enclosingClass.supertype, constraint);
+      var superType = _enclosingClass.supertype as InterfaceTypeImpl;
+      if (_currentLibrary.isNonNullableByDefault) {
+        superType = superType.withNullability(NullabilitySuffix.none);
+      }
+
+      bool isSatisfied = _typeSystem.isSubtypeOf2(superType, constraint);
       if (!isSatisfied) {
         for (int i = 0; i < mixinIndex && !isSatisfied; i++) {
           isSatisfied =
-              _typeSystem.isSubtypeOf(_enclosingClass.mixins[i], constraint);
+              _typeSystem.isSubtypeOf2(_enclosingClass.mixins[i], constraint);
         }
       }
       if (!isSatisfied) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
-            mixinName.name, [
-          mixinName.type.displayName,
-          _enclosingClass.supertype,
-          constraint.displayName
-        ]);
+          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          mixinName.name,
+          [
+            mixinName.type,
+            superType,
+            constraint,
+          ],
+        );
         return true;
       }
     }
@@ -3862,7 +3554,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     InterfaceTypeImpl enclosingType = _enclosingClass.thisType;
     Uri mixinLibraryUri = mixinElement.librarySource.uri;
     for (var name in mixinElementImpl.superInvokedNames) {
-      var nameObject = new Name(mixinLibraryUri, name);
+      var nameObject = Name(mixinLibraryUri, name);
 
       var superMember = _inheritanceManager.getMember(enclosingType, nameObject,
           forMixinIndex: mixinIndex, concrete: true, forSuper: true);
@@ -3879,15 +3571,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       ExecutableElement mixinMember =
           _inheritanceManager.getMember(mixinType, nameObject, forSuper: true);
 
-      if (mixinMember != null &&
-          !_typeSystem.isOverrideSubtypeOf(
-              superMember.type, mixinMember.type)) {
-        _errorReporter.reportErrorForNode(
+      if (mixinMember != null) {
+        var isCorrect = CorrectOverrideHelper(
+          library: _currentLibrary,
+          thisMember: superMember,
+        ).isCorrectOverrideOf(
+          superMember: mixinMember,
+        );
+        if (!isCorrect) {
+          _errorReporter.reportErrorForNode(
             CompileTimeErrorCode
                 .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
             mixinName.name,
-            [name, mixinMember.type.displayName, superMember.type.displayName]);
-        return true;
+            [name, mixinMember.type, superMember.type],
+          );
+          return true;
+        }
       }
     }
     return false;
@@ -3927,10 +3626,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           return true;
         }
         names[name] = typeName.name.name;
-        ExecutableElement inheritedMember =
-            superclass.lookUpMethod(name, library) ??
-                superclass.lookUpGetter(name, library) ??
-                superclass.lookUpSetter(name, library);
+        ExecutableElement inheritedMember = _inheritanceManager.getMember(
+          superclass,
+          Name(library.source.uri, name),
+          concrete: true,
+        );
         if (inheritedMember != null) {
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
@@ -3951,11 +3651,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         LibraryElement library = type.element.library;
         if (library != _currentLibrary) {
           for (PropertyAccessorElement accessor in type.accessors) {
+            if (accessor.isStatic) {
+              continue;
+            }
             if (isConflictingName(accessor.name, library, mixinType)) {
               return;
             }
           }
           for (MethodElement method in type.methods) {
+            if (method.isStatic) {
+              continue;
+            }
             if (isConflictingName(method.name, library, mixinType)) {
               return;
             }
@@ -3989,7 +3695,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     MethodElement element = _findOverriddenMemberThatMustCallSuper(node);
     if (element != null && _hasConcreteSuperMethod(node)) {
-      _InvocationCollector collector = new _InvocationCollector();
+      _InvocationCollector collector = _InvocationCollector();
       node.accept(collector);
       if (!collector.superCalls.contains(element.name)) {
         _errorReporter.reportErrorForNode(HintCode.MUST_CALL_SUPER, node.name,
@@ -4092,44 +3798,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
         declaration.name,
-        [superType.displayName, _enclosingClass.displayName]);
-  }
-
-  /**
-   * Check to ensure that the [condition] is of type bool, are. Otherwise an
-   * error is reported on the expression.
-   *
-   * See [StaticTypeWarningCode.NON_BOOL_CONDITION].
-   */
-  void _checkForNonBoolCondition(Expression condition) {
-    _checkForNonBoolExpression(condition,
-        errorCode: StaticTypeWarningCode.NON_BOOL_CONDITION);
-  }
-
-  /**
-   * Verify that the given [expression] is of type 'bool', and report
-   * [errorCode] if not, or a nullability error if its improperly nullable.
-   */
-  void _checkForNonBoolExpression(Expression expression,
-      {@required ErrorCode errorCode}) {
-    DartType type = getStaticType(expression);
-    if (!_checkForUseOfVoidResult(expression) &&
-        !_typeSystem.isAssignableTo(type, _boolType, featureSet: _featureSet)) {
-      if (type.element == _boolType.element) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, expression);
-      } else {
-        _errorReporter.reportErrorForNode(errorCode, expression);
-      }
-    }
-  }
-
-  /**
-   * Checks to ensure that the given [expression] is assignable to bool.
-   */
-  void _checkForNonBoolNegationExpression(Expression expression) {
-    _checkForNonBoolExpression(expression,
-        errorCode: StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION);
+        [superType, _enclosingClass.displayName]);
   }
 
   /**
@@ -4205,7 +3874,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForNotInitializedNonNullableInstanceFields(
     FieldDeclaration fieldDeclaration,
   ) {
-    if (!_isNonNullable) return;
+    if (!_isNonNullableByDefault) return;
 
     if (fieldDeclaration.isStatic) return;
     var fields = fieldDeclaration.fields;
@@ -4237,7 +3906,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForNotInitializedNonNullableVariable(
     VariableDeclarationList node,
   ) {
-    if (!_isNonNullable) {
+    if (!_isNonNullableByDefault) {
       return;
     }
 
@@ -4270,26 +3939,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check for illegal derefences of nullables, ie, "unchecked" usages of
-   * nullable values. Note that *any* usage of a null value is an "unchecked"
-   * usage, because proper checks will promote the type to a non-nullable value.
-   */
-  bool _checkForNullableDereference(Expression expression) {
-    if (expression == null ||
-        !_isNonNullable ||
-        expression.staticType == null ||
-        expression.staticType.isDynamic ||
-        !_typeSystem.isPotentiallyNullable(expression.staticType)) {
-      return false;
+  void _checkForNullableTypeInCatchClause(TypeAnnotation type) {
+    if (!_isNonNullableByDefault) {
+      return;
     }
 
-    StaticWarningCode code = expression.staticType == _typeProvider.nullType
-        ? StaticWarningCode.INVALID_USE_OF_NULL_VALUE
-        : StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
-    _errorReporter.reportErrorForNode(code, expression, []);
+    if (type == null) {
+      return;
+    }
 
-    return true;
+    if (_typeSystem.isPotentiallyNullable(type.type)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
+        type,
+      );
+    }
   }
 
   /**
@@ -4397,18 +4061,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * Verify that the [type] is not potentially nullable.
-   */
-  void _checkForPotentiallyNullableType(TypeAnnotation type) {
-    if (_options.experimentStatus.non_nullable &&
-        type?.type != null &&
-        _typeSystem.isPotentiallyNullable(type.type)) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, type);
-    }
-  }
-
-  /**
    * Check that the given named optional [parameter] does not begin with '_'.
    *
    * See [CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER].
@@ -4420,9 +4072,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     // name should start with '_'
     SimpleIdentifier name = parameter.identifier;
-    if (name == null ||
-        name.isSynthetic ||
-        !StringUtilities.startsWithChar(name.name, 0x5F)) {
+    if (name == null || name.isSynthetic || !name.name.startsWith('_')) {
       return;
     }
 
@@ -4508,8 +4158,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               parameter.identifier);
         }
       }
-      _checkForRedirectToNonConstConstructor(declaration.declaredElement,
-          redirectedConstructor.staticElement, redirectedConstructor);
+      _checkForRedirectToNonConstConstructor(
+        declaration.declaredElement,
+        redirectedConstructor.staticElement,
+        redirectedConstructor,
+      );
     }
     // check if there are redirected invocations
     int numRedirections = 0;
@@ -4544,8 +4197,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         }
         // [declaration] is a redirecting constructor via a redirecting
         // initializer.
-        _checkForRedirectToNonConstConstructor(declaration.declaredElement,
-            initializer.staticElement, initializer.constructorName);
+        _checkForRedirectToNonConstConstructor(
+          declaration.declaredElement,
+          initializer.staticElement,
+          initializer.constructorName ?? initializer.thisKeyword,
+        );
         numRedirections++;
       }
     }
@@ -4577,15 +4233,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * See [CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR].
    */
-  void _checkForRedirectToNonConstConstructor(ConstructorElement element,
-      ConstructorElement redirectedElement, AstNode reportingNode) {
+  void _checkForRedirectToNonConstConstructor(
+    ConstructorElement element,
+    ConstructorElement redirectedElement,
+    SyntacticEntity errorEntity,
+  ) {
     // This constructor is const, but it redirects to a non-const constructor.
     if (redirectedElement != null &&
         element.isConst &&
         !redirectedElement.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
-          reportingNode);
+      _errorReporter.reportErrorForOffset(
+        CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
+        errorEntity.offset,
+        errorEntity.end - errorEntity.offset,
+      );
     }
   }
 
@@ -4594,7 +4255,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _hiddenElements != null &&
         _hiddenElements.contains(node.staticElement) &&
         node.parent is! CommentReference) {
-      _errorReporter.reportError(new DiagnosticFactory()
+      _errorReporter.reportError(DiagnosticFactory()
           .referencedBeforeDeclaration(_errorReporter.source, node));
     }
   }
@@ -4605,7 +4266,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     int count = typeNames.length;
-    List<bool> detectedRepeatOnIndex = new List<bool>.filled(count, false);
+    List<bool> detectedRepeatOnIndex = List<bool>.filled(count, false);
     for (int i = 0; i < detectedRepeatOnIndex.length; i++) {
       detectedRepeatOnIndex[i] = false;
     }
@@ -4683,32 +4344,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     DartType expressionType = getStaticType(returnExpression);
 
-    void reportTypeError() {
-      String displayName = _enclosingFunction.displayName;
-
-      if (displayName.isEmpty) {
-        _errorReporter.reportTypeErrorForNode(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
-            returnExpression,
-            [expressionType, expectedType]);
-      } else if (_enclosingFunction is MethodElement) {
-        _errorReporter.reportTypeErrorForNode(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
-            returnExpression,
-            [expressionType, expectedType, displayName]);
-      } else {
-        _errorReporter.reportTypeErrorForNode(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
-            returnExpression,
-            [expressionType, expectedType, displayName]);
-      }
-    }
-
     var toType = expectedType;
     var fromType = expressionType;
     if (_inAsync) {
       toType = _typeSystem.flatten(toType);
       fromType = _typeSystem.flatten(fromType);
+    }
+
+    void reportTypeError() {
+      String displayName = _enclosingFunction.displayName;
+
+      if (displayName.isEmpty) {
+        _errorReporter.reportErrorForNode(
+            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+            returnExpression,
+            [fromType, toType]);
+      } else if (_enclosingFunction is MethodElement) {
+        _errorReporter.reportErrorForNode(
+            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+            returnExpression,
+            [fromType, toType, displayName]);
+      } else {
+        _errorReporter.reportErrorForNode(
+            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+            returnExpression,
+            [fromType, toType, displayName]);
+      }
     }
 
     // Anything can be returned to `void` in an arrow bodied function
@@ -4732,8 +4393,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!expectedType.isVoid && !fromType.isVoid) {
       var checkWithType =
           !_inAsync ? fromType : _typeProvider.futureType2(fromType);
-      if (_typeSystem.isAssignableTo(checkWithType, expectedType,
-          featureSet: _featureSet)) {
+      if (_typeSystem.isAssignableTo2(checkWithType, expectedType)) {
         return;
       }
     }
@@ -4816,6 +4476,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE].
    */
   void _checkForSwitchExpressionNotAssignable(SwitchStatement statement) {
+    // For NNBD we verify runtime types of values, and subtyping.
+    if (_isNonNullableByDefault) {
+      return;
+    }
+
     Expression expression = statement.expression;
     if (_checkForUseOfVoidResult(expression)) {
       return;
@@ -4838,8 +4503,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     DartType caseType = getStaticType(caseExpression);
 
     // check types
-    if (!_typeSystem.isAssignableTo(expressionType, caseType,
-        featureSet: _featureSet)) {
+    if (!_typeSystem.isAssignableTo2(expressionType, caseType)) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
           expression,
@@ -4906,7 +4570,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             _errorReporter.reportErrorForNode(
               StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
               parameter,
-              [element.displayName, element.bound.displayName],
+              [element.displayName, element.bound],
             );
             break;
           }
@@ -4949,6 +4613,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
+    // Ignore if the constructor is external. See
+    // https://github.com/dart-lang/language/issues/869.
+    if (constructor.externalKeyword != null) {
+      return;
+    }
+
     // Ignore if the constructor has either an implicit super constructor
     // invocation or a redirecting constructor invocation.
     for (ConstructorInitializer constructorInitializer
@@ -4983,7 +4653,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
             offset,
             length,
-            [superType.displayName]);
+            [superType]);
       }
     } else {
       _errorReporter.reportErrorForNode(
@@ -4994,24 +4664,42 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForUnnecessaryNullAware(Expression target, Token operator) {
-    if (!_isNonNullable) {
+    if (!_isNonNullableByDefault) {
       return;
     }
 
     ErrorCode errorCode;
-    if (operator.type == TokenType.QUESTION_PERIOD) {
-      errorCode = StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL;
+    Token endToken = operator;
+    List<Object> arguments = const [];
+    if (operator.type == TokenType.QUESTION) {
+      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      endToken = operator.next;
+      arguments = ['?[', '['];
+    } else if (operator.type == TokenType.QUESTION_PERIOD) {
+      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      arguments = [operator.lexeme, '.'];
+    } else if (operator.type == TokenType.QUESTION_PERIOD_PERIOD) {
+      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      arguments = [operator.lexeme, '..'];
+    } else if (operator.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET) {
+      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      arguments = [operator.lexeme, '['];
     } else if (operator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
-      errorCode = StaticWarningCode.UNNECESSARY_NULL_AWARE_SPREAD;
+      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      arguments = [operator.lexeme, '...'];
     } else if (operator.type == TokenType.BANG) {
       errorCode = StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION;
     } else {
       return;
     }
 
-    if (target.staticType != null &&
-        _typeSystem.isNonNullable(target.staticType)) {
-      _errorReporter.reportErrorForToken(errorCode, operator, []);
+    if (_typeSystem.isStrictlyNonNullable(target.staticType)) {
+      _errorReporter.reportErrorForOffset(
+        errorCode,
+        operator.offset,
+        endToken.end - operator.offset,
+        arguments,
+      );
     }
   }
 
@@ -5067,7 +4755,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * `(throw x).toString()` which is clearly something between a mistake and
    * dead code.
    *
-   * See [StaticWarningCode.INVALID_USE_OF_NEVER_VALUE].
+   * See [StaticWarningCode.RECEIVER_OF_TYPE_NEVER].
    */
   bool _checkForUseOfNever(Expression expression) {
     if (expression == null ||
@@ -5076,7 +4764,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     _errorReporter.reportErrorForNode(
-        StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, expression);
+        HintCode.RECEIVER_OF_TYPE_NEVER, expression);
 
     return true;
   }
@@ -5137,9 +4825,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
                 [parameter.identifier.name]);
           } else if (declaredType != null &&
               fieldType != null &&
-              !_typeSystem.isAssignableTo(declaredType, fieldType,
-                  featureSet: _featureSet)) {
-            _errorReporter.reportTypeErrorForNode(
+              !_typeSystem.isAssignableTo2(declaredType, fieldType)) {
+            _errorReporter.reportErrorForNode(
                 StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
                 parameter,
                 [declaredType, fieldType]);
@@ -5276,41 +4963,51 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForWrongTypeParameterVarianceInMethod(MethodDeclaration method) {
     // Only need to report errors for parameters with explicitly defined type
     // parameters in classes or mixins.
-    if (_enclosingClass != null) {
-      for (var typeParameter in _enclosingClass.typeParameters) {
-        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
-        // variance is added to the interface.
-        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
-          if (method.typeParameters != null) {
-            for (var methodTypeParameter
-                in method.typeParameters.typeParameters) {
-              Variance methodTypeParameterVariance = Variance.invariant.combine(
-                  Variance(typeParameter, methodTypeParameter.bound.type));
-              _checkForWrongVariancePosition(methodTypeParameterVariance,
-                  typeParameter, methodTypeParameter);
-            }
+    if (_enclosingClass == null) {
+      return;
+    }
+
+    for (var typeParameter in _enclosingClass.typeParameters) {
+      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // variance is added to the interface.
+      if ((typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+        continue;
+      }
+
+      var methodTypeParameters = method.typeParameters?.typeParameters;
+      if (methodTypeParameters != null) {
+        for (var methodTypeParameter in methodTypeParameters) {
+          if (methodTypeParameter.bound == null) {
+            continue;
           }
-          if (method.parameters != null) {
-            for (int i = 0; i < method.parameters.parameters.length; i++) {
-              var methodParameterElement =
-                  method.parameters.parameterElements[i];
-              var methodParameterNode = method.parameters.parameters[i];
-              if (!methodParameterElement.isCovariant) {
-                Variance methodParameterVariance = Variance.contravariant
-                    .combine(
-                        Variance(typeParameter, methodParameterElement.type));
-                _checkForWrongVariancePosition(methodParameterVariance,
-                    typeParameter, methodParameterNode);
-              }
-            }
-          }
-          if (method.returnType != null) {
-            Variance methodReturnTypeVariance =
-                Variance(typeParameter, method.returnType.type);
-            _checkForWrongVariancePosition(
-                methodReturnTypeVariance, typeParameter, method.returnType);
-          }
+          var methodTypeParameterVariance = Variance.invariant.combine(
+            Variance(typeParameter, methodTypeParameter.bound.type),
+          );
+          _checkForWrongVariancePosition(
+              methodTypeParameterVariance, typeParameter, methodTypeParameter);
         }
+      }
+
+      var methodParameters = method.parameters?.parameters;
+      if (methodParameters != null) {
+        for (var methodParameter in methodParameters) {
+          var methodParameterElement = methodParameter.declaredElement;
+          if (methodParameterElement.isCovariant) {
+            continue;
+          }
+          var methodParameterVariance = Variance.contravariant.combine(
+            Variance(typeParameter, methodParameterElement.type),
+          );
+          _checkForWrongVariancePosition(
+              methodParameterVariance, typeParameter, methodParameter);
+        }
+      }
+
+      var returnType = method.returnType;
+      if (returnType != null) {
+        var methodReturnTypeVariance = Variance(typeParameter, returnType.type);
+        _checkForWrongVariancePosition(
+            methodReturnTypeVariance, typeParameter, returnType);
       }
     }
   }
@@ -5399,53 +5096,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * Check for a type mis-match between the yielded type and the declared
-   * return type of a generator function.
-   *
-   * This method should only be called in generator functions.
-   */
-  void _checkForYieldOfInvalidType(
-      Expression yieldExpression, bool isYieldEach) {
-    assert(_inGenerator);
-    if (_enclosingFunction == null) {
-      return;
-    }
-    DartType declaredReturnType = _enclosingFunction.returnType;
-    DartType staticYieldedType = getStaticType(yieldExpression);
-    DartType impliedReturnType;
-    if (isYieldEach) {
-      impliedReturnType = staticYieldedType;
-    } else if (_enclosingFunction.isAsynchronous) {
-      impliedReturnType = _typeProvider.streamType2(staticYieldedType);
-    } else {
-      impliedReturnType = _typeProvider.iterableType2(staticYieldedType);
-    }
-    if (!_checkForAssignableExpressionAtType(yieldExpression, impliedReturnType,
-        declaredReturnType, StaticTypeWarningCode.YIELD_OF_INVALID_TYPE)) {
-      return;
-    }
-    if (isYieldEach) {
-      // Since the declared return type might have been "dynamic", we need to
-      // also check that the implied return type is assignable to generic
-      // Stream/Iterable.
-      DartType requiredReturnType;
-      if (_enclosingFunction.isAsynchronous) {
-        requiredReturnType = _typeProvider.streamDynamicType;
-      } else {
-        requiredReturnType = _typeProvider.iterableDynamicType;
-      }
-      if (!_typeSystem.isAssignableTo(impliedReturnType, requiredReturnType,
-          featureSet: _featureSet)) {
-        _errorReporter.reportTypeErrorForNode(
-            StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
-            yieldExpression,
-            [impliedReturnType, requiredReturnType]);
-        return;
-      }
-    }
-  }
-
-  /**
    * Verify that the given class [declaration] does not have the same class in
    * the 'extends' and 'implements' clauses.
    *
@@ -5467,7 +5117,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
             interfaceNode,
-            [superType.displayName]);
+            [superType]);
       }
     }
   }
@@ -5576,52 +5226,36 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkUseOfDefaultValuesInParameters(FormalParameterList node) {
-    if (!_isNonNullable) return;
+    if (!_isNonNullableByDefault) return;
 
-    AstNode parent = node.parent;
-    if (parent is FieldFormalParameter ||
-        parent is FunctionTypeAlias ||
-        parent is FunctionTypedFormalParameter ||
-        parent is GenericFunctionType) {
-      // These locations are not allowed to have default values.
-      return;
-    }
-    NodeList<FormalParameter> parameters = node.parameters;
-    int length = parameters.length;
-    for (int i = 0; i < length; i++) {
-      FormalParameter parameter = parameters[i];
-      if (parameter.isOptional) {
-        DartType type = parameter.declaredElement.type;
-        if ((parameter as DefaultFormalParameter).defaultValue == null) {
-          if (_typeSystem.isPotentiallyNonNullable(type)) {
-            SimpleIdentifier parameterName = _parameterName(parameter);
-            if (type is TypeParameterType) {
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE,
-                  parameterName ?? parameter,
-                  [parameterName?.name ?? '?']);
-            } else {
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
-                  parameterName ?? parameter,
-                  [parameterName?.name ?? '?']);
-            }
-          }
-        } else if (!_typeSystem.isNonNullable(type) &&
-            _typeSystem.isPotentiallyNonNullable(type)) {
-          // If the type is both potentially non-nullable and not
-          // non-nullable, then it cannot be used for an optional parameter.
-          SimpleIdentifier parameterName = _parameterName(parameter);
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE,
-              parameterName ?? parameter,
-              [parameterName?.name ?? '?']);
-        }
-      } else if (parameter.isRequiredNamed) {
-        if ((parameter as DefaultFormalParameter).defaultValue != null) {
-          _errorReporter.reportErrorForNode(
+    var parent = node.parent;
+    var defaultValuesAreExpected = parent is ConstructorDeclaration ||
+        parent is FunctionExpression ||
+        parent is MethodDeclaration &&
+            !parent.isAbstract &&
+            parent.externalKeyword == null &&
+            parent.body is! NativeFunctionBody;
+
+    for (var parameter in node.parameters) {
+      if (parameter is DefaultFormalParameter) {
+        if (parameter.isRequiredNamed) {
+          if (parameter.defaultValue != null) {
+            var parameterName = _parameterName(parameter);
+            _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
-              _parameterName(parameter) ?? parameter);
+              parameterName ?? parameter,
+            );
+          }
+        } else if (defaultValuesAreExpected && parameter.defaultValue == null) {
+          var type = parameter.declaredElement.type;
+          if (_typeSystem.isPotentiallyNonNullable(type)) {
+            var parameterName = _parameterName(parameter);
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
+              parameterName ?? parameter,
+              [parameterName?.name ?? '?'],
+            );
+          }
         }
       }
     }
@@ -5693,7 +5327,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         Queue.of(classElement.mixins.map((i) => i.element))
           ..addAll(classElement.superclassConstraints.map((i) => i.element))
           ..add(classElement.supertype?.element);
-    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    Set<ClassElement> visitedClasses = <ClassElement>{};
     while (superclasses.isNotEmpty) {
       ClassElement ancestor = superclasses.removeFirst();
       if (ancestor == null || !visitedClasses.add(ancestor)) {
@@ -5728,18 +5362,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return expression.propertyName.name;
     }
     return null;
-  }
-
-  /**
-   * Return the return type of the given [getter].
-   */
-  DartType _getGetterType(PropertyAccessorElement getter) {
-    FunctionType functionType = getter.type;
-    if (functionType != null) {
-      return functionType.returnType;
-    } else {
-      return null;
-    }
   }
 
   /**
@@ -5786,7 +5408,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         return library.definingCompilationUnit.source.uri.toString();
       }
     }
-    List<String> indirectSources = new List<String>();
+    List<String> indirectSources = <String>[];
     for (int i = 0; i < count; i++) {
       LibraryElement importedLibrary = imports[i].importedLibrary;
       if (importedLibrary != null) {
@@ -5800,7 +5422,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
     int indirectCount = indirectSources.length;
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write(library.definingCompilationUnit.source.uri.toString());
     if (indirectCount > 0) {
       buffer.write(" (via ");
@@ -5813,19 +5435,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       buffer.write(")");
     }
     return buffer.toString();
-  }
-
-  /**
-   * Return the type of the first and only parameter of the given [setter].
-   */
-  DartType _getSetterType(PropertyAccessorElement setter) {
-    // Get the parameters for MethodDeclaration or FunctionDeclaration
-    List<ParameterElement> setterParameters = setter.parameters;
-    // If there are no setter parameters, return no type.
-    if (setterParameters.isEmpty) {
-      return null;
-    }
-    return setterParameters[0].type;
   }
 
   /// Returns whether [node] overrides a concrete method.
@@ -5848,7 +5457,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * indirectly.
    */
   bool _hasRedirectingFactoryConstructorCycle(ConstructorElement constructor) {
-    Set<ConstructorElement> constructors = new HashSet<ConstructorElement>();
+    Set<ConstructorElement> constructors = HashSet<ConstructorElement>();
     ConstructorElement current = constructor;
     while (current != null) {
       if (constructors.contains(current)) {
@@ -5860,18 +5469,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  void _initializeInitialFieldElementsMap(List<FieldElement> fields) {
-    _initialFieldElementsMap = new HashMap<FieldElement, INIT_STATE>();
-    for (FieldElement fieldElement in fields) {
-      if (!fieldElement.isSynthetic) {
-        _initialFieldElementsMap[fieldElement] =
-            fieldElement.initializer == null
-                ? INIT_STATE.NOT_INIT
-                : INIT_STATE.INIT_IN_DECLARATION;
-      }
-    }
-  }
-
   bool _isFunctionType(DartType type) {
     if (type.isDynamic || type.isDartCoreNull) {
       return true;
@@ -5879,7 +5476,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return true;
     } else if (type is InterfaceType) {
       MethodElement callMethod =
-          type.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _currentLibrary);
+          type.lookUpMethod2(FunctionElement.CALL_METHOD_NAME, _currentLibrary);
       return callMethod != null;
     }
     return false;
@@ -5958,8 +5555,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// If in a legacy library, return the legacy version of the [type].
   /// Otherwise, return the original type.
   DartType _toLegacyType(DartType type) {
-    if (_isNonNullable) return type;
-    return NullabilityEliminator.perform(type);
+    if (_isNonNullableByDefault) return type;
+    return NullabilityEliminator.perform(_typeProvider, type);
   }
 
   /**
@@ -5968,7 +5565,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   static List<FieldElement> computeNotInitializedFields(
       ConstructorDeclaration constructor) {
-    Set<FieldElement> fields = new Set<FieldElement>();
+    Set<FieldElement> fields = <FieldElement>{};
     var classDeclaration = constructor.parent as ClassDeclaration;
     for (ClassMember fieldDeclaration in classDeclaration.members) {
       if (fieldDeclaration is FieldDeclaration) {
@@ -6040,11 +5637,9 @@ class HiddenElements {
    */
   final HiddenElements outerElements;
 
-  /**
-   * A set containing the elements that will be declared in this scope, but are
-   * not yet declared.
-   */
-  Set<Element> _elements = new HashSet<Element>();
+  /// A set containing the elements that will be declared in this scope, but are
+  /// not yet declared.
+  final Set<Element> _elements = HashSet<Element>();
 
   /**
    * Initialize a newly created set of hidden elements to include all of the

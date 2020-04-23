@@ -124,6 +124,7 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
 
   std::unique_ptr<Program> program(new Program());
   program->binary_version_ = formatVersion;
+  program->typed_data_ = reader->typed_data();
   program->kernel_data_ = reader->buffer();
   program->kernel_data_size_ = reader->size();
 
@@ -180,29 +181,16 @@ std::unique_ptr<Program> Program::ReadFromFile(
   const String& uri = String::Handle(String::New(script_uri));
   const Object& ret = Object::Handle(
       isolate->CallTagHandler(Dart_kKernelTag, Object::null_object(), uri));
-  Api::Scope api_scope(thread);
-  Dart_Handle retval = Api::NewHandle(thread, ret.raw());
-  {
-    TransitionVMToNative transition(thread);
-    if (!Dart_IsError(retval)) {
-      Dart_TypedData_Type data_type;
-      uint8_t* data;
-      ASSERT(Dart_IsTypedData(retval));
-
-      uint8_t* kernel_buffer;
-      intptr_t kernel_buffer_size;
-      Dart_Handle val = Dart_TypedDataAcquireData(
-          retval, &data_type, reinterpret_cast<void**>(&data),
-          &kernel_buffer_size);
-      ASSERT(!Dart_IsError(val));
-      ASSERT(data_type == Dart_TypedData_kUint8);
-      kernel_buffer = reinterpret_cast<uint8_t*>(malloc(kernel_buffer_size));
-      memmove(kernel_buffer, data, kernel_buffer_size);
-      Dart_TypedDataReleaseData(retval);
-
-      kernel_program = kernel::Program::ReadFromBuffer(
-          kernel_buffer, kernel_buffer_size, error);
-    } else if (error != nullptr) {
+  if (ret.IsExternalTypedData()) {
+    const auto& typed_data = ExternalTypedData::Handle(
+        thread->zone(), ExternalTypedData::RawCast(ret.raw()));
+    kernel_program = kernel::Program::ReadFromTypedData(typed_data);
+    return kernel_program;
+  } else if (error != nullptr) {
+    Api::Scope api_scope(thread);
+    Dart_Handle retval = Api::NewHandle(thread, ret.raw());
+    {
+      TransitionVMToNative transition(thread);
       *error = Dart_GetError(retval);
     }
   }

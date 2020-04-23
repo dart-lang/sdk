@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/scope_builder.h"
 
 #include "vm/compiler/backend/il.h"  // For CompileType.
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -61,9 +62,11 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
           ExternalTypedData::Handle(Z,
                                     parsed_function->function().KernelData()),
           parsed_function->function().KernelDataProgramOffset()),
-      inferred_type_metadata_helper_(&helper_),
+      constant_reader_(&helper_, &active_class_),
+      inferred_type_metadata_helper_(&helper_, &constant_reader_),
       procedure_attributes_metadata_helper_(&helper_),
       type_translator_(&helper_,
+                       &constant_reader_,
                        &active_class_,
                        /*finalize=*/true) {
   H.InitFromScript(helper_.script());
@@ -184,7 +187,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           Field& class_field = Field::Handle(Z);
           for (intptr_t i = 0; i < class_fields.Length(); ++i) {
             class_field ^= class_fields.At(i);
-            if (!class_field.is_static() && !class_field.is_late()) {
+            if (!class_field.is_static()) {
               ExternalTypedData& kernel_data =
                   ExternalTypedData::Handle(Z, class_field.KernelData());
               ASSERT(!kernel_data.IsNull());
@@ -275,6 +278,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       ASSERT(helper_.PeekTag() == kField);
       const bool is_setter = function.IsImplicitSetterFunction();
       const bool is_method = !function.IsStaticFunction();
+      const auto& field = Field::Handle(Z, function.accessor_field());
       intptr_t pos = 0;
       if (is_method) {
         Class& klass = Class::Handle(Z, function.Owner());
@@ -286,15 +290,25 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         parsed_function_->set_receiver_var(variable);
       }
       if (is_setter) {
-        result_->setter_value = MakeVariable(
-            TokenPosition::kNoSource, TokenPosition::kNoSource,
-            Symbols::Value(),
-            AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)));
+        if (CompilerState::Current().is_aot()) {
+          const intptr_t kernel_offset = field.kernel_offset();
+          const InferredTypeMetadata parameter_type =
+              inferred_type_metadata_helper_.GetInferredType(kernel_offset);
+          result_->setter_value = MakeVariable(
+              TokenPosition::kNoSource, TokenPosition::kNoSource,
+              Symbols::Value(),
+              AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)),
+              &parameter_type);
+        } else {
+          result_->setter_value = MakeVariable(
+              TokenPosition::kNoSource, TokenPosition::kNoSource,
+              Symbols::Value(),
+              AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)));
+        }
         scope_->InsertParameterAt(pos++, result_->setter_value);
 
         if (is_method &&
             MethodCanSkipTypeChecksForNonCovariantArguments(function, attrs)) {
-          const auto& field = Field::Handle(Z, function.accessor_field());
           if (field.is_covariant()) {
             result_->setter_value->set_is_explicit_covariant_parameter();
           } else if (!field.is_generic_covariant_impl() ||
@@ -303,17 +317,28 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
                 LocalVariable::kTypeCheckedByCaller);
           }
         }
+      } else {
+        if (field.is_late()) {
+          // LoadLateField uses expression_temp_var.
+          needs_expr_temp_ = true;
+        }
       }
       break;
     }
     case RawFunction::kImplicitStaticGetter: {
       ASSERT(helper_.PeekTag() == kField);
       ASSERT(function.IsStaticFunction());
+      const auto& field = Field::Handle(Z, function.accessor_field());
       // In addition to static field initializers, scopes/local variables
       // are needed for implicit getters of static const fields, in order to
       // be able to evaluate their initializers in constant evaluator.
       if (Field::Handle(Z, function.accessor_field()).is_const()) {
         VisitNode();
+      }
+      const bool lib_is_nnbd = function.nnbd_mode() == NNBDMode::kOptedInLib;
+      if (field.is_late() || lib_is_nnbd) {
+        // LoadLateField uses expression_temp_var.
+        needs_expr_temp_ = true;
       }
       break;
     }
@@ -469,7 +494,7 @@ void ScopeBuilder::VisitConstructor() {
     Field& class_field = Field::Handle(Z);
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
-      if (!class_field.is_static() && !class_field.is_late()) {
+      if (!class_field.is_static()) {
         ExternalTypedData& kernel_data =
             ExternalTypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
@@ -652,14 +677,14 @@ void ScopeBuilder::VisitExpression() {
           helper_.ReadUInt();          // read kernel position.
       helper_.ReadUInt();              // read relative variable index.
       helper_.SkipOptionalDartType();  // read promoted type.
-      LookupVariable(variable_kernel_offset);
+      VisitVariableGet(variable_kernel_offset);
       return;
     }
     case kSpecializedVariableGet: {
       helper_.ReadPosition();  // read position.
       intptr_t variable_kernel_offset =
           helper_.ReadUInt();  // read kernel position.
-      LookupVariable(variable_kernel_offset);
+      VisitVariableGet(variable_kernel_offset);
       return;
     }
     case kVariableSet: {
@@ -790,6 +815,9 @@ void ScopeBuilder::VisitExpression() {
     }
     case kIsExpression:
       helper_.ReadPosition();  // read position.
+      if (translation_helper_.info().kernel_binary_version() >= 38) {
+        helper_.ReadFlags();  // read flags.
+      }
       VisitExpression();       // read operand.
       VisitDartType();         // read type.
       return;
@@ -1259,6 +1287,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
                            ? GenerateName(":var", name_index_++)
                            : H.DartSymbolObfuscate(helper.name_index_);
 
+  intptr_t initializer_offset = helper_.ReaderOffset();
   Tag tag = helper_.ReadTag();  // read (first part of) initializer.
   if (tag == kSomething) {
     VisitExpression();  // read (actual) initializer.
@@ -1275,7 +1304,21 @@ void ScopeBuilder::VisitVariableDeclaration() {
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
-  scope_->AddVariable(variable);
+  if (helper.IsLate()) {
+    variable->set_is_late();
+    variable->set_late_init_offset(initializer_offset);
+  }
+  // Lift the two special async vars out of the function body scope, into the
+  // outer function declaration scope.
+  // This way we can allocate them in the outermost context at fixed indices,
+  // allowing support for --lazy-async-stacks implementation to find awaiters.
+  if (name.Equals(Symbols::AwaitJumpVar()) ||
+      name.Equals(Symbols::AsyncCompleter()) ||
+      name.Equals(Symbols::Controller())) {
+    scope_->parent()->AddVariable(variable);
+  } else {
+    scope_->AddVariable(variable);
+  }
   result_->locals.Insert(helper_.data_program_offset_ + kernel_offset_no_tag,
                          variable);
 }
@@ -1323,7 +1366,7 @@ void ScopeBuilder::VisitDartType() {
 
 void ScopeBuilder::VisitInterfaceType(bool simple) {
   helper_.ReadNullability();  // read nullability.
-  helper_.ReadUInt();  // read klass_name.
+  helper_.ReadUInt();         // read klass_name.
   if (!simple) {
     intptr_t length = helper_.ReadListLength();  // read number of types.
     for (intptr_t i = 0; i < length; ++i) {
@@ -1365,7 +1408,7 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
     for (intptr_t i = 0; i < named_count; ++i) {
       // read string reference (i.e. named_parameters[i].name).
       helper_.SkipStringReference();
-      VisitDartType();  // read named_parameters[i].type.
+      VisitDartType();     // read named_parameters[i].type.
       helper_.ReadByte();  // read flags
     }
   }
@@ -1572,12 +1615,16 @@ LocalVariable* ScopeBuilder::MakeVariable(
     const String& name,
     const AbstractType& type,
     const InferredTypeMetadata* param_type_md /* = NULL */) {
-  CompileType* param_type = NULL;
-  if ((param_type_md != NULL) && !param_type_md->IsTrivial()) {
+  CompileType* param_type = nullptr;
+  const Object* param_value = nullptr;
+  if (param_type_md != nullptr && !param_type_md->IsTrivial()) {
     param_type = new (Z) CompileType(param_type_md->ToCompileType(Z));
+    if (param_type_md->IsConstant()) {
+      param_value = &param_type_md->constant_value;
+    }
   }
-  return new (Z)
-      LocalVariable(declaration_pos, token_pos, name, type, param_type);
+  return new (Z) LocalVariable(declaration_pos, token_pos, name, type,
+                               param_type, param_value);
 }
 
 void ScopeBuilder::AddExceptionVariable(
@@ -1695,7 +1742,20 @@ void ScopeBuilder::AddSwitchVariable() {
   }
 }
 
-void ScopeBuilder::LookupVariable(intptr_t declaration_binary_offset) {
+void ScopeBuilder::VisitVariableGet(intptr_t declaration_binary_offset) {
+  LocalVariable* variable = LookupVariable(declaration_binary_offset);
+  if (variable->is_late()) {
+    // Late variable initializer expressions may also contain local variables
+    // that need to be captured.
+    AlternativeReadingScope alt(&helper_.reader_, variable->late_init_offset());
+    if (helper_.ReadTag() != kNothing) {
+      VisitExpression();
+    }
+  }
+}
+
+LocalVariable* ScopeBuilder::LookupVariable(
+    intptr_t declaration_binary_offset) {
   LocalVariable* variable = result_->locals.Lookup(declaration_binary_offset);
   if (variable == NULL) {
     // We have not seen a declaration of the variable, so it must be the
@@ -1730,6 +1790,7 @@ void ScopeBuilder::LookupVariable(intptr_t declaration_binary_offset) {
   } else {
     ASSERT(variable->owner()->function_level() == scope_->function_level());
   }
+  return variable;
 }
 
 StringIndex ScopeBuilder::GetNameFromVariableDeclaration(

@@ -7,12 +7,12 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new MethodTest().buildAll();
+  MethodTest().buildAll();
 }
 
 class MethodTest extends PartialCodeTest {
   buildAll() {
-    const allExceptEof = const [
+    const allExceptEof = [
       'annotation',
       'field',
       'fieldConst',
@@ -28,7 +28,7 @@ class MethodTest extends PartialCodeTest {
         //
         // Instance method, no return type.
         //
-        new TestDescriptor(
+        TestDescriptor(
           'noType_leftParen',
           'm(',
           [
@@ -38,7 +38,7 @@ class MethodTest extends PartialCodeTest {
           'm() {}',
           failing: allExceptEof,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'noType_paramName',
           'm(B',
           [
@@ -48,7 +48,7 @@ class MethodTest extends PartialCodeTest {
           'm(B) {}',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
-        new TestDescriptor(
+        TestDescriptor(
             'noType_paramTypeAndName',
             'm(B b',
             [
@@ -56,7 +56,7 @@ class MethodTest extends PartialCodeTest {
               ParserErrorCode.MISSING_FUNCTION_BODY
             ],
             'm(B b) {}'),
-        new TestDescriptor(
+        TestDescriptor(
           'noType_paramAndComma',
           'm(B b,',
           [
@@ -66,19 +66,19 @@ class MethodTest extends PartialCodeTest {
           'm(B b) {}',
           failing: allExceptEof,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'noType_noParams',
           'm()',
           [ParserErrorCode.MISSING_FUNCTION_BODY],
           'm() {}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'noType_params',
           'm(b, c)',
           [ParserErrorCode.MISSING_FUNCTION_BODY],
           'm(b, c) {}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'noType_emptyOptional',
           'm(B b, [])',
           [
@@ -87,7 +87,7 @@ class MethodTest extends PartialCodeTest {
           ],
           'm(B b, [_s_]){}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'noType_emptyNamed',
           'm(B b, {})',
           [
@@ -99,7 +99,7 @@ class MethodTest extends PartialCodeTest {
         //
         // Instance method, with simple return type.
         //
-        new TestDescriptor(
+        TestDescriptor(
           'type_leftParen',
           'A m(',
           [
@@ -109,7 +109,7 @@ class MethodTest extends PartialCodeTest {
           'A m() {}',
           failing: allExceptEof,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'type_paramName',
           'A m(B',
           [
@@ -119,7 +119,7 @@ class MethodTest extends PartialCodeTest {
           'A m(B) {}',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'type_paramTypeAndName',
           'A m(B b',
           [
@@ -128,7 +128,7 @@ class MethodTest extends PartialCodeTest {
           ],
           'A m(B b) {}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'type_paramAndComma',
           'A m(B b,',
           [
@@ -138,19 +138,19 @@ class MethodTest extends PartialCodeTest {
           'A m(B b) {}',
           failing: allExceptEof,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'type_noParams',
           'A m()',
           [ParserErrorCode.MISSING_FUNCTION_BODY],
           'A m() {}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'type_params',
           'A m(b, c)',
           [ParserErrorCode.MISSING_FUNCTION_BODY],
           'A m(b, c) {}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'type_emptyOptional',
           'A m(B b, [])',
           [
@@ -159,7 +159,7 @@ class MethodTest extends PartialCodeTest {
           ],
           'A m(B b, [_s_]){}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'type_emptyNamed',
           'A m(B b, {})',
           [
@@ -171,7 +171,7 @@ class MethodTest extends PartialCodeTest {
         //
         // Static method, no return type.
         //
-        new TestDescriptor(
+        TestDescriptor(
           'static_noType_leftParen',
           'static m(',
           [
@@ -181,7 +181,7 @@ class MethodTest extends PartialCodeTest {
           'static m() {}',
           failing: allExceptEof,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_noType_paramName',
           'static m(B',
           [
@@ -191,7 +191,7 @@ class MethodTest extends PartialCodeTest {
           'static m(B) {}',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_noType_paramTypeAndName',
           'static m(B b',
           [
@@ -200,7 +200,7 @@ class MethodTest extends PartialCodeTest {
           ],
           'static m(B b) {}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_noType_paramAndComma',
           'static m(B b,',
           [
@@ -210,19 +210,19 @@ class MethodTest extends PartialCodeTest {
           'static m(B b) {}',
           failing: allExceptEof,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_noType_noParams',
           'static m()',
           [ParserErrorCode.MISSING_FUNCTION_BODY],
           'static m() {}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_noType_params',
           'static m(b, c)',
           [ParserErrorCode.MISSING_FUNCTION_BODY],
           'static m(b, c) {}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_noType_emptyOptional',
           'static m(B b, [])',
           [
@@ -231,7 +231,7 @@ class MethodTest extends PartialCodeTest {
           ],
           'static m(B b, [_s_]){}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_noType_emptyNamed',
           'static m(B b, {})',
           [
@@ -243,7 +243,7 @@ class MethodTest extends PartialCodeTest {
         //
         // Static method, with simple return type.
         //
-        new TestDescriptor(
+        TestDescriptor(
           'static_type_leftParen',
           'static A m(',
           [
@@ -253,7 +253,7 @@ class MethodTest extends PartialCodeTest {
           'static A m() {}',
           failing: allExceptEof,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_type_paramName',
           'static A m(B',
           [
@@ -263,7 +263,7 @@ class MethodTest extends PartialCodeTest {
           'static A m(B) {}',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_type_paramTypeAndName',
           'static A m(B b',
           [
@@ -272,7 +272,7 @@ class MethodTest extends PartialCodeTest {
           ],
           'static A m(B b) {}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_type_paramAndComma',
           'static A m(B b,',
           [
@@ -282,19 +282,19 @@ class MethodTest extends PartialCodeTest {
           'static A m(B b) {}',
           failing: allExceptEof,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_type_noParams',
           'static A m()',
           [ParserErrorCode.MISSING_FUNCTION_BODY],
           'static A m() {}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_type_params',
           'static A m(b, c)',
           [ParserErrorCode.MISSING_FUNCTION_BODY],
           'static A m(b, c) {}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_type_emptyOptional',
           'static A m(B b, [])',
           [
@@ -303,7 +303,7 @@ class MethodTest extends PartialCodeTest {
           ],
           'static A m(B b, [_s_]){}',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_type_emptyNamed',
           'static A m(B b, {})',
           [

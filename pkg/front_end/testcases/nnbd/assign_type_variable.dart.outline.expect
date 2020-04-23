@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class<E extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::E%>
+    ;
+  method method(generic-covariant-impl self::Class::E% e) → void
+    ;
+}
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
+  ;
+static method main() → dynamic
+  ;

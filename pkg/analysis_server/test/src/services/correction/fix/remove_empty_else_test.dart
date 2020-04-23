@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveEmptyElseTest);
   });
@@ -23,13 +23,13 @@ class RemoveEmptyElseTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.avoid_empty_else;
 
-  test_newLine() async {
+  Future<void> test_newLine() async {
     await resolveTestUnit('''
 void foo(bool cond) {
   if (cond) {
     //
   }
-  else /*LINT*/;
+  else ;
 }
 ''');
     await assertHasFix('''
@@ -41,12 +41,12 @@ void foo(bool cond) {
 ''');
   }
 
-  test_sameLine() async {
+  Future<void> test_sameLine() async {
     await resolveTestUnit('''
 void foo(bool cond) {
   if (cond) {
     //
-  } else /*LINT*/;
+  } else ;
 }
 ''');
     await assertHasFix('''

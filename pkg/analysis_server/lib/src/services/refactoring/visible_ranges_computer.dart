@@ -71,10 +71,8 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     return computer._map;
   }
 
-  /**
-   * Return the body of the function that contains the given [parameter], or
-   * `null` if no function body could be found.
-   */
+  /// Return the body of the function that contains the given [parameter], or
+  /// `null` if no function body could be found.
   static FunctionBody _getFunctionBody(FormalParameter parameter) {
     var parent = parameter?.parent?.parent;
     if (parent is ConstructorDeclaration) {

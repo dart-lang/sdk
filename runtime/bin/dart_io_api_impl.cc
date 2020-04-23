@@ -10,6 +10,7 @@
 #include "bin/io_natives.h"
 #include "bin/platform.h"
 #include "bin/process.h"
+#include "bin/secure_socket_filter.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 
@@ -19,11 +20,19 @@ namespace bin {
 void BootstrapDartIo() {
   // Bootstrap 'dart:io' event handler.
   TimerUtils::InitOnce();
+  Process::Init();
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
+  SSLFilter::Init();
+#endif
   EventHandler::Start();
 }
 
 void CleanupDartIo() {
   EventHandler::Stop();
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
+  SSLFilter::Cleanup();
+#endif
+  Process::Cleanup();
 }
 
 void SetSystemTempDirectory(const char* system_temp) {

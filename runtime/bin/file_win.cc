@@ -146,7 +146,8 @@ int64_t File::Read(void* buffer, int64_t num_bytes) {
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
   int fd = handle_->fd();
-  ASSERT(fd >= 0);
+  // Avoid narrowing conversion
+  ASSERT(fd >= 0 && num_bytes <= MAXDWORD && num_bytes >= 0);
   HANDLE handle = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
   DWORD written = 0;
   BOOL result = WriteFile(handle, buffer, num_bytes, &written, NULL);
@@ -170,7 +171,7 @@ int64_t File::Write(const void* buffer, int64_t num_bytes) {
                         written);
     int buffer_len =
         WideCharToMultiByte(cp, 0, wide, written, NULL, 0, NULL, NULL);
-    delete wide;
+    delete[] wide;
     bytes_written = buffer_len;
   }
   return bytes_written;
@@ -353,6 +354,15 @@ bool File::Exists(Namespace* namespc, const char* name) {
   return StatHelper(system_name.wide(), &st);
 }
 
+bool File::ExistsUri(Namespace* namespc, const char* uri) {
+  UriDecoder uri_decoder(uri);
+  if (uri_decoder.decoded() == nullptr) {
+    SetLastError(ERROR_INVALID_NAME);
+    return false;
+  }
+  return File::Exists(namespc, uri_decoder.decoded());
+}
+
 bool File::Create(Namespace* namespc, const char* name) {
   Utf8ToWideScope system_name(name);
   int fd = _wopen(system_name.wide(), O_RDONLY | O_CREAT, 0666);
@@ -392,8 +402,8 @@ typedef struct _REPARSE_DATA_BUFFER {
   };
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
-static const int kReparseDataHeaderSize = sizeof ULONG + 2 * sizeof USHORT;
-static const int kMountPointHeaderSize = 4 * sizeof USHORT;
+static const int kReparseDataHeaderSize = sizeof(ULONG) + 2 * sizeof(USHORT);
+static const int kMountPointHeaderSize = 4 * sizeof(USHORT);
 
 // Note: CreateLink used to create junctions on Windows instead of true
 // symbolic links. All File::*Link methods now support handling links created
@@ -517,7 +527,10 @@ int64_t File::LengthFromPath(Namespace* namespc, const char* name) {
   return st.st_size;
 }
 
-const char* File::LinkTarget(Namespace* namespc, const char* pathname) {
+const char* File::LinkTarget(Namespace* namespc,
+                             const char* pathname,
+                             char* dest,
+                             int dest_size) {
   const wchar_t* name = StringUtilsWin::Utf8ToWide(pathname);
   HANDLE dir_handle = CreateFileW(
       name, GENERIC_READ,
@@ -529,7 +542,7 @@ const char* File::LinkTarget(Namespace* namespc, const char* pathname) {
   }
 
   int buffer_size =
-      sizeof REPARSE_DATA_BUFFER + 2 * (MAX_PATH + 1) * sizeof WCHAR;
+      sizeof(REPARSE_DATA_BUFFER) + 2 * (MAX_PATH + 1) * sizeof(WCHAR);
   REPARSE_DATA_BUFFER* buffer =
       reinterpret_cast<REPARSE_DATA_BUFFER*>(Dart_ScopeAllocate(buffer_size));
   DWORD received_bytes;  // Value is not used.
@@ -571,13 +584,18 @@ const char* File::LinkTarget(Namespace* namespc, const char* pathname) {
   }
   int utf8_length = WideCharToMultiByte(CP_UTF8, 0, target, target_length, NULL,
                                         0, NULL, NULL);
-  char* utf8_target = DartUtils::ScopedCString(utf8_length + 1);
-  if (0 == WideCharToMultiByte(CP_UTF8, 0, target, target_length, utf8_target,
+  if (dest_size > 0 && dest_size <= utf8_length) {
+    return NULL;
+  }
+  if (dest == NULL) {
+    dest = DartUtils::ScopedCString(utf8_length + 1);
+  }
+  if (0 == WideCharToMultiByte(CP_UTF8, 0, target, target_length, dest,
                                utf8_length, NULL, NULL)) {
     return NULL;
   }
-  utf8_target[utf8_length] = '\0';
-  return utf8_target;
+  dest[utf8_length] = '\0';
+  return dest;
 }
 
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
@@ -742,9 +760,12 @@ File::Type File::GetType(Namespace* namespc,
   return result;
 }
 
-File::Identical File::AreIdentical(Namespace* namespc,
+File::Identical File::AreIdentical(Namespace* namespc_1,
                                    const char* file_1,
+                                   Namespace* namespc_2,
                                    const char* file_2) {
+  USE(namespc_1);
+  USE(namespc_2);
   BY_HANDLE_FILE_INFORMATION file_info[2];
   const char* file_names[2] = {file_1, file_2};
   for (int i = 0; i < 2; ++i) {

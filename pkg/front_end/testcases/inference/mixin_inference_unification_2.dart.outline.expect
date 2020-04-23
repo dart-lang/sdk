@@ -7,12 +7,6 @@
 // class A extends Object with M0, M1 {}
 //       ^
 //
-// pkg/front_end/testcases/inference/mixin_inference_unification_2.dart:17:7: Error: 'A' can't implement both 'I<dynamic, List<dynamic>>' and 'I<List<dynamic>, dynamic>'
-//  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_unification_2.dart'.
-//  - 'List' is from 'dart:core'.
-// class A extends Object with M0, M1 {}
-//       ^
-//
 library;
 import self as self;
 import "dart:core" as core;
@@ -29,12 +23,12 @@ class M1<T extends core::Object* = dynamic> extends core::Object implements self
   synthetic constructor •() → self::M1<self::M1::T*>*
     ;
 }
-abstract class _A&Object&M0 = core::Object with self::M0<dynamic> {
+abstract class _A&Object&M0 = core::Object with self::M0<dynamic> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A&Object&M0*
     : super core::Object::•()
     ;
 }
-abstract class _A&Object&M0&M1 = self::_A&Object&M0 with self::M1<dynamic> {
+abstract class _A&Object&M0&M1 = self::_A&Object&M0 with self::M1<dynamic> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A&Object&M0&M1*
     : super self::_A&Object&M0::•()
     ;

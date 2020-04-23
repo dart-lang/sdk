@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 main() {
   new Class1();
   new Class2();
@@ -52,7 +54,7 @@ class Class1 {
   /*member: Class1.field13:initial=BoolConstant(true)*/
   var field13 = const1;
 
-  /*member: Class1.field14:*/
+  /*member: Class1.field14:initial=BoolConstant(false)*/
   var field14 = const1 is int;
 }
 
@@ -96,7 +98,7 @@ class Class2 {
   /*member: Class2.field13:Class2.=BoolConstant(true),initial=NullConstant*/
   var field13;
 
-  /*member: Class2.field14:Class2.=?,initial=NullConstant*/
+  /*member: Class2.field14:Class2.=BoolConstant(false),initial=NullConstant*/
   var field14;
 
   Class2()

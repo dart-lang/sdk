@@ -15,10 +15,10 @@ class C extends core::Object {
   method test() → void {
     this.{self::C::f}();
     this.{self::C::f}();
-    this.{self::C::g}();
-    this.{self::C::g}();
-    this.{self::C::h}();
-    this.{self::C::h}();
+    this.{self::C::g}.call();
+    this.{self::C::g}.call();
+    this.{self::C::h}.call();
+    this.{self::C::h}.call();
   }
 }
 static method test(self::C* c, () →* void f, dynamic d) → void {
@@ -26,7 +26,7 @@ static method test(self::C* c, () →* void f, dynamic d) → void {
   f.call();
   d.call();
   d.f();
-  c.{self::C::g}();
-  c.{self::C::h}();
+  c.{self::C::g}.call();
+  c.{self::C::h}.call();
 }
 static method main() → dynamic {}

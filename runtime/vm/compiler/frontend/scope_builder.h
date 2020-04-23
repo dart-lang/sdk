@@ -7,6 +7,7 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
+#include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/hash_map.h"
 #include "vm/object.h"
@@ -39,6 +40,7 @@ class ScopeBuilder {
   void VisitStatement();
   void VisitArguments();
   void VisitVariableDeclaration();
+  void VisitVariableGet(intptr_t declaration_binary_offset);
   void VisitDartType();
   void VisitInterfaceType(bool simple);
   void VisitFunctionType(bool simple);
@@ -109,7 +111,7 @@ class ScopeBuilder {
   // Record an assignment or reference to a variable.  If the occurrence is
   // in a nested function, ensure that the variable is handled properly as a
   // captured variable.
-  void LookupVariable(intptr_t declaration_binary_offset);
+  LocalVariable* LookupVariable(intptr_t declaration_binary_offset);
 
   StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset,
                                              const Function& function);
@@ -157,6 +159,7 @@ class ScopeBuilder {
   TokenPosition first_body_token_position_;
 
   KernelReaderHelper helper_;
+  ConstantReader constant_reader_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
   TypeTranslator type_translator_;

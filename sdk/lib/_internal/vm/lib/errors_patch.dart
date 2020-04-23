@@ -82,18 +82,23 @@ class _AssertionError extends Error implements AssertionError {
   final Object message;
 }
 
-class _TypeError extends _AssertionError implements TypeError {
+class _TypeError extends Error implements TypeError, CastError {
   @pragma("vm:entry-point")
-  _TypeError._create(String url, int line, int column, String errorMsg)
-      : super._create("is assignable", url, line, column, errorMsg);
+  _TypeError._create(this._url, this._line, this._column, this._message);
 
+  @pragma("vm:entry-point", "call")
   static _throwNew(int location, Object src_value, _Type dst_type,
       String dst_name) native "TypeError_throwNew";
 
-  String toString() => super.message;
+  String toString() => _message;
+
+  final String _url;
+  final int _line;
+  final int _column;
+  final Object _message;
 }
 
-class _CastError extends Error implements CastError {
+class _CastError extends Error implements CastError, TypeError {
   @pragma("vm:entry-point")
   _CastError._create(this._url, this._line, this._column, this._errorMsg);
 
@@ -465,8 +470,8 @@ class NoSuchMethodError {
         argumentCount++;
       });
     }
-    bool args_mismatch = _existingArgumentNames != null;
-    String args_message = args_mismatch ? " with matching arguments" : "";
+    bool argsMismatch = _existingArgumentNames != null;
+    String argsMessage = argsMismatch ? " with matching arguments" : "";
 
     String type_str;
     if (type >= 0 && type < 5) {
@@ -485,9 +490,9 @@ class NoSuchMethodError {
       case _InvocationMirror._DYNAMIC:
         {
           if (_receiver == null) {
-            if (args_mismatch) {
+            if (argsMismatch) {
               msg_buf.writeln("The null object does not have a $type_str "
-                  "'$memberName'$args_message.");
+                  "'$memberName'$argsMessage.");
             } else {
               msg_buf
                   .writeln("The $type_str '$memberName' was called on null.");
@@ -506,7 +511,7 @@ class NoSuchMethodError {
             } else {
               msg_buf
                   .writeln("Class '${_receiver.runtimeType}' has no instance "
-                      "$type_str '$memberName'$args_message.");
+                      "$type_str '$memberName'$argsMessage.");
             }
           }
           break;
@@ -514,26 +519,26 @@ class NoSuchMethodError {
       case _InvocationMirror._SUPER:
         {
           msg_buf.writeln("Super class of class '${_receiver.runtimeType}' has "
-              "no instance $type_str '$memberName'$args_message.");
+              "no instance $type_str '$memberName'$argsMessage.");
           memberName = "super.$memberName";
           break;
         }
       case _InvocationMirror._STATIC:
         {
-          msg_buf.writeln("No static $type_str '$memberName'$args_message "
+          msg_buf.writeln("No static $type_str '$memberName'$argsMessage "
               "declared in class '$_receiver'.");
           break;
         }
       case _InvocationMirror._CONSTRUCTOR:
         {
-          msg_buf.writeln("No constructor '$memberName'$args_message declared "
+          msg_buf.writeln("No constructor '$memberName'$argsMessage declared "
               "in class '$_receiver'.");
           memberName = "new $memberName";
           break;
         }
       case _InvocationMirror._TOP_LEVEL:
         {
-          msg_buf.writeln("No top-level $type_str '$memberName'$args_message "
+          msg_buf.writeln("No top-level $type_str '$memberName'$argsMessage "
               "declared.");
           break;
         }
@@ -556,7 +561,7 @@ class NoSuchMethodError {
       msg_buf.write("Tried calling: $memberName = $arguments");
     }
 
-    if (args_mismatch) {
+    if (argsMismatch) {
       StringBuffer formalParameters = new StringBuffer();
       for (int i = 0; i < _existingArgumentNames.length; i++) {
         if (i > 0) {

@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FoldingTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class FoldingTest extends AbstractLspAnalysisServerTest {
-  test_class() async {
+  Future<void> test_class() async {
     final content = '''
     class MyClass2 {[[
       // Class content
@@ -25,7 +25,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
     final range1 = rangeFromMarkers(content);
     final expectedRegions = [
-      new FoldingRange(
+      FoldingRange(
         range1.start.line,
         range1.start.character,
         range1.end.line,
@@ -41,7 +41,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     expect(regions, unorderedEquals(expectedRegions));
   }
 
-  test_comments() async {
+  Future<void> test_comments() async {
     final content = '''
     [[/// This is a comment
     /// that spans many lines]]
@@ -50,7 +50,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
     final range1 = rangeFromMarkers(content);
     final expectedRegions = [
-      new FoldingRange(
+      FoldingRange(
         range1.start.line,
         range1.start.character,
         range1.end.line,
@@ -66,15 +66,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     expect(regions, unorderedEquals(expectedRegions));
   }
 
-  test_nonDartFile() async {
-    await initialize();
-    await openFile(pubspecFileUri, simplePubspecContent);
-
-    final regions = await getFoldingRegions(pubspecFileUri);
-    expect(regions, isEmpty);
-  }
-
-  test_headersImportsComments() async {
+  Future<void> test_headersImportsComments() async {
     // TODO(dantup): Review why the file header and the method comment ranges
     // are different... one spans only the range to collapse, but the other
     // just starts at the logical block.
@@ -109,8 +101,16 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     expect(regions, unorderedEquals(expectedRegions));
   }
 
+  Future<void> test_nonDartFile() async {
+    await initialize();
+    await openFile(pubspecFileUri, simplePubspecContent);
+
+    final regions = await getFoldingRegions(pubspecFileUri);
+    expect(regions, isEmpty);
+  }
+
   FoldingRange _toFoldingRange(Range range, FoldingRangeKind kind) {
-    return new FoldingRange(
+    return FoldingRange(
       range.start.line,
       range.start.character,
       range.end.line,

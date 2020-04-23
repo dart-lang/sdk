@@ -41,16 +41,6 @@ Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
   };
 }
 
-void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
-  ASSERT(Utils::IsAligned(data, 4));
-  ASSERT(Utils::IsAligned(length, 4));
-  const uword end = data + length;
-  while (data < end) {
-    *reinterpret_cast<int32_t*>(data) = Instr::kBreakPointInstruction;
-    data += 4;
-  }
-}
-
 void Assembler::Emit(int32_t value) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   buffer_.Emit<int32_t>(value);
@@ -619,16 +609,14 @@ void Assembler::Branch(const Code& target,
   br(TMP);
 }
 
-void Assembler::BranchPatchable(const Code& code) {
-  Branch(code, PP, ObjectPoolBuilderEntry::kPatchable);
-}
-
 void Assembler::BranchLink(const Code& target,
-                           ObjectPoolBuilderEntry::Patchability patchable) {
+                           ObjectPoolBuilderEntry::Patchability patchable,
+                           CodeEntryKind entry_kind) {
   const int32_t offset = target::ObjectPool::element_offset(
       object_pool_builder().FindObject(ToObject(target), patchable));
   LoadWordFromPoolOffset(CODE_REG, offset);
-  ldr(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  ldr(TMP,
+      FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
   blr(TMP);
 }
 
@@ -638,11 +626,13 @@ void Assembler::BranchLinkToRuntime() {
 }
 
 void Assembler::BranchLinkWithEquivalence(const Code& target,
-                                          const Object& equivalence) {
+                                          const Object& equivalence,
+                                          CodeEntryKind entry_kind) {
   const int32_t offset = target::ObjectPool::element_offset(
       object_pool_builder().FindObject(ToObject(target), equivalence));
   LoadWordFromPoolOffset(CODE_REG, offset);
-  ldr(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  ldr(TMP,
+      FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
   blr(TMP);
 }
 
@@ -652,6 +642,17 @@ void Assembler::CallNullErrorShared(bool save_fpu_registers) {
           ? target::Thread::null_error_shared_with_fpu_regs_entry_point_offset()
           : target::Thread::
                 null_error_shared_without_fpu_regs_entry_point_offset();
+  ldr(LR, Address(THR, entry_point_offset));
+  blr(LR);
+}
+
+void Assembler::CallNullArgErrorShared(bool save_fpu_registers) {
+  const uword entry_point_offset =
+      save_fpu_registers
+          ? target::Thread::
+                null_arg_error_shared_with_fpu_regs_entry_point_offset()
+          : target::Thread::
+                null_arg_error_shared_without_fpu_regs_entry_point_offset();
   ldr(LR, Address(THR, entry_point_offset));
   blr(LR);
 }
@@ -810,6 +811,16 @@ void Assembler::LoadFromOffset(Register dest,
   }
 }
 
+void Assembler::LoadSFromOffset(VRegister dest, Register base, int32_t offset) {
+  if (Address::CanHoldOffset(offset, Address::Offset, kSWord)) {
+    fldrs(dest, Address(base, offset, Address::Offset, kSWord));
+  } else {
+    ASSERT(base != TMP2);
+    AddImmediate(TMP2, base, offset);
+    fldrs(dest, Address(TMP2));
+  }
+}
+
 void Assembler::LoadDFromOffset(VRegister dest, Register base, int32_t offset) {
   if (Address::CanHoldOffset(offset, Address::Offset, kDWord)) {
     fldrd(dest, Address(base, offset, Address::Offset, kDWord));
@@ -841,6 +852,16 @@ void Assembler::StoreToOffset(Register src,
     ASSERT(src != TMP2);
     AddImmediate(TMP2, base, offset);
     str(src, Address(TMP2), sz);
+  }
+}
+
+void Assembler::StoreSToOffset(VRegister src, Register base, int32_t offset) {
+  if (Address::CanHoldOffset(offset, Address::Offset, kSWord)) {
+    fstrs(src, Address(base, offset, Address::Offset, kSWord));
+  } else {
+    ASSERT(base != TMP2);
+    AddImmediate(TMP2, base, offset);
+    fstrs(src, Address(TMP2));
   }
 }
 
@@ -1151,9 +1172,17 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
 }
 
 void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
-  LoadClassIdMayBeSmi(TMP, object);
-  // Finally, tag the result.
-  SmiTag(result, TMP);
+  if (result == object) {
+    LoadClassIdMayBeSmi(TMP, object);
+    SmiTag(result, TMP);
+  } else {
+    Label done;
+    LoadImmediate(result, target::ToRawSmi(kSmiCid));
+    BranchIfSmi(object, &done);
+    LoadClassId(result, object);
+    SmiTag(result);
+    Bind(&done);
+  }
 }
 
 // Frame entry and exit.
@@ -1194,6 +1223,16 @@ void Assembler::RestorePinnedRegisters() {
   ldr(BARRIER_MASK,
       compiler::Address(THR, target::Thread::write_barrier_mask_offset()));
   ldr(NULL_REG, compiler::Address(THR, target::Thread::object_null_offset()));
+}
+
+void Assembler::SetupGlobalPoolAndDispatchTable() {
+  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+  ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
+  sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+  if (FLAG_use_table_dispatch) {
+    ldr(DISPATCH_TABLE_REG,
+        Address(THR, target::Thread::dispatch_table_array_offset()));
+  }
 }
 
 void Assembler::CheckCodePointer() {
@@ -1503,10 +1542,10 @@ void Assembler::LeaveStubFrame() {
 // R0 receiver, R5 ICData entries array
 // Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntryJIT() {
-  ASSERT(has_single_entry_point_);
-  has_single_entry_point_ = false;
+  has_monomorphic_entry_ = true;
   const bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
+  const intptr_t start = CodeSize();
 
   Label immediate, miss;
   Bind(&miss);
@@ -1514,7 +1553,8 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == target::Instructions::kMonomorphicEntryOffsetJIT);
+  ASSERT_EQUAL(CodeSize() - start,
+               target::Instructions::kMonomorphicEntryOffsetJIT);
 
   const intptr_t cid_offset = target::Array::element_offset(0);
   const intptr_t count_offset = target::Array::element_offset(1);
@@ -1530,7 +1570,8 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction.
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == target::Instructions::kPolymorphicEntryOffsetJIT);
+  ASSERT_EQUAL(CodeSize() - start,
+               target::Instructions::kPolymorphicEntryOffsetJIT);
 
   set_use_far_branches(saved_use_far_branches);
 }
@@ -1538,8 +1579,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
 // R0 receiver, R5 guarded cid as Smi.
 // Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntryAOT() {
-  ASSERT(has_single_entry_point_);
-  has_single_entry_point_ = false;
+  has_monomorphic_entry_ = true;
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
 
@@ -1551,21 +1591,21 @@ void Assembler::MonomorphicCheckedEntryAOT() {
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() - start ==
-         target::Instructions::kMonomorphicEntryOffsetAOT);
-  LoadClassIdMayBeSmi(IP0, R0);
+  ASSERT_EQUAL(CodeSize() - start,
+               target::Instructions::kMonomorphicEntryOffsetAOT);
+  LoadClassId(IP0, R0);
   cmp(R5, Operand(IP0, LSL, 1));
   b(&miss, NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() - start ==
-         target::Instructions::kPolymorphicEntryOffsetAOT);
+  ASSERT_EQUAL(CodeSize() - start,
+               target::Instructions::kPolymorphicEntryOffsetAOT);
 
   set_use_far_branches(saved_use_far_branches);
 }
 
 void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
-  has_single_entry_point_ = false;
+  has_monomorphic_entry_ = true;
   while (CodeSize() < target::Instructions::kMonomorphicEntryOffsetJIT) {
     brk(0);
   }
@@ -1702,8 +1742,7 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t index_scale,
                                              Register array,
                                              intptr_t index) const {
-  const int64_t offset =
-      index * index_scale + HeapDataOffset(is_external, cid);
+  const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
   ASSERT(Utils::IsInt(32, offset));
   const OperandSize size = Address::OperandSizeFor(cid);
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
@@ -1716,35 +1755,33 @@ void Assembler::ComputeElementAddressForIntIndex(Register address,
                                                  intptr_t index_scale,
                                                  Register array,
                                                  intptr_t index) {
-  const int64_t offset =
-      index * index_scale + HeapDataOffset(is_external, cid);
+  const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
   AddImmediate(address, array, offset);
 }
 
 Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
+                                             bool index_unboxed,
                                              Register array,
                                              Register index,
                                              Register temp) {
-  return ElementAddressForRegIndexWithSize(is_external,
-                                           cid,
-                                           Address::OperandSizeFor(cid),
-                                           index_scale,
-                                           array,
-                                           index,
-                                           temp);
+  return ElementAddressForRegIndexWithSize(
+      is_external, cid, Address::OperandSizeFor(cid), index_scale,
+      index_unboxed, array, index, temp);
 }
 
 Address Assembler::ElementAddressForRegIndexWithSize(bool is_external,
                                                      intptr_t cid,
                                                      OperandSize size,
                                                      intptr_t index_scale,
+                                                     bool index_unboxed,
                                                      Register array,
                                                      Register index,
                                                      Register temp) {
-  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
-  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  // If unboxed, index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t boxing_shift = index_unboxed ? 0 : -kSmiTagShift;
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) + boxing_shift;
   const int32_t offset = HeapDataOffset(is_external, cid);
   ASSERT(array != temp);
   ASSERT(index != temp);
@@ -1764,10 +1801,12 @@ void Assembler::ComputeElementAddressForRegIndex(Register address,
                                                  bool is_external,
                                                  intptr_t cid,
                                                  intptr_t index_scale,
+                                                 bool index_unboxed,
                                                  Register array,
                                                  Register index) {
-  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
-  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  // If unboxed, index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t boxing_shift = index_unboxed ? 0 : -kSmiTagShift;
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) + boxing_shift;
   const int32_t offset = HeapDataOffset(is_external, cid);
   if (shift == 0) {
     add(address, array, Operand(index));
@@ -1879,6 +1918,48 @@ void Assembler::PopNativeCalleeSavedRegisters() {
     // C++ code. We also skip the dart stack pointer SP, since we are still
     // using it as the stack pointer.
     ldr(r, Address(SP, 1 * target::kWordSize, Address::PostIndex));
+  }
+}
+
+bool Assembler::CanGenerateXCbzTbz(Register rn, Condition cond) {
+  if (rn == CSP) {
+    return false;
+  }
+  switch (cond) {
+    case EQ:  // equal
+    case NE:  // not equal
+    case MI:  // minus/negative
+    case LT:  // signed less than
+    case PL:  // plus/positive or zero
+    case GE:  // signed greater than or equal
+      return true;
+    default:
+      return false;
+  }
+}
+
+void Assembler::GenerateXCbzTbz(Register rn, Condition cond, Label* label) {
+  constexpr int32_t bit_no = 63;
+  constexpr OperandSize sz = kDoubleWord;
+  ASSERT(rn != CSP);
+  switch (cond) {
+    case EQ:  // equal
+      cbz(label, rn, sz);
+      return;
+    case NE:  // not equal
+      cbnz(label, rn, sz);
+      return;
+    case MI:  // minus/negative
+    case LT:  // signed less than
+      tbnz(label, rn, bit_no);
+      return;
+    case PL:  // plus/positive or zero
+    case GE:  // signed greater than or equal
+      tbz(label, rn, bit_no);
+      return;
+    default:
+      // Only conditions above allow single instruction emission.
+      UNREACHABLE();
   }
 }
 

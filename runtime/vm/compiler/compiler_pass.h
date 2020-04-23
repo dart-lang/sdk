@@ -27,6 +27,7 @@ namespace dart {
   V(Canonicalize)                                                              \
   V(ComputeSSA)                                                                \
   V(ConstantPropagation)                                                       \
+  V(DCE)                                                                       \
   V(DSE)                                                                       \
   V(EliminateDeadPhis)                                                         \
   V(EliminateEnvironments)                                                     \
@@ -47,8 +48,9 @@ namespace dart {
   V(TryCatchOptimization)                                                      \
   V(TryOptimizePatterns)                                                       \
   V(TypePropagation)                                                           \
+  V(UseTableDispatch)                                                          \
   V(WidenSmiToInt32)                                                           \
-  V(WriteBarrierElimination)
+  V(EliminateWriteBarriers)
 
 class AllocationSinking;
 class BlockScheduler;
@@ -66,18 +68,20 @@ struct CompilerPassState {
                     SpeculativeInliningPolicy* speculative_policy,
                     Precompiler* precompiler = NULL)
       : thread(thread),
-        flow_graph(flow_graph),
         precompiler(precompiler),
         inlining_depth(0),
         sinking(NULL),
         call_specializer(NULL),
         speculative_policy(speculative_policy),
         reorder_blocks(false),
-        sticky_flags(0) {
-  }
+        sticky_flags(0),
+        flow_graph_(flow_graph) {}
+
+  FlowGraph* flow_graph() const { return flow_graph_; }
+
+  void set_flow_graph(FlowGraph* flow_graph);
 
   Thread* const thread;
-  FlowGraph* flow_graph;
   Precompiler* const precompiler;
   int inlining_depth;
   AllocationSinking* sinking;
@@ -97,6 +101,9 @@ struct CompilerPassState {
   bool reorder_blocks;
 
   intptr_t sticky_flags;
+
+ private:
+  FlowGraph* flow_graph_;
 };
 
 class CompilerPass {

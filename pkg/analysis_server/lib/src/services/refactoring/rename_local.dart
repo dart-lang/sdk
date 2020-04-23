@@ -19,9 +19,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * A [Refactoring] for renaming [LocalElement]s.
- */
+/// A [Refactoring] for renaming [LocalElement]s.
 class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   final AnalysisSessionHelper sessionHelper;
 
@@ -38,19 +36,19 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   @override
   String get refactoringName {
     if (element is ParameterElement) {
-      return "Rename Parameter";
+      return 'Rename Parameter';
     }
     if (element is FunctionElement) {
-      return "Rename Local Function";
+      return 'Rename Local Function';
     }
-    return "Rename Local Variable";
+    return 'Rename Local Variable';
   }
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
-    RefactoringStatus result = new RefactoringStatus();
+    var result = RefactoringStatus();
     await _prepareElements();
-    for (LocalElement element in elements) {
+    for (var element in elements) {
       var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
       var unit = resolvedUnit.unit;
       unit.accept(
@@ -67,7 +65,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   RefactoringStatus checkNewName() {
-    RefactoringStatus result = super.checkNewName();
+    var result = super.checkNewName();
     if (element is LocalVariableElement) {
       result.addStatus(validateVariableName(newName));
     } else if (element is ParameterElement) {
@@ -80,7 +78,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() async {
-    var processor = new RenameProcessor(workspace, change, newName);
+    var processor = RenameProcessor(workspace, change, newName);
     for (Element element in elements) {
       processor.addDeclarationEdit(element);
       var references = await searchEngine.searchReferences(element);
@@ -94,9 +92,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     }
   }
 
-  /**
-   * Fills [elements] with [Element]s to rename.
-   */
+  /// Fills [elements] with [Element]s to rename.
   Future _prepareElements() async {
     Element element = this.element;
     if (element is ParameterElement && element.isNamed) {
@@ -107,12 +103,12 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   }
 }
 
-class _ConflictValidatorVisitor extends RecursiveAstVisitor {
+class _ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   final RefactoringStatus result;
   final String newName;
   final LocalElement target;
   final Map<Element, SourceRange> visibleRangeMap;
-  final Set<Element> conflictingLocals = new Set<Element>();
+  final Set<Element> conflictingLocals = <Element>{};
 
   _ConflictValidatorVisitor(
     this.result,
@@ -122,14 +118,14 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
   );
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    Element nodeElement = node.staticElement;
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var nodeElement = node.staticElement;
     if (nodeElement != null && nodeElement.name == newName) {
       // Duplicate declaration.
       if (node.inDeclarationContext() && _isVisibleWithTarget(nodeElement)) {
         conflictingLocals.add(nodeElement);
-        String nodeKind = nodeElement.kind.displayName;
-        String message = "Duplicate $nodeKind '$newName'.";
+        var nodeKind = nodeElement.kind.displayName;
+        var message = "Duplicate $nodeKind '$newName'.";
         result.addError(message, newLocation_fromElement(nodeElement));
         return;
       }
@@ -137,17 +133,17 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
         return;
       }
       // Shadowing by the target element.
-      SourceRange targetRange = _getVisibleRange(target);
+      var targetRange = _getVisibleRange(target);
       if (targetRange != null &&
           targetRange.contains(node.offset) &&
           !node.isQualified &&
           !_isNamedExpressionName(node)) {
         nodeElement = getSyntheticAccessorVariable(nodeElement);
-        String nodeKind = nodeElement.kind.displayName;
-        String nodeName = getElementQualifiedName(nodeElement);
-        String nameElementSourceName = nodeElement.source.shortName;
-        String refKind = target.kind.displayName;
-        String message = 'Usage of $nodeKind "$nodeName" declared in '
+        var nodeKind = nodeElement.kind.displayName;
+        var nodeName = getElementQualifiedName(nodeElement);
+        var nameElementSourceName = nodeElement.source.shortName;
+        var refKind = target.kind.displayName;
+        var message = 'Usage of $nodeKind "$nodeName" declared in '
             '"$nameElementSourceName" will be shadowed by renamed $refKind.';
         result.addError(message, newLocation_fromNode(node));
       }
@@ -158,13 +154,11 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
     return visibleRangeMap[element];
   }
 
-  /**
-   * Returns whether [element] and [target] are visible together.
-   */
+  /// Returns whether [element] and [target] are visible together.
   bool _isVisibleWithTarget(Element element) {
     if (element is LocalElement) {
-      SourceRange targetRange = _getVisibleRange(target);
-      SourceRange elementRange = _getVisibleRange(element);
+      var targetRange = _getVisibleRange(target);
+      var elementRange = _getVisibleRange(element);
       return targetRange != null &&
           elementRange != null &&
           elementRange.intersects(targetRange);

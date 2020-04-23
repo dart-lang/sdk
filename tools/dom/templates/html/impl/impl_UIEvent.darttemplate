@@ -14,12 +14,12 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
   factory $CLASSNAME(String type,
-      {Window view, int detail: 0, bool canBubble: true,
+      {Window$NULLABLE view, int detail: 0, bool canBubble: true,
       bool cancelable: true}) {
     if (view == null) {
       view = window;
     }
-    UIEvent e = document._createEvent("UIEvent");
+    UIEvent e = document._createEvent("UIEvent") $#NULLSAFECAST(as UIEvent);
     e._initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }

@@ -81,9 +81,6 @@ class KernelFrontendStrategy extends FrontendStrategy {
 
   KFieldAnalysis _fieldAnalysis;
 
-  /// Backend transformation methods for the world impacts.
-  ImpactTransformer impactTransformer;
-
   @override
   NoSuchMethodRegistry noSuchMethodRegistry;
 
@@ -142,7 +139,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
       CompilerTask task, Compiler compiler) {
     RuntimeTypesNeedBuilder rtiNeedBuilder = _createRuntimeTypesNeedBuilder();
     BackendImpacts impacts =
-        new BackendImpacts(commonElements, compiler.options.experimentNewRti);
+        new BackendImpacts(commonElements, compiler.options);
     _nativeResolutionEnqueuer = new NativeResolutionEnqueuer(
         compiler.options,
         elementEnvironment,
@@ -166,7 +163,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
     // before creating the resolution enqueuer.
     AnnotationsData annotationsData = new AnnotationsDataImpl(
         compiler.options, annotationsDataBuilder.pragmaAnnotations);
-    impactTransformer = new JavaScriptImpactTransformer(
+    ImpactTransformer impactTransformer = new JavaScriptImpactTransformer(
         elementEnvironment,
         commonElements,
         impacts,
@@ -252,10 +249,8 @@ class KernelFrontendStrategy extends FrontendStrategy {
   @override
   void registerLoadedLibraries(KernelResult kernelResult) {
     _elementMap.addComponent(kernelResult.component);
-    if (_options.useCFEConstants) {
-      _irAnnotationData = processAnnotations(new ModularCore(
-          kernelResult.component, _elementMap.constantEvaluator));
-    }
+    _irAnnotationData = processAnnotations(
+        new ModularCore(kernelResult.component, _elementMap.constantEvaluator));
     _annotationProcessor = new KernelAnnotationProcessor(
         elementMap, nativeBasicDataBuilder, _irAnnotationData);
     for (Uri uri in kernelResult.libraries) {
@@ -438,12 +433,7 @@ class KernelModularStrategy extends ModularStrategy {
 
   @override
   List<PragmaAnnotationData> getPragmaAnnotationData(ir.Member node) {
-    if (_elementMap.options.useCFEConstants) {
-      return computePragmaAnnotationDataFromIr(node);
-    } else {
-      return computePragmaAnnotationData(_elementMap.commonElements,
-          _elementMap.elementEnvironment, _elementMap.getMember(node));
-    }
+    return computePragmaAnnotationDataFromIr(node);
   }
 
   @override

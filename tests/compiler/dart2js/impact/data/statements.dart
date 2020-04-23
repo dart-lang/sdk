@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: main:
  static=[
   testAssert(0),
@@ -65,36 +67,13 @@ testIfThenElse() {
     return 1;
 }
 
-/*member: testForIn:
- dynamic=[
-  Iterator.current,
-  Iterator.iterator,
-  Iterator.moveNext(0)],
- static=[checkConcurrentModificationError(2)],
- type=[
-  impl:Iterable<dynamic>,
-  inst:JSBool,
-  inst:JSNull,
-  inst:Null]
-*/
+/*member: testForIn:dynamic=[Iterator.current,Iterator.iterator,Iterator.moveNext(0)],static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),checkConcurrentModificationError(2),findType(1),instanceType(1)],type=[impl:Iterable<dynamic>,inst:Closure,inst:JSBool,inst:JSNull,inst:Null]*/
 testForIn(o) {
   // ignore: UNUSED_LOCAL_VARIABLE
   for (var e in o) {}
 }
 
-/*member: testForInTyped:
- dynamic=[
-  Iterator.current,
-  Iterator.iterator,
-  Iterator.moveNext(0)],
- static=[checkConcurrentModificationError(2)],
- type=[
-  impl:Iterable<dynamic>,
-  impl:int,
-  inst:JSBool,
-  inst:JSNull,
-  inst:Null]
-*/
+/*member: testForInTyped:dynamic=[Iterator.current,Iterator.iterator,Iterator.moveNext(0)],static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),checkConcurrentModificationError(2),findType(1),instanceType(1)],type=[impl:Iterable<dynamic>,impl:int,inst:Closure,inst:JSBool,inst:JSNull,inst:Null]*/
 testForInTyped(o) {
   // ignore: UNUSED_LOCAL_VARIABLE
   for (int e in o) {}
@@ -110,14 +89,7 @@ testTryCatch() {
   try {} catch (e) {}
 }
 
-/*member: testTryCatchOn:
- static=[unwrapException(1)],
- type=[
-  catch:String,
-  inst:JSBool,
-  inst:PlainJavaScriptObject,
-  inst:UnknownJavaScriptObject]
-*/
+/*member: testTryCatchOn:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),findType(1),instanceType(1),unwrapException(1)],type=[catch:String,inst:Closure,inst:JSBool,inst:PlainJavaScriptObject,inst:UnknownJavaScriptObject]*/
 testTryCatchOn() {
   // ignore: UNUSED_CATCH_CLAUSE
   try {} on String catch (e) {}

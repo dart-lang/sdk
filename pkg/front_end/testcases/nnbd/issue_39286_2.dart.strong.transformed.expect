@@ -1,10 +1,22 @@
-library;
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue_39286_2.dart:15:14: Warning: Operand of null-aware operation '!' has type 'String' which excludes null.
+//   x..f()!.g()['Hi!']!..h()!.y = 2;
+//              ^
+//
+// pkg/front_end/testcases/nnbd/issue_39286_2.dart:15:24: Warning: Operand of null-aware operation '!' has type 'C' which excludes null.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd/issue_39286_2.dart'.
+//   x..f()!.g()['Hi!']!..h()!.y = 2;
+//                        ^
+//
 import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field core::int y = null;
-  synthetic constructor •() → self::C*
+  field core::int y = 42;
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   method f() → self::D?
@@ -13,7 +25,7 @@ class C extends core::Object {
     return this;
 }
 class D extends core::Object {
-  synthetic constructor •() → self::D*
+  synthetic constructor •() → self::D
     : super core::Object::•()
     ;
   method g() → self::D

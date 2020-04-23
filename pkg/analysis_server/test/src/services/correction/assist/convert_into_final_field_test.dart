@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertIntoFinalFieldTest);
   });
@@ -19,7 +19,7 @@ class ConvertIntoFinalFieldTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_INTO_FINAL_FIELD;
 
-  test_blockBody_onlyReturnStatement() async {
+  Future<void> test_blockBody_onlyReturnStatement() async {
     await resolveTestUnit('''
 class A {
   int get foo {
@@ -34,7 +34,7 @@ class A {
 ''');
   }
 
-  test_hasOverride() async {
+  Future<void> test_hasOverride() async {
     await resolveTestUnit('''
 const myAnnotation = const Object();
 class A {
@@ -51,7 +51,7 @@ class A {
 ''');
   }
 
-  test_hasSetter_inSuper() async {
+  Future<void> test_hasSetter_inSuper() async {
     await resolveTestUnit('''
 class A {
   void set foo(_) {}
@@ -70,7 +70,7 @@ class B extends A {
 ''');
   }
 
-  test_hasSetter_inThisClass() async {
+  Future<void> test_hasSetter_inThisClass() async {
     await resolveTestUnit('''
 class A {
   int get foo => null;
@@ -80,7 +80,7 @@ class A {
     await assertNoAssistAt('get foo');
   }
 
-  test_noReturnType() async {
+  Future<void> test_noReturnType() async {
     await resolveTestUnit('''
 class A {
   get foo => 42;
@@ -93,7 +93,7 @@ class A {
 ''');
   }
 
-  test_noReturnType_static() async {
+  Future<void> test_noReturnType_static() async {
     await resolveTestUnit('''
 class A {
   static get foo => 42;
@@ -106,7 +106,7 @@ class A {
 ''');
   }
 
-  test_notExpressionBody() async {
+  Future<void> test_notExpressionBody() async {
     await resolveTestUnit('''
 class A {
   int get foo {
@@ -118,7 +118,7 @@ class A {
     await assertNoAssistAt('get foo');
   }
 
-  test_notGetter() async {
+  Future<void> test_notGetter() async {
     await resolveTestUnit('''
 class A {
   int foo() => 42;
@@ -127,7 +127,7 @@ class A {
     await assertNoAssistAt('foo');
   }
 
-  test_notNull() async {
+  Future<void> test_notNull() async {
     await resolveTestUnit('''
 class A {
   int get foo => 1 + 2;
@@ -140,7 +140,7 @@ class A {
 ''');
   }
 
-  test_null() async {
+  Future<void> test_null() async {
     await resolveTestUnit('''
 class A {
   int get foo => null;
@@ -153,7 +153,7 @@ class A {
 ''');
   }
 
-  test_onName() async {
+  Future<void> test_onName() async {
     await resolveTestUnit('''
 class A {
   int get foo => 42;
@@ -166,7 +166,7 @@ class A {
 ''');
   }
 
-  test_onReturnType_parameterized() async {
+  Future<void> test_onReturnType_parameterized() async {
     await resolveTestUnit('''
 class A {
   List<int> get foo => null;
@@ -179,7 +179,7 @@ class A {
 ''');
   }
 
-  test_onReturnType_simple() async {
+  Future<void> test_onReturnType_simple() async {
     await resolveTestUnit('''
 class A {
   int get foo => 42;

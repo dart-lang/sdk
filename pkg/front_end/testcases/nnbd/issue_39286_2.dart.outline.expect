@@ -1,10 +1,10 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
   field core::int y;
-  synthetic constructor •() → self::C*
+  synthetic constructor •() → self::C
     ;
   method f() → self::D?
     ;
@@ -12,7 +12,7 @@ class C extends core::Object {
     ;
 }
 class D extends core::Object {
-  synthetic constructor •() → self::D*
+  synthetic constructor •() → self::D
     ;
   method g() → self::D
     ;

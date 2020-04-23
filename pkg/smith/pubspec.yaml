@@ -6,6 +6,8 @@ homepage: http://www.dartlang.org
 publish_to: none
 environment:
   sdk: "^2.3.0"
+dependencies:
+  args: any
 dev_dependencies:
   expect:
     path: ../expect

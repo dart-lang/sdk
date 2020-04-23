@@ -28,7 +28,10 @@ class FixedTypeBuilder extends TypeBuilder {
     return buffer;
   }
 
-  DartType build(LibraryBuilder library, [TypedefType origin]) => type;
+  DartType build(LibraryBuilder library,
+      [TypedefType origin, bool notInstanceContext]) {
+    return type;
+  }
 
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {

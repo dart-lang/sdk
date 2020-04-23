@@ -1,3 +1,82 @@
+## 0.39.5-dev
+* Deprecated `ClassElement.instantiateToBounds()` and
+  `FunctionTypeAliasElement.instantiateToBounds()`. With the null-safety
+  feature, type arguments derived from type parameter bounds cannot be used as
+  is, and might require erasing nullability, when the element is instantiated
+  from a legacy library. Use `TypeSystem.instantiateToBounds2()` instead.
+* Deprecated `DeclaredVariables.getBool/getInt/getString()`. These methods
+  are used internally for constants computation, and should not be used by
+  clients.
+
+## 0.39.4
+* Deprecated `DartType.name`, use `element` or `getDisplayString()` instead.
+* Fixed bugs 35108 and 39996.
+
+## 0.39.3
+* Bumped the analyzer's SDK requirement to `>=2.6.0`, so that extension methods
+  can be used within the analyzer implementation.
+* Deprecated `ErrorReporter.source` setter. One file - one reporter.
+* Deprecated `Element.getAncestor`.  Use thisOrAncestorMatching or
+  thisOrAncestorOfType instead.
+* Deprecated `DartType.displayName`.  Use getDisplayString instead.
+* Deprecated the following methods in `InterfaceType`: `lookupGetter`,
+  `lookUpGetterInSuperclass`, `lookUpInheritedGetter`,
+  `lookUpInheritedGetterOrMethod`, `lookUpInheritedMethod`,
+  `lookUpInheritedSetter`, `lookUpMethod`, `lookUpMethodInSuperclass`,
+  `lookUpSetter`, and `lookUpSetterInSuperclass`.  Use `lookUpGetter2()`,
+  `lookUpMethod2()`, or `lookUpSetter2()` instead, with `concrete` or
+  `inherited` flags as necessary.
+* Deprecated `ErrorReporter.reportTypeErrorForNode`.  Use `reportErrorForNode`
+  instead.
+* Added new error codes: EXPORT_LEGACY_SYMBOL and DEAD_NULL_COALESCE.
+* Removed error codes CONST_WITH_INVALID_TYPE_PARAMETERS and
+  NEW_WITH_INVALID_TYPE_PARAMETERS.  WRONG_NUMBER_OF_TYPE_ARGUMENTS is now
+  reported instead.
+* Removed error codes: DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS,
+  INVALID_OPTIONAL_PARAMETER_TYPE.
+* Reclassified error codes as compile time errors: BREAK_LABEL_ON_SWITCH_MEMBER,
+  CONTINUE_LABEL_ON_SWITCH, PART_OF_UNNAMED_LIBRARY.
+* Removed error codes: ASSIGNMENT_CAST, StrongModeCode.DOWN_CAST_COMPOSITE,
+  DOWN_CAST_IMPLICIT, DOWN_CAST_IMPLICIT_ASSIGN, DYNAMIC_CAST, DYNAMIC_INVOKE,
+  IMPLICIT_DYNAMIC_FIELD, IMPLICIT_DYNAMIC_FUNCTION, IMPLICIT_DYNAMIC_INVOKE,
+  IMPLICIT_DYNAMIC_LIST_LITERAL, IMPLICIT_DYNAMIC_MAP_LITERAL,
+  IMPLICIT_DYNAMIC_METHOD, IMPLICIT_DYNAMIC_PARAMETER, IMPLICIT_DYNAMIC_RETURN,
+  IMPLICIT_DYNAMIC_TYPE, IMPLICIT_DYNAMIC_VARIABLE, INFERRED_TYPE,
+  INFERRED_TYPE_ALLOCATION, INFERRED_TYPE_CLOSURE, INFERRED_TYPE_LITERAL, and
+  NON_GROUND_TYPE_CHECK_INFO.  These were used internally by the analyzer for
+  testing and were not exposed to users.
+* Fixed bugs 37116, 38281, 38859, 39524, 39598, 39651, 39667, 39668, 39709,
+  39711, 39752, 39773, 39848, 39849, and 39880.
+
+## 0.39.2+1
+* Fixed bug #39702.
+
+## 0.39.2
+* Deprecated `AnalysisSession.typeProvider` and `AnalysisSession.typeSystem`.
+  Please use the corresponding getters in `LibraryElement` instead.
+* Added new error codes: AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
+  DEFERRED_IMPORT_OF_EXTENSION, LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
+  WRONG_TYPE_PARAMETER_VARIANCE_POSITION, and
+  WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE.
+* Added new hint codes: INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
+  INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS,
+  INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE,
+  INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER,
+  INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX,
+  INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS, and
+  INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES.
+* Changed error code TYPE_PARAMETER_ON_CONSTRUCTOR from a CompileTimeErrorCode
+  to a ParserErrorCode.
+* Split warning code RETURN_OF_INVALID_TYPE into two warnings:
+  RETURN_OF_INVALID_TYPE_FROM_FUNCTION and RETURN_OF_INVALID_TYPE_FROM_METHOD.
+* Merged warning codes CONST_WITH_ABSTRACT_CLASS and NEW_WITH_ABSTRACT_CLASS
+  into INSTANTIATE_ABSTRACT_CLASS.
+* Removed warning code MIXED_RETURN_TYPES (this is now allowed by the language
+  spec).
+* Bug fixes: 33745, 35677, 35677, 37504, 37936, 38506, 38551, 38734, 38813,
+  38878, 38953, 38992, 39051, 39115, 39117, 39120, 39192, 39250, 39267, 39380,
+  39389, 39402, 39407, 39476, 39509, 39532, 39563, 39618.
+
 ## 0.39.1
 * Deprecated `DartType.substitute2()`. Use `ClassElement.instantiate()`
   or `FunctionTypeAliasElement.instantiate()` instead.

@@ -6,66 +6,6 @@ import 'basic_types.dart';
 import 'border_radius.dart';
 import 'borders.dart';
 
-/// The shape to use when rendering a [Border] or [BoxDecoration].
-///
-/// Consider using [ShapeBorder] subclasses directly (with [ShapeDecoration]),
-/// instead of using [BoxShape] and [Border], if the shapes will need to be
-/// interpolated or animated. The [Border] class cannot interpolate between
-/// different shapes.
-enum BoxShape {
-  /// An axis-aligned, 2D rectangle. May have rounded corners (described by a
-  /// [BorderRadius]). The edges of the rectangle will match the edges of the box
-  /// into which the [Border] or [BoxDecoration] is painted.
-  ///
-  /// See also:
-  ///
-  ///  * [RoundedRectangleBorder], the equivalent [ShapeBorder].
-  rectangle,
-
-  /// A circle centered in the middle of the box into which the [Border] or
-  /// [BoxDecoration] is painted. The diameter of the circle is the shortest
-  /// dimension of the box, either the width or the height, such that the circle
-  /// touches the edges of the box.
-  ///
-  /// See also:
-  ///
-  ///  * [CircleBorder], the equivalent [ShapeBorder].
-  circle,
-
-  // Don't add more, instead create a new ShapeBorder.
-}
-
-/// Base class for box borders that can paint as rectangles, circles, or rounded
-/// rectangles.
-///
-/// This class is extended by [Border] and [BorderDirectional] to provide
-/// concrete versions of four-sided borders using different conventions for
-/// specifying the sides.
-///
-/// The only API difference that this class introduces over [ShapeBorder] is
-/// that its [paint] method takes additional arguments.
-///
-/// See also:
-///
-///  * [BorderSide], which is used to describe each side of the box.
-///  * [RoundedRectangleBorder], another way of describing a box's border.
-///  * [CircleBorder], another way of describing a circle border.
-///  * [BoxDecoration], which uses a [BoxBorder] to describe its borders.
-abstract class BoxBorder extends ShapeBorder {
-  /// Abstract const constructor. This constructor enables subclasses to provide
-  /// const constructors so that they can be used in const expressions.
-  const BoxBorder();
-
-  /// The top side of this border.
-  ///
-  /// This getter is available on both [Border] and [BorderDirectional]. If
-  /// [isUniform] is true, then this is the same style as all the other sides.
-  BorderSide get top;
-
-  /// The bottom side of this border.
-  BorderSide get bottom;
-}
-
 /// A border of a box, comprised of four sides: top, right, bottom, left.
 ///
 /// The sides are represented by [BorderSide] objects.
@@ -128,6 +68,18 @@ abstract class BoxBorder extends ShapeBorder {
 ///  * [Theme], from the material layer, which can be queried to obtain appropriate colors
 ///    to use for borders in a material app, as shown in the "divider" sample above.
 class Border extends BoxBorder {
+  @override
+  final BorderSide top;
+
+  /// The right side of this border.
+  final BorderSide right;
+
+  @override
+  final BorderSide bottom;
+
+  /// The left side of this border.
+  final BorderSide left;
+
   /// Creates a border.
   ///
   /// All the sides of the border default to [BorderSide.none].
@@ -143,16 +95,6 @@ class Border extends BoxBorder {
         assert(bottom != null),
         assert(left != null);
 
-  /// Creates a border whose sides are all the same.
-  ///
-  /// The `side` argument must not be null.
-  const Border.fromBorderSide(BorderSide side)
-      : assert(side != null),
-        top = side,
-        right = side,
-        bottom = side,
-        left = side;
-
   /// A uniform border with all sides the same color and width.
   ///
   /// The sides default to black solid borders, one logical pixel wide.
@@ -166,17 +108,15 @@ class Border extends BoxBorder {
     return Border.fromBorderSide(side);
   }
 
-  @override
-  final BorderSide top;
-
-  /// The right side of this border.
-  final BorderSide right;
-
-  @override
-  final BorderSide bottom;
-
-  /// The left side of this border.
-  final BorderSide left;
+  /// Creates a border whose sides are all the same.
+  ///
+  /// The `side` argument must not be null.
+  const Border.fromBorderSide(BorderSide side)
+      : assert(side != null),
+        top = side,
+        right = side,
+        bottom = side,
+        left = side;
 }
 
 /// A border of a box, comprised of four sides, the lateral sides of which
@@ -199,25 +139,6 @@ class Border extends BoxBorder {
 ///  * [Theme], from the material layer, which can be queried to obtain appropriate colors
 ///    to use for borders in a material app, as shown in the "divider" sample above.
 class BorderDirectional extends BoxBorder {
-  /// Creates a border.
-  ///
-  /// The [start] and [end] sides represent the horizontal sides; the start side
-  /// is on the leading edge given the reading direction, and the end side is on
-  /// the trailing edge. They are resolved during [paint].
-  ///
-  /// All the sides of the border default to [BorderSide.none].
-  ///
-  /// The arguments must not be null.
-  const BorderDirectional({
-    this.top = BorderSide.none,
-    this.start = BorderSide.none,
-    this.end = BorderSide.none,
-    this.bottom = BorderSide.none,
-  })  : assert(top != null),
-        assert(start != null),
-        assert(end != null),
-        assert(bottom != null);
-
   @override
   final BorderSide top;
 
@@ -243,4 +164,83 @@ class BorderDirectional extends BoxBorder {
 
   @override
   final BorderSide bottom;
+
+  /// Creates a border.
+  ///
+  /// The [start] and [end] sides represent the horizontal sides; the start side
+  /// is on the leading edge given the reading direction, and the end side is on
+  /// the trailing edge. They are resolved during [paint].
+  ///
+  /// All the sides of the border default to [BorderSide.none].
+  ///
+  /// The arguments must not be null.
+  const BorderDirectional({
+    this.top = BorderSide.none,
+    this.start = BorderSide.none,
+    this.end = BorderSide.none,
+    this.bottom = BorderSide.none,
+  })  : assert(top != null),
+        assert(start != null),
+        assert(end != null),
+        assert(bottom != null);
+}
+
+/// Base class for box borders that can paint as rectangles, circles, or rounded
+/// rectangles.
+///
+/// This class is extended by [Border] and [BorderDirectional] to provide
+/// concrete versions of four-sided borders using different conventions for
+/// specifying the sides.
+///
+/// The only API difference that this class introduces over [ShapeBorder] is
+/// that its [paint] method takes additional arguments.
+///
+/// See also:
+///
+///  * [BorderSide], which is used to describe each side of the box.
+///  * [RoundedRectangleBorder], another way of describing a box's border.
+///  * [CircleBorder], another way of describing a circle border.
+///  * [BoxDecoration], which uses a [BoxBorder] to describe its borders.
+abstract class BoxBorder extends ShapeBorder {
+  /// Abstract const constructor. This constructor enables subclasses to provide
+  /// const constructors so that they can be used in const expressions.
+  const BoxBorder();
+
+  /// The bottom side of this border.
+  BorderSide get bottom;
+
+  /// The top side of this border.
+  ///
+  /// This getter is available on both [Border] and [BorderDirectional]. If
+  /// [isUniform] is true, then this is the same style as all the other sides.
+  BorderSide get top;
+}
+
+/// The shape to use when rendering a [Border] or [BoxDecoration].
+///
+/// Consider using [ShapeBorder] subclasses directly (with [ShapeDecoration]),
+/// instead of using [BoxShape] and [Border], if the shapes will need to be
+/// interpolated or animated. The [Border] class cannot interpolate between
+/// different shapes.
+enum BoxShape {
+  /// An axis-aligned, 2D rectangle. May have rounded corners (described by a
+  /// [BorderRadius]). The edges of the rectangle will match the edges of the box
+  /// into which the [Border] or [BoxDecoration] is painted.
+  ///
+  /// See also:
+  ///
+  ///  * [RoundedRectangleBorder], the equivalent [ShapeBorder].
+  rectangle,
+
+  /// A circle centered in the middle of the box into which the [Border] or
+  /// [BoxDecoration] is painted. The diameter of the circle is the shortest
+  /// dimension of the box, either the width or the height, such that the circle
+  /// touches the edges of the box.
+  ///
+  /// See also:
+  ///
+  ///  * [CircleBorder], the equivalent [ShapeBorder].
+  circle,
+
+  // Don't add more, instead create a new ShapeBorder.
 }

@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateMixinTest);
   });
@@ -21,7 +21,7 @@ class CreateMixinTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_MIXIN;
 
-  test_hasUnresolvedPrefix() async {
+  Future<void> test_hasUnresolvedPrefix() async {
     await resolveTestUnit('''
 main() {
   prefix.Test v = null;
@@ -31,8 +31,8 @@ main() {
     await assertNoFix();
   }
 
-  test_inLibraryOfPrefix() async {
-    String libCode = r'''
+  Future<void> test_inLibraryOfPrefix() async {
+    var libCode = r'''
 class A {}
 ''';
     addSource('/home/test/lib/lib.dart', libCode);
@@ -54,7 +54,7 @@ mixin Test {
     expect(change.linkedEditGroups, hasLength(1));
   }
 
-  test_innerLocalFunction() async {
+  Future<void> test_innerLocalFunction() async {
     await resolveTestUnit('''
 f() {
   g() {
@@ -79,7 +79,7 @@ mixin Test {
     assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
   }
 
-  test_instanceCreation_withNew() async {
+  Future<void> test_instanceCreation_withNew() async {
     await resolveTestUnit('''
 main() {
   new Test();
@@ -88,7 +88,7 @@ main() {
     await assertNoFix();
   }
 
-  test_instanceCreation_withoutNew() async {
+  Future<void> test_instanceCreation_withoutNew() async {
     await resolveTestUnit('''
 main() {
   Test();
@@ -97,7 +97,7 @@ main() {
     await assertNoFix();
   }
 
-  test_itemOfList() async {
+  Future<void> test_itemOfList() async {
     await resolveTestUnit('''
 main() {
   var a = [Test];
@@ -116,7 +116,7 @@ mixin Test {
     assertLinkedGroup(change.linkedEditGroups[0], ['Test];', 'Test {']);
   }
 
-  test_itemOfList_inAnnotation() async {
+  Future<void> test_itemOfList_inAnnotation() async {
     await resolveTestUnit('''
 class MyAnnotation {
   const MyAnnotation(a, b);
@@ -139,7 +139,7 @@ mixin Test {
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
   }
 
-  test_simple() async {
+  Future<void> test_simple() async {
     await resolveTestUnit('''
 main() {
   Test v = null;

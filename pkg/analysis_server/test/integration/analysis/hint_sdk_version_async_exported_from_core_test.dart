@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SdkVersionAsyncExportedFromCoreIntegrationTest);
   });
@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class SdkVersionAsyncExportedFromCoreIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
-  test_update_pubspec() async {
+  Future<void> test_update_pubspec() async {
     var pubspecPath = sourcePath('pubspec.yaml');
     writeFile(pubspecPath, r'''
 name: test

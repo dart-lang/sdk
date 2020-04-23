@@ -1,0 +1,56 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Named extension.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    sources:
+      main.dart: |
+        class A1 {}
+
+        extension A2 on A1 {
+          A1 method1() {
+            return this;
+          }
+          String get getter1 => "42!";
+          void set setter1(String s) {}
+          static A1 method2() {
+            return null;
+          }
+          static String get getter2 => "42!";
+          static void set setter2(String s) {}
+          static int staticField = 42;
+          static final int staticFinalField = 42;
+        }
+    expectedLibraryCount: 1
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        class A1 {}
+
+        extension A2 on A1 {
+          A1 method1() {
+            return this;
+          }
+          String get getter1 => "42!";
+          void set setter1(String s) {}
+          static A1 method2() {
+            return null;
+          }
+          static String get getter2 => "42!";
+          static void set setter2(String s) {}
+          static int staticField = 42;
+          static final int staticFinalField = 42;
+        }
+    expectedLibraryCount: 1
+    expectsRebuildBodiesOnly: true

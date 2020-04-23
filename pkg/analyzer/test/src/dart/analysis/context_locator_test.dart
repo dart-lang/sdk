@@ -25,7 +25,7 @@ class ContextLocatorImplTest with ResourceProviderMixin {
         return root;
       }
     }
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('Could not find "');
     buffer.write(rootFolder.path);
     buffer.write('" in');
@@ -38,7 +38,7 @@ class ContextLocatorImplTest with ResourceProviderMixin {
   }
 
   void setUp() {
-    contextLocator = new ContextLocatorImpl(resourceProvider: resourceProvider);
+    contextLocator = ContextLocatorImpl(resourceProvider: resourceProvider);
   }
 
   void test_locateRoots_multiple_dirAndNestedDir() {
@@ -135,7 +135,7 @@ class ContextLocatorImplTest with ResourceProviderMixin {
           return root;
         }
       }
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       buffer.write('Could not find "');
       buffer.write(includedPath);
       buffer.write('" in');

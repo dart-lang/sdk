@@ -1,0 +1,15 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/type_parameters_on_void.dart:1:5: Error: Type 'void' can't have type arguments.
+// Try removing the type arguments.
+// void<int> f() {}
+//     ^
+//
+import self as self;
+
+static method f() → void
+  ;
+static method main() → dynamic
+  ;

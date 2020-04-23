@@ -42,29 +42,23 @@ _precompiled_runtime_product_config =
       "$_dart_runtime:dart_product_config",
     ]
 
-_nosnapshot_precompiler_base = [
-  "$_dart_runtime:dart_nosnapshot_config",
-  "$_dart_runtime:dart_precompiler_config",
-]
+_precompiler_base = [ "$_dart_runtime:dart_precompiler_config" ]
 
-_nosnapshot_with_precompiler_config =
-    _base_config + _nosnapshot_precompiler_base + _maybe_product
+_precompiler_config = _base_config + _precompiler_base + _maybe_product
 
-_nosnapshot_with_precompiler_product_config =
-    _base_config + _nosnapshot_precompiler_base + _product
+_precompiler_product_config = _base_config + _precompiler_base + _product
 
-_nosnapshot_with_precompiler_fuchsia_config =
-    _base_fuchsia_config + _nosnapshot_precompiler_base + _maybe_product
+_precompiler_fuchsia_config =
+    _base_fuchsia_config + _precompiler_base + _maybe_product
 
-_nosnapshot_with_precompiler_product_fuchsia_config =
-    _base_fuchsia_config + _nosnapshot_precompiler_base + _product
+_precompiler_product_fuchsia_config =
+    _base_fuchsia_config + _precompiler_base + _product
 
-_nosnapshot_with_precompiler_host_targeting_host_config =
-    _base_host_targeting_host_config + _nosnapshot_precompiler_base +
-    _maybe_product
+_precompiler_host_targeting_host_config =
+    _base_host_targeting_host_config + _precompiler_base + _maybe_product
 
-_nosnapshot_with_precompiler_product_host_targeting_host_config =
-    _base_host_targeting_host_config + _nosnapshot_precompiler_base + _product
+_precompiler_product_host_targeting_host_config =
+    _base_host_targeting_host_config + _precompiler_base + _product
 
 _all_configs = [
   {
@@ -88,33 +82,33 @@ _all_configs = [
     snapshot = true
   },
   {
-    suffix = "_nosnapshot_with_precompiler"
-    configs = _nosnapshot_with_precompiler_config
+    suffix = "_precompiler"
+    configs = _precompiler_config
     snapshot = false
   },
   {
-    suffix = "_nosnapshot_with_precompiler_product"
-    configs = _nosnapshot_with_precompiler_product_config
+    suffix = "_precompiler_product"
+    configs = _precompiler_product_config
     snapshot = false
   },
   {
-    suffix = "_nosnapshot_with_precompiler_fuchsia"
-    configs = _nosnapshot_with_precompiler_fuchsia_config
+    suffix = "_precompiler_fuchsia"
+    configs = _precompiler_fuchsia_config
     snapshot = false
   },
   {
-    suffix = "_nosnapshot_with_precompiler_product_fuchsia"
-    configs = _nosnapshot_with_precompiler_product_fuchsia_config
+    suffix = "_precompiler_product_fuchsia"
+    configs = _precompiler_product_fuchsia_config
     snapshot = false
   },
   {
-    suffix = "_nosnapshot_with_precompiler_host_targeting_host"
-    configs = _nosnapshot_with_precompiler_host_targeting_host_config
+    suffix = "_precompiler_host_targeting_host"
+    configs = _precompiler_host_targeting_host_config
     snapshot = false
   },
   {
-    suffix = "_nosnapshot_with_precompiler_product_host_targeting_host"
-    configs = _nosnapshot_with_precompiler_product_host_targeting_host_config
+    suffix = "_precompiler_product_host_targeting_host"
+    configs = _precompiler_product_host_targeting_host_config
     snapshot = false
   },
   {
@@ -155,12 +149,6 @@ _all_configs = [
 #  snapshot_sources (optional):
 #    Additional sources to include when the configuration has a snapshot.
 #
-#  nosnapshot_sources (optional):
-#    Additional sources to include when the configuration does not have a
-#    snapshot (that is, one of the "nosnapshot" configurations above).
-#
-#  nosnapshot_deps (optional):
-#    Similar to nosnapshot_sources, but for deps.
 template("library_for_all_configs") {
   assert(defined(invoker.target_type))
   extra_configs = []
@@ -194,21 +182,9 @@ template("library_for_all_configs") {
         if (defined(snapshot_sources)) {
           sources += snapshot_sources
         }
-        if (defined(nosnapshot_sources)) {
-          not_needed([ "nosnapshot_sources" ])
-        }
-        if (defined(nosnapshot_deps)) {
-          not_needed([ "nosnapshot_deps" ])
-        }
       } else {
         if (defined(snapshot_sources)) {
           not_needed([ "snapshot_sources" ])
-        }
-        if (defined(nosnapshot_sources)) {
-          sources += nosnapshot_sources
-        }
-        if (defined(nosnapshot_deps)) {
-          deps += nosnapshot_deps
         }
       }
     }

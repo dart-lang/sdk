@@ -16,21 +16,13 @@ class AstResolver {
   final CompilationUnitElement _unitElement;
   final Scope _nameScope;
 
-  /// This field is set if the library is non-nullable by default.
-  FlowAnalysisHelper flowAnalysis;
-
-  AstResolver(this._linker, this._unitElement, this._nameScope) {
-    if (_unitElement.library.isNonNullableByDefault) {
-      flowAnalysis = FlowAnalysisHelper(
-        _unitElement.library.typeSystem,
-        false,
-      );
-    }
-  }
+  AstResolver(this._linker, this._unitElement, this._nameScope);
 
   void resolve(
     AstNode node,
-    AstNode getNode(), {
+    AstNode Function() getNode, {
+    bool buildElements = true,
+    bool isTopLevelVariableInitializer = false,
     ClassElement enclosingClassElement,
     ExecutableElement enclosingExecutableElement,
     FunctionBody enclosingFunctionBody,
@@ -38,30 +30,43 @@ class AstResolver {
     var featureSet = node.thisOrAncestorOfType<CompilationUnit>().featureSet;
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
 
-    node.accept(
-      ResolutionVisitor(
-        unitElement: _unitElement,
-        featureSet: featureSet,
+    if (buildElements) {
+      node.accept(
+        ResolutionVisitor(
+          unitElement: _unitElement,
+          featureSet: featureSet,
+          nameScope: _nameScope,
+          errorListener: errorListener,
+        ),
+      );
+      node = getNode();
+
+      var variableResolverVisitor = VariableResolverVisitor(
+        _unitElement.library,
+        _unitElement.source,
+        _unitElement.library.typeProvider,
+        errorListener,
         nameScope: _nameScope,
-        errorListener: errorListener,
-      ),
-    );
-    node = getNode();
+      );
+      node.accept(variableResolverVisitor);
+    }
 
-    var variableResolverVisitor = new VariableResolverVisitor(
-      _unitElement.library,
-      _unitElement.source,
-      _linker.typeProvider,
-      errorListener,
-      nameScope: _nameScope,
-    );
-    node.accept(variableResolverVisitor);
+    FlowAnalysisHelper flowAnalysis;
+    if (isTopLevelVariableInitializer) {
+      if (_unitElement.library.isNonNullableByDefault) {
+        flowAnalysis = FlowAnalysisHelper(
+          _unitElement.library.typeSystem,
+          false,
+        );
+        flowAnalysis.topLevelDeclaration_enter(node.parent, null, null);
+      }
+    }
 
-    var resolverVisitor = new ResolverVisitor(
+    var resolverVisitor = ResolverVisitor(
       _linker.inheritance,
       _unitElement.library,
       _unitElement.source,
-      _linker.typeProvider,
+      _unitElement.library.typeProvider,
       errorListener,
       featureSet: featureSet,
       nameScope: _nameScope,
@@ -78,5 +83,9 @@ class AstResolver {
     }
 
     node.accept(resolverVisitor);
+
+    if (isTopLevelVariableInitializer) {
+      flowAnalysis?.topLevelDeclaration_exit();
+    }
   }
 }

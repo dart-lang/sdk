@@ -4,6 +4,7 @@
 
 import("../build/dart/dart_action.gni")
 import("../runtime/runtime_args.gni")
+import("../sdk_args.gni")
 
 _dart_root = get_path_info("..", "abspath")
 
@@ -92,9 +93,7 @@ template("_application_snapshot") {
                dot_packages,
              ]
     output = "$target_gen_dir/$name.dart.dill"
-    outputs = [
-      output,
-    ]
+    outputs = [ output ]
 
     depfile = "$output.d"
     abs_depfile = rebase_path(depfile)
@@ -132,9 +131,7 @@ template("_application_snapshot") {
 
     inputs = extra_inputs
 
-    outputs = [
-      output,
-    ]
+    outputs = [ output ]
 
     abs_depfile = rebase_path(depfile)
     abs_output = rebase_path(output, root_build_dir)

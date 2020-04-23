@@ -6,6 +6,6 @@ static method foo() → core::int* {
   core::Function* f = (dynamic x) → dynamic => x;
   core::List<dynamic>* l = <core::String*>["bar"].{core::Iterable::map}<dynamic>(f as{TypeError} (core::String*) →* dynamic).{core::Iterable::toList}();
   l.{core::List::add}(42);
-  return l.{core::Iterable::first}.length as{TypeError} core::int*;
+  return l.{core::Iterable::first}.length as{TypeError,ForDynamic} core::int*;
 }
 static method main() → dynamic {}

@@ -5,7 +5,6 @@
 #include <setjmp.h>  // NOLINT
 #include <stdlib.h>
 
-#include "vm/compiler/ffi.h"
 #include "vm/globals.h"
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -14,6 +13,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/ffi/abi.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
@@ -126,10 +126,9 @@ class InterpreterHelpers {
     RawClass* instance_class =
         thread->isolate()->class_table()->At(GetClassId(instance));
     return instance_class->ptr()->num_type_arguments_ > 0
-               ? reinterpret_cast<RawTypeArguments**>(
-                     instance
-                         ->ptr())[instance_class->ptr()
-                                      ->type_arguments_field_offset_in_words_]
+               ? reinterpret_cast<RawTypeArguments**>(instance->ptr())
+                     [instance_class->ptr()
+                          ->host_type_arguments_field_offset_in_words_]
                : TypeArguments::null();
   }
 
@@ -166,6 +165,12 @@ class InterpreterHelpers {
     return Smi::Value(*reinterpret_cast<RawSmi**>(
         reinterpret_cast<uword>(argdesc->ptr()) +
         Array::element_offset(ArgumentsDescriptor::kCountIndex)));
+  }
+
+  DART_FORCE_INLINE static intptr_t ArgDescArgSize(RawArray* argdesc) {
+    return Smi::Value(*reinterpret_cast<RawSmi**>(
+        reinterpret_cast<uword>(argdesc->ptr()) +
+        Array::element_offset(ArgumentsDescriptor::kSizeIndex)));
   }
 
   DART_FORCE_INLINE static intptr_t ArgDescPosCount(RawArray* argdesc) {
@@ -267,7 +272,7 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
 
   const uword start = thread->top();
 #ifndef PRODUCT
-  auto table = thread->isolate()->shared_class_table();
+  auto table = thread->isolate_group()->class_table();
   if (UNLIKELY(table->TraceAllocationFor(class_id))) {
     return false;
   }
@@ -1189,7 +1194,7 @@ bool Interpreter::AssertAssignable(Thread* thread,
       } else if (instance_class->ptr()->num_type_arguments_ > 0) {
         instance_type_arguments = reinterpret_cast<RawTypeArguments**>(
             instance->ptr())[instance_class->ptr()
-                                 ->type_arguments_field_offset_in_words_];
+                                 ->host_type_arguments_field_offset_in_words_];
       }
       parent_function_type_arguments =
           static_cast<RawTypeArguments*>(null_value);
@@ -1246,16 +1251,17 @@ bool Interpreter::AssertAssignableField(Thread* thread,
   RawAbstractType* field_type = field->ptr()->type_;
   // Perform type test of value if field type is not one of dynamic, object,
   // or void, and if the value is not null.
-  // TODO(regis): Revisit when type checking mode is not kUnaware anymore.
   if (field_type->GetClassId() == kTypeCid) {
     classid_t cid = Smi::Value(reinterpret_cast<RawSmi*>(
         Type::RawCast(field_type)->ptr()->type_class_id_));
+    // TODO(regis): Revisit shortcut for NNBD.
     if (cid == kDynamicCid || cid == kInstanceCid || cid == kVoidCid) {
       return true;
     }
   }
   RawObject* null_value = Object::null();
   if (value == null_value) {
+    // TODO(regis): Revisit null shortcut for NNBD.
     return true;
   }
 
@@ -1290,8 +1296,8 @@ bool Interpreter::AssertAssignableField(Thread* thread,
   SP[3] = InterpreterHelpers::GetTypeArguments(thread, instance);
   SP[4] = null_value;  // Implicit setters cannot be generic.
   SP[5] = is_getter ? Symbols::FunctionResult().raw() : field->ptr()->name_;
-  return AssertAssignable(thread, pc, FP, /* argv */ SP + 5,
-                          /* reval */ SP + 1, cache);
+  return AssertAssignable(thread, pc, FP, /* call_top */ SP + 5,
+                          /* args */ SP + 1, cache);
 }
 
 RawObject* Interpreter::Call(const Function& function,
@@ -1767,12 +1773,20 @@ SwitchDispatch:
       // First lookup in the cache.
       RawArray* instantiations = type_arguments->ptr()->instantiations_;
       for (intptr_t i = 0;
-           instantiations->ptr()->data()[i] != NULL;  // kNoInstantiator
-           i += 3) {  // kInstantiationSizeInWords
-        if ((instantiations->ptr()->data()[i] == instantiator_type_args) &&
-            (instantiations->ptr()->data()[i + 1] == function_type_args)) {
+           instantiations->ptr()->data()[i] !=
+           reinterpret_cast<RawObject*>(TypeArguments::kNoInstantiator);
+           i += TypeArguments::Instantiation::kSizeInWords) {
+        if ((instantiations->ptr()->data()
+                 [i +
+                  TypeArguments::Instantiation::kInstantiatorTypeArgsIndex] ==
+             instantiator_type_args) &&
+            (instantiations->ptr()->data()
+                 [i + TypeArguments::Instantiation::kFunctionTypeArgsIndex] ==
+             function_type_args)) {
           // Found in the cache.
-          SP[-1] = instantiations->ptr()->data()[i + 2];
+          SP[-1] =
+              instantiations->ptr()->data()[i + TypeArguments::Instantiation::
+                                                    kInstantiatedTypeArgsIndex];
           goto InstantiateTypeArgumentsTOSDone;
         }
       }
@@ -2114,7 +2128,7 @@ SwitchDispatch:
           SP[0] = Smi::New(0);  // Patch null length with zero length.
           SP[1] = thread->isolate()->object_store()->growable_list_factory();
           // Change the ArgumentsDescriptor of the call with a new cached one.
-          argdesc_ = ArgumentsDescriptor::New(
+          argdesc_ = ArgumentsDescriptor::NewBoxed(
               0, KernelBytecode::kNativeCallToGrowableListArgc);
           // Replace PC to the return trampoline so ReturnTOS would see
           // a call bytecode at return address and will be able to get argc
@@ -2298,7 +2312,7 @@ SwitchDispatch:
     BYTECODE(InitLateField, D);
     RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
     RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
-    intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
+    intptr_t offset_in_words = field->ptr()->host_offset_or_field_id_;
 
     instance->StorePointer(
         reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
@@ -2327,14 +2341,16 @@ SwitchDispatch:
     BYTECODE(StoreStaticTOS, D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
-    field->StorePointer(&field->ptr()->value_.static_value_, value, thread);
+    intptr_t field_id = field->ptr()->host_offset_or_field_id_;
+    thread->field_table_values()[field_id] = value;
     DISPATCH();
   }
 
   {
     BYTECODE(LoadStatic, D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
-    RawInstance* value = field->ptr()->value_.static_value_;
+    intptr_t field_id = field->ptr()->host_offset_or_field_id_;
+    RawInstance* value = thread->field_table_values()[field_id];
     ASSERT((value != Object::sentinel().raw()) &&
            (value != Object::transition_sentinel().raw()));
     *++SP = value;
@@ -2346,7 +2362,7 @@ SwitchDispatch:
     RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
     RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
     RawObject* value = reinterpret_cast<RawObject*>(SP[0]);
-    intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
+    intptr_t offset_in_words = field->ptr()->host_offset_or_field_id_;
 
     if (InterpreterHelpers::FieldNeedsGuardUpdate(field, value)) {
       SP[1] = 0;  // Unused result of runtime call.
@@ -2521,7 +2537,7 @@ SwitchDispatch:
     RawClass* cls = Class::RawCast(LOAD_CONSTANT(rD));
     if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
-      const intptr_t instance_size = cls->ptr()->instance_size_in_words_
+      const intptr_t instance_size = cls->ptr()->host_instance_size_in_words_
                                      << kWordSizeLog2;
       RawObject* result;
       if (TryAllocate(thread, class_id, instance_size, &result)) {
@@ -2551,7 +2567,7 @@ SwitchDispatch:
     RawTypeArguments* type_args = TypeArguments::RawCast(SP[-1]);
     if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
-      const intptr_t instance_size = cls->ptr()->instance_size_in_words_
+      const intptr_t instance_size = cls->ptr()->host_instance_size_in_words_
                                      << kWordSizeLog2;
       RawObject* result;
       if (TryAllocate(thread, class_id, instance_size, &result)) {
@@ -2561,7 +2577,8 @@ SwitchDispatch:
           *reinterpret_cast<RawObject**>(start + offset) = null_value;
         }
         const intptr_t type_args_offset =
-            cls->ptr()->type_arguments_field_offset_in_words_ << kWordSizeLog2;
+            cls->ptr()->host_type_arguments_field_offset_in_words_
+            << kWordSizeLog2;
         *reinterpret_cast<RawObject**>(start + type_args_offset) = type_args;
         *--SP = result;
         DISPATCH();
@@ -2630,11 +2647,8 @@ SwitchDispatch:
     INVOKE_RUNTIME(DRT_SubtypeCheck,
                    NativeArguments(thread, 5, args, result_slot));
 
-    // Result slot not used anymore.
-    SP--;
-
-    // Drop all arguments.
-    SP -= 5;
+    // Drop result slot and all arguments.
+    SP -= 6;
 
     DISPATCH();
   }
@@ -2766,13 +2780,13 @@ SwitchDispatch:
 
   {
     BYTECODE(NullCheck, D);
-    SP -= 1;
 
     if (UNLIKELY(SP[0] == null_value)) {
       // Load selector.
       SP[0] = LOAD_CONSTANT(rD);
       goto ThrowNullError;
     }
+    SP -= 1;
 
     DISPATCH();
   }
@@ -3130,7 +3144,7 @@ SwitchDispatch:
 
     // Field object is cached in function's data_.
     RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
-    intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
+    intptr_t offset_in_words = field->ptr()->host_offset_or_field_id_;
 
     const intptr_t kArgc = 1;
     RawInstance* instance =
@@ -3150,7 +3164,7 @@ SwitchDispatch:
       function = FrameFunction(FP);
       instance = reinterpret_cast<RawInstance*>(SP[2]);
       field = reinterpret_cast<RawField*>(SP[3]);
-      offset_in_words = Smi::Value(field->ptr()->value_.offset_);
+      offset_in_words = field->ptr()->host_offset_or_field_id_;
       value = reinterpret_cast<RawInstance**>(instance->ptr())[offset_in_words];
     }
 
@@ -3211,7 +3225,7 @@ SwitchDispatch:
 
     // Field object is cached in function's data_.
     RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
-    intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
+    intptr_t offset_in_words = field->ptr()->host_offset_or_field_id_;
     const intptr_t kArgc = 2;
     RawInstance* instance =
         reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
@@ -3291,7 +3305,8 @@ SwitchDispatch:
 
     // Field object is cached in function's data_.
     RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
-    RawInstance* value = field->ptr()->value_.static_value_;
+    intptr_t field_id = field->ptr()->host_offset_or_field_id_;
+    RawInstance* value = thread->field_table_values()[field_id];
     if (value == Object::sentinel().raw() ||
         value == Object::transition_sentinel().raw()) {
       SP[1] = 0;  // Unused result of invoking the initializer.
@@ -3304,7 +3319,8 @@ SwitchDispatch:
       function = FrameFunction(FP);
       field = reinterpret_cast<RawField*>(function->ptr()->data_);
       // The field is initialized by the runtime call, but not returned.
-      value = field->ptr()->value_.static_value_;
+      intptr_t field_id = field->ptr()->host_offset_or_field_id_;
+      value = thread->field_table_values()[field_id];
     }
 
     // Field was initialized. Return its value.
@@ -3535,6 +3551,7 @@ SwitchDispatch:
       SP[6] = FrameArguments(FP, argc)[0];
     } else {
       SP[6] = TypeArguments::RawCast(checks->ptr()->data()[1]);
+      // TODO(regis): Verify this condition; why test SP[6]?
       if (SP[5] != null_value && SP[6] != null_value) {
         SP[7] = SP[6];       // type_arguments
         SP[8] = SP[5];       // instantiator_type_args
@@ -3553,6 +3570,7 @@ SwitchDispatch:
       if (LIKELY(check->ptr()->index_ != 0)) {
         ASSERT(&FP[check->ptr()->index_] <= SP);
         SP[3] = Instance::RawCast(FP[check->ptr()->index_]);
+        // TODO(regis): Revisit null handling once interpreter supports NNBD.
         if (SP[3] == null_value) {
           continue;  // Not handled by AssertAssignable for some reason...
         }
@@ -3560,7 +3578,7 @@ SwitchDispatch:
         // SP[5]: Instantiator type args.
         // SP[6]: Function type args.
         SP[7] = check->ptr()->name_;
-        if (!AssertAssignable(thread, pc, FP, SP, SP + 3,
+        if (!AssertAssignable(thread, pc, FP, SP + 7, SP + 3,
                               check->ptr()->cache_)) {
           HANDLE_EXCEPTION;
         }

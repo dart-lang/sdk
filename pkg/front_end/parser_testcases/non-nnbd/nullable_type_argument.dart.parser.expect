@@ -1,0 +1,9 @@
+class A<T> {}
+
+class B implements A<num?> {}
+
+
+class[KeywordToken] A[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+
+class[KeywordToken] B[StringToken] implements[KeywordToken] A[StringToken]<[BeginToken]num[StringToken]?[SimpleToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

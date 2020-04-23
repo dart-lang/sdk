@@ -86,6 +86,11 @@ clearConsole();
 var testExpectsGlobalError = false;
 var testSuppressedGlobalErrors = [];
 
+// If the global error handler has been called, then the test has been reported
+// done already. There may still be pending asynchronous operations. When those
+// finish, don't re-report the test as now passing.
+var hadTopLevelError = false;
+
 // Set window onerror to make sure that we catch test harness errors across all
 // browsers.
 window.onerror = function (message, url, lineNumber) {
@@ -99,6 +104,7 @@ window.onerror = function (message, url, lineNumber) {
     });
     return;
   }
+  hadTopLevelError = true
   recordEvent('window_onerror', message);
   notifyDone('FAIL');
 };
@@ -110,6 +116,7 @@ window.onunhandledrejection = function (e) {
     testSuppressedGlobalErrors.push({message: message});
     return;
   }
+  hadTopLevelError = true
   recordEvent('window_onerror', message);
   notifyDone('FAIL');
 };
@@ -169,6 +176,12 @@ function buildDomEvent() {
 }
 
 function notifyUpdate(testOutcome, isFirstMessage, isStatusUpdate, isDone) {
+  // If the test was reporting as failed because of a top-level error, then
+  // there may be other pending asynchronous operations, and the test framework
+  // does not know that error happened. When those operations later complete,
+  // it incorrectly double-reports the test as passing. Silence that.
+  if (hadTopLevelError && testOutcome == 'PASS') return;
+
   // If we are not using the browser controller (e.g. in the none-drt
   // configuration), we need to print 'testOutcome' as it is.
   if (isDone && !usingBrowserController()) {
@@ -291,7 +304,6 @@ function dartPrint(message) {
     // We have to do this asynchronously, in case error messages are
     // already in the message queue.
     window.postMessage(message, '*');
-    return;
   }
 }
 

@@ -8,8 +8,8 @@
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
-#include "vm/isolate.h"
 #include "vm/os_thread.h"
+#include "vm/thread.h"
 
 namespace dart {
 
@@ -45,21 +45,20 @@ const bool kDontAssertNoSafepointScope = false;
  */
 class MutexLocker : public ValueObject {
  public:
-  explicit MutexLocker(Mutex* mutex, bool no_safepoint_scope = true)
+  explicit MutexLocker(Mutex* mutex)
       :
 #if defined(DEBUG)
-        no_safepoint_scope_(no_safepoint_scope),
+        no_safepoint_scope_(true),
 #endif
         mutex_(mutex) {
-    ASSERT(mutex != NULL);
+    ASSERT(mutex != nullptr);
 #if defined(DEBUG)
-    if (no_safepoint_scope_) {
-      Thread* thread = Thread::Current();
-      if (thread != NULL) {
-        thread->IncrementNoSafepointScopeDepth();
-      } else {
-        no_safepoint_scope_ = false;
-      }
+    Thread* thread = Thread::Current();
+    if ((thread != nullptr) &&
+        (thread->execution_state() != Thread::kThreadInNative)) {
+      thread->IncrementNoSafepointScopeDepth();
+    } else {
+      no_safepoint_scope_ = false;
     }
 #endif
     mutex_->Lock();
@@ -246,6 +245,8 @@ class SafepointMonitorLocker : public ValueObject {
 
   Monitor::WaitResult Wait(int64_t millis = Monitor::kNoTimeout);
 
+  void NotifyAll() { monitor_->NotifyAll(); }
+
  private:
   Monitor* const monitor_;
 
@@ -297,6 +298,51 @@ class RwLock {
   intptr_t state_ = 0;
 };
 
+class SafepointRwLock {
+ public:
+  SafepointRwLock() {}
+  ~SafepointRwLock() {}
+
+ private:
+  friend class SafepointReadRwLocker;
+  friend class SafepointWriteRwLocker;
+
+  void EnterRead() {
+    SafepointMonitorLocker ml(&monitor_);
+    while (state_ == -1) {
+      ml.Wait();
+    }
+    ++state_;
+  }
+  void LeaveRead() {
+    SafepointMonitorLocker ml(&monitor_);
+    ASSERT(state_ > 0);
+    if (--state_ == 0) {
+      ml.NotifyAll();
+    }
+  }
+
+  void EnterWrite() {
+    SafepointMonitorLocker ml(&monitor_);
+    while (state_ != 0) {
+      ml.Wait();
+    }
+    state_ = -1;
+  }
+  void LeaveWrite() {
+    SafepointMonitorLocker ml(&monitor_);
+    ASSERT(state_ == -1);
+    state_ = 0;
+    ml.NotifyAll();
+  }
+
+  Monitor monitor_;
+  // [state_] > 0  : The lock is held by multiple readers.
+  // [state_] == 0 : The lock is free (no readers/writers).
+  // [state_] == -1: The lock is held by a single writer.
+  intptr_t state_ = 0;
+};
+
 /*
  * Locks a given [RwLock] for reading purposes.
  *
@@ -310,11 +356,30 @@ class RwLock {
  */
 class ReadRwLocker : public StackResource {
  public:
-  ReadRwLocker(ThreadState* thread_state, RwLock* rw_lock);
-  ~ReadRwLocker();
+  ReadRwLocker(ThreadState* thread_state, RwLock* rw_lock)
+      : StackResource(thread_state), rw_lock_(rw_lock) {
+    rw_lock_->EnterRead();
+  }
+  ~ReadRwLocker() { rw_lock_->LeaveRead(); }
 
  private:
   RwLock* rw_lock_;
+};
+
+/*
+ * In addition to what [ReadRwLocker] does, this implementation also gets into a
+ * safepoint if necessary.
+ */
+class SafepointReadRwLocker : public StackResource {
+ public:
+  SafepointReadRwLocker(ThreadState* thread_state, SafepointRwLock* rw_lock)
+      : StackResource(thread_state), rw_lock_(rw_lock) {
+    rw_lock_->EnterRead();
+  }
+  ~SafepointReadRwLocker() { rw_lock_->LeaveRead(); }
+
+ private:
+  SafepointRwLock* rw_lock_;
 };
 
 /*
@@ -330,11 +395,32 @@ class ReadRwLocker : public StackResource {
  */
 class WriteRwLocker : public StackResource {
  public:
-  WriteRwLocker(ThreadState* thread_state, RwLock* rw_lock);
-  ~WriteRwLocker();
+  WriteRwLocker(ThreadState* thread_state, RwLock* rw_lock)
+      : StackResource(thread_state), rw_lock_(rw_lock) {
+    rw_lock_->EnterWrite();
+  }
+
+  ~WriteRwLocker() { rw_lock_->LeaveWrite(); }
 
  private:
   RwLock* rw_lock_;
+};
+
+/*
+ * In addition to what [WriteRwLocker] does, this implementation also gets into a
+ * safepoint if necessary.
+ */
+class SafepointWriteRwLocker : public StackResource {
+ public:
+  SafepointWriteRwLocker(ThreadState* thread_state, SafepointRwLock* rw_lock)
+      : StackResource(thread_state), rw_lock_(rw_lock) {
+    rw_lock_->EnterWrite();
+  }
+
+  ~SafepointWriteRwLocker() { rw_lock_->LeaveWrite(); }
+
+ private:
+  SafepointRwLock* rw_lock_;
 };
 
 }  // namespace dart

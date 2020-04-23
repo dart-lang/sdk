@@ -2,19 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalDeclarationVisitorTest);
   });
@@ -23,34 +17,24 @@ main() {
 @reflectiveTest
 class LocalDeclarationVisitorTest {
   CompilationUnit parseCompilationUnit(String content) {
-    AnalysisErrorListener listener = AnalysisErrorListener.NULL_LISTENER;
-    var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
-    Scanner scanner =
-        new Scanner(null, new CharSequenceReader(content), listener)
-          ..configureFeatures(featureSet);
-    Token token = scanner.tokenize();
-    var source = new StringSource(content, '/test.dart');
-    Parser parser = new Parser(source, listener, featureSet: featureSet);
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    expect(unit, isNotNull);
-    return unit;
+    return parseString(content: content).unit;
   }
 
-  test_visitForEachStatement() {
-    CompilationUnit unit = parseCompilationUnit('''
+  void test_visitForEachStatement() {
+    var unit = parseCompilationUnit('''
 class MyClass {}
 f(List<MyClass> list) {
   for(x in list) {}
 }
 ''');
-    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    var declarations = unit.declarations;
     expect(declarations, hasLength(2));
-    FunctionDeclaration f = declarations[1] as FunctionDeclaration;
+    var f = declarations[1] as FunctionDeclaration;
     expect(f, isNotNull);
-    BlockFunctionBody body = f.functionExpression.body as BlockFunctionBody;
+    var body = f.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ForStatement;
     expect(statement.forLoopParts, const TypeMatcher<ForEachParts>());
-    statement.accept(new TestVisitor(statement.offset));
+    statement.accept(TestVisitor(statement.offset));
   }
 }
 

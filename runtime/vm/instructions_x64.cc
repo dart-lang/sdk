@@ -31,6 +31,31 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
 
   uint8_t* bytes = reinterpret_cast<uint8_t*>(pc);
 
+  COMPILE_ASSERT(THR == R14);
+  if ((bytes[0] == 0x49) || (bytes[0] == 0x4d)) {
+    if ((bytes[1] == 0x8b) || (bytes[1] == 0x3b)) {   // movq, cmpq
+      if ((bytes[2] & 0xc7) == (0x80 | (THR & 7))) {  // [r14+disp32]
+        int32_t offset = *reinterpret_cast<int32_t*>(pc + 3);
+        return Thread::ObjectAtOffset(offset, obj);
+      }
+      if ((bytes[2] & 0xc7) == (0x40 | (THR & 7))) {  // [r14+disp8]
+        uint8_t offset = *reinterpret_cast<uint8_t*>(pc + 3);
+        return Thread::ObjectAtOffset(offset, obj);
+      }
+    }
+  }
+
+  if (((bytes[0] == 0x41) && (bytes[1] == 0xff) && (bytes[2] == 0x76))) {
+    // push [r14+disp8]
+    uint8_t offset = *reinterpret_cast<uint8_t*>(pc + 3);
+    return Thread::ObjectAtOffset(offset, obj);
+  }
+
+  // A code object may have an object pool attached in bare instructions mode
+  // if the v8 snapshot profile writer is active, but this pool cannot be used
+  // for object loading.
+  if (FLAG_use_bare_instructions) return false;
+
   COMPILE_ASSERT(PP == R15);
   if ((bytes[0] == 0x49) || (bytes[0] == 0x4d)) {
     if ((bytes[1] == 0x8b) || (bytes[1] == 0x3b)) {  // movq, cmpq
@@ -57,36 +82,17 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
     }
   }
 
-  COMPILE_ASSERT(THR == R14);
-  if ((bytes[0] == 0x49) || (bytes[0] == 0x4d)) {
-    if ((bytes[1] == 0x8b) || (bytes[1] == 0x3b)) {   // movq, cmpq
-      if ((bytes[2] & 0xc7) == (0x80 | (THR & 7))) {  // [r14+disp32]
-        int32_t offset = *reinterpret_cast<int32_t*>(pc + 3);
-        return Thread::ObjectAtOffset(offset, obj);
-      }
-      if ((bytes[2] & 0xc7) == (0x40 | (THR & 7))) {  // [r14+disp8]
-        uint8_t offset = *reinterpret_cast<uint8_t*>(pc + 3);
-        return Thread::ObjectAtOffset(offset, obj);
-      }
-    }
-  }
-  if (((bytes[0] == 0x41) && (bytes[1] == 0xff) && (bytes[2] == 0x76))) {
-    // push [r14+disp8]
-    uint8_t offset = *reinterpret_cast<uint8_t*>(pc + 3);
-    return Thread::ObjectAtOffset(offset, obj);
-  }
-
   return false;
 }
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   static int16_t pattern_disp8[] = {
-      0x4d, 0x8b, 0x4f, -1,  // movq R9, [PP + offset]
-      0xff, 0x53, 0x07,      // callq [RBX + 0x7]
+      0x4d, 0x8b, 0x4f, -1,               // movq R9, [PP + offset]
+      0xff, -1 /* 0x53 or 0x56 */, 0x07,  // callq [RBX/RSI + 0x7]
   };
   static int16_t pattern_disp32[] = {
-      0x4d, 0x8b, 0x8f, -1, -1, -1, -1,  // movq R9, [PP + offset]
-      0xff, 0x53, 0x07,                  // callq [RBX + 0x7]
+      0x4d, 0x8b, 0x8f, -1, -1, -1, -1,   // movq R9, [PP + offset]
+      0xff, -1 /* 0x53 or 0x56 */, 0x07,  // callq [RBX/RSI + 0x7]
   };
   if (MatchesPattern(pc_, pattern_disp8, ARRAY_SIZE(pattern_disp8))) {
     return IndexFromPPLoadDisp8(pc_ - 4);

@@ -20,8 +20,8 @@ DEFINE_NATIVE_ENTRY(Function_apply, 0, 2) {
   const Array& fun_arg_names =
       Array::CheckedHandle(zone, arguments->NativeArgAt(1));
   const Array& fun_args_desc = Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, fun_arguments.Length(),
-                                     fun_arg_names));
+      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, fun_arguments.Length(),
+                                          fun_arg_names));
   const Object& result = Object::Handle(
       zone, DartEntry::InvokeClosure(fun_arguments, fun_args_desc));
   if (result.IsError()) {

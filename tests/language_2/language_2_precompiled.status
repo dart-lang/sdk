@@ -4,14 +4,14 @@
 # Sections in this file should start with "$runtime == dart_precompiled".
 
 [ $arch == arm64 && $runtime == dart_precompiled ]
-large_class_declaration_test: SkipSlow # Uses too much memory.
-setter4_test: MissingCompileTimeError
+class/large_class_declaration_test: SkipSlow # Uses too much memory.
+setter/setter4_test: MissingCompileTimeError
 
 [ $arch == ia32 && $runtime == dart_precompiled ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
 
 [ $compiler != dart2analyzer && $runtime == dart_precompiled ]
-mixin_mixin2_test: Skip
+mixin/mixin2_test: Skip
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 async_star/async_star_await_for_test: RuntimeError
@@ -19,26 +19,26 @@ async_star/async_star_cancel_test: RuntimeError
 async_star/async_star_test: RuntimeError
 
 [ $runtime == dart_precompiled && $minified ]
-cyclic_type_test/*: Skip
-enum_duplicate_test/*: Skip # Uses Enum.toString()
-enum_private_test/*: Skip # Uses Enum.toString()
-enum_test: Skip # Uses Enum.toString()
-full_stacktrace1_test: Skip
-full_stacktrace2_test: Skip
-full_stacktrace3_test: Skip
-mixin_generic_test: Skip
-mixin_mixin3_test: Skip
-mixin_mixin5_test: Skip
-mixin_mixin6_test: Skip
-mixin_mixin_bound2_test: Skip
-mixin_mixin_type_arguments_test: Skip
-mixin_super_2_test: Skip
-no_such_method_dispatcher_test: Skip # Uses new Symbol()
+enum/duplicate_test/*: Skip # Uses Enum.toString()
+enum/enum_test: Skip # Uses Enum.toString()
+enum/private_test/*: Skip # Uses Enum.toString()
+mixin/generic_test: Skip
+mixin/mixin3_test: Skip
+mixin/mixin5_test: Skip
+mixin/mixin6_test: Skip
+mixin/mixin_bound2_test: Skip
+mixin/mixin_type_arguments_test: Skip
+mixin/super_2_test: Skip
+no_such_method/dispatcher_test: Skip # Uses new Symbol()
+stack_trace/full1_test: Skip
+stack_trace/full2_test: Skip
+stack_trace/full3_test: Skip
+unsorted/cyclic_type_test/*: Skip
 vm/no_such_args_error_message_vm_test: Skip
 vm/no_such_method_error_message_callable_vm_test: Skip
 vm/no_such_method_error_message_vm_test: Skip
 vm/regress_28325_test: Skip
 
 [ $runtime == dart_precompiled && ($mode == product || $minified) ]
-stacktrace_rethrow_error_test: SkipByDesign # obfuscation/minification and instruction deduplication cause names of frames to be mangled (expected)
-stacktrace_rethrow_nonerror_test: SkipByDesign # obfuscation/minification and instruction deduplication cause names of frames to be mangled (expected)
+stack_trace/rethrow_error_test: SkipByDesign # obfuscation/minification and instruction deduplication cause names of frames to be mangled (expected)
+stack_trace/rethrow_nonerror_test: SkipByDesign # obfuscation/minification and instruction deduplication cause names of frames to be mangled (expected)

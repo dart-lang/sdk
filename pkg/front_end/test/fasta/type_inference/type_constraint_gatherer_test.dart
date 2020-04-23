@@ -74,27 +74,27 @@ class TypeConstraintGathererTest {
   InterfaceType get Q => coreTypes.legacyRawType(classQ);
 
   void test_any_subtype_parameter() {
-    _checkConstraints(Q, T1, ['lib::Q* <: T1']);
+    _checkConstraints(Q, T1, testLib, ['lib::Q* <: T1']);
   }
 
   void test_any_subtype_top() {
-    _checkConstraints(P, dynamicType, []);
-    _checkConstraints(P, objectType, []);
-    _checkConstraints(P, voidType, []);
+    _checkConstraints(P, dynamicType, testLib, []);
+    _checkConstraints(P, objectType, testLib, []);
+    _checkConstraints(P, voidType, testLib, []);
   }
 
   void test_any_subtype_unknown() {
-    _checkConstraints(P, unknownType, []);
-    _checkConstraints(T1, unknownType, []);
+    _checkConstraints(P, unknownType, testLib, []);
+    _checkConstraints(T1, unknownType, testLib, []);
   }
 
   void test_different_classes() {
-    _checkConstraints(_list(T1), _iterable(Q), ['T1 <: lib::Q*']);
-    _checkConstraints(_iterable(T1), _list(Q), null);
+    _checkConstraints(_list(T1), _iterable(Q), testLib, ['T1 <: lib::Q*']);
+    _checkConstraints(_iterable(T1), _list(Q), testLib, null);
   }
 
   void test_equal_types() {
-    _checkConstraints(P, P, []);
+    _checkConstraints(P, P, testLib, []);
   }
 
   void test_function_generic() {
@@ -107,12 +107,14 @@ class TypeConstraintGathererTest {
         new FunctionType([], dynamicType, Nullability.legacy,
             typeParameters: [T.parameter]),
         new FunctionType([], dynamicType, Nullability.legacy),
+        testLib,
         null);
     // () -> dynamic <: <T>() -> dynamic, never
     _checkConstraints(
         new FunctionType([], dynamicType, Nullability.legacy),
         new FunctionType([], dynamicType, Nullability.legacy,
             typeParameters: [T.parameter]),
+        testLib,
         null);
     // <T>(T) -> T <: <U>(U) -> U, always
     _checkConstraints(
@@ -120,39 +122,44 @@ class TypeConstraintGathererTest {
             typeParameters: [T.parameter]),
         new FunctionType([U], U, Nullability.legacy,
             typeParameters: [U.parameter]),
+        testLib,
         []);
   }
 
   void test_function_parameter_mismatch() {
     // (P) -> dynamic <: () -> dynamic, never
     _checkConstraints(new FunctionType([P], dynamicType, Nullability.legacy),
-        new FunctionType([], dynamicType, Nullability.legacy), null);
+        new FunctionType([], dynamicType, Nullability.legacy), testLib, null);
     // () -> dynamic <: (P) -> dynamic, never
     _checkConstraints(new FunctionType([], dynamicType, Nullability.legacy),
-        new FunctionType([P], dynamicType, Nullability.legacy), null);
+        new FunctionType([P], dynamicType, Nullability.legacy), testLib, null);
     // ([P]) -> dynamic <: () -> dynamic, always
     _checkConstraints(
         new FunctionType([P], dynamicType, Nullability.legacy,
             requiredParameterCount: 0),
         new FunctionType([], dynamicType, Nullability.legacy),
+        testLib,
         []);
     // () -> dynamic <: ([P]) -> dynamic, never
     _checkConstraints(
         new FunctionType([], dynamicType, Nullability.legacy),
         new FunctionType([P], dynamicType, Nullability.legacy,
             requiredParameterCount: 0),
+        testLib,
         null);
     // ({x: P}) -> dynamic <: () -> dynamic, always
     _checkConstraints(
         new FunctionType([], dynamicType, Nullability.legacy,
             namedParameters: [new NamedType('x', P)]),
         new FunctionType([], dynamicType, Nullability.legacy),
+        testLib,
         []);
     // () -> dynamic !<: ({x: P}) -> dynamic, never
     _checkConstraints(
         new FunctionType([], dynamicType, Nullability.legacy),
         new FunctionType([], dynamicType, Nullability.legacy,
             namedParameters: [new NamedType('x', P)]),
+        testLib,
         null);
   }
 
@@ -161,6 +168,7 @@ class TypeConstraintGathererTest {
     _checkConstraints(
         new FunctionType([T1], dynamicType, Nullability.legacy),
         new FunctionType([Q], dynamicType, Nullability.legacy),
+        testLib,
         ['lib::Q* <: T1']);
     // ({x: T1}) -> dynamic <: ({x: Q}) -> dynamic, under constraint Q <: T1
     _checkConstraints(
@@ -168,58 +176,62 @@ class TypeConstraintGathererTest {
             namedParameters: [new NamedType('x', T1)]),
         new FunctionType([], dynamicType, Nullability.legacy,
             namedParameters: [new NamedType('x', Q)]),
+        testLib,
         ['lib::Q* <: T1']);
   }
 
   void test_function_return_type() {
     // () -> T1 <: () -> Q, under constraint T1 <: Q
-    _checkConstraints(new FunctionType([], T1, Nullability.legacy),
-        new FunctionType([], Q, Nullability.legacy), ['T1 <: lib::Q*']);
+    _checkConstraints(
+        new FunctionType([], T1, Nullability.legacy),
+        new FunctionType([], Q, Nullability.legacy),
+        testLib,
+        ['T1 <: lib::Q*']);
     // () -> P <: () -> void, always
     _checkConstraints(new FunctionType([], P, Nullability.legacy),
-        new FunctionType([], voidType, Nullability.legacy), []);
+        new FunctionType([], voidType, Nullability.legacy), testLib, []);
     // () -> void <: () -> P, never
     _checkConstraints(new FunctionType([], voidType, Nullability.legacy),
-        new FunctionType([], P, Nullability.legacy), null);
+        new FunctionType([], P, Nullability.legacy), testLib, null);
   }
 
   void test_function_trivial_cases() {
     var F = new FunctionType([], dynamicType, Nullability.legacy);
     // () -> dynamic <: dynamic, always
-    _checkConstraints(F, dynamicType, []);
+    _checkConstraints(F, dynamicType, testLib, []);
     // () -> dynamic <: Function, always
-    _checkConstraints(F, functionType, []);
+    _checkConstraints(F, functionType, testLib, []);
     // () -> dynamic <: Object, always
-    _checkConstraints(F, objectType, []);
+    _checkConstraints(F, objectType, testLib, []);
   }
 
   void test_nonInferredParameter_subtype_any() {
     var U = new TypeParameterType(
         new TypeParameter('U', _list(P)), Nullability.legacy);
-    _checkConstraints(U, _list(T1), ['lib::P* <: T1']);
+    _checkConstraints(U, _list(T1), testLib, ['lib::P* <: T1']);
   }
 
   void test_null_subtype_any() {
-    _checkConstraints(nullType, T1, ['dart.core::Null? <: T1']);
-    _checkConstraints(nullType, Q, []);
+    _checkConstraints(nullType, T1, testLib, ['dart.core::Null? <: T1']);
+    _checkConstraints(nullType, Q, testLib, []);
   }
 
   void test_parameter_subtype_any() {
-    _checkConstraints(T1, Q, ['T1 <: lib::Q*']);
+    _checkConstraints(T1, Q, testLib, ['T1 <: lib::Q*']);
   }
 
   void test_same_classes() {
-    _checkConstraints(_list(T1), _list(Q), ['T1 <: lib::Q*']);
+    _checkConstraints(_list(T1), _list(Q), testLib, ['T1 <: lib::Q*']);
   }
 
   void test_typeParameters() {
     _checkConstraints(
-        _map(T1, T2), _map(P, Q), ['T1 <: lib::P*', 'T2 <: lib::Q*']);
+        _map(T1, T2), _map(P, Q), testLib, ['T1 <: lib::P*', 'T2 <: lib::Q*']);
   }
 
   void test_unknown_subtype_any() {
-    _checkConstraints(unknownType, Q, []);
-    _checkConstraints(unknownType, T1, []);
+    _checkConstraints(unknownType, Q, testLib, []);
+    _checkConstraints(unknownType, T1, testLib, []);
   }
 
   Class _addClass(Class c) {
@@ -227,14 +239,14 @@ class TypeConstraintGathererTest {
     return c;
   }
 
-  void _checkConstraints(
-      DartType a, DartType b, List<String> expectedConstraints) {
-    var typeSchemaEnvironment =
-        new TypeSchemaEnvironment(coreTypes, new ClassHierarchy(component));
+  void _checkConstraints(DartType a, DartType b, Library clientLibrary,
+      List<String> expectedConstraints) {
+    var typeSchemaEnvironment = new TypeSchemaEnvironment(
+        coreTypes, new ClassHierarchy(component, coreTypes));
     var typeConstraintGatherer = new TypeConstraintGatherer(
         typeSchemaEnvironment, [T1.parameter, T2.parameter], testLib);
     var constraints = typeConstraintGatherer.trySubtypeMatch(a, b)
-        ? typeConstraintGatherer.computeConstraints()
+        ? typeConstraintGatherer.computeConstraints(clientLibrary)
         : null;
     if (expectedConstraints == null) {
       expect(constraints, isNull);

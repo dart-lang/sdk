@@ -9,6 +9,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
+import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -17,29 +18,25 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
-    show Element, ElementKind;
+    show ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
     show LocalDeclarationVisitor;
 
-/**
- * A contributor for calculating constructor suggestions
- * for declarations in the local file.
- */
+/// A contributor that produces suggestions based on the constructors declared
+/// in the same file in which suggestions were requested.
 class LocalConstructorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    OpType optype = (request as DartCompletionRequestImpl).opType;
+    var optype = (request as DartCompletionRequestImpl).opType;
 
     // Collect suggestions from the specific child [AstNode] that contains
     // the completion offset and all of its parents recursively.
-    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
+    var suggestions = <CompletionSuggestion>[];
     if (!optype.isPrefixed) {
       if (optype.includeConstructorSuggestions) {
-        new _Visitor(request, suggestions, optype)
+        _Visitor(request, suggestions, optype)
             .visit(request.target.containingNode);
       }
     }
@@ -47,9 +44,7 @@ class LocalConstructorContributor extends DartCompletionContributor {
   }
 }
 
-/**
- * A visitor for collecting constructor suggestions.
- */
+/// A visitor for collecting constructor suggestions.
 class _Visitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
   final OpType optype;
@@ -61,8 +56,8 @@ class _Visitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClass(ClassDeclaration declaration) {
-    bool found = false;
-    for (ClassMember member in declaration.members) {
+    var found = false;
+    for (var member in declaration.members) {
       if (member is ConstructorDeclaration) {
         found = true;
         _addSuggestion(declaration, member);
@@ -107,22 +102,29 @@ class _Visitor extends LocalDeclarationVisitor {
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {}
 
-  /**
-   * For the given class and constructor,
-   * add a suggestion of the form B(...) or B.name(...).
-   * If the given constructor is `null`
-   * then add a default constructor suggestion.
-   */
+  /// For the given class and constructor, add a suggestion of the form `B(...)`
+  /// or `B.name(...)`. If the given constructor is `null` then add a default
+  /// constructor suggestion.
   void _addSuggestion(
       ClassDeclaration classDecl, ConstructorDeclaration constructorDecl) {
-    String completion = classDecl.name.name;
+    var completion = classDecl.name.name;
 
-    ClassElement classElement = classDecl.declaredElement;
-    int relevance = optype.returnValueSuggestionsFilter(
-        _instantiateClassElement(classElement), DART_RELEVANCE_DEFAULT);
+    var classElement = classDecl.declaredElement;
+    var useNewRelevance = request.useNewRelevance;
+    int relevance;
+    if (useNewRelevance) {
+      var contextType = request.featureComputer
+          .computeContextType(request.target.containingNode);
+      var contextTypeFeature = request.featureComputer
+          .contextTypeFeature(contextType, classElement.thisType);
+      relevance = toRelevance(contextTypeFeature, Relevance.constructor);
+    } else {
+      relevance = optype.returnValueSuggestionsFilter(
+          _instantiateClassElement(classElement), DART_RELEVANCE_DEFAULT);
+    }
     if (constructorDecl != null) {
-      // Build a suggestion for explicitly declared constructor
-      ConstructorElement element = constructorDecl.declaredElement;
+      // Build a suggestion for explicitly declared constructor.
+      var element = constructorDecl.declaredElement;
       if (element == null) {
         return;
       }
@@ -130,30 +132,26 @@ class _Visitor extends LocalDeclarationVisitor {
         return;
       }
 
-      String name = constructorDecl.name?.name;
+      var name = constructorDecl.name?.name;
       if (name != null && name.isNotEmpty) {
         completion = '$completion.$name';
       }
 
-      CompletionSuggestion suggestion = createSuggestion(element,
-          completion: completion, relevance: relevance);
+      var suggestion = createSuggestion(element,
+          completion: completion,
+          relevance: relevance,
+          useNewRelevance: useNewRelevance);
       if (suggestion != null) {
         suggestions.add(suggestion);
       }
     } else if (!classElement.isAbstract) {
-      // Build a suggestion for an implicit constructor
-      protocol.Element element = createLocalElement(
+      // Build a suggestion for an implicit constructor.
+      var element = createLocalElement(
           request.source, protocol.ElementKind.CONSTRUCTOR, null,
           parameters: '()');
       element.returnType = classDecl.name.name;
-      CompletionSuggestion suggestion = new CompletionSuggestion(
-          CompletionSuggestionKind.INVOCATION,
-          relevance,
-          completion,
-          completion.length,
-          0,
-          false,
-          false,
+      var suggestion = CompletionSuggestion(CompletionSuggestionKind.INVOCATION,
+          relevance, completion, completion.length, 0, false, false,
           declaringType: classDecl.name.name,
           element: element,
           parameterNames: [],
@@ -168,7 +166,7 @@ class _Visitor extends LocalDeclarationVisitor {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var typeProvider = request.libraryElement.context.typeProvider;
+      var typeProvider = request.libraryElement.typeProvider;
       typeArguments = typeParameters.map((t) {
         return typeProvider.dynamicType;
       }).toList();

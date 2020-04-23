@@ -235,18 +235,22 @@ class _ServerLogStringSink implements StringSink {
 
   _ServerLogStringSink(this.helper);
 
+  @override
   void write(Object obj) {
     throw UnimplementedError();
   }
 
+  @override
   void writeAll(Iterable objects, [String separator = '']) {
     throw UnimplementedError();
   }
 
+  @override
   void writeCharCode(int charCode) {
     throw UnimplementedError();
   }
 
+  @override
   void writeln([Object obj = '']) {
     helper._sendLogEntry(ServerLogEntryKind.RAW, '$obj');
   }

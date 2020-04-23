@@ -9,7 +9,7 @@ typedef R ZoneUnaryCallback<R, T>(T arg);
 typedef R ZoneBinaryCallback<R, T1, T2>(T1 arg1, T2 arg2);
 
 typedef HandleUncaughtErrorHandler = void Function(Zone self,
-    ZoneDelegate parent, Zone zone, Object error, StackTrace? stackTrace);
+    ZoneDelegate parent, Zone zone, Object error, StackTrace stackTrace);
 typedef RunHandler = R Function<R>(
     Zone self, ZoneDelegate parent, Zone zone, R Function() f);
 typedef RunUnaryHandler = R Function<R, T>(
@@ -39,9 +39,26 @@ typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
 /** Pair of error and stack trace. Returned by [Zone.errorCallback]. */
 class AsyncError implements Error {
   final Object error;
-  final StackTrace? stackTrace;
+  final StackTrace stackTrace;
 
-  AsyncError(this.error, this.stackTrace);
+  AsyncError(this.error, StackTrace? stackTrace)
+      : stackTrace = stackTrace ?? defaultStackTrace(error) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(error, "error");
+  }
+
+  /// A default stack trace for an error.
+  ///
+  /// If [error] is an [Error] and it has an [Error.stackTrace],
+  /// that stack trace is returned.
+  /// If not, the [StackTrace.empty] default stack trace is returned.
+  static StackTrace defaultStackTrace(Object error) {
+    if (error is Error) {
+      var stackTrace = error.stackTrace;
+      if (stackTrace != null) return stackTrace;
+    }
+    return StackTrace.empty;
+  }
 
   String toString() => '$error';
 }
@@ -50,6 +67,42 @@ class _ZoneFunction<T extends Function> {
   final _Zone zone;
   final T function;
   const _ZoneFunction(this.zone, this.function);
+}
+
+class _RunNullaryZoneFunction {
+  final _Zone zone;
+  final RunHandler function;
+  const _RunNullaryZoneFunction(this.zone, this.function);
+}
+
+class _RunUnaryZoneFunction {
+  final _Zone zone;
+  final RunUnaryHandler function;
+  const _RunUnaryZoneFunction(this.zone, this.function);
+}
+
+class _RunBinaryZoneFunction {
+  final _Zone zone;
+  final RunBinaryHandler function;
+  const _RunBinaryZoneFunction(this.zone, this.function);
+}
+
+class _RegisterNullaryZoneFunction {
+  final _Zone zone;
+  final RegisterCallbackHandler function;
+  const _RegisterNullaryZoneFunction(this.zone, this.function);
+}
+
+class _RegisterUnaryZoneFunction {
+  final _Zone zone;
+  final RegisterUnaryCallbackHandler function;
+  const _RegisterUnaryZoneFunction(this.zone, this.function);
+}
+
+class _RegisterBinaryZoneFunction {
+  final _Zone zone;
+  final RegisterBinaryCallbackHandler function;
+  const _RegisterBinaryZoneFunction(this.zone, this.function);
 }
 
 /**
@@ -202,7 +255,7 @@ class _ZoneSpecification implements ZoneSpecification {
  *   to skip zones that would just delegate to their parents.
  */
 abstract class ZoneDelegate {
-  void handleUncaughtError(Zone zone, Object error, StackTrace? stackTrace);
+  void handleUncaughtError(Zone zone, Object error, StackTrace stackTrace);
   R run<R>(Zone zone, R f());
   R runUnary<R, T>(Zone zone, R f(T arg), T arg);
   R runBinary<R, T1, T2>(Zone zone, R f(T1 arg1, T2 arg2), T1 arg1, T2 arg2);
@@ -309,7 +362,7 @@ abstract class Zone {
    * By default, when handled by the root zone, uncaught asynchronous errors are
    * treated like uncaught synchronous exceptions.
    */
-  void handleUncaughtError(Object error, StackTrace? stackTrace);
+  void handleUncaughtError(Object error, StackTrace stackTrace);
 
   /**
    * The parent zone of the this zone.
@@ -691,7 +744,7 @@ class _ZoneDelegate implements ZoneDelegate {
 
   _ZoneDelegate(this._delegationTarget);
 
-  void handleUncaughtError(Zone zone, Object error, StackTrace? stackTrace) {
+  void handleUncaughtError(Zone zone, Object error, StackTrace stackTrace) {
     var implementation = _delegationTarget._handleUncaughtError;
     _Zone implZone = implementation.zone;
     HandleUncaughtErrorHandler handler = implementation.function;
@@ -742,6 +795,8 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   AsyncError? errorCallback(Zone zone, Object error, StackTrace? stackTrace) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(error, "error");
     var implementation = _delegationTarget._errorCallback;
     _Zone implZone = implementation.zone;
     if (identical(implZone, _rootZone)) return null;
@@ -795,12 +850,12 @@ abstract class _Zone implements Zone {
 
   // TODO(floitsch): the types of the `_ZoneFunction`s should have a type for
   // all fields.
-  _ZoneFunction<Function> get _run;
-  _ZoneFunction<Function> get _runUnary;
-  _ZoneFunction<Function> get _runBinary;
-  _ZoneFunction<Function> get _registerCallback;
-  _ZoneFunction<Function> get _registerUnaryCallback;
-  _ZoneFunction<Function> get _registerBinaryCallback;
+  _RunNullaryZoneFunction get _run;
+  _RunUnaryZoneFunction get _runUnary;
+  _RunBinaryZoneFunction get _runBinary;
+  _RegisterNullaryZoneFunction get _registerCallback;
+  _RegisterUnaryZoneFunction get _registerUnaryCallback;
+  _RegisterBinaryZoneFunction get _registerBinaryCallback;
   _ZoneFunction<ErrorCallbackHandler> get _errorCallback;
   _ZoneFunction<ScheduleMicrotaskHandler> get _scheduleMicrotask;
   _ZoneFunction<CreateTimerHandler> get _createTimer;
@@ -825,12 +880,12 @@ class _CustomZone extends _Zone {
   // inheritable zone functions.
   // TODO(floitsch): the types of the `_ZoneFunction`s should have a type for
   // all fields, but we can't use generic function types as type arguments.
-  _ZoneFunction<Function> _run;
-  _ZoneFunction<Function> _runUnary;
-  _ZoneFunction<Function> _runBinary;
-  _ZoneFunction<Function> _registerCallback;
-  _ZoneFunction<Function> _registerUnaryCallback;
-  _ZoneFunction<Function> _registerBinaryCallback;
+  _RunNullaryZoneFunction _run;
+  _RunUnaryZoneFunction _runUnary;
+  _RunBinaryZoneFunction _runBinary;
+  _RegisterNullaryZoneFunction _registerCallback;
+  _RegisterUnaryZoneFunction _registerUnaryCallback;
+  _RegisterBinaryZoneFunction _registerBinaryCallback;
   _ZoneFunction<ErrorCallbackHandler> _errorCallback;
   _ZoneFunction<ScheduleMicrotaskHandler> _scheduleMicrotask;
   _ZoneFunction<CreateTimerHandler> _createTimer;
@@ -872,29 +927,29 @@ class _CustomZone extends _Zone {
     // All other zones have a non-null parent.
     var run = specification.run;
     if (run != null) {
-      _run = _ZoneFunction<Function>(this, run);
+      _run = _RunNullaryZoneFunction(this, run);
     }
     var runUnary = specification.runUnary;
     if (runUnary != null) {
-      _runUnary = _ZoneFunction<Function>(this, runUnary);
+      _runUnary = _RunUnaryZoneFunction(this, runUnary);
     }
     var runBinary = specification.runBinary;
     if (runBinary != null) {
-      _runBinary = _ZoneFunction<Function>(this, runBinary);
+      _runBinary = _RunBinaryZoneFunction(this, runBinary);
     }
     var registerCallback = specification.registerCallback;
     if (registerCallback != null) {
-      _registerCallback = _ZoneFunction<Function>(this, registerCallback);
+      _registerCallback = _RegisterNullaryZoneFunction(this, registerCallback);
     }
     var registerUnaryCallback = specification.registerUnaryCallback;
     if (registerUnaryCallback != null) {
       _registerUnaryCallback =
-          _ZoneFunction<Function>(this, registerUnaryCallback);
+          _RegisterUnaryZoneFunction(this, registerUnaryCallback);
     }
     var registerBinaryCallback = specification.registerBinaryCallback;
     if (registerBinaryCallback != null) {
       _registerBinaryCallback =
-          _ZoneFunction<Function>(this, registerBinaryCallback);
+          _RegisterBinaryZoneFunction(this, registerBinaryCallback);
     }
     var errorCallback = specification.errorCallback;
     if (errorCallback != null) {
@@ -1014,7 +1069,7 @@ class _CustomZone extends _Zone {
 
   // Methods that can be customized by the zone specification.
 
-  void handleUncaughtError(Object error, StackTrace? stackTrace) {
+  void handleUncaughtError(Object error, StackTrace stackTrace) {
     var implementation = this._handleUncaughtError;
     ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
     HandleUncaughtErrorHandler handler = implementation.function;
@@ -1075,6 +1130,8 @@ class _CustomZone extends _Zone {
   }
 
   AsyncError? errorCallback(Object error, StackTrace? stackTrace) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(error, "error");
     var implementation = this._errorCallback;
     final _Zone implementationZone = implementation.zone;
     if (identical(implementationZone, _rootZone)) return null;
@@ -1113,14 +1170,13 @@ class _CustomZone extends _Zone {
 }
 
 void _rootHandleUncaughtError(Zone? self, ZoneDelegate? parent, Zone zone,
-    Object error, StackTrace? stackTrace) {
+    Object error, StackTrace stackTrace) {
   _schedulePriorityAsyncCallback(() {
-    if (stackTrace == null) throw error;
     _rethrow(error, stackTrace);
   });
 }
 
-external void _rethrow(Object error, StackTrace? stackTrace);
+external void _rethrow(Object error, StackTrace stackTrace);
 
 R _rootRun<R>(Zone? self, ZoneDelegate? parent, Zone zone, R f()) {
   if (identical(Zone._current, zone)) return f();
@@ -1254,18 +1310,18 @@ Zone _rootFork(Zone? self, ZoneDelegate? parent, Zone zone,
 class _RootZone extends _Zone {
   const _RootZone();
 
-  _ZoneFunction<Function> get _run =>
-      const _ZoneFunction<Function>(_rootZone, _rootRun);
-  _ZoneFunction<Function> get _runUnary =>
-      const _ZoneFunction<Function>(_rootZone, _rootRunUnary);
-  _ZoneFunction<Function> get _runBinary =>
-      const _ZoneFunction<Function>(_rootZone, _rootRunBinary);
-  _ZoneFunction<Function> get _registerCallback =>
-      const _ZoneFunction<Function>(_rootZone, _rootRegisterCallback);
-  _ZoneFunction<Function> get _registerUnaryCallback =>
-      const _ZoneFunction<Function>(_rootZone, _rootRegisterUnaryCallback);
-  _ZoneFunction<Function> get _registerBinaryCallback =>
-      const _ZoneFunction<Function>(_rootZone, _rootRegisterBinaryCallback);
+  _RunNullaryZoneFunction get _run =>
+      const _RunNullaryZoneFunction(_rootZone, _rootRun);
+  _RunUnaryZoneFunction get _runUnary =>
+      const _RunUnaryZoneFunction(_rootZone, _rootRunUnary);
+  _RunBinaryZoneFunction get _runBinary =>
+      const _RunBinaryZoneFunction(_rootZone, _rootRunBinary);
+  _RegisterNullaryZoneFunction get _registerCallback =>
+      const _RegisterNullaryZoneFunction(_rootZone, _rootRegisterCallback);
+  _RegisterUnaryZoneFunction get _registerUnaryCallback =>
+      const _RegisterUnaryZoneFunction(_rootZone, _rootRegisterUnaryCallback);
+  _RegisterBinaryZoneFunction get _registerBinaryCallback =>
+      const _RegisterBinaryZoneFunction(_rootZone, _rootRegisterBinaryCallback);
   _ZoneFunction<ErrorCallbackHandler> get _errorCallback =>
       const _ZoneFunction<ErrorCallbackHandler>(_rootZone, _rootErrorCallback);
   _ZoneFunction<ScheduleMicrotaskHandler> get _scheduleMicrotask =>
@@ -1376,7 +1432,7 @@ class _RootZone extends _Zone {
 
   // Methods that can be customized by the zone specification.
 
-  void handleUncaughtError(Object error, StackTrace? stackTrace) {
+  void handleUncaughtError(Object error, StackTrace stackTrace) {
     _rootHandleUncaughtError(null, null, this, error, stackTrace);
   }
 
@@ -1445,7 +1501,7 @@ const _Zone _rootZone = const _RootZone();
  * If an error occurs synchronously in [body],
  * then throwing in the [onError] handler
  * makes the call to `runZone` throw that error,
- * and otherwise the call to `runZoned` returns `null`.
+ * and otherwise the call to `runZoned` attempt to return `null`.
  *
  * If the zone specification has a `handleUncaughtError` value or the [onError]
  * parameter is provided, the zone becomes an error-zone.
@@ -1454,19 +1510,19 @@ const _Zone _rootZone = const _RootZone();
  * Errors that try to cross error-zone boundaries are considered uncaught in
  * their originating error zone.
  *
- *     var future = Future.value(499);
+ *     var future = new Future.value(499);
  *     runZoned(() {
  *       var future2 = future.then((_) { throw "error in first error-zone"; });
  *       runZoned(() {
  *         var future3 = future2.catchError((e) { print("Never reached!"); });
- *       }, onError: (e) { print("unused error handler"); });
- *     }, onError: (e) { print("catches error of first error-zone."); });
+ *       }, onError: (e, s) { print("unused error handler"); });
+ *     }, onError: (e, s) { print("catches error of first error-zone."); });
  *
  * Example:
  *
  *     runZoned(() {
  *       new Future(() { throw "asynchronous error"; });
- *     }, onError: print);  // Will print "asynchronous error".
+ *     }, onError: (e, s) => print(e));  // Will print "asynchronous error".
  *
  * It is possible to manually pass an error from one error zone to another
  * by re-throwing it in the new zone. If [onError] throws, that error will
@@ -1475,30 +1531,74 @@ const _Zone _rootZone = const _RootZone();
 R runZoned<R>(R body(),
     {Map<Object?, Object?>? zoneValues,
     ZoneSpecification? zoneSpecification,
-    Function? onError}) {
-  if (onError == null) {
-    return _runZoned<R>(body, zoneValues, zoneSpecification);
+    @Deprecated("Use runZonedGuarded instead") Function? onError}) {
+  ArgumentError.checkNotNull(body, "body");
+  if (onError != null) {
+    // TODO: Remove this when code have been migrated off using [onError].
+    if (onError is! void Function(Object, StackTrace)) {
+      if (onError is void Function(Object)) {
+        var originalOnError = onError;
+        onError = (Object error, StackTrace stack) => originalOnError(error);
+      } else {
+        throw ArgumentError.value(onError, "onError",
+            "Must be Function(Object) or Function(Object, StackTrace)");
+      }
+    }
+    return runZonedGuarded(body, onError,
+        zoneSpecification: zoneSpecification, zoneValues: zoneValues) as R;
   }
-  void Function(Object)? unaryOnError;
-  void Function(Object, StackTrace?)? binaryOnError;
-  if (onError is void Function(Object, StackTrace?)) {
-    binaryOnError = onError;
-  } else if (onError is void Function(Object)) {
-    unaryOnError = onError;
-  } else {
-    throw new ArgumentError("onError callback must take either an Object "
-        "(the error), or both an Object (the error) and a StackTrace.");
-  }
+  return _runZoned<R>(body, zoneValues, zoneSpecification);
+}
+
+/**
+ * Runs [body] in its own error zone.
+ *
+ * Creates a new zone using [Zone.fork] based on [zoneSpecification] and
+ * [zoneValues], then runs [body] in that zone and returns the result.
+ *
+ * The [onError] function is used *both* to handle asynchronous errors
+ * by overriding [ZoneSpecification.handleUncaughtError] in [zoneSpecification],
+ * if any, *and* to handle errors thrown synchronously by the call to [body].
+ *
+ * If an error occurs synchronously in [body],
+ * then throwing in the [onError] handler
+ * makes the call to `runZonedGuarded` throw that error,
+ * and otherwise the call to `runZonedGuarded` returns `null`.
+ *
+ * The zone will always be an error-zone.
+ *
+ * Errors will never cross error-zone boundaries by themselves.
+ * Errors that try to cross error-zone boundaries are considered uncaught in
+ * their originating error zone.
+ * ```dart
+ * var future = Future.value(499);
+ * runZonedGuarded(() {
+ *   var future2 = future.then((_) { throw "error in first error-zone"; });
+ *   runZonedGuarded(() {
+ *     var future3 = future2.catchError((e) { print("Never reached!"); });
+ *   }, (e, s) { print("unused error handler"); });
+ * }, (e, s) { print("catches error of first error-zone."); });
+ * ```
+ * Example:
+ * ```dart
+ * runZonedGuarded(() {
+ *   new Future(() { throw "asynchronous error"; });
+ * }, (e, s) => print(e));  // Will print "asynchronous error".
+ * ```
+ * It is possible to manually pass an error from one error zone to another
+ * by re-throwing it in the new zone. If [onError] throws, that error will
+ * occur in the original zone where [runZoned] was called.
+ */
+@Since("2.8")
+R? runZonedGuarded<R>(R body(), void onError(Object error, StackTrace stack),
+    {Map<Object?, Object?>? zoneValues, ZoneSpecification? zoneSpecification}) {
+  ArgumentError.checkNotNull(body, "body");
+  ArgumentError.checkNotNull(onError, "onError");
   _Zone parentZone = Zone._current;
   HandleUncaughtErrorHandler errorHandler = (Zone self, ZoneDelegate parent,
-      Zone zone, Object error, StackTrace? stackTrace) {
+      Zone zone, Object error, StackTrace stackTrace) {
     try {
-      if (binaryOnError != null) {
-        parentZone.runBinary(binaryOnError, error, stackTrace);
-      } else {
-        assert(unaryOnError != null);
-        parentZone.runUnary(unaryOnError!, error);
-      }
+      parentZone.runBinary(onError, error, stackTrace);
     } catch (e, s) {
       if (identical(e, error)) {
         parent.handleUncaughtError(zone, error, stackTrace);
@@ -1516,17 +1616,10 @@ R runZoned<R>(R body(),
   }
   try {
     return _runZoned<R>(body, zoneValues, zoneSpecification);
-  } catch (e, stackTrace) {
-    if (binaryOnError != null) {
-      binaryOnError(e, stackTrace);
-    } else {
-      assert(unaryOnError != null);
-      unaryOnError!(e);
-    }
+  } catch (error, stackTrace) {
+    onError(error, stackTrace);
   }
-  // TODO(lrn): Change behavior to throw the actual resulting error,
-  // perhaps even synchronously.
-  return null as R;
+  return null;
 }
 
 /// Runs [body] in a new zone based on [zoneValues] and [specification].

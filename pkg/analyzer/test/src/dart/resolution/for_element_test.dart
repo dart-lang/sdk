@@ -19,13 +19,12 @@ main() {
 @reflectiveTest
 class ForEachElementTest extends DriverResolutionTest {
   test_withDeclaration_scope() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main() {
   <int>[for (var i in [1, 2, 3]) i]; // 1
   <double>[for (var i in [1.1, 2.2, 3.3]) i]; // 2
 }
 ''');
-    assertNoTestErrors();
 
     assertElement(
       findNode.simple('i]; // 1'),
@@ -62,13 +61,12 @@ class ForEachElementWithNnbdTest extends ForEachElementTest {
 @reflectiveTest
 class ForLoopElementTest extends DriverResolutionTest {
   test_declaredVariableScope() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main() {
   <int>[for (var i = 1; i < 10; i += 3) i]; // 1
   <double>[for (var i = 1.1; i < 10; i += 5) i]; // 2
 }
 ''');
-    assertNoTestErrors();
 
     assertElement(
       findNode.simple('i]; // 1'),
@@ -77,6 +75,22 @@ main() {
     assertElement(
       findNode.simple('i]; // 2'),
       findNode.simple('i = 1.1;').staticElement,
+    );
+  }
+
+  test_condition_rewrite() async {
+    await assertNoErrorsInCode(r'''
+main(bool Function() b) {
+  <int>[for (; b(); ) 0];
+}
+''');
+
+    assertFunctionExpressionInvocation(
+      findNode.functionExpressionInvocation('b()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'bool Function()',
+      type: 'bool',
     );
   }
 }

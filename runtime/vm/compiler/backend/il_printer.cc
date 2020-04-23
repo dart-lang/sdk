@@ -6,6 +6,7 @@
 
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/os.h"
 #include "vm/parser.h"
 
@@ -352,6 +353,11 @@ void Definition::PrintTo(BufferFormatter* f) const {
   }
 }
 
+void CheckNullInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Definition::PrintOperandsTo(f);
+  f->Print(IsArgumentCheck() ? ", ArgumentError" : ", NoSuchMethodError");
+}
+
 void Definition::PrintOperandsTo(BufferFormatter* f) const {
   for (int i = 0; i < InputCount(); ++i) {
     if (i > 0) f->Print(", ");
@@ -366,6 +372,10 @@ void RedefinitionInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (constrained_type_ != nullptr) {
     f->Print(" ^ %s", constrained_type_->ToCString());
   }
+}
+
+void ReachabilityFenceInstr::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
 }
 
 void Value::PrintTo(BufferFormatter* f) const {
@@ -484,24 +494,14 @@ void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" function=");
-  InputAt(0)->PrintTo(f);
+  InputAt(InputCount() - 1)->PrintTo(f);
   f->Print("<%" Pd ">", type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   if (entry_kind() == Code::EntryKind::kUnchecked) {
     f->Print(" using unchecked entrypoint");
-  }
-}
-
-void FfiCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print(" pointer=");
-  InputAt(TargetAddressIndex())->PrintTo(f);
-  for (intptr_t i = 0, n = InputCount(); i < n - 1; ++i) {
-    f->Print(", ");
-    InputAt(i)->PrintTo(f);
-    f->Print(" (@%s)", arg_locations_[i].ToCString());
   }
 }
 
@@ -509,7 +509,7 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" %s<%" Pd ">", function_name().ToCString(), type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   if (HasICData()) {
     if (FLAG_display_sorted_ic_data) {
@@ -521,21 +521,35 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (result_type() != nullptr) {
     f->Print(", result_type = %s", result_type()->ToCString());
   }
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
+    f->Print(" using unchecked entrypoint");
+  }
 }
 
 void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print(" %s<%" Pd ">", instance_call()->function_name().ToCString(),
-           instance_call()->type_args_len());
+  f->Print(" %s<%" Pd ">", function_name().ToCString(), type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   PrintTargetsHelper(f, targets_, FlowGraphPrinter::kPrintAll);
   if (complete()) {
     f->Print(" COMPLETE");
   }
-  if (instance_call()->entry_kind() == Code::EntryKind::kUnchecked) {
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
     f->Print(" using unchecked entrypoint");
+  }
+}
+
+void DispatchTableCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+  const String& name =
+      String::Handle(interface_target().QualifiedUserVisibleName());
+  f->Print(" cid=");
+  class_id()->PrintTo(f);
+  f->Print(" %s<%" Pd ">", name.ToCString(), type_args_len());
+  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
+    f->Print(", ");
+    ArgumentValueAt(i)->PrintTo(f);
   }
 }
 
@@ -578,7 +592,7 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
            type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   if (entry_kind() == Code::EntryKind::kUnchecked) {
     f->Print(", using unchecked entrypoint");
@@ -630,7 +644,7 @@ void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void LoadStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  field_value()->PrintTo(f);
+  f->Print("%s", String::Handle(StaticField().name()).ToCString());
 }
 
 void StoreStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -657,11 +671,10 @@ void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(cls().ScrubbedName()).ToCString());
-  for (intptr_t i = 0; i < ArgumentCount(); i++) {
+  for (intptr_t i = 0; i < InputCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    InputAt(i)->PrintTo(f);
   }
-
   if (Identity().IsNotAliased()) {
     f->Print(" <not-aliased>");
   }
@@ -891,8 +904,11 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void IndirectEntryInstr::PrintTo(BufferFormatter* f) const {
-  ASSERT(try_index() == kInvalidTryIndex);
-  f->Print("B%" Pd "[join indirect]:%" Pd " pred(", block_id(), GetDeoptId());
+  f->Print("B%" Pd "[join indirect", block_id());
+  if (try_index() != kInvalidTryIndex) {
+    f->Print(" try_idx %" Pd, try_index());
+  }
+  f->Print("]:%" Pd " pred(", GetDeoptId());
   for (intptr_t i = 0; i < predecessors_.length(); ++i) {
     if (i > 0) f->Print(", ");
     f->Print("B%" Pd, predecessors_[i]->block_id());
@@ -989,12 +1005,6 @@ void IntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
 }
 
-void UnboxedWidthExtenderInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%" Pd " -> 4 (%s), ", from_width_bytes(),
-           RepresentationToCString(representation()));
-  Definition::PrintOperandsTo(f);
-}
-
 void BitCastInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
   f->Print(" (%s -> %s)", RepresentationToCString(from()),
@@ -1068,13 +1078,31 @@ void ReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
+void FfiCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print(" pointer=");
+  InputAt(TargetAddressIndex())->PrintTo(f);
+  for (intptr_t i = 0, n = InputCount(); i < n - 1; ++i) {
+    f->Print(", ");
+    InputAt(i)->PrintTo(f);
+    f->Print(" (@");
+    marshaller_.Location(i).PrintTo(f);
+    f->Print(")");
+  }
+}
+
 void NativeReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
+  f->Print(" (@");
+  marshaller_.Location(compiler::ffi::kResultIndex).PrintTo(f);
+  f->Print(")");
 }
 
 void NativeParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s as %s", loc_.ToCString(),
-           RepresentationToCString(representation_));
+  // Where the calling convention puts it.
+  marshaller_.Location(index_).PrintTo(f);
+  f->Print(" at ");
+  // Where the arguments are when pushed on the stack.
+  marshaller_.NativeLocationOfNativeParameter(index_).PrintTo(f);
 }
 
 void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
@@ -1099,6 +1127,13 @@ void StoreIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
   index()->PrintTo(f);
   f->Print(" + %" Pd "], ", offset());
   value()->PrintTo(f);
+}
+
+void StoreIndexedInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Instruction::PrintOperandsTo(f);
+  if (!ShouldEmitStoreBarrier()) {
+    f->Print(", NoStoreBarrier");
+  }
 }
 
 void TailCallInstr::PrintOperandsTo(BufferFormatter* f) const {

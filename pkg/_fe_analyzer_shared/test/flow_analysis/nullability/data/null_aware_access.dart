@@ -15,7 +15,7 @@ class C {
 
 class D {
   void set setter(value) {}
-  D? operator [](index) => this;
+  C? operator [](index) => C();
   void operator []=(index, value) {}
   D get getterSetter => this;
   void set getterSetter(value) {}
@@ -104,13 +104,13 @@ void null_aware_cascades_do_not_promote_target(C? c) {
   // holds the result of evaluating the cascade target.  So
   // effectively, no promotion happens (because there is no way to
   // observe a change to the type of that variable).
-  c?..setter = c;
-  c?..getterSetter += c;
-  c?..getterSetter ??= c;
-  c?..[c];
-  c?..[c] = c;
-  c?..[c] += c;
-  c?..[c] ??= c;
+  c?..setter = /*nonNullable*/ c;
+  c?..getterSetter += /*nonNullable*/ c;
+  c?..getterSetter ??= /*nonNullable*/ c;
+  c?..[/*nonNullable*/ c];
+  c?..[/*nonNullable*/ c] = /*nonNullable*/ c;
+  c?..[/*nonNullable*/ c] += /*nonNullable*/ c;
+  c?..[/*nonNullable*/ c] ??= /*nonNullable*/ c;
 }
 
 void null_aware_cascades_do_not_promote_others(C? c, int? i, int? j) {

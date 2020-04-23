@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_diagnostic_property_reference_test.dart' as add_diagnostic_property;
 import 'add_not_null_assert.dart' as add_not_null_assert;
+import 'add_return_type_test.dart' as add_return_type;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'assign_to_local_variable_test.dart' as assign_to_local_variable;
 import 'convert_class_to_mixin_test.dart' as convert_class_to_mixin;
@@ -48,6 +49,7 @@ import 'flutter_convert_to_stateful_widget_test.dart'
 import 'flutter_move_down_test.dart' as flutter_move_down;
 import 'flutter_move_up_test.dart' as flutter_move_up;
 import 'flutter_remove_widget_test.dart' as flutter_remove_widget;
+import 'flutter_surround_with_set_state_test.dart' as surround_with_set_state;
 import 'flutter_swap_with_child_test.dart' as flutter_swap_with_child;
 import 'flutter_swap_with_parent_test.dart' as flutter_swap_with_parent;
 import 'flutter_wrap_center_test.dart' as flutter_wrap_center;
@@ -69,6 +71,8 @@ import 'replace_conditional_with_if_else_test.dart'
     as replace_conditional_with_if_else;
 import 'replace_if_else_with_conditional_test.dart'
     as replace_if_else_with_conditional;
+import 'replace_with_var_test.dart' as replace_with_var;
+import 'shadow_field_test.dart' as shadow_field;
 import 'sort_child_property_last_test.dart' as sort_child_property_last;
 import 'split_and_condition_test.dart' as split_and_condition;
 import 'split_variable_declaration_test.dart' as split_variable_declaration;
@@ -82,10 +86,11 @@ import 'surround_with_try_finally_test.dart' as surround_with_try_finally;
 import 'surround_with_while_test.dart' as surround_with_while;
 import 'use_curly_braces_test.dart' as use_curly_braces;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     add_diagnostic_property.main();
     add_not_null_assert.main();
+    add_return_type.main();
     add_type_annotation.main();
     assign_to_local_variable.main();
     convert_class_to_mixin.main();
@@ -141,6 +146,8 @@ main() {
     remove_type_annotation.main();
     replace_conditional_with_if_else.main();
     replace_if_else_with_conditional.main();
+    replace_with_var.main();
+    shadow_field.main();
     sort_child_property_last.main();
     split_and_condition.main();
     split_variable_declaration.main();
@@ -149,6 +156,7 @@ main() {
     surround_with_for.main();
     surround_with_for_in.main();
     surround_with_if.main();
+    surround_with_set_state.main();
     surround_with_try_catch.main();
     surround_with_try_finally.main();
     surround_with_while.main();

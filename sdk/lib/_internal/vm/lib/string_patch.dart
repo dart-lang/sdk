@@ -16,10 +16,8 @@ class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int end]) {
-    if (charCodes is! Iterable)
-      throw new ArgumentError.value(charCodes, "charCodes");
-    if (start is! int) throw new ArgumentError.value(start, "start");
-    if (end != null && end is! int) throw new ArgumentError.value(end, "end");
+    if (charCodes == null) throw new ArgumentError.notNull("charCodes");
+    if (start == null) throw new ArgumentError.notNull("start");
     return _StringBase.createFromCharCodes(charCodes, start, end, null);
   }
 
@@ -49,7 +47,7 @@ class String {
   }
 
   @patch
-  const factory String.fromEnvironment(String name, {String defaultValue})
+  const factory String.fromEnvironment(String name, {String defaultValue = ""})
       native "String_fromEnvironment";
 
   bool get _isOneByte;
@@ -200,15 +198,14 @@ abstract class _StringBase implements String {
         throw new RangeError.range(end, start, charCodes.length);
       }
       int len = end - start;
-      charCodeList = new List<int>(len);
-      for (int i = 0; i < len; i++) {
+      charCodeList = new List<int>.generate(len, (int i) {
         if (!it.moveNext()) {
           throw new RangeError.range(end, start, start + i);
         }
         int code = it.current;
         bits |= code;
-        charCodeList[i] = code;
-      }
+        return code;
+      });
     }
     int length = charCodeList.length;
     if (bits < 0) {
@@ -575,14 +572,14 @@ abstract class _StringBase implements String {
 
   String replaceFirst(Pattern pattern, String replacement,
       [int startIndex = 0]) {
-    if (pattern is! Pattern) {
-      throw new ArgumentError("${pattern} is not a Pattern");
+    if (pattern == null) {
+      throw new ArgumentError.notNull("pattern");
     }
-    if (replacement is! String) {
-      throw new ArgumentError("${replacement} is not a String");
+    if (replacement == null) {
+      throw new ArgumentError.notNull("replacement");
     }
-    if (startIndex is! int) {
-      throw new ArgumentError("${startIndex} is not an int");
+    if (startIndex == null) {
+      throw new ArgumentError.notNull("startIndex");
     }
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
     Iterator iterator = startIndex == 0
@@ -797,8 +794,8 @@ abstract class _StringBase implements String {
 
   String splitMapJoin(Pattern pattern,
       {String onMatch(Match match), String onNonMatch(String nonMatch)}) {
-    if (pattern is! Pattern) {
-      throw new ArgumentError("${pattern} is not a Pattern");
+    if (pattern == null) {
+      throw new ArgumentError.notNull("pattern");
     }
     onMatch ??= _matchString;
     onNonMatch ??= _stringIdentity;
@@ -888,10 +885,8 @@ abstract class _StringBase implements String {
 
   List<String> split(Pattern pattern) {
     if ((pattern is String) && pattern.isEmpty) {
-      List<String> result = new List<String>(this.length);
-      for (int i = 0; i < this.length; i++) {
-        result[i] = this[i];
-      }
+      List<String> result =
+          new List<String>.generate(this.length, (int i) => this[i]);
       return result;
     }
     int length = this.length;

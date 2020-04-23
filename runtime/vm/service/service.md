@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.27
+# Dart VM Service Protocol 3.30
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.27_ of the Dart VM Service Protocol. This
+This document describes of _version 3.30_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -10,6 +10,10 @@ The VM will start a webserver which services protocol requests via WebSocket.
 It is possible to make HTTP (non-WebSocket) requests,
 but this does not allow access to VM _events_ and is not documented
 here.
+
+[Service Protocol Extension](service_extension.md) provides similar ways to
+communicate with the VM except these may be only accessible through some
+libraries.
 
 The Service Protocol uses [JSON-RPC 2.0][].
 
@@ -32,6 +36,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [evaluate](#evaluate)
   - [evaluateInFrame](#evaluateinframe)
   - [getAllocationProfile](#getallocationprofile)
+  - [getClientName](#getclientname)
   - [getCpuSamples](#getcpusamples)
   - [getFlagList](#getflaglist)
   - [getInstances](#getinstances)
@@ -55,7 +60,9 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [registerService](#registerService)
   - [reloadSources](#reloadsources)
   - [removeBreakpoint](#removebreakpoint)
+  - [requirePermissionToResume](#requirepermissiontoresume)
   - [resume](#resume)
+  - [setClientName](#setclientname)
   - [setExceptionPauseMode](#setexceptionpausemode)
   - [setFlag](#setflag)
   - [setLibraryDebuggable](#setlibrarydebuggable)
@@ -422,7 +429,7 @@ with the vertical bar:
 ReturnType1|ReturnType2
 ```
 
-Any RPC may return an _error_ response as [described above](#rpc-error).
+Any RPC may return an [RPC error](#rpc-error) response.
 
 Some parameters are optional. This is indicated by the text
 _[optional]_ following the parameter name:
@@ -437,10 +444,10 @@ in the section on [public types](#public-types).
 ### addBreakpoint
 
 ```
-Breakpoint addBreakpoint(string isolateId,
-                         string scriptId,
-                         int line,
-                         int column [optional])
+Breakpoint|Sentinel addBreakpoint(string isolateId,
+                                  string scriptId,
+                                  int line,
+                                  int column [optional])
 ```
 
 The _addBreakpoint_ RPC is used to add a breakpoint at a specific line
@@ -460,19 +467,22 @@ for targeting a specific breakpoint on a line with multiple possible
 breakpoints.
 
 If no breakpoint is possible at that line, the _102_ (Cannot add
-breakpoint) error code is returned.
+breakpoint) [RPC error](#rpc-error) code is returned.
 
 Note that breakpoints are added and removed on a per-isolate basis.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Breakpoint](#breakpoint).
 
 ### addBreakpointWithScriptUri
 
 ```
-Breakpoint addBreakpointWithScriptUri(string isolateId,
-                                      string scriptUri,
-                                      int line,
-                                      int column [optional])
+Breakpoint|Sentinel addBreakpointWithScriptUri(string isolateId,
+                                               string scriptUri,
+                                               int line,
+                                               int column [optional])
 ```
 
 The _addBreakpoint_ RPC is used to add a breakpoint at a specific line
@@ -494,23 +504,29 @@ for targeting a specific breakpoint on a line with multiple possible
 breakpoints.
 
 If no breakpoint is possible at that line, the _102_ (Cannot add
-breakpoint) error code is returned.
+breakpoint) [RPC error](#rpc-error) code is returned.
 
 Note that breakpoints are added and removed on a per-isolate basis.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Breakpoint](#breakpoint).
 
 ### addBreakpointAtEntry
 
 ```
-Breakpoint addBreakpointAtEntry(string isolateId,
-                                string functionId)
+Breakpoint|Sentinel addBreakpointAtEntry(string isolateId,
+                                         string functionId)
 ```
 The _addBreakpointAtEntry_ RPC is used to add a breakpoint at the
 entrypoint of some function.
 
 If no breakpoint is possible at the function entry, the _102_ (Cannot add
-breakpoint) error code is returned.
+breakpoint) [RPC error](#rpc-error) code is returned.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Breakpoint](#breakpoint).
 
@@ -519,10 +535,13 @@ Note that breakpoints are added and removed on a per-isolate basis.
 ### clearCpuSamples
 
 ```
-Success clearCpuSamples(string isolateId)
+Success|Sentinel clearCpuSamples(string isolateId)
 ```
 
 Clears all CPU profiling samples.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success).
 
@@ -566,10 +585,13 @@ If _targetId_ or any element of _argumentIds_ refers to an object which has been
 collected by the VM's garbage collector, then the _Collected_
 [Sentinel](#sentinel) is returned.
 
-If invocation triggers a failed compilation then [rpc error](#rpc-error) 113
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+If invocation triggers a failed compilation then [RPC error](#rpc-error) 113
 "Expression compilation error" is returned.
 
-If an runtime error occurs while evaluating the invocation, an [@Error](#error)
+If a runtime error occurs while evaluating the invocation, an [@Error](#error)
 reference will be returned.
 
 If the invocation is evaluated successfully, an [@Instance](#instance)
@@ -598,6 +620,9 @@ If _targetId_ refers to an object which has been collected by the VM's
 garbage collector, then the _Collected_ [Sentinel](#sentinel) is
 returned.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
 If _scope_ is provided, it should be a map from identifiers to object ids.
 These bindings will be added to the scope in which the expression is evaluated,
 which is a child scope of the class or library for instance/class or library
@@ -607,7 +632,7 @@ instance members, class members and top-level members.
 If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
 result of this evaluation are ignored. Defaults to false if not provided.
 
-If the expression fails to parse and compile, then [rpc error](#rpc-error) 113
+If the expression fails to parse and compile, then [RPC error](#rpc-error) 113
 "Expression compilation error" is returned.
 
 If an error occurs while evaluating the expression, an [@Error](#error)
@@ -640,7 +665,7 @@ members, parameters and locals.
 If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
 result of this evaluation are ignored. Defaults to false if not provided.
 
-If the expression fails to parse and compile, then [rpc error](#rpc-error) 113
+If the expression fails to parse and compile, then [RPC error](#rpc-error) 113
 "Expression compilation error" is returned.
 
 If an error occurs while evaluating the expression, an [@Error](#error)
@@ -649,12 +674,15 @@ reference will be returned.
 If the expression is evaluated successfully, an [@Instance](#instance)
 reference will be returned.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
 ### getAllocationProfile
 
 ```
-AllocationProfile getAllocationProfile(string isolateId,
-                                       bool reset [optional],
-                                       bool gc [optional])
+AllocationProfile|Sentinel getAllocationProfile(string isolateId,
+                                                bool reset [optional],
+                                                bool gc [optional])
 ```
 
 The _getAllocationProfile_ RPC is used to retrieve allocation information for a
@@ -667,19 +695,37 @@ If _gc_ is provided and is set to true, a garbage collection will be attempted
 before collecting allocation information. There is no guarantee that a garbage
 collection will be actually be performed.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+### getClientName
+
+```
+ClientName getClientName()
+```
+
+The _getClientName_ RPC is used to retrieve the name associated with the currently
+connected VM service client. If no name was previously set through the
+[setClientName](#setclientname) RPC, a default name will be returned.
+
+See [ClientName](#clientname).
+
 ### getCpuSamples
 
 ```
-CpuSamples getCpuSamples(string isolateId,
-                         int timeOriginMicros,
-                         int timeExtentMicros)
+CpuSamples|Sentinel getCpuSamples(string isolateId,
+                                  int timeOriginMicros,
+                                  int timeExtentMicros)
 ```
 
 The _getCpuSamples_ RPC is used to retrieve samples collected by the CPU
 profiler. Only samples collected in the time range `[timeOriginMicros,
 timeOriginMicros + timeExtentMicros]` will be reported.
 
-If the profiler is disabled, an error response will be returned.
+If the profiler is disabled, an [RPC error](#rpc-error) response will be returned.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [CpuSamples](#cpusamples).
 
@@ -720,14 +766,17 @@ If _targetId_ refers to an object which has been collected by the VM's
 garbage collector, then the _Collected_ [Sentinel](#sentinel) is
 returned.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
 See [InboundReferences](#inboundreferences).
 
 ### getInstances
 
 ```
-InstanceSet getInstances(string isolateId,
-                         string objectId,
-                         int limit)
+InstanceSet|Sentinel getInstances(string isolateId,
+                                  string objectId,
+                                  int limit)
 ```
 
 The _getInstances_ RPC is used to retrieve a set of instances which are of a
@@ -743,9 +792,12 @@ The set of instances may include objects that are unreachable but have not yet
 been garbage collected.
 
 _objectId_ is the ID of the `Class` to retrieve instances for. _objectId_ must
-be the ID of a `Class`, otherwise an error is returned.
+be the ID of a `Class`, otherwise an [RPC error](#rpc-error) is returned.
 
 _limit_ is the maximum number of instances to be returned.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [InstanceSet](#instanceset).
 
@@ -808,11 +860,14 @@ See [IsolateGroup](#isolategroup).
 ### getScripts
 
 ```
-ScriptList getScripts(string isolateId)
+ScriptList|Sentinel getScripts(string isolateId)
 ```
 
 The _getScripts_ RPC is used to retrieve a _ScriptList_ containing all
 scripts for an isolate based on the isolate's _isolateId_.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [ScriptList](#scriptlist).
 
@@ -830,6 +885,9 @@ its _id_.
 
 If _objectId_ is a temporary id which has expired, then the _Expired_
 [Sentinel](#sentinel) is returned.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 If _objectId_ refers to a heap object which has been collected by the VM's
 garbage collector, then the _Collected_ [Sentinel](#sentinel) is
@@ -851,14 +909,17 @@ ignored.
 ### getRetainingPath
 
 ```
-RetainingPath getRetainingPath(string isolateId,
-                               string targetId,
-                               int limit)
+RetainingPath|Sentinel getRetainingPath(string isolateId,
+                                        string targetId,
+                                        int limit)
 ```
 
 The _getRetainingPath_ RPC is used to lookup a path from an object specified by
 _targetId_ to a GC root (i.e., the object which is preventing this object from
 being garbage collected).
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 If _targetId_ refers to a heap object which has been collected by the VM's
 garbage collector, then the _Collected_ [Sentinel](#sentinel) is returned.
@@ -878,23 +939,26 @@ See [RetainingPath](#retainingpath).
 ### getStack
 
 ```
-Stack getStack(string isolateId)
+Stack|Sentinel getStack(string isolateId)
 ```
 
 The _getStack_ RPC is used to retrieve the current execution stack and
 message queue for an isolate. The isolate does not need to be paused.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Stack](#stack).
 
 ### getSourceReport
 
 ```
-SourceReport getSourceReport(string isolateId,
-                             SourceReportKind[] reports,
-                             string scriptId [optional],
-                             int tokenPos [optional],
-                             int endTokenPos [optional],
-                             bool forceCompile [optional])
+SourceReport|Sentinel getSourceReport(string isolateId,
+                                      SourceReportKind[] reports,
+                                      string scriptId [optional],
+                                      int tokenPos [optional],
+                                      int endTokenPos [optional],
+                                      bool forceCompile [optional])
 ```
 
 The _getSourceReport_ RPC is used to generate a set of reports tied to
@@ -929,6 +993,9 @@ all functions in the range of the report.  Forcing compilation can
 cause a compilation error, which could terminate the running Dart
 program.  If this parameter is not provided, it is considered to have
 the value _false_.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [SourceReport](#sourcereport).
 
@@ -974,8 +1041,8 @@ timeline events should be.
 For example, given _timeOriginMicros_ and _timeExtentMicros_, only timeline events
 from the following time range will be returned: `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
 
-If _getVMTimeline_ is invoked while the current recorder is one of Fuchsia or
-Systrace, the _114_ error code, invalid timeline request, will be returned as
+If _getVMTimeline_ is invoked while the current recorder is one of Fuchsia or Macos or
+Systrace, an [RPC error](#rpc-error) with error code _114_, `invalid timeline request`, will be returned as
 timeline events are handled by the OS in these modes.
 
 ### getVMTimelineFlags
@@ -1004,24 +1071,30 @@ See [Timestamp](#timestamp) and [getVMTimeline](#getvmtimeline).
 ### pause
 
 ```
-Success pause(string isolateId)
+Success|Sentinel pause(string isolateId)
 ```
 
 The _pause_ RPC is used to interrupt a running isolate. The RPC enqueues the interrupt request and potentially returns before the isolate is paused.
 
 When the isolate is paused an event will be sent on the _Debug_ stream.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
 See [Success](#success).
 
 ### kill
 
 ```
-Success kill(string isolateId)
+Success|Sentinel kill(string isolateId)
 ```
 
 The _kill_ RPC is used to kill an isolate as if by dart:isolate's `Isolate.kill(IMMEDIATE)`.
 
 The isolate is killed regardless of whether it is paused or running.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success).
 
@@ -1043,11 +1116,11 @@ See [Success](#success).
 ### reloadSources
 
 ```
-ReloadReport reloadSources(string isolateId,
-                           bool force [optional],
-                           bool pause [optional],
-                           string rootLibUri [optional],
-                           string packagesUri [optional])
+ReloadReport|Sentinel reloadSources(string isolateId,
+                                    bool force [optional],
+                                    bool pause [optional],
+                                    string rootLibUri [optional],
+                                    string packagesUri [optional])
 ```
 
 The _reloadSources_ RPC is used to perform a hot reload of an Isolate's sources.
@@ -1064,39 +1137,84 @@ Isolate's root library.
 if the _packagesUri_ parameter is provided, it indicates the new uri to the
 Isolate's package map (.packages) file.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
 ### removeBreakpoint
 
 ```
-Success removeBreakpoint(string isolateId,
-                         string breakpointId)
+Success|Sentinel removeBreakpoint(string isolateId,
+                                  string breakpointId)
 ```
 
 The _removeBreakpoint_ RPC is used to remove a breakpoint by its _id_.
 
 Note that breakpoints are added and removed on a per-isolate basis.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
 See [Success](#success).
 
 ### requestHeapSnapshot
 
 ```
-Success requestHeapSnapshot(string isolateId)
+Success|Sentinel requestHeapSnapshot(string isolateId)
 ```
 
 Requests a dump of the Dart heap of the given isolate.
 
 This method immediately returns success. The VM will then begin delivering
 binary events on the `HeapSnapshot` event stream. The binary data in these
-events, when concatenated together, conforms to the SnapshotGraph type. The
-splitting of the SnapshotGraph into events can happen at any byte offset,
-including the middle of scalar fields.
+events, when concatenated together, conforms to the [SnapshotGraph](heap_snapshot.md)
+type. The splitting of the SnapshotGraph into events can happen at any byte
+offset.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+### requirePermissionToResume
+
+```
+Success requirePermissionToResume(bool onPauseStart [optional],
+                                  bool onPauseReload[optional],
+                                  bool onPauseExit [optional])
+```
+
+The _requirePermissionToResume_ RPC is used to change the pause/resume behavior
+of isolates by providing a way for the VM service to wait for approval to resume
+from some set of clients. This is useful for clients which want to perform some
+operation on an isolate after a pause without it being resumed by another client.
+
+If the _onPauseStart_ parameter is `true`, isolates will not resume after pausing
+on start until the client sends a `resume` request and all other clients which
+need to provide resume approval for this pause type have done so.
+
+If the _onPauseReload_ parameter is `true`, isolates will not resume after pausing
+after a reload until the client sends a `resume` request and all other clients
+which need to provide resume approval for this pause type have done so.
+
+If the _onPauseExit_ parameter is `true`, isolates will not resume after pausing
+on exit until the client sends a `resume` request and all other clients which
+need to provide resume approval for this pause type have done so.
+
+**Important Notes:**
+
+- All clients with the same client name share resume permissions. Only a
+  single client of a given name is required to provide resume approval.
+- When a client requiring approval disconnects from the service, a paused
+  isolate may resume if all other clients requiring resume approval have
+  already given approval. In the case that no other client requires resume
+  approval for the current pause event, the isolate will be resumed if at
+  least one other client has attempted to [resume](#resume) the isolate.
+
 
 ### resume
 
 ```
-Success resume(string isolateId,
-               StepOption step [optional],
-               int frameIndex [optional])
+Success|Sentinel resume(string isolateId,
+                        StepOption step [optional],
+                        int frameIndex [optional])
 ```
 
 The _resume_ RPC is used to resume execution of a paused isolate.
@@ -1120,13 +1238,29 @@ function, so _frameIndex_ must be at least 1.
 
 If the _frameIndex_ parameter is not provided, it defaults to 1.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
 See [Success](#success), [StepOption](#StepOption).
+
+### setClientName
+
+```
+Success setClientName(string name)
+```
+
+The _setClientName_ RPC is used to set a name to be associated with the currently
+connected VM service client. If the _name_ parameter is a non-empty string, _name_
+will become the new name associated with the client. If _name_ is an empty string,
+the client's name will be reset to its default name.
+
+See [Success](#success).
 
 ### setExceptionPauseMode
 
 ```
-Success setExceptionPauseMode(string isolateId,
-                              ExceptionPauseMode mode)
+Success|Sentinel setExceptionPauseMode(string isolateId,
+                                       ExceptionPauseMode mode)
 ```
 
 The _setExceptionPauseMode_ RPC is used to control if an isolate pauses when
@@ -1137,6 +1271,9 @@ mode | meaning
 None | Do not pause isolate on thrown exceptions
 Unhandled | Pause isolate on unhandled exceptions
 All  | Pause isolate on all thrown exceptions
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 ### setFlag
 
@@ -1170,24 +1307,30 @@ See [Success](#success).
 ### setLibraryDebuggable
 
 ```
-Success setLibraryDebuggable(string isolateId,
-                             string libraryId,
-                             bool isDebuggable)
+Success|Sentinel setLibraryDebuggable(string isolateId,
+                                      string libraryId,
+                                      bool isDebuggable)
 ```
 
 The _setLibraryDebuggable_ RPC is used to enable or disable whether
 breakpoints and stepping work for a given library.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success).
 
 ### setName
 
 ```
-Success setName(string isolateId,
-                string name)
+Success|Sentinel setName(string isolateId,
+                         string name)
 ```
 
 The _setName_ RPC is used to change the debugging name for an isolate.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success).
 
@@ -1226,7 +1369,7 @@ Success streamCancel(string streamId)
 The _streamCancel_ RPC cancels a stream subscription in the VM.
 
 If the client is not subscribed to the stream, the _104_ (Stream not
-subscribed) error code is returned.
+subscribed) [RPC error](#rpc-error) code is returned.
 
 See [Success](#success).
 
@@ -1240,7 +1383,7 @@ The _streamListen_ RPC subscribes to a stream in the VM. Once
 subscribed, the client will begin receiving events from the stream.
 
 If the client is already subscribed to the stream, the _103_ (Stream already
-subscribed) error code is returned.
+subscribed) [RPC error](#rpc-error) code is returned.
 
 The _streamId_ parameter may have the following published values:
 
@@ -1545,6 +1688,17 @@ class ClassList extends Response {
 }
 ```
 
+### ClientName
+
+```
+class ClientName extends Response {
+  // The name of the currently connected VM service client.
+  string name;
+}
+```
+
+See [getClientName](#getclientname) and [setClientName](#setclientname).
+
 ### Code
 
 ```
@@ -1726,7 +1880,7 @@ class Error extends Object {
 ```
 
 An _Error_ represents a Dart language level error. This is distinct from an
-[rpc error](#rpc-error).
+[RPC error](#rpc-error).
 
 ### ErrorKind
 
@@ -2149,6 +2303,12 @@ class Function extends Object {
   // The owner of this function, which can be a Library, Class, or a Function.
   @Library|@Class|@Function owner;
 
+  // Is this function static?
+  bool static;
+
+  // Is this function const?
+  bool const;
+
   // The location of this function in the source code.
   SourceLocation location [optional];
 
@@ -2411,7 +2571,19 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   RegExp
-  String pattern [optional];
+  @Instance pattern [optional];
+
+// The function associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Function closureFunction [optional];
+
+  // The context associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Context closureContext [optional];
 
   // Whether this regular expression is case sensitive.
   //
@@ -3369,7 +3541,8 @@ An _TimelineEvent_ is an arbitrary map that contains a [Trace Event Format](http
 ```
 class TimelineFlags extends Response {
   // The name of the recorder currently in use. Recorder types include, but are
-  // not limited to: Callback, Endless, Fuchsia, Ring, Startup, and Systrace.
+  // not limited to: Callback, Endless, Fuchsia, Macos, Ring, Startup, and
+  // Systrace.
   // Set to "null" if no recorder is currently set.
   string recorderName;
 
@@ -3523,33 +3696,36 @@ version | comments
 ------- | --------
 1.0 | Initial revision
 2.0 | Describe protocol version 2.0.
-3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance. Added ServiceExtensionAdded event.
-3.1 | Add the getSourceReport RPC.  The getObject RPC now accepts offset and count for string objects.  String objects now contain length, offset, and count properties.
-3.2 | Isolate objects now include the runnable bit and many debugger related RPCs will return an error if executed on an isolate before it is runnable.
-3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
-3.4 | Add the superType and mixin fields to Class. Added new pause event 'None'.
-3.5 | Add the error field to SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
-3.6 | Add 'scopeStartTokenPos', 'scopeEndTokenPos', and 'declarationTokenPos' to BoundVariable. Add 'PausePostRequest' event kind. Add 'Rewind' StepOption. Add error code 107 (isolate cannot resume). Add 'reloadSources' RPC and related error codes. Add optional parameter 'scope' to 'evaluate' and 'evaluateInFrame'.
-3.7 | Add 'setFlag'.
-3.8 | Add 'kill'.
+3.0 | Describe protocol version 3.0.  Added `UnresolvedSourceLocation`.  Added `Sentinel` return to `getIsolate`.  Add `AddedBreakpointWithScriptUri`.  Removed `Isolate.entry`. The type of `VM.pid` was changed from `string` to `int`.  Added `VMUpdate` events.  Add offset and count parameters to `getObject` and `offset` and `count` fields to `Instance`. Added `ServiceExtensionAdded` event.
+3.1 | Add the `getSourceReport` RPC.  The `getObject` RPC now accepts `offset` and `count` for string objects.  `String` objects now contain `length`, `offset`, and `count` properties.
+3.2 | `Isolate` objects now include the runnable bit and many debugger related RPCs will return an error if executed on an isolate before it is runnable.
+3.3 | Pause event now indicates if the isolate is paused at an `await`, `yield`, or `yield*` suspension point via the `atAsyncSuspension` field. Resume command now supports the step parameter `OverAsyncSuspension`. A Breakpoint added synthetically by an `OverAsyncSuspension` resume command identifies itself as such via the `isSyntheticAsyncContinuation` field.
+3.4 | Add the `superType` and `mixin` fields to `Class`. Added new pause event `None`.
+3.5 | Add the error field to `SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
+3.6 | Add `scopeStartTokenPos`, `scopeEndTokenPos`, and `declarationTokenPos` to `BoundVariable`. Add `PausePostRequest` event kind. Add `Rewind` `StepOption`. Add error code 107 (isolate cannot resume). Add `reloadSources` RPC and related error codes. Add optional parameter `scope` to `evaluate` and `evaluateInFrame`.
+3.7 | Add `setFlag`.
+3.8 | Add `kill`.
 3.9 | Changed numbers for errors related to service extensions.
-3.10 | Add 'invoke'.
-3.11 | Rename 'invoke' parameter 'receiverId' to 'targetId.
-3.12 | Add 'getScripts' RPC and `ScriptList` object.
-3.13 | Class 'mixin' field now properly set for kernel transformed mixin applications.
-3.14 | Flag 'profile_period' can now be set at runtime, allowing for the profiler sample rate to be changed while the program is running.
+3.10 | Add `invoke`.
+3.11 | Rename `invoke` parameter `receiverId` to `targetId`.
+3.12 | Add `getScripts` RPC and `ScriptList` object.
+3.13 | Class `mixin` field now properly set for kernel transformed mixin applications.
+3.14 | Flag `profile_period` can now be set at runtime, allowing for the profiler sample rate to be changed while the program is running.
 3.15 | Added `disableBreakpoints` parameter to `invoke`, `evaluate`, and `evaluateInFrame`.
-3.16 | Add 'getMemoryUsage' RPC and 'MemoryUsage' object.
-3.17 | Add 'Logging' event kind and the LogRecord class.
-3.18 | Add 'getAllocationProfile' RPC and 'AllocationProfile' and 'ClassHeapStats' objects.
-3.19 | Add 'clearVMTimeline', 'getVMTimeline', 'getVMTimelineFlags', 'setVMTimelineFlags', 'Timeline', and 'TimelineFlags'.
-3.20 | Add 'getInstances' RPC and 'InstanceSet' object.
-3.21 | Add 'getVMTimelineMicros' RPC and 'Timestamp' object.
+3.16 | Add `getMemoryUsage` RPC and `MemoryUsage` object.
+3.17 | Add `Logging` event kind and the `LogRecord` class.
+3.18 | Add `getAllocationProfile` RPC and `AllocationProfile` and `ClassHeapStats` objects.
+3.19 | Add `clearVMTimeline`, `getVMTimeline`, `getVMTimelineFlags`, `setVMTimelineFlags`, `Timeline`, and `TimelineFlags`.
+3.20 | Add `getInstances` RPC and `InstanceSet` object.
+3.21 | Add `getVMTimelineMicros` RPC and `Timestamp` object.
 3.22 | Add `registerService` RPC, `Service` stream, and `ServiceRegistered` and `ServiceUnregistered` event kinds.
 3.23 | Add `VMFlagUpdate` event kind to the `VM` stream.
 3.24 | Add `operatingSystem` property to `VM` object.
-3.25 | Add 'getInboundReferences', 'getRetainingPath' RPCs, and 'InboundReferences', 'InboundReference', 'RetainingPath', and 'RetainingObject' objects.
-3.26 | Add 'requestHeapSnapshot'.
-3.27 | Add 'clearCpuSamples', 'getCpuSamples' RPCs and 'CpuSamples', 'CpuSample' objects.
+3.25 | Add `getInboundReferences`, `getRetainingPath` RPCs, and `InboundReferences`, `InboundReference`, `RetainingPath`, and `RetainingObject` objects.
+3.26 | Add `requestHeapSnapshot`.
+3.27 | Add `clearCpuSamples`, `getCpuSamples` RPCs and `CpuSamples`, `CpuSample` objects.
+3.28 | TODO(aam): document changes from 3.28
+3.29 | Add `getClientName`, `setClientName`, `requireResumeApproval`
+3.30 | Updated return types of RPCs which require an `isolateId` to allow for `Sentinel` results if the target isolate has shutdown.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

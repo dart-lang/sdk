@@ -4,13 +4,10 @@
 
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:expect/expect.dart';
 import 'utils.dart';
 
 main() {
-  useHtmlIndividualConfiguration();
-
   final String htmlPayload = "<div>"
       "<div>"
       "<p class='a'>"
@@ -32,18 +29,20 @@ main() {
   para.classes.removeAll(['a', 'b']);
 
   para = document.body.querySelector('p') as ParagraphElement;
-  expect(para.outerHtml, '<p class=""><span>Test #1</span></p>');
+  Expect.equals('<p class=""><span>Test #1</span></p>', para.outerHtml);
 
   para = document.body.querySelector('p') as ParagraphElement;
   para.classes.addAll(['c']);
 
   para = document.body.querySelector('p') as ParagraphElement;
-  expect(para.outerHtml, '<p class="c"><span>Test #1</span></p>');
+  Expect.equals('<p class="c"><span>Test #1</span></p>', para.outerHtml);
 
   var allPara = document.body.querySelectorAll('p');
   allPara.classes.removeAll(['b', 'c']);
 
   var checkAllPara = document.body.querySelectorAll('p');
-  expect(checkAllPara[0].outerHtml, '<p class=""><span>Test #1</span></p>');
-  expect(checkAllPara[1].outerHtml, '<p class=""><span>Test #2</span></p>');
+  Expect.equals(
+      '<p class=""><span>Test #1</span></p>', checkAllPara[0].outerHtml);
+  Expect.equals(
+      '<p class=""><span>Test #2</span></p>', checkAllPara[1].outerHtml);
 }

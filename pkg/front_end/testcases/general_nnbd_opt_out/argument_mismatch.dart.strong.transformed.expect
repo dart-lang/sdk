@@ -1,0 +1,22 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/argument_mismatch.dart:10:6: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//   foo(null);
+//      ^
+// pkg/front_end/testcases/general_nnbd_opt_out/argument_mismatch.dart:7:1: Context: Found this candidate, but the arguments don't match.
+// foo() {}
+// ^^^
+//
+import self as self;
+
+static method foo() → dynamic {}
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/argument_mismatch.dart:10:6: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+  foo(null);
+     ^";
+}
+static method main() → dynamic {}

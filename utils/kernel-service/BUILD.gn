@@ -4,17 +4,15 @@
 
 import("../../build/dart/dart_action.gni")
 import("../../runtime/runtime_args.gni")
+import("../../sdk_args.gni")
 import("../application_snapshot.gni")
+import("../create_timestamp.gni")
 
 group("kernel-service") {
   if (create_kernel_service_snapshot) {
-    deps = [
-      ":copy_kernel-service_snapshot",
-    ]
+    deps = [ ":copy_kernel-service_snapshot" ]
   } else {
-    deps = [
-      ":kernel_service_dill",
-    ]
+    deps = [ ":kernel_service_dill" ]
   }
 }
 
@@ -35,20 +33,26 @@ kernel_application_snapshot("kernel-service_snapshot") {
 }
 
 copy("copy_kernel-service_snapshot") {
-  deps = [
-    ":kernel-service_snapshot",
-  ]
-  sources = [
-    "$root_gen_dir/kernel-service.dart.snapshot",
-  ]
-  outputs = [
-    "$root_out_dir/kernel-service.dart.snapshot",
-  ]
+  deps = [ ":kernel-service_snapshot" ]
+  sources = [ "$root_gen_dir/kernel-service.dart.snapshot" ]
+  outputs = [ "$root_out_dir/kernel-service.dart.snapshot" ]
+}
+
+create_timestamp_file("frontend_server_files_stamp") {
+  path = rebase_path("../../pkg/frontend_server/lib")
+  output = "$target_gen_dir/frontend_server_files.stamp"
+}
+
+create_timestamp_file("ddc_files_stamp") {
+  path = rebase_path("../../pkg/dev_compiler/lib")
+  output = "$target_gen_dir/ddc_files.stamp"
 }
 
 application_snapshot("frontend_server") {
   main_dart = "../../pkg/frontend_server/bin/frontend_server_starter.dart"
   deps = [
+    ":ddc_files_stamp",
+    ":frontend_server_files_stamp",
     "../../runtime/vm:kernel_platform_files($host_toolchain)",
   ]
   sdk_root = rebase_path("$root_out_dir")
@@ -76,9 +80,7 @@ template("kernel_service_dill") {
       "$root_out_dir/vm_platform_strong.dill",
     ]
     output = "$root_gen_dir/kernel_service" + invoker.target_name + ".dill"
-    outputs = [
-      output,
-    ]
+    outputs = [ output ]
 
     depfile = "$root_gen_dir/kernel_service" + invoker.target_name + "_dill.d"
     abs_depfile = rebase_path(depfile)
@@ -100,9 +102,8 @@ template("kernel_service_dill") {
           "--no-aot",
           "--no-embed-sources",
           "--output=" + rebase_path(output),
-          scheme + ":///pkg/vm/bin/kernel_service.dart",
         ]
-
+    args += [ scheme + ":///pkg/vm/bin/kernel_service.dart" ]
     if (dart_platform_bytecode) {
       args += [
         "--gen-bytecode",

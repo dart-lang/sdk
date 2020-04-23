@@ -506,8 +506,8 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
       // instantiated as int and String.
       registerNew(
           node.target,
-          new ir.InterfaceType(
-              node.target.enclosingClass, ir.Nullability.legacy, typeArguments),
+          new ir.InterfaceType(node.target.enclosingClass,
+              node.target.enclosingLibrary.nonNullable, typeArguments),
           positionArguments,
           namedArguments,
           node.arguments.types,
@@ -731,7 +731,9 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   @override
   void visitPartialInstantiationConstant(ir.PartialInstantiationConstant node) {
     registry.registerGenericInstantiation(
-        node.tearOffConstant.procedure.function.functionType, node.types);
+        node.tearOffConstant.procedure.function.computeFunctionType(
+            node.tearOffConstant.procedure.enclosingLibrary.nonNullable),
+        node.types);
     visitConstant(node.tearOffConstant);
   }
 

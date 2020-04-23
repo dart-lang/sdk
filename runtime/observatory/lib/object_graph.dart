@@ -9,15 +9,121 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:logging/logging.dart';
+/// Decodes and analyzes heap snapshots produced by the Dart VM.
+abstract class SnapshotReader {
+  factory SnapshotReader() => _SnapshotReader._new();
+
+  void add(Uint8List chunk);
+  Future<SnapshotGraph> close();
+
+  Future<SnapshotGraph> get done;
+  Stream<String> get onProgress;
+}
+
+class _SnapshotReader implements SnapshotReader {
+  bool _closed = false;
+  var _chunks = <Uint8List>[];
+  final _onProgress = new StreamController<String>.broadcast();
+  final _done = new Completer<SnapshotGraph>();
+
+  _SnapshotReader._new();
+
+  void add(Uint8List chunk) {
+    if (_closed) {
+      throw new StateError("Stream is closed");
+    }
+    _chunks.add(chunk);
+    _onProgress.add("Receiving snapshot chunk ${_chunks.length}...");
+
+    // TODO(rmacnak): Incremental loading.
+  }
+
+  Future<SnapshotGraph> close() {
+    if (_closed) {
+      throw new StateError("Stream is closed");
+    }
+    _closed = true;
+
+    var graph = new _SnapshotGraph._new();
+    var chunks = _chunks;
+    _chunks = null; // Let the binary chunks be GCable.
+    _done.complete(graph._load(chunks, _onProgress));
+    return _done.future;
+  }
+
+  Future<SnapshotGraph> get done => _done.future;
+  Stream<String> get onProgress => _onProgress.stream;
+}
+
+Uint8List _newUint8Array(int size) {
+  try {
+    return new Uint8List(size);
+  } on ArgumentError catch (e) {
+    // JS throws a misleading invalid argument error. Convert to a more user-friendly message.
+    throw new Exception(
+        "OutOfMemoryError: Not enough memory available to analyze the snapshot.");
+  }
+}
+
+Uint16List _newUint16Array(int size) {
+  try {
+    return new Uint16List(size);
+  } on ArgumentError catch (e) {
+    // JS throws a misleading invalid argument error. Convert to a more user-friendly message.
+    throw new Exception(
+        "OutOfMemoryError: Not enough memory available to analyze the snapshot.");
+  }
+}
+
+Uint32List _newUint32Array(int size) {
+  try {
+    return new Uint32List(size);
+  } on ArgumentError catch (e) {
+    // JS throws a misleading invalid argument error. Convert to a more user-friendly message.
+    throw new Exception(
+        "OutOfMemoryError: Not enough memory available to analyze the snapshot.");
+  }
+}
 
 class _ReadStream {
-  final Uint8List _buffer;
-  int _position = 0;
+  final List<Uint8List> _buffers;
+  Uint8List _currentBuffer = Uint8List(0);
+  int _bufferIndex = 0;
+  int _byteIndex = 0;
 
-  _ReadStream(this._buffer);
+  _ReadStream._new(this._buffers);
 
-  int readByte() => _buffer[_position++];
+  bool atEnd() {
+    return _bufferIndex >= _buffers.length &&
+        _byteIndex >= _currentBuffer.length;
+  }
+
+  int readByte() {
+    int i = _byteIndex;
+    Uint8List b = _currentBuffer;
+    if (i < b.length) {
+      int r = b[i];
+      _byteIndex = i + 1;
+      return r;
+    }
+
+    return _readByteSlowPath();
+  }
+
+  int _readByteSlowPath() {
+    int i = _byteIndex;
+    Uint8List b = _currentBuffer;
+    while (i >= b.length) {
+      if (_bufferIndex >= _buffers.length) {
+        throw new StateError("Attempt to read past the end of a stream");
+      }
+      b = _currentBuffer = _buffers[_bufferIndex++];
+      i = 0;
+    }
+    int r = b[i];
+    _byteIndex = i + 1;
+    return r;
+  }
 
   /// Read one ULEB128 number.
   int readUnsigned() {
@@ -53,7 +159,7 @@ class _ReadStream {
   }
 
   double readFloat64() {
-    var bytes = new Uint8List(8);
+    final bytes = _newUint8Array(8);
     for (var i = 0; i < 8; i++) {
       bytes[i] = readByte();
     }
@@ -61,8 +167,8 @@ class _ReadStream {
   }
 
   String readUtf8() {
-    int len = readUnsigned();
-    var bytes = new Uint8List(len);
+    final len = readUnsigned();
+    final bytes = _newUint8Array(len);
     for (var i = 0; i < len; i++) {
       bytes[i] = readByte();
     }
@@ -70,8 +176,8 @@ class _ReadStream {
   }
 
   String readLatin1() {
-    int len = readUnsigned();
-    var codeUnits = new Uint8List(len);
+    final len = readUnsigned();
+    final codeUnits = _newUint8Array(len);
     for (var i = 0; i < len; i++) {
       codeUnits[i] = readByte();
     }
@@ -79,8 +185,8 @@ class _ReadStream {
   }
 
   String readUtf16() {
-    int len = readUnsigned();
-    var codeUnits = new Uint16List(len);
+    final len = readUnsigned();
+    final codeUnits = _newUint16Array(len);
     for (var i = 0; i < len; i++) {
       codeUnits[i] = readByte() | (readByte() << 8);
     }
@@ -91,21 +197,60 @@ class _ReadStream {
 // Node indices for the root and sentinel nodes. Note that using 0 as the
 // sentinel means a newly allocated typed array comes initialized with all
 // elements as the sentinel.
-const ROOT = 1;
-const SENTINEL = 0;
+const _ROOT = 1;
+const _SENTINEL = 0;
 
+/// An object in a heap snapshot.
 abstract class SnapshotObject {
+  // If this object has been obtained from [successors] or [predecessors], the
+  // name of slot. Otherwise, the empty string.
   String get label;
+
+  // The value for primitives. Otherwise, the class name.
   String get description;
-  SnapshotClass get klass;
+
+  /// [internalSize] + [externalSize].
   int get shallowSize;
+
+  /// The number of bytes in the Dart heap occupied by this object. May be 0
+  /// for objects that are in another heap but referenced from the heap of
+  /// interest. May also be 0 for synthetic objects such as the root.
+  int get internalSize;
+
+  /// The sum of all external allocations associated with this object.
+  /// See Dart_NewWeakPersistentHandle.
   int get externalSize;
+
+  /// The [shallowSize] of this object, plus the retainedSize of all its
+  /// children in the dominator tree. This is the amount of memory that would
+  /// be freed if the last reference to this object was erased.
   int get retainedSize;
+
+  SnapshotClass get klass;
+
+  /// The objects directly referenced by this object. The [SnapshotObject]s
+  /// returned by this iterable have their [label] set to name of the slot
+  /// if it is available.
   Iterable<SnapshotObject> get successors;
+
+  /// The objects directly referencing this object. The [SnapshotObject]s
+  /// returned by this iterable have their [label] set to name of the slot
+  /// if it is available.
   Iterable<SnapshotObject> get predecessors;
+
+  /// The immediate dominator of this object. For the root object, returns self.
+  ///
+  /// See https://en.wikipedia.org/wiki/Dominator_(graph_theory).
   SnapshotObject get parent;
+
+  /// The objects for which this object is the immediate dominator.
+  ///
+  /// See https://en.wikipedia.org/wiki/Dominator_(graph_theory).
   Iterable<SnapshotObject> get children;
-  List<SnapshotObject> get objects;
+
+  /// An iterable containing only this object. For polymorphism with
+  /// SnapshotMergedDominators.
+  Iterable<SnapshotObject> get objects;
 }
 
 class _SnapshotObject implements SnapshotObject {
@@ -113,29 +258,41 @@ class _SnapshotObject implements SnapshotObject {
   final _SnapshotGraph _graph;
   final String label;
 
-  _SnapshotObject._(this._id, this._graph, this.label);
+  _SnapshotObject._new(this._id, this._graph, this.label);
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is _SnapshotObject) {
       return _id == other._id && _graph == other._graph;
     }
     return false;
   }
 
-  int get hashCode => _id;
+  int get hashCode => _id ^ _graph.hashCode;
 
-  int get shallowSize => _graph._shallowSizes[_id];
+  int get shallowSize => internalSize + externalSize;
+  int get internalSize => _graph._internalSizes[_id];
   int get externalSize => _graph._externalSizes[_id];
   int get retainedSize => _graph._retainedSizes[_id];
 
   String get description => _graph._describeObject(_id);
   SnapshotClass get klass => _graph._classes[_graph._cids[_id]];
 
-  Iterable<SnapshotObject> get successors =>
-      new _SuccessorsIterable(_graph, _id);
+  Iterable<SnapshotObject> get successors sync* {
+    final id = _id;
+    final cid = _graph._cids[id];
+    final startSuccIndex = _graph._firstSuccs[id];
+    final limitSuccIndex = _graph._firstSuccs[id + 1];
+    for (var nextSuccIndex = startSuccIndex;
+        nextSuccIndex < limitSuccIndex;
+        nextSuccIndex++) {
+      final index = nextSuccIndex - startSuccIndex;
+      final succId = _graph._succs[nextSuccIndex];
+      final name = _graph._edgeName(cid, index);
+      yield _SnapshotObject._new(succId, _graph, name);
+    }
+  }
 
-  Iterable<SnapshotObject> get predecessors {
-    var result = new List<SnapshotObject>();
+  Iterable<SnapshotObject> get predecessors sync* {
     var firstSuccs = _graph._firstSuccs;
     var succs = _graph._succs;
     var id = _id;
@@ -147,37 +304,65 @@ class _SnapshotObject implements SnapshotObject {
         if (succs[i] == id) {
           var cid = _graph._cids[predId];
           var name = _graph._edgeName(cid, i - base);
-          result.add(new _SnapshotObject._(predId, _graph, name));
+          yield _SnapshotObject._new(predId, _graph, name);
         }
       }
     }
-    return result;
   }
 
   SnapshotObject get parent {
-    if (_id == ROOT) {
+    if (_id == _ROOT) {
       return this;
     }
-    return new _SnapshotObject._(_graph._doms[_id], _graph, "");
+    return _SnapshotObject._new(_graph._doms[_id], _graph, "");
   }
 
-  Iterable<SnapshotObject> get children {
+  Iterable<SnapshotObject> get children sync* {
     var N = _graph._N;
     var doms = _graph._doms;
-
     var parentId = _id;
-    var domChildren = <SnapshotObject>[];
-
-    for (var childId = ROOT; childId <= N; childId++) {
+    for (var childId = _ROOT; childId <= N; childId++) {
       if (doms[childId] == parentId) {
-        domChildren.add(new _SnapshotObject._(childId, _graph, ""));
+        yield _SnapshotObject._new(childId, _graph, "");
       }
     }
-
-    return domChildren;
   }
 
-  List<SnapshotObject> get objects => <SnapshotObject>[this];
+  Iterable<SnapshotObject> get objects sync* {
+    yield this;
+  }
+}
+
+/// A set of sibling objects in the graph's dominator tree that have the same
+/// class.
+abstract class SnapshotMergedDominator {
+  SnapshotClass get klass;
+
+  /// "n instances of Class".
+  String get description;
+
+  /// [internalSize] + [externalSize].
+  int get shallowSize;
+
+  /// The sum of [internalSize] for all objects in this set.
+  int get internalSize;
+
+  /// The sum of [externalSize] for all objects in this set.
+  int get externalSize;
+
+  /// The sum of [externalSize] for all objects in this set.
+  /// This is the amount of memory that would be freed if all references to
+  /// objects in this set were erased.
+  int get retainedSize;
+
+  /// The number of objects in this set. Polymorphic with
+  /// [SnapshotClass.instanceCount].
+  int get instanceCount;
+
+  SnapshotMergedDominator get parent;
+  Iterable<SnapshotMergedDominator> get children;
+
+  Iterable<SnapshotObject> get objects;
 }
 
 // A node in the dominator tree where siblings with the same class are merged.
@@ -186,25 +371,34 @@ class _SnapshotObject implements SnapshotObject {
 // object of this set. The other members of the set are found by walking the
 // mergedDomNext links until finding the sentinel node or a node with a
 // different class.
-class MergedObjectVertex {
+class _SnapshotMergedDominator implements SnapshotMergedDominator {
   final int _id;
   final _SnapshotGraph _graph;
+  final _SnapshotMergedDominator _parent;
 
-  MergedObjectVertex._(this._id, this._graph);
+  _SnapshotMergedDominator._new(this._id, this._graph, this._parent);
 
-  bool get isRoot => ROOT == _id;
+  bool operator ==(Object other) {
+    if (other is _SnapshotMergedDominator) {
+      return _id == other._id && _graph == other._graph;
+    }
+    return false;
+  }
 
-  bool operator ==(other) => _id == other._id && _graph == other._graph;
-  int get hashCode => _id;
+  int get hashCode => _id ^ _graph.hashCode;
+
+  String get description => "$instanceCount instances of ${klass.name}";
 
   SnapshotClass get klass => _graph._classes[_graph._cids[_id]];
 
-  int get shallowSize {
+  int get shallowSize => internalSize + externalSize;
+
+  int get internalSize {
     var cids = _graph._cids;
     var size = 0;
     var sibling = _id;
-    while (sibling != SENTINEL && cids[sibling] == cids[_id]) {
-      size += _graph._shallowSizes[sibling];
+    while (sibling != _SENTINEL && cids[sibling] == cids[_id]) {
+      size += _graph._internalSizes[sibling];
       sibling = _graph._mergedDomNext[sibling];
     }
     return size;
@@ -214,7 +408,7 @@ class MergedObjectVertex {
     var cids = _graph._cids;
     var size = 0;
     var sibling = _id;
-    while (sibling != SENTINEL && cids[sibling] == cids[_id]) {
+    while (sibling != _SENTINEL && cids[sibling] == cids[_id]) {
       size += _graph._externalSizes[sibling];
       sibling = _graph._mergedDomNext[sibling];
     }
@@ -225,7 +419,7 @@ class MergedObjectVertex {
     var cids = _graph._cids;
     var size = 0;
     var sibling = _id;
-    while (sibling != SENTINEL && cids[sibling] == cids[_id]) {
+    while (sibling != _SENTINEL && cids[sibling] == cids[_id]) {
       size += _graph._retainedSizes[sibling];
       sibling = _graph._mergedDomNext[sibling];
     }
@@ -236,140 +430,51 @@ class MergedObjectVertex {
     var cids = _graph._cids;
     var count = 0;
     var sibling = _id;
-    while (sibling != SENTINEL && cids[sibling] == cids[_id]) {
+    while (sibling != _SENTINEL && cids[sibling] == cids[_id]) {
       count++;
       sibling = _graph._mergedDomNext[sibling];
     }
     return count;
   }
 
-  List<SnapshotObject> get objects {
-    var result = <SnapshotObject>[];
+  Iterable<SnapshotObject> get objects sync* {
     var cids = _graph._cids;
     var sibling = _id;
-    while (sibling != SENTINEL && cids[sibling] == cids[_id]) {
-      result.add(new _SnapshotObject._(sibling, _graph, ""));
+    while (sibling != _SENTINEL && cids[sibling] == cids[_id]) {
+      yield _SnapshotObject._new(sibling, _graph, "");
       sibling = _graph._mergedDomNext[sibling];
     }
-    return result;
   }
 
-  List<MergedObjectVertex> dominatorTreeChildren() {
+  SnapshotMergedDominator get parent => _parent ?? this;
+
+  Iterable<SnapshotMergedDominator> get children sync* {
     var next = _graph._mergedDomNext;
     var cids = _graph._cids;
-
-    var domChildren = <MergedObjectVertex>[];
-    var prev = SENTINEL;
+    var prev = _SENTINEL;
     var child = _graph._mergedDomHead[_id];
     // Walk the list of children and look for the representative objects, i.e.
     // the first sibling of each cid.
-    while (child != SENTINEL) {
-      if (prev == SENTINEL || cids[prev] != cids[child]) {
-        domChildren.add(new MergedObjectVertex._(child, _graph));
+    while (child != _SENTINEL) {
+      if (prev == _SENTINEL || cids[prev] != cids[child]) {
+        yield _SnapshotMergedDominator._new(child, _graph, this);
       }
       prev = child;
       child = next[child];
     }
-
-    return domChildren;
   }
 }
 
-class _SuccessorsIterable extends IterableBase<SnapshotObject> {
-  final _SnapshotGraph _graph;
-  final int _id;
-
-  _SuccessorsIterable(this._graph, this._id);
-
-  Iterator<SnapshotObject> get iterator => new _SuccessorsIterator(_graph, _id);
-}
-
-class _SuccessorsIterator implements Iterator<SnapshotObject> {
-  final _SnapshotGraph _graph;
-  int _cid;
-  int _startSuccIndex;
-  int _nextSuccIndex;
-  int _limitSuccIndex;
-
-  SnapshotObject current;
-
-  _SuccessorsIterator(this._graph, int id) {
-    _cid = _graph._cids[id];
-    _startSuccIndex = _graph._firstSuccs[id];
-    _nextSuccIndex = _startSuccIndex;
-    _limitSuccIndex = _graph._firstSuccs[id + 1];
-  }
-
-  bool moveNext() {
-    if (_nextSuccIndex < _limitSuccIndex) {
-      var index = _nextSuccIndex - _startSuccIndex;
-      var succId = _graph._succs[_nextSuccIndex++];
-      var name = _graph._edgeName(_cid, index);
-      current = new _SnapshotObject._(succId, _graph, name);
-      return true;
-    }
-    return false;
-  }
-}
-
-class _VerticesIterable extends IterableBase<SnapshotObject> {
-  final _SnapshotGraph _graph;
-
-  _VerticesIterable(this._graph);
-
-  Iterator<SnapshotObject> get iterator => new _VerticesIterator(_graph);
-}
-
-class _VerticesIterator implements Iterator<SnapshotObject> {
-  final _SnapshotGraph _graph;
-
-  int _nextId = 0;
-  SnapshotObject current;
-
-  _VerticesIterator(this._graph);
-
-  bool moveNext() {
-    if (_nextId == _graph._N) return false;
-    current = new _SnapshotObject._(_nextId++, _graph, "");
-    return true;
-  }
-}
-
-class _InstancesIterable extends IterableBase<SnapshotObject> {
-  final _SnapshotGraph _graph;
-  final int _cid;
-
-  _InstancesIterable(this._graph, this._cid);
-
-  Iterator<SnapshotObject> get iterator => new _InstancesIterator(_graph, _cid);
-}
-
-class _InstancesIterator implements Iterator<SnapshotObject> {
-  final _SnapshotGraph _graph;
-  final int _cid;
-
-  int _nextId = 0;
-  SnapshotObject current;
-
-  _InstancesIterator(this._graph, this._cid);
-
-  bool moveNext() {
-    while (_nextId < _graph._N) {
-      if (_graph._cids[_nextId] == _cid) {
-        current = new _SnapshotObject._(_nextId++, _graph, "");
-        return true;
-      }
-      _nextId++;
-    }
-    return false;
-  }
-}
-
+/// A class in a heap snapshot.
 abstract class SnapshotClass {
   String get name;
-  int get externalSize;
+  String get qualifiedName;
+
   int get shallowSize;
+  int get externalSize;
+  int get internalSize;
   int get ownedSize;
+
   int get instanceCount;
   Iterable<SnapshotObject> get instances;
 }
@@ -378,77 +483,110 @@ class _SnapshotClass implements SnapshotClass {
   final _SnapshotGraph _graph;
   final int _cid;
   final String name;
+  String get qualifiedName => "$libUri $name";
   final String libName;
   final String libUri;
   final Map<int, String> fields = new Map<int, String>();
 
   int totalExternalSize = 0;
-  int totalShallowSize = 0;
+  int totalInternalSize = 0;
   int totalInstanceCount = 0;
 
   int ownedSize = 0;
 
   int liveExternalSize = 0;
-  int liveShallowSize = 0;
+  int liveInternalSize = 0;
   int liveInstanceCount = 0;
 
-  int get shallowSize => liveShallowSize;
+  int get shallowSize => internalSize + externalSize;
+  int get internalSize => liveInternalSize;
   int get externalSize => liveExternalSize;
   int get instanceCount => liveInstanceCount;
 
-  Iterable<SnapshotObject> get instances =>
-      new _InstancesIterable(_graph, _cid);
+  Iterable<SnapshotObject> get instances sync* {
+    final N = _graph._N;
+    for (var id = 1; id <= N; id++) {
+      if (_graph._cids[id] == _cid && _graph._retainedSizes[id] > 0) {
+        yield _SnapshotObject._new(id, _graph, "");
+      }
+    }
+  }
 
-  _SnapshotClass(this._graph, this._cid, this.name, this.libName, this.libUri);
+  _SnapshotClass._new(
+      this._graph, this._cid, this.name, this.libName, this.libUri);
 }
 
+/// The analyzed graph from a heap snapshot.
 abstract class SnapshotGraph {
-  int get shallowSize;
+  String get description;
+
+  int get internalSize;
   int get externalSize;
+  // [internalSize] + [externalSize]
   int get size;
+
+  // The amount of memory reserved for the heap. [internalSize] will always be
+  // less than or equal to [capacity].
   int get capacity;
 
-  SnapshotObject get root;
-  MergedObjectVertex get mergedRoot;
   Iterable<SnapshotClass> get classes;
   Iterable<SnapshotObject> get objects;
 
-  factory SnapshotGraph(Uint8List encoded) => new _SnapshotGraph(encoded);
-  Stream<String> process();
+  SnapshotObject get root;
+  SnapshotMergedDominator get mergedRoot;
+
+  // TODO: Insist that the client remember the chunks if needed? Always keeping
+  // this increasing the peak memory usage during analysis.
+  List<Uint8List> get chunks;
+  Map<String, int> get processPartitions;
 }
 
-const kNoData = 0;
-const kNullData = 1;
-const kBoolData = 2;
-const kIntData = 3;
-const kDoubleData = 4;
-const kLatin1Data = 5;
-const kUtf16Data = 6;
-const kLengthData = 7;
-const kNameData = 8;
+const _tagNone = 0;
+const _tagNull = 1;
+const _tagBool = 2;
+const _tagInt = 3;
+const _tagDouble = 4;
+const _tagLatin1 = 5;
+const _tagUtf16 = 6;
+const _tagLength = 7;
+const _tagName = 8;
 
-const kSentinelName = "<omitted-object>";
-const kRootName = "Root";
-const kUnknownFieldName = "<unknown>";
+const _kSentinelName = "<omitted-object>";
+const _kRootName = "Root";
+const _kUnknownFieldName = "<unknown>";
 
 class _SnapshotGraph implements SnapshotGraph {
-  _SnapshotGraph(Uint8List encoded) : this._encoded = encoded;
+  List<Uint8List> _chunks;
+  List<Uint8List> get chunks => _chunks;
 
-  int get size => _liveShallowSize + _liveExternalSize;
-  int get shallowSize => _liveShallowSize;
+  _SnapshotGraph._new();
+
+  String get description => _description;
+
+  int get size => _liveInternalSize + _liveExternalSize;
+  int get internalSize => _liveInternalSize;
   int get externalSize => _liveExternalSize;
   int get capacity => _capacity;
 
-  SnapshotObject get root => new _SnapshotObject._(ROOT, this, "Root");
-  MergedObjectVertex get mergedRoot => new MergedObjectVertex._(ROOT, this);
-  Iterable<SnapshotObject> get objects => new _VerticesIterable(this);
+  SnapshotObject get root => _SnapshotObject._new(_ROOT, this, "Root");
+  SnapshotMergedDominator get mergedRoot =>
+      _SnapshotMergedDominator._new(_ROOT, this, null);
+
+  Iterable<SnapshotObject> get objects sync* {
+    final N = _N;
+    for (var id = 1; id <= N; id++) {
+      if (_retainedSizes[id] > 0) {
+        yield _SnapshotObject._new(id, this, "");
+      }
+    }
+  }
 
   String _describeObject(int oid) {
-    if (oid == SENTINEL) {
-      return kSentinelName;
+    if (oid == _SENTINEL) {
+      return _kSentinelName;
     }
-    if (oid == ROOT) {
-      return kRootName;
+    if (oid == _ROOT) {
+      return _kRootName;
     }
     var cls = _className(oid);
     var data = _nonReferenceData[oid];
@@ -471,85 +609,95 @@ class _SnapshotGraph implements SnapshotGraph {
   String _edgeName(int cid, int index) {
     var c = _classes[cid];
     if (c == null) {
-      return kUnknownFieldName;
+      return _kUnknownFieldName;
     }
     var n = c.fields[index];
     if (n == null) {
-      return kUnknownFieldName;
+      return _kUnknownFieldName;
     }
     return n;
   }
 
-  List<SnapshotClass> get classes {
-    var result = new List<SnapshotClass>();
-    for (var c in _classes) {
+  Iterable<SnapshotClass> get classes sync* {
+    for (final c in _classes) {
+      // Not all CIDs are occupied.
       if (c != null) {
-        result.add(c);
+        yield c;
       }
     }
-    return result;
   }
 
-  Stream<String> process() {
-    final controller = new StreamController<String>.broadcast();
-    (() async {
-      // We build futures here instead of marking the steps as async to avoid the
-      // heavy lifting being inside a transformed method.
-      var stream = new _ReadStream(_encoded);
-      _encoded = null;
+  final processPartitions = new Map<String, int>();
 
-      controller.add("Loading classes...");
-      await new Future(() => _readClasses(stream));
+  Future<SnapshotGraph> _load(
+      List<Uint8List> chunks, StreamController<String> onProgress) async {
+    _chunks = chunks;
+    var stream = _ReadStream._new(chunks);
+    chunks = null;
 
-      controller.add("Loading objects...");
-      await new Future(() => _readObjects(stream));
+    // The phases of loading are placed in explicit `new Future(compuation)` so
+    // they will be deferred to the message loop. Ordinary async-await will only
+    // defer to the microtask loop.
 
-      controller.add("Loading external properties...");
-      await new Future(() => _readExternalProperties(stream));
-      stream = null;
+    onProgress.add("Loading classes...");
+    await new Future(() => _readClasses(stream));
 
-      controller.add("Compute class table...");
-      await new Future(() => _computeClassTable());
+    onProgress.add("Loading objects...");
+    await new Future(() => _readObjects(stream));
 
-      controller.add("Finding depth-first order...");
-      await new Future(() => _dfs());
+    onProgress.add("Loading external properties...");
+    await new Future(() => _readExternalProperties(stream));
 
-      controller.add("Finding predecessors...");
-      await new Future(() => _buildPredecessors());
+    onProgress.add("Loading process partitions...");
+    await new Future(() => _readProcessPartitions(stream));
+    stream = null;
 
-      controller.add("Finding dominators...");
-      await new Future(() => _buildDominators());
+    onProgress.add("Compute class table...");
+    await new Future(() => _computeClassTable());
 
-      _semi = null;
-      _parent = null;
+    onProgress.add("Finding depth-first order...");
+    await new Future(() => _dfs());
 
-      controller.add("Finding in-degree(1) groups...");
-      await new Future(() => _buildOwnedSizes());
+    onProgress.add("Finding predecessors...");
+    await new Future(() => _buildPredecessors());
 
-      _firstPreds = null;
-      _preds = null;
+    onProgress.add("Finding dominators...");
+    await new Future(() => _buildDominators());
 
-      controller.add("Finding retained sizes...");
-      await new Future(() => _calculateRetainedSizes());
+    _semi = null;
+    _parent = null;
 
-      _vertex = null;
+    onProgress.add("Finding in-degree(1) groups...");
+    await new Future(() => _buildOwnedSizes());
 
-      controller.add("Linking dominator tree children...");
-      await new Future(() => _linkDominatorChildren());
+    _firstPreds = null;
+    _preds = null;
 
-      controller.add("Sorting dominator tree children...");
-      await new Future(() => _sortDominatorChildren());
+    onProgress.add("Finding retained sizes...");
+    await new Future(() => _calculateRetainedSizes());
 
-      controller.add("Merging dominator tree siblings...");
-      await new Future(() => _mergeDominatorSiblings());
+    _vertex = null;
 
-      controller.add("Loaded");
-      controller.close();
-    }());
-    return controller.stream;
+    onProgress.add("Linking dominator tree children...");
+    await new Future(() => _linkDominatorChildren());
+
+    onProgress.add("Sorting dominator tree children...");
+    await new Future(() => _sortDominatorChildren());
+
+    onProgress.add("Merging dominator tree siblings...");
+    await new Future(() => _mergeDominatorSiblings());
+
+    onProgress.add("Loaded");
+    // We await here so SnapshotReader clients see all progress events before
+    // seeing the done future as completed.
+    await onProgress.close();
+
+    return this;
   }
 
   Uint8List _encoded;
+
+  String _description;
 
   int _kStackCid;
   int _kFieldCid;
@@ -559,9 +707,9 @@ class _SnapshotGraph implements SnapshotGraph {
   int _E; // References in the snapshot.
 
   int _capacity;
-  int _liveShallowSize;
+  int _liveInternalSize;
   int _liveExternalSize;
-  int _totalShallowSize;
+  int _totalInternalSize;
   int _totalExternalSize;
 
   List<_SnapshotClass> _classes;
@@ -570,7 +718,7 @@ class _SnapshotGraph implements SnapshotGraph {
   // From snapshot.
   List _nonReferenceData;
   Uint16List _cids;
-  Uint32List _shallowSizes;
+  Uint32List _internalSizes;
   Uint32List _externalSizes;
   Uint32List _firstSuccs;
   Uint32List _succs;
@@ -593,15 +741,15 @@ class _SnapshotGraph implements SnapshotGraph {
       stream.readByte(); // Magic value.
     }
     stream.readUnsigned(); // Flags
-    stream.readUtf8(); // Name
+    _description = stream.readUtf8();
 
-    _totalShallowSize = stream.readUnsigned();
+    _totalInternalSize = stream.readUnsigned();
     _capacity = stream.readUnsigned();
     _totalExternalSize = stream.readUnsigned();
 
     var K = stream.readUnsigned();
-    var classes = new List<_SnapshotClass>(K + 1);
-    classes[0] = new _SnapshotClass(this, 0, "Root", "", "");
+    var classes = new List<_SnapshotClass>.filled(K + 1, null);
+    classes[0] = _SnapshotClass._new(this, 0, "Root", "", "");
 
     for (var cid = 1; cid <= K; cid++) {
       int flags = stream.readUnsigned();
@@ -609,7 +757,7 @@ class _SnapshotGraph implements SnapshotGraph {
       String libName = stream.readUtf8();
       String libUri = stream.readUtf8();
       String reserved = stream.readUtf8();
-      final cls = new _SnapshotClass(this, cid, name, libName, libUri);
+      final cls = _SnapshotClass._new(this, cid, name, libName, libUri);
       int edgeCount = stream.readUnsigned();
       for (int i = 0; i < edgeCount; i++) {
         int flags = stream.readUnsigned();
@@ -626,42 +774,51 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   void _readObjects(_ReadStream stream) {
-    var E = stream.readUnsigned();
-    var N = stream.readUnsigned();
+    final E = stream.readUnsigned();
+    final N = stream.readUnsigned();
+
+    // The negative check accounts for int64 overflow in readUnsigned.
+    const maxUint32 = 0xFFFFFFFF;
+    if (N < 0 || N + 2 >= maxUint32) {
+      throw new Exception("Snapshot contains too many objects: $N");
+    }
+    if (E < 0 || E + 2 >= maxUint32) {
+      throw new Exception("Snapshot contains too many references: $E");
+    }
 
     _N = N;
     _E = E;
 
-    var shallowSizes = new Uint32List(N + 1);
-    var cids = new Uint16List(N + 1);
+    var internalSizes = _newUint32Array(N + 1);
+    var cids = _newUint16Array(N + 1);
     var nonReferenceData = new List(N + 1);
-    var firstSuccs = new Uint32List(N + 2);
-    var succs = new Uint32List(E);
+    var firstSuccs = _newUint32Array(N + 2);
+    var succs = _newUint32Array(E);
     var eid = 0;
     for (var oid = 1; oid <= N; oid++) {
       var cid = stream.readUnsigned();
       cids[oid] = cid;
 
-      var shallowSize = stream.readUnsigned();
-      shallowSizes[oid] = shallowSize;
+      var internalSize = stream.readUnsigned();
+      internalSizes[oid] = internalSize;
 
       var nonReferenceDataTag = stream.readUnsigned();
       switch (nonReferenceDataTag) {
-        case kNoData:
+        case _tagNone:
           break;
-        case kNullData:
+        case _tagNull:
           nonReferenceData[oid] = "null";
           break;
-        case kBoolData:
+        case _tagBool:
           nonReferenceData[oid] = stream.readByte() != 0;
           break;
-        case kIntData:
+        case _tagInt:
           nonReferenceData[oid] = stream.readSigned();
           break;
-        case kDoubleData:
+        case _tagDouble:
           nonReferenceData[oid] = stream.readFloat64();
           break;
-        case kLatin1Data:
+        case _tagLatin1:
           var len = stream.readUnsigned();
           var str = stream.readLatin1();
           if (str.length < len) {
@@ -670,7 +827,7 @@ class _SnapshotGraph implements SnapshotGraph {
             nonReferenceData[oid] = str;
           }
           break;
-        case kUtf16Data:
+        case _tagUtf16:
           int len = stream.readUnsigned();
           var str = stream.readUtf16();
           if (str.length < len) {
@@ -679,10 +836,10 @@ class _SnapshotGraph implements SnapshotGraph {
             nonReferenceData[oid] = str;
           }
           break;
-        case kLengthData:
+        case _tagLength:
           nonReferenceData[oid] = stream.readUnsigned(); // Length
           break;
-        case kNameData:
+        case _tagName:
           nonReferenceData[oid] = stream.readUtf8(); // Name
           break;
         default:
@@ -702,7 +859,7 @@ class _SnapshotGraph implements SnapshotGraph {
 
     assert(eid <= E);
     _E = eid;
-    _shallowSizes = shallowSizes;
+    _internalSizes = internalSizes;
     _cids = cids;
     _nonReferenceData = nonReferenceData;
     _firstSuccs = firstSuccs;
@@ -710,64 +867,75 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   void _readExternalProperties(_ReadStream stream) {
-    var N = _N;
-    var externalPropertyCount = stream.readUnsigned();
+    final N = _N;
+    final externalPropertyCount = stream.readUnsigned();
 
-    var externalSizes = new Uint32List(N + 1);
+    final externalSizes = _newUint32Array(N + 1);
     for (var i = 0; i < externalPropertyCount; i++) {
-      var oid = stream.readUnsigned();
-      var externalSize = stream.readUnsigned();
-      var name = stream.readUtf8();
+      final oid = stream.readUnsigned();
+      final externalSize = stream.readUnsigned();
+      final name = stream.readUtf8();
       externalSizes[oid] += externalSize;
     }
 
     _externalSizes = externalSizes;
   }
 
+  void _readProcessPartitions(_ReadStream stream) {
+    // So it isn't null when loading older saved snapshots.
+    processPartitions["RSS"] = 0;
+
+    while (!stream.atEnd()) {
+      final name = stream.readUtf8();
+      final size = stream.readUnsigned();
+      processPartitions[name] = size;
+    }
+  }
+
   void _computeClassTable() {
-    var N = _N;
-    var classes = _classes;
-    var cids = _cids;
-    var shallowSizes = _shallowSizes;
-    var externalSizes = _externalSizes;
-    var totalShallowSize = 0;
+    final N = _N;
+    final classes = _classes;
+    final cids = _cids;
+    final internalSizes = _internalSizes;
+    final externalSizes = _externalSizes;
+    var totalInternalSize = 0;
     var totalExternalSize = 0;
 
     for (var oid = 1; oid <= N; oid++) {
-      var shallowSize = shallowSizes[oid];
-      totalShallowSize += shallowSize;
+      var internalSize = internalSizes[oid];
+      totalInternalSize += internalSize;
 
       var externalSize = externalSizes[oid];
       totalExternalSize += externalSize;
 
       var cls = classes[cids[oid]];
-      cls.totalShallowSize += shallowSize;
+      cls.totalInternalSize += internalSize;
       cls.totalExternalSize += externalSize;
       cls.totalInstanceCount++;
     }
 
-    _totalShallowSize = totalShallowSize;
+    _totalInternalSize = totalInternalSize;
     _totalExternalSize = totalExternalSize;
   }
 
   void _dfs() {
-    var N = _N;
-    var firstSuccs = _firstSuccs;
-    var succs = _succs;
+    final N = _N;
+    final firstSuccs = _firstSuccs;
+    final succs = _succs;
 
-    var stackNodes = new Uint32List(N);
-    var stackCurrentEdgePos = new Uint32List(N);
+    final stackNodes = _newUint32Array(N);
+    final stackCurrentEdgePos = _newUint32Array(N);
 
-    var vertex = new Uint32List(N + 1);
-    var semi = new Uint32List(N + 1);
-    var parent = new Uint32List(N + 1);
+    final vertex = _newUint32Array(N + 1);
+    final semi = _newUint32Array(N + 1);
+    final parent = _newUint32Array(N + 1);
     var dfsNumber = 0;
 
     var stackTop = 0;
 
     // Push root.
-    stackNodes[0] = ROOT;
-    stackCurrentEdgePos[0] = firstSuccs[ROOT];
+    stackNodes[0] = _ROOT;
+    stackCurrentEdgePos[0] = firstSuccs[_ROOT];
 
     while (stackTop >= 0) {
       var v = stackNodes[stackTop];
@@ -785,7 +953,7 @@ class _SnapshotGraph implements SnapshotGraph {
         edgePos++;
         stackCurrentEdgePos[stackTop] = edgePos;
 
-        if (childId == SENTINEL) {
+        if (childId == _SENTINEL) {
           // Omitted target.
         } else if (semi[childId] == 0) {
           parent[childId] = v;
@@ -803,33 +971,32 @@ class _SnapshotGraph implements SnapshotGraph {
 
     if (dfsNumber != N) {
       // This may happen in filtered snapshots.
-      Logger.root.warning(
-          'Heap snapshot contains ${N - dfsNumber} unreachable nodes.');
+      print('Heap snapshot contains ${N - dfsNumber} unreachable nodes.');
     }
 
     assert(() {
       for (var i = 1; i <= dfsNumber; i++) {
         var v = vertex[i];
-        assert(semi[v] != SENTINEL);
+        assert(semi[v] != _SENTINEL);
       }
-      assert(parent[1] == SENTINEL);
+      assert(parent[1] == _SENTINEL);
       for (var i = 2; i <= dfsNumber; i++) {
         var v = vertex[i];
-        assert(parent[v] != SENTINEL);
+        assert(parent[v] != _SENTINEL);
       }
       return true;
     }());
 
     if (dfsNumber != N) {
       // Remove successors of unconnected nodes
-      for (var i = ROOT + 1; i <= N; i++) {
-        if (parent[i] == SENTINEL) {
+      for (var i = _ROOT + 1; i <= N; i++) {
+        if (parent[i] == _SENTINEL) {
           var startSuccIndex = firstSuccs[i];
           var limitSuccIndex = firstSuccs[i + 1];
           for (var succIndex = startSuccIndex;
               succIndex < limitSuccIndex;
               succIndex++) {
-            succs[succIndex] = SENTINEL;
+            succs[succIndex] = _SENTINEL;
           }
         }
       }
@@ -842,31 +1009,31 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   void _buildPredecessors() {
-    var N = _N;
-    var Nconnected = _Nconnected;
-    var E = _E;
-    var firstSuccs = _firstSuccs;
-    var succs = _succs;
+    final N = _N;
+    final Nconnected = _Nconnected;
+    final E = _E;
+    final firstSuccs = _firstSuccs;
+    final succs = _succs;
 
     // This is first filled with the predecessor counts, then reused to hold the
     // offset to the first predecessor (see alias below).
     // + 1 because 0 is a sentinel
     // + 1 so the number of predecessors can be found from the difference with
     // the next node's offset.
-    var numPreds = new Uint32List(N + 2);
-    var preds = new Uint32List(E);
+    final numPreds = _newUint32Array(N + 2);
+    final preds = _newUint32Array(E);
 
     // Count predecessors of each node.
     for (var succIndex = 0; succIndex < E; succIndex++) {
-      var succId = succs[succIndex];
-      if (succId != SENTINEL) {
+      final succId = succs[succIndex];
+      if (succId != _SENTINEL) {
         numPreds[succId]++;
       }
     }
 
     // Assign indices into predecessors array.
-    var firstPreds = numPreds; // Alias.
-    var nextPreds = new Uint32List(N + 1);
+    final firstPreds = numPreds; // Alias.
+    final nextPreds = _newUint32Array(N + 1);
     var predIndex = 0;
     for (var i = 1; i <= N; i++) {
       var thisPredIndex = predIndex;
@@ -887,7 +1054,7 @@ class _SnapshotGraph implements SnapshotGraph {
           succIndex < limitSuccIndex;
           succIndex++) {
         var succId = succs[succIndex];
-        if (succId != SENTINEL) {
+        if (succId != _SENTINEL) {
           var predIndex = nextPreds[succId]++;
           preds[predIndex] = i;
         }
@@ -901,29 +1068,29 @@ class _SnapshotGraph implements SnapshotGraph {
   // Fold the size of any object with in-degree(1) into its parent.
   // Requires the DFS numbering and predecessor lists.
   void _buildOwnedSizes() {
-    var N = _N;
-    var Nconnected = _Nconnected;
-    var kStackCid = _kStackCid;
-    var kFieldCid = _kFieldCid;
+    final N = _N;
+    final Nconnected = _Nconnected;
+    final kStackCid = _kStackCid;
+    final kFieldCid = _kFieldCid;
 
-    var cids = _cids;
-    var shallowSizes = _shallowSizes;
-    var externalSizes = _externalSizes;
-    var vertex = _vertex;
-    var firstPreds = _firstPreds;
-    var preds = _preds;
+    final cids = _cids;
+    final internalSizes = _internalSizes;
+    final externalSizes = _externalSizes;
+    final vertex = _vertex;
+    final firstPreds = _firstPreds;
+    final preds = _preds;
 
-    var ownedSizes = new Uint32List(N + 1);
+    final ownedSizes = _newUint32Array(N + 1);
     for (var i = 1; i <= Nconnected; i++) {
-      var v = vertex[i];
-      ownedSizes[v] = shallowSizes[v] + externalSizes[v];
+      final v = vertex[i];
+      ownedSizes[v] = internalSizes[v] + externalSizes[v];
     }
 
     for (var i = Nconnected; i > 1; i--) {
       var w = vertex[i];
-      assert(w != ROOT);
+      assert(w != _ROOT);
 
-      var onlyPred = SENTINEL;
+      var onlyPred = _SENTINEL;
 
       var startPred = firstPreds[w];
       var limitPred = firstPreds[w + 1];
@@ -931,21 +1098,21 @@ class _SnapshotGraph implements SnapshotGraph {
         var v = preds[predIndex];
         if (v == w) {
           // Ignore self-predecessor.
-        } else if (onlyPred == SENTINEL) {
+        } else if (onlyPred == _SENTINEL) {
           onlyPred = v;
         } else if (onlyPred == v) {
           // Repeated predecessor.
         } else {
           // Multiple-predecessors.
-          onlyPred = SENTINEL;
+          onlyPred = _SENTINEL;
           break;
         }
       }
 
       // If this object has a single precessor which is not a Field, Stack or
       // the root, blame its size against the precessor.
-      if ((onlyPred != SENTINEL) &&
-          (onlyPred != ROOT) &&
+      if ((onlyPred != _SENTINEL) &&
+          (onlyPred != _ROOT) &&
           (cids[onlyPred] != kStackCid) &&
           (cids[onlyPred] != kFieldCid)) {
         assert(onlyPred != w);
@@ -956,18 +1123,18 @@ class _SnapshotGraph implements SnapshotGraph {
 
     // TODO(rmacnak): Maybe keep the per-objects sizes to be able to provide
     // examples of large owners for each class.
-    var classes = _classes;
+    final classes = _classes;
     for (var i = 1; i <= Nconnected; i++) {
-      var v = vertex[i];
-      var cid = cids[v];
-      var cls = classes[cid];
+      final v = vertex[i];
+      final cid = cids[v];
+      final cls = classes[cid];
       cls.ownedSize += ownedSizes[v];
     }
   }
 
   static int _eval(int v, Uint32List ancestor, Uint32List semi,
       Uint32List label, Uint32List stackNode, Uint8List stackState) {
-    if (ancestor[v] == SENTINEL) {
+    if (ancestor[v] == _SENTINEL) {
       return label[v];
     } else {
       {
@@ -1042,34 +1209,34 @@ class _SnapshotGraph implements SnapshotGraph {
   // T. Lengauer and R. E. Tarjan. "A Fast Algorithm for Finding Dominators
   // in a Flowgraph."
   void _buildDominators() {
-    var N = _N;
-    var Nconnected = _Nconnected;
+    final N = _N;
+    final Nconnected = _Nconnected;
 
-    var vertex = _vertex;
-    var semi = _semi;
-    var parent = _parent;
-    var firstPreds = _firstPreds;
-    var preds = _preds;
+    final vertex = _vertex;
+    final semi = _semi;
+    final parent = _parent;
+    final firstPreds = _firstPreds;
+    final preds = _preds;
 
-    var dom = new Uint32List(N + 1);
+    final dom = _newUint32Array(N + 1);
 
-    var ancestor = new Uint32List(N + 1);
-    var label = new Uint32List(N + 1);
+    final ancestor = _newUint32Array(N + 1);
+    final label = _newUint32Array(N + 1);
     for (var i = 1; i <= N; i++) {
       label[i] = i;
     }
-    var buckets = new List(N + 1);
-    var child = new Uint32List(N + 1);
-    var size = new Uint32List(N + 1);
+    final buckets = new List(N + 1);
+    final child = _newUint32Array(N + 1);
+    final size = _newUint32Array(N + 1);
     for (var i = 1; i <= N; i++) {
       size[i] = 1;
     }
-    var stackNode = new Uint32List(N + 1);
-    var stackState = new Uint8List(N + 1);
+    final stackNode = _newUint32Array(N + 1);
+    final stackState = _newUint8Array(N + 1);
 
     for (var i = Nconnected; i > 1; i--) {
       var w = vertex[i];
-      assert(w != ROOT);
+      assert(w != _ROOT);
 
       // Lengauer & Tarjan Step 2.
       var startPred = firstPreds[w];
@@ -1102,7 +1269,7 @@ class _SnapshotGraph implements SnapshotGraph {
         }
       }
     }
-    for (var i = ROOT; i <= N; i++) {
+    for (var i = _ROOT; i <= N; i++) {
       assert(buckets[i] == null);
     }
     // Lengauer & Tarjan Step 4.
@@ -1117,70 +1284,73 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   void _calculateRetainedSizes() {
-    var N = _N;
-    var Nconnected = _Nconnected;
+    final N = _N;
+    final Nconnected = _Nconnected;
 
-    var liveShallowSize = 0;
+    var liveInternalSize = 0;
     var liveExternalSize = 0;
-    var classes = _classes;
-    var cids = _cids;
-    var shallowSizes = _shallowSizes;
-    var externalSizes = _externalSizes;
-    var vertex = _vertex;
-    var doms = _doms;
+    final classes = _classes;
+    final cids = _cids;
+    final internalSizes = _internalSizes;
+    final externalSizes = _externalSizes;
+    final vertex = _vertex;
+    final doms = _doms;
 
     // Sum internal and external sizes.
     for (var i = 1; i <= Nconnected; i++) {
       var v = vertex[i];
-      var shallowSize = shallowSizes[v];
+      var internalSize = internalSizes[v];
       var externalSize = externalSizes[v];
-      liveShallowSize += shallowSize;
+      liveInternalSize += internalSize;
       liveExternalSize += externalSize;
 
       var cls = classes[cids[v]];
-      cls.liveShallowSize += shallowSize;
+      cls.liveInternalSize += internalSize;
       cls.liveExternalSize += externalSize;
       cls.liveInstanceCount++;
     }
 
-    // Start with retained size as shallow size + external size.
+    // Start with retained size as shallow size + external size. For reachable
+    // objects only; leave unreachable objects with a retained size of 0 so
+    // they can be filtered during graph iterations.
     var retainedSizes = new Uint32List(N + 1);
-    for (var i = 0; i < N + 1; i++) {
-      retainedSizes[i] = shallowSizes[i] + externalSizes[i];
+    assert(Nconnected <= N);
+    for (var i = 0; i <= Nconnected; i++) {
+      var v = vertex[i];
+      retainedSizes[v] = internalSizes[v] + externalSizes[v];
     }
 
     // In post order (bottom up), add retained size to dominator's retained
     // size, skipping root.
     for (var i = Nconnected; i > 1; i--) {
       var v = vertex[i];
-      assert(v != ROOT);
+      assert(v != _ROOT);
       retainedSizes[doms[v]] += retainedSizes[v];
     }
 
     // Root retains everything.
-    assert(retainedSizes[ROOT] == (liveShallowSize + liveExternalSize));
+    assert(retainedSizes[_ROOT] == (liveInternalSize + liveExternalSize));
 
     _retainedSizes = retainedSizes;
-    _liveShallowSize = liveShallowSize;
+    _liveInternalSize = liveInternalSize;
     _liveExternalSize = liveExternalSize;
 
-    Logger.root
-        .info("internal-garbage: ${_totalShallowSize - _liveShallowSize}");
-    Logger.root
-        .info("external-garbage: ${_totalExternalSize - _liveExternalSize}");
-    Logger.root.info("fragmentation: ${_capacity - _totalShallowSize}");
-    assert(_liveShallowSize <= _totalShallowSize);
-    assert(_totalShallowSize <= _capacity);
+    print("internal-garbage: ${_totalInternalSize - _liveInternalSize}");
+    print("external-garbage: ${_totalExternalSize - _liveExternalSize}");
+    print("fragmentation: ${_capacity - _totalInternalSize}");
+    assert(_liveInternalSize <= _totalInternalSize);
+    assert(_liveExternalSize <= _totalExternalSize);
+    assert(_totalInternalSize <= _capacity);
   }
 
   // Build linked lists of the children for each node in the dominator tree.
   void _linkDominatorChildren() {
-    var N = _N;
-    var doms = _doms;
-    var head = new Uint32List(N + 1);
-    var next = new Uint32List(N + 1);
+    final N = _N;
+    final doms = _doms;
+    final head = _newUint32Array(N + 1);
+    final next = _newUint32Array(N + 1);
 
-    for (var child = ROOT; child <= N; child++) {
+    for (var child = _ROOT; child <= N; child++) {
       var parent = doms[child];
       next[child] = head[parent];
       head[parent] = child;
@@ -1195,13 +1365,13 @@ class _SnapshotGraph implements SnapshotGraph {
   static int _mergeSorted(
       int head1, int head2, Uint32List next, Uint16List key) {
     var head = head1;
-    var beforeInsert = SENTINEL;
+    var beforeInsert = _SENTINEL;
     var afterInsert = head1;
     var startInsert = head2;
 
-    while (startInsert != SENTINEL) {
-      while (
-          (afterInsert != SENTINEL) && (key[afterInsert] <= key[startInsert])) {
+    while (startInsert != _SENTINEL) {
+      while ((afterInsert != _SENTINEL) &&
+          (key[afterInsert] <= key[startInsert])) {
         beforeInsert = afterInsert;
         afterInsert = next[beforeInsert];
       }
@@ -1209,13 +1379,13 @@ class _SnapshotGraph implements SnapshotGraph {
       var endInsert = startInsert;
       var peek = next[endInsert];
 
-      while ((peek != SENTINEL) && (key[peek] < key[afterInsert])) {
+      while ((peek != _SENTINEL) && (key[peek] < key[afterInsert])) {
         endInsert = peek;
         peek = next[endInsert];
       }
-      assert(endInsert != SENTINEL);
+      assert(endInsert != _SENTINEL);
 
-      if (beforeInsert == SENTINEL) {
+      if (beforeInsert == _SENTINEL) {
         head = startInsert;
       } else {
         next[beforeInsert] = startInsert;
@@ -1230,28 +1400,28 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   void _sortDominatorChildren() {
-    var N = _N;
-    var cids = _cids;
-    var head = _mergedDomHead;
-    var next = _mergedDomNext;
+    final N = _N;
+    final cids = _cids;
+    final head = _mergedDomHead;
+    final next = _mergedDomNext;
 
     // Returns the new head of the sorted list.
     int sort(int head) {
-      if (head == SENTINEL) return SENTINEL;
-      if (next[head] == SENTINEL) return head;
+      if (head == _SENTINEL) return _SENTINEL;
+      if (next[head] == _SENTINEL) return head;
 
       // Find the middle of the list.
       int head1 = head;
       int slow = head;
       int fast = head;
-      while (next[fast] != SENTINEL && next[next[fast]] != SENTINEL) {
+      while (next[fast] != _SENTINEL && next[next[fast]] != _SENTINEL) {
         slow = next[slow];
         fast = next[next[fast]];
       }
 
       // Split the list in half.
       int head2 = next[slow];
-      next[slow] = SENTINEL;
+      next[slow] = _SENTINEL;
 
       // Recursively sort the sublists and merge.
       assert(head1 != head2);
@@ -1261,7 +1431,7 @@ class _SnapshotGraph implements SnapshotGraph {
     }
 
     // Sort all list of dominator tree children by cid.
-    for (var parent = ROOT; parent <= N; parent++) {
+    for (var parent = _ROOT; parent <= N; parent++) {
       head[parent] = sort(head[parent]);
     }
   }
@@ -1271,11 +1441,11 @@ class _SnapshotGraph implements SnapshotGraph {
     var cids = _cids;
     var head = _mergedDomHead;
     var next = _mergedDomNext;
-    var workStack = new Uint32List(N);
+    var workStack = _newUint32Array(N);
     var workStackTop = 0;
 
     mergeChildrenAndSort(var parent1, var end) {
-      assert(parent1 != SENTINEL);
+      assert(parent1 != _SENTINEL);
       if (next[parent1] == end) return;
 
       // Find the middle of the list.
@@ -1288,7 +1458,7 @@ class _SnapshotGraph implements SnapshotGraph {
 
       int parent2 = next[slow];
 
-      assert(parent2 != SENTINEL);
+      assert(parent2 != _SENTINEL);
       assert(parent1 != parent2);
       assert(cids[parent1] == cids[parent2]);
 
@@ -1300,23 +1470,23 @@ class _SnapshotGraph implements SnapshotGraph {
       head[parent1] = _mergeSorted(head[parent1], head[parent2], next, cids);
 
       // Children moved to parent1.
-      head[parent2] = SENTINEL;
+      head[parent2] = _SENTINEL;
     }
 
     // Push root.
-    workStack[workStackTop++] = ROOT;
+    workStack[workStackTop++] = _ROOT;
 
     while (workStackTop > 0) {
       var parent = workStack[--workStackTop];
 
       var child = head[parent];
-      while (child != SENTINEL) {
+      while (child != _SENTINEL) {
         // Push child.
         workStack[workStackTop++] = child;
 
         // Find next sibling with a different cid.
         var after = child;
-        while (after != SENTINEL && cids[after] == cids[child]) {
+        while (after != _SENTINEL && cids[after] == cids[child]) {
           after = next[after];
         }
 

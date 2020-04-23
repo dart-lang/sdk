@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
@@ -26,6 +27,10 @@ class FlowAnalysisDataForTesting {
   /// The list of [Expression]s representing variable accesses that occur before
   /// the corresponding variable has been definitely assigned.
   final List<AstNode> unassignedNodes = [];
+
+  /// The list of [SimpleIdentifier]s representing variable accesses that occur
+  /// when the corresponding variable has been definitely unassigned.
+  final List<AstNode> definitelyUnassignedNodes = [];
 
   /// For each top level or class level declaration, the assigned variables
   /// information that was computed for it.
@@ -53,10 +58,9 @@ class FlowAnalysisHelper {
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       flow;
 
-  factory FlowAnalysisHelper(TypeSystem typeSystem, bool retainDataForTesting) {
-    return FlowAnalysisHelper._(TypeSystemTypeOperations(typeSystem),
-        retainDataForTesting ? FlowAnalysisDataForTesting() : null);
-  }
+  FlowAnalysisHelper(TypeSystem typeSystem, bool retainDataForTesting)
+      : this._(TypeSystemTypeOperations(typeSystem),
+            retainDataForTesting ? FlowAnalysisDataForTesting() : null);
 
   FlowAnalysisHelper._(this._typeOperations, this.dataForTesting);
 
@@ -125,14 +129,14 @@ class FlowAnalysisHelper {
   }
 
   void executableDeclaration_enter(
-      Declaration node, FormalParameterList parameters, bool isClosure) {
+      AstNode node, FormalParameterList parameters, bool isClosure) {
     if (isClosure) {
       flow.functionExpression_begin(node);
     }
 
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        flow.initialize(parameter.declaredElement);
+        flow.declare(parameter.declaredElement, true);
       }
     }
   }
@@ -150,7 +154,7 @@ class FlowAnalysisHelper {
     flow.for_bodyBegin(node is Statement ? node : null, condition);
   }
 
-  void for_conditionBegin(AstNode node, Expression condition) {
+  void for_conditionBegin(AstNode node) {
     flow.for_conditionBegin(node);
   }
 
@@ -182,6 +186,7 @@ class FlowAnalysisHelper {
         if (isUnassigned) {
           dataForTesting?.unassignedNodes?.add(node);
         }
+
         // Note: in principle we could make this slightly more performant by
         // checking element.isLate earlier, but we would lose the ability to
         // test the flow analysis mechanism using late variables.  And it seems
@@ -189,6 +194,25 @@ class FlowAnalysisHelper {
         // make a significant difference.
         if (element.isLate) return false;
         return isUnassigned;
+      }
+    }
+
+    return false;
+  }
+
+  bool isReadOfDefinitelyUnassignedLateLocal(SimpleIdentifier node) {
+    if (flow == null) return false;
+
+    if (node.inDeclarationContext()) return false;
+    if (!node.inGetterContext()) return false;
+
+    var element = node.staticElement;
+    if (element is LocalVariableElement) {
+      if (flow.isUnassigned(element)) {
+        dataForTesting?.definitelyUnassignedNodes?.add(node);
+        if (element.isLate) {
+          return true;
+        }
       }
     }
 
@@ -224,9 +248,7 @@ class FlowAnalysisHelper {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        if (variable.initializer != null) {
-          flow.initialize(variable.declaredElement);
-        }
+        flow.declare(variable.declaredElement, variable.initializer != null);
       }
     }
   }
@@ -281,6 +303,29 @@ class FlowAnalysisHelper {
   }
 }
 
+/// Override of [FlowAnalysisHelper] that invokes methods of
+/// [MigrationResolutionHooks] when appropriate.
+class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
+  final MigrationResolutionHooks migrationResolutionHooks;
+
+  FlowAnalysisHelperForMigration(
+      TypeSystem typeSystem, this.migrationResolutionHooks)
+      : super(typeSystem, false);
+
+  @override
+  void topLevelDeclaration_enter(
+      Declaration node, FormalParameterList parameters, FunctionBody body) {
+    super.topLevelDeclaration_enter(node, parameters, body);
+    migrationResolutionHooks.setFlowAnalysis(flow);
+  }
+
+  @override
+  void topLevelDeclaration_exit() {
+    super.topLevelDeclaration_exit();
+    migrationResolutionHooks.setFlowAnalysis(null);
+  }
+}
+
 class TypeSystemTypeOperations
     implements TypeOperations<PromotableElement, DartType> {
   final TypeSystemImpl typeSystem;
@@ -294,7 +339,7 @@ class TypeSystemTypeOperations
 
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
-    return typeSystem.isSubtypeOf(leftType, rightType);
+    return typeSystem.isSubtypeOf2(leftType, rightType);
   }
 
   @override
@@ -316,7 +361,7 @@ class TypeSystemTypeOperations
 /// The visitor that gathers local variables that are potentially assigned
 /// in corresponding statements, such as loops, `switch` and `try`.
 class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
-  final AssignedVariables assignedVariables;
+  final AssignedVariables<AstNode, PromotableElement> assignedVariables;
 
   _AssignedVariablesVisitor(this.assignedVariables);
 
@@ -443,14 +488,13 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitTryStatement(TryStatement node) {
     var finallyBlock = node.finallyBlock;
-    bool isDesugared = node.catchClauses.isNotEmpty && finallyBlock != null;
-    assignedVariables.beginNode();
-    if (isDesugared) assignedVariables.beginNode();
+    assignedVariables.beginNode(); // Begin info for [node].
+    assignedVariables.beginNode(); // Begin info for [node.body].
     node.body.accept(this);
     assignedVariables.endNode(node.body);
 
     node.catchClauses.accept(this);
-    if (isDesugared) assignedVariables.endNode(node);
+    assignedVariables.endNode(node);
 
     if (finallyBlock != null) {
       assignedVariables.beginNode();
@@ -491,7 +535,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       } else if (forLoopParts is ForPartsWithDeclarations) {
         forLoopParts.variables?.accept(this);
       } else {
-        throw new StateError('Unrecognized for loop parts');
+        throw StateError('Unrecognized for loop parts');
       }
 
       assignedVariables.beginNode();
@@ -514,13 +558,13 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         assignedVariables.declare(variable);
         assignedVariables.write(variable);
       } else {
-        throw new StateError('Unrecognized for loop parts');
+        throw StateError('Unrecognized for loop parts');
       }
       assignedVariables.beginNode();
       body.accept(this);
       assignedVariables.endNode(node);
     } else {
-      throw new StateError('Unrecognized for loop parts');
+      throw StateError('Unrecognized for loop parts');
     }
   }
 }

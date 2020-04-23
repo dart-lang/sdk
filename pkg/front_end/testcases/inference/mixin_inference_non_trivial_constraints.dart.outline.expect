@@ -18,7 +18,7 @@ class M2<T extends core::Object* = dynamic> extends self::M1<core::Map<self::M2:
   synthetic constructor •() → self::M2<self::M2::T*>*
     ;
 }
-abstract class _A&M2&M0 = self::M2<core::int*> with self::M0<core::Map<core::int*, core::int*>*> {
+abstract class _A&M2&M0 = self::M2<core::int*> with self::M0<core::Map<core::int*, core::int*>*> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A&M2&M0*
     : super self::M2::•()
     ;

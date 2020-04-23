@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateConstructorForFinalFieldsTest);
   });
@@ -19,7 +19,7 @@ class CreateConstructorForFinalFieldsTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
 
-  test_flutter() async {
+  Future<void> test_flutter() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -45,7 +45,7 @@ class MyWidget extends StatelessWidget {
     });
   }
 
-  test_flutter_childLast() async {
+  Future<void> test_flutter_childLast() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -71,7 +71,7 @@ class MyWidget extends StatelessWidget {
     });
   }
 
-  test_flutter_childrenLast() async {
+  Future<void> test_flutter_childrenLast() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -97,7 +97,7 @@ class MyWidget extends StatelessWidget {
     });
   }
 
-  test_inTopLevelMethod() async {
+  Future<void> test_inTopLevelMethod() async {
     await resolveTestUnit('''
 main() {
   final int v;
@@ -107,7 +107,7 @@ main() {
     await assertNoFix();
   }
 
-  test_simple() async {
+  Future<void> test_simple() async {
     await resolveTestUnit('''
 class Test {
   final int a;
@@ -128,7 +128,7 @@ class Test {
     });
   }
 
-  test_topLevelField() async {
+  Future<void> test_topLevelField() async {
     await resolveTestUnit('''
 final int v;
 ''');

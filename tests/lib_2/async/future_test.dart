@@ -697,13 +697,10 @@ void testCompleteErrorWithCustomFuture() {
 }
 
 void testCompleteErrorWithNull() {
-  asyncStart();
   final completer = new Completer<int>();
-  completer.future.catchError((e) {
-    Expect.isTrue(e is NullThrownError);
-    asyncEnd();
+  Expect.throwsArgumentError(() {
+    completer.completeError(null);
   });
-  completer.completeError(null);
 }
 
 void testChainedFutureValue() {

@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'available_suggestions_base.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetSuggestionDetailsTest);
   });
@@ -20,7 +20,7 @@ main() {
 
 @reflectiveTest
 class GetSuggestionDetailsTest extends AvailableSuggestionsBase {
-  test_enum() async {
+  Future<void> test_enum() async {
     newFile('/home/test/lib/a.dart', content: r'''
 enum MyEnum {
   aaa, bbb
@@ -47,7 +47,7 @@ main() {} // ref
 ''');
   }
 
-  test_existingImport() async {
+  Future<void> test_existingImport() async {
     addTestFile(r'''
 import 'dart:math';
 
@@ -67,7 +67,7 @@ main() {} // ref
     _assertEmptyChange(result.change);
   }
 
-  test_existingImport_prefixed() async {
+  Future<void> test_existingImport_prefixed() async {
     addTestFile(r'''
 import 'dart:math' as math;
 
@@ -87,7 +87,7 @@ main() {} // ref
     _assertEmptyChange(result.change);
   }
 
-  test_invalid_library() async {
+  Future<void> test_invalid_library() async {
     addTestFile('');
 
     var response = await waitResponse(
@@ -96,7 +96,7 @@ main() {} // ref
     expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
   }
 
-  test_newImport() async {
+  Future<void> test_newImport() async {
     addTestFile(r'''
 main() {} // ref
 ''');
@@ -118,7 +118,7 @@ main() {} // ref
 ''');
   }
 
-  test_newImport_part() async {
+  Future<void> test_newImport_part() async {
     var partCode = r'''
 part of 'test.dart';
 

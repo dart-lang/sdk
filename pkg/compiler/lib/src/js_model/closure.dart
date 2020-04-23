@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
-import '../constants/expressions.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart' show Name;
 import '../elements/types.dart';
@@ -895,6 +894,9 @@ class RecordClassData implements JClassData {
 
   @override
   InterfaceType get instantiationToBounds => thisType;
+
+  @override
+  List<Variance> getVariances() => [];
 }
 
 /// A container for variables declared in a particular scope that are accessed
@@ -1086,6 +1088,8 @@ class ClosureFunctionData extends ClosureMemberData
   @override
   final ClassTypeVariableAccess classTypeVariableAccess;
 
+  ir.Member _memberContext;
+
   ClosureFunctionData(
       ClosureMemberDefinition definition,
       InterfaceType memberThisType,
@@ -1118,6 +1122,18 @@ class ClosureFunctionData extends ClosureMemberData
     sink.writeTreeNode(functionNode);
     sink.writeEnum(classTypeVariableAccess);
     sink.end(tag);
+  }
+
+  @override
+  ir.Member get memberContext {
+    if (_memberContext == null) {
+      ir.TreeNode parent = functionNode;
+      while (parent is! ir.Member) {
+        parent = parent.parent;
+      }
+      _memberContext = parent;
+    }
+    return _memberContext;
   }
 
   @override
@@ -1179,15 +1195,6 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
           'ClosureFieldData.getFieldType');
     }
     return _type = elementMap.getDartType(type);
-  }
-
-  @override
-  ConstantExpression getFieldConstantExpression(IrToElementMap elementMap) {
-    failedAt(
-        definition.location,
-        "Unexpected field ${definition} in "
-        "ClosureFieldData.getFieldConstantExpression");
-    return null;
   }
 
   @override

@@ -23,6 +23,8 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
       bool enableTripleShift = false,
       bool supportReevaluationForTesting: false})
       : _supportReevaluationForTesting = supportReevaluationForTesting,
+        // TODO(johnniwinther,sigmund): Pass evaluation mode for nnbd
+        //  strong/weak mode.
         super(
             const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
             environment,
@@ -55,12 +57,17 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
       return constant;
     }
     if (requireConstant) {
-      // TODO(johnniwinther): Handle reporting of compile-time constant
-      // evaluation errors.
       return super.evaluate(staticTypeContext, node);
     } else {
       try {
-        return super.evaluate(staticTypeContext, node);
+        ir.Constant constant = super.evaluate(staticTypeContext, node);
+        if (constant is ir.UnevaluatedConstant &&
+            constant.expression is ir.InvalidExpression) {
+          return null;
+        }
+        // TODO(johnniwinther,sigmund): Replace [node] with an
+        // `ir.ConstantExpression` holding the [constant].
+        return constant;
       } catch (e) {
         return null;
       }
@@ -192,5 +199,8 @@ class ConstantReference extends ir.TreeNode {
   }
 
   @override
-  String toString() => 'ConstantReference(constant=$constant)';
+  String toString() => 'ConstantReference(${toStringInternal()})';
+
+  @override
+  String toStringInternal() => 'constant=${constant.toStringInternal()}';
 }

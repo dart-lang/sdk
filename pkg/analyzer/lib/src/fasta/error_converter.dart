@@ -175,10 +175,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.INVALID_CODE_POINT, offset, length, ['\\u{...}']);
         return;
-      case "INVALID_CONSTRUCTOR_NAME":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, offset, length);
-        return;
       case "INVALID_GENERIC_FUNCTION_TYPE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, offset, length);
@@ -278,6 +274,10 @@ class FastaErrorReporter {
             offset,
             length);
         return;
+      case "TYPE_PARAMETER_ON_OPERATOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR, offset, length);
+        return;
       case "UNDEFINED_CLASS":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.UNDEFINED_CLASS, offset, length);
@@ -346,13 +346,8 @@ class FastaErrorReporter {
     if (index != null && index > 0 && index < fastaAnalyzerErrorCodes.length) {
       ErrorCode errorCode = fastaAnalyzerErrorCodes[index];
       if (errorCode != null) {
-        errorReporter.reportError(new AnalysisError.forValues(
-            errorReporter.source,
-            offset,
-            length,
-            errorCode,
-            message.message,
-            message.tip));
+        errorReporter.reportError(AnalysisError.forValues(errorReporter.source,
+            offset, length, errorCode, message.message, message.tip));
         return;
       }
     }
@@ -369,13 +364,8 @@ class FastaErrorReporter {
   void _reportByCode(
       ErrorCode errorCode, Message message, int offset, int length) {
     if (errorReporter != null) {
-      errorReporter.reportError(new AnalysisError.forValues(
-          errorReporter.source,
-          offset,
-          length,
-          errorCode,
-          message.message,
-          null));
+      errorReporter.reportError(AnalysisError.forValues(errorReporter.source,
+          offset, length, errorCode, message.message, null));
     }
   }
 }

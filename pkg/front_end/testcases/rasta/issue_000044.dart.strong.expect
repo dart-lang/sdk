@@ -62,7 +62,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class C extends core::Object {
+class C extends core::Object /*hasConstConstructor*/  {
   static field dynamic _redirecting# = <dynamic>[self::C::good];
   const constructor constant() → self::C*
     : super core::Object::•()
@@ -80,12 +80,12 @@ Try removing the return type.
  - 'C' is from 'pkg/front_end/testcases/rasta/issue_000044.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'h'.
   C notEvenAConstructor(a) = h;
-                             ^" as{TypeError} self::C*;
+                             ^" as{TypeError,ForDynamic} self::C*;
 }
 static method b(dynamic c) → invalid-type
   return invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:7:10: Error: Getter not found: 'd'.
 a b(c) = d;
-         ^" as{TypeError} invalid-type;
+         ^" as{TypeError,ForDynamic} invalid-type;
 static method main() → dynamic {
   self::C* c = null;
   core::print(#C1);

@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HoverTest);
   });
@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class HoverTest extends AbstractLspAnalysisServerTest {
-  test_dartDoc_macros() async {
+  Future<void> test_dartDoc_macros() async {
     final content = '''
     /// {@template template_name}
     /// This is shared content.
@@ -39,16 +39,16 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     expect(_getStringContents(hover), endsWith('This is shared content.'));
   }
 
-  test_hover_bad_position() async {
+  Future<void> test_hover_bad_position() async {
     await initialize();
     await openFile(mainFileUri, '');
     await expectLater(
-      () => getHover(mainFileUri, new Position(999, 999)),
+      () => getHover(mainFileUri, Position(999, 999)),
       throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)),
     );
   }
 
-  test_markdown_isFormattedForDisplay() async {
+  Future<void> test_markdown_isFormattedForDisplay() async {
     final content = '''
     /// This is a string.
     ///
@@ -94,7 +94,7 @@ print();
     expect(markup.value, equals(expectedHoverContent));
   }
 
-  test_markdown_simple() async {
+  Future<void> test_markdown_simple() async {
     final content = '''
     /// This is a string.
     String [[a^bc]];
@@ -113,22 +113,7 @@ print();
     expect(markup.value, contains('This is a string.'));
   }
 
-  test_range_multiLineConstructorCall() async {
-    final content = '''
-    final a = new [[Str^ing.fromCharCodes]]([
-      1,
-      2,
-    ]);
-    ''';
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover.range, equals(rangeFromMarkers(content)));
-  }
-
-  test_noElement() async {
+  Future<void> test_noElement() async {
     final content = '''
     String abc;
 
@@ -145,14 +130,14 @@ print();
     expect(hover, isNull);
   }
 
-  test_nonDartFile() async {
+  Future<void> test_nonDartFile() async {
     await initialize();
     await openFile(pubspecFileUri, simplePubspecContent);
     final hover = await getHover(pubspecFileUri, startOfDocPos);
     expect(hover, isNull);
   }
 
-  test_plainText_simple() async {
+  Future<void> test_plainText_simple() async {
     final content = '''
     /// This is a string.
     String [[a^bc]];
@@ -173,7 +158,22 @@ print();
     expect(markup.value, contains('This is a string.'));
   }
 
-  test_string_noDocComment() async {
+  Future<void> test_range_multiLineConstructorCall() async {
+    final content = '''
+    final a = new [[Str^ing.fromCharCodes]]([
+      1,
+      2,
+    ]);
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover.range, equals(rangeFromMarkers(content)));
+  }
+
+  Future<void> test_string_noDocComment() async {
     final content = '''
     String [[a^bc]];
     ''';
@@ -195,7 +195,7 @@ String abc
     expect(_getStringContents(hover), equals(expectedHoverContent));
   }
 
-  test_string_reflectsLatestEdits() async {
+  Future<void> test_string_reflectsLatestEdits() async {
     final original = '''
     /// Original string.
     String [[a^bc]];
@@ -217,7 +217,7 @@ String abc
     expect(contents, contains('Updated'));
   }
 
-  test_string_simple() async {
+  Future<void> test_string_simple() async {
     final content = '''
     /// This is a string.
     String [[a^bc]];
@@ -233,7 +233,7 @@ String abc
     expect(contents, contains('This is a string.'));
   }
 
-  test_unopenFile() async {
+  Future<void> test_unopenFile() async {
     final content = '''
     /// This is a string.
     String [[a^bc]];

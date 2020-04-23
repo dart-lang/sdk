@@ -117,6 +117,8 @@ class FreeList {
     return 0;
   }
 
+  void MergeOtherFreelist(FreeList* freelist, bool is_protected);
+
  private:
   static const int kNumLists = 128;
   static const intptr_t kInitialFreeListSearchBudget = 1000;

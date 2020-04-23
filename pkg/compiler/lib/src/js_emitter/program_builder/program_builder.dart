@@ -108,6 +108,7 @@ class ProgramBuilder {
   final Set<TypeVariableType> _lateNamedTypeVariablesNewRti = {};
 
   ClassHierarchy get _classHierarchy => _closedWorld.classHierarchy;
+  DartTypes get _dartTypes => _closedWorld.dartTypes;
 
   ProgramBuilder(
       this._options,
@@ -246,7 +247,7 @@ class ProgramBuilder {
 
     _markEagerClasses();
 
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       associateNamedTypeVariablesNewRti();
     }
 
@@ -986,7 +987,7 @@ class ProgramBuilder {
 
   js.Expression _generateFunctionType(ClassEntity /*?*/ enclosingClass,
           FunctionType type, OutputUnit outputUnit) =>
-      _options.experimentNewRti
+      _options.useNewRti
           ? _generateFunctionTypeNewRti(enclosingClass, type, outputUnit)
           : _generateFunctionTypeLegacy(enclosingClass, type, outputUnit);
 
@@ -1009,9 +1010,11 @@ class ProgramBuilder {
       if (!_rtiNeed.classNeedsTypeArguments(enclosingClass)) {
         // Erase type arguments.
         List<DartType> typeArguments = enclosingType.typeArguments;
-        type = type.subst(
-            List<DartType>.filled(typeArguments.length, ErasedType()),
-            typeArguments);
+        type = _dartTypes.subst(
+            List<DartType>.filled(
+                typeArguments.length, _dartTypes.erasedType()),
+            typeArguments,
+            type);
       }
     }
 
@@ -1036,7 +1039,7 @@ class ProgramBuilder {
         _task.nativeEmitter,
         _namer,
         _rtiEncoder,
-        _options.experimentNewRti ? _rtiRecipeEncoder : null,
+        _options.useNewRti ? _rtiRecipeEncoder : null,
         _nativeData,
         _interceptorData,
         _codegenWorld,
@@ -1171,8 +1174,8 @@ class ProgramBuilder {
           fieldData.isElided));
     }
 
-    FieldVisitor visitor = new FieldVisitor(_elementEnvironment,
-        _commonElements, _codegenWorld, _nativeData, _namer, _closedWorld);
+    FieldVisitor visitor = new FieldVisitor(
+        _elementEnvironment, _codegenWorld, _nativeData, _namer, _closedWorld);
     visitor.visitFields(visitField,
         visitStatics: visitStatics, library: library, cls: cls);
 

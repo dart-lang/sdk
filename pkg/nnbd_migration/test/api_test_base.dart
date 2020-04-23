@@ -14,16 +14,16 @@ class TestMigrationListener implements NullabilityMigrationListener {
   List<String> details = [];
 
   @override
-  void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
-    (edits[fix.source] ??= []).add(edit);
+  void addEdit(Source source, SourceEdit edit) {
+    (edits[source] ??= []).add(edit);
   }
 
   @override
-  void addFix(SingleNullabilityFix fix) {}
+  void addSuggestion(String descriptions, Location location) {}
 
   @override
   void reportException(
       Source source, AstNode node, Object exception, StackTrace stackTrace) {
-    fail('Exception reported: $exception');
+    fail('Exception reported: $exception\n$stackTrace');
   }
 }

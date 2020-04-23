@@ -19,14 +19,6 @@ class C<T> {
 class D<T> extends C<T> {
   @NeverInline
   void target1(T x) {
-    // Make sure this method gets optimized before main.
-    // Otherwise it might get inlined into warm-up loop, and subsequent
-    // loop will call an unoptimized version (which is not guaranteed to
-    // dispatch to unchecked entry point).
-    bumpUsageCounter();
-    bumpUsageCounter();
-    bumpUsageCounter();
-
     super.target1(x);
   }
 }
@@ -34,14 +26,6 @@ class D<T> extends C<T> {
 class E<T> extends C<T> {
   @NeverInline
   void target1(T x) {
-    // Make sure this method gets optimized before main.
-    // Otherwise it might get inlined into warm-up loop, and subsequent
-    // loop will call an unoptimized version (which is not guaranteed to
-    // dispatch to unchecked entry point).
-    bumpUsageCounter();
-    bumpUsageCounter();
-    bumpUsageCounter();
-
     super.target1(x);
   }
 }
@@ -60,26 +44,16 @@ C getC() {
   }
 }
 
-// This works around issues with OSR not totally respecting the optimization
-// counter threshold.
-void testOneC(C x, int i) => x.target1(i);
-
 test(List<String> args) {
   // Make sure the check on target1.x is not completely eliminated.
   if (args.length > 0) {
     (C<int>() as C<num>).target1(1.0);
   }
 
-  expectedEntryPoint = -1;
-  for (int i = 0; i < 100; ++i) {
-    testOneC(getC(), i);
-  }
-
-  expectedEntryPoint = 1;
   const int iterations = benchmarkMode ? 200000000 : 100;
   for (int i = 0; i < iterations; ++i) {
-    testOneC(getC(), i);
+    getC().target1(i);
   }
 
-  Expect.isTrue(validateRan);
+  entryPoint.expectUnchecked(iterations);
 }

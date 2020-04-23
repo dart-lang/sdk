@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseRethrowTest);
   });
@@ -23,11 +23,11 @@ class UseRethrowTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.use_rethrow_when_possible;
 
-  test_rethrow() async {
+  Future<void> test_rethrow() async {
     await resolveTestUnit('''
 void bad1() {
   try {} catch (e) {
-    throw/*LINT*/ e;
+    throw e;
   }
 }
 ''');

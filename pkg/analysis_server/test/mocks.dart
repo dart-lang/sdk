@@ -16,36 +16,28 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:test/test.dart';
 
-const _jsonEncoder = const JsonEncoder.withIndent('    ');
+const _jsonEncoder = JsonEncoder.withIndent('    ');
 
-/**
- * A [Matcher] that check that the given [Response] has an expected identifier
- * and has an error.  The error code may optionally be checked.
- */
+/// A [Matcher] that check that the given [Response] has an expected identifier
+/// and has an error.  The error code may optionally be checked.
 Matcher isResponseFailure(String id, [RequestErrorCode code]) =>
-    new _IsResponseFailure(id, code);
+    _IsResponseFailure(id, code);
 
-/**
- * A [Matcher] that check that the given [Response] has an expected identifier
- * and no error.
- */
-Matcher isResponseSuccess(String id) => new _IsResponseSuccess(id);
+/// A [Matcher] that check that the given [Response] has an expected identifier
+/// and no error.
+Matcher isResponseSuccess(String id) => _IsResponseSuccess(id);
 
-/**
- * A mock [LspServerCommunicationChannel] for testing [LspAnalysisServer].
- */
+/// A mock [LspServerCommunicationChannel] for testing [LspAnalysisServer].
 class MockLspServerChannel implements LspServerCommunicationChannel {
   final StreamController<lsp.Message> _clientToServer =
-      new StreamController<lsp.Message>.broadcast();
+      StreamController<lsp.Message>.broadcast();
   final StreamController<lsp.Message> _serverToClient =
-      new StreamController<lsp.Message>.broadcast();
+      StreamController<lsp.Message>.broadcast();
 
   String name;
 
-  /**
-   * Completer that will be signalled when the input stream is closed.
-   */
-  final Completer _closed = new Completer();
+  /// Completer that will be signalled when the input stream is closed.
+  final Completer _closed = Completer();
 
   MockLspServerChannel(bool _printMessages) {
     if (_printMessages) {
@@ -56,9 +48,8 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     }
   }
 
-  /**
-   * Future that will be completed when the input stream is closed.
-   */
+  /// Future that will be completed when the input stream is closed.
+  @override
   Future get closed {
     return _closed.future;
   }
@@ -106,7 +97,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     notification = _convertJson(notification, lsp.NotificationMessage.fromJson);
 
     // Wrap send request in future to simulate WebSocket.
-    new Future(() => _clientToServer.add(notification));
+    Future(() => _clientToServer.add(notification));
   }
 
   @override
@@ -121,21 +112,19 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     _serverToClient.add(request);
   }
 
-  /**
-   * Send the given [request] to the server and return a future that will
-   * complete when a response associated with the [request] has been received.
-   * The value of the future will be the received response.
-   */
+  /// Send the given [request] to the server and return a future that will
+  /// complete when a response associated with the [request] has been received.
+  /// The value of the future will be the received response.
   Future<lsp.ResponseMessage> sendRequestToServer(lsp.RequestMessage request) {
     // No further requests should be sent after the connection is closed.
     if (_closed.isCompleted) {
-      throw new Exception('sendLspRequest after connection closed');
+      throw Exception('sendLspRequest after connection closed');
     }
 
     request = _convertJson(request, lsp.RequestMessage.fromJson);
 
     // Wrap send request in future to simulate WebSocket.
-    new Future(() => _clientToServer.add(request));
+    Future(() => _clientToServer.add(request));
     return waitForResponse(request);
   }
 
@@ -149,7 +138,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     ensureMessageCanBeJsonSerialized(response);
 
     // Wrap send response in future to simulate WebSocket.
-    new Future(() => _serverToClient.add(response));
+    Future(() => _serverToClient.add(response));
   }
 
   void sendResponseToServer(lsp.ResponseMessage response) {
@@ -163,15 +152,13 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     _clientToServer.add(response);
   }
 
-  /**
-   * Return a future that will complete when a response associated with the
-   * given [request] has been received. The value of the future will be the
-   * received response. The returned future will throw an exception if a server
-   * error is reported before the response has been received.
-   *
-   * Unlike [sendLspRequest], this method assumes that the [request] has already
-   * been sent to the server.
-   */
+  /// Return a future that will complete when a response associated with the
+  /// given [request] has been received. The value of the future will be the
+  /// received response. The returned future will throw an exception if a server
+  /// error is reported before the response has been received.
+  ///
+  /// Unlike [sendLspRequest], this method assumes that the [request] has
+  /// already been sent to the server.
   Future<lsp.ResponseMessage> waitForResponse(
     lsp.RequestMessage request, {
     bool throwOnError = true,
@@ -202,34 +189,34 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
 
 class MockSource extends StringTypedMock implements Source {
   @override
-  TimestampedData<String> contents = null;
+  TimestampedData<String> contents;
 
   @override
-  String encoding = null;
+  String encoding;
 
   @override
-  String fullName = null;
+  String fullName;
 
   @override
-  bool isInSystemLibrary = null;
+  bool isInSystemLibrary;
 
   @override
-  Source librarySource = null;
+  Source librarySource;
 
   @override
-  int modificationStamp = null;
+  int modificationStamp;
 
   @override
-  String shortName = null;
+  String shortName;
 
   @override
-  Source source = null;
+  Source source;
 
   @override
-  Uri uri = null;
+  Uri uri;
 
   @override
-  UriKind uriKind = null;
+  UriKind uriKind;
 
   MockSource([String name = 'mocked.dart']) : super(name);
 
@@ -238,7 +225,7 @@ class MockSource extends StringTypedMock implements Source {
 }
 
 class StringTypedMock {
-  String _toString;
+  final String _toString;
 
   StringTypedMock(this._toString);
 
@@ -251,9 +238,7 @@ class StringTypedMock {
   }
 }
 
-/**
- * A [Matcher] that check that there are no `error` in a given [Response].
- */
+/// A [Matcher] that check that there are no `error` in a given [Response].
 class _IsResponseFailure extends Matcher {
   final String _id;
   final RequestErrorCode _code;
@@ -265,7 +250,7 @@ class _IsResponseFailure extends Matcher {
     description =
         description.add('response with identifier "$_id" and an error');
     if (_code != null) {
-      description = description.add(' with code ${this._code.name}');
+      description = description.add(' with code ${_code.name}');
     }
     return description;
   }
@@ -275,7 +260,7 @@ class _IsResponseFailure extends Matcher {
       item, Description mismatchDescription, Map matchState, bool verbose) {
     Response response = item;
     var id = response.id;
-    RequestError error = response.error;
+    var error = response.error;
     mismatchDescription.add('has identifier "$id"');
     if (error == null) {
       mismatchDescription.add(' and has no error');
@@ -299,9 +284,7 @@ class _IsResponseFailure extends Matcher {
   }
 }
 
-/**
- * A [Matcher] that check that there are no `error` in a given [Response].
- */
+/// A [Matcher] that check that there are no `error` in a given [Response].
 class _IsResponseSuccess extends Matcher {
   final String _id;
 
@@ -321,7 +304,7 @@ class _IsResponseSuccess extends Matcher {
       mismatchDescription.add('is null response');
     } else {
       var id = response.id;
-      RequestError error = response.error;
+      var error = response.error;
       mismatchDescription.add('has identifier "$id"');
       if (error != null) {
         mismatchDescription.add(' and has error $error');

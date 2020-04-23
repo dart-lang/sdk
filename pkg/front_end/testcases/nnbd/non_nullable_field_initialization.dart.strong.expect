@@ -1,0 +1,128 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:7:5: Error: Field 'topLevelField' should be initialized because its type 'int' doesn't allow null.
+// int topLevelField; // Error.
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:10:14: Error: Field 'staticFieldOfA' should be initialized because its type 'int' doesn't allow null.
+//   static int staticFieldOfA; // Error.
+//              ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:24:14: Error: Field 'staticFieldOfM' should be initialized because its type 'int' doesn't allow null.
+//   static int staticFieldOfM; // Error.
+//              ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:11:7: Error: This constructor should initialize field 'fieldOfA' because its type 'int' doesn't allow null.
+//   int fieldOfA; // Error.
+//       ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:17:5: Error: This constructor should initialize field 'fieldOfB' because its type 'X' doesn't allow null.
+//   X fieldOfB; // Error.
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:18:5: Error: This constructor should initialize field 'fieldOfB2' because its type 'Y' doesn't allow null.
+//   Y fieldOfB2; // Error.
+//     ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:25:7: Error: Field 'fieldOfM' should be initialized because its type 'int' doesn't allow null.
+//   int fieldOfM; // Error.
+//       ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:29:5: Error: Field 'fieldOfN' should be initialized because its type 'X' doesn't allow null.
+//   X fieldOfN; // Error.
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:30:5: Error: Field 'fieldOfN2' should be initialized because its type 'Y' doesn't allow null.
+//   Y fieldOfN2; // Error.
+//     ^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+}
+class A extends core::Object {
+  static field core::int staticFieldOfA = null;
+  field core::int fieldOfA;
+  constructor foo() → self::A
+    : self::A::fieldOfA = null, super core::Object::•()
+    ;
+  constructor bar(core::int fieldOfA) → self::A
+    : self::A::fieldOfA = fieldOfA, super core::Object::•()
+    ;
+}
+class B<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object {
+  generic-covariant-impl field self::B::X% fieldOfB;
+  generic-covariant-impl field self::B::Y fieldOfB2;
+  constructor foo() → self::B<self::B::X%, self::B::Y>
+    : self::B::fieldOfB2 = null, self::B::fieldOfB = null, super core::Object::•()
+    ;
+  constructor bar(self::B::X% fieldOfB, self::B::Y fieldOfB2) → self::B<self::B::X%, self::B::Y>
+    : self::B::fieldOfB = fieldOfB, self::B::fieldOfB2 = fieldOfB2, super core::Object::•()
+    ;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  static field core::int staticFieldOfM = null;
+  field core::int fieldOfM = null;
+}
+abstract class N<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object /*isMixinDeclaration*/  {
+  generic-covariant-impl field self::N::X% fieldOfN = null;
+  generic-covariant-impl field self::N::Y fieldOfN2 = null;
+}
+class C<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object {
+  static field core::int? staticFieldOfX = null;
+  static field core::int staticFieldOfXInitialized = 42;
+  generic-covariant-impl field self::C::X? fieldOfX = null;
+  field core::int? fieldOfX2 = null;
+  field dynamic fieldOfX3 = null;
+  field core::Null? fieldOfX4 = null;
+  field () →? core::int fieldOfX5 = null;
+  generic-covariant-impl field self::C::Y? fieldOfX6 = null;
+  late static field core::int lateStaticFieldOfC;
+  late field core::int fieldOfC7;
+  late generic-covariant-impl field self::C::X% fieldOfC8;
+  late generic-covariant-impl field self::C::Y fieldOfC9;
+  field core::int fieldOfC10;
+  constructor foo(core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
+    : self::C::fieldOfC10 = fieldOfC10, super core::Object::•()
+    ;
+  constructor bar(core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
+    : self::C::fieldOfC10 = fieldOfC10, super core::Object::•()
+    ;
+}
+abstract class L<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object /*isMixinDeclaration*/  {
+  static field core::int? staticFieldOfL = null;
+  static field core::int staticFieldOfLInitialized = 42;
+  generic-covariant-impl field self::L::X? fieldOfL = null;
+  field core::int? fieldOfL2 = null;
+  field dynamic fieldOfL3 = null;
+  field core::Null? fieldOfL4 = null;
+  field () →? core::int fieldOfL5 = null;
+  generic-covariant-impl field self::L::Y? fieldOfL6 = null;
+  late static field core::int lateStaticFieldOfM;
+  late field core::int fieldOfM7;
+  late generic-covariant-impl field self::L::X% fieldOfM8;
+  late generic-covariant-impl field self::L::Y fieldOfM9;
+}
+extension P on self::Foo {
+  static field staticFieldOfE = self::P|staticFieldOfE;
+}
+extension Q on self::Foo {
+  static field staticFieldOfQ = self::Q|staticFieldOfQ;
+  static field lateStaticFieldOfQ = self::Q|lateStaticFieldOfQ;
+  static field staticFieldOfQInitialized = self::Q|staticFieldOfQInitialized;
+}
+static field core::int topLevelField;
+static field core::int P|staticFieldOfE;
+static field core::int? nullableTopLevelField;
+late static field core::int lateTopLevelField;
+static field core::int topLevelFieldWithInitializer = 42;
+static field core::int? Q|staticFieldOfQ;
+late static field core::int Q|lateStaticFieldOfQ;
+static field core::int Q|staticFieldOfQInitialized = 42;
+static method main() → dynamic {}

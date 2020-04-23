@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#define RUNTIME_VM_CONSTANTS_H_  // To work around include guard.
-#include "vm/constants_arm.h"
+#include "platform/globals.h"  // NOLINT
 
-namespace arch_arm {
+#if defined(TARGET_ARCH_ARM)
+
+#include "vm/constants.h"  // NOLINT
+
+namespace dart {
 
 using dart::bit_cast;
 
@@ -20,12 +23,27 @@ const char* fpu_reg_names[kNumberOfFpuRegisters] = {
     "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15",
 #endif
 };
+const char* fpu_d_reg_names[kNumberOfDRegisters] = {
+    "d0",  "d1",  "d2",  "d3",  "d4",  "d5",  "d6",  "d7",
+    "d8",  "d9",  "d10", "d11", "d12", "d13", "d14", "d15",
+#if defined(VFPv3_D32)
+    "d16", "d17", "d18", "d19", "d20", "d21", "d22", "d23",
+    "d24", "d25", "d26", "d27", "d28", "d29", "d30", "d31",
+#endif
+};
+const char* fpu_s_reg_names[kNumberOfSRegisters] = {
+    "s0",  "s1",  "s2",  "s3",  "s4",  "s5",  "s6",  "s7",  "s8",  "s9",  "s10",
+    "s11", "s12", "s13", "s14", "s15", "s16", "s17", "s18", "s19", "s20", "s21",
+    "s22", "s23", "s24", "s25", "s26", "s27", "s28", "s29", "s30", "s31",
+};
 
 const Register CallingConventions::ArgumentRegisters[] = {R0, R1, R2, R3};
 
-// Although 'kFpuArgumentRegisters' is 0, we have to give this array at least
-// one element to appease MSVC.
-const FpuRegister CallingConventions::FpuArgumentRegisters[] = {Q0};
+const FpuRegister CallingConventions::FpuArgumentRegisters[] = {Q0, Q1, Q2, Q3};
+const DRegister CallingConventions::FpuDArgumentRegisters[] = {D0, D1, D2, D3,
+                                                               D4, D5, D6, D7};
+const SRegister CallingConventions::FpuSArgumentRegisters[] = {
+    S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13, S14, S15};
 
 float ReciprocalEstimate(float a) {
   // From the ARM Architecture Reference Manual A2-85.
@@ -139,4 +157,6 @@ float ReciprocalSqrtStep(float op1, float op2) {
   return (3.0f - p) / 2.0f;
 }
 
-}  // namespace arch_arm
+}  // namespace dart
+
+#endif  // defined(TARGET_ARCH_ARM)

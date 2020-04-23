@@ -7,9 +7,10 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 
 abstract class AnalysisResultImpl implements AnalysisResult {
   @override
@@ -95,8 +96,9 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
-        throw ArgumentError('Element (${element.runtimeType}) $element is not '
-            'defined in this library.');
+        var elementStr = element.getDisplayString(withNullability: true);
+        throw ArgumentError('Element (${element.runtimeType}) $elementStr is '
+            'not defined in this library.');
       },
     );
 
@@ -152,17 +154,14 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   final LibraryElement element;
 
   @override
-  final TypeProvider typeProvider;
-
-  @override
   final List<ResolvedUnitResult> units;
 
-  ResolvedLibraryResultImpl(AnalysisSession session, String path, Uri uri,
-      this.element, this.typeProvider, this.units)
+  ResolvedLibraryResultImpl(
+      AnalysisSession session, String path, Uri uri, this.element, this.units)
       : super(session, path, uri);
 
   ResolvedLibraryResultImpl.external(AnalysisSession session, Uri uri)
-      : this(session, null, uri, null, null, null);
+      : this(session, null, uri, null, null);
 
   @override
   ResultState get state {
@@ -171,6 +170,9 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     }
     return ResultState.VALID;
   }
+
+  @override
+  TypeProvider get typeProvider => element.typeProvider;
 
   @override
   ElementDeclarationResult getElementDeclaration(Element element) {
@@ -182,8 +184,9 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
-        throw ArgumentError('Element (${element.runtimeType}) $element is not '
-            'defined in this library.');
+        var elementStr = element.getDisplayString(withNullability: true);
+        throw ArgumentError('Element (${element.runtimeType}) $elementStr is '
+            'not defined in this library.');
       },
     );
 
@@ -232,10 +235,10 @@ class ResolvedUnitResultImpl extends FileResultImpl
   ResultState get state => exists ? ResultState.VALID : ResultState.NOT_A_FILE;
 
   @override
-  TypeProvider get typeProvider => unit.declaredElement.context.typeProvider;
+  TypeProvider get typeProvider => libraryElement.typeProvider;
 
   @override
-  TypeSystemImpl get typeSystem => unit.declaredElement.context.typeSystem;
+  TypeSystemImpl get typeSystem => libraryElement.typeSystem;
 }
 
 class UnitElementResultImpl extends AnalysisResultImpl

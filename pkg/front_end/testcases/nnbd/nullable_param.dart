@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 class Foo {
   int? field;
-  int? bar(int? x);
+  int? bar(int? x) {}
 }
 
 main() {
@@ -14,6 +14,6 @@ main() {
   test_nullable_function_type_formal_param(f: () => 2);
 }
 
-int test_nullable_function_type_formal_param({int f()? : null}) {
-  return f() ?? -1;
+int test_nullable_function_type_formal_param({int f()?: null}) {
+  return f?.call() ?? -1;
 }

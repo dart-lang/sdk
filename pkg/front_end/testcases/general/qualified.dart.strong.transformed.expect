@@ -32,7 +32,7 @@ class Bad extends core::Object {
   method method() → invalid-type {}
   static factory WrongName() → self::Bad* {}
 }
-abstract class _WithMixin&Supertype&Mixin extends lib::Supertype implements lib::Mixin {
+abstract class _WithMixin&Supertype&Mixin extends lib::Supertype implements lib::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_WithMixin&Supertype&Mixin*
     : super lib::Supertype::•()
     ;

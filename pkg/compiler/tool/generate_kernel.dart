@@ -10,9 +10,9 @@ library compiler.tool.generate_kernel;
 
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:args/args.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
-import 'package:compiler/src/filenames.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show
         CompilerOptions,
@@ -28,9 +28,7 @@ main(List<String> args) async {
     ..target = new Dart2jsTarget("dart2js", new TargetFlags())
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..setExitCodeOnProblem = true
-    ..linkedDependencies = [
-      Uri.base.resolve(nativeToUriPath(flags['platform']))
-    ];
+    ..additionalDills = [Uri.base.resolve(nativeToUriPath(flags['platform']))];
 
   if (flags.rest.isEmpty) {
     var script = relativizeUri(Uri.base, Platform.script, false);

@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReanalyzeTest);
   });
@@ -16,14 +16,14 @@ main() {
 
 @reflectiveTest
 class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
-  test_reanalyze() {
-    String pathname = sourcePath('test.dart');
-    String text = 'main() {}';
+  Future<void> test_reanalyze() {
+    var pathname = sourcePath('test.dart');
+    var text = 'main() {}';
     writeFile(pathname, text);
     standardAnalysisSetup();
     return analysisFinished.then((_) {
       // Make sure that reanalyze causes analysis to restart.
-      bool analysisRestarted = false;
+      var analysisRestarted = false;
       onServerStatus.listen((ServerStatusParams data) {
         if (data.analysis != null) {
           if (data.analysis.isAnalyzing) {

@@ -109,7 +109,9 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
         AbstractType::Handle(left.GetType(Heap::kNew));
     const AbstractType& right_type =
         AbstractType::Handle(right.GetType(Heap::kNew));
-    return Bool::Get(left_type.raw() == right_type.raw()).raw();
+    return Bool::Get(
+               left_type.IsEquivalent(right_type, TypeEquality::kSyntactical))
+        .raw();
   }
 
   if (!cls.IsGeneric()) {
@@ -127,7 +129,7 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
   const intptr_t num_type_params = cls.NumTypeParameters();
   return Bool::Get(left_type_arguments.IsSubvectorEquivalent(
                        right_type_arguments, num_type_args - num_type_params,
-                       num_type_params))
+                       num_type_params, TypeEquality::kSyntactical))
       .raw();
 }
 
@@ -141,9 +143,8 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 4) {
   const AbstractType& type =
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(3));
   ASSERT(type.IsFinalized());
-  const bool is_instance_of = instance.IsInstanceOf(NNBDMode::kLegacy, type,
-                                                    instantiator_type_arguments,
-                                                    function_type_arguments);
+  const bool is_instance_of = instance.IsInstanceOf(
+      type, instantiator_type_arguments, function_type_arguments);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::PrintErr("Native Object.instanceOf: result %s\n", result_str);
@@ -167,8 +168,7 @@ DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 0, 2) {
   ASSERT(type.IsFinalized());
   ASSERT(type.IsInstantiated());
   const bool is_instance_of = instance.IsInstanceOf(
-      NNBDMode::kLegacy, type, Object::null_type_arguments(),
-      Object::null_type_arguments());
+      type, Object::null_type_arguments(), Object::null_type_arguments());
   return Bool::Get(is_instance_of).raw();
 }
 
@@ -186,6 +186,16 @@ DEFINE_NATIVE_ENTRY(Type_getHashCode, 0, 1) {
   return Smi::New(hash_val);
 }
 
+DEFINE_NATIVE_ENTRY(Type_equality, 0, 2) {
+  const Type& type = Type::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Instance& other =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
+  if (type.raw() == other.raw()) {
+    return Bool::True().raw();
+  }
+  return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).raw();
+}
+
 DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
 #if defined(ARCH_IS_64_BIT)
   return Bool::True().raw();
@@ -197,6 +207,10 @@ DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
 DEFINE_NATIVE_ENTRY(Internal_unsafeCast, 0, 1) {
   UNREACHABLE();  // Should be erased at Kernel translation time.
   return arguments->NativeArgAt(0);
+}
+
+DEFINE_NATIVE_ENTRY(Internal_reachabilityFence, 0, 1) {
+  return Object::null();
 }
 
 static bool ExtractInterfaceTypeArgs(Zone* zone,
@@ -225,8 +239,8 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
       if (!cur_interface_type_args.IsNull() &&
           !cur_interface_type_args.IsInstantiated()) {
         cur_interface_type_args = cur_interface_type_args.InstantiateFrom(
-            NNBDMode::kLegacy, instance_type_args,
-            Object::null_type_arguments(), kNoneFree, NULL, Heap::kNew);
+            instance_type_args, Object::null_type_arguments(), kNoneFree, NULL,
+            Heap::kNew);
       }
       if (ExtractInterfaceTypeArgs(zone, cur_interface_cls,
                                    cur_interface_type_args, interface_cls,
@@ -310,11 +324,11 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 0, 2) {
   Array& args_desc = Array::Handle(zone);
   Array& args = Array::Handle(zone);
   if (extracted_type_args.IsNull()) {
-    args_desc = ArgumentsDescriptor::New(0, 1);
+    args_desc = ArgumentsDescriptor::NewBoxed(0, 1);
     args = Array::New(1);
     args.SetAt(0, extract);
   } else {
-    args_desc = ArgumentsDescriptor::New(num_type_args, 1);
+    args_desc = ArgumentsDescriptor::NewBoxed(num_type_args, 1);
     args = Array::New(2);
     args.SetAt(0, extracted_type_args);
     args.SetAt(1, extract);
@@ -380,8 +394,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
 
     // The supertype may not be instantiated.
     if (!AbstractType::InstantiateAndTestSubtype(
-            NNBDMode::kLegacy, &subtype, &supertype, instantiator_type_args,
-            function_type_args)) {
+            &subtype, &supertype, instantiator_type_args, function_type_args)) {
       // Throw a dynamic type error.
       TokenPosition location;
       {

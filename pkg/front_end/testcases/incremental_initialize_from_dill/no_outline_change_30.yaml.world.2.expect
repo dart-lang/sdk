@@ -1,0 +1,25 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  class C extends dart.core::Object {
+    late field dart.core::int? field5 = 42;
+    late field dart.core::int? field6;
+    late final field dart.core::int? field7 = 42;
+    late final [setter] field dart.core::int? field8;
+    late static field dart.core::int? field9 = 42;
+    late static field dart.core::int? field10;
+    late static final field dart.core::int? field11 = 42;
+    late static final field dart.core::int? field12;
+    synthetic constructor •() → main::C
+      : super dart.core::Object::•()
+      ;
+  }
+  late static field dart.core::int? field1 = 42;
+  late static field dart.core::int? field2;
+  late static final field dart.core::int? field3 = 42;
+  late static final field dart.core::int? field4;
+  static method main() → dynamic {
+    main::field1 = 44;
+    main::field2 = 43;
+  }
+}

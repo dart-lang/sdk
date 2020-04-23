@@ -7,13 +7,13 @@ library get_object_rpc_test;
 import 'dart:typed_data';
 import 'dart:convert' show base64Decode;
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
 class _DummyClass {
   static var dummyVar = 11;
-  final List<String> dummyList = new List<String>(20);
+  final List<String> dummyList = new List<String>.filled(20, null);
   void dummyFunction() {}
 }
 
@@ -25,12 +25,31 @@ void warmup() {
   new _DummyClass().dummyFunction();
 }
 
-eval(Isolate isolate, String expression) async {
+@pragma("vm:entry-point")
+getChattanooga() => "Chattanooga";
+
+@pragma("vm:entry-point")
+getList() => [3, 2, 1];
+
+@pragma("vm:entry-point")
+getMap() => {"x": 3, "y": 4, "z": 5};
+
+@pragma("vm:entry-point")
+getUint8List() => uint8List;
+
+@pragma("vm:entry-point")
+getUint64List() => uint64List;
+
+@pragma("vm:entry-point")
+getDummyClass() => new _DummyClass();
+
+invoke(Isolate isolate, String selector) async {
   Map params = {
     'targetId': isolate.rootLibrary.id,
-    'expression': expression,
+    'selector': selector,
+    'argumentIds': <String>[],
   };
-  return await isolate.invokeRpcNoUpgrade('evaluate', params);
+  return await isolate.invokeRpcNoUpgrade('invoke', params);
 }
 
 var uint8List = new Uint8List.fromList([3, 2, 1]);
@@ -88,7 +107,7 @@ var tests = <IsolateTest>[
   // A string
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, '"Chattanooga"');
+    var evalResult = await invoke(isolate, 'getChattanooga');
     var params = {
       'objectId': evalResult['id'],
     };
@@ -110,7 +129,7 @@ var tests = <IsolateTest>[
   // String prefix.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, '"Chattanooga"');
+    var evalResult = await invoke(isolate, 'getChattanooga');
     var params = {
       'objectId': evalResult['id'],
       'count': 4,
@@ -133,7 +152,7 @@ var tests = <IsolateTest>[
   // String subrange.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, '"Chattanooga"');
+    var evalResult = await invoke(isolate, 'getChattanooga');
     var params = {
       'objectId': evalResult['id'],
       'offset': 4,
@@ -157,7 +176,7 @@ var tests = <IsolateTest>[
   // String with wacky offset.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, '"Chattanooga"');
+    var evalResult = await invoke(isolate, 'getChattanooga');
     var params = {
       'objectId': evalResult['id'],
       'offset': 100,
@@ -181,7 +200,7 @@ var tests = <IsolateTest>[
   // A built-in List.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, '[3, 2, 1]');
+    var evalResult = await invoke(isolate, 'getList');
     var params = {
       'objectId': evalResult['id'],
     };
@@ -213,7 +232,7 @@ var tests = <IsolateTest>[
   // List prefix.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, '[3, 2, 1]');
+    var evalResult = await invoke(isolate, 'getList');
     var params = {
       'objectId': evalResult['id'],
       'count': 2,
@@ -243,7 +262,7 @@ var tests = <IsolateTest>[
   // List suffix.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, '[3, 2, 1]');
+    var evalResult = await invoke(isolate, 'getList');
     var params = {
       'objectId': evalResult['id'],
       'offset': 2,
@@ -271,7 +290,7 @@ var tests = <IsolateTest>[
   // List with wacky offset.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, '[3, 2, 1]');
+    var evalResult = await invoke(isolate, 'getList');
     var params = {
       'objectId': evalResult['id'],
       'offset': 100,
@@ -296,7 +315,7 @@ var tests = <IsolateTest>[
   // A built-in Map.
   (Isolate isolate) async {
     // Call eval to get a Dart map.
-    var evalResult = await eval(isolate, '{"x": 3, "y": 4, "z": 5}');
+    var evalResult = await invoke(isolate, 'getMap');
     var params = {
       'objectId': evalResult['id'],
     };
@@ -337,7 +356,7 @@ var tests = <IsolateTest>[
   // Map prefix.
   (Isolate isolate) async {
     // Call eval to get a Dart map.
-    var evalResult = await eval(isolate, '{"x": 3, "y": 4, "z": 5}');
+    var evalResult = await invoke(isolate, 'getMap');
     var params = {
       'objectId': evalResult['id'],
       'count': 2,
@@ -373,7 +392,7 @@ var tests = <IsolateTest>[
   // Map suffix.
   (Isolate isolate) async {
     // Call eval to get a Dart map.
-    var evalResult = await eval(isolate, '{"x": 3, "y": 4, "z": 5}');
+    var evalResult = await invoke(isolate, 'getMap');
     var params = {
       'objectId': evalResult['id'],
       'offset': 2,
@@ -404,7 +423,7 @@ var tests = <IsolateTest>[
   // Map with wacky offset
   (Isolate isolate) async {
     // Call eval to get a Dart map.
-    var evalResult = await eval(isolate, '{"x": 3, "y": 4, "z": 5}');
+    var evalResult = await invoke(isolate, 'getMap');
     var params = {
       'objectId': evalResult['id'],
       'offset': 100,
@@ -429,7 +448,7 @@ var tests = <IsolateTest>[
   // Uint8List.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, 'uint8List');
+    var evalResult = await invoke(isolate, 'getUint8List');
     var params = {
       'objectId': evalResult['id'],
     };
@@ -454,7 +473,7 @@ var tests = <IsolateTest>[
   // Uint8List prefix.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, 'uint8List');
+    var evalResult = await invoke(isolate, 'getUint8List');
     var params = {
       'objectId': evalResult['id'],
       'count': 2,
@@ -480,7 +499,7 @@ var tests = <IsolateTest>[
   // Uint8List suffix.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, 'uint8List');
+    var evalResult = await invoke(isolate, 'getUint8List');
     var params = {
       'objectId': evalResult['id'],
       'offset': 2,
@@ -507,7 +526,7 @@ var tests = <IsolateTest>[
   // Uint8List with wacky offset.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, 'uint8List');
+    var evalResult = await invoke(isolate, 'getUint8List');
     var params = {
       'objectId': evalResult['id'],
       'offset': 100,
@@ -532,7 +551,7 @@ var tests = <IsolateTest>[
   // Uint64List.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, 'uint64List');
+    var evalResult = await invoke(isolate, 'getUint64List');
     var params = {
       'objectId': evalResult['id'],
     };
@@ -557,7 +576,7 @@ var tests = <IsolateTest>[
   // Uint64List prefix.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, 'uint64List');
+    var evalResult = await invoke(isolate, 'getUint64List');
     var params = {
       'objectId': evalResult['id'],
       'count': 2,
@@ -583,7 +602,7 @@ var tests = <IsolateTest>[
   // Uint64List suffix.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, 'uint64List');
+    var evalResult = await invoke(isolate, 'getUint64List');
     var params = {
       'objectId': evalResult['id'],
       'offset': 2,
@@ -610,7 +629,7 @@ var tests = <IsolateTest>[
   // Uint64List with wacky offset.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, 'uint64List');
+    var evalResult = await invoke(isolate, 'getUint64List');
     var params = {
       'objectId': evalResult['id'],
       'offset': 100,
@@ -733,7 +752,7 @@ var tests = <IsolateTest>[
   // class
   (Isolate isolate) async {
     // Call eval to get a class id.
-    var evalResult = await eval(isolate, 'new _DummyClass()');
+    var evalResult = await invoke(isolate, 'getDummyClass');
     var params = {
       'objectId': evalResult['class']['id'],
     };
@@ -780,7 +799,7 @@ var tests = <IsolateTest>[
   // type.
   (Isolate isolate) async {
     // Call eval to get a class id.
-    var evalResult = await eval(isolate, 'new _DummyClass()');
+    var evalResult = await invoke(isolate, 'getDummyClass');
     var id = "${evalResult['class']['id']}/types/0";
     var params = {
       'objectId': id,
@@ -799,7 +818,7 @@ var tests = <IsolateTest>[
 
   // invalid type.
   (Isolate isolate) async {
-    var evalResult = await eval(isolate, 'new _DummyClass()');
+    var evalResult = await invoke(isolate, 'getDummyClass');
     var id = "${evalResult['class']['id']}/types/9999999";
     var params = {
       'objectId': id,
@@ -820,7 +839,7 @@ var tests = <IsolateTest>[
   // function.
   (Isolate isolate) async {
     // Call eval to get a class id.
-    var evalResult = await eval(isolate, 'new _DummyClass()');
+    var evalResult = await invoke(isolate, 'getDummyClass');
     var id = "${evalResult['class']['id']}/functions/dummyFunction";
     var params = {
       'objectId': id,
@@ -844,7 +863,7 @@ var tests = <IsolateTest>[
   // invalid function.
   (Isolate isolate) async {
     // Call eval to get a class id.
-    var evalResult = await eval(isolate, 'new _DummyClass()');
+    var evalResult = await invoke(isolate, 'getDummyClass');
     var id = "${evalResult['class']['id']}/functions/invalid";
     var params = {
       'objectId': id,
@@ -865,7 +884,7 @@ var tests = <IsolateTest>[
   // field
   (Isolate isolate) async {
     // Call eval to get a class id.
-    var evalResult = await eval(isolate, 'new _DummyClass()');
+    var evalResult = await invoke(isolate, 'getDummyClass');
     var id = "${evalResult['class']['id']}/fields/dummyVar";
     var params = {
       'objectId': id,
@@ -899,7 +918,7 @@ var tests = <IsolateTest>[
     }
 
     // Call eval to get a class id.
-    var evalResult = await eval(isolate, 'new _DummyClass()');
+    var evalResult = await invoke(isolate, 'getDummyClass');
     var id = "${evalResult['class']['id']}/fields/dummyList";
     var params = {
       'objectId': id,
@@ -920,7 +939,7 @@ var tests = <IsolateTest>[
   // invalid field.
   (Isolate isolate) async {
     // Call eval to get a class id.
-    var evalResult = await eval(isolate, 'new _DummyClass()');
+    var evalResult = await invoke(isolate, 'getDummyClass');
     var id = "${evalResult['class']['id']}/fields/mythicalField";
     var params = {
       'objectId': id,
@@ -941,7 +960,7 @@ var tests = <IsolateTest>[
   // code.
   (Isolate isolate) async {
     // Call eval to get a class id.
-    var evalResult = await eval(isolate, 'new _DummyClass()');
+    var evalResult = await invoke(isolate, 'getDummyClass');
     var funcId = "${evalResult['class']['id']}/functions/dummyFunction";
     var params = {
       'objectId': funcId,

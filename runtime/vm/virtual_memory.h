@@ -75,6 +75,13 @@ class VirtualMemory {
 
   static VirtualMemory* ForImagePage(void* pointer, uword size);
 
+  void release() {
+    // Make sure no pages would be leaked.
+    const uword size_ = size();
+    ASSERT(address() == reserved_.pointer() && size_ == reserved_.size());
+    reserved_ = MemoryRegion(nullptr, 0);
+  }
+
  private:
   static intptr_t CalculatePageSize();
 

@@ -18,12 +18,6 @@ import "dart:typed_data" show Uint32List;
 @patch
 @pragma("vm:prefer-inline")
 T min<T extends num>(T a, T b) {
-  // These partially redundant type checks improve code quality for dart2js.
-  // Most of the improvement is at call sites from the inferred non-null num
-  // return type.
-  if (a is! num) throw new ArgumentError(a);
-  if (b is! num) throw new ArgumentError(b);
-
   if (a > b) return b;
   if (a < b) return a;
   if (b is double) {
@@ -48,12 +42,6 @@ T min<T extends num>(T a, T b) {
 @patch
 @pragma("vm:prefer-inline")
 T max<T extends num>(T a, T b) {
-  // These partially redundant type checks improve code quality for dart2js.
-  // Most of the improvement is at call sites from the inferred non-null num
-  // return type.
-  if (a is! num) throw new ArgumentError(a);
-  if (b is! num) throw new ArgumentError(b);
-
   if (a > b) return a;
   if (a < b) return b;
   if (b is double) {

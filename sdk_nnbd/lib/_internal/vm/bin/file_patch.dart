@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "common_patch.dart";
 
 @patch
@@ -76,9 +74,9 @@ class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
   int close() native "File_Close";
   readByte() native "File_ReadByte";
   read(int bytes) native "File_Read";
-  readInto(List<int> buffer, int start, int end) native "File_ReadInto";
+  readInto(List<int> buffer, int start, int? end) native "File_ReadInto";
   writeByte(int value) native "File_WriteByte";
-  writeFrom(List<int> buffer, int start, int end) native "File_WriteFrom";
+  writeFrom(List<int> buffer, int start, int? end) native "File_WriteFrom";
   position() native "File_Position";
   setPosition(int position) native "File_SetPosition";
   truncate(int length) native "File_Truncate";
@@ -96,19 +94,20 @@ class _WatcherPath {
 }
 
 @patch
-class _FileSystemWatcher {
+abstract class _FileSystemWatcher {
   void _pathWatchedEnd();
 
-  static int _id;
+  static int? _id;
   static final Map<int, _WatcherPath> _idMap = {};
 
   final String _path;
   final int _events;
   final bool _recursive;
 
-  _WatcherPath _watcherPath;
+  _WatcherPath? _watcherPath;
 
-  StreamController<FileSystemEvent> _broadcastController;
+  final StreamController<FileSystemEvent> _broadcastController =
+      new StreamController<FileSystemEvent>.broadcast();
 
   @patch
   static Stream<FileSystemEvent> _watch(
@@ -132,8 +131,9 @@ class _FileSystemWatcher {
       throw new FileSystemException(
           "File system watching is not supported on this platform", _path);
     }
-    _broadcastController = new StreamController<FileSystemEvent>.broadcast(
-        onListen: _listen, onCancel: _cancel);
+    _broadcastController
+      ..onListen = _listen
+      ..onCancel = _cancel;
   }
 
   Stream<FileSystemEvent> get _stream => _broadcastController.stream;
@@ -153,7 +153,7 @@ class _FileSystemWatcher {
     var pathId;
     try {
       pathId =
-          _watchPath(_id, _Namespace._namespace, _path, _events, _recursive);
+          _watchPath(_id!, _Namespace._namespace, _path, _events, _recursive);
     } catch (e) {
       _broadcastController
           .addError(new FileSystemException("Failed to watch path", _path, e));
@@ -164,23 +164,25 @@ class _FileSystemWatcher {
       _idMap[pathId] = new _WatcherPath(pathId, _path, _events);
     }
     _watcherPath = _idMap[pathId];
-    _watcherPath.count++;
+    _watcherPath!.count++;
     _pathWatched().pipe(_broadcastController);
   }
 
   void _cancel() {
-    if (_watcherPath != null) {
-      assert(_watcherPath.count > 0);
-      _watcherPath.count--;
-      if (_watcherPath.count == 0) {
-        _unwatchPath(_id, _watcherPath.pathId);
+    final watcherPath = _watcherPath;
+    if (watcherPath != null) {
+      assert(watcherPath.count > 0);
+      watcherPath.count--;
+      if (watcherPath.count == 0) {
+        _unwatchPath(_id!, watcherPath.pathId);
         _pathWatchedEnd();
-        _idMap.remove(_watcherPath.pathId);
+        _idMap.remove(watcherPath.pathId);
       }
       _watcherPath = null;
     }
-    if (_idMap.isEmpty && _id != null) {
-      _closeWatcher(_id);
+    final id = _id;
+    if (_idMap.isEmpty && id != null) {
+      _closeWatcher(id);
       _doneWatcher();
       _id = null;
     }
@@ -191,12 +193,12 @@ class _FileSystemWatcher {
   // Called when a watcher is no longer needed.
   void _doneWatcher() {}
   // Called when a new path is being watched.
-  Stream _pathWatched() {}
+  Stream _pathWatched();
   // Called when a path is no longer being watched.
   void _donePathWatched() {}
 
   static _WatcherPath _pathFromPathId(int pathId) {
-    return _idMap[pathId];
+    return _idMap[pathId]!;
   }
 
   static Stream _listenOnSocket(int socketId, int id, int pathId) {
@@ -235,7 +237,7 @@ class _FileSystemWatcher {
           if (event[3]) {
             add(event[4], new FileSystemCreateEvent._(getPath(event), isDir));
           } else {
-            add(event[4], new FileSystemDeleteEvent._(getPath(event), isDir));
+            add(event[4], new FileSystemDeleteEvent._(getPath(event), false));
           }
         }
 
@@ -279,10 +281,10 @@ class _FileSystemWatcher {
               }
             }
             if ((event[0] & FileSystemEvent.delete) != 0) {
-              add(event[4], new FileSystemDeleteEvent._(path, isDir));
+              add(event[4], new FileSystemDeleteEvent._(path, false));
             }
             if ((event[0] & FileSystemEvent._deleteSelf) != 0) {
-              add(event[4], new FileSystemDeleteEvent._(path, isDir));
+              add(event[4], new FileSystemDeleteEvent._(path, false));
               // Signal done event.
               stops.add([event[4], null]);
             }
@@ -305,7 +307,7 @@ class _FileSystemWatcher {
           var path = _pathFromPathId(pathId).path;
           _idMap.remove(pathId);
           if (_idMap.isEmpty && _id != null) {
-            _closeWatcher(_id);
+            _closeWatcher(_id!);
             _id = null;
           }
           throw FileSystemException(
@@ -337,20 +339,20 @@ class _FileSystemWatcher {
 
 class _InotifyFileSystemWatcher extends _FileSystemWatcher {
   static final Map<int, StreamController> _idMap = {};
-  static StreamSubscription _subscription;
+  static late StreamSubscription _subscription;
 
   _InotifyFileSystemWatcher(path, events, recursive)
       : super._(path, events, recursive);
 
   void _newWatcher() {
-    int id = _FileSystemWatcher._id;
+    int id = _FileSystemWatcher._id!;
     _subscription =
         _FileSystemWatcher._listenOnSocket(id, id, 0).listen((event) {
       if (_idMap.containsKey(event[0])) {
         if (event[1] != null) {
-          _idMap[event[0]].add(event[1]);
+          _idMap[event[0]]!.add(event[1]);
         } else {
-          _idMap[event[0]].close();
+          _idMap[event[0]]!.close();
         }
       }
     });
@@ -361,30 +363,30 @@ class _InotifyFileSystemWatcher extends _FileSystemWatcher {
   }
 
   Stream _pathWatched() {
-    var pathId = _watcherPath.pathId;
+    var pathId = _watcherPath!.pathId;
     if (!_idMap.containsKey(pathId)) {
       _idMap[pathId] = new StreamController<FileSystemEvent>.broadcast();
     }
-    return _idMap[pathId].stream;
+    return _idMap[pathId]!.stream;
   }
 
   void _pathWatchedEnd() {
-    var pathId = _watcherPath.pathId;
+    var pathId = _watcherPath!.pathId;
     if (!_idMap.containsKey(pathId)) return;
-    _idMap[pathId].close();
+    _idMap[pathId]!.close();
     _idMap.remove(pathId);
   }
 }
 
 class _Win32FileSystemWatcher extends _FileSystemWatcher {
-  StreamSubscription _subscription;
-  StreamController _controller;
+  late StreamSubscription _subscription;
+  late StreamController _controller;
 
   _Win32FileSystemWatcher(path, events, recursive)
       : super._(path, events, recursive);
 
   Stream _pathWatched() {
-    var pathId = _watcherPath.pathId;
+    var pathId = _watcherPath!.pathId;
     _controller = new StreamController<FileSystemEvent>();
     _subscription =
         _FileSystemWatcher._listenOnSocket(pathId, 0, pathId).listen((event) {
@@ -405,14 +407,14 @@ class _Win32FileSystemWatcher extends _FileSystemWatcher {
 }
 
 class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
-  StreamSubscription _subscription;
-  StreamController _controller;
+  late StreamSubscription _subscription;
+  late StreamController _controller;
 
   _FSEventStreamFileSystemWatcher(path, events, recursive)
       : super._(path, events, recursive);
 
   Stream _pathWatched() {
-    var pathId = _watcherPath.pathId;
+    var pathId = _watcherPath!.pathId;
     var socketId = _FileSystemWatcher._getSocketId(0, pathId);
     _controller = new StreamController<FileSystemEvent>();
     _subscription =

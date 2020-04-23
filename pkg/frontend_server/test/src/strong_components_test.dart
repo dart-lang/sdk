@@ -97,11 +97,10 @@ void main() {
     });
   });
 
-  test('does not index loaded , dart:, or unimported libraries', () {
+  test('does not index loaded, dart:, or unimported libraries', () {
     final libraryLoaded = Library(
       Uri.file('a.dart'),
       fileUri: Uri.file('/a.dart'),
-      isExternal: true,
     );
     final libraryDart = Library(
       Uri.parse('dart:foo'),

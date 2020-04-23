@@ -18,6 +18,8 @@ import 'dill/dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'source/source_library_builder.dart' show SourceLibraryBuilder;
 
+import 'incremental_compiler.dart' show getPartUri;
+
 class BuilderGraph implements Graph<Uri> {
   final Map<Uri, LibraryBuilder> builders;
 
@@ -34,20 +36,20 @@ class BuilderGraph implements Graph<Uri> {
       for (Import import in library.imports) {
         // 'imported' can be null for fake imports, such as dart-ext:.
         if (import.imported != null) {
-          Uri uri = import.imported.uri;
+          Uri uri = import.imported.importUri;
           if (builders.containsKey(uri)) {
             yield uri;
           }
         }
       }
       for (Export export in library.exports) {
-        Uri uri = export.exported.uri;
+        Uri uri = export.exported.importUri;
         if (builders.containsKey(uri)) {
           yield uri;
         }
       }
       for (SourceLibraryBuilder part in library.parts) {
-        Uri uri = part.uri;
+        Uri uri = part.importUri;
         if (builders.containsKey(uri)) {
           yield uri;
         }
@@ -63,7 +65,7 @@ class BuilderGraph implements Graph<Uri> {
 
       // Parts
       for (LibraryPart part in library.library.parts) {
-        Uri uri = library.uri.resolve(part.partUri);
+        Uri uri = getPartUri(library.importUri, part);
         if (builders.containsKey(uri)) {
           yield uri;
         }

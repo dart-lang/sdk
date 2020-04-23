@@ -37,6 +37,15 @@ class ExperimentsTest {
         knownFeatures, () => validateFlags(flags).toList());
   }
 
+  test_currentVersion() {
+    // We don't care what the current version is, we just want to make sure that
+    // it parses without error, and that it takes a simple 'major.minor' form.
+    var currentVersion = ExperimentStatus.currentVersion;
+    expect(currentVersion.patch, 0);
+    expect(currentVersion.preRelease, isEmpty);
+    expect(currentVersion.build, isEmpty);
+  }
+
   test_fromStrings_conflicting_flags_disable_then_enable() {
     // Enable takes precedence because it's last
     knownFeatures['a'] = ExperimentalFeature(0, 'a', false, false, 'a');

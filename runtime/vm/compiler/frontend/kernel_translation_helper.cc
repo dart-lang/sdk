@@ -6,6 +6,9 @@
 
 #include "vm/class_finalizer.h"
 #include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/frontend/constant_reader.h"
+#include "vm/flags.h"
 #include "vm/log.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"  // for ParsedFunction
@@ -675,13 +678,13 @@ RawFunction* TranslationHelper::LookupMethodByMember(
 
   Function& function =
       Function::Handle(Z, klass.LookupFunctionAllowPrivate(method_name));
-  CheckStaticLookup(function);
 #ifdef DEBUG
   if (function.IsNull()) {
     THR_Print("Unable to find \'%s\' in %s\n", method_name.ToCString(),
               klass.ToCString());
   }
 #endif
+  CheckStaticLookup(function);
   ASSERT(!function.IsNull());
   return function.raw();
 }
@@ -733,7 +736,6 @@ void TranslationHelper::SetupFieldAccessorFunction(
 
   intptr_t pos = 0;
   if (is_method) {
-    // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
     function.SetParameterTypeAt(pos, GetDeclarationType(klass));
     function.SetParameterNameAt(pos, Symbols::This());
     pos++;
@@ -1684,11 +1686,14 @@ DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForMethodInvocation(
 }
 
 InferredTypeMetadataHelper::InferredTypeMetadataHelper(
-    KernelReaderHelper* helper)
-    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+    KernelReaderHelper* helper,
+    ConstantReader* constant_reader)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true),
+      constant_reader_(constant_reader) {}
 
 InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
-    intptr_t node_offset) {
+    intptr_t node_offset,
+    bool read_constant) {
   const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
   if (md_offset < 0) {
     return InferredTypeMetadata(kDynamicCid,
@@ -1701,7 +1706,17 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
   const NameIndex kernel_name = helper_->ReadCanonicalNameReference();
   const uint8_t flags = helper_->ReadByte();
 
+  const Object* constant_value = &Object::null_object();
+  if ((flags & InferredTypeMetadata::kFlagConstant) != 0) {
+    const intptr_t constant_offset = helper_->ReadUInt();
+    if (read_constant) {
+      constant_value = &Object::ZoneHandle(
+          H.zone(), constant_reader_->ReadConstant(constant_offset));
+    }
+  }
+
   if (H.IsRoot(kernel_name)) {
+    ASSERT((flags & InferredTypeMetadata::kFlagConstant) == 0);
     return InferredTypeMetadata(kDynamicCid, flags);
   }
 
@@ -1716,16 +1731,19 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     cid = kDynamicCid;
   }
 
-  return InferredTypeMetadata(cid, flags);
+  return InferredTypeMetadata(cid, flags, *constant_value);
 }
 
 void ProcedureAttributesMetadata::InitializeFromFlags(uint8_t flags) {
-  const int kDynamicUsesBit = 1 << 0;
+  const int kMethodOrSetterCalledDynamicallyBit = 1 << 0;
   const int kNonThisUsesBit = 1 << 1;
   const int kTearOffUsesBit = 1 << 2;
   const int kThisUsesBit = 1 << 3;
+  const int kGetterCalledDynamicallyBit = 1 << 4;
 
-  has_dynamic_invocations = (flags & kDynamicUsesBit) != 0;
+  method_or_setter_called_dynamically =
+      (flags & kMethodOrSetterCalledDynamicallyBit) != 0;
+  getter_called_dynamically = (flags & kGetterCalledDynamicallyBit) != 0;
   has_this_uses = (flags & kThisUsesBit) != 0;
   has_non_this_uses = (flags & kNonThisUsesBit) != 0;
   has_tearoff_uses = (flags & kTearOffUsesBit) != 0;
@@ -1748,6 +1766,8 @@ bool ProcedureAttributesMetadataHelper::ReadMetadata(
 
   const uint8_t flags = helper_->ReadByte();
   metadata->InitializeFromFlags(flags);
+  metadata->method_or_setter_selector_id = helper_->ReadUInt();
+  metadata->getter_selector_id = helper_->ReadUInt();
   return true;
 }
 
@@ -1807,6 +1827,69 @@ CallSiteAttributesMetadataHelper::GetCallSiteAttributes(intptr_t node_offset) {
   CallSiteAttributesMetadata metadata;
   ReadMetadata(node_offset, &metadata);
   return metadata;
+}
+
+TableSelectorMetadataHelper::TableSelectorMetadataHelper(
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+
+TableSelectorMetadata* TableSelectorMetadataHelper::GetTableSelectorMetadata(
+    Zone* zone) {
+  const intptr_t node_offset = GetComponentMetadataPayloadOffset();
+  const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return nullptr;
+  }
+
+  AlternativeReadingScopeWithNewData alt(&helper_->reader_,
+                                         &H.metadata_payloads(), md_offset);
+
+  const intptr_t num_selectors = helper_->ReadUInt();
+  TableSelectorMetadata* metadata =
+      new (zone) TableSelectorMetadata(num_selectors);
+  for (intptr_t i = 0; i < num_selectors; i++) {
+    ReadTableSelectorInfo(&metadata->selectors[i]);
+  }
+  return metadata;
+}
+
+void TableSelectorMetadataHelper::ReadTableSelectorInfo(
+    TableSelectorInfo* info) {
+  info->call_count = helper_->ReadUInt();
+  info->called_on_null = helper_->ReadByte() != 0;
+}
+
+UnboxingInfoMetadataHelper::UnboxingInfoMetadataHelper(
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+
+UnboxingInfoMetadata* UnboxingInfoMetadataHelper::GetUnboxingInfoMetadata(
+    intptr_t node_offset) {
+  const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+
+  if (md_offset < 0) {
+    return nullptr;
+  }
+
+  AlternativeReadingScopeWithNewData alt(&helper_->reader_,
+                                         &H.metadata_payloads(), md_offset);
+
+  const intptr_t num_args = helper_->ReadUInt();
+  const auto info = new (helper_->zone_) UnboxingInfoMetadata();
+  info->SetArgsCount(num_args);
+  for (intptr_t i = 0; i < num_args; i++) {
+    const auto arg_info = helper_->ReadByte();
+    assert(arg_info >= UnboxingInfoMetadata::kBoxed &&
+           arg_info < UnboxingInfoMetadata::kUnboxingCandidate);
+    info->unboxed_args_info[i] =
+        static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(arg_info);
+  }
+  const auto return_info = helper_->ReadByte();
+  assert(return_info >= UnboxingInfoMetadata::kBoxed &&
+         return_info < UnboxingInfoMetadata::kUnboxingCandidate);
+  info->return_info =
+      static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(return_info);
+  return info;
 }
 
 intptr_t KernelReaderHelper::ReaderOffset() const {
@@ -2247,6 +2330,9 @@ void KernelReaderHelper::SkipExpression() {
       return;
     case kIsExpression:
       ReadPosition();    // read position.
+      if (translation_helper_.info().kernel_binary_version() >= 38) {
+        SkipFlags();  // read flags.
+      }
       SkipExpression();  // read operand.
       SkipDartType();    // read type.
       return;
@@ -2729,15 +2815,21 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(
 }
 
 TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
+                               ConstantReader* constant_reader,
                                ActiveClass* active_class,
-                               bool finalize)
+                               bool finalize,
+                               bool apply_legacy_erasure)
     : helper_(helper),
+      constant_reader_(constant_reader),
       translation_helper_(helper->translation_helper_),
       active_class_(active_class),
       type_parameter_scope_(NULL),
+      inferred_type_metadata_helper_(helper_, constant_reader_),
+      unboxing_info_metadata_helper_(helper_),
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
-      finalize_(finalize) {}
+      finalize_(finalize),
+      apply_legacy_erasure_(apply_legacy_erasure) {}
 
 AbstractType& TypeTranslator::BuildType() {
   BuildTypeInternal();
@@ -2768,14 +2860,18 @@ void TypeTranslator::BuildTypeInternal() {
     case kVoidType:
       result_ = Object::void_type().raw();
       break;
+    case kNeverType: {
+      const Nullability nullability = helper_->ReadNullability();
+      result_ = Object::never_type().ToNullability(nullability, Heap::kOld);
+      if (apply_legacy_erasure_ && result_.IsNeverType()) {
+        result_ = I->object_store()->null_type();
+      }
+      break;
+    }
     case kBottomType:
+      // Map Bottom type to Null type until not emitted by CFE anymore.
       result_ = I->object_store()->null_type();
       ASSERT(result_.IsNullable());
-      break;
-    case kNeverType:
-      helper_->ReadNullability();
-      // Ignore nullability, as Never type is non-nullable.
-      result_ = Object::never_type().raw();
       break;
     case kInterfaceType:
       BuildInterfaceType(false);
@@ -2803,7 +2899,10 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   // malformed iff `T` is malformed.
   //   => We therefore ignore errors in `A` or `B`.
 
-  const Nullability nullability = helper_->ReadNullability();
+  Nullability nullability = helper_->ReadNullability();
+  if (apply_legacy_erasure_) {
+    nullability = Nullability::kLegacy;
+  }
 
   NameIndex klass_name =
       helper_->ReadCanonicalNameReference();  // read klass_name.
@@ -2818,7 +2917,8 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       // Fast path for non-generic types: retrieve or populate the class's only
       // canonical type (as long as only one nullability variant is used), which
       // is its declaration type.
-      result_ = klass.DeclarationType(nullability);
+      result_ = klass.DeclarationType();
+      result_ = Type::Cast(result_).ToNullability(nullability, Heap::kOld);
     } else {
       // Note that the type argument vector is not yet extended.
       result_ = Type::New(klass, Object::null_type_arguments(),
@@ -2831,8 +2931,9 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       helper_->ReadListLength();  // read type_arguments list length.
   const TypeArguments& type_arguments =
       BuildTypeArguments(length);  // read type arguments.
-  result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
-  Type::Cast(result_).set_nullability(nullability);
+  result_ =
+      Type::New(klass, type_arguments, TokenPosition::kNoSource, nullability);
+  result_ = result_.NormalizeFutureOrType(Heap::kOld);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
     result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
@@ -2847,7 +2948,10 @@ void TypeTranslator::BuildFunctionType(bool simple) {
                                             : Function::Handle(Z),
                                         TokenPosition::kNoSource));
 
-  const Nullability nullability = helper_->ReadNullability();
+  Nullability nullability = helper_->ReadNullability();
+  if (apply_legacy_erasure_) {
+    nullability = Nullability::kLegacy;
+  }
 
   // Suspend finalization of types inside this one. They will be finalized after
   // the whole function type is constructed.
@@ -2881,11 +2985,15 @@ void TypeTranslator::BuildFunctionType(bool simple) {
     all_count = positional_count;
   }
 
+  const intptr_t all_count_with_receiver = all_count + 1;
   const Array& parameter_types =
-      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld));
+      Array::Handle(Z, Array::New(all_count_with_receiver, Heap::kOld));
   signature_function.set_parameter_types(parameter_types);
-  const Array& parameter_names =
-      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld));
+  const Array& parameter_names = Array::Handle(
+      Z, Array::New(simple ? all_count_with_receiver
+                           : Function::NameArrayLengthIncludingFlags(
+                                 all_count_with_receiver),
+                    Heap::kOld));
   signature_function.set_parameter_names(parameter_names);
 
   intptr_t pos = 0;
@@ -2910,11 +3018,15 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
-      // TODO(markov): Store 'required' bit.
-      helper_->ReadFlags();  // read flags
+      const uint8_t flags = helper_->ReadFlags();  // read flags
       parameter_types.SetAt(pos, result_);
       parameter_names.SetAt(pos, name);
+      if (!apply_legacy_erasure_ &&
+          (flags & static_cast<uint8_t>(NamedTypeFlags::kIsRequired)) != 0) {
+        signature_function.SetIsRequiredAt(pos);
+      }
     }
+    signature_function.TruncateUnusedParameterFlags();
   }
 
   if (!simple) {
@@ -2941,7 +3053,11 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 }
 
 void TypeTranslator::BuildTypeParameterType() {
-  const Nullability nullability = helper_->ReadNullability();
+  Nullability nullability = helper_->ReadNullability();
+  if (apply_legacy_erasure_) {
+    nullability = Nullability::kLegacy;
+  }
+
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
   helper_->SkipOptionalDartType();                 // read bound.
 
@@ -2950,9 +3066,11 @@ void TypeTranslator::BuildTypeParameterType() {
   if (parameter_index < class_types.Length()) {
     // The index of the type parameter in [parameters] is
     // the same index into the `klass->type_parameters()` array.
-    result_ = class_types.TypeAt(parameter_index);
-    result_ =
-        TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
+    const auto& type_param =
+        TypeParameter::CheckedHandle(Z, class_types.TypeAt(parameter_index));
+    result_ = type_param.ToNullability(nullability, Heap::kOld);
+    active_class_->RecordDerivedTypeParameter(Z, type_param,
+                                              TypeParameter::Cast(result_));
     return;
   }
   parameter_index -= class_types.Length();
@@ -2977,9 +3095,11 @@ void TypeTranslator::BuildTypeParameterType() {
       //   }
       //
       if (class_types.Length() > parameter_index) {
-        result_ = class_types.TypeAt(parameter_index);
-        result_ =
-            TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
+        const auto& type_param = TypeParameter::CheckedHandle(
+            Z, class_types.TypeAt(parameter_index));
+        result_ = type_param.ToNullability(nullability, Heap::kOld);
+        active_class_->RecordDerivedTypeParameter(Z, type_param,
+                                                  TypeParameter::Cast(result_));
         return;
       }
       parameter_index -= class_types.Length();
@@ -2992,11 +3112,13 @@ void TypeTranslator::BuildTypeParameterType() {
             : 0;
     if (procedure_type_parameter_count > 0) {
       if (procedure_type_parameter_count > parameter_index) {
-        result_ =
+        const auto& type_param = TypeParameter::CheckedHandle(
+            Z,
             TypeArguments::Handle(Z, active_class_->member->type_parameters())
-                .TypeAt(parameter_index);
-        result_ =
-            TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
+                .TypeAt(parameter_index));
+        result_ = type_param.ToNullability(nullability, Heap::kOld);
+        active_class_->RecordDerivedTypeParameter(Z, type_param,
+                                                  TypeParameter::Cast(result_));
         if (finalize_) {
           result_ =
               ClassFinalizer::FinalizeType(*active_class_->klass, result_);
@@ -3009,9 +3131,11 @@ void TypeTranslator::BuildTypeParameterType() {
 
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
-      result_ = active_class_->local_type_parameters->TypeAt(parameter_index);
-      result_ =
-          TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
+      const auto& type_param = TypeParameter::CheckedHandle(
+          Z, active_class_->local_type_parameters->TypeAt(parameter_index));
+      result_ = type_param.ToNullability(nullability, Heap::kOld);
+      active_class_->RecordDerivedTypeParameter(Z, type_param,
+                                                TypeParameter::Cast(result_));
       if (finalize_) {
         result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
       }
@@ -3104,6 +3228,13 @@ void TypeTranslator::LoadAndSetupTypeParameters(
   TypeParameter& parameter = TypeParameter::Handle(Z);
   const Type& null_bound = Type::Handle(Z);
 
+  const NNBDMode nnbd_mode = set_on.IsClass()
+                                 ? Class::Cast(set_on).nnbd_mode()
+                                 : Function::Cast(set_on).nnbd_mode();
+  const Nullability nullability = (nnbd_mode == NNBDMode::kOptedInLib)
+                                      ? Nullability::kNonNullable
+                                      : Nullability::kLegacy;
+
   // Step a) Create array of [TypeParameter] objects (without bound).
   type_parameters = TypeArguments::New(type_parameter_count);
   const Library& lib = Library::Handle(Z, active_class->klass->library());
@@ -3116,7 +3247,7 @@ void TypeTranslator::LoadAndSetupTypeParameters(
           set_on_class ? *active_class->klass : Class::Handle(Z),
           parameterized_function, i,
           H.DartIdentifier(lib, helper.name_index_),  // read ith name index.
-          null_bound, helper.IsGenericCovariantImpl(),
+          null_bound, helper.IsGenericCovariantImpl(), nullability,
           TokenPosition::kNoSource);
       type_parameters.SetTypeAt(i, parameter);
     }
@@ -3153,6 +3284,24 @@ void TypeTranslator::LoadAndSetupTypeParameters(
 
     helper.Finish();
   }
+
+  // Fix bounds in all derived type parameters (with different nullabilities).
+  if (active_class->derived_type_parameters != nullptr) {
+    auto& derived = TypeParameter::Handle(Z);
+    auto& bound = AbstractType::Handle(Z);
+    for (intptr_t i = 0, n = active_class->derived_type_parameters->Length();
+         i < n; ++i) {
+      derived ^= active_class->derived_type_parameters->At(i);
+      if (derived.bound() == AbstractType::null() &&
+          (derived.parameterized_class() == set_on.raw() ||
+           derived.parameterized_function() == set_on.raw())) {
+        ASSERT(!derived.IsFinalized());
+        parameter ^= type_parameters.TypeAt(derived.index());
+        bound = parameter.bound();
+        derived.set_bound(bound);
+      }
+    }
+  }
 }
 
 const Type& TypeTranslator::ReceiverType(const Class& klass) {
@@ -3165,10 +3314,80 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
     type = klass.DeclarationType();
   } else {
     type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
-                     klass.token_pos());
+                     klass.token_pos(),
+                     Dart::non_nullable_flag() ? Nullability::kNonNullable
+                                               : Nullability::kLegacy);
   }
-  // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
   return type;
+}
+
+static void SetupUnboxingInfoOfParameter(const Function& function,
+                                         intptr_t param_index,
+                                         const UnboxingInfoMetadata* metadata) {
+  const intptr_t param_pos =
+      param_index + (function.HasThisParameter() ? 1 : 0);
+
+  if (param_pos < function.maximum_unboxed_parameter_count()) {
+    switch (metadata->unboxed_args_info[param_index]) {
+      case UnboxingInfoMetadata::kUnboxedIntCandidate:
+        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
+          function.set_unboxed_integer_parameter_at(param_pos);
+        }
+        break;
+      case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+        if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
+          function.set_unboxed_double_parameter_at(param_pos);
+        }
+        break;
+      case UnboxingInfoMetadata::kUnboxingCandidate:
+        UNREACHABLE();
+        break;
+      case UnboxingInfoMetadata::kBoxed:
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+  }
+}
+
+void TypeTranslator::SetupUnboxingInfoMetadata(const Function& function,
+                                               intptr_t library_kernel_offset) {
+  const intptr_t kernel_offset =
+      function.kernel_offset() + library_kernel_offset;
+
+  const auto unboxing_info =
+      unboxing_info_metadata_helper_.GetUnboxingInfoMetadata(kernel_offset);
+
+  // TODO(dartbug.com/32292): accept unboxed parameters and return value
+  // when FLAG_use_table_dispatch == false.
+  if (FLAG_precompiled_mode && unboxing_info != nullptr &&
+      FLAG_use_table_dispatch && FLAG_use_bare_instructions) {
+    for (intptr_t i = 0; i < unboxing_info->unboxed_args_info.length(); i++) {
+      SetupUnboxingInfoOfParameter(function, i, unboxing_info);
+    }
+
+    switch (unboxing_info->return_info) {
+      case UnboxingInfoMetadata::kUnboxedIntCandidate:
+        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
+          function.set_unboxed_integer_return();
+        }
+        break;
+      case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+        if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
+          function.set_unboxed_double_return();
+        }
+        break;
+      case UnboxingInfoMetadata::kUnboxingCandidate:
+        UNREACHABLE();
+        break;
+      case UnboxingInfoMetadata::kBoxed:
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+  }
 }
 
 void TypeTranslator::SetupFunctionParameters(
@@ -3211,14 +3430,16 @@ void TypeTranslator::SetupFunctionParameters(
         positional_parameter_count - required_parameter_count, true);
   }
   intptr_t parameter_count = extra_parameters + total_parameter_count;
+
   function.set_parameter_types(
       Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-  function.set_parameter_names(
-      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
+  const Array& parameter_names = Array::Handle(
+      Z, Array::New(Function::NameArrayLengthIncludingFlags(parameter_count),
+                    Heap::kOld));
+  function.set_parameter_names(parameter_names);
   intptr_t pos = 0;
   if (is_method) {
     ASSERT(!klass.IsNull());
-    // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
     function.SetParameterTypeAt(pos, H.GetDeclarationType(klass));
     function.SetParameterNameAt(pos, Symbols::This());
     pos++;
@@ -3262,7 +3483,11 @@ void TypeTranslator::SetupFunctionParameters(
 
     function.SetParameterTypeAt(pos, type);
     function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
+    if (helper.IsRequired()) {
+      function.SetIsRequiredAt(pos);
+    }
   }
+  function.TruncateUnusedParameterFlags();
 
   function_node_helper->SetJustRead(FunctionNodeHelper::kNamedParameters);
 

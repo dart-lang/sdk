@@ -34,35 +34,33 @@ class NavigationMixinTest with ResourceProviderMixin {
     packagePath1 = convertPath('/package1');
     filePath1 = join(packagePath1, 'lib', 'test.dart');
     newFile(filePath1);
-    contextRoot1 = new ContextRoot(packagePath1, <String>[]);
+    contextRoot1 = ContextRoot(packagePath1, <String>[]);
 
-    channel = new MockChannel();
-    plugin = new _TestServerPlugin(resourceProvider);
+    channel = MockChannel();
+    plugin = _TestServerPlugin(resourceProvider);
     plugin.start(channel);
   }
 
-  test_handleAnalysisGetNavigation() async {
+  Future<void> test_handleAnalysisGetNavigation() async {
     await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot1]));
+        AnalysisSetContextRootsParams([contextRoot1]));
 
-    AnalysisGetNavigationResult result =
-        await plugin.handleAnalysisGetNavigation(
-            new AnalysisGetNavigationParams(filePath1, 1, 2));
+    var result = await plugin.handleAnalysisGetNavigation(
+        AnalysisGetNavigationParams(filePath1, 1, 2));
     expect(result, isNotNull);
     expect(result.files, hasLength(1));
     expect(result.targets, hasLength(1));
     expect(result.regions, hasLength(2));
   }
 
-  test_sendNavigationNotification() async {
+  Future<void> test_sendNavigationNotification() async {
     await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot1]));
+        AnalysisSetContextRootsParams([contextRoot1]));
 
-    Completer<void> notificationReceived = new Completer<void>();
+    var notificationReceived = Completer<void>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
-      AnalysisNavigationParams params =
-          new AnalysisNavigationParams.fromNotification(notification);
+      var params = AnalysisNavigationParams.fromNotification(notification);
       expect(params.files, hasLength(1));
       expect(params.targets, hasLength(1));
       expect(params.regions, hasLength(2));
@@ -81,9 +79,8 @@ class _TestNavigationContributor implements NavigationContributor {
   @override
   void computeNavigation(
       NavigationRequest request, NavigationCollector collector) {
-    for (int i = 0; i < regionCount; i++) {
-      collector.addRegion(
-          i, 5, ElementKind.METHOD, new Location('a', 5, 5, 1, 5));
+    for (var i = 0; i < regionCount; i++) {
+      collector.addRegion(i, 5, ElementKind.METHOD, Location('a', 5, 5, 1, 5));
     }
   }
 }
@@ -95,16 +92,16 @@ class _TestServerPlugin extends MockServerPlugin with NavigationMixin {
   @override
   List<NavigationContributor> getNavigationContributors(String path) {
     return <NavigationContributor>[
-      new _TestNavigationContributor(2),
-      new _TestNavigationContributor(1)
+      _TestNavigationContributor(2),
+      _TestNavigationContributor(1)
     ];
   }
 
   @override
   Future<NavigationRequest> getNavigationRequest(
       AnalysisGetNavigationParams parameters) async {
-    var result = new MockResolvedUnitResult(path: parameters.file);
-    return new DartNavigationRequestImpl(
+    var result = MockResolvedUnitResult(path: parameters.file);
+    return DartNavigationRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }
 }

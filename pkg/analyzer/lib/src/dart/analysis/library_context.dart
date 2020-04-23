@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -16,7 +17,6 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -46,12 +46,12 @@ class LibraryContext {
   final ByteStore byteStore;
   final AnalysisSession analysisSession;
   final SummaryDataStore externalSummaries;
-  final SummaryDataStore store = new SummaryDataStore([]);
+  final SummaryDataStore store = SummaryDataStore([]);
 
   /// The size of the linked data that is loaded by this context.
   /// When it reaches [_maxLinkedDataInBytes] the whole context is thrown away.
   /// We use it as an approximation for the heap size of elements.
-  int _linkedDataInBytes = 0;
+  final int _linkedDataInBytes = 0;
 
   AnalysisContextImpl analysisContext;
   LinkedElementFactory elementFactory;
@@ -79,13 +79,8 @@ class LibraryContext {
     _createElementFactory();
     load2(targetLibrary);
 
-    inheritanceManager = new InheritanceManager3();
+    inheritanceManager = InheritanceManager3();
   }
-
-  /**
-   * The type provider used in this context.
-   */
-  TypeProvider get typeProvider => analysisContext.typeProvider;
 
   /**
    * Computes a [CompilationUnitElement] for the given library/unit pair.
@@ -175,11 +170,16 @@ class LibraryContext {
         inputsTimer.stop();
         timerInputLibraries.stop();
 
-        timerLinking.start();
-        var linkResult = link2.link(elementFactory, inputLibraries);
-        librariesLinked += cycle.libraries.length;
-        counterLinkedLibraries += linkResult.bundle.libraries.length;
-        timerLinking.stop();
+        link2.LinkResult linkResult;
+        try {
+          timerLinking.start();
+          linkResult = link2.link(elementFactory, inputLibraries);
+          librariesLinked += cycle.libraries.length;
+          counterLinkedLibraries += linkResult.bundle.libraries.length;
+          timerLinking.stop();
+        } catch (exception, stackTrace) {
+          _throwLibraryCycleLinkException(cycle, exception, stackTrace);
+        }
 
         timerBundleToBytes.start();
         bytes = linkResult.bundle.toBuffer();
@@ -273,10 +273,40 @@ class LibraryContext {
 
   /// Ensure that type provider is created.
   void _createElementFactoryTypeProvider() {
-    if (analysisContext.typeProvider != null) return;
-
-    var dartCore = elementFactory.libraryOfUri('dart:core');
-    var dartAsync = elementFactory.libraryOfUri('dart:async');
-    elementFactory.createTypeProviders(dartCore, dartAsync);
+    if (analysisContext.typeProviderNonNullableByDefault == null) {
+      var dartCore = elementFactory.libraryOfUri('dart:core');
+      var dartAsync = elementFactory.libraryOfUri('dart:async');
+      elementFactory.createTypeProviders(dartCore, dartAsync);
+    }
   }
+
+  /// The [exception] was caught during the [cycle] linking.
+  ///
+  /// Throw another exception that wraps the given one, with more information.
+  @alwaysThrows
+  void _throwLibraryCycleLinkException(
+    LibraryCycle cycle,
+    Object exception,
+    StackTrace stackTrace,
+  ) {
+    var fileContentMap = <String, String>{};
+    for (var libraryFile in cycle.libraries) {
+      for (var file in libraryFile.libraryFiles) {
+        fileContentMap[file.path] = file.content;
+      }
+    }
+    throw LibraryCycleLinkException(exception, stackTrace, fileContentMap);
+  }
+}
+
+/// Exception that wraps another exception that happened during linking, and
+/// includes the content of all files of the library cycle.
+class LibraryCycleLinkException extends CaughtException {
+  final Map<String, String> fileContentMap;
+
+  LibraryCycleLinkException(
+    Object exception,
+    StackTrace stackTrace,
+    this.fileContentMap,
+  ) : super(exception, stackTrace);
 }

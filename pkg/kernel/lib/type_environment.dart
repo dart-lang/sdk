@@ -38,32 +38,43 @@ abstract class TypeEnvironment extends SubtypeTester {
   InterfaceType get nullType => coreTypes.nullType;
   InterfaceType get functionLegacyRawType => coreTypes.functionLegacyRawType;
 
-  InterfaceType literalListType(DartType elementType, Nullability nullability) {
+  /// Returns the type `List<E>` with the given [nullability] and [elementType]
+  /// as `E`.
+  InterfaceType listType(DartType elementType, Nullability nullability) {
     return new InterfaceType(
         coreTypes.listClass, nullability, <DartType>[elementType]);
   }
 
-  InterfaceType literalSetType(DartType elementType, Nullability nullability) {
+  /// Returns the type `Set<E>` with the given [nullability] and [elementType]
+  /// as `E`.
+  InterfaceType setType(DartType elementType, Nullability nullability) {
     return new InterfaceType(
         coreTypes.setClass, nullability, <DartType>[elementType]);
   }
 
-  InterfaceType literalMapType(
-      DartType key, DartType value, Nullability nullability) {
+  /// Returns the type `Map<K,V>` with the given [nullability], [key] as `K`
+  /// and [value] is `V`.
+  InterfaceType mapType(DartType key, DartType value, Nullability nullability) {
     return new InterfaceType(
         coreTypes.mapClass, nullability, <DartType>[key, value]);
   }
 
+  /// Returns the type `Iterable<E>` with the given [nullability] and [type]
+  /// as `E`.
   InterfaceType iterableType(DartType type, Nullability nullability) {
     return new InterfaceType(
         coreTypes.iterableClass, nullability, <DartType>[type]);
   }
 
+  /// Returns the type `Stream<E>` with the given [nullability] and [type]
+  /// as `E`.
   InterfaceType streamType(DartType type, Nullability nullability) {
     return new InterfaceType(
         coreTypes.streamClass, nullability, <DartType>[type]);
   }
 
+  /// Returns the type `Future<E>` with the given [nullability] and [type]
+  /// as `E`.
   InterfaceType futureType(DartType type, Nullability nullability) {
     return new InterfaceType(
         coreTypes.futureClass, nullability, <DartType>[type]);
@@ -83,12 +94,37 @@ abstract class TypeEnvironment extends SubtypeTester {
       // we aren't concerned with it.  If a class implements multiple
       // instantiations of Future, getTypeAsInstanceOf is responsible for
       // picking the least one in the sense required by the spec.
-      InterfaceType future = getTypeAsInstanceOf(type, coreTypes.futureClass);
-      if (future != null) {
-        return future.typeArguments[0];
+      List<DartType> futureArguments =
+          getTypeArgumentsAsInstanceOf(type, coreTypes.futureClass);
+      if (futureArguments != null) {
+        return futureArguments[0];
       }
     }
     return type;
+  }
+
+  /// Returns the type of the element in the for-in statement [node] with
+  /// [iterableType] as the static type of the iterable expression.
+  ///
+  /// The [iterableType] must be a subclass of `Stream` or `Iterable` depending
+  /// on whether `node.isAsync` is `true` or not.
+  DartType forInElementType(ForInStatement node, DartType iterableType) {
+    // TODO(johnniwinther): Update this to use the type of
+    //  `iterable.iterator.current` if inference is updated accordingly.
+    while (iterableType is TypeParameterType) {
+      TypeParameterType typeParameterType = iterableType;
+      iterableType =
+          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
+    }
+    if (node.isAsync) {
+      List<DartType> typeArguments =
+          getTypeArgumentsAsInstanceOf(iterableType, coreTypes.streamClass);
+      return typeArguments.single;
+    } else {
+      List<DartType> typeArguments =
+          getTypeArgumentsAsInstanceOf(iterableType, coreTypes.iterableClass);
+      return typeArguments.single;
+    }
   }
 
   /// Called if the computation of a static type failed due to a type error.
@@ -234,12 +270,12 @@ class IsSubtypeOf {
   /// nullability attribute, but mostly it's useful to combine the result from
   /// [IsSubtypeOf.basedSolelyOnNullabilities] via [and] with the partial
   /// results obtained from other type parts. For example, the overall result
-  /// for `List<int>? <: List<num>*` can be computed as `Ra.join(Rn)` where `Ra`
+  /// for `List<int>? <: List<num>*` can be computed as `Ra.and(Rn)` where `Ra`
   /// is the result of a subtype check on the arguments `int` and `num`, and
   /// `Rn` is the result of [IsSubtypeOf.basedSolelyOnNullabilities] on the
   /// types `List<int>?` and `List<num>*`.
   factory IsSubtypeOf.basedSolelyOnNullabilities(
-      DartType subtype, DartType supertype) {
+      DartType subtype, DartType supertype, Class futureOrClass) {
     if (subtype is InvalidType) {
       if (supertype is InvalidType) {
         return const IsSubtypeOf.always();
@@ -250,7 +286,37 @@ class IsSubtypeOf {
       return const IsSubtypeOf.onlyIfIgnoringNullabilities();
     }
 
-    if (subtype.isPotentiallyNullable && supertype.isPotentiallyNonNullable) {
+    if (isPotentiallyNullable(subtype, futureOrClass) &&
+        isPotentiallyNonNullable(supertype, futureOrClass)) {
+      // It's a special case to test X% <: X%, FutureOr<X%> <: FutureOr<X%>,
+      // FutureOr<FutureOr<X%>> <: FutureOr<FutureOr<X%>>, etc, where X is a
+      // type parameter.  In that case, the nullabilities of the subtype and the
+      // supertype are related, that is, they are both nullable or non-nullable
+      // at run time.
+      if (computeNullability(subtype, futureOrClass) ==
+              Nullability.undetermined &&
+          computeNullability(supertype, futureOrClass) ==
+              Nullability.undetermined) {
+        DartType unwrappedSubtype = subtype;
+        DartType unwrappedSupertype = supertype;
+        while (unwrappedSubtype is InterfaceType &&
+            unwrappedSubtype.classNode == futureOrClass) {
+          unwrappedSubtype =
+              (unwrappedSubtype as InterfaceType).typeArguments.single;
+        }
+        while (unwrappedSupertype is InterfaceType &&
+            unwrappedSupertype.classNode == futureOrClass) {
+          unwrappedSupertype =
+              (unwrappedSupertype as InterfaceType).typeArguments.single;
+        }
+        if (unwrappedSubtype is TypeParameterType &&
+            unwrappedSubtype.promotedBound == null &&
+            unwrappedSupertype is TypeParameterType &&
+            unwrappedSupertype.promotedBound == null &&
+            unwrappedSubtype.parameter == unwrappedSupertype.parameter) {
+          return const IsSubtypeOf.always();
+        }
+      }
       return const IsSubtypeOf.onlyIfIgnoringNullabilities();
     }
     return const IsSubtypeOf.always();
@@ -351,7 +417,11 @@ abstract class SubtypeTester {
 
   static List<Object> typeChecks;
 
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass);
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes);
+
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass);
 
   /// Determines if the given type is at the top of the type hierarchy.  May be
   /// overridden in subclasses.
@@ -403,7 +473,8 @@ abstract class SubtypeTester {
     if (subtype is NeverType) {
       return supertype is BottomType
           ? const IsSubtypeOf.never()
-          : new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype);
+          : new IsSubtypeOf.basedSolelyOnNullabilities(
+              subtype, supertype, futureOrClass);
     }
     if (subtype == nullType) {
       // TODO(dmitryas): Remove InvalidType from subtype relation.
@@ -431,9 +502,38 @@ abstract class SubtypeTester {
       var subtypeArg = subtype.typeArguments[0];
       if (supertype is InterfaceType &&
           identical(supertype.classNode, futureOrClass)) {
-        var supertypeArg = supertype.typeArguments[0];
-        // FutureOr<A> <: FutureOr<B> iff A <: B
-        return performNullabilityAwareSubtypeCheck(subtypeArg, supertypeArg);
+        DartType supertypeArg = supertype.typeArguments[0];
+        Nullability subtypeNullability =
+            computeNullabilityOfFutureOr(subtype, futureOrClass);
+        Nullability supertypeNullability =
+            computeNullabilityOfFutureOr(supertype, futureOrClass);
+        // The following is an optimized is-subtype-of test for the case where
+        // both LHS and RHS are FutureOrs.  It's based on the following:
+        // FutureOr<X> <: FutureOr<Y> iff X <: Y OR (X <: Future<Y> AND
+        // Future<X> <: Y).
+        //
+        // The correctness of that can be shown as follows:
+        //   1. FutureOr<X> <: Y iff X <: Y AND Future<X> <: Y
+        //   2. X <: FutureOr<Y> iff X <: Y OR X <: Future<Y>
+        //   3. 1,2 => FutureOr<X> <: FutureOr<Y> iff
+        //          (X <: Y OR X <: Future<Y>) AND
+        //            (Future<X> <: Y OR Future<X> <: Future<Y>)
+        //   4. X <: Y iff Future<X> <: Future<Y>
+        //   5. 3,4 => FutureOr<X> <: FutureOr<Y> iff
+        //          (X <: Y OR X <: Future<Y>) AND
+        //            (X <: Y OR Future<X> <: Y) iff
+        //          X <: Y OR (X <: Future<Y> AND Future<X> <: Y)
+        return performNullabilityAwareSubtypeCheck(subtypeArg, supertypeArg)
+            .or(performNullabilityAwareSubtypeCheck(subtypeArg,
+                    futureType(supertypeArg, Nullability.nonNullable))
+                .andSubtypeCheckFor(
+                    futureType(subtypeArg, Nullability.nonNullable),
+                    supertypeArg,
+                    this))
+            .and(new IsSubtypeOf.basedSolelyOnNullabilities(
+                subtype.withNullability(subtypeNullability),
+                supertype.withNullability(supertypeNullability),
+                futureOrClass));
       }
 
       // given t1 is Future<A> | A, then:
@@ -441,12 +541,14 @@ abstract class SubtypeTester {
       return performNullabilityAwareSubtypeCheck(subtypeArg, supertype)
           .andSubtypeCheckFor(
               futureType(subtypeArg, Nullability.nonNullable), supertype, this)
-          .and(new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype));
+          .and(new IsSubtypeOf.basedSolelyOnNullabilities(
+              subtype, supertype, futureOrClass));
     }
 
     if (supertype is InterfaceType && supertype.classNode == objectClass) {
       assert(supertype.nullability == Nullability.nonNullable);
-      return new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype);
+      return new IsSubtypeOf.basedSolelyOnNullabilities(
+          subtype, supertype, futureOrClass);
     }
 
     if (supertype is InterfaceType &&
@@ -463,13 +565,15 @@ abstract class SubtypeTester {
     }
 
     if (subtype is InterfaceType && supertype is InterfaceType) {
-      var upcastType = getTypeAsInstanceOf(subtype, supertype.classNode);
-      if (upcastType == null) return const IsSubtypeOf.never();
+      Class supertypeClass = supertype.classNode;
+      List<DartType> upcastTypeArguments =
+          getTypeArgumentsAsInstanceOf(subtype, supertypeClass);
+      if (upcastTypeArguments == null) return const IsSubtypeOf.never();
       IsSubtypeOf result = const IsSubtypeOf.always();
-      for (int i = 0; i < upcastType.typeArguments.length; ++i) {
+      for (int i = 0; i < upcastTypeArguments.length; ++i) {
         // Termination: the 'supertype' parameter decreases in size.
-        int variance = upcastType.classNode.typeParameters[i].variance;
-        DartType leftType = upcastType.typeArguments[i];
+        int variance = supertypeClass.typeParameters[i].variance;
+        DartType leftType = upcastTypeArguments[i];
         DartType rightType = supertype.typeArguments[i];
         if (variance == Variance.contravariant) {
           result = result
@@ -491,8 +595,8 @@ abstract class SubtypeTester {
           }
         }
       }
-      return result
-          .and(new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype));
+      return result.and(new IsSubtypeOf.basedSolelyOnNullabilities(
+          subtype, supertype, futureOrClass));
     }
     if (subtype is TypeParameterType) {
       if (supertype is TypeParameterType) {
@@ -528,18 +632,20 @@ abstract class SubtypeTester {
           // additional constraint, namely that they will be equal at run time.
           return result;
         }
-        return result.and(
-            new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype));
+        return result.and(new IsSubtypeOf.basedSolelyOnNullabilities(
+            subtype, supertype, futureOrClass));
       }
       // Termination: if there are no cyclically bound type parameters, this
       // recursive call can only occur a finite number of times, before reaching
       // a shrinking recursive call (or terminating).
-      return performNullabilityAwareSubtypeCheck(subtype.bound, supertype)
-          .and(new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype));
+      return performNullabilityAwareSubtypeCheck(subtype.bound, supertype).and(
+          new IsSubtypeOf.basedSolelyOnNullabilities(
+              subtype, supertype, futureOrClass));
     }
     if (subtype is FunctionType) {
       if (supertype is InterfaceType && supertype.classNode == functionClass) {
-        return new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype);
+        return new IsSubtypeOf.basedSolelyOnNullabilities(
+            subtype, supertype, futureOrClass);
       }
       if (supertype is FunctionType) {
         return _performNullabilityAwareFunctionSubtypeCheck(subtype, supertype);
@@ -625,8 +731,8 @@ abstract class SubtypeTester {
         return const IsSubtypeOf.never();
       }
     }
-    return result
-        .and(new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype));
+    return result.and(new IsSubtypeOf.basedSolelyOnNullabilities(
+        subtype, supertype, futureOrClass));
   }
 }
 
@@ -672,6 +778,14 @@ class StaticTypeContext {
   ///
   /// For opt out libraries this is [Nullability.legacy].
   Nullability get nullable => _library.nullable;
+
+  /// Return `true` if the current library is opted in to non-nullable by
+  /// default.
+  bool get isNonNullableByDefault => _library.isNonNullableByDefault;
+
+  /// Returns the mode under which the current library was compiled.
+  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
+      _library.nonNullableByDefaultCompiledMode;
 }
 
 /// Implementation of [StaticTypeContext] that update its state when entering
@@ -750,6 +864,13 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   @override
   Nullability get nullable => _library?.nullable;
 
+  @override
+  bool get isNonNullableByDefault => _library.isNonNullableByDefault;
+
+  @override
+  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
+      _library.nonNullableByDefaultCompiledMode;
+
   /// Updates the [nonNullable] and [thisType] to match static type context for
   /// the member [node].
   ///
@@ -805,8 +926,8 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   }
 }
 
-/// Implementation of [StatefulStaticTypeContext] that use a stack to change state
-/// when entering and leaving libraries and members.
+/// Implementation of [StatefulStaticTypeContext] that use a stack to change
+/// state when entering and leaving libraries and members.
 class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
   final List<_StaticTypeContextState> _contextStack =
       <_StaticTypeContextState>[];
@@ -833,6 +954,13 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
 
   @override
   Nullability get nullable => _library?.nullable;
+
+  @override
+  bool get isNonNullableByDefault => _library?.isNonNullableByDefault;
+
+  @override
+  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
+      _library.nonNullableByDefaultCompiledMode;
 
   /// Updates the [library] and [thisType] to match static type context for
   /// the member [node].

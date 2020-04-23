@@ -5,24 +5,9 @@
 import 'dart:html';
 import 'dart:math' as Math;
 
-String _color(String string) {
-  int hue = string.hashCode % 360;
-  return "hsl($hue,60%,60%)";
-}
-
-String _prettySize(num size) {
-  if (size < 1024) return size.toStringAsFixed(0) + "B";
-  size /= 1024;
-  if (size < 1024) return size.toStringAsFixed(1) + "KiB";
-  size /= 1024;
-  if (size < 1024) return size.toStringAsFixed(1) + "MiB";
-  size /= 1024;
-  return size.toStringAsFixed(1) + "GiB";
-}
-
 abstract class TreeMap<T> {
-  int getSize(T node);
-  String getType(T node);
+  int getArea(T node);
+  String getBackground(T node);
   String getLabel(T node);
   T getParent(T node);
   Iterable<T> getChildren(T node);
@@ -43,7 +28,7 @@ abstract class TreeMap<T> {
       T node, double width, double height, int depth, DivElement content) {
     final div = new DivElement();
     div.className = "treemapTile";
-    div.style.backgroundColor = _color(getType(node));
+    div.style.background = getBackground(node);
     div.onDoubleClick.listen((event) {
       event.stopPropagation();
       if (depth == 0) {
@@ -67,7 +52,7 @@ abstract class TreeMap<T> {
     width -= 2 * kPadding;
     height -= 2 * kPadding;
 
-    final label = "${getLabel(node)} [${_prettySize(getSize(node))}]";
+    final label = getLabel(node);
     div.title = label; // I.e., tooltip.
 
     if (width < 10 || height < 10) {
@@ -93,13 +78,13 @@ abstract class TreeMap<T> {
     for (T c in getChildren(node)) {
       // Size 0 children seem to confuse the layout algorithm (accumulating
       // rounding errors?).
-      if (getSize(c) > 0) {
+      if (getArea(c) > 0) {
         children.add(c);
       }
     }
-    children.sort((a, b) => getSize(b) - getSize(a));
+    children.sort((a, b) => getArea(b) - getArea(a));
 
-    final double scale = width * height / getSize(node);
+    final double scale = width * height / getArea(node);
 
     // Bruls M., Huizing K., van Wijk J.J. (2000) Squarified Treemaps. In: de
     // Leeuw W.C., van Liere R. (eds) Data Visualization 2000. Eurographics.
@@ -117,14 +102,14 @@ abstract class TreeMap<T> {
         space = width;
       }
 
-      double rowMin = getSize(children[rowStart]) * scale;
+      double rowMin = getArea(children[rowStart]) * scale;
       double rowMax = rowMin;
       double rowSum = 0.0;
       double lastRatio = 0.0;
 
       int rowEnd; // One after index of last child in the next row.
       for (rowEnd = rowStart; rowEnd < children.length; rowEnd++) {
-        double size = getSize(children[rowEnd]) * scale;
+        double size = getArea(children[rowEnd]) * scale;
         if (size < rowMin) rowMin = size;
         if (size > rowMax) rowMax = size;
         rowSum += size;
@@ -146,7 +131,7 @@ abstract class TreeMap<T> {
 
       for (int i = rowStart; i < rowEnd; i++) {
         T child = children[i];
-        double size = getSize(child) * scale;
+        double size = getArea(child) * scale;
 
         double childWidth;
         double childHeight;

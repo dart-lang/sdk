@@ -1,6 +1,8 @@
 class MyClass {
   MyClass();
 
+
+// @dart = 2.7
   @pragma('dart2js:noInline')
   set internalSetter(int v) {
     /*7:MyClass.internalSetter*/ throw "error";
@@ -13,52 +15,30 @@ extension Ext on MyClass {
   @pragma('dart2js:noInline')
   int method() {
     this./*6:Ext.method*/ internalSetter = 1;
-    // TODO(sigmund): remove once kernel preserves noInline pragmas. #38439
-    if (q > 29) return 3;
-    return 2;
+    return 0;
   }
 
   @pragma('dart2js:noInline')
-  int get propertyB {
-    /*5:Ext.propertyB*/ method();
-    // TODO(sigmund): remove once kernel preserves noInline pragmas. #38439
-    if (q > 29) return 3;
-    return 2;
-  }
+  int get propertyB => /*5:Ext.propertyB*/ method();
 
   @pragma('dart2js:noInline')
   set propertyA(int v) {
     /*4:Ext.propertyA*/ propertyB;
-    // TODO(sigmund): remove once kernel preserves noInline pragmas. #38439
-    if (q > 29) return null;
-    return null;
   }
 
   @pragma('dart2js:noInline')
   int operator+(int v) {
     this./*3:Ext.+*/ propertyA = 2;
-    // TODO(sigmund): remove once kernel preserves noInline pragmas. #38439
-    if (q > 30) return 1;
-    return 3;
+    return 1;
   }
 
   @pragma('dart2js:noInline')
-  int operator[](int v) {
-    this /*2:Ext.[]*/ + 2;
-    // TODO(sigmund): remove once kernel preserves noInline pragmas. #38439
-    if (q > 30) return 1;
-    return 3;
-  }
+  int operator[](int v) => this /*2:Ext.[]*/ + 2;
 }
 
 extension on MyClass {
   @pragma('dart2js:noInline')
-  int method2() {
-    this/*1:MyClass.<anonymous extension>.method2*/[0];
-    // TODO(sigmund): remove once kernel preserves noInline pragmas. #38439
-    if (q > 29) return 3;
-    return 2;
-  }
+  int method2() => this/*1:MyClass.<anonymous extension>.method2*/[0];
 }
 
 @pragma('dart2js:noInline')

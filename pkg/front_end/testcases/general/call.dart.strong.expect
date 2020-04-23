@@ -81,23 +81,39 @@ static method main() → dynamic {
 Try changing 'call' to a method or explicitly invoke 'call'.
   var string5 = callableGetter(1);
                               ^";
-  dynamic string6 = callableGetter.{self::CallableGetter::call}(1);
+  dynamic string6 = let final self::CallableGetter* #t1 = callableGetter in let final core::int* #t2 = 1 in #t1.{self::CallableGetter::call}.call(#t2);
   dynamic string7 = callableGetter.{self::CallableGetter::call}.call(1);
   dynamic string8 = callableGetter.{self::CallableGetter::call}.call.call(1);
-  dynamic nothing1 = closure.call();
-  dynamic nothing2 = closure.call();
-  dynamic nothing3 = closure.call.call();
-  dynamic nothing4 = closure.call.call.call();
-  dynamic nothing5 = callable.{self::Callable::call}();
-  dynamic nothing6 = callable.{self::Callable::call}();
-  dynamic nothing7 = callable.{self::Callable::call}.call();
-  dynamic nothing8 = callable.{self::Callable::call}.call.call();
+  invalid-type nothing1 = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/general/call.dart:34:25: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing1 = closure();
+                        ^" in closure.call();
+  invalid-type nothing2 = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/general/call.dart:35:30: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing2 = closure.call();
+                             ^" in closure.call();
+  invalid-type nothing3 = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/general/call.dart:36:35: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing3 = closure.call.call();
+                                  ^" in closure.call.call();
+  invalid-type nothing4 = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/general/call.dart:37:40: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing4 = closure.call.call.call();
+                                       ^" in closure.call.call.call();
+  invalid-type nothing5 = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/general/call.dart:39:26: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing5 = callable();
+                         ^" in callable.{self::Callable::call}();
+  invalid-type nothing6 = let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/general/call.dart:40:31: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing6 = callable.call();
+                              ^" in callable.{self::Callable::call}();
+  invalid-type nothing7 = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/general/call.dart:41:36: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing7 = callable.call.call();
+                                   ^" in callable.{self::Callable::call}.call();
+  invalid-type nothing8 = let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/general/call.dart:42:41: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing8 = callable.call.call.call();
+                                        ^" in callable.{self::Callable::call}.call.call();
   dynamic nothing9 = invalid-expression "pkg/front_end/testcases/general/call.dart:44:32: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
   var nothing9 = callableGetter();
                                ^";
-  dynamic nothing10 = callableGetter.{self::CallableGetter::call}();
+  dynamic nothing10 = callableGetter.{self::CallableGetter::call}.call();
   dynamic nothing11 = callableGetter.{self::CallableGetter::call}.call();
   dynamic nothing12 = callableGetter.{self::CallableGetter::call}.call.call();
 }

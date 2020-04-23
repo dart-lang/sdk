@@ -15,7 +15,7 @@ import '../metadata/direct_call.dart';
 /// analysis. Assumes strong mode and closed world.
 Component transformComponent(CoreTypes coreTypes, Component component) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  ClosedWorldClassHierarchy hierarchy = new ClassHierarchy(component,
+  ClosedWorldClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final hierarchySubtypes = hierarchy.computeSubtypesInformation();
   new CHADevirtualization(coreTypes, component, hierarchy, hierarchySubtypes)

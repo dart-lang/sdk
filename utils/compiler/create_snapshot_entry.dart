@@ -12,8 +12,9 @@ import 'dart:async';
 Future<String> getVersion(var rootPath) {
   var suffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
   var printVersionScript = rootPath.resolve("tools/make_version.py");
-  return Process
-      .run("python$suffix", [printVersionScript.toFilePath(), "--quiet"]).then((result) {
+  return Process.run(
+          "python$suffix", [printVersionScript.toFilePath(), "--quiet"])
+      .then((result) {
     if (result.exitCode != 0) {
       throw "Could not generate version";
     }
@@ -21,11 +22,10 @@ Future<String> getVersion(var rootPath) {
   });
 }
 
-Future<String> getDart2jsSnapshotGenerationFile(var args, var rootPath) {
-  var dart2js = rootPath.resolve(args["dart2js_main"]);
+Future<String> getDart2jsSnapshotGenerationFile(var rootPath) {
   return getVersion(rootPath).then((version) {
     var snapshotGenerationText = """
-import '${dart2js.toFilePath(windows: false)}' as dart2jsMain;
+import 'package:compiler/src/dart2js.dart' as dart2jsMain;
 
 void main(List<String> arguments) {
   dart2jsMain.BUILD_ID = "$version";
@@ -52,14 +52,13 @@ void main(List<String> arguments) {
     }
     args[argumentSplit[0].substring(2)] = argumentSplit[1];
   }
-  if (!args.containsKey("dart2js_main")) throw "Please specify dart2js_main";
   if (!args.containsKey("output_dir")) throw "Please specify output_dir";
 
   var scriptFile = Uri.base.resolveUri(Platform.script);
   var path = scriptFile.resolve(".");
   var rootPath = path.resolve("../..");
 
-  getDart2jsSnapshotGenerationFile(args, rootPath).then((result) {
+  getDart2jsSnapshotGenerationFile(rootPath).then((result) {
     var wrapper = "${args['output_dir']}/dart2js.dart";
     new File(wrapper).writeAsStringSync(result);
   });

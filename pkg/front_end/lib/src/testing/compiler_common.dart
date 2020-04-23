@@ -34,8 +34,7 @@ import '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 /// Wraps [kernelForProgram] with some default testing options (see [setup]).
 Future<CompilerResult> compileScript(dynamic scriptOrSources,
     {String fileName: 'main.dart',
-    List<String> inputSummaries: const [],
-    List<String> linkedDependencies: const [],
+    List<String> additionalDills: const [],
     CompilerOptions options,
     bool retainDataForTesting: false,
     bool requireMain: true}) async {
@@ -47,8 +46,7 @@ Future<CompilerResult> compileScript(dynamic scriptOrSources,
     assert(scriptOrSources is Map);
     sources = scriptOrSources;
   }
-  await setup(options, sources,
-      inputSummaries: inputSummaries, linkedDependencies: linkedDependencies);
+  await setup(options, sources, additionalDills: additionalDills);
   return await kernelForProgramInternal(toTestUri(fileName), options,
       retainDataForTesting: retainDataForTesting, requireMain: requireMain);
 }
@@ -57,12 +55,9 @@ Future<CompilerResult> compileScript(dynamic scriptOrSources,
 ///
 /// Wraps [kernelForModule] with some default testing options (see [setup]).
 Future<Component> compileUnit(List<String> inputs, Map<String, dynamic> sources,
-    {List<String> inputSummaries: const [],
-    List<String> linkedDependencies: const [],
-    CompilerOptions options}) async {
+    {List<String> additionalDills: const [], CompilerOptions options}) async {
   options ??= new CompilerOptions();
-  await setup(options, sources,
-      inputSummaries: inputSummaries, linkedDependencies: linkedDependencies);
+  await setup(options, sources, additionalDills: additionalDills);
   return (await kernelForModule(inputs.map(toTestUri).toList(), options))
       .component;
 }
@@ -71,11 +66,11 @@ Future<Component> compileUnit(List<String> inputs, Map<String, dynamic> sources,
 ///
 /// Wraps [summaryFor] with some default testing options (see [setup]).
 Future<List<int>> summarize(List<String> inputs, Map<String, dynamic> sources,
-    {List<String> inputSummaries: const [],
+    {List<String> additionalDills: const [],
     CompilerOptions options,
     bool truncate: false}) async {
   options ??= new CompilerOptions();
-  await setup(options, sources, inputSummaries: inputSummaries);
+  await setup(options, sources, additionalDills: additionalDills);
   return await summaryFor(inputs.map(toTestUri).toList(), options,
       truncate: truncate);
 }
@@ -91,8 +86,7 @@ Future<List<int>> summarize(List<String> inputs, Map<String, dynamic> sources,
 ///
 ///   * specify the location of the sdk summaries.
 Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
-    {List<String> inputSummaries: const [],
-    List<String> linkedDependencies: const []}) async {
+    {List<String> additionalDills: const []}) async {
   MemoryFileSystem fs = new MemoryFileSystem(_defaultDir);
   sources.forEach((name, data) {
     MemoryFileSystemEntity entity = fs.entityForUri(toTestUri(name));
@@ -111,9 +105,10 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
   options
     ..verify = true
     ..fileSystem = new HybridFileSystem(fs)
-    ..inputSummaries = inputSummaries.map(toTestUri).toList()
-    ..linkedDependencies = linkedDependencies.map(toTestUri).toList()
-    ..packagesFileUri = toTestUri('.packages');
+    ..additionalDills = additionalDills.map(toTestUri).toList();
+  if (options.packagesFileUri == null) {
+    options.packagesFileUri = toTestUri('.packages');
+  }
 
   if (options.sdkSummary == null) {
     options.sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);

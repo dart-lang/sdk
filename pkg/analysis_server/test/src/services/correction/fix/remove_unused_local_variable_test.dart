@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnusedLocalVariableTest);
   });
@@ -20,7 +20,7 @@ class RemoveUnusedLocalVariableTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE;
 
-  test_inArgumentList() async {
+  Future<void> test_inArgumentList() async {
     await resolveTestUnit(r'''
 main() {
   var v = 1;
@@ -34,7 +34,7 @@ main() {
 ''');
   }
 
-  test_inArgumentList2() async {
+  Future<void> test_inArgumentList2() async {
     await resolveTestUnit(r'''
 main() {
   var v = 1;
@@ -50,7 +50,7 @@ void f(a, b) { }
 ''');
   }
 
-  test_inArgumentList3() async {
+  Future<void> test_inArgumentList3() async {
     await resolveTestUnit(r'''
 main() {
   var v = 1;
@@ -66,7 +66,7 @@ void f(a, b) { }
 ''');
   }
 
-  test_inDeclarationList() async {
+  Future<void> test_inDeclarationList() async {
     await resolveTestUnit(r'''
 main() {
   var v = 1, v2 = 3;
@@ -82,7 +82,7 @@ main() {
 ''');
   }
 
-  test_inDeclarationList2() async {
+  Future<void> test_inDeclarationList2() async {
     await resolveTestUnit(r'''
 main() {
   var v = 1, v2 = 3;
@@ -97,7 +97,14 @@ main() {
 ''');
   }
 
-  test_withReferences() async {
+  Future<void> test_notInFunctionBody() async {
+    await resolveTestUnit(r'''
+var a = [for (var v = 0;;) 0];
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_withReferences() async {
     await resolveTestUnit(r'''
 main() {
   var v = 1;
@@ -110,7 +117,7 @@ main() {
 ''');
   }
 
-  test_withReferences_beforeDeclaration() async {
+  Future<void> test_withReferences_beforeDeclaration() async {
     // CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION
     verifyNoTestUnitErrors = false;
     await resolveTestUnit(r'''

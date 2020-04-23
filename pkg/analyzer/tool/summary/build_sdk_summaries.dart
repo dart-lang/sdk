@@ -1,8 +1,14 @@
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
+import 'package:meta/meta.dart';
 
 void main(List<String> args) {
   String command;
@@ -36,8 +42,20 @@ void main(List<String> args) {
   //
   // Handle commands.
   //
-  if (command == 'build-strong') {
-    _buildSummary(sdkPath, outFilePath);
+  if (command == 'build-non-nullable') {
+    _buildSummary(
+      sdkPath,
+      outFilePath,
+      enabledExperiments: ['non-nullable'],
+      title: 'non-nullable',
+    );
+  } else if (command == 'build-legacy' || command == 'build-strong') {
+    _buildSummary(
+      sdkPath,
+      outFilePath,
+      enabledExperiments: [],
+      title: 'legacy',
+    );
   } else {
     _printUsage();
     return;
@@ -49,11 +67,19 @@ void main(List<String> args) {
  */
 const BINARY_NAME = "build_sdk_summaries";
 
-void _buildSummary(String sdkPath, String outPath) {
-  print('Generating strong mode summary.');
-  Stopwatch sw = new Stopwatch()..start();
-  List<int> bytes = new SummaryBuilder.forSdk(sdkPath).build();
-  new File(outPath).writeAsBytesSync(bytes, mode: FileMode.writeOnly);
+void _buildSummary(
+  String sdkPath,
+  String outPath, {
+  @required List<String> enabledExperiments,
+  @required String title,
+}) {
+  print('Generating $title summary.');
+  Stopwatch sw = Stopwatch()..start();
+  var featureSet = FeatureSet.fromEnableFlags(enabledExperiments);
+  List<int> bytes = SummaryBuilder.forSdk(sdkPath).build(
+    featureSet: featureSet,
+  );
+  File(outPath).writeAsBytesSync(bytes, mode: FileMode.writeOnly);
   print('\tDone in ${sw.elapsedMilliseconds} ms.');
 }
 
@@ -63,6 +89,8 @@ void _buildSummary(String sdkPath, String outPath) {
 void _printUsage() {
   print('Usage: $BINARY_NAME command arguments');
   print('Where command can be one of the following:');
-  print('  build-strong output_file [sdk_path]');
-  print('    Generate strong mode summary file.');
+  print('  build-non-nullable output_file [sdk_path]');
+  print('    Generate non-nullable summary file.');
+  print('  build-legacy output_file [sdk_path]');
+  print('    Generate legacy summary file.');
 }

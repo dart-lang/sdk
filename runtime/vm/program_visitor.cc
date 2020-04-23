@@ -29,12 +29,9 @@ void ProgramVisitor::VisitClasses(ClassVisitor* visitor) {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
       visitor->Visit(cls);
     }
-    patches = lib.owned_scripts();
+    patches = lib.used_scripts();
     for (intptr_t j = 0; j < patches.Length(); j++) {
       entry = patches.At(j);
       if (entry.IsClass()) {
@@ -55,10 +52,6 @@ class ClassFunctionVisitor : public ClassVisitor {
         field_(Field::Handle(zone)) {}
 
   void Visit(const Class& cls) {
-    if (cls.IsDynamicClass()) {
-      return;  // class 'dynamic' is in the read-only VM isolate.
-    }
-
     functions_ = cls.functions();
     for (intptr_t j = 0; j < functions_.Length(); j++) {
       function_ ^= functions_.At(j);
@@ -108,71 +101,194 @@ void ProgramVisitor::VisitFunctions(FunctionVisitor* visitor) {
   Function& function = Function::Handle(zone);
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
       zone, isolate->object_store()->closure_functions());
+  ASSERT(!closures.IsNull());
   for (intptr_t i = 0; i < closures.Length(); i++) {
     function ^= closures.At(i);
     visitor->Visit(function);
     ASSERT(!function.HasImplicitClosureFunction());
   }
+
+  const auto& global_object_pool = ObjectPool::Handle(
+      zone, isolate->object_store()->global_object_pool());
+  if (!global_object_pool.IsNull()) {
+    auto& object = Object::Handle(zone);
+    for (intptr_t i = 0; i < global_object_pool.Length(); i++) {
+      auto const type = global_object_pool.TypeAt(i);
+      if (type != ObjectPool::EntryType::kTaggedObject) continue;
+      object = global_object_pool.ObjectAt(i);
+      if (!object.IsFunction()) continue;
+      visitor->Visit(Function::Cast(object));
+    }
+  }
+}
+
+class FunctionCodeVisitor : public FunctionVisitor {
+ public:
+  FunctionCodeVisitor(Zone* zone, CodeVisitor* visitor)
+      : visitor_(visitor), code_(Code::Handle(zone)) {}
+
+  void Visit(const Function& function) {
+    if (!function.HasCode()) return;
+    code_ = function.CurrentCode();
+    visitor_->Visit(code_);
+  }
+
+ private:
+  CodeVisitor* const visitor_;
+  Code& code_;
+};
+
+void ProgramVisitor::VisitCode(CodeVisitor* visitor) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+
+  FunctionCodeVisitor function_visitor(zone, visitor);
+  VisitFunctions(&function_visitor);
+
+  const auto& dispatch_table_entries = Array::Handle(
+      zone, isolate->object_store()->dispatch_table_code_entries());
+  if (!dispatch_table_entries.IsNull()) {
+    auto& code = Code::Handle(zone);
+    for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
+      code = Code::RawCast(dispatch_table_entries.At(i));
+      if (code.IsNull()) continue;
+      visitor->Visit(code);
+    }
+  }
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void ProgramVisitor::BindStaticCalls() {
-  if (FLAG_precompiled_mode) {
-    return;
+// A base class for deduplication of objects. T is the type of canonical objects
+// being stored, whereas S is a trait appropriate for a DirectChainedHashMap
+// based set containing those canonical objects.
+template <typename T, typename S>
+class Dedupper : public ValueObject {
+ public:
+  explicit Dedupper(Zone* zone) : zone_(zone), canonical_objects_(zone) {}
+  virtual ~Dedupper() {}
+
+  void AddVMBaseObjects() {
+    const auto& object_table = Object::vm_isolate_snapshot_object_table();
+    auto& obj = Object::Handle(zone_);
+    for (intptr_t i = 0; i < object_table.Length(); i++) {
+      obj = object_table.At(i);
+      if (!ShouldAdd(obj)) continue;
+      AddCanonical(T::Cast(obj));
+    }
   }
 
-  class BindJITStaticCallsVisitor : public FunctionVisitor {
+ protected:
+  // Predicate for objects of type T. Must be overridden for class hierarchies
+  // like Instance and AbstractType, as it defaults to class ID comparison.
+  virtual bool IsCorrectType(const Object& obj) const {
+    return obj.GetClassId() == T::kClassId;
+  }
+
+  // Predicate for choosing Ts to canonicalize.
+  virtual bool CanCanonicalize(const T& t) const { return true; }
+
+  // Predicate for objects that are okay to add to the canonical hash set.
+  // Override IsCorrectType and/or CanCanonicalize to change the behavior.
+  bool ShouldAdd(const Object& obj) const {
+    return !obj.IsNull() && IsCorrectType(obj) && CanCanonicalize(T::Cast(obj));
+  }
+
+  void AddCanonical(const T& obj) {
+    if (!ShouldAdd(obj)) return;
+    ASSERT(!canonical_objects_.HasKey(&obj));
+    canonical_objects_.Insert(&T::ZoneHandle(zone_, obj.raw()));
+  }
+
+  typename T::RawObjectType* Dedup(const T& obj) {
+    if (ShouldAdd(obj)) {
+      if (auto const canonical = canonical_objects_.LookupValue(&obj)) {
+        return canonical->raw();
+      }
+      AddCanonical(obj);
+    }
+    return obj.raw();
+  }
+
+  Zone* const zone_;
+  DirectChainedHashMap<S> canonical_objects_;
+};
+
+void ProgramVisitor::BindStaticCalls() {
+  class BindStaticCallsVisitor : public CodeVisitor {
    public:
-    explicit BindJITStaticCallsVisitor(Zone* zone)
-        : code_(Code::Handle(zone)),
-          table_(Array::Handle(zone)),
+    explicit BindStaticCallsVisitor(Zone* zone)
+        : table_(Array::Handle(zone)),
           kind_and_offset_(Smi::Handle(zone)),
           target_(Object::Handle(zone)),
           target_code_(Code::Handle(zone)) {}
 
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
-      code_ = function.CurrentCode();
-      table_ = code_.static_calls_target_table();
+    void Visit(const Code& code) {
+      table_ = code.static_calls_target_table();
       StaticCallsTable static_calls(table_);
+      // We can only remove the target table in precompiled mode, since more
+      // calls may be added later otherwise.
+      bool only_call_via_code = FLAG_precompiled_mode;
       for (const auto& view : static_calls) {
         kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
-        Code::CallKind kind = Code::KindField::decode(kind_and_offset_.Value());
+        auto const kind = Code::KindField::decode(kind_and_offset_.Value());
         if (kind != Code::kCallViaCode) {
+          ASSERT(!FLAG_precompiled_mode || kind == Code::kPcRelativeCall);
+          only_call_via_code = false;
           continue;
         }
-        int32_t pc_offset = Code::OffsetField::decode(kind_and_offset_.Value());
+
         target_ = view.Get<Code::kSCallTableFunctionTarget>();
         if (target_.IsNull()) {
           target_ = view.Get<Code::kSCallTableCodeTarget>();
           ASSERT(!Code::Cast(target_).IsFunctionCode());
           // Allocation stub or AllocateContext or AllocateArray or ...
-        } else {
-          const Function& target_func = Function::Cast(target_);
-          if (target_func.HasCode()) {
-            target_code_ = target_func.CurrentCode();
-          } else {
-            target_code_ = StubCode::CallStaticFunction().raw();
-          }
-          uword pc = pc_offset + code_.PayloadStart();
-          CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
+          continue;
         }
+
+        auto const pc_offset =
+            Code::OffsetField::decode(kind_and_offset_.Value());
+        const uword pc = pc_offset + code.PayloadStart();
+
+        // In JIT mode, static calls initially call the CallStaticFunction stub
+        // because their target might not be compiled yet. If the target has
+        // been compiled by this point, we patch the call to call the target
+        // directly.
+        //
+        // In precompiled mode, the binder runs after tree shaking, during which
+        // all targets have been compiled, and so the binder replace all static
+        // calls with direct calls to the target.
+        //
+        // Cf. runtime entry PatchStaticCall called from CallStaticFunction
+        // stub.
+        const auto& fun = Function::Cast(target_);
+        ASSERT(!FLAG_precompiled_mode || fun.HasCode());
+        target_code_ = fun.HasCode() ? fun.CurrentCode()
+                                     : StubCode::CallStaticFunction().raw();
+        CodePatcher::PatchStaticCallAt(pc, code, target_code_);
+      }
+
+      if (only_call_via_code) {
+        ASSERT(FLAG_precompiled_mode);
+        // In precompiled mode, the Dart runtime won't patch static calls
+        // anymore, so drop the static call table to save space.
+        code.set_static_calls_target_table(Object::empty_array());
       }
     }
 
    private:
-    Code& code_;
     Array& table_;
     Smi& kind_and_offset_;
     Object& target_;
     Code& target_code_;
   };
 
-  BindJITStaticCallsVisitor visitor(Thread::Current()->zone());
-  ProgramVisitor::VisitFunctions(&visitor);
+  auto const zone = Thread::Current()->zone();
+  BindStaticCallsVisitor visitor(zone);
+  ProgramVisitor::VisitCode(&visitor);
 }
+
+DECLARE_FLAG(charp, write_v8_snapshot_profile_to);
 
 void ProgramVisitor::ShareMegamorphicBuckets() {
   Thread* thread = Thread::Current();
@@ -297,6 +413,7 @@ class StackMapEntryKeyIntValueTrait {
     Pair(const Key key, const Value& value)
         : key(ASSERT_NOTNULL(key)), value(value) {}
     Pair(const Pair& other) : key(other.key), value(other.value) {}
+    Pair& operator=(const Pair&) = default;
   };
 
   static Key KeyOf(Pair kv) { return kv.key; }
@@ -307,19 +424,15 @@ class StackMapEntryKeyIntValueTrait {
 
 typedef DirectChainedHashMap<StackMapEntryKeyIntValueTrait> StackMapEntryIntMap;
 
-typedef DirectChainedHashMap<PointerKeyValueTrait<const CompressedStackMaps>>
-    CompressedStackMapsSet;
-
 void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
   // Walks all the CSMs in Code objects and collects their entry information
   // for consolidation.
-  class CollectStackMapEntriesVisitor : public FunctionVisitor {
+  class CollectStackMapEntriesVisitor : public CodeVisitor {
    public:
     CollectStackMapEntriesVisitor(Zone* zone,
                                   const CompressedStackMaps& global_table)
         : zone_(zone),
           old_global_table_(global_table),
-          code_(Code::Handle(zone)),
           compressed_stackmaps_(CompressedStackMaps::Handle(zone)),
           collected_entries_(zone, 2),
           entry_indices_(zone),
@@ -327,10 +440,8 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
       ASSERT(old_global_table_.IsNull() || old_global_table_.IsGlobalTable());
     }
 
-    void Visit(const Function& function) {
-      if (!function.HasCode()) return;
-      code_ = function.CurrentCode();
-      compressed_stackmaps_ = code_.compressed_stackmaps();
+    void Visit(const Code& code) {
+      compressed_stackmaps_ = code.compressed_stackmaps();
       CompressedStackMapsIterator it(compressed_stackmaps_, old_global_table_);
       while (it.MoveNext()) {
         it.EnsureFullyLoadedEntry();
@@ -377,7 +488,6 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
     Zone* const zone_;
     const CompressedStackMaps& old_global_table_;
 
-    Code& code_;
     CompressedStackMaps& compressed_stackmaps_;
     GrowableArray<StackMapEntry*> collected_entries_;
     StackMapEntryIntMap entry_indices_;
@@ -390,22 +500,37 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
   // new global table created during stack map collection, and non-normalized
   // for CSMs that either have inlined entry information or whose entries are
   // references to the _old_ global table in the object store, if any.
-  class NormalizeAndDedupCompressedStackMapsVisitor : public FunctionVisitor {
+  class NormalizeAndDedupCompressedStackMapsVisitor
+      : public CodeVisitor,
+        public Dedupper<CompressedStackMaps,
+                        PointerKeyValueTrait<const CompressedStackMaps>> {
    public:
     NormalizeAndDedupCompressedStackMapsVisitor(
         Zone* zone,
         const CompressedStackMaps& global_table,
         const StackMapEntryIntMap& entry_offsets)
-        : zone_(zone),
+        : Dedupper(zone),
           old_global_table_(global_table),
           entry_offsets_(entry_offsets),
-          canonical_compressed_stackmaps_set_(),
-          code_(Code::Handle(zone)),
-          compressed_stackmaps_(CompressedStackMaps::Handle(zone)),
-          current_normalized_maps_(CompressedStackMaps::Handle(zone)) {
+          maps_(CompressedStackMaps::Handle(zone)) {
       ASSERT(old_global_table_.IsNull() || old_global_table_.IsGlobalTable());
     }
 
+    void Visit(const Code& code) {
+      maps_ = code.compressed_stackmaps();
+      if (maps_.IsNull()) return;
+      // First check is to make sure [maps] hasn't already been normalized,
+      // since any normalized map already has a canonical entry in the set.
+      if (auto const canonical = canonical_objects_.LookupValue(&maps_)) {
+        maps_ = canonical->raw();
+      } else {
+        maps_ = NormalizeEntries(maps_);
+        maps_ = Dedup(maps_);
+      }
+      code.set_compressed_stackmaps(maps_);
+    }
+
+   private:
     // Creates a normalized CSM from the given non-normalized CSM.
     RawCompressedStackMaps* NormalizeEntries(const CompressedStackMaps& maps) {
       GrowableArray<uint8_t> new_payload;
@@ -423,45 +548,9 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
       return CompressedStackMaps::NewUsingTable(new_payload);
     }
 
-    RawCompressedStackMaps* NormalizeAndDedupCompressedStackMaps(
-        const CompressedStackMaps& maps) {
-      ASSERT(!maps.IsNull());
-      // First check is to make sure [maps] hasn't already been normalized,
-      // since any normalized map already has a canonical entry in the set.
-      auto canonical_maps =
-          canonical_compressed_stackmaps_set_.LookupValue(&maps);
-      if (canonical_maps != nullptr) return canonical_maps->raw();
-      current_normalized_maps_ = NormalizeEntries(compressed_stackmaps_);
-      // Use the canonical entry for the newly normalized CSM, if one exists.
-      canonical_maps = canonical_compressed_stackmaps_set_.LookupValue(
-          &current_normalized_maps_);
-      if (canonical_maps != nullptr) return canonical_maps->raw();
-      canonical_compressed_stackmaps_set_.Insert(
-          &CompressedStackMaps::ZoneHandle(zone_,
-                                           current_normalized_maps_.raw()));
-      return current_normalized_maps_.raw();
-    }
-
-    void Visit(const Function& function) {
-      if (!function.HasCode()) return;
-      code_ = function.CurrentCode();
-      compressed_stackmaps_ = code_.compressed_stackmaps();
-      // We represent empty CSMs as the null value, and thus those don't need to
-      // be normalized or deduped.
-      if (compressed_stackmaps_.IsNull()) return;
-      compressed_stackmaps_ =
-          NormalizeAndDedupCompressedStackMaps(compressed_stackmaps_);
-      code_.set_compressed_stackmaps(compressed_stackmaps_);
-    }
-
-   private:
-    Zone* const zone_;
     const CompressedStackMaps& old_global_table_;
     const StackMapEntryIntMap& entry_offsets_;
-    CompressedStackMapsSet canonical_compressed_stackmaps_set_;
-    Code& code_;
-    CompressedStackMaps& compressed_stackmaps_;
-    CompressedStackMaps& current_normalized_maps_;
+    CompressedStackMaps& maps_;
   };
 
   // The stack map deduplication happens in two phases:
@@ -483,7 +572,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
   const auto& old_global_table = CompressedStackMaps::Handle(
       zone, object_store->canonicalized_stack_map_entries());
   CollectStackMapEntriesVisitor collect_visitor(zone, old_global_table);
-  ProgramVisitor::VisitFunctions(&collect_visitor);
+  ProgramVisitor::VisitCode(&collect_visitor);
 
   // We retrieve the new offsets for CSM entries by creating the new global
   // table now. We go ahead and put it in place, as we already have a handle
@@ -495,7 +584,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
 
   NormalizeAndDedupCompressedStackMapsVisitor dedup_visitor(
       zone, old_global_table, entry_offsets);
-  ProgramVisitor::VisitFunctions(&dedup_visitor);
+  ProgramVisitor::VisitCode(&dedup_visitor);
 }
 
 class PcDescriptorsKeyValueTrait {
@@ -516,74 +605,47 @@ class PcDescriptorsKeyValueTrait {
   }
 };
 
-typedef DirectChainedHashMap<PcDescriptorsKeyValueTrait> PcDescriptorsSet;
-
 void ProgramVisitor::DedupPcDescriptors() {
-  class DedupPcDescriptorsVisitor : public FunctionVisitor {
+  class DedupPcDescriptorsVisitor
+      : public CodeVisitor,
+        public Dedupper<PcDescriptors, PcDescriptorsKeyValueTrait>,
+        public FunctionVisitor {
    public:
     explicit DedupPcDescriptorsVisitor(Zone* zone)
-        : zone_(zone),
-          canonical_pc_descriptors_(),
+        : Dedupper(zone),
           bytecode_(Bytecode::Handle(zone)),
-          code_(Code::Handle(zone)),
           pc_descriptor_(PcDescriptors::Handle(zone)) {}
 
-    void AddPcDescriptor(const PcDescriptors& pc_descriptor) {
-      canonical_pc_descriptors_.Insert(
-          &PcDescriptors::ZoneHandle(zone_, pc_descriptor.raw()));
+    void Visit(const Code& code) {
+      pc_descriptor_ = code.pc_descriptors();
+      pc_descriptor_ = Dedup(pc_descriptor_);
+      code.set_pc_descriptors(pc_descriptor_);
     }
 
     void Visit(const Function& function) {
       bytecode_ = function.bytecode();
-      if (!bytecode_.IsNull() && !bytecode_.InVMIsolateHeap()) {
-        pc_descriptor_ = bytecode_.pc_descriptors();
-        if (!pc_descriptor_.IsNull()) {
-          pc_descriptor_ = DedupPcDescriptor(pc_descriptor_);
-          bytecode_.set_pc_descriptors(pc_descriptor_);
-        }
-      }
-      if (!function.HasCode()) {
-        return;
-      }
-      code_ = function.CurrentCode();
-      pc_descriptor_ = code_.pc_descriptors();
-      if (pc_descriptor_.IsNull()) return;
-      pc_descriptor_ = DedupPcDescriptor(pc_descriptor_);
-      code_.set_pc_descriptors(pc_descriptor_);
-    }
-
-    RawPcDescriptors* DedupPcDescriptor(const PcDescriptors& pc_descriptor) {
-      const PcDescriptors* canonical_pc_descriptor =
-          canonical_pc_descriptors_.LookupValue(&pc_descriptor);
-      if (canonical_pc_descriptor == NULL) {
-        AddPcDescriptor(pc_descriptor);
-        return pc_descriptor.raw();
-      } else {
-        return canonical_pc_descriptor->raw();
-      }
+      if (bytecode_.IsNull()) return;
+      if (bytecode_.InVMIsolateHeap()) return;
+      pc_descriptor_ = bytecode_.pc_descriptors();
+      pc_descriptor_ = Dedup(pc_descriptor_);
+      bytecode_.set_pc_descriptors(pc_descriptor_);
     }
 
    private:
-    Zone* zone_;
-    PcDescriptorsSet canonical_pc_descriptors_;
     Bytecode& bytecode_;
-    Code& code_;
     PcDescriptors& pc_descriptor_;
   };
 
-  DedupPcDescriptorsVisitor visitor(Thread::Current()->zone());
+  auto const zone = Thread::Current()->zone();
+  DedupPcDescriptorsVisitor visitor(zone);
   if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
     // Prefer existing objects in the VM isolate.
-    const Array& object_table = Object::vm_isolate_snapshot_object_table();
-    Object& object = Object::Handle();
-    for (intptr_t i = 0; i < object_table.Length(); i++) {
-      object = object_table.At(i);
-      if (object.IsPcDescriptors()) {
-        visitor.AddPcDescriptor(PcDescriptors::Cast(object));
-      }
-    }
+    visitor.AddVMBaseObjects();
   }
+  // The function iteration handles the bytecode only, leaving code-related
+  // work for the code iteration.
   ProgramVisitor::VisitFunctions(&visitor);
+  ProgramVisitor::VisitCode(&visitor);
 }
 
 class TypedDataKeyValueTrait {
@@ -604,55 +666,41 @@ class TypedDataKeyValueTrait {
   }
 };
 
-typedef DirectChainedHashMap<TypedDataKeyValueTrait> TypedDataSet;
+class TypedDataDedupper : public Dedupper<TypedData, TypedDataKeyValueTrait> {
+ public:
+  explicit TypedDataDedupper(Zone* zone) : Dedupper(zone) {}
+
+ private:
+  bool IsCorrectType(const Object& obj) const { return obj.IsTypedData(); }
+};
 
 void ProgramVisitor::DedupDeoptEntries() {
-  class DedupDeoptEntriesVisitor : public FunctionVisitor {
+  class DedupDeoptEntriesVisitor : public CodeVisitor,
+                                   public TypedDataDedupper {
    public:
     explicit DedupDeoptEntriesVisitor(Zone* zone)
-        : zone_(zone),
-          canonical_deopt_entries_(),
-          code_(Code::Handle(zone)),
+        : TypedDataDedupper(zone),
           deopt_table_(Array::Handle(zone)),
           deopt_entry_(TypedData::Handle(zone)),
           offset_(Smi::Handle(zone)),
           reason_and_flags_(Smi::Handle(zone)) {}
 
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
-      code_ = function.CurrentCode();
-      deopt_table_ = code_.deopt_info_array();
+    void Visit(const Code& code) {
+      deopt_table_ = code.deopt_info_array();
       if (deopt_table_.IsNull()) return;
       intptr_t length = DeoptTable::GetLength(deopt_table_);
       for (intptr_t i = 0; i < length; i++) {
         DeoptTable::GetEntry(deopt_table_, i, &offset_, &deopt_entry_,
                              &reason_and_flags_);
         ASSERT(!deopt_entry_.IsNull());
-        deopt_entry_ = DedupDeoptEntry(deopt_entry_);
+        deopt_entry_ = Dedup(deopt_entry_);
         ASSERT(!deopt_entry_.IsNull());
         DeoptTable::SetEntry(deopt_table_, i, offset_, deopt_entry_,
                              reason_and_flags_);
       }
     }
 
-    RawTypedData* DedupDeoptEntry(const TypedData& deopt_entry) {
-      const TypedData* canonical_deopt_entry =
-          canonical_deopt_entries_.LookupValue(&deopt_entry);
-      if (canonical_deopt_entry == NULL) {
-        canonical_deopt_entries_.Insert(
-            &TypedData::ZoneHandle(zone_, deopt_entry.raw()));
-        return deopt_entry.raw();
-      } else {
-        return canonical_deopt_entry->raw();
-      }
-    }
-
    private:
-    Zone* zone_;
-    TypedDataSet canonical_deopt_entries_;
-    Code& code_;
     Array& deopt_table_;
     TypedData& deopt_entry_;
     Smi& offset_;
@@ -660,56 +708,107 @@ void ProgramVisitor::DedupDeoptEntries() {
   };
 
   DedupDeoptEntriesVisitor visitor(Thread::Current()->zone());
-  ProgramVisitor::VisitFunctions(&visitor);
+  ProgramVisitor::VisitCode(&visitor);
 }
 
 #if defined(DART_PRECOMPILER)
 void ProgramVisitor::DedupCatchEntryMovesMaps() {
-  if (!FLAG_precompiled_mode) {
-    return;
-  }
-  class DedupCatchEntryMovesMapsVisitor : public FunctionVisitor {
+  class DedupCatchEntryMovesMapsVisitor : public CodeVisitor,
+                                          public TypedDataDedupper {
    public:
     explicit DedupCatchEntryMovesMapsVisitor(Zone* zone)
-        : zone_(zone),
-          canonical_catch_entry_moves_maps_(),
-          code_(Code::Handle(zone)),
+        : TypedDataDedupper(zone),
           catch_entry_moves_maps_(TypedData::Handle(zone)) {}
 
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
-      code_ = function.CurrentCode();
-      catch_entry_moves_maps_ = code_.catch_entry_moves_maps();
-      catch_entry_moves_maps_ =
-          DedupCatchEntryMovesMaps(catch_entry_moves_maps_);
-      code_.set_catch_entry_moves_maps(catch_entry_moves_maps_);
-    }
-
-    RawTypedData* DedupCatchEntryMovesMaps(
-        const TypedData& catch_entry_moves_maps) {
-      const TypedData* canonical_catch_entry_moves_maps =
-          canonical_catch_entry_moves_maps_.LookupValue(
-              &catch_entry_moves_maps);
-      if (canonical_catch_entry_moves_maps == NULL) {
-        canonical_catch_entry_moves_maps_.Insert(
-            &TypedData::ZoneHandle(zone_, catch_entry_moves_maps.raw()));
-        return catch_entry_moves_maps.raw();
-      } else {
-        return canonical_catch_entry_moves_maps->raw();
-      }
+    void Visit(const Code& code) {
+      catch_entry_moves_maps_ = code.catch_entry_moves_maps();
+      catch_entry_moves_maps_ = Dedup(catch_entry_moves_maps_);
+      code.set_catch_entry_moves_maps(catch_entry_moves_maps_);
     }
 
    private:
-    Zone* zone_;
-    TypedDataSet canonical_catch_entry_moves_maps_;
-    Code& code_;
     TypedData& catch_entry_moves_maps_;
   };
 
+  if (!FLAG_precompiled_mode) return;
   DedupCatchEntryMovesMapsVisitor visitor(Thread::Current()->zone());
-  ProgramVisitor::VisitFunctions(&visitor);
+  ProgramVisitor::VisitCode(&visitor);
+}
+
+class UnlinkedCallKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const UnlinkedCall* Key;
+  typedef const UnlinkedCall* Value;
+  typedef const UnlinkedCall* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) { return key->Hashcode(); }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->Equals(*key);
+  }
+};
+
+void ProgramVisitor::DedupUnlinkedCalls() {
+  class DedupUnlinkedCallsVisitor
+      : public CodeVisitor,
+        public Dedupper<UnlinkedCall, UnlinkedCallKeyValueTrait> {
+   public:
+    explicit DedupUnlinkedCallsVisitor(Zone* zone)
+        : Dedupper(zone),
+          entry_(Object::Handle(zone)),
+          pool_(ObjectPool::Handle(zone)) {}
+
+    void DedupPool(const ObjectPool& pool) {
+      if (pool.IsNull()) return;
+      for (intptr_t i = 0; i < pool.Length(); i++) {
+        if (pool.TypeAt(i) != ObjectPool::EntryType::kTaggedObject) {
+          continue;
+        }
+        entry_ = pool.ObjectAt(i);
+        if (!entry_.IsUnlinkedCall()) continue;
+        entry_ = Dedup(UnlinkedCall::Cast(entry_));
+        pool.SetObjectAt(i, entry_);
+      }
+    }
+
+    void Visit(const Code& code) {
+      pool_ = code.object_pool();
+      DedupPool(pool_);
+    }
+
+   private:
+    Object& entry_;
+    ObjectPool& pool_;
+  };
+
+  if (!FLAG_precompiled_mode) return;
+
+  auto const t = Thread::Current();
+  auto Z = t->zone();
+  auto const I = t->isolate();
+
+  DedupUnlinkedCallsVisitor deduper(Z);
+  auto& gop = ObjectPool::Handle(Z, I->object_store()->global_object_pool());
+  ASSERT_EQUAL(gop.IsNull(), !FLAG_use_bare_instructions);
+  if (FLAG_use_bare_instructions) {
+    deduper.DedupPool(gop);
+  }
+
+  // Note: in bare instructions mode we can still have object pools attached
+  // to code objects and these pools need to be deduplicated.
+  // We use these pools to carry information about references between code
+  // objects and other objects in the snapshots (these references are otherwise
+  // implicit and go through global object pool). This information is needed
+  // to produce more informative snapshot profile.
+  if (!FLAG_use_bare_instructions ||
+      FLAG_write_v8_snapshot_profile_to != nullptr) {
+    VisitCode(&deduper);
+  }
 }
 #endif  // !defined(DART_PRECOMPILER)
 
@@ -724,71 +823,42 @@ class CodeSourceMapKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Length(); }
+  static inline intptr_t Hashcode(Key key) {
+    ASSERT(!key->IsNull());
+    return key->Length();
+  }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
+    ASSERT(!pair->IsNull() && !key->IsNull());
     return pair->Equals(*key);
   }
 };
 
-typedef DirectChainedHashMap<CodeSourceMapKeyValueTrait> CodeSourceMapSet;
-
 void ProgramVisitor::DedupCodeSourceMaps() {
-  class DedupCodeSourceMapsVisitor : public FunctionVisitor {
+  class DedupCodeSourceMapsVisitor
+      : public CodeVisitor,
+        public Dedupper<CodeSourceMap, CodeSourceMapKeyValueTrait> {
    public:
     explicit DedupCodeSourceMapsVisitor(Zone* zone)
-        : zone_(zone),
-          canonical_code_source_maps_(),
-          code_(Code::Handle(zone)),
-          code_source_map_(CodeSourceMap::Handle(zone)) {}
+        : Dedupper(zone), code_source_map_(CodeSourceMap::Handle(zone)) {}
 
-    void AddCodeSourceMap(const CodeSourceMap& code_source_map) {
-      canonical_code_source_maps_.Insert(
-          &CodeSourceMap::ZoneHandle(zone_, code_source_map.raw()));
-    }
-
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
-      code_ = function.CurrentCode();
-      code_source_map_ = code_.code_source_map();
-      ASSERT(!code_source_map_.IsNull());
-      code_source_map_ = DedupCodeSourceMap(code_source_map_);
-      code_.set_code_source_map(code_source_map_);
-    }
-
-    RawCodeSourceMap* DedupCodeSourceMap(const CodeSourceMap& code_source_map) {
-      const CodeSourceMap* canonical_code_source_map =
-          canonical_code_source_maps_.LookupValue(&code_source_map);
-      if (canonical_code_source_map == NULL) {
-        AddCodeSourceMap(code_source_map);
-        return code_source_map.raw();
-      } else {
-        return canonical_code_source_map->raw();
-      }
+    void Visit(const Code& code) {
+      code_source_map_ = code.code_source_map();
+      code_source_map_ = Dedup(code_source_map_);
+      code.set_code_source_map(code_source_map_);
     }
 
    private:
-    Zone* zone_;
-    CodeSourceMapSet canonical_code_source_maps_;
-    Code& code_;
     CodeSourceMap& code_source_map_;
   };
 
-  DedupCodeSourceMapsVisitor visitor(Thread::Current()->zone());
+  auto const zone = Thread::Current()->zone();
+  DedupCodeSourceMapsVisitor visitor(zone);
   if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
     // Prefer existing objects in the VM isolate.
-    const Array& object_table = Object::vm_isolate_snapshot_object_table();
-    Object& object = Object::Handle();
-    for (intptr_t i = 0; i < object_table.Length(); i++) {
-      object = object_table.At(i);
-      if (object.IsCodeSourceMap()) {
-        visitor.AddCodeSourceMap(CodeSourceMap::Cast(object));
-      }
-    }
+    visitor.AddVMBaseObjects();
   }
-  ProgramVisitor::VisitFunctions(&visitor);
+  ProgramVisitor::VisitCode(&visitor);
 }
 
 class ArrayKeyValueTrait {
@@ -802,112 +872,98 @@ class ArrayKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Length(); }
+  static inline intptr_t Hashcode(Key key) {
+    ASSERT(!key->IsNull());
+    return key->Length();
+  }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    if (pair->Length() != key->Length()) {
-      return false;
-    }
+    ASSERT(!pair->IsNull() && !key->IsNull());
+    if (pair->Length() != key->Length()) return false;
     for (intptr_t i = 0; i < pair->Length(); i++) {
-      if (pair->At(i) != key->At(i)) {
-        return false;
-      }
+      if (pair->At(i) != key->At(i)) return false;
     }
     return true;
   }
 };
 
-typedef DirectChainedHashMap<ArrayKeyValueTrait> ArraySet;
-
 void ProgramVisitor::DedupLists() {
-  class DedupListsVisitor : public FunctionVisitor {
+  class DedupListsVisitor : public CodeVisitor,
+                            public Dedupper<Array, ArrayKeyValueTrait>,
+                            public FunctionVisitor {
    public:
     explicit DedupListsVisitor(Zone* zone)
-        : zone_(zone),
-          canonical_lists_(),
-          code_(Code::Handle(zone)),
-          list_(Array::Handle(zone)) {}
+        : Dedupper(zone),
+          list_(Array::Handle(zone)),
+          function_(Function::Handle(zone)) {}
 
-    void Visit(const Function& function) {
-      code_ = function.CurrentCode();
-      if (!code_.IsNull()) {
-        list_ = code_.inlined_id_to_function();
-        if (!list_.IsNull()) {
-          list_ = DedupList(list_);
-          code_.set_inlined_id_to_function(list_);
-        }
-        list_ = code_.deopt_info_array();
-        if (!list_.IsNull()) {
-          list_ = DedupList(list_);
-          code_.set_deopt_info_array(list_);
-        }
-        list_ = code_.static_calls_target_table();
-        if (!list_.IsNull()) {
-          list_ = DedupList(list_);
-          code_.set_static_calls_target_table(list_);
-        }
-      }
+    void Visit(const Code& code) {
+      list_ = code.inlined_id_to_function();
+      list_ = Dedup(list_);
+      code.set_inlined_id_to_function(list_);
 
-      list_ = function.parameter_types();
-      if (!list_.IsNull()) {
-        // Preserve parameter types in the JIT. Needed in case of recompilation
-        // in checked mode, or if available to mirrors, or for copied types to
-        // lazily generated tear offs.
-        if (FLAG_precompiled_mode) {
-          if (!function.IsSignatureFunction() &&
-              !function.IsClosureFunction() &&
-              (function.name() != Symbols::Call().raw()) &&
-              !list_.InVMIsolateHeap()) {
-            // Parameter types not needed for function type tests.
-            for (intptr_t i = 0; i < list_.Length(); i++) {
-              list_.SetAt(i, Object::dynamic_type());
-            }
-          }
-        }
-        list_ = DedupList(list_);
-        function.set_parameter_types(list_);
-      }
+      list_ = code.deopt_info_array();
+      list_ = Dedup(list_);
+      code.set_deopt_info_array(list_);
 
-      list_ = function.parameter_names();
-      if (!list_.IsNull()) {
-        // Preserve parameter names in case of recompilation for the JIT.
-        if (FLAG_precompiled_mode) {
-          if (!function.HasOptionalNamedParameters() &&
-              !list_.InVMIsolateHeap()) {
-            // Parameter names not needed for resolution.
-            for (intptr_t i = 0; i < list_.Length(); i++) {
-              list_.SetAt(i, Symbols::OptimizedOut());
-            }
-          }
-        }
-        list_ = DedupList(list_);
-        function.set_parameter_names(list_);
-      }
+      list_ = code.static_calls_target_table();
+      list_ = Dedup(list_);
+      code.set_static_calls_target_table(list_);
     }
 
-    RawArray* DedupList(const Array& list) {
-      if (list.InVMIsolateHeap()) {
-        // Avoid using read-only VM objects for de-duplication.
-        return list.raw();
-      }
-      const Array* canonical_list = canonical_lists_.LookupValue(&list);
-      if (canonical_list == NULL) {
-        canonical_lists_.Insert(&Array::ZoneHandle(zone_, list.raw()));
-        return list.raw();
-      } else {
-        return canonical_list->raw();
-      }
+    void Visit(const Function& function) {
+      list_ = PrepareParameterTypes(function);
+      list_ = Dedup(list_);
+      function.set_parameter_types(list_);
+
+      list_ = PrepareParameterNames(function);
+      list_ = Dedup(list_);
+      function.set_parameter_names(list_);
     }
 
    private:
-    Zone* zone_;
-    ArraySet canonical_lists_;
-    Code& code_;
+    bool IsCorrectType(const Object& obj) const { return obj.IsArray(); }
+
+    RawArray* PrepareParameterTypes(const Function& function) {
+      list_ = function.parameter_types();
+      // Preserve parameter types in the JIT. Needed in case of recompilation
+      // in checked mode, or if available to mirrors, or for copied types to
+      // lazily generated tear offs. Also avoid attempting to change read-only
+      // VM objects for de-duplication.
+      if (FLAG_precompiled_mode && !list_.IsNull() &&
+          !list_.InVMIsolateHeap() && !function.IsSignatureFunction() &&
+          !function.IsClosureFunction() && !function.IsFfiTrampoline() &&
+          function.name() != Symbols::Call().raw()) {
+        // Parameter types not needed for function type tests.
+        for (intptr_t i = 0; i < list_.Length(); i++) {
+          list_.SetAt(i, Object::dynamic_type());
+        }
+      }
+      return list_.raw();
+    }
+
+    RawArray* PrepareParameterNames(const Function& function) {
+      list_ = function.parameter_names();
+      // Preserve parameter names in case of recompilation for the JIT. Also
+      // avoid attempting to change read-only VM objects for de-duplication.
+      if (FLAG_precompiled_mode && !list_.IsNull() &&
+          !list_.InVMIsolateHeap() && !function.HasOptionalNamedParameters()) {
+        // Parameter names not needed for resolution.
+        ASSERT(list_.Length() == function.NumParameters());
+        for (intptr_t i = 0; i < list_.Length(); i++) {
+          list_.SetAt(i, Symbols::OptimizedOut());
+        }
+      }
+      return list_.raw();
+    }
+
     Array& list_;
+    Function& function_;
   };
 
   DedupListsVisitor visitor(Thread::Current()->zone());
   ProgramVisitor::VisitFunctions(&visitor);
+  ProgramVisitor::VisitCode(&visitor);
 }
 
 // Traits for comparing two [Instructions] objects for equality, which is
@@ -933,8 +989,6 @@ class InstructionsKeyValueTrait {
     return pair->Equals(*key);
   }
 };
-
-typedef DirectChainedHashMap<InstructionsKeyValueTrait> InstructionsSet;
 
 // Traits for comparing two [Code] objects for equality.
 //
@@ -964,6 +1018,9 @@ class CodeKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->Size(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
+    // In AOT, disabled code objects should not be considered for deduplication.
+    ASSERT(!pair->IsDisabled() && !key->IsDisabled());
+
     if (pair->raw() == key->raw()) return true;
 
     // Notice we assume that these entries have already been de-duped, so we
@@ -983,58 +1040,45 @@ class CodeKeyValueTrait {
     if (pair->exception_handlers() != key->exception_handlers()) {
       return false;
     }
+    if (pair->UncheckedEntryPointOffset() != key->UncheckedEntryPointOffset()) {
+      return false;
+    }
     return Instructions::Equals(pair->instructions(), key->instructions());
   }
 };
-
-typedef DirectChainedHashMap<CodeKeyValueTrait> CodeSet;
 #endif  // defined(DART_PRECOMPILER)
 
 void ProgramVisitor::DedupInstructions() {
-  class DedupInstructionsVisitor : public FunctionVisitor,
-                                   public ObjectVisitor {
+  class DedupInstructionsVisitor
+      : public CodeVisitor,
+        public Dedupper<Instructions, InstructionsKeyValueTrait>,
+        public ObjectVisitor {
    public:
     explicit DedupInstructionsVisitor(Zone* zone)
-        : zone_(zone),
-          canonical_instructions_set_(),
-          code_(Code::Handle(zone)),
+        : Dedupper(zone),
+          function_(Function::Handle(zone)),
           instructions_(Instructions::Handle(zone)) {}
 
     void VisitObject(RawObject* obj) {
-      if (obj->IsInstructions()) {
-        canonical_instructions_set_.Insert(
-            &Instructions::ZoneHandle(zone_, Instructions::RawCast(obj)));
-      }
+      if (!obj->IsInstructions()) return;
+      instructions_ = Instructions::RawCast(obj);
+      AddCanonical(instructions_);
     }
 
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
-      code_ = function.CurrentCode();
-      instructions_ = code_.instructions();
-      instructions_ = DedupOneInstructions(instructions_);
-      code_.SetActiveInstructions(instructions_);
-      code_.set_instructions(instructions_);
-      function.SetInstructions(code_);  // Update cached entry point.
-    }
-
-    RawInstructions* DedupOneInstructions(const Instructions& instructions) {
-      const Instructions* canonical_instructions =
-          canonical_instructions_set_.LookupValue(&instructions);
-      if (canonical_instructions == NULL) {
-        canonical_instructions_set_.Insert(
-            &Instructions::ZoneHandle(zone_, instructions.raw()));
-        return instructions.raw();
-      } else {
-        return canonical_instructions->raw();
-      }
+    void Visit(const Code& code) {
+      instructions_ = code.instructions();
+      instructions_ = Dedup(instructions_);
+      code.SetActiveInstructions(instructions_,
+                                 code.UncheckedEntryPointOffset());
+      code.set_instructions(instructions_);
+      if (!code.IsFunctionCode()) return;
+      function_ = code.function();
+      if (function_.IsNull()) return;
+      function_.SetInstructions(code);  // Update cached entry point.
     }
 
    private:
-    Zone* zone_;
-    InstructionsSet canonical_instructions_set_;
-    Code& code_;
+    Function& function_;
     Instructions& instructions_;
   };
 
@@ -1043,57 +1087,51 @@ void ProgramVisitor::DedupInstructions() {
     // Prefer existing objects in the VM isolate.
     Dart::vm_isolate()->heap()->VisitObjectsImagePages(&visitor);
   }
-  ProgramVisitor::VisitFunctions(&visitor);
+  ProgramVisitor::VisitCode(&visitor);
 }
 
 void ProgramVisitor::DedupInstructionsWithSameMetadata() {
 #if defined(DART_PRECOMPILER)
-  class DedupInstructionsWithSameMetadataVisitor : public FunctionVisitor,
-                                                   public ObjectVisitor {
+  class DedupInstructionsWithSameMetadataVisitor
+      : public CodeVisitor,
+        public Dedupper<Code, CodeKeyValueTrait>,
+        public ObjectVisitor {
    public:
     explicit DedupInstructionsWithSameMetadataVisitor(Zone* zone)
-        : zone_(zone),
-          canonical_set_(),
-          code_(Code::Handle(zone)),
+        : Dedupper(zone),
+          canonical_(Code::Handle(zone)),
+          function_(Function::Handle(zone)),
           instructions_(Instructions::Handle(zone)) {}
 
     void VisitObject(RawObject* obj) {
-      if (obj->IsCode()) {
-        canonical_set_.Insert(&Code::ZoneHandle(zone_, Code::RawCast(obj)));
-      }
+      if (!obj->IsCode()) return;
+      canonical_ = Code::RawCast(obj);
+      AddCanonical(canonical_);
     }
 
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
-      code_ = function.CurrentCode();
-      instructions_ = DedupOneInstructions(function, code_);
-      code_.SetActiveInstructions(instructions_);
-      code_.set_instructions(instructions_);
-      function.SetInstructions(code_);  // Update cached entry point.
-    }
-
-    RawInstructions* DedupOneInstructions(const Function& function,
-                                          const Code& code) {
-      const Code* canonical = canonical_set_.LookupValue(&code);
-      if (canonical == nullptr) {
-        canonical_set_.Insert(&Code::ZoneHandle(zone_, code.raw()));
-        return code.instructions();
-      } else {
-        return canonical->instructions();
-      }
+    void Visit(const Code& code) {
+      if (code.IsDisabled()) return;
+      canonical_ = Dedup(code);
+      instructions_ = canonical_.instructions();
+      code.SetActiveInstructions(instructions_,
+                                 code.UncheckedEntryPointOffset());
+      code.set_instructions(instructions_);
+      if (!code.IsFunctionCode()) return;
+      function_ = code.function();
+      if (function_.IsNull()) return;
+      function_.SetInstructions(code);  // Update cached entry point.
     }
 
    private:
-    Zone* zone_;
-    CodeSet canonical_set_;
-    Code& code_;
+    bool CanCanonicalize(const Code& code) const { return !code.IsDisabled(); }
+
+    Code& canonical_;
+    Function& function_;
     Instructions& instructions_;
   };
 
   DedupInstructionsWithSameMetadataVisitor visitor(Thread::Current()->zone());
-  ProgramVisitor::VisitFunctions(&visitor);
+  ProgramVisitor::VisitCode(&visitor);
 #endif  // defined(DART_PRECOMPILER)
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -1111,18 +1149,19 @@ void ProgramVisitor::Dedup() {
   NOT_IN_PRECOMPILED(DedupDeoptEntries());
 #if defined(DART_PRECOMPILER)
   DedupCatchEntryMovesMaps();
+  DedupUnlinkedCalls();
 #endif
   DedupCodeSourceMaps();
   DedupLists();
 
-#if defined(PRODUCT)
   // Reduces binary size but obfuscates profiler results.
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    DedupInstructionsWithSameMetadata();
-  } else {
-    DedupInstructions();
+  if (FLAG_dedup_instructions) {
+    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+      DedupInstructionsWithSameMetadata();
+    } else {
+      DedupInstructions();
+    }
   }
-#endif
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 

@@ -127,7 +127,7 @@ class _SignalController {
   }
 
   static _setSignalHandler(int signal) native "Process_SetSignalHandler";
-  static int _clearSignalHandler(int signal)
+  static void _clearSignalHandler(int signal)
       native "Process_ClearSignalHandler";
 }
 
@@ -534,19 +534,16 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
   _wait(_NativeSocket stdin, _NativeSocket stdout, _NativeSocket stderr,
       _NativeSocket exitHandler) native "Process_Wait";
 
-  Stream<List<int>> get stdout {
-    return _stdout;
-  }
+  Stream<List<int>> get stdout =>
+      _stdout ?? (throw StateError("stdio is not connected"));
 
-  Stream<List<int>> get stderr {
-    return _stderr;
-  }
+  Stream<List<int>> get stderr =>
+      _stderr ?? (throw StateError("stdio is not connected"));
 
-  IOSink get stdin {
-    return _stdin;
-  }
+  IOSink get stdin => _stdin ?? (throw StateError("stdio is not connected"));
 
-  Future<int> get exitCode => _exitCode != null ? _exitCode.future : null;
+  Future<int> get exitCode =>
+      _exitCode?.future ?? (throw StateError("Process is detached"));
 
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
     if (signal is! ProcessSignal) {

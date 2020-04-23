@@ -181,6 +181,9 @@ class JsonCodec extends Codec<Object, String> {
 }
 
 /// This class converts JSON objects to strings.
+///
+/// When used as a [StreamTransformer], this converter does not promise
+/// that the input object is emitted as a single string event.
 class JsonEncoder extends Converter<Object, String> {
   /// The string used for indention.
   ///
@@ -470,7 +473,14 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object> {
   }
 }
 
-/// This class parses JSON strings and builds the corresponding objects.
+/// This class parses JSON strings and builds the corresponding value.
+///
+/// A JSON input must be the JSON encoding of a single JSON value,
+/// which can be a list or map containing other values.
+///
+/// When used as a [StreamTransformer], the input stream may emit
+/// multiple strings. The concatenation of all of these strings must
+/// be a valid JSON encoding of a single JSON value.
 class JsonDecoder extends Converter<String, Object> {
   final Function(Object key, Object value) _reviver;
 
@@ -504,7 +514,7 @@ class JsonDecoder extends Converter<String, Object> {
 }
 
 // Internal optimized JSON parsing implementation.
-external _parseJson(String source, reviver(key, value));
+external dynamic _parseJson(String source, reviver(key, value));
 
 // Implementation of encoder/stringifier.
 

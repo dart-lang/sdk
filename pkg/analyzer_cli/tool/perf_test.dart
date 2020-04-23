@@ -6,4 +6,4 @@
 /// the code here just has a dummy import to the rest of the code.
 import 'perf.dart' as m;
 
-main() => print('done ${m.scanTotalChars}');
+void main() => print('done ${m.scanTotalChars}');

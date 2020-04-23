@@ -36,7 +36,7 @@ MirrorSystem currentMirrorSystem() {
  * current running isolate.
  */
 @patch
-InstanceMirror reflect(Object reflectee) {
+InstanceMirror reflect(dynamic reflectee) {
   return _Mirrors.reflect(reflectee);
 }
 
@@ -75,7 +75,7 @@ class MirrorSystem {
 
   @patch
   static String getName(Symbol symbol) {
-    return internal.Symbol.computeUnmangledName(symbol);
+    return internal.Symbol.computeUnmangledName(symbol as internal.Symbol);
   }
 
   @patch

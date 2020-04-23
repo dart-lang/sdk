@@ -10,12 +10,15 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
+import 'package:analyzer/src/dart/element/class_hierarchy.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 
@@ -36,11 +39,14 @@ class AnalysisSessionImpl implements AnalysisSession {
   /// The cache of libraries for URIs.
   final Map<String, LibraryElement> _uriToLibraryCache = {};
 
+  final ClassHierarchy classHierarchy = ClassHierarchy();
+  final InheritanceManager3 inheritanceManager = InheritanceManager3();
+
   /// Initialize a newly created analysis session.
   AnalysisSessionImpl(this._driver);
 
   @override
-  AnalysisContext get analysisContext => _driver.analysisContext;
+  AnalysisContext get analysisContext => _driver?.analysisContext;
 
   @override
   DeclaredVariables get declaredVariables => _driver.declaredVariables;
@@ -51,15 +57,14 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   SourceFactory get sourceFactory => _driver.sourceFactory;
 
+  @Deprecated('Use LibraryElement.typeProvider')
   @override
   Future<TypeProvider> get typeProvider async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _checkConsistency();
     if (_typeProvider == null) {
       LibraryElement coreLibrary = await _driver.getLibraryByUri('dart:core');
       LibraryElement asyncLibrary = await _driver.getLibraryByUri('dart:async');
-      _typeProvider = new TypeProviderImpl(
+      _typeProvider = TypeProviderImpl(
         coreLibrary: coreLibrary,
         asyncLibrary: asyncLibrary,
         isNonNullableByDefault: false,
@@ -68,10 +73,9 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _typeProvider;
   }
 
+  @Deprecated('Use LibraryElement.typeSystem')
   @override
   Future<TypeSystemImpl> get typeSystem async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _checkConsistency();
     if (_typeSystem == null) {
       var typeProvider = await this.typeProvider;
@@ -87,7 +91,7 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   UriConverter get uriConverter {
-    return _uriConverter ??= new DriverBasedUriConverter(_driver);
+    return _uriConverter ??= DriverBasedUriConverter(_driver);
   }
 
   @deprecated
@@ -107,8 +111,6 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   Future<LibraryElement> getLibraryByUri(String uri) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _checkConsistency();
     var libraryElement = _uriToLibraryCache[uri];
     if (libraryElement == null) {
@@ -191,14 +193,15 @@ class AnalysisSessionImpl implements AnalysisSession {
   /// an [InconsistentAnalysisException] if they might not be.
   void _checkConsistency() {
     if (_driver.currentSession != this) {
-      throw new InconsistentAnalysisException();
+      throw InconsistentAnalysisException();
     }
   }
 
   void _checkElementOfThisSession(Element element) {
     if (element.session != this) {
-      throw new ArgumentError(
-          '(${element.runtimeType}) $element was not produced by '
+      var elementStr = element.getDisplayString(withNullability: true);
+      throw ArgumentError(
+          '(${element.runtimeType}) $elementStr was not produced by '
           'this session.');
     }
   }
@@ -217,8 +220,15 @@ class SynchronousSession {
   TypeSystemImpl _typeSystemLegacy;
   TypeSystemImpl _typeSystemNonNullableByDefault;
 
+  InheritanceManager3 _inheritanceManager;
+
   SynchronousSession(this.analysisOptions, this.declaredVariables);
 
+  InheritanceManager3 get inheritanceManager {
+    return _inheritanceManager ??= InheritanceManager3();
+  }
+
+  @Deprecated('Use LibraryElement.typeProvider')
   TypeProvider get typeProvider => _typeProviderLegacy;
 
   TypeProvider get typeProviderLegacy {
@@ -229,6 +239,7 @@ class SynchronousSession {
     return _typeProviderNonNullableByDefault;
   }
 
+  @Deprecated('Use LibraryElement.typeSystem')
   TypeSystemImpl get typeSystem {
     return typeSystemLegacy;
   }
@@ -247,6 +258,8 @@ class SynchronousSession {
 
     _typeSystemLegacy = null;
     _typeSystemNonNullableByDefault = null;
+
+    _inheritanceManager = null;
   }
 
   void setTypeProviders({

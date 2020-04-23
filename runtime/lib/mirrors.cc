@@ -272,7 +272,7 @@ static RawInstance* CreateMethodMirror(const Function& func,
                  << Mirrors::kFactoryCtor);
   kind_flags |=
       (static_cast<intptr_t>(func.is_external()) << Mirrors::kExternal);
-  bool is_synthetic = func.is_no_such_method_forwarder();
+  bool is_synthetic = func.is_synthetic();
   kind_flags |= (static_cast<intptr_t>(is_synthetic) << Mirrors::kSynthetic);
   kind_flags |= (static_cast<intptr_t>(func.is_extension_member())
                  << Mirrors::kExtensionMember);
@@ -311,7 +311,9 @@ static RawInstance* CreateClassMirror(const Class& cls,
     ASSERT(ref_type.IsCanonical());
     return CreateClassMirror(cls, ref_type, is_declaration, owner_mirror);
   }
-  ASSERT(!cls.IsDynamicClass() && !cls.IsVoidClass());
+  ASSERT(!cls.IsDynamicClass());
+  ASSERT(!cls.IsVoidClass());
+  ASSERT(!cls.IsNeverClass());
   ASSERT(!type.IsNull());
   ASSERT(type.IsFinalized());
 
@@ -711,8 +713,8 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
     instantiator_type_args = instantiator.arguments();
   }
   AbstractType& result = AbstractType::Handle(type.InstantiateFrom(
-      NNBDMode::kLegacy, instantiator_type_args, Object::null_type_arguments(),
-      kAllFree, NULL, Heap::kOld));
+      instantiator_type_args, Object::null_type_arguments(), kAllFree, NULL,
+      Heap::kOld));
   ASSERT(result.IsFinalized());
   return result.Canonicalize();
 }
@@ -834,7 +836,8 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 0, 1) {
   ASSERT(type.HasTypeClass());
   const Class& cls = Class::Handle(type.type_class());
   ASSERT(!cls.IsNull());
-  if (cls.IsDynamicClass() || cls.IsVoidClass() || cls.IsTypedefClass()) {
+  if (cls.IsDynamicClass() || cls.IsVoidClass() || cls.IsNeverClass() ||
+      cls.IsTypedefClass()) {
     Exceptions::ThrowArgumentError(type);
     UNREACHABLE();
   }
@@ -1176,19 +1179,18 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 0, 2) {
     entry = entries.GetNext();
     if (entry.IsClass()) {
       const Class& klass = Class::Cast(entry);
-      // We filter out dynamic.
-      // TODO(12478): Should not need to filter out dynamic.
-      if (!klass.IsDynamicClass()) {
-        error = klass.EnsureIsFinalized(thread);
-        if (!error.IsNull()) {
-          Exceptions::PropagateError(error);
-        }
-        type = klass.DeclarationType();
-        member_mirror = CreateClassMirror(klass, type,
-                                          Bool::True(),  // is_declaration
-                                          owner_mirror);
-        member_mirrors.Add(member_mirror);
+      ASSERT(!klass.IsDynamicClass());
+      ASSERT(!klass.IsVoidClass());
+      ASSERT(!klass.IsNeverClass());
+      error = klass.EnsureIsFinalized(thread);
+      if (!error.IsNull()) {
+        Exceptions::PropagateError(error);
       }
+      type = klass.DeclarationType();
+      member_mirror = CreateClassMirror(klass, type,
+                                        Bool::True(),  // is_declaration
+                                        owner_mirror);
+      member_mirrors.Add(member_mirror);
     } else if (entry.IsField()) {
       const Field& field = Field::Cast(entry);
       if (field.is_reflectable()) {
@@ -1481,8 +1483,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
       // type arguments of the type reflected by the class mirror.
       ASSERT(redirect_type.IsInstantiated(kFunctions));
       redirect_type ^= redirect_type.InstantiateFrom(
-          NNBDMode::kLegacy, type_arguments, Object::null_type_arguments(),
-          kNoneFree, NULL, Heap::kOld);
+          type_arguments, Object::null_type_arguments(), kNoneFree, NULL,
+          Heap::kOld);
       redirect_type ^= redirect_type.Canonicalize();
     }
 
@@ -1508,11 +1510,10 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
 
   const int kTypeArgsLen = 0;
   const Array& args_descriptor_array = Array::Handle(
-      ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
+      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(), arg_names));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
-  if (!redirected_constructor.AreValidArguments(NNBDMode::kLegacy,
-                                                args_descriptor, NULL)) {
+  if (!redirected_constructor.AreValidArguments(args_descriptor, NULL)) {
     external_constructor_name = redirected_constructor.name();
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       external_constructor_name, explicit_args, arg_names,
@@ -1522,7 +1523,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
   }
   const Object& type_error =
       Object::Handle(redirected_constructor.DoArgumentTypesMatch(
-          NNBDMode::kLegacy, args, args_descriptor, type_arguments));
+          args, args_descriptor, type_arguments));
   if (!type_error.IsNull()) {
     Exceptions::PropagateError(Error::Cast(type_error));
     UNREACHABLE();
@@ -1704,6 +1705,8 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 0, 1) {
     ASSERT(!script.IsNull());
     const String& uri = String::Handle(zone, script.url());
     return CreateSourceLocation(uri, 1, 1);
+  } else {
+    FATAL1("Unexpected declaration type: %s", decl.ToCString());
   }
 
   ASSERT(!script.IsNull());
@@ -1760,7 +1763,7 @@ DEFINE_NATIVE_ENTRY(VariableMirror_type, 0, 2) {
 DEFINE_NATIVE_ENTRY(TypeMirror_subtypeTest, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, a, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, b, arguments->NativeArgAt(1));
-  return Bool::Get(a.IsSubtypeOf(NNBDMode::kLegacy, b, Heap::kNew)).raw();
+  return Bool::Get(a.IsSubtypeOf(b, Heap::kNew)).raw();
 }
 
 #endif  // !DART_PRECOMPILED_RUNTIME

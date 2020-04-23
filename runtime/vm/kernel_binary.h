@@ -20,7 +20,7 @@ static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
 static const uint32_t kMinSupportedKernelFormatVersion = 29;
-static const uint32_t kMaxSupportedKernelFormatVersion = 36;
+static const uint32_t kMaxSupportedKernelFormatVersion = 40;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -163,12 +163,38 @@ enum ConstantTag {
 };
 
 // Keep in sync with package:kernel/lib/ast.dart
+enum class KernelNullability : int8_t {
+  kUndetermined = 0,
+  kNullable = 1,
+  kNonNullable = 2,
+  kLegacy = 3,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
 enum Variance {
   kUnrelated = 0,
   kCovariant = 1,
   kContravariant = 2,
   kInvariant = 3,
   kLegacyCovariant = 4,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
+enum AsExpressionFlags {
+  kAsExpressionFlagTypeError = 1 << 0,
+  kAsExpressionFlagCovarianceCheck = 1 << 1,
+  kAsExpressionFlagForDynamic = 1 << 2,
+  kAsExpressionFlagForNonNullableByDefault = 1 << 3,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
+enum IsExpressionFlags {
+  kIsExpressionFlagForNonNullableByDefault = 1 << 0,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
+enum class NamedTypeFlags : uint8_t {
+  kIsRequired = 1 << 0,
 };
 
 static const int SpecializedIntLiteralBias = 3;
@@ -328,9 +354,22 @@ class Reader : public ValueObject {
     }
   }
 
+  static Nullability ConvertNullability(KernelNullability kernel_nullability) {
+    switch (kernel_nullability) {
+      case KernelNullability::kNullable:
+        return Nullability::kNullable;
+      case KernelNullability::kLegacy:
+        return Nullability::kLegacy;
+      case KernelNullability::kNonNullable:
+      case KernelNullability::kUndetermined:
+        return Nullability::kNonNullable;
+    }
+    UNREACHABLE();
+  }
+
   Nullability ReadNullability() {
-    uint8_t byte = ReadByte();
-    return static_cast<Nullability>(byte);
+    const uint8_t byte = ReadByte();
+    return ConvertNullability(static_cast<KernelNullability>(byte));
   }
 
   Variance ReadVariance() {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 abstract class _IntegerImplementation implements int {
@@ -41,7 +39,9 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator -() {
-    return 0 - this;
+    // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
+    // result type as `num`.
+    return unsafeCast<int>(0 - this);
   }
 
   @pragma("vm:non-nullable-result-type")
@@ -81,7 +81,9 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:non-nullable-result-type")
   int _moduloFromInteger(int other) native "Integer_moduloFromInteger";
   int _remainderFromInteger(int other) {
-    return other - (other ~/ this) * this;
+    // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
+    // result type as `num`.
+    return unsafeCast<int>(other - (other ~/ this) * this);
   }
 
   @pragma("vm:non-nullable-result-type")
@@ -238,13 +240,13 @@ abstract class _IntegerImplementation implements int {
   }
 
   num clamp(num lowerLimit, num upperLimit) {
-    if (lowerLimit is! num) {
-      throw new ArgumentError.value(lowerLimit, "lowerLimit", "not a number");
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (lowerLimit == null) {
+      throw new ArgumentError.notNull("lowerLimit");
     }
-    if (upperLimit is! num) {
-      throw new ArgumentError.value(upperLimit, "upperLimit", "not a number");
+    if (upperLimit == null) {
+      throw new ArgumentError.notNull("upperLimit");
     }
-
     // Special case for integers.
     if (lowerLimit is int && upperLimit is int && lowerLimit <= upperLimit) {
       if (this < lowerLimit) return lowerLimit;
@@ -275,7 +277,7 @@ abstract class _IntegerImplementation implements int {
     return this.toDouble().toStringAsFixed(fractionDigits);
   }
 
-  String toStringAsExponential([int fractionDigits]) {
+  String toStringAsExponential([int? fractionDigits]) {
     return this.toDouble().toStringAsExponential(fractionDigits);
   }
 
@@ -301,7 +303,7 @@ abstract class _IntegerImplementation implements int {
       // -MIN_INT64 == MIN_INT64, so it requires special handling.
       return _minInt64ToRadixString(radix);
     }
-    List temp = new List();
+    var temp = <int>[];
     do {
       int digit = value % radix;
       value ~/= radix;
@@ -349,11 +351,11 @@ abstract class _IntegerImplementation implements int {
   /// This method is only used to handle corner case of
   /// MIN_INT64 = -0x8000000000000000.
   String _minInt64ToRadixString(int radix) {
-    List temp = new List();
+    var temp = <int>[];
     int value = this;
     assert(value < 0);
     do {
-      int digit = -value.remainder(radix);
+      int digit = -unsafeCast<int>(value.remainder(radix));
       value ~/= radix;
       temp.add(_digits.codeUnitAt(digit));
     } while (value != 0);
@@ -368,11 +370,12 @@ abstract class _IntegerImplementation implements int {
 
   // Returns pow(this, e) % m.
   int modPow(int e, int m) {
-    if (e is! int) {
-      throw new ArgumentError.value(e, "exponent", "not an integer");
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (e == null) {
+      throw new ArgumentError.notNull("exponent");
     }
-    if (m is! int) {
-      throw new ArgumentError.value(m, "modulus", "not an integer");
+    if (m == null) {
+      throw new ArgumentError.notNull("modulus");
     }
     if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
@@ -474,8 +477,9 @@ abstract class _IntegerImplementation implements int {
 
   // Returns 1/this % m, with m > 0.
   int modInverse(int m) {
-    if (m is! int) {
-      throw new ArgumentError.value(m, "modulus", "not an integer");
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (m == null) {
+      throw new ArgumentError.notNull("modulus");
     }
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
@@ -490,8 +494,9 @@ abstract class _IntegerImplementation implements int {
 
   // Returns gcd of abs(this) and abs(other).
   int gcd(int other) {
-    if (other is! int) {
-      throw new ArgumentError.value(other, "other", "not an integer");
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (other == null) {
+      throw new ArgumentError.notNull("other");
     }
     int x = this.abs();
     int y = other.abs();
@@ -607,7 +612,11 @@ class _Smi extends _IntegerImplementation {
   }
 
   String toString() {
-    if (this < 100 && this > -100) return _smallLookupTable[this + 99];
+    if (this < 100 && this > -100) {
+      // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
+      // result type as `num`.
+      return _smallLookupTable[unsafeCast<int>(this + 99)];
+    }
     if (this < 0) return _negativeToString(this);
     // Inspired by Andrei Alexandrescu: "Three Optimization Tips for C++"
     // Avoid expensive remainder operation by doing it on more than
@@ -616,11 +625,11 @@ class _Smi extends _IntegerImplementation {
     int length = _positiveBase10Length(this);
     _OneByteString result = _OneByteString._allocate(length);
     int index = length - 1;
-    var smi = this;
+    _Smi smi = this;
     do {
       // Two digits at a time.
-      var twoDigits = smi.remainder(100);
-      smi = smi ~/ 100;
+      final int twoDigits = unsafeCast<int>(smi.remainder(100));
+      smi = unsafeCast<_Smi>(smi ~/ 100);
       int digitIndex = twoDigits * 2;
       result._setAt(index, _digitTable[digitIndex + 1]);
       result._setAt(index - 1, _digitTable[digitIndex]);
@@ -628,10 +637,14 @@ class _Smi extends _IntegerImplementation {
     } while (smi >= 100);
     if (smi < 10) {
       // Character code for '0'.
-      result._setAt(index, DIGIT_ZERO + smi);
+      // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
+      // result type as `num`.
+      result._setAt(index, unsafeCast<int>(DIGIT_ZERO + smi));
     } else {
       // No remainder for this case.
-      int digitIndex = smi * 2;
+      // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
+      // result type as `num`.
+      int digitIndex = unsafeCast<int>(smi * 2);
       result._setAt(index, _digitTable[digitIndex + 1]);
       result._setAt(index - 1, _digitTable[digitIndex]);
     }
@@ -685,7 +698,7 @@ class _Smi extends _IntegerImplementation {
     result._setAt(0, MINUS_SIGN); // '-'.
     int index = digitCount;
     do {
-      var twoDigits = negSmi.remainder(100);
+      int twoDigits = unsafeCast<int>(negSmi.remainder(100));
       negSmi = negSmi ~/ 100;
       int digitIndex = -twoDigits * 2;
       result._setAt(index, _digitTable[digitIndex + 1]);

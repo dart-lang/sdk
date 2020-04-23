@@ -25,7 +25,7 @@ import 'dart:_runtime' as dart;
 _async<T>(Function() initGenerator) {
   var iter;
   late Object? Function(Object?) onValue;
-  late Object Function(Object, StackTrace) onError;
+  late Object Function(Object, StackTrace?) onError;
 
   onAwait(Object? value) {
     _Future<Object?> f;
@@ -196,7 +196,7 @@ class Timer {
 }
 
 @patch
-void _rethrow(Object error, StackTrace? stackTrace) {
+void _rethrow(Object error, StackTrace stackTrace) {
   JS('', 'throw #', dart.createErrorWithStack(error, stackTrace));
 }
 
@@ -417,6 +417,7 @@ class _AsyncStarImpl<T> {
   }
 
   void addError(Object error, StackTrace stackTrace) {
+    ArgumentError.checkNotNull(error, "error");
     var completer = cancellationCompleter;
     if (completer != null && !completer.isCompleted) {
       // If the stream has been cancelled, complete the cancellation future

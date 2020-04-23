@@ -7,7 +7,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -15,7 +14,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonNullableFixTest);
   });
@@ -31,14 +30,12 @@ class NonNullableFixTest extends AbstractAnalysisTest {
 
   String get nextRequestId => (++requestId).toString();
 
-  Future<EditDartfixResult> performFix(
-      {List<String> included, String outputDir}) async {
+  Future<EditDartfixResult> performFix({List<String> included}) async {
     final id = nextRequestId;
     final params = EditDartfixParams(included);
     params.includedFixes = ['non-nullable'];
-    params.outputDir = outputDir;
-    Request request = Request(id, 'edit.dartfix', params.toJson());
-    Response response = await EditDartFix(server, request).compute();
+    var request = Request(id, 'edit.dartfix', params.toJson());
+    var response = await EditDartFix(server, request).compute();
     expect(response.id, id);
     expect(response.error, isNull);
     return EditDartfixResult.fromResponse(response);
@@ -74,101 +71,70 @@ class NonNullableFixTest extends AbstractAnalysisTest {
     listener = DartFixListener(server);
   }
 
-  test_included_multipleRelativeDirectories() async {
-    NonNullableFix fix =
-        NonNullableFix(listener, '.', null, included: ['lib', 'test']);
+  Future<void> test_included_multipleRelativeDirectories() async {
+    var fix = NonNullableFix(listener, included: ['lib', 'test']);
     expect(fix.includedRoot, equals(convertPath('/project')));
   }
 
-  test_included_multipleRelativeDirectories_nonCanonical() async {
-    NonNullableFix fix = NonNullableFix(listener, '.', null,
-        included: ['../project2/lib', '../project2/lib/src']);
+  Future<void> test_included_multipleRelativeDirectories_nonCanonical() async {
+    var fix = NonNullableFix(listener, included: [
+      convertPath('../project2/lib'),
+      convertPath('../project2/lib/src')
+    ]);
     expect(fix.includedRoot, equals(convertPath('/project2/lib')));
   }
 
-  test_included_multipleRelativeDirectories_nonCanonical_atFilesystemRoot() async {
-    NonNullableFix fix = NonNullableFix(listener, '.', null,
-        included: ['../project2/lib', '../project/lib']);
+  Future<void>
+      test_included_multipleRelativeDirectories_nonCanonical_atRoot() async {
+    var fix = NonNullableFix(listener, included: [
+      convertPath('../project2/lib'),
+      convertPath('../project/lib')
+    ]);
     expect(fix.includedRoot, equals(convertPath('/')));
   }
 
-  test_included_multipleRelativeDirectories_subAndSuperDirectories() async {
-    NonNullableFix fix =
-        NonNullableFix(listener, '.', null, included: ['lib', '.']);
+  Future<void>
+      test_included_multipleRelativeDirectories_subAndSuperDirectories() async {
+    var fix = NonNullableFix(listener, included: ['lib', '.']);
     expect(fix.includedRoot, equals(convertPath('/project')));
   }
 
-  test_included_multipleRelativeFiles() async {
-    NonNullableFix fix = NonNullableFix(listener, '.', null,
-        included: ['lib/lib1.dart', 'test/test.dart']);
+  Future<void> test_included_multipleRelativeFiles() async {
+    var fix = NonNullableFix(listener, included: [
+      convertPath('lib/lib1.dart'),
+      convertPath('test/test.dart')
+    ]);
     expect(fix.includedRoot, equals(convertPath('/project')));
   }
 
-  test_included_multipleRelativeFiles_sameDirectory() async {
-    NonNullableFix fix = NonNullableFix(listener, '.', null,
-        included: ['lib/lib1.dart', 'lib/lib2.dart']);
+  Future<void> test_included_multipleRelativeFiles_sameDirectory() async {
+    var fix = NonNullableFix(listener,
+        included: [convertPath('lib/lib1.dart'), convertPath('lib/lib2.dart')]);
     expect(fix.includedRoot, equals(convertPath('/project/lib')));
   }
 
-  test_included_multipleRelativeFilesAndDirectories() async {
-    NonNullableFix fix = NonNullableFix(listener, '.', null,
-        included: ['lib/lib1.dart', 'lib/src', '../project/lib/src/lib3.dart']);
+  Future<void> test_included_multipleRelativeFilesAndDirectories() async {
+    var fix = NonNullableFix(listener, included: [
+      convertPath('lib/lib1.dart'),
+      convertPath('lib/src'),
+      convertPath('../project/lib/src/lib3.dart')
+    ]);
     expect(fix.includedRoot, equals(convertPath('/project/lib')));
   }
 
-  test_included_singleAbsoluteDirectory() async {
-    NonNullableFix fix =
-        NonNullableFix(listener, '.', null, included: ['/project']);
+  Future<void> test_included_singleAbsoluteDirectory() async {
+    var fix = NonNullableFix(listener, included: [convertPath('/project')]);
     expect(fix.includedRoot, equals(convertPath('/project')));
   }
 
-  test_included_singleAbsoluteFile() async {
-    NonNullableFix fix = NonNullableFix(listener, '.', null,
-        included: ['/project/bin/bin.dart']);
+  Future<void> test_included_singleAbsoluteFile() async {
+    var fix = NonNullableFix(listener,
+        included: [convertPath('/project/bin/bin.dart')]);
     expect(fix.includedRoot, equals(convertPath('/project/bin')));
   }
 
-  test_included_singleRelativeDirectory() async {
-    NonNullableFix fix = NonNullableFix(listener, '.', null, included: ['.']);
+  Future<void> test_included_singleRelativeDirectory() async {
+    var fix = NonNullableFix(listener, included: ['.']);
     expect(fix.includedRoot, equals(convertPath('/project')));
-  }
-
-  test_outputDirContainsFilesRootedAtProjectPath() async {
-    createProject();
-    Folder outputDir = getFolder('/outputDir');
-    await performFix(included: [projectPath], outputDir: outputDir.path);
-    expect(outputDir.exists, true);
-    expect(getFile('/outputDir/project/bin/bin.html').exists, isTrue);
-    expect(getFile('/outputDir/project/lib/lib1.html').exists, isTrue);
-    expect(getFile('/outputDir/project/lib/lib2.html').exists, isTrue);
-    expect(getFile('/outputDir/project/lib/src/lib3.html').exists, isTrue);
-    expect(getFile('/outputDir/project/test/test.html').exists, isTrue);
-  }
-
-  test_outputDirContainsFilesRootedInASubdirectory() async {
-    createProject();
-    Folder outputDir = getFolder('/outputDir');
-    await performFix(
-        included: [context.join(projectPath, 'lib')],
-        outputDir: outputDir.path);
-    expect(outputDir.exists, true);
-    expect(getFile('/outputDir/lib/lib1.html').exists, isTrue);
-    expect(getFile('/outputDir/lib/lib2.html').exists, isTrue);
-    expect(getFile('/outputDir/lib/src/lib3.html').exists, isTrue);
-  }
-
-  test_outputDirContainsFilesRootedInParentOfSingleFile() async {
-    createProject();
-    Folder outputDir = getFolder('/outputDir');
-    await performFix(
-        included: [context.join(projectPath, 'lib', 'lib2.dart')],
-        outputDir: outputDir.path);
-    expect(outputDir.exists, true);
-    expect(
-        outputDir
-            .getChildAssumingFolder('lib')
-            .getChildAssumingFile('lib2.html')
-            .exists,
-        isTrue);
   }
 }

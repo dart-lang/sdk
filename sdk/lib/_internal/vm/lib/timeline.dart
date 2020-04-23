@@ -13,23 +13,16 @@ bool _isDartStreamEnabled() native "Timeline_isDartStreamEnabled";
 int _getTraceClock() native "Timeline_getTraceClock";
 
 @patch
-int _getThreadCpuClock() native "Timeline_getThreadCpuClock";
-
-@patch
 int _getNextAsyncId() native "Timeline_getNextAsyncId";
 
 @patch
-void _reportTaskEvent(int start, int taskId, String phase, String category,
-    String name, String argumentsAsJson) native "Timeline_reportTaskEvent";
+void _reportTaskEvent(int taskId, String phase, String category, String name,
+    String argumentsAsJson) native "Timeline_reportTaskEvent";
 
 @patch
-void _reportCompleteEvent(int start, int startCpu, String category, String name,
-    String argumentsAsJson) native "Timeline_reportCompleteEvent";
+void _reportFlowEvent(String category, String name, int type, int id,
+    String argumentsAsJson) native "Timeline_reportFlowEvent";
 
 @patch
-void _reportFlowEvent(int start, int startCpu, String category, String name,
-    int type, int id, String argumentsAsJson) native "Timeline_reportFlowEvent";
-
-@patch
-void _reportInstantEvent(int start, String category, String name,
-    String argumentsAsJson) native "Timeline_reportInstantEvent";
+void _reportInstantEvent(String category, String name, String argumentsAsJson)
+    native "Timeline_reportInstantEvent";

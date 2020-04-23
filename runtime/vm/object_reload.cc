@@ -255,7 +255,6 @@ void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
   Field& field = Field::Handle();
   String& name = String::Handle();
 
-  Instance& value = Instance::Handle();
   for (intptr_t i = 0; i < field_list.Length(); i++) {
     field = Field::RawCast(field_list.At(i));
     name = field.name();
@@ -269,8 +268,10 @@ void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
           // We only copy values if requested and if the field is not a const
           // field. We let const fields be updated with a reload.
           if (update_values && !field.is_const()) {
-            value = old_field.StaticValue();
-            field.SetStaticValue(value);
+            // Make new field point to the old field value so that both
+            // old and new code see and update same value.
+            reload_context->isolate()->field_table()->Free(field.field_id());
+            field.set_field_id(old_field.field_id());
           }
           reload_context->AddStaticFieldMapping(old_field, field);
         } else {
@@ -605,6 +606,30 @@ class EnsureFinalizedError : public ClassReasonForCancelling {
   RawString* ToString() { return String::New(error_.ToErrorCString()); }
 };
 
+class ConstToNonConstClass : public ClassReasonForCancelling {
+ public:
+  ConstToNonConstClass(Zone* zone, const Class& from, const Class& to)
+      : ClassReasonForCancelling(zone, from, to) {}
+
+ private:
+  RawString* ToString() {
+    return String::NewFormatted("Const class cannot become non-const: %s",
+                                from_.ToCString());
+  }
+};
+
+class ConstClassFieldRemoved : public ClassReasonForCancelling {
+ public:
+  ConstClassFieldRemoved(Zone* zone, const Class& from, const Class& to)
+      : ClassReasonForCancelling(zone, from, to) {}
+
+ private:
+  RawString* ToString() {
+    return String::NewFormatted("Const class cannot remove fields: %s",
+                                from_.ToCString());
+  }
+};
+
 class NativeFieldsConflict : public ClassReasonForCancelling {
  public:
   NativeFieldsConflict(Zone* zone, const Class& from, const Class& to)
@@ -662,8 +687,8 @@ class InstanceSizeConflict : public ClassReasonForCancelling {
     return String::NewFormatted("Instance size mismatch between '%s' (%" Pd
                                 ") and replacement "
                                 "'%s' ( %" Pd ")",
-                                from_.ToCString(), from_.instance_size(),
-                                to_.ToCString(), to_.instance_size());
+                                from_.ToCString(), from_.host_instance_size(),
+                                to_.ToCString(), to_.host_instance_size());
   }
 };
 
@@ -711,6 +736,53 @@ void Class::CheckReload(const Class& replacement,
     TIR_Print("Finalized replacement class for %s\n", ToCString());
   }
 
+  if (is_finalized() && is_const() && (constants() != Array::null()) &&
+      (Array::LengthOf(constants()) > 0)) {
+    // Consts can't become non-consts.
+    if (!replacement.is_const()) {
+      context->group_reload_context()->AddReasonForCancelling(
+          new (context->zone())
+              ConstToNonConstClass(context->zone(), *this, replacement));
+      return;
+    }
+
+    // Consts can't lose fields.
+    bool field_removed = false;
+    const Array& old_fields =
+        Array::Handle(OffsetToFieldMap(true /* original classes */));
+    const Array& new_fields = Array::Handle(replacement.OffsetToFieldMap());
+    if (new_fields.Length() < old_fields.Length()) {
+      field_removed = true;
+    } else {
+      Field& old_field = Field::Handle();
+      Field& new_field = Field::Handle();
+      String& old_name = String::Handle();
+      String& new_name = String::Handle();
+      for (intptr_t i = 0, n = old_fields.Length(); i < n; i++) {
+        old_field ^= old_fields.At(i);
+        new_field ^= new_fields.At(i);
+        if (old_field.IsNull() != new_field.IsNull()) {
+          field_removed = true;
+          break;
+        }
+        if (!old_field.IsNull()) {
+          old_name = old_field.name();
+          new_name = new_field.name();
+          if (!old_name.Equals(new_name)) {
+            field_removed = true;
+            break;
+          }
+        }
+      }
+    }
+    if (field_removed) {
+      context->group_reload_context()->AddReasonForCancelling(
+          new (context->zone())
+              ConstClassFieldRemoved(context->zone(), *this, replacement));
+      return;
+    }
+  }
+
   // Native field count cannot change.
   if (num_native_fields() != replacement.num_native_fields()) {
     context->group_reload_context()->AddReasonForCancelling(
@@ -747,7 +819,9 @@ bool Class::RequiresInstanceMorphing(const Class& replacement) const {
   // Check that we have the same next field offset. This check is not
   // redundant with the one above because the instance OffsetToFieldMap
   // array length is based on the instance size (which may be aligned up).
-  if (next_field_offset() != replacement.next_field_offset()) return true;
+  if (host_next_field_offset() != replacement.host_next_field_offset()) {
+    return true;
+  }
 
   // Verify that field names / offsets match across the entire hierarchy.
   Field& field = Field::Handle();
@@ -774,6 +848,7 @@ bool Class::CanReloadFinalized(const Class& replacement,
   // Make sure the declaration types argument count matches for the two classes.
   // ex. class A<int,B> {} cannot be replace with class A<B> {}.
   auto group_context = context->group_reload_context();
+  auto shared_class_table = group_context->isolate_group()->class_table();
   if (NumTypeArguments() != replacement.NumTypeArguments()) {
     group_context->AddReasonForCancelling(
         new (context->zone())
@@ -783,12 +858,10 @@ bool Class::CanReloadFinalized(const Class& replacement,
   if (RequiresInstanceMorphing(replacement)) {
     ASSERT(id() == replacement.id());
     const classid_t cid = id();
-
     // We unconditionally create an instance morpher. As a side effect of
     // building the morpher, we will mark all new fields as late.
     auto instance_morpher = InstanceMorpher::CreateFromClassDescriptors(
-        context->zone(), context->isolate()->shared_class_table(), *this,
-        replacement);
+        context->zone(), shared_class_table, *this, replacement);
     group_context->EnsureHasInstanceMorpherFor(cid, instance_morpher);
   }
   return true;
@@ -804,7 +877,7 @@ bool Class::CanReloadPreFinalized(const Class& replacement,
     return false;
   }
   // Check the instance sizes are equal.
-  if (instance_size() != replacement.instance_size()) {
+  if (host_instance_size() != replacement.host_instance_size()) {
     context->group_reload_context()->AddReasonForCancelling(
         new (context->zone())
             InstanceSizeConflict(context->zone(), *this, replacement));
@@ -894,7 +967,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
     args_desc_array_ = ic.arguments_descriptor();
     ArgumentsDescriptor args_desc(args_desc_array_);
     if (new_target_.IsNull() ||
-        !new_target_.AreValidArguments(NNBDMode::kLegacy, args_desc, NULL)) {
+        !new_target_.AreValidArguments(args_desc, NULL)) {
       // TODO(rmacnak): Patch to a NSME stub.
       VTIR_Print("Cannot rebind static call to %s from %s\n",
                  old_target_.ToCString(),

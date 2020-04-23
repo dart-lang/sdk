@@ -74,7 +74,7 @@ class FindElement extends _FindElementBase {
   FunctionElement localFunction(String name) {
     FunctionElement result;
 
-    unit.accept(new FunctionAstVisitor(
+    unit.accept(FunctionAstVisitor(
       functionDeclarationStatement: (node) {
         var element = node.functionDeclaration.declaredElement;
         if (element is FunctionElement) {
@@ -104,9 +104,14 @@ class FindElement extends _FindElementBase {
       }
     }
 
-    unit.accept(new FunctionAstVisitor(
+    unit.accept(FunctionAstVisitor(
       declaredIdentifier: (node) {
         updateResult(node.declaredElement);
+      },
+      simpleIdentifier: (node) {
+        if (node.parent is CatchClause) {
+          updateResult(node.staticElement);
+        }
       },
       variableDeclaration: (node) {
         updateResult(node.declaredElement);
@@ -133,37 +138,34 @@ class FindElement extends _FindElementBase {
       }
     }
 
-    for (var accessor in unitElement.accessors) {
-      findIn(accessor.parameters);
+    void findInExecutables(List<ExecutableElement> executables) {
+      for (var executable in executables) {
+        findIn(executable.parameters);
+      }
     }
 
-    for (var function in unitElement.functions) {
-      findIn(function.parameters);
-    }
+    findInExecutables(unitElement.accessors);
+    findInExecutables(unitElement.functions);
 
     for (var function in unitElement.functionTypeAliases) {
       findIn(function.function.parameters);
     }
 
     for (var extension_ in unitElement.extensions) {
-      for (var method in extension_.methods) {
-        findIn(method.parameters);
-      }
-      for (var accessor in extension_.accessors) {
-        findIn(accessor.parameters);
-      }
+      findInExecutables(extension_.accessors);
+      findInExecutables(extension_.methods);
+    }
+
+    for (var mixin in unitElement.mixins) {
+      findInExecutables(mixin.accessors);
+      findInExecutables(mixin.constructors);
+      findInExecutables(mixin.methods);
     }
 
     for (var class_ in unitElement.types) {
-      for (var constructor in class_.constructors) {
-        findIn(constructor.parameters);
-      }
-      for (var method in class_.methods) {
-        findIn(method.parameters);
-      }
-      for (var accessor in class_.accessors) {
-        findIn(accessor.parameters);
-      }
+      findInExecutables(class_.accessors);
+      findInExecutables(class_.constructors);
+      findInExecutables(class_.methods);
     }
 
     unit.accept(
@@ -203,6 +205,13 @@ class FindElement extends _FindElementBase {
       }
     }
 
+    void findInClass(ClassElement class_) {
+      findIn(class_.typeParameters);
+      for (var method in class_.methods) {
+        findIn(method.typeParameters);
+      }
+    }
+
     for (var type in unitElement.functionTypeAliases) {
       findIn(type.typeParameters);
       if (type is GenericTypeAliasElement) {
@@ -211,11 +220,11 @@ class FindElement extends _FindElementBase {
     }
 
     for (var class_ in unitElement.types) {
-      findIn(class_.typeParameters);
+      findInClass(class_);
     }
 
     for (var mixin in unitElement.mixins) {
-      findIn(mixin.typeParameters);
+      findInClass(mixin);
     }
 
     if (result != null) {
@@ -235,6 +244,7 @@ class ImportFindElement extends _FindElementBase {
 
   PrefixElement get prefix => import.prefix;
 
+  @override
   CompilationUnitElement get unitElement {
     return importedLibrary.definingCompilationUnit;
   }

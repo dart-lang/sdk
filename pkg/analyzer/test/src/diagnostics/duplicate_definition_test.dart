@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
@@ -330,11 +328,6 @@ f(,[]) {}
 
 @reflectiveTest
 class DuplicateDefinitionExtensionTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
   test_extendedType_instance() async {
     await assertNoErrorsInCode('''
 class A {
@@ -954,6 +947,19 @@ main() {
     ]);
   }
 
+  test_emptyName() async {
+    // Note: This code has two FunctionElements '() {}' with an empty name; this
+    // tests that the empty string is not put into the scope (more than once).
+    await assertErrorsInCode(r'''
+Map _globalMap = {
+  'a' : () {},
+  'b' : () {}
+};
+''', [
+      error(HintCode.UNUSED_ELEMENT, 4, 10),
+    ]);
+  }
+
   test_for_initializers() async {
     await assertErrorsInCode(r'''
 f() {
@@ -963,6 +969,12 @@ f() {
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 24, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 24, 1),
     ]);
+  }
+
+  test_getter_single() async {
+    await assertNoErrorsInCode('''
+bool get a => true;
+''');
   }
 
   test_locals_block_if() async {
@@ -1024,7 +1036,18 @@ main() {
     ]);
   }
 
-  test_parameters_constructor() async {
+  test_parameters_constructor_field_first() async {
+    await assertErrorsInCode(r'''
+class A {
+  int a;
+  A(this.a, int a);
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 35, 1),
+    ]);
+  }
+
+  test_parameters_constructor_field_second() async {
     await assertErrorsInCode(r'''
 class A {
   int a;

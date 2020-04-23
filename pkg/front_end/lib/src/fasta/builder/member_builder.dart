@@ -7,6 +7,7 @@ library fasta.member_builder;
 import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 import '../../base/common.dart';
 
@@ -22,7 +23,9 @@ import 'extension_builder.dart';
 import 'library_builder.dart';
 import 'modifier_builder.dart';
 
-abstract class MemberBuilder implements ModifierBuilder, ClassMember {
+abstract class MemberBuilder implements ModifierBuilder {
+  bool get isAssignable;
+
   void set parent(Builder value);
 
   LibraryBuilder get library;
@@ -53,7 +56,7 @@ abstract class MemberBuilder implements ModifierBuilder, ClassMember {
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   ProcedureKind get kind;
 
-  void buildOutlineExpressions(LibraryBuilder library);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
 
   /// Returns the [ClassMember]s for the non-setter members created for this
   /// member builder.
@@ -133,7 +136,7 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   ProcedureKind get kind => unsupported("kind", charOffset, fileUri);
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library) {}
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {}
 
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f);
@@ -142,6 +145,15 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   String get fullNameForErrors => name;
 
   @override
+  StringBuffer printOn(StringBuffer buffer) {
+    if (isClassMember) {
+      buffer.write(classBuilder.name);
+      buffer.write('.');
+    }
+    buffer.write(name);
+    return buffer;
+  }
+
   ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
 }
 
@@ -165,4 +177,103 @@ class MemberDataForTesting {
   final InferenceDataForTesting inferenceData = new InferenceDataForTesting();
 
   MemberBuilder patchForTesting;
+}
+
+/// Base class for implementing [ClassMember] for a [MemberBuilder].
+abstract class BuilderClassMember implements ClassMember {
+  MemberBuilderImpl get memberBuilder;
+
+  @override
+  int get charOffset => memberBuilder.charOffset;
+
+  @override
+  ClassBuilder get classBuilder => memberBuilder.classBuilder;
+
+  @override
+  Uri get fileUri => memberBuilder.fileUri;
+
+  @override
+  Name get name => memberBuilder.member.name;
+
+  @override
+  String get fullName {
+    String suffix = isSetter ? "=" : "";
+    String className = classBuilder?.fullNameForErrors;
+    return className == null
+        ? "${fullNameForErrors}$suffix"
+        : "${className}.${fullNameForErrors}$suffix";
+  }
+
+  @override
+  String get fullNameForErrors => memberBuilder.fullNameForErrors;
+
+  @override
+  bool get isAssignable => memberBuilder.isAssignable;
+
+  @override
+  bool get isConst => memberBuilder.isConst;
+
+  @override
+  bool get isDuplicate => memberBuilder.isDuplicate;
+
+  @override
+  bool get isField => memberBuilder.isField;
+
+  @override
+  bool get isFinal => memberBuilder.isFinal;
+
+  @override
+  bool get isGetter => memberBuilder.isGetter;
+
+  @override
+  bool get isSetter => memberBuilder.isSetter;
+
+  @override
+  bool get isStatic => memberBuilder.isStatic;
+
+  @override
+  Member getMember(ClassHierarchyBuilder hierarchy) => memberBuilder.member;
+
+  @override
+  bool isObjectMember(ClassBuilder objectClass) {
+    return classBuilder == objectClass;
+  }
+
+  @override
+  bool get isAbstract => memberBuilder.member.isAbstract;
+
+  @override
+  bool get needsComputation => false;
+
+  @override
+  bool get isSynthesized => false;
+
+  @override
+  bool get isInheritableConflict => false;
+
+  @override
+  ClassMember withParent(ClassBuilder classBuilder) =>
+      throw new UnsupportedError("$runtimeType.withParent");
+
+  @override
+  bool get hasDeclarations => false;
+
+  @override
+  List<ClassMember> get declarations =>
+      throw new UnsupportedError("$runtimeType.declarations");
+
+  @override
+  ClassMember get abstract => this;
+
+  @override
+  ClassMember get concrete => this;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return false;
+  }
+
+  @override
+  String toString() => '$runtimeType($fullName,forSetter=${forSetter})';
 }

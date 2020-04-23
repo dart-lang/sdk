@@ -99,7 +99,7 @@
     {
       "name": "text_serialization",
       "kind": "Chain",
-      "source": "test/fasta/text_serialization_suite.dart",
+      "source": "test/fasta/text_serialization_tester.dart",
       "path": "testcases/",
       "status": "testcases/text_serialization.status",
       "pattern": [
@@ -112,6 +112,37 @@
         "/testcases/dartino/",
         "/testcases/shaker/",
         "/testcases/expression/"
+      ]
+    },
+    {
+      "name": "weak",
+      "kind": "Chain",
+      "source": "test/fasta/weak_suite.dart",
+      "path": "testcases/",
+      "status": "testcases/weak.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+        "/testcases/.*_part[0-9]*\\.dart$",
+        "/testcases/.*_lib[0-9]*\\.dart$",
+        "/testcases/dartino/",
+        "/testcases/expression/",
+        "/testcases/extensions/",
+        "/testcases/general/",
+        "/testcases/implicit_getter_calls",
+        "/testcases/inference",
+        "/testcases/inference_new",
+        "/testcases/instantiate_to_bound/",
+        "/testcases/new_const_insertion",
+        "/testcases/no_such_method_forwarders",
+        "/testcases/rasta/",
+        "/testcases/regress/",
+        "/testcases/runtime_checks",
+        "/testcases/runtime_checks_new",
+        "/testcases/set_literals",
+        "/testcases/unified_collections",
+        "/testcases/variance"
       ]
     },
     {
@@ -229,12 +260,15 @@
       "path": "../",
       "status": "test/spelling_test.status",
       "pattern": [
+        "_fe_analyzer_shared/lib/.*\\.dart$",
         "front_end/lib/.*\\.dart$",
         "kernel/lib/.*\\.dart$"
       ],
       "exclude": [
-        "src/fasta/fasta_codes_generated\\.dart$",
-        "src/fasta/fasta_codes_cfe_generated\\.dart$"
+        "kernel/lib/vm/.*\\.dart$",
+        "kernel/lib/transformations/.*\\.dart$",
+        "_fe_analyzer_shared/lib/src/messages/codes_generated\\.dart$",
+        "front_end/lib/src/fasta/fasta_codes_cfe_generated\\.dart$"
       ]
     },
     {
@@ -251,8 +285,6 @@
         "test/fasta/super_mixins_test\\.dart$",
         "test/fasta/types/subtypes_benchmark\\.dart$",
         "test/fasta/unlinked_scope_test\\.dart$",
-        "test/incremental_load_from_dill_suite\\.dart$",
-        "test/incremental_load_from_invalid_dill_test\\.dart$",
         "test/memory_file_system_test\\.dart$",
         "test/scanner_fasta_test\\.dart$",
         "test/scanner_test\\.dart$",
@@ -273,6 +305,17 @@
         "testcases/general/micro\\.dart$",
         "testcases/general/redirecting_factory\\.dart$",
         "testcases/general/spread_collection_inference\\.dart$",
+        "testcases/general_nnbd_opt_out/DeltaBlue\\.dart$",
+        "testcases/general_nnbd_opt_out/annotation_variable_declaration\\.dart$",
+        "testcases/general_nnbd_opt_out/arithmetic\\.dart$",
+        "testcases/general_nnbd_opt_out/bad_type_variable_uses_in_supertypes\\.dart$",
+        "testcases/general_nnbd_opt_out/clone_function_type\\.dart$",
+        "testcases/general_nnbd_opt_out/co19_language_metadata_syntax_t04\\.dart$",
+        "testcases/general_nnbd_opt_out/complex_class_hierarchy\\.dart$",
+        "testcases/general_nnbd_opt_out/issue34899\\.dart$",
+        "testcases/general_nnbd_opt_out/micro\\.dart$",
+        "testcases/general_nnbd_opt_out/redirecting_factory\\.dart$",
+        "testcases/general_nnbd_opt_out/spread_collection_inference\\.dart$",
         "testcases/inference/downwards_inference_initializing_formal_default_formal\\.dart$",
         "testcases/inference/downwards_inference_on_generic_function_expressions\\.dart$",
         "testcases/inference/for_in_loop_promotion\\.dart$",
@@ -401,12 +444,8 @@
       "test/extensions/data/",
       "test/id_testing/data/",
       "test/language_versioning/data/",
-      "test/flow_analysis/assigned_variables/data/",
-      "test/flow_analysis/definite_assignment/data/",
-      "test/flow_analysis/nullability/data/",
-      "test/flow_analysis/reachability/data/",
-      "test/flow_analysis/type_promotion/data/",
-      "test/patching/data"
+      "test/patching/data",
+      "test/static_types/data/"
     ]
   }
 }

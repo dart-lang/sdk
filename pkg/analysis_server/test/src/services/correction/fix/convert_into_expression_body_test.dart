@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertIntoExpressionBodyTest);
   });
@@ -24,11 +24,11 @@ class ConvertIntoExpressionBodyTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_expression_function_bodies;
 
   /// More coverage in the `convert_into_expression_body_test.dart` assist test.
-  test_async() async {
+  Future<void> test_async() async {
     await resolveTestUnit('''
 class A {
   mmm() async { 
-    return 42; /*LINT*/
+    return 42;
   }
 }
 ''');

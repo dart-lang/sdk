@@ -1,0 +1,3 @@
+# Don't format the JavaScript files in this directory.
+Language: JavaScript
+DisableFormat: true

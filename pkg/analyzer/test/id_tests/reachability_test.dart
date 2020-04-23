@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
@@ -16,15 +17,16 @@ import 'package:test/test.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script.resolve(
+  Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/reachability/data'));
-  await runTests(dataDir,
-      args: args,
-      supportedMarkers: sharedMarkers,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest:
-          runTestFor(const _ReachabilityDataComputer(), [analyzerNnbdConfig]));
+  await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+    return runTests<Set<_ReachabilityAssertion>>(dataDir,
+        args: args,
+        createUriForFileName: createUriForFileName,
+        onFailure: onFailure,
+        runTest: runTestFor(
+            const _ReachabilityDataComputer(), [analyzerNnbdConfig]));
+  });
 }
 
 class FlowTestBase {
@@ -32,11 +34,12 @@ class FlowTestBase {
 
   /// Resolve the given [code] and track nullability in the unit.
   Future<void> trackCode(String code) async {
-    if (await checkTests(
+    TestResult<Set<_ReachabilityAssertion>> testResult = await checkTests(
         code,
         const _ReachabilityDataComputer(),
         FeatureSet.forTesting(
-            sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]))) {
+            sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]));
+    if (testResult.hasFailures) {
       fail('Failure(s)');
     }
   }

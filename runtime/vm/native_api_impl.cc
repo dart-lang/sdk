@@ -105,6 +105,7 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
                                             uint8_t** response_json,
                                             intptr_t* response_json_length,
                                             char** error) {
+#if !defined(PRODUCT)
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate == nullptr || !isolate->is_service_isolate());
   IsolateLeaveScope saver(isolate);
@@ -176,6 +177,12 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
     Dart_CloseNativePort(port);
     return false;
   }
+#else   // !defined(PRODUCT)
+  if (error != nullptr) {
+    *error = strdup("VM Service is not supoorted in PRODUCT mode.");
+  }
+  return false;
+#endif  // !defined(PRODUCT)
 }
 
 // --- Verification tools ---
@@ -262,7 +269,7 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
 
   } else if (strcmp(command, "is-mutator-in-native") == 0) {
     Isolate* const isolate = reinterpret_cast<Isolate*>(arg);
-    if (isolate->mutator_thread()->execution_state() ==
+    if (isolate->mutator_thread()->execution_state_cross_thread_for_testing() ==
         Thread::kThreadInNative) {
       return arg;
     } else {

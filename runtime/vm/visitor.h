@@ -6,6 +6,7 @@
 #define RUNTIME_VM_VISITOR_H_
 
 #include "vm/allocation.h"
+#include "vm/class_table.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 
@@ -13,6 +14,7 @@ namespace dart {
 
 // Forward declarations.
 class Isolate;
+class IsolateGroup;
 class RawObject;
 class RawFunction;
 class RawTypedDataView;
@@ -20,11 +22,10 @@ class RawTypedDataView;
 // An object pointer visitor interface.
 class ObjectPointerVisitor {
  public:
-  explicit ObjectPointerVisitor(Isolate* isolate)
-      : isolate_(isolate), gc_root_type_("unknown") {}
+  explicit ObjectPointerVisitor(IsolateGroup* isolate_group);
   virtual ~ObjectPointerVisitor() {}
 
-  Isolate* isolate() const { return isolate_; }
+  IsolateGroup* isolate_group() const { return isolate_group_; }
 
   // Visit pointers inside the given typed data [view].
   //
@@ -54,9 +55,14 @@ class ObjectPointerVisitor {
 
   virtual bool visit_weak_persistent_handles() const { return false; }
 
+  const SharedClassTable* shared_class_table() const {
+    return shared_class_table_;
+  }
+
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   const char* gc_root_type_;
+  SharedClassTable* shared_class_table_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectPointerVisitor);
 };

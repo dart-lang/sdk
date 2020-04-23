@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NamedConstructorContributorTest);
   });
@@ -22,13 +22,12 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
       String name, String returnType,
       [int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    CompletionSuggestion cs =
-        assertSuggest(name, csKind: kind, relevance: relevance);
-    Element element = cs.element;
+    var cs = assertSuggest(name, csKind: kind, relevance: relevance);
+    var element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.CONSTRUCTOR));
     expect(element.name, equals(name));
-    String param = element.parameters;
+    var param = element.parameters;
     expect(param, isNotNull);
     expect(param[0], equals('('));
     expect(param[param.length - 1], equals(')'));
@@ -39,10 +38,10 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
 
   @override
   DartCompletionContributor createContributor() {
-    return new NamedConstructorContributor();
+    return NamedConstructorContributor();
   }
 
-  test_ConstructorName_importedClass() async {
+  Future<void> test_ConstructorName_importedClass() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addSource('/home/test/lib/b.dart', '''
@@ -66,7 +65,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('m');
   }
 
-  test_ConstructorName_importedClass_unresolved() async {
+  Future<void> test_ConstructorName_importedClass_unresolved() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addSource('/home/test/lib/b.dart', '''
@@ -91,7 +90,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('m');
   }
 
-  test_ConstructorName_importedFactory() async {
+  Future<void> test_ConstructorName_importedFactory() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addSource('/home/test/lib/b.dart', '''
@@ -115,7 +114,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('m');
   }
 
-  test_ConstructorName_importedFactory2() async {
+  Future<void> test_ConstructorName_importedFactory2() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
@@ -131,7 +130,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('String');
   }
 
-  test_ConstructorName_localClass() async {
+  Future<void> test_ConstructorName_localClass() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
@@ -150,7 +149,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('m');
   }
 
-  test_ConstructorName_localFactory() async {
+  Future<void> test_ConstructorName_localFactory() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('''

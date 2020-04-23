@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: main:[null]*/
 main() {
   refineToClass();
@@ -38,8 +40,8 @@ class Class2 {
 }
 
 /*member: _refineUnion:Union([exact=Class1], [exact=Class2])*/
-_refineUnion(/*Union([null|exact=Class1], [null|exact=Class2])*/ o) {
-  o. /*invoke: Union([null|exact=Class1], [null|exact=Class2])*/ method0();
+_refineUnion(/*Union(null, [exact=Class1], [exact=Class2])*/ o) {
+  o. /*invoke: Union(null, [exact=Class1], [exact=Class2])*/ method0();
   o. /*invoke: Union([exact=Class1], [exact=Class2])*/ method1();
   o. /*invoke: Union([exact=Class1], [exact=Class2])*/ method2();
   return o;

@@ -713,7 +713,11 @@ void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
   ASSERT((fd == STDIN_FILENO) || (fd == STDOUT_FILENO) ||
          (fd == STDERR_FILENO));
   File::StdioHandleType type = File::GetStdioHandleType(static_cast<int>(fd));
-  Dart_SetIntegerReturnValue(args, type);
+  if (type == File::StdioHandleType::kTypeError) {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  } else {
+    Dart_SetIntegerReturnValue(args, type);
+  }
 }
 
 void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
@@ -759,7 +763,7 @@ void FUNCTION_NAME(File_AreIdentical)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   const char* path_1 = DartUtils::GetNativeStringArgument(args, 1);
   const char* path_2 = DartUtils::GetNativeStringArgument(args, 2);
-  File::Identical result = File::AreIdentical(namespc, path_1, path_2);
+  File::Identical result = File::AreIdentical(namespc, path_1, namespc, path_2);
   if (result == File::kError) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   } else {
@@ -1451,7 +1455,7 @@ CObject* File::IdenticalRequest(const CObjectArray& request) {
   CObjectString path1(request[1]);
   CObjectString path2(request[2]);
   File::Identical result =
-      File::AreIdentical(namespc, path1.CString(), path2.CString());
+      File::AreIdentical(namespc, path1.CString(), namespc, path2.CString());
   if (result == File::kError) {
     return CObject::NewOSError();
   }

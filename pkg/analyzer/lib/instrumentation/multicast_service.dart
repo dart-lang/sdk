@@ -17,8 +17,11 @@ class MulticastInstrumentationService implements InstrumentationService {
   }
 
   @override
-  void logException(exception, [StackTrace stackTrace]) {
-    _services.forEach((s) => s.logException(exception, stackTrace));
+  void logException(exception,
+      [StackTrace stackTrace,
+      List<InstrumentationServiceAttachment> attachments]) {
+    _services
+        .forEach((s) => s.logException(exception, stackTrace, attachments));
   }
 
   @override

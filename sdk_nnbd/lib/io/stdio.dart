@@ -2,23 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.io;
 
+// These match enum StdioHandleType in file.h
 const int _stdioHandleTypeTerminal = 0;
 const int _stdioHandleTypePipe = 1;
 const int _stdioHandleTypeFile = 2;
 const int _stdioHandleTypeSocket = 3;
 const int _stdioHandleTypeOther = 4;
+const int _stdioHandleTypeError = 5;
 
 class _StdStream extends Stream<List<int>> {
   final Stream<List<int>> _stream;
 
   _StdStream(this._stream);
 
-  StreamSubscription<List<int>> listen(void onData(List<int> event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<List<int>> listen(void onData(List<int> event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return _stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
@@ -55,7 +55,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    * that data is returned without a line terminator.
    * Returns `null` if no bytes preceded the end of input.
    */
-  String readLineSync(
+  String? readLineSync(
       {Encoding encoding: systemEncoding, bool retainNewlines: false}) {
     const CR = 13;
     const LF = 10;
@@ -212,7 +212,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
  */
 class Stdout extends _StdSink implements IOSink {
   final int _fd;
-  IOSink _nonBlocking;
+  IOSink? _nonBlocking;
 
   Stdout._(IOSink sink, this._fd) : super(sink);
 
@@ -270,14 +270,13 @@ class Stdout extends _StdSink implements IOSink {
    * Get a non-blocking `IOSink`.
    */
   IOSink get nonBlocking {
-    _nonBlocking ??= new IOSink(new _FileStreamConsumer.fromStdio(_fd));
-    return _nonBlocking;
+    return _nonBlocking ??= new IOSink(new _FileStreamConsumer.fromStdio(_fd));
   }
 }
 
 class StdoutException implements IOException {
   final String message;
-  final OSError osError;
+  final OSError? osError;
 
   const StdoutException(this.message, [this.osError]);
 
@@ -288,7 +287,7 @@ class StdoutException implements IOException {
 
 class StdinException implements IOException {
   final String message;
-  final OSError osError;
+  final OSError? osError;
 
   const StdinException(this.message, [this.osError]);
 
@@ -335,15 +334,15 @@ class _StdSink implements IOSink {
     _sink.encoding = encoding;
   }
 
-  void write(object) {
+  void write(Object? object) {
     _sink.write(object);
   }
 
-  void writeln([object = ""]) {
+  void writeln([Object? object = ""]) {
     _sink.writeln(object);
   }
 
-  void writeAll(objects, [sep = ""]) {
+  void writeAll(Iterable objects, [String sep = ""]) {
     _sink.writeAll(objects, sep);
   }
 
@@ -351,7 +350,7 @@ class _StdSink implements IOSink {
     _sink.add(data);
   }
 
-  void addError(error, [StackTrace stackTrace]) {
+  void addError(error, [StackTrace? stackTrace]) {
     _sink.addError(error, stackTrace);
   }
 
@@ -386,9 +385,9 @@ class StdioType {
   String toString() => "StdioType: $name";
 }
 
-Stdin _stdin;
-Stdout _stdout;
-Stdout _stderr;
+Stdin? _stdin;
+Stdout? _stdout;
+Stdout? _stderr;
 
 // These may be set to different values by the embedder by calling
 // _setStdioFDs when initializing dart:io.
@@ -405,8 +404,7 @@ void _setStdioFDs(int stdin, int stdout, int stderr) {
 
 /// The standard input stream of data read by this program.
 Stdin get stdin {
-  _stdin ??= _StdIOUtils._getStdioInputStream(_stdinFD);
-  return _stdin;
+  return _stdin ??= _StdIOUtils._getStdioInputStream(_stdinFD);
 }
 
 /// The standard output stream of data written by this program.
@@ -415,8 +413,7 @@ Stdin get stdin {
 /// result in an unhandled asynchronous error unless there is an error handler
 /// on `done`.
 Stdout get stdout {
-  _stdout ??= _StdIOUtils._getStdioOutputStream(_stdoutFD);
-  return _stdout;
+  return _stdout ??= _StdIOUtils._getStdioOutputStream(_stdoutFD);
 }
 
 /// The standard output stream of errors written by this program.
@@ -425,8 +422,7 @@ Stdout get stdout {
 /// result in an unhandled asynchronous error unless there is an error handler
 /// on `done`.
 Stdout get stderr {
-  _stderr ??= _StdIOUtils._getStdioOutputStream(_stderrFD);
-  return _stderr;
+  return _stderr ??= _StdIOUtils._getStdioOutputStream(_stderrFD);
 }
 
 /// For a stream, returns whether it is attached to a file, pipe, terminal, or
@@ -436,7 +432,12 @@ StdioType stdioType(object) {
     object = object._stream;
   } else if (object == stdout || object == stderr) {
     int stdiofd = object == stdout ? _stdoutFD : _stderrFD;
-    switch (_StdIOUtils._getStdioHandleType(stdiofd)) {
+    final type = _StdIOUtils._getStdioHandleType(stdiofd);
+    if (type is OSError) {
+      throw FileSystemException(
+          "Failed to get type of stdio handle (fd $stdiofd)", "", type);
+    }
+    switch (type) {
       case _stdioHandleTypeTerminal:
         return StdioType.terminal;
       case _stdioHandleTypePipe:
@@ -449,7 +450,7 @@ StdioType stdioType(object) {
     return StdioType.file;
   }
   if (object is Socket) {
-    int socketType = _StdIOUtils._socketType(object);
+    int? socketType = _StdIOUtils._socketType(object);
     if (socketType == null) return StdioType.other;
     switch (socketType) {
       case _stdioHandleTypeTerminal:
@@ -477,6 +478,6 @@ class _StdIOUtils {
   external static Stdin _getStdioInputStream(int fd);
 
   /// Returns the socket type or `null` if [socket] is not a builtin socket.
-  external static int _socketType(Socket socket);
+  external static int? _socketType(Socket socket);
   external static _getStdioHandleType(int fd);
 }

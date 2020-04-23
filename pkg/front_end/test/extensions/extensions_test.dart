@@ -3,11 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
-import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
-import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
-    show DataInterpreter, runTests;
+import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 
 import 'package:front_end/src/fasta/builder/class_builder.dart';
@@ -19,21 +15,19 @@ import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/builder/type_builder.dart';
 import 'package:front_end/src/fasta/builder/type_variable_builder.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
-import 'package:front_end/src/testing/features.dart';
+import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
 
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests(dataDir,
+  await runTests<Features>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const ExtensionsDataComputer(), [
-        new TestConfig(cfeMarker, 'cfe with extension methods',
-            experimentalFlags: const {ExperimentalFlag.extensionMethods: true},
+        new TestConfig(cfeMarker, 'cfe',
             librariesSpecificationUri: createUriForFileName('libraries.json'))
       ]));
 }
@@ -42,29 +36,41 @@ class ExtensionsDataComputer extends DataComputer<Features> {
   const ExtensionsDataComputer();
 
   @override
-  void computeMemberData(InternalCompilerResult compilerResult, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     member.accept(new ExtensionsDataExtractor(compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(InternalCompilerResult compilerResult, Class cls,
+  void computeClassData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     new ExtensionsDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
-  void computeLibraryData(InternalCompilerResult compilerResult,
-      Library library, Map<Id, ActualData<Features>> actualMap,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
+      Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     new ExtensionsDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
   @override
-  void computeExtensionData(InternalCompilerResult compilerResult,
-      Extension extension, Map<Id, ActualData<Features>> actualMap,
+  void computeExtensionData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Extension extension,
+      Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     new ExtensionsDataExtractor(compilerResult, actualMap)
         .computeForExtension(extension);
@@ -74,8 +80,8 @@ class ExtensionsDataComputer extends DataComputer<Features> {
   bool get supportsErrors => true;
 
   @override
-  Features computeErrorData(
-      InternalCompilerResult compiler, Id id, List<FormattedMessage> errors) {
+  Features computeErrorData(TestConfig config, InternalCompilerResult compiler,
+      Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     for (FormattedMessage error in errors) {
       if (error.message.contains(',')) {
@@ -162,9 +168,9 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
       }
     }
 
-    features[Tags.builderSupertype] = clsBuilder.supertype?.name;
-    if (clsBuilder.interfaces != null) {
-      for (TypeBuilder superinterface in clsBuilder.interfaces) {
+    features[Tags.builderSupertype] = clsBuilder.supertypeBuilder?.name;
+    if (clsBuilder.interfaceBuilders != null) {
+      for (TypeBuilder superinterface in clsBuilder.interfaceBuilders) {
         features.addElement(Tags.builderInterfaces, superinterface.name);
       }
     }

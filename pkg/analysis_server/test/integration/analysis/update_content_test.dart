@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
   });
@@ -16,14 +16,14 @@ main() {
 
 @reflectiveTest
 class UpdateContentTest extends AbstractAnalysisServerIntegrationTest {
-  test_updateContent() async {
-    String path = sourcePath('test.dart');
-    String goodText = r'''
+  Future<void> test_updateContent() async {
+    var path = sourcePath('test.dart');
+    var goodText = r'''
 main() {
   print("Hello, world!");
 }''';
 
-    String badText = goodText.replaceAll(';', '');
+    var badText = goodText.replaceAll(';', '');
     writeFile(path, badText);
     standardAnalysisSetup();
 
@@ -33,35 +33,33 @@ main() {
 
     // There should be no errors now because the contents on disk have been
     // overridden with goodText.
-    sendAnalysisUpdateContent({path: new AddContentOverlay(goodText)});
+    sendAnalysisUpdateContent({path: AddContentOverlay(goodText)});
     await analysisFinished;
     expect(currentAnalysisErrors[path], isEmpty);
 
     // There should be errors now because we've removed the semicolon.
     sendAnalysisUpdateContent({
-      path: new ChangeContentOverlay(
-          [new SourceEdit(goodText.indexOf(';'), 1, '')])
+      path: ChangeContentOverlay([SourceEdit(goodText.indexOf(';'), 1, '')])
     });
     await analysisFinished;
     expect(currentAnalysisErrors[path], isNotEmpty);
 
     // There should be no errors now because we've added the semicolon back.
     sendAnalysisUpdateContent({
-      path: new ChangeContentOverlay(
-          [new SourceEdit(goodText.indexOf(';'), 0, ';')])
+      path: ChangeContentOverlay([SourceEdit(goodText.indexOf(';'), 0, ';')])
     });
     await analysisFinished;
     expect(currentAnalysisErrors[path], isEmpty);
 
     // Now there should be errors again, because the contents on disk are no
     // longer overridden.
-    sendAnalysisUpdateContent({path: new RemoveContentOverlay()});
+    sendAnalysisUpdateContent({path: RemoveContentOverlay()});
     await analysisFinished;
     expect(currentAnalysisErrors[path], isNotEmpty);
   }
 
-  test_updateContent_multipleAdds() async {
-    String pathname = sourcePath('test.dart');
+  Future<void> test_updateContent_multipleAdds() async {
+    var pathname = sourcePath('test.dart');
     writeFile(pathname, r'''
 class Person {
   String _name;
@@ -78,12 +76,12 @@ void main() {
     standardAnalysisSetup();
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isList);
-    List<AnalysisError> errors1 = currentAnalysisErrors[pathname];
+    var errors1 = currentAnalysisErrors[pathname];
     expect(errors1, hasLength(1));
     expect(errors1[0].location.file, equals(pathname));
 
     await sendAnalysisUpdateContent({
-      pathname: new AddContentOverlay(r'''
+      pathname: AddContentOverlay(r'''
 class Person {
   String _name;
   Person(this._name);
@@ -99,7 +97,7 @@ void main() {
     });
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isList);
-    List<AnalysisError> errors2 = currentAnalysisErrors[pathname];
+    var errors2 = currentAnalysisErrors[pathname];
     expect(errors2, hasLength(1));
     expect(errors2[0].location.file, equals(pathname));
   }

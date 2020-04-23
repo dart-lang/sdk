@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -15,6 +16,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/dart/resolver/type_name_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -55,7 +57,7 @@ class ElementHolder {
 class ResolutionVisitor extends RecursiveAstVisitor<void> {
   final TypeProvider _typeProvider;
   final CompilationUnitElementImpl _unitElement;
-  final bool _nonNullableEnabled;
+  final bool _isNonNullableByDefault;
   final ErrorReporter _errorReporter;
   final AstRewriter _astRewriter;
   final TypeNameResolver _typeNameResolver;
@@ -94,24 +96,27 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     ElementWalker elementWalker,
   }) {
     var libraryElement = unitElement.library;
-    var typeProvider = libraryElement.context.typeProvider;
+    var typeProvider = libraryElement.typeProvider;
     var unitSource = unitElement.source;
-    var nonNullableEnabled = featureSet.isEnabled(Feature.non_nullable);
-    var errorReporter = ErrorReporter(errorListener, unitSource);
+    var isNonNullableByDefault = featureSet.isEnabled(Feature.non_nullable);
+    var errorReporter = ErrorReporter(
+      errorListener,
+      unitSource,
+      isNonNullableByDefault: isNonNullableByDefault,
+    );
 
     var typeNameResolver = TypeNameResolver(
-      unitElement.context.typeSystem,
+      libraryElement.typeSystem,
       typeProvider,
-      nonNullableEnabled,
+      isNonNullableByDefault,
       libraryElement,
-      unitSource,
-      errorListener,
+      errorReporter,
     );
 
     return ResolutionVisitor._(
       typeProvider,
       unitElement,
-      nonNullableEnabled,
+      isNonNullableByDefault,
       errorReporter,
       AstRewriter(libraryElement, errorReporter),
       typeNameResolver,
@@ -124,7 +129,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   ResolutionVisitor._(
     this._typeProvider,
     this._unitElement,
-    this._nonNullableEnabled,
+    this._isNonNullableByDefault,
     this._errorReporter,
     this._astRewriter,
     this._typeNameResolver,
@@ -210,6 +215,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     ClassElementImpl element = _elementWalker.getClass();
     node.name.staticElement = element;
+    _typeNameResolver.enclosingClass = element;
 
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
@@ -241,12 +247,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.hasReferenceToSuper = _hasReferenceToSuper;
       });
     });
+
+    _typeNameResolver.enclosingClass = null;
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     ClassElementImpl element = _elementWalker.getClass();
     node.name.staticElement = element;
+    _typeNameResolver.enclosingClass = element;
 
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
@@ -266,6 +275,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _resolveImplementsClause(node.implementsClause);
       });
     });
+
+    _typeNameResolver.enclosingClass = null;
   }
 
   @override
@@ -283,14 +294,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           node.returnType.accept(this);
 
           _withElementWalker(
-            ElementWalker.forExecutable(element, _unitElement),
+            ElementWalker.forExecutable(element),
             () {
               node.parameters.accept(this);
             },
           );
           _defineParameters(element.parameters);
 
-          node.redirectedConstructor?.accept(this);
+          _resolveRedirectedConstructor(node);
           node.initializers.accept(this);
           node.body?.accept(this);
         });
@@ -331,10 +342,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (_elementWalker != null) {
       element = _elementWalker.getParameter();
     } else {
-      if (nameNode != null) {
-        element = DefaultParameterElementImpl(nameNode.name, nameNode.offset);
+      var name = nameNode?.name ?? '';
+      var nameOffset = nameNode?.offset ?? -1;
+      if (node.parameter is FieldFormalParameter) {
+        // Only for recovery, this should not happen in valid code.
+        element = DefaultFieldFormalParameterElementImpl(name, nameOffset);
       } else {
-        element = DefaultParameterElementImpl('', -1);
+        element = DefaultParameterElementImpl(name, nameOffset);
       }
       _elementHolder.addParameter(element);
 
@@ -462,6 +476,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         // ignore: deprecated_member_use_from_same_package
         element.parameterKind = node.kind;
         _setCodeRange(element, node);
+        element.metadata = _createElementAnnotations(node.metadata);
       }
       nameNode.staticElement = element;
     }
@@ -525,9 +540,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var holder = ElementHolder(element);
     _withElementHolder(holder, () {
       _withElementWalker(
-        _elementWalker != null
-            ? ElementWalker.forExecutable(element, _unitElement)
-            : null,
+        _elementWalker != null ? ElementWalker.forExecutable(element) : null,
         () {
           _withNameScope(() {
             _buildTypeParameterElements(expression.typeParameters);
@@ -623,7 +636,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (_elementWalker != null) {
         element = _elementWalker.getParameter();
       } else {
-        element = new ParameterElementImpl(nameNode.name, nameNode.offset);
+        element = ParameterElementImpl(nameNode.name, nameNode.offset);
         _elementHolder.addParameter(element);
         element.isConst = node.isConst;
         element.isExplicitlyCovariant = node.covariantKeyword != null;
@@ -675,6 +688,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var element = GenericFunctionTypeElementImpl.forOffset(node.offset);
     _unitElement.encloseElement(element);
     (node as GenericFunctionTypeImpl).declaredElement = element;
+
+    element.isNullable = node.question != null;
 
     _setCodeRange(element, node);
 
@@ -778,7 +793,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
 
-    _withElementWalker(ElementWalker.forExecutable(element, _unitElement), () {
+    _withElementWalker(ElementWalker.forExecutable(element), () {
       node.metadata.accept(this);
       _withNameScope(() {
         _buildTypeParameterElements(node.typeParameters);
@@ -1131,17 +1146,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   NullabilitySuffix _getNullability(bool hasQuestion) {
-    NullabilitySuffix nullability;
-    if (_nonNullableEnabled) {
+    if (_isNonNullableByDefault) {
       if (hasQuestion) {
-        nullability = NullabilitySuffix.question;
+        return NullabilitySuffix.question;
       } else {
-        nullability = NullabilitySuffix.none;
+        return NullabilitySuffix.none;
       }
-    } else {
-      nullability = NullabilitySuffix.star;
     }
-    return nullability;
+    return NullabilitySuffix.star;
   }
 
   void _resolveImplementsClause(ImplementsClause clause) {
@@ -1162,6 +1174,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     );
   }
 
+  void _resolveRedirectedConstructor(ConstructorDeclaration node) {
+    var redirectedConstructor = node.redirectedConstructor;
+    if (redirectedConstructor == null) return;
+
+    var typeName = redirectedConstructor.type;
+    _typeNameResolver.redirectedConstructor_typeName = typeName;
+
+    redirectedConstructor.accept(this);
+
+    _typeNameResolver.redirectedConstructor_typeName = null;
+  }
+
   /// Return the [InterfaceType] of the given [typeName].
   ///
   /// If the resulting type is not a valid interface type, return `null`.
@@ -1170,8 +1194,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// declarations are not valid (they declare interfaces and mixins, but not
   /// classes).
   void _resolveType(TypeName typeName, ErrorCode errorCode,
-      {bool asClass: false}) {
+      {bool asClass = false}) {
+    _typeNameResolver.classHierarchy_typeName = typeName;
     visitTypeName(typeName);
+    _typeNameResolver.classHierarchy_typeName = null;
 
     DartType type = typeName.type;
     if (type is InterfaceType) {
@@ -1209,10 +1235,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _resolveWithClause(WithClause clause) {
     if (clause == null) return;
 
-    _resolveTypes(
-      clause.mixinTypes,
-      CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
-    );
+    for (var typeName in clause.mixinTypes) {
+      _typeNameResolver.withClause_typeName = typeName;
+      _resolveType(
+        typeName,
+        CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
+      );
+      _typeNameResolver.withClause_typeName = null;
+    }
   }
 
   void _setCodeRange(ElementImpl element, AstNode node) {

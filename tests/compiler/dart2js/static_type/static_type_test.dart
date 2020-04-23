@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -36,8 +38,9 @@ class StaticTypeDataComputer extends DataComputer<String> {
       KernelToElementMapImpl elementMap, ir.Member node) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
+      ir.CoreTypes coreTypes = new ir.CoreTypes(component);
       _typeEnvironment = new ir.TypeEnvironment(
-          new ir.CoreTypes(component), new ir.ClassHierarchy(component));
+          coreTypes, new ir.ClassHierarchy(component, coreTypes));
     }
     return new ir.StaticTypeContext(node, _typeEnvironment);
   }

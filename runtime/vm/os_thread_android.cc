@@ -8,7 +8,8 @@
 
 #include "vm/os_thread.h"
 
-#include <errno.h>     // NOLINT
+#include <errno.h>  // NOLINT
+#include <stdio.h>
 #include <sys/time.h>  // NOLINT
 
 #include "platform/address_sanitizer.h"
@@ -94,6 +95,7 @@ class ThreadStartData {
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
 };
 
+// TODO(bkonyi): remove this call once the prebuilt SDK is updated.
 // Spawned threads inherit their spawner's signal mask. We sometimes spawn
 // threads for running Dart code from a thread that is blocking SIGPROF.
 // This function explicitly unblocks SIGPROF so the profiler continues to
@@ -119,8 +121,10 @@ static void* ThreadStart(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
-  // Set the thread name.
-  pthread_setname_np(pthread_self(), name);
+  // Set the thread name. There is 16 bytes limit on the name (including \0).
+  char truncated_name[16];
+  snprintf(truncated_name, ARRAY_SIZE(truncated_name), "%s", name);
+  pthread_setname_np(pthread_self(), truncated_name);
 
   // Create new OSThread object and set as TLS for new thread.
   OSThread* thread = OSThread::CreateOSThread();

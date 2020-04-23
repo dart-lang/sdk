@@ -10,6 +10,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 const kEntryPointPragmaName = "vm:entry-point";
 const kExactResultTypePragmaName = "vm:exact-result-type";
 const kNonNullableResultType = "vm:non-nullable-result-type";
+const kResultTypeUsesPassedTypeArguments =
+    "result-type-uses-passed-type-arguments";
 
 abstract class ParsedPragma {}
 
@@ -22,7 +24,9 @@ class ParsedEntryPointPragma extends ParsedPragma {
 
 class ParsedResultTypeByTypePragma extends ParsedPragma {
   final DartType type;
-  ParsedResultTypeByTypePragma(this.type);
+  final bool resultTypeUsesPassedTypeArguments;
+  ParsedResultTypeByTypePragma(
+      this.type, this.resultTypeUsesPassedTypeArguments);
 }
 
 class ParsedResultTypeByPathPragma extends ParsedPragma {
@@ -97,9 +101,17 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
       case kExactResultTypePragmaName:
         if (options == null) return null;
         if (options is TypeLiteralConstant) {
-          return new ParsedResultTypeByTypePragma(options.type);
+          return new ParsedResultTypeByTypePragma(options.type, false);
         } else if (options is StringConstant) {
           return new ParsedResultTypeByPathPragma(options.value);
+        } else if (options is ListConstant &&
+            options.entries.length == 2 &&
+            options.entries[0] is TypeLiteralConstant &&
+            options.entries[1] is StringConstant &&
+            (options.entries[1] as StringConstant).value ==
+                kResultTypeUsesPassedTypeArguments) {
+          return new ParsedResultTypeByTypePragma(
+              (options.entries[0] as TypeLiteralConstant).type, true);
         }
         throw "ERROR: Unsupported option to '$kExactResultTypePragmaName' "
             "pragma: $options";

@@ -68,13 +68,6 @@ class Pointer<T extends NativeType> extends NativeType {
   /// Cast Pointer<T> to a Pointer<V>.
   external Pointer<U> cast<U extends NativeType>();
 
-  /// Convert to Dart function, automatically marshalling the arguments
-  /// and return value.
-  ///
-  /// Can only be called on [Pointer]<[NativeFunction]>. Does not accept dynamic
-  /// invocations -- where the type of the receiver is [dynamic].
-  external R asFunction<@DartRepresentationOf("T") R extends Function>();
-
   /// Equality for Pointers only depends on their address.
   bool operator ==(other) {
     if (other == null) return false;
@@ -85,6 +78,14 @@ class Pointer<T extends NativeType> extends NativeType {
   int get hashCode {
     return address.hashCode;
   }
+}
+
+/// Extension on [Pointer] specialized for the type argument [NativeFunction].
+extension NativeFunctionPointer<NF extends Function>
+    on Pointer<NativeFunction<NF>> {
+  /// Convert to Dart function, automatically marshalling the arguments
+  /// and return value.
+  external DF asFunction<@DartRepresentationOf("NF") DF extends Function>();
 }
 
 //
@@ -620,4 +621,39 @@ extension NativePort on SendPort {
   /// messages to the connected [ReceivePort] via `Dart_PostCObject()` - see
   /// `dart_native_api.h`.
   external int get nativePort;
+}
+
+/// Opaque, not exposing it's members.
+class Dart_CObject extends Struct {}
+
+typedef Dart_NativeMessageHandler = Void Function(Int64, Pointer<Dart_CObject>);
+
+/// Exposes function pointers to functions in `dart_native_api.h`.
+abstract class NativeApi {
+  /// A function pointer to
+  /// `bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message)`
+  /// in `dart_native_api.h`.
+  external static Pointer<
+          NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
+      get postCObject;
+
+  /// A function pointer to
+  /// ```
+  /// Dart_Port Dart_NewNativePort(const char* name,
+  ///                              Dart_NativeMessageHandler handler,
+  ///                              bool handle_concurrently)
+  /// ```
+  /// in `dart_native_api.h`.
+  external static Pointer<
+      NativeFunction<
+          Int64 Function(
+              Pointer<Uint8>,
+              Pointer<NativeFunction<Dart_NativeMessageHandler>>,
+              Int8)>> get newNativePort;
+
+  /// A function pointer to
+  /// `bool Dart_CloseNativePort(Dart_Port native_port_id)`
+  /// in `dart_native_api.h`.
+  external static Pointer<NativeFunction<Int8 Function(Int64)>>
+      get closeNativePort;
 }

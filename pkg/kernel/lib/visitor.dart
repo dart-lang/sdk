@@ -423,7 +423,14 @@ class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
   /// Call this method to compute values for subnodes recursively, while only
   /// visiting each subnode once.
   R visitConstant(Constant node) {
-    return cache[node] ??= node.accept(_visitor);
+    return cache[node] ??= processValue(node, node.accept(_visitor));
+  }
+
+  /// Returns the computed [value] for [node].
+  ///
+  /// Override this method to process the computed value before caching.
+  R processValue(Constant node, R value) {
+    return value;
   }
 
   R defaultConstant(Constant node) => null;

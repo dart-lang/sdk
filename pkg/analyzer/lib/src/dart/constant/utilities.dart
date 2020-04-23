@@ -14,7 +14,8 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 
 /// Callback used by [ReferenceFinder] to report that a dependency was found.
-typedef void ReferenceFinderCallback(ConstantEvaluationTarget dependency);
+typedef ReferenceFinderCallback = void Function(
+    ConstantEvaluationTarget dependency);
 
 /// An [AstCloner] that copies the necessary information from the AST to allow
 /// constants to be evaluated.
@@ -49,9 +50,9 @@ class ConstantAstCloner extends AstCloner {
         super.visitInstanceCreationExpression(node);
     if (node.keyword == null) {
       if (node.isConst) {
-        expression.keyword = new KeywordToken(Keyword.CONST, node.offset);
+        expression.keyword = KeywordToken(Keyword.CONST, node.offset);
       } else {
-        expression.keyword = new KeywordToken(Keyword.NEW, node.offset);
+        expression.keyword = KeywordToken(Keyword.NEW, node.offset);
       }
     }
     expression.staticElement = node.staticElement;
@@ -70,7 +71,7 @@ class ConstantAstCloner extends AstCloner {
     ListLiteral literal = super.visitListLiteral(node);
     literal.staticType = node.staticType;
     if (node.constKeyword == null && node.isConst) {
-      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
+      literal.constKeyword = KeywordToken(Keyword.CONST, node.offset);
     }
     return literal;
   }
@@ -103,7 +104,7 @@ class ConstantAstCloner extends AstCloner {
     SetOrMapLiteral literal = super.visitSetOrMapLiteral(node);
     literal.staticType = node.staticType;
     if (node.constKeyword == null && node.isConst) {
-      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
+      literal.constKeyword = KeywordToken(Keyword.CONST, node.offset);
     }
     return literal;
   }
@@ -140,7 +141,7 @@ class ConstantAstCloner extends AstCloner {
 class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
   /// The constants whose values need to be computed.
   HashSet<ConstantEvaluationTarget> dependencies =
-      new HashSet<ConstantEvaluationTarget>();
+      HashSet<ConstantEvaluationTarget>();
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -191,7 +192,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
   /// of [CollectionElement]).
   void _find(CollectionElement node) {
     if (node != null) {
-      ReferenceFinder referenceFinder = new ReferenceFinder(dependencies.add);
+      ReferenceFinder referenceFinder = ReferenceFinder(dependencies.add);
       node.accept(referenceFinder);
     }
   }

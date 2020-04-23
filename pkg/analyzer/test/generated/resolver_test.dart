@@ -38,8 +38,8 @@ main() {
 @reflectiveTest
 class EnclosedScopeTest extends DriverResolutionTest {
   test_define_duplicate() async {
-    Scope rootScope = new _RootScope();
-    EnclosedScope scope = new EnclosedScope(rootScope);
+    Scope rootScope = _RootScope();
+    EnclosedScope scope = EnclosedScope(rootScope);
     SimpleIdentifier identifier = AstTestFactory.identifier3('v');
     VariableElement element1 = ElementFactory.localVariableElement(identifier);
     VariableElement element2 = ElementFactory.localVariableElement(identifier);
@@ -63,7 +63,7 @@ class A {
     }
   }
 }''', [
-      error(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 105, 1),
+      error(CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 105, 1),
     ]);
   }
 
@@ -77,20 +77,21 @@ class A {
     }
   }
 }''', [
-      error(ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH, 79, 1),
+      error(CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH, 79, 1),
     ]);
   }
 
   test_enclosingElement_invalidLocalFunction() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class C {
   C() {
     int get x => 0;
   }
-}''');
-    assertTestErrorsWithCodes([
-      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-      ParserErrorCode.EXPECTED_TOKEN
+}''', [
+      error(ParserErrorCode.EXPECTED_TOKEN, 26, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 3),
+      error(HintCode.UNUSED_ELEMENT, 30, 1),
+      error(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 32, 2),
     ]);
 
     var constructor = findElement.unnamedConstructor('C');
@@ -131,22 +132,22 @@ C toSpan(dynamic element) {
 @reflectiveTest
 class LibraryImportScopeTest extends ResolverTestCase {
   void test_creation_empty() {
-    new LibraryImportScope(createDefaultTestLibrary());
+    LibraryImportScope(createDefaultTestLibrary());
   }
 
   void test_creation_nonEmpty() {
     AnalysisContext context = TestAnalysisContext();
     String importedTypeName = "A";
-    ClassElement importedType = new ClassElementImpl(importedTypeName, -1);
+    ClassElement importedType = ClassElementImpl(importedTypeName, -1);
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
         .types = <ClassElement>[importedType];
     LibraryElementImpl definingLibrary =
         createTestLibrary(context, "importing");
-    ImportElementImpl importElement = new ImportElementImpl(0);
+    ImportElementImpl importElement = ImportElementImpl(0);
     importElement.importedLibrary = importedLibrary;
     definingLibrary.imports = <ImportElement>[importElement];
-    Scope scope = new LibraryImportScope(definingLibrary);
+    Scope scope = LibraryImportScope(definingLibrary);
     expect(
         scope.lookup(
             AstTestFactory.identifier3(importedTypeName), definingLibrary),
@@ -204,7 +205,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
       prefixedImport,
       nonPrefixedImport
     ];
-    Scope scope = new LibraryImportScope(importingLibrary);
+    Scope scope = LibraryImportScope(importingLibrary);
     Element prefixedElement = scope.lookup(
         AstTestFactory.identifier5(prefixName, typeName), importingLibrary);
     expect(prefixedElement, same(prefixedType));
@@ -217,22 +218,22 @@ class LibraryImportScopeTest extends ResolverTestCase {
 @reflectiveTest
 class LibraryScopeTest extends ResolverTestCase {
   void test_creation_empty() {
-    new LibraryScope(createDefaultTestLibrary());
+    LibraryScope(createDefaultTestLibrary());
   }
 
   void test_creation_nonEmpty() {
     AnalysisContext context = TestAnalysisContext();
     String importedTypeName = "A";
-    ClassElement importedType = new ClassElementImpl(importedTypeName, -1);
+    ClassElement importedType = ClassElementImpl(importedTypeName, -1);
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
         .types = <ClassElement>[importedType];
     LibraryElementImpl definingLibrary =
         createTestLibrary(context, "importing");
-    ImportElementImpl importElement = new ImportElementImpl(0);
+    ImportElementImpl importElement = ImportElementImpl(0);
     importElement.importedLibrary = importedLibrary;
     definingLibrary.imports = <ImportElement>[importElement];
-    Scope scope = new LibraryScope(definingLibrary);
+    Scope scope = LibraryScope(definingLibrary);
     expect(
         scope.lookup(
             AstTestFactory.identifier3(importedTypeName), definingLibrary),
@@ -248,7 +249,7 @@ class LibraryScopeTest extends ResolverTestCase {
     compilationUnit.extensions = <ExtensionElement>[extension];
 
     String libraryName = 'lib';
-    LibraryElementImpl library = new LibraryElementImpl(
+    LibraryElementImpl library = LibraryElementImpl(
         null, null, libraryName, 0, libraryName.length, false);
     library.definingCompilationUnit = compilationUnit;
 
@@ -413,24 +414,24 @@ class LibraryScopeTest extends ResolverTestCase {
 class PrefixedNamespaceTest extends DriverResolutionTest {
   void test_lookup_missing() {
     ClassElement element = ElementFactory.classElement2('A');
-    PrefixedNamespace namespace = new PrefixedNamespace('p', _toMap([element]));
+    PrefixedNamespace namespace = PrefixedNamespace('p', _toMap([element]));
     expect(namespace.get('p.B'), isNull);
   }
 
   void test_lookup_missing_matchesPrefix() {
     ClassElement element = ElementFactory.classElement2('A');
-    PrefixedNamespace namespace = new PrefixedNamespace('p', _toMap([element]));
+    PrefixedNamespace namespace = PrefixedNamespace('p', _toMap([element]));
     expect(namespace.get('p'), isNull);
   }
 
   void test_lookup_valid() {
     ClassElement element = ElementFactory.classElement2('A');
-    PrefixedNamespace namespace = new PrefixedNamespace('p', _toMap([element]));
+    PrefixedNamespace namespace = PrefixedNamespace('p', _toMap([element]));
     expect(namespace.get('p.A'), same(element));
   }
 
   Map<String, Element> _toMap(List<Element> elements) {
-    Map<String, Element> map = new HashMap<String, Element>();
+    Map<String, Element> map = HashMap<String, Element>();
     for (Element element in elements) {
       map[element.name] = element;
     }
@@ -441,13 +442,13 @@ class PrefixedNamespaceTest extends DriverResolutionTest {
 @reflectiveTest
 class ScopeTest extends DriverResolutionTest {
   void test_define_duplicate() {
-    Scope scope = new _RootScope();
+    Scope scope = _RootScope();
     SimpleIdentifier identifier = AstTestFactory.identifier3('v');
     VariableElement element1 = ElementFactory.localVariableElement(identifier);
     VariableElement element2 = ElementFactory.localVariableElement(identifier);
     scope.define(element1);
     scope.define(element2);
-    expect(scope.localLookup('v', null), same(element1));
+    expect(scope.localLookup('v'), same(element1));
   }
 
   void test_isPrivateName_nonPrivate() {
@@ -459,20 +460,15 @@ class ScopeTest extends DriverResolutionTest {
   }
 }
 
-/**
- * Instances of the class `StaticTypeVerifier` verify that all of the nodes in an AST
- * structure that should have a static type associated with them do have a static type.
- */
+/// Instances of the class `StaticTypeVerifier` verify that all of the nodes in
+/// an AST structure that should have a static type associated with them do have
+/// a static type.
 class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
-  /**
-   * A list containing all of the AST Expression nodes that were not resolved.
-   */
-  List<Expression> _unresolvedExpressions = new List<Expression>();
+  /// A list containing all of the AST Expression nodes that were not resolved.
+  final List<Expression> _unresolvedExpressions = <Expression>[];
 
-  /**
-   * The TypeAnnotation nodes that were not resolved.
-   */
-  List<TypeAnnotation> _unresolvedTypes = new List<TypeAnnotation>();
+  /// The TypeAnnotation nodes that were not resolved.
+  final List<TypeAnnotation> _unresolvedTypes = <TypeAnnotation>[];
 
   /**
    * Counter for the number of Expression nodes visited that are resolved.
@@ -484,12 +480,11 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
    */
   int _resolvedTypeCount = 0;
 
-  /**
-   * Assert that all of the visited nodes have a static type associated with them.
-   */
+  /// Assert that all of the visited nodes have a static type associated with
+  /// them.
   void assertResolved() {
     if (_unresolvedExpressions.isNotEmpty || _unresolvedTypes.isNotEmpty) {
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       int unresolvedTypeCount = _unresolvedTypes.length;
       if (unresolvedTypeCount > 0) {
         buffer.write("Failed to resolve ");
@@ -793,7 +788,7 @@ main() {
   return v; // return
 }''';
     await resolveTestCode(code);
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertTypeNull(findNode.simple('v; // declare'));
     assertType(findNode.simple('v = null;'), 'int');
     assertType(findNode.simple('v; // return'), 'int');
@@ -819,7 +814,7 @@ f() {
   int v = 0;
   return v;
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertTypeNull(findNode.simple('v = 0;'));
     assertType(findNode.simple('v;'), 'int');
   }
@@ -830,7 +825,7 @@ f() {
   List<int> v = <int>[];
   return v;
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'List<int>');
+    assertType(findElement.localVar('v').type, 'List<int>');
     assertTypeNull(findNode.simple('v ='));
     assertType(findNode.simple('v;'), 'List<int>');
   }
@@ -841,7 +836,7 @@ main() {
   int v = null;
   return v;
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertTypeNull(findNode.simple('v ='));
     assertType(findNode.simple('v;'), 'int');
   }
@@ -949,7 +944,7 @@ main() {
   dynamic toString = () => null;
   toString(); // marker
 }''');
-    assertElementTypeDynamic(findElement.localVar('toString').type);
+    assertTypeDynamic(findElement.localVar('toString').type);
     assertTypeNull(findNode.simple('toString ='));
     assertTypeDynamic(findNode.simple('toString(); // marker'));
   }
@@ -967,7 +962,5 @@ main() {
 
 class _RootScope extends Scope {
   @override
-  Element internalLookup(Identifier identifier, String name,
-          LibraryElement referencingLibrary) =>
-      null;
+  Element internalLookup(String name) => null;
 }

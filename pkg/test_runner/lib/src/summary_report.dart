@@ -33,16 +33,16 @@ class SummaryReport {
   void add(TestCase testCase) {
     var expectations = testCase.expectedOutcomes;
 
-    bool containsFail = expectations
+    var containsFail = expectations
         .any((expectation) => expectation.canBeOutcomeOf(Expectation.fail));
-    bool containsPass = expectations.contains(Expectation.pass);
-    bool containsSkip = expectations
+    var containsPass = expectations.contains(Expectation.pass);
+    var containsSkip = expectations
         .any((expectation) => expectation.canBeOutcomeOf(Expectation.skip));
-    bool containsSkipByDesign = expectations.contains(Expectation.skipByDesign);
-    bool containsCrash = expectations.contains(Expectation.crash);
-    bool containsOK = expectations.contains(Expectation.ok);
-    bool containsSlow = expectations.contains(Expectation.slow);
-    bool containsTimeout = expectations.contains(Expectation.timeout);
+    var containsSkipByDesign = expectations.contains(Expectation.skipByDesign);
+    var containsCrash = expectations.contains(Expectation.crash);
+    var containsOK = expectations.contains(Expectation.ok);
+    var containsSlow = expectations.contains(Expectation.slow);
+    var containsTimeout = expectations.contains(Expectation.timeout);
 
     ++_total;
     if (containsSkip) {
@@ -57,7 +57,7 @@ class SummaryReport {
     } else {
       // We don't do if-else below because the buckets should be exclusive.
       // We keep a count around to guarantee that
-      int markers = 0;
+      var markers = 0;
 
       // Counts the number of flaky tests.
       if (containsFail && containsPass && !containsCrash && !containsOK) {

@@ -13,6 +13,23 @@ main() {
   expect(null, lateLocalInit);
   expect(123, lateLocal);
   expect(123, lateLocalInit);
+
+  local<T>(T? value) {
+    T? lateGenericLocalInit;
+    T? initLateGenericLocal(T? value) {
+      return lateGenericLocalInit = value;
+    }
+
+    late final T? lateGenericLocal = initLateGenericLocal(value);
+
+    expect(null, lateGenericLocalInit);
+    expect(value, lateGenericLocal);
+    expect(value, lateGenericLocalInit);
+  }
+
+  local<int?>(null);
+  local<int?>(42);
+  local<int>(42);
 }
 
 expect(expected, actual) {

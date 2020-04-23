@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibrarySdkTest);
   });
@@ -20,7 +20,7 @@ class ImportLibrarySdkTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_SDK;
 
-  test_alreadyImported_sdk() async {
+  Future<void> test_alreadyImported_sdk() async {
     await resolveTestUnit('''
 import 'dart:collection' show HashMap;
 main() {
@@ -32,7 +32,7 @@ main() {
     await assertNoFix();
   }
 
-  test_withClass_asExpression() async {
+  Future<void> test_withClass_asExpression() async {
     await resolveTestUnit('''
 main(p) {
   p as HashMap;
@@ -47,7 +47,7 @@ main(p) {
 ''');
   }
 
-  test_withClass_instanceCreation_explicitNew() async {
+  Future<void> test_withClass_instanceCreation_explicitNew() async {
     await resolveTestUnit('''
 class C {
   foo() {
@@ -66,7 +66,8 @@ class C {
 ''');
   }
 
-  test_withClass_instanceCreation_explicitNew_namedConstructor() async {
+  Future<void>
+      test_withClass_instanceCreation_explicitNew_namedConstructor() async {
     await resolveTestUnit('''
 class C {
   foo() {
@@ -85,7 +86,7 @@ class C {
 ''');
   }
 
-  test_withClass_instanceCreation_implicitNew() async {
+  Future<void> test_withClass_instanceCreation_implicitNew() async {
     await resolveTestUnit('''
 class C {
   foo() {
@@ -104,7 +105,8 @@ class C {
 ''');
   }
 
-  test_withClass_instanceCreation_implicitNew_namedConstructor() async {
+  Future<void>
+      test_withClass_instanceCreation_implicitNew_namedConstructor() async {
     await resolveTestUnit('''
 class C {
   foo() {
@@ -123,7 +125,7 @@ class C {
 ''');
   }
 
-  test_withClass_invocationTarget() async {
+  Future<void> test_withClass_invocationTarget() async {
     await resolveTestUnit('''
 main() {
   Timer.run(null);
@@ -138,7 +140,7 @@ main() {
 ''');
   }
 
-  test_withClass_IsExpression() async {
+  Future<void> test_withClass_IsExpression() async {
     await resolveTestUnit('''
 main(p) {
   p is Completer;
@@ -153,7 +155,7 @@ main(p) {
 ''');
   }
 
-  test_withClass_itemOfList() async {
+  Future<void> test_withClass_itemOfList() async {
     await resolveTestUnit('''
 main() {
   var a = [Completer];
@@ -170,7 +172,7 @@ main() {
 ''');
   }
 
-  test_withClass_itemOfList_inAnnotation() async {
+  Future<void> test_withClass_itemOfList_inAnnotation() async {
     await resolveTestUnit('''
 class MyAnnotation {
   const MyAnnotation(a, b);
@@ -191,7 +193,7 @@ main() {}
     });
   }
 
-  test_withClass_typeAnnotation() async {
+  Future<void> test_withClass_typeAnnotation() async {
     await resolveTestUnit('''
 main() {
   Completer f = null;
@@ -208,7 +210,7 @@ main() {
 ''');
   }
 
-  test_withClass_typeAnnotation_PrefixedIdentifier() async {
+  Future<void> test_withClass_typeAnnotation_PrefixedIdentifier() async {
     await resolveTestUnit('''
 main() {
   Timer.run;
@@ -223,7 +225,7 @@ main() {
 ''');
   }
 
-  test_withClass_typeArgument() async {
+  Future<void> test_withClass_typeArgument() async {
     await resolveTestUnit('''
 main() {
   List<Completer> completers = [];
@@ -240,7 +242,7 @@ main() {
 ''');
   }
 
-  test_withTopLevelVariable() async {
+  Future<void> test_withTopLevelVariable() async {
     await resolveTestUnit('''
 main() {
   print(PI);
@@ -255,7 +257,7 @@ main() {
 ''');
   }
 
-  test_withTopLevelVariable_annotation() async {
+  Future<void> test_withTopLevelVariable_annotation() async {
     await resolveTestUnit('''
 @PI
 main() {

@@ -44,7 +44,6 @@ final String _headerCode = r'''
 /// A library to access the VM Service API.
 ///
 /// The main entry-point for this library is the [VmService] class.
-library vm_service;
 
 import 'dart:async';
 import 'dart:convert' show base64, jsonDecode, jsonEncode, utf8;
@@ -52,17 +51,17 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
-import 'src/service_extension_registry.dart';
+import 'service_extension_registry.dart';
 
-export 'src/service_extension_registry.dart' show ServiceExtensionRegistry;
-export 'src/snapshot_graph.dart' show HeapSnapshotClass,
-                                      HeapSnapshotExternalProperty,
-                                      HeapSnapshotField,
-                                      HeapSnapshotGraph,
-                                      HeapSnapshotObject,
-                                      HeapSnapshotObjectLengthData,
-                                      HeapSnapshotObjectNoData,
-                                      HeapSnapshotObjectNullData;
+export 'service_extension_registry.dart' show ServiceExtensionRegistry;
+export 'snapshot_graph.dart' show HeapSnapshotClass,
+                                  HeapSnapshotExternalProperty,
+                                  HeapSnapshotField,
+                                  HeapSnapshotGraph,
+                                  HeapSnapshotObject,
+                                  HeapSnapshotObjectLengthData,
+                                  HeapSnapshotObjectNoData,
+                                  HeapSnapshotObjectNullData;
 ''';
 
 final String _implCode = r'''
@@ -103,7 +102,11 @@ final String _implCode = r'''
 
   void dispose() {
     _streamSub.cancel();
-    _completers.values.forEach((c) => c.completeError('disposed'));
+    _completers.forEach((id, c) {
+      final method = _methodCalls[id];
+      return c.completeError(
+          RPCError(method, -32000, 'Service connection disposed'));
+    });
     _completers.clear();
     if (_disposeHandler != null) {
       _disposeHandler();
@@ -207,7 +210,9 @@ final String _implCode = r'''
     } else {
       Map<String, dynamic> result = json['result'] as Map<String, dynamic>;
       String type = result['type'];
-      if (_typeFactories[type] == null) {
+      if (type == 'Sentinel') {
+        completer.completeError(SentinelException.parse(methodName, result));
+      } else if (_typeFactories[type] == null) {
         completer.complete(Response.parse(result));
       } else {
         completer.complete(createServiceObject(result, returnTypes));
@@ -258,9 +263,11 @@ final String _implCode = r'''
 ''';
 
 final String _rpcError = r'''
+
+
 typedef DisposeHandler = Future Function();
 
-class RPCError {
+class RPCError implements Exception {
   static RPCError parse(String callingMethod, dynamic json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }
@@ -281,6 +288,17 @@ class RPCError {
       return '${message} (${code}) from ${callingMethod}():\n${details}';
     }
   }
+}
+
+/// Thrown when an RPC response is a [Sentinel].
+class SentinelException implements Exception {
+  final String callingMethod;
+  final Sentinel sentinel;
+
+  SentinelException.parse(this.callingMethod, Map<String, dynamic> data) :
+    sentinel = Sentinel.parse(data);
+
+  String toString() => '$sentinel from ${callingMethod}()';
 }
 
 /// An `ExtensionData` is an arbitrary map that can have any contents.
@@ -387,10 +405,13 @@ class Api extends Member with ApiParseUtil {
         String docs = '';
 
         while (i + 1 < nodes.length &&
-            (isPara(nodes[i + 1]) || isBlockquote(nodes[i + 1]))) {
+                (isPara(nodes[i + 1]) || isBlockquote(nodes[i + 1])) ||
+            isList(nodes[i + 1])) {
           Element p = nodes[++i];
           String str = TextOutputVisitor.printText(p);
-          if (!str.contains('|') && !str.contains('``')) {
+          if (!str.contains('|') &&
+              !str.contains('``') &&
+              !str.startsWith('- ')) {
             str = collapseWhitespace(str);
           }
           docs = '${docs}\n\n${str}';
@@ -507,11 +528,10 @@ dynamic _createSpecificObject(dynamic json, dynamic creator(Map<String, dynamic>
   if (json is List) {
     return json.map((e) => creator(e)).toList();
   } else if (json is Map) {
-    Map<String, dynamic> map = {};
-    for (dynamic key in json.keys) {
-      map[key as String] = json[key];
-    }
-    return creator(map);
+    return creator({
+      for (String key in json.keys)
+        key: json[key],
+    });
   } else {
     // Handle simple types.
     return json;
@@ -523,8 +543,19 @@ void _setIfNotNull(Map<String, Object> json, String key, Object value) {
   json[key] = value;
 }
 
+Future<T> extensionCallHelper<T>(VmService service, String method, Map args) {
+  return service._call(method, args);
+}
+
 typedef ServiceCallback = Future<Map<String, dynamic>> Function(
     Map<String, dynamic> params);
+
+void addTypeFactory(String name, Function factory) {
+  if (_typeFactories.containsKey(name)) {
+    throw StateError('Factory already registered for \$name');
+  }
+  _typeFactories[name] = factory;
+}
 
 ''');
     gen.writeln();
@@ -1051,35 +1082,31 @@ class Method extends Member {
     if (!hasArgs) {
       gen.writeStatement("=> _call('${name}');");
     } else if (hasOptionalArgs) {
-      gen.writeStatement('{');
-      gen.write('Map m = {');
+      gen.writeStatement("=> _call('$name', {");
       gen.write(args
           .where((MethodArg a) => !a.optional)
-          .map((arg) => "'${arg.name}': ${arg.name}")
-          .join(', '));
-      gen.writeln('};');
+          .map((arg) => "'${arg.name}': ${arg.name},")
+          .join());
+
       args.where((MethodArg a) => a.optional).forEach((MethodArg arg) {
         String valueRef = arg.name;
         // Special case for `getAllocationProfile`. We do not want to add these
         // params if they are false.
         if (name == 'getAllocationProfile') {
-          gen.writeln("if (${arg.name} != null && ${arg.name}) {");
+          gen.writeln("if (${arg.name} != null && ${arg.name})");
         } else {
-          gen.writeln("if (${arg.name} != null) {");
+          gen.writeln("if (${arg.name} != null)");
         }
-        gen.writeln("m['${arg.name}'] = ${valueRef};");
-        gen.writeln("}");
+        gen.writeln("'${arg.name}': $valueRef,");
       });
-      gen.writeStatement("return _call('${name}', m);");
-      gen.writeStatement('}');
+
+      gen.writeln('});');
     } else {
-      gen.writeStatement('{');
-      gen.write("return _call('${name}', {");
+      gen.write("=> _call('${name}', {");
       gen.write(args.map((MethodArg arg) {
         return "'${arg.name}': ${arg.name}";
       }).join(', '));
       gen.writeStatement('});');
-      gen.writeStatement('}');
     }
   }
 
@@ -1097,6 +1124,11 @@ class Method extends Member {
       if (returnType.isMultipleReturns) {
         _docs += '\n\nThe return value can be one of '
             '${joinLast(returnType.types.map((t) => '[${t}]'), ', ', ' or ')}.';
+        _docs = _docs.trim();
+      }
+      if (returnType.canReturnSentinel) {
+        _docs +=
+            '\n\nThis method will throw a [SentinelException] in the case a [Sentinel] is returned.';
         _docs = _docs.trim();
       }
       if (_docs.isNotEmpty) gen.writeDocs(_docs);
@@ -1136,10 +1168,11 @@ class MemberType extends Member {
 
   MemberType();
 
-  void parse(Parser parser) {
+  void parse(Parser parser, {bool isReturnType = false}) {
     // foo|bar[]|baz
     // (@Instance|Sentinel)[]
     bool loop = true;
+    this.isReturnType = isReturnType;
 
     while (loop) {
       if (parser.consume('(')) {
@@ -1161,7 +1194,11 @@ class MemberType extends Member {
           parser.expect(']');
           ref.arrayDepth++;
         }
-        types.add(ref);
+        if (isReturnType && ref.name == 'Sentinel') {
+          canReturnSentinel = true;
+        } else {
+          types.add(ref);
+        }
       }
 
       loop = parser.consume('|');
@@ -1171,8 +1208,12 @@ class MemberType extends Member {
   String get name {
     if (types.isEmpty) return '';
     if (types.length == 1) return types.first.ref;
+    if (isReturnType) return 'Response';
     return 'dynamic';
   }
+
+  bool isReturnType = false;
+  bool canReturnSentinel = false;
 
   bool get isMultipleReturns => types.length > 1;
 
@@ -1325,12 +1366,15 @@ class Type extends Member {
     if (docs != null) gen.writeDocs(docs);
     gen.write('class ${name} ');
     if (superName != null) gen.write('extends ${superName} ');
+    if (parent.getType('${name}Ref') != null) {
+      gen.write('implements ${name}Ref ');
+    }
     gen.writeln('{');
     gen.writeln('static ${name} parse(Map<String, dynamic> json) => '
         'json == null ? null : ${name}._fromJson(json);');
     gen.writeln();
 
-    if (name == 'Response') {
+    if (name == 'Response' || name == 'TimelineEvent') {
       gen.writeln('Map<String, dynamic> json;');
     }
     if (name == 'Script') {
@@ -1359,8 +1403,9 @@ class Type extends Member {
     gen.writeln(');');
 
     // Build from JSON.
+    gen.writeln();
     String superCall = superName == null ? '' : ": super._fromJson(json) ";
-    if (name == 'Response') {
+    if (name == 'Response' || name == 'TimelineEvent') {
       gen.write('${name}._fromJson(this.json)');
     } else {
       gen.write('${name}._fromJson(Map<String, dynamic> json) ${superCall}');
@@ -1461,7 +1506,7 @@ class Type extends Member {
                   "List<${fieldType.listTypeArg}>.from(createServiceObject($ref ?? json['samples'], $typesList));");
             } else {
               gen.writeln("${field.generatableName} = "
-                  "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList));");
+                  "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList) ?? []);");
             }
           }
         }
@@ -1488,6 +1533,16 @@ Map<String, dynamic> toJson() {
   result['type'] = type ?? 'Response';
   return result;
 }''');
+    } else if (name == 'TimelineEvent') {
+      // TimelineEvent doesn't have any declared properties as the response is
+      // fairly dynamic. Return the json directly.
+      gen.writeln('''
+          Map<String, dynamic> toJson() {
+            var result = json == null ? <String, dynamic>{} : Map.of(json);
+            result['type'] = 'TimelineEvent';
+            return result;
+          }
+      ''');
     } else {
       if (isResponse) {
         gen.writeln('@override');
@@ -1849,6 +1904,14 @@ class TextOutputVisitor implements NodeVisitor {
       _blockquote = true;
     } else if (element.tag == 'a') {
       _href = true;
+    } else if (element.tag == 'strong') {
+      buf.write('**');
+    } else if (element.tag == 'ul') {
+      // Nothing to do.
+    } else if (element.tag == 'li') {
+      buf.write('- ');
+    } else {
+      throw 'unknown node type: ${element.tag}';
     }
 
     return true;
@@ -1876,13 +1939,17 @@ class TextOutputVisitor implements NodeVisitor {
     } else if (element.tag == 'p') {
       buf.write('\n\n');
     } else if (element.tag == 'blockquote') {
-      //buf.write('```\n');
       _blockquote = false;
     } else if (element.tag == 'a') {
       _href = false;
+    } else if (element.tag == 'strong') {
+      buf.write('**');
+    } else if (element.tag == 'ul') {
+      // Nothing to do.
+    } else if (element.tag == 'li') {
+      buf.write('\n');
     } else {
-      print('             </${element.tag}>');
-      buf.write(renderToHtml([element]));
+      throw 'unknown node type: ${element.tag}';
     }
   }
 
@@ -1900,7 +1967,7 @@ class MethodParser extends Parser {
     // method is return type, name, (, args )
     // args is type name, [optional], comma
 
-    method.returnType.parse(this);
+    method.returnType.parse(this, isReturnType: true);
 
     Token t = expectName();
     validate(

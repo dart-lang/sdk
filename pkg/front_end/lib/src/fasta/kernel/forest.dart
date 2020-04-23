@@ -8,8 +8,6 @@ import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
 
-import '../names.dart';
-
 import '../problems.dart' show unsupported;
 
 import 'collections.dart'
@@ -203,9 +201,13 @@ class Forest {
   }
 
   Expression createAsExpression(
-      int fileOffset, Expression expression, DartType type) {
+      int fileOffset, Expression expression, DartType type,
+      {bool forNonNullableByDefault}) {
+    assert(forNonNullableByDefault != null);
     assert(fileOffset != null);
-    return new AsExpression(expression, type)..fileOffset = fileOffset;
+    return new AsExpression(expression, type)
+      ..fileOffset = fileOffset
+      ..isForNonNullableByDefault = forNonNullableByDefault;
   }
 
   Expression createSpreadElement(int fileOffset, Expression expression,
@@ -254,12 +256,14 @@ class Forest {
       int fileOffset,
       VariableDeclaration variable,
       Expression iterable,
-      Statement prologue,
+      Expression synthesizedAssignment,
+      Statement expressionEffects,
       Expression body,
       Expression problem,
       {bool isAsync: false}) {
     assert(fileOffset != null);
-    return new ForInElement(variable, iterable, prologue, body, problem,
+    return new ForInElement(variable, iterable, synthesizedAssignment,
+        expressionEffects, body, problem,
         isAsync: isAsync)
       ..fileOffset = fileOffset;
   }
@@ -268,12 +272,14 @@ class Forest {
       int fileOffset,
       VariableDeclaration variable,
       Expression iterable,
-      Statement prologue,
+      Expression synthesizedAssignment,
+      Statement expressionEffects,
       MapEntry body,
       Expression problem,
       {bool isAsync: false}) {
     assert(fileOffset != null);
-    return new ForInMapEntry(variable, iterable, prologue, body, problem,
+    return new ForInMapEntry(variable, iterable, synthesizedAssignment,
+        expressionEffects, body, problem,
         isAsync: isAsync)
       ..fileOffset = fileOffset;
   }
@@ -323,7 +329,7 @@ class Forest {
   Statement createBreakStatement(int fileOffset, Object label) {
     assert(fileOffset != null);
     // TODO(johnniwinther): Use [label]?
-    return new BreakStatement(null)..fileOffset = fileOffset;
+    return new BreakStatementImpl(isContinue: false)..fileOffset = fileOffset;
   }
 
   /// Return a representation of a catch clause.
@@ -355,7 +361,7 @@ class Forest {
   Statement createContinueStatement(int fileOffset, Object label) {
     assert(fileOffset != null);
     // TODO(johnniwinther): Use [label]?
-    return new BreakStatement(null)..fileOffset = fileOffset;
+    return new BreakStatementImpl(isContinue: true)..fileOffset = fileOffset;
   }
 
   /// Return a representation of a do statement.
@@ -404,10 +410,12 @@ class Forest {
   /// is non-null the test is negated the that file offset.
   Expression createIsExpression(
       int fileOffset, Expression operand, DartType type,
-      {int notFileOffset}) {
+      {bool forNonNullableByDefault, int notFileOffset}) {
+    assert(forNonNullableByDefault != null);
     assert(fileOffset != null);
     Expression result = new IsExpression(operand, type)
-      ..fileOffset = fileOffset;
+      ..fileOffset = fileOffset
+      ..isForNonNullableByDefault = forNonNullableByDefault;
     if (notFileOffset != null) {
       result = createNot(notFileOffset, result);
     }
@@ -452,6 +460,7 @@ class Forest {
   Expression createStringConcatenation(
       int fileOffset, List<Expression> expressions) {
     assert(fileOffset != null);
+    assert(fileOffset != TreeNode.noOffset);
     return new StringConcatenation(expressions)..fileOffset = fileOffset;
   }
 
@@ -475,16 +484,11 @@ class Forest {
 
   bool isThrow(Object o) => o is Throw;
 
-  TryCatch createTryCatch(
-      int fileOffset, Statement tryBlock, List<Catch> catchBlocks) {
+  Statement createTryStatement(int fileOffset, Statement tryBlock,
+      List<Catch> catchBlocks, Statement finallyBlock) {
     assert(fileOffset != null);
-    return new TryCatch(tryBlock, catchBlocks)..fileOffset = fileOffset;
-  }
-
-  TryFinally createTryFinally(
-      int fileOffset, Statement tryBlock, Statement finallyBlock) {
-    assert(fileOffset != null);
-    return new TryFinally(tryBlock, finallyBlock)..fileOffset = fileOffset;
+    return new TryStatement(tryBlock, catchBlocks ?? <Catch>[], finallyBlock)
+      ..fileOffset = fileOffset;
   }
 
   _VariablesDeclaration variablesDeclaration(
@@ -570,7 +574,8 @@ class Forest {
         isConst: isConst,
         isFieldFormal: isFieldFormal,
         isCovariant: isCovariant,
-        isLocalFunction: isLocalFunction);
+        isLocalFunction: isLocalFunction,
+        hasDeclaredInitializer: initializer != null);
   }
 
   VariableDeclaration createVariableDeclarationForValue(Expression initializer,
@@ -624,21 +629,18 @@ class Forest {
     return new FunctionExpression(function)..fileOffset = fileOffset;
   }
 
-  MethodInvocation createFunctionInvocation(
+  Expression createExpressionInvocation(
       int fileOffset, Expression expression, Arguments arguments) {
     assert(fileOffset != null);
-    return new MethodInvocationImpl(expression, callName, arguments)
+    return new ExpressionInvocation(expression, arguments)
       ..fileOffset = fileOffset;
   }
 
   MethodInvocation createMethodInvocation(
-      int fileOffset, Expression expression, Name name, Arguments arguments,
-      {bool isImplicitCall: false, Member interfaceTarget}) {
+      int fileOffset, Expression expression, Name name, Arguments arguments) {
     assert(fileOffset != null);
-    return new MethodInvocationImpl(expression, name, arguments,
-        isImplicitCall: isImplicitCall)
-      ..fileOffset = fileOffset
-      ..interfaceTarget = interfaceTarget;
+    return new MethodInvocation(expression, name, arguments)
+      ..fileOffset = fileOffset;
   }
 
   NamedExpression createNamedExpression(
@@ -751,5 +753,15 @@ class _VariablesDeclaration extends Statement {
 
   transformChildren(v) {
     throw unsupported("transformChildren", fileOffset, uri);
+  }
+
+  @override
+  String toString() {
+    return "_VariablesDeclaration(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }

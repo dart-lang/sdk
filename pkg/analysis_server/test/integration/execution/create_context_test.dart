@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateContextTest);
   });
@@ -15,10 +15,9 @@ main() {
 
 @reflectiveTest
 class CreateContextTest extends AbstractAnalysisServerIntegrationTest {
-  test_create() async {
+  Future<void> test_create() async {
     standardAnalysisSetup();
-    String contextId =
-        (await sendExecutionCreateContext(sourceDirectory.path)).id;
+    var contextId = (await sendExecutionCreateContext(sourceDirectory.path)).id;
     expect(contextId, isNotNull);
   }
 }

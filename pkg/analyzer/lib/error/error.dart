@@ -14,14 +14,13 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
     show ErrorCode, ErrorSeverity, ErrorType;
 
-const List<ErrorCode> errorCodeValues = const [
+const List<ErrorCode> errorCodeValues = [
   //
   // Manually generated. You can mostly reproduce this list by running the
   // following command from the root of the analyzer package:
@@ -44,23 +43,23 @@ const List<ErrorCode> errorCodeValues = const [
   // error code in on the line following the pattern we're grepping for. Those
   // need to be filled in by hand.
   //
-  AnalysisOptionsErrorCode.PARSE_ERROR,
   AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
+  AnalysisOptionsErrorCode.PARSE_ERROR,
+  AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
+  AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED,
+  AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED,
+  AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED,
   AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
   AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
   AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
   AnalysisOptionsWarningCode.INVALID_OPTION,
   AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+  AnalysisOptionsWarningCode.SPEC_MODE_REMOVED,
   AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
   AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
-  AnalysisOptionsWarningCode.SPEC_MODE_REMOVED,
-  AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
-  AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED,
-  AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED,
-  AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED,
   CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
   CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
   CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
@@ -76,14 +75,18 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
   CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
+  CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
   CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+  CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
+  CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
-  CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
+  CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME,
   CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+  CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
   CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
   CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
   CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
@@ -116,27 +119,28 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
   CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
   CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP,
-  CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS,
   CompileTimeErrorCode.CONST_WITH_NON_CONST,
   CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
   CompileTimeErrorCode.CONST_WITH_NON_TYPE,
   CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
-  CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH,
+  CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH,
+  CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR,
   CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
-  CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS,
   CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
   CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
   CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION,
+  CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
   CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
   CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
   CompileTimeErrorCode.DUPLICATE_DEFINITION,
   CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT,
   CompileTimeErrorCode.DUPLICATE_PART,
-  CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
   CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+  CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
   CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
+  CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL,
   CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
   CompileTimeErrorCode.EXPRESSION_IN_MAP,
   CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS,
@@ -179,8 +183,8 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY,
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC,
   CompileTimeErrorCode.INSTANTIATE_ENUM,
-  CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
   CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE,
+  CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
   CompileTimeErrorCode.INVALID_ANNOTATION,
   CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.INVALID_ANNOTATION_GETTER,
@@ -188,10 +192,9 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME,
   CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
   CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
+  CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
-  CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE,
-  CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE,
   CompileTimeErrorCode.INVALID_OVERRIDE,
   CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS,
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
@@ -204,7 +207,10 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
   CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
   CompileTimeErrorCode.LABEL_UNDEFINED,
+  CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
+  CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
   CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP,
+  // ignore: deprecated_member_use_from_same_package
   CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME,
   CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
   CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL,
@@ -213,8 +219,8 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
   CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
   CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
-  CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
   CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+  CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
   CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
   CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
   CompileTimeErrorCode.MIXIN_DEFERRED_CLASS,
@@ -232,6 +238,10 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS,
   CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
   CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS,
+  CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS,
+  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
+  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+  CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
   CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR,
   CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
   CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
@@ -239,15 +249,14 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
   CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
+  CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT,
   CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
   CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
-  CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT,
   CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT,
   // ignore: deprecated_member_use_from_same_package
   CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
-  CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
   CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
   CompileTimeErrorCode.NON_SYNC_FACTORY,
   CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
@@ -260,9 +269,6 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
   CompileTimeErrorCode.NOT_MAP_SPREAD,
   CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
-  CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS,
-  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
-  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
   CompileTimeErrorCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
   CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE,
   CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE,
@@ -272,6 +278,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.ON_REPEATED,
   CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR,
   CompileTimeErrorCode.PART_OF_NON_PART,
+  CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
   CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
   CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
   CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
@@ -296,10 +303,11 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.SHARED_DEFERRED_PREFIX,
   CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
-  CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT,
   CompileTimeErrorCode.SUPER_IN_EXTENSION,
   CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT,
   CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
+  CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT,
+  CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
   CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
   CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
   // ignore: deprecated_member_use_from_same_package
@@ -317,12 +325,12 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.URI_DOES_NOT_EXIST,
   CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED,
   CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+  CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
   CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR,
   CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS,
   CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
   CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
   CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
-  CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
   CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR,
   CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
   FfiCode.ANNOTATION_ON_POINTER_FIELD,
@@ -358,9 +366,11 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
   HintCode.DEPRECATED_MIXIN_FUNCTION,
   HintCode.DIVISION_OPTIMIZATION,
-  HintCode.DUPLICATE_IMPORT,
   HintCode.DUPLICATE_HIDDEN_NAME,
+  HintCode.DUPLICATE_IMPORT,
   HintCode.DUPLICATE_SHOWN_NAME,
+  HintCode.EQUAL_ELEMENTS_IN_SET,
+  HintCode.EQUAL_KEYS_IN_MAP,
   HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
   HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
   HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
@@ -373,6 +383,14 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.INVALID_FACTORY_METHOD_DECL,
   HintCode.INVALID_FACTORY_METHOD_IMPL,
   HintCode.INVALID_IMMUTABLE_ANNOTATION,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES,
   HintCode.INVALID_LITERAL_ANNOTATION,
   HintCode.INVALID_NON_VIRTUAL_ANNOTATION,
   HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
@@ -408,8 +426,9 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
   HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
   HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT,
-  HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE,
+  HintCode.RECEIVER_OF_TYPE_NEVER,
   HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT,
+  HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE,
   HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
   HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT,
   HintCode.SDK_VERSION_EXTENSION_METHODS,
@@ -427,6 +446,8 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.UNDEFINED_SHOWN_NAME,
   HintCode.UNNECESSARY_CAST,
   HintCode.UNNECESSARY_NO_SUCH_METHOD,
+  HintCode.UNNECESSARY_NULL_COMPARISON_FALSE,
+  HintCode.UNNECESSARY_NULL_COMPARISON_TRUE,
   HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
   HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
   HintCode.UNUSED_CATCH_CLAUSE,
@@ -438,8 +459,8 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.UNUSED_LOCAL_VARIABLE,
   HintCode.UNUSED_SHOWN_NAME,
   ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE,
-  ManifestWarningCode.NON_RESIZABLE_ACTIVITY,
   ManifestWarningCode.NO_TOUCHSCREEN_FEATURE,
+  ManifestWarningCode.NON_RESIZABLE_ACTIVITY,
   ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE,
   ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY,
   ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE,
@@ -458,7 +479,6 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.CLASS_IN_CLASS,
   ParserErrorCode.COLON_IN_PLACE_OF_IN,
   ParserErrorCode.CONFLICTING_MODIFIERS,
-  ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE,
   ParserErrorCode.CONST_AFTER_FACTORY,
   ParserErrorCode.CONST_AND_COVARIANT,
   ParserErrorCode.CONST_AND_FINAL,
@@ -469,6 +489,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.CONST_FACTORY,
   ParserErrorCode.CONST_METHOD,
   ParserErrorCode.CONST_TYPEDEF,
+  ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE,
   ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
   ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE,
   ParserErrorCode.COVARIANT_AFTER_FINAL,
@@ -477,13 +498,13 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.COVARIANT_CONSTRUCTOR,
   ParserErrorCode.COVARIANT_MEMBER,
   ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION,
-  ParserErrorCode.DEFERRED_AFTER_PREFIX,
   ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
+  ParserErrorCode.DEFERRED_AFTER_PREFIX,
   ParserErrorCode.DIRECTIVE_AFTER_DECLARATION,
   ParserErrorCode.DUPLICATE_DEFERRED,
-  ParserErrorCode.DUPLICATED_MODIFIER,
   ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT,
   ParserErrorCode.DUPLICATE_PREFIX,
+  ParserErrorCode.DUPLICATED_MODIFIER,
   ParserErrorCode.EMPTY_ENUM_BODY,
   ParserErrorCode.ENUM_IN_CLASS,
   ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
@@ -507,6 +528,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.EXTERNAL_AFTER_STATIC,
   ParserErrorCode.EXTERNAL_CLASS,
   ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY,
+  ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER,
   ParserErrorCode.EXTERNAL_ENUM,
   ParserErrorCode.EXTERNAL_FACTORY_REDIRECTION,
   ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY,
@@ -518,11 +540,12 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.EXTERNAL_TYPEDEF,
   ParserErrorCode.EXTRANEOUS_MODIFIER,
   ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION,
-  ParserErrorCode.FACTORY_WITHOUT_BODY,
   ParserErrorCode.FACTORY_WITH_INITIALIZERS,
-  ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+  ParserErrorCode.FACTORY_WITHOUT_BODY,
   ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS,
+  ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
   ParserErrorCode.FINAL_AND_COVARIANT,
+  ParserErrorCode.FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER,
   ParserErrorCode.FINAL_AND_VAR,
   ParserErrorCode.FINAL_CLASS,
   ParserErrorCode.FINAL_CONSTRUCTOR,
@@ -530,6 +553,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.FINAL_METHOD,
   ParserErrorCode.FINAL_TYPEDEF,
   ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR,
+  ParserErrorCode.GETTER_CONSTRUCTOR,
   ParserErrorCode.GETTER_IN_FUNCTION,
   ParserErrorCode.GETTER_WITH_PARAMETERS,
   ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE,
@@ -550,11 +574,14 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
   ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER,
   ParserErrorCode.INVALID_STAR_AFTER_ASYNC,
+  ParserErrorCode.INVALID_SUPER_IN_INITIALIZER,
   ParserErrorCode.INVALID_SYNC,
+  ParserErrorCode.INVALID_THIS_IN_INITIALIZER,
   ParserErrorCode.INVALID_UNICODE_ESCAPE,
   ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION,
   ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST,
   ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER,
+  ParserErrorCode.MEMBER_WITH_CLASS_NAME,
   ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
   ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER,
   ParserErrorCode.MISSING_CATCH_OR_FINALLY,
@@ -585,10 +612,10 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
   ParserErrorCode.MODIFIER_OUT_OF_ORDER,
   ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES,
-  ParserErrorCode.MULTIPLE_ON_CLAUSES,
   ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES,
   ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES,
   ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS,
+  ParserErrorCode.MULTIPLE_ON_CLAUSES,
   ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES,
   ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS,
   ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH,
@@ -612,6 +639,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.PREFIX_AFTER_COMBINATOR,
   ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY,
   ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
+  ParserErrorCode.SETTER_CONSTRUCTOR,
   ParserErrorCode.SETTER_IN_FUNCTION,
   ParserErrorCode.STACK_OVERFLOW,
   ParserErrorCode.STATIC_AFTER_CONST,
@@ -622,15 +650,14 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.STATIC_OPERATOR,
   ParserErrorCode.STATIC_SETTER_WITHOUT_BODY,
   ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION,
-  ParserErrorCode.INVALID_SUPER_IN_INITIALIZER,
   ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE,
   ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
-  ParserErrorCode.INVALID_THIS_IN_INITIALIZER,
   ParserErrorCode.TOP_LEVEL_OPERATOR,
-  ParserErrorCode.TYPEDEF_IN_CLASS,
   ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE,
   ParserErrorCode.TYPE_BEFORE_FACTORY,
   ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR,
+  ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR,
+  ParserErrorCode.TYPEDEF_IN_CLASS,
   ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
   ParserErrorCode.UNEXPECTED_TOKEN,
   ParserErrorCode.VAR_AND_TYPE,
@@ -639,12 +666,10 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.VAR_ENUM,
   ParserErrorCode.VAR_RETURN_TYPE,
   ParserErrorCode.VAR_TYPEDEF,
+  ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS,
   ParserErrorCode.WITH_BEFORE_EXTENDS,
   ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
   ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
-  ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
-  ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH,
-  ResolverErrorCode.PART_OF_UNNAMED_LIBRARY,
   ScannerErrorCode.EXPECTED_TOKEN,
   ScannerErrorCode.ILLEGAL_CHARACTER,
   ScannerErrorCode.MISSING_DIGIT,
@@ -707,33 +732,40 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.CASE_BLOCK_NOT_TERMINATED,
   StaticWarningCode.CAST_TO_NON_TYPE,
   StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.CONST_WITH_ABSTRACT_CLASS,
+  StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION,
   StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
   StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
-  StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
   StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
   StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+  StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
   StaticWarningCode.FINAL_NOT_INITIALIZED,
   StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
   StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
   StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
+  StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES,
+  StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
   StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.IMPORT_OF_NON_LIBRARY,
+  StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS,
+  StaticWarningCode.INVALID_NULL_AWARE_OPERATOR,
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
+  StaticWarningCode.INVALID_USE_OF_NULL_VALUE,
   StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
-  StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
   StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.MIXED_RETURN_TYPES,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.NEW_WITH_ABSTRACT_CLASS,
-  StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS,
   StaticWarningCode.NEW_WITH_NON_TYPE,
   StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
   StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
@@ -772,18 +804,8 @@ const List<ErrorCode> errorCodeValues = const [
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.UNDEFINED_NAMED_PARAMETER,
   StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION,
-  StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL,
-  StaticWarningCode.UNNECESSARY_NULL_AWARE_SPREAD,
   StaticWarningCode.USE_OF_VOID_RESULT,
-  StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
-  StaticWarningCode.INVALID_USE_OF_NULL_VALUE,
-  StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
-  StrongModeCode.ASSIGNMENT_CAST,
   StrongModeCode.COULD_NOT_INFER,
-  StrongModeCode.DOWN_CAST_COMPOSITE,
-  StrongModeCode.DOWN_CAST_IMPLICIT,
-  StrongModeCode.DOWN_CAST_IMPLICIT_ASSIGN,
-  StrongModeCode.DYNAMIC_CAST,
   StrongModeCode.DYNAMIC_INVOKE,
   StrongModeCode.IMPLICIT_DYNAMIC_FIELD,
   StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION,
@@ -795,21 +817,16 @@ const List<ErrorCode> errorCodeValues = const [
   StrongModeCode.IMPLICIT_DYNAMIC_RETURN,
   StrongModeCode.IMPLICIT_DYNAMIC_TYPE,
   StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE,
-  StrongModeCode.INFERRED_TYPE,
-  StrongModeCode.INFERRED_TYPE_ALLOCATION,
-  StrongModeCode.INFERRED_TYPE_CLOSURE,
-  StrongModeCode.INFERRED_TYPE_LITERAL,
+  StrongModeCode.INVALID_CAST_FUNCTION,
+  StrongModeCode.INVALID_CAST_FUNCTION_EXPR,
   StrongModeCode.INVALID_CAST_LITERAL,
   StrongModeCode.INVALID_CAST_LITERAL_LIST,
   StrongModeCode.INVALID_CAST_LITERAL_MAP,
   StrongModeCode.INVALID_CAST_LITERAL_SET,
-  StrongModeCode.INVALID_CAST_FUNCTION_EXPR,
-  StrongModeCode.INVALID_CAST_NEW_EXPR,
   StrongModeCode.INVALID_CAST_METHOD,
-  StrongModeCode.INVALID_CAST_FUNCTION,
+  StrongModeCode.INVALID_CAST_NEW_EXPR,
   StrongModeCode.INVALID_PARAMETER_DECLARATION,
   StrongModeCode.INVALID_SUPER_INVOCATION,
-  StrongModeCode.NON_GROUND_TYPE_CHECK_INFO,
   StrongModeCode.NOT_INSTANTIATED_BOUND,
   StrongModeCode.TOP_LEVEL_CYCLE,
   StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK,
@@ -831,7 +848,7 @@ HashMap<String, ErrorCode> _uniqueNameToCodeMap;
  */
 ErrorCode errorCodeByUniqueName(String uniqueName) {
   if (_uniqueNameToCodeMap == null) {
-    _uniqueNameToCodeMap = new HashMap<String, ErrorCode>();
+    _uniqueNameToCodeMap = HashMap<String, ErrorCode>();
     for (ErrorCode errorCode in errorCodeValues) {
       _uniqueNameToCodeMap[errorCode.uniqueName] = errorCode;
     }
@@ -848,7 +865,7 @@ class AnalysisError implements Diagnostic {
   /**
    * An empty array of errors used when no errors are expected.
    */
-  static const List<AnalysisError> NO_ERRORS = const <AnalysisError>[];
+  static const List<AnalysisError> NO_ERRORS = <AnalysisError>[];
 
   /**
    * A [Comparator] that sorts by the name of the file that the [AnalysisError]
@@ -919,7 +936,7 @@ class AnalysisError implements Diagnostic {
     if (correctionTemplate != null) {
       this._correction = formatList(correctionTemplate, arguments);
     }
-    _problemMessage = new DiagnosticMessageImpl(
+    _problemMessage = DiagnosticMessageImpl(
         filePath: source?.fullName,
         length: length,
         message: message,
@@ -933,7 +950,7 @@ class AnalysisError implements Diagnostic {
   AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
       String message, this._correction,
       {List<DiagnosticMessage> contextMessages = const []}) {
-    _problemMessage = new DiagnosticMessageImpl(
+    _problemMessage = DiagnosticMessageImpl(
         filePath: source?.fullName,
         length: length,
         message: message,
@@ -941,6 +958,7 @@ class AnalysisError implements Diagnostic {
     _contextMessages = contextMessages;
   }
 
+  @override
   List<DiagnosticMessage> get contextMessages => _contextMessages;
 
   /**
@@ -992,8 +1010,7 @@ class AnalysisError implements Diagnostic {
       case ErrorSeverity.INFO:
         return Severity.info;
       default:
-        throw new StateError(
-            'Invalid error severity: ${errorCode.errorSeverity}');
+        throw StateError('Invalid error severity: ${errorCode.errorSeverity}');
     }
   }
 
@@ -1026,7 +1043,7 @@ class AnalysisError implements Diagnostic {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write((source != null) ? source.fullName : "<unknown source>");
     buffer.write("(");
     buffer.write(offset);
@@ -1043,7 +1060,7 @@ class AnalysisError implements Diagnostic {
    * a single list of errors.
    */
   static List<AnalysisError> mergeLists(List<List<AnalysisError>> errorLists) {
-    Set<AnalysisError> errors = new HashSet<AnalysisError>();
+    Set<AnalysisError> errors = HashSet<AnalysisError>();
     for (List<AnalysisError> errorList in errorLists) {
       errors.addAll(errorList);
     }

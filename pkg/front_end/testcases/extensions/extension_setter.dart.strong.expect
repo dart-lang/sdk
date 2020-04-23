@@ -52,9 +52,9 @@ static method Extension|get#setterWithClosure(final self::Class* #this) → core
   return #this.{self::Class::field};
 static method Extension|set#setterWithClosure(final self::Class* #this, core::int* value) → void {
   function abs(dynamic value) → dynamic {
-    return value.<(0) as{TypeError} core::bool* ?{dynamic} value.unary-() : value;
+    return value.<(0) as{TypeError,ForDynamic} core::bool* ?{dynamic} value.unary-() : value;
   }
-  #this.{self::Class::field} = abs.call(value) as{TypeError} core::int*;
+  #this.{self::Class::field} = abs.call(value) as{TypeError,ForDynamic} core::int*;
 }
 static method Extension|testInternal(final self::Class* #this) → dynamic {
   self::expect(null, #this.{self::Class::field});

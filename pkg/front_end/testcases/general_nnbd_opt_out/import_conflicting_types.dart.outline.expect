@@ -1,0 +1,28 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///import_conflicting_types_lib1.dart";
+import "org-dartlang-testcase:///import_conflicting_types_lib2.dart";
+
+static method main() → dynamic
+  ;
+static method errors() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self2::Foo*
+    ;
+}
+
+library;
+import self as self3;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self3::Foo*
+    ;
+}

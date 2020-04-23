@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: main:static=[
  testBoolFromEnvironment(0),
  testComplexConstSymbol(0),
@@ -86,7 +88,7 @@ testString() => 'foo';
 */
 testStringInterpolation() => '${true}';
 
-/*strong.member: testStringInterpolationConst:type=[inst:JSString]*/
+/*member: testStringInterpolationConst:type=[inst:JSString]*/
 testStringInterpolationConst() {
   const b = '${true}';
   return b;
@@ -102,7 +104,7 @@ testStringJuxtaposition() => 'a' 'b';
 /*member: testSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testSymbol() => #main;
 
-/*strong.member: testConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*member: testConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testConstSymbol() => const Symbol('main');
 
 const complexSymbolField1 = "true".length == 4;
@@ -123,19 +125,16 @@ const complexSymbolField3 = const {
 const complexSymbolField =
     complexSymbolField1 ? complexSymbolField2 : complexSymbolField3;
 
-/*strong.member: testComplexConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*member: testComplexConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testComplexConstSymbol() => const Symbol(complexSymbolField);
 
-/*strong.member: testIfNullConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*member: testIfNullConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 
-/*member: testTypeLiteral:
- static=[createRuntimeType(1)],
- type=[inst:Type,inst:TypeImpl,lit:Object]
-*/
+/*member: testTypeLiteral:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:Object]*/
 testTypeLiteral() => Object;
 
-/*strong.member: testBoolFromEnvironment:type=[inst:JSBool]*/
+/*member: testBoolFromEnvironment:type=[inst:JSBool]*/
 testBoolFromEnvironment() => const bool.fromEnvironment('FOO');
 
 /*member: testEmptyListLiteral:type=[inst:List<dynamic>]*/

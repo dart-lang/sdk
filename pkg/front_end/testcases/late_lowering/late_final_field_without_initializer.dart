@@ -29,6 +29,20 @@ class Class {
   }
 }
 
+extension Extension on Class {
+  static late final int lateExtensionField1;
+  static late final int lateExtensionField2;
+
+  static staticMethod() {
+    throws(() => lateExtensionField2,
+        'Read value from uninitialized Class.lateExtensionField2');
+    lateExtensionField2 = 42;
+    expect(42, lateExtensionField2);
+    throws(() => lateExtensionField2 = 43,
+        'Write value to initialized Class.lateExtensionField2');
+  }
+}
+
 main() {
   throws(() => lateTopLevelField,
       'Read value from uninitialized lateTopLevelField');
@@ -46,6 +60,15 @@ main() {
 
   Class.staticMethod();
   new Class().instanceMethod();
+
+  throws(() => Extension.lateExtensionField1,
+      'Read value from uninitialized Extension.lateExtensionField1');
+  Extension.lateExtensionField1 = 87;
+  expect(87, Extension.lateExtensionField1);
+  throws(() => Extension.lateExtensionField1 = 88,
+      'Write value to initialized Extension.lateExtensionField1');
+
+  Extension.staticMethod();
 }
 
 expect(expected, actual) {
@@ -56,7 +79,7 @@ throws(f(), String message) {
   dynamic value;
   try {
     value = f();
-  } catch (e) {
+  } on LateInitializationError catch (e) {
     print(e);
     return;
   }

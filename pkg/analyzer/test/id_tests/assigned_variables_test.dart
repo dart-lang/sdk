@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
@@ -16,16 +17,17 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script.resolve(
+  Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/assigned_variables/'
       'data'));
-  await runTests(dataDir,
-      args: args,
-      supportedMarkers: sharedMarkers,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const _AssignedVariablesDataComputer(), [analyzerNnbdConfig]));
+  await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+    return runTests<_Data>(dataDir,
+        args: args,
+        createUriForFileName: createUriForFileName,
+        onFailure: onFailure,
+        runTest: runTestFor(
+            const _AssignedVariablesDataComputer(), [analyzerNnbdConfig]));
+  });
 }
 
 class _AssignedVariablesDataComputer extends DataComputer<_Data> {
@@ -98,7 +100,8 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   Set<String> _convertVars(Iterable<PromotableElement> x) =>
       x.map((e) => e.name).toSet();
 
-  void _handlePossibleTopLevelDeclaration(AstNode node, void callback()) {
+  void _handlePossibleTopLevelDeclaration(
+      AstNode node, void Function() callback) {
     if (_currentDeclaration == null) {
       _currentDeclaration = node;
       _currentAssignedVariables = _flowResult.assignedVariables[node];

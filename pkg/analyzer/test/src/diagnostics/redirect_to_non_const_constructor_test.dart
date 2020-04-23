@@ -66,6 +66,17 @@ class A {
     ]);
   }
 
+  test_constRedirector_nonConstRedirectee_viaInitializer_unnamed() async {
+    await assertErrorsInCode(r'''
+class A {
+  A();
+  const A.named() : this();
+}
+''', [
+      error(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, 37, 4),
+    ]);
+  }
+
   test_constRedirector_viaInitializer_cannotResolveRedirectee() async {
     // No crash when redirectee cannot be resolved.
     await assertErrorsInCode(r'''
@@ -76,5 +87,14 @@ class A {
       error(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR, 26,
           8),
     ]);
+  }
+
+  test_redirect_to_const() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A.a();
+  const factory A.b() = A.a;
+}
+''');
   }
 }

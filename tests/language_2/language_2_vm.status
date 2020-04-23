@@ -4,17 +4,17 @@
 # Sections in this file should contain "$runtime == vm".
 
 [ $compiler == dartkp ]
-assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc03: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc04: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc05: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc06: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc07: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assert/initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assert/initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assert/initializer_const_error2_test/cc03: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assert/initializer_const_error2_test/cc04: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assert/initializer_const_error2_test/cc05: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assert/initializer_const_error2_test/cc06: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assert/initializer_const_error2_test/cc07: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assert/initializer_const_error2_test/cc08: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assert/initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assert/initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assert/initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
 
 [ $runtime == vm ]
 async_star/async_star_await_for_test: RuntimeError
@@ -22,11 +22,11 @@ async_star/async_star_cancel_test: RuntimeError
 async_star/async_star_test: RuntimeError
 
 [ $arch == arm64 && $runtime == vm ]
-closure_cycles_test: Pass, Slow
-large_class_declaration_test: SkipSlow # Uses too much memory.
+class/large_class_declaration_test: SkipSlow # Uses too much memory.
+closure/cycles_test: Pass, Slow
 
 [ $arch == ia32 && $mode == release && $runtime == vm ]
-deep_nesting_expression_test/01: Crash, Pass # Issue 31496
+syntax/deep_nesting_expression_test/01: Crash, Pass # Issue 31496
 
 [ $runtime == dart_precompiled || $runtime == vm ]
 superinterface_variance/*: Skip # Issue dart-lang/language#113

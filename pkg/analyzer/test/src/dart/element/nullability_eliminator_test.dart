@@ -4,9 +4,9 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -31,7 +31,7 @@ class NullabilityEliminatorTest with ElementsTypesMixin {
         additionalFeatures: [Feature.non_nullable],
       ),
     );
-    typeProvider = analysisContext.typeProvider;
+    typeProvider = analysisContext.typeProviderNonNullableByDefault;
   }
 
   test_dynamicType() {
@@ -89,6 +89,53 @@ class NullabilityEliminatorTest with ElementsTypesMixin {
       functionTypeStar(
         parameters: [
           requiredParameter(type: intStar),
+        ],
+        returnType: voidNone,
+      ),
+    );
+  }
+
+  test_functionType_parameters_named() {
+    _verify(
+      functionTypeStar(
+        parameters: [
+          namedParameter(name: 'a', type: intNone),
+        ],
+        returnType: voidNone,
+      ),
+      functionTypeStar(
+        parameters: [
+          namedParameter(name: 'a', type: intStar),
+        ],
+        returnType: voidNone,
+      ),
+    );
+
+    _verify(
+      functionTypeStar(
+        parameters: [
+          namedRequiredParameter(name: 'a', type: intNone),
+        ],
+        returnType: voidNone,
+      ),
+      functionTypeStar(
+        parameters: [
+          namedParameter(name: 'a', type: intStar),
+        ],
+        returnType: voidNone,
+      ),
+    );
+
+    _verify(
+      functionTypeStar(
+        parameters: [
+          namedRequiredParameter(name: 'a', type: intStar),
+        ],
+        returnType: voidNone,
+      ),
+      functionTypeStar(
+        parameters: [
+          namedParameter(name: 'a', type: intStar),
         ],
         returnType: voidNone,
       ),
@@ -160,6 +207,20 @@ class NullabilityEliminatorTest with ElementsTypesMixin {
     );
   }
 
+  test_functionType_typeParameters_bound_other() {
+    var T = typeParameter('T', bound: intNone);
+    var U = typeParameter('U', bound: typeParameterTypeNone(T));
+
+    _verifyStr(
+      functionTypeNone(
+        typeFormals: [T, U],
+        returnType: typeParameterTypeNone(T),
+      ),
+      'T Function<T extends int, U extends T>()',
+      'T* Function<T extends int*, U extends T*>()*',
+    );
+  }
+
   test_functionType_typeParameters_bound_question() {
     var T = typeParameter('T', bound: intQuestion);
 
@@ -216,9 +277,13 @@ class NullabilityEliminatorTest with ElementsTypesMixin {
   }
 
   test_neverType() {
-    _verify(neverNone, neverStar);
-    _verify(neverQuestion, neverStar);
-    _verifySame(neverStar);
+    _verify(neverNone, nullStar);
+    _verify(neverQuestion, nullStar);
+    _verify(neverStar, nullStar);
+
+    _verify(listNone(neverNone), listStar(nullStar));
+    _verify(listQuestion(neverNone), listStar(nullStar));
+    _verify(listStar(neverNone), listStar(nullStar));
   }
 
   test_typeParameterType() {
@@ -241,24 +306,24 @@ class NullabilityEliminatorTest with ElementsTypesMixin {
   }
 
   String _typeToString(TypeImpl type) {
-    return type.toString(withNullability: true);
+    return type.getDisplayString(withNullability: true);
   }
 
   void _verify(DartType input, DartType expected) {
-    var result = NullabilityEliminator.perform(input);
+    var result = NullabilityEliminator.perform(typeProvider, input);
     expect(result, isNot(same(input)));
     expect(result, expected);
   }
 
   void _verifySame(DartType input) {
-    var result = NullabilityEliminator.perform(input);
+    var result = NullabilityEliminator.perform(typeProvider, input);
     expect(result, same(input));
   }
 
   void _verifyStr(DartType input, String inputStr, String expectedStr) {
     expect(_typeToString(input), inputStr);
 
-    var result = NullabilityEliminator.perform(input);
+    var result = NullabilityEliminator.perform(typeProvider, input);
     expect(result, isNot(same(input)));
     expect(_typeToString(result), expectedStr);
   }

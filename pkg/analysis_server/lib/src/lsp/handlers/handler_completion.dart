@@ -17,12 +17,12 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 // If the client does not provide capabilities.completion.completionItemKind.valueSet
 // then we must never send a kind that's not in this list.
-final defaultSupportedCompletionKinds = new HashSet<CompletionItemKind>.of([
+final defaultSupportedCompletionKinds = HashSet<CompletionItemKind>.of([
   CompletionItemKind.Text,
   CompletionItemKind.Method,
   CompletionItemKind.Function,
@@ -50,12 +50,14 @@ class CompletionHandler
       LspAnalysisServer server, this.suggestFromUnimportedLibraries)
       : super(server);
 
+  @override
   Method get handlesMessage => Method.textDocument_completion;
 
   @override
   LspJsonHandler<CompletionParams> get jsonHandler =>
       CompletionParams.jsonHandler;
 
+  @override
   Future<ErrorOr<List<CompletionItem>>> handle(
       CompletionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
@@ -67,7 +69,7 @@ class CompletionHandler
 
     final clientSupportedCompletionKinds =
         completionCapabilities?.completionItemKind?.valueSet != null
-            ? new HashSet<CompletionItemKind>.of(
+            ? HashSet<CompletionItemKind>.of(
                 completionCapabilities.completionItemKind.valueSet)
             : defaultSupportedCompletionKinds;
 
@@ -107,7 +109,7 @@ class CompletionHandler
 
           final key =
               _createImportedSymbolKey(elementName, declaringLibraryUri);
-          alreadyImportedSymbols.putIfAbsent(key, () => Set<String>());
+          alreadyImportedSymbols.putIfAbsent(key, () => <String>{});
           alreadyImportedSymbols[key]
               .add('${importedLibrary.librarySource.uri}');
         }
@@ -127,25 +129,25 @@ class CompletionHandler
     int offset,
     CancellationToken token,
   ) async {
-    final performance = new CompletionPerformance();
+    final performance = CompletionPerformance();
     performance.path = unit.path;
     performance.setContentsAndOffset(unit.content, offset);
     server.performanceStats.completion.add(performance);
 
-    final completionRequest =
-        new CompletionRequestImpl(unit, offset, performance);
+    final completionRequest = CompletionRequestImpl(
+        unit, offset, server.options.useNewRelevance, performance);
 
     Set<ElementKind> includedElementKinds;
     Set<String> includedElementNames;
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
     if (includeSuggestionSets) {
-      includedElementKinds = Set<ElementKind>();
-      includedElementNames = Set<String>();
+      includedElementKinds = <ElementKind>{};
+      includedElementNames = <String>{};
       includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
     }
 
     try {
-      CompletionContributor contributor = new DartCompletionManager(
+      CompletionContributor contributor = DartCompletionManager(
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
@@ -169,7 +171,7 @@ class CompletionHandler
           .toList();
 
       // Now compute items in suggestion sets.
-      List<IncludedSuggestionSet> includedSuggestionSets = [];
+      var includedSuggestionSets = <IncludedSuggestionSet>[];
       if (includedElementKinds != null && unit != null) {
         computeIncludedSetList(
           server.declarationsTracker,

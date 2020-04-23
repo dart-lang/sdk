@@ -1,0 +1,63 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/src/error/codes.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../dart/resolution/driver_resolution.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(InvalidAnnotationFromDeferredLibraryTest);
+  });
+}
+
+@reflectiveTest
+class InvalidAnnotationFromDeferredLibraryTest extends DriverResolutionTest {
+  test_constructor() async {
+    newFile('/test/lib/lib1.dart', content: '''
+library lib1;
+class C { const C(); }
+''');
+    await assertErrorsInCode('''
+library root;
+import 'lib1.dart' deferred as a;
+@a.C() main () {}
+''', [
+      error(
+          CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY, 49, 3),
+    ]);
+  }
+
+  test_from_deferred_library() async {
+    newFile('/test/lib/lib1.dart', content: '''
+library lib1;
+class V { const V(); }
+const v = const V();
+''');
+    await assertErrorsInCode('''
+library root;
+import 'lib1.dart' deferred as a;
+@a.v main () {}
+''', [
+      error(
+          CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY, 49, 3),
+    ]);
+  }
+
+  test_namedConstructor() async {
+    newFile('/test/lib/lib1.dart', content: '''
+library lib1;
+class C { const C.name(); }
+''');
+    await assertErrorsInCode('''
+library root;
+import 'lib1.dart' deferred as a;
+@a.C.name() main () {}
+''', [
+      error(
+          CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY, 49, 3),
+    ]);
+  }
+}

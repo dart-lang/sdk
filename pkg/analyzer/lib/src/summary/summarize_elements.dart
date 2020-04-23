@@ -15,7 +15,7 @@ class PackageBundleAssembler {
    * Assemble a new [PackageBundleBuilder] using the gathered information.
    */
   PackageBundleBuilder assemble() {
-    return new PackageBundleBuilder(bundle2: _bundle2);
+    return PackageBundleBuilder(bundle2: _bundle2);
   }
 
   void setBundle2(LinkedNodeBundleBuilder bundle2) {

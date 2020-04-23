@@ -7,11 +7,12 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show Namespace;
 import 'package:pub_semver/pub_semver.dart';
 
 /// A visitor that finds code that assumes a later version of the SDK than the
@@ -66,23 +67,23 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   /// Return a range covering every version up to, but not including, 2.1.0.
   VersionRange get before_2_1_0 =>
-      new VersionRange(max: Version.parse('2.1.0'), includeMax: false);
+      VersionRange(max: Version.parse('2.1.0'), includeMax: false);
 
   /// Return a range covering every version up to, but not including, 2.2.0.
   VersionRange get before_2_2_0 =>
-      new VersionRange(max: Version.parse('2.2.0'), includeMax: false);
+      VersionRange(max: Version.parse('2.2.0'), includeMax: false);
 
   /// Return a range covering every version up to, but not including, 2.2.2.
   VersionRange get before_2_2_2 =>
-      new VersionRange(max: Version.parse('2.2.2'), includeMax: false);
+      VersionRange(max: Version.parse('2.2.2'), includeMax: false);
 
   /// Return a range covering every version up to, but not including, 2.5.0.
   VersionRange get before_2_5_0 =>
-      new VersionRange(max: Version.parse('2.5.0'), includeMax: false);
+      VersionRange(max: Version.parse('2.5.0'), includeMax: false);
 
   /// Return a range covering every version up to, but not including, 2.6.0.
   VersionRange get before_2_6_0 =>
-      new VersionRange(max: Version.parse('2.6.0'), includeMax: false);
+      VersionRange(max: Version.parse('2.6.0'), includeMax: false);
 
   /// Return `true` if references to the constant-update-2018 features need to
   /// be checked.
@@ -100,9 +101,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   /// Return `true` if references to the non-nullable features need to be
   /// checked.
-  // TODO(brianwilkerson) Implement this as a version check when a version has
-  //  been selected.
-  bool get checkNnbd => true;
+  bool get checkNnbd => !_containingLibrary.isNonNullableByDefault;
 
   /// Return `true` if references to set literals need to be checked.
   bool get checkSetLiterals =>

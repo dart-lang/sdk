@@ -90,7 +90,6 @@ class BinaryBuilder {
   // class, and member was being built.
   List<String> debugPath = <String>[];
 
-  bool _isReadingLibraryImplementation = false;
   final bool alwaysCreateNewNamedNodes;
 
   /// If binary contains metadata section with payloads referencing other nodes
@@ -387,13 +386,6 @@ class BinaryBuilder {
     }
   }
 
-  void _skipNodeList(Node skipObject()) {
-    var length = readUInt();
-    for (int i = 0; i < length; ++i) {
-      skipObject();
-    }
-  }
-
   /// Reads a list of named nodes, reusing any existing objects already in the
   /// linking tree. The nodes are merged into [list], and if reading the library
   /// implementation, the order is corrected.
@@ -403,24 +395,9 @@ class BinaryBuilder {
   /// must be reused and returned.
   void _mergeNamedNodeList(
       List<NamedNode> list, NamedNode readObject(int index), TreeNode parent) {
-    if (_isReadingLibraryImplementation) {
-      // When reading the library implementation, overwrite the whole list
-      // with the new one.
-      _fillTreeNodeList(list, readObject, parent);
-    } else {
-      // When reading an external library, the results should either be:
-      // - merged with the existing external library definition (if any)
-      // - ignored if the library implementation is already in memory
-      int numberOfNodes = readUInt();
-      for (int i = 0; i < numberOfNodes; ++i) {
-        var value = readObject(i);
-        // We use the parent pointer of a node to determine if it already is in
-        // the AST and hence should not be added again.
-        if (value.parent == null) {
-          list.add(value..parent = parent);
-        }
-      }
-    }
+    // When reading the library implementation, overwrite the whole list
+    // with the new one.
+    _fillTreeNodeList(list, readObject, parent);
   }
 
   void readLinkTable(CanonicalName linkRoot) {
@@ -898,8 +875,6 @@ class BinaryBuilder {
     _byteOffset = savedByteOffset;
 
     int flags = readByte();
-    bool isExternal = (flags & Library.ExternalFlag) != 0;
-    _isReadingLibraryImplementation = !isExternal;
 
     int languageVersionMajor = readUInt();
     int languageVersionMinor = readUInt();
@@ -910,7 +885,6 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       library = null;
     }
-    bool shouldWriteData = library == null || _isReadingLibraryImplementation;
     if (library == null) {
       library =
           new Library(Uri.parse(canonicalName.name), reference: reference);
@@ -924,25 +898,19 @@ class BinaryBuilder {
 
     List<String> problemsAsJson = readListOfStrings();
 
-    if (shouldWriteData) {
-      library.flags = flags;
-      library.setLanguageVersion(languageVersionMajor, languageVersionMinor);
-      library.name = name;
-      library.fileUri = fileUri;
-      library.problemsAsJson = problemsAsJson;
-    }
+    library.flags = flags;
+    library.setLanguageVersion(languageVersionMajor, languageVersionMinor);
+    library.name = name;
+    library.fileUri = fileUri;
+    library.problemsAsJson = problemsAsJson;
 
     assert(() {
       debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
       return true;
     }());
 
-    if (shouldWriteData) {
-      _fillTreeNodeList(
-          library.annotations, (index) => readExpression(), library);
-    } else {
-      _skipNodeList(readExpression);
-    }
+    _fillTreeNodeList(
+        library.annotations, (index) => readExpression(), library);
     _readLibraryDependencies(library);
     _readAdditionalExports(library);
     _readLibraryParts(library);
@@ -1040,7 +1008,6 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
       node = new Typedef(null, null, reference: reference);
     }
@@ -1057,12 +1024,10 @@ class BinaryBuilder {
     node.namedParameters.addAll(readAndPushVariableDeclarationList());
     typeParameterStack.length = 0;
     variableStack.length = 0;
-    if (shouldWriteData) {
-      node.fileOffset = fileOffset;
-      node.name = name;
-      node.fileUri = fileUri;
-      node.type = type;
-    }
+    node.fileOffset = fileOffset;
+    node.name = name;
+    node.fileUri = fileUri;
+    node.type = type;
     return node;
   }
 
@@ -1090,7 +1055,6 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
       node = new Class(reference: reference)
         ..level = ClassLevel.Temporary
@@ -1120,11 +1084,7 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParameters, node);
     var supertype = readSupertypeOption();
     var mixedInType = readSupertypeOption();
-    if (shouldWriteData) {
-      _fillNonTreeNodeList(node.implementedTypes, readSupertype);
-    } else {
-      _skipNodeList(readSupertype);
-    }
+    _fillNonTreeNodeList(node.implementedTypes, readSupertype);
     if (_disableLazyClassReading) {
       readClassPartialContent(node, procedureOffsets);
     } else {
@@ -1133,13 +1093,11 @@ class BinaryBuilder {
 
     typeParameterStack.length = 0;
     assert(debugPath.removeLast() != null);
-    if (shouldWriteData) {
-      node.name = name;
-      node.fileUri = fileUri;
-      node.annotations = annotations;
-      node.supertype = supertype;
-      node.mixedInType = mixedInType;
-    }
+    node.name = name;
+    node.fileUri = fileUri;
+    node.annotations = annotations;
+    node.supertype = supertype;
+    node.mixedInType = mixedInType;
 
     _byteOffset = endOffset;
 
@@ -1156,7 +1114,6 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
       node = new Extension(reference: reference);
     }
@@ -1174,28 +1131,22 @@ class BinaryBuilder {
     DartType onType = readDartType();
     typeParameterStack.length = 0;
 
-    if (shouldWriteData) {
-      node.name = name;
-      node.fileUri = fileUri;
-      node.onType = onType;
-    }
+    node.name = name;
+    node.fileUri = fileUri;
+    node.onType = onType;
 
     int length = readUInt();
-    if (shouldWriteData) {
-      node.members.length = length;
-    }
+    node.members.length = length;
     for (int i = 0; i < length; i++) {
       Name name = readName();
       int kind = readByte();
       int flags = readByte();
       CanonicalName canonicalName = readCanonicalNameReference();
-      if (shouldWriteData) {
-        node.members[i] = new ExtensionMemberDescriptor(
-            name: name,
-            kind: ExtensionMemberKind.values[kind],
-            member: canonicalName.getReference())
-          ..flags = flags;
-      }
+      node.members[i] = new ExtensionMemberDescriptor(
+          name: name,
+          kind: ExtensionMemberKind.values[kind],
+          member: canonicalName.getReference())
+        ..flags = flags;
     }
     return node;
   }
@@ -1253,7 +1204,6 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
       node = new Field(null, reference: reference);
     }
@@ -1271,18 +1221,16 @@ class BinaryBuilder {
     var initializer = readExpressionOption();
     int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
-    if (shouldWriteData) {
-      node.fileOffset = fileOffset;
-      node.fileEndOffset = fileEndOffset;
-      node.flags = flags;
-      node.name = name;
-      node.fileUri = fileUri;
-      node.annotations = annotations;
-      node.type = type;
-      node.initializer = initializer;
-      node.initializer?.parent = node;
-      node.transformerFlags = transformerFlags;
-    }
+    node.fileOffset = fileOffset;
+    node.fileEndOffset = fileEndOffset;
+    node.flags = flags;
+    node.name = name;
+    node.fileUri = fileUri;
+    node.annotations = annotations;
+    node.type = type;
+    node.initializer = initializer;
+    node.initializer?.parent = node;
+    node.transformerFlags = transformerFlags;
     return node;
   }
 
@@ -1295,7 +1243,6 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
       node = new Constructor(null, reference: reference);
     }
@@ -1313,25 +1260,19 @@ class BinaryBuilder {
     var function = readFunctionNode();
     pushVariableDeclarations(function.positionalParameters);
     pushVariableDeclarations(function.namedParameters);
-    if (shouldWriteData) {
-      _fillTreeNodeList(node.initializers, (index) => readInitializer(), node);
-    } else {
-      _skipNodeList(readInitializer);
-    }
+    _fillTreeNodeList(node.initializers, (index) => readInitializer(), node);
     variableStack.length = 0;
     var transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
-    if (shouldWriteData) {
-      node.startFileOffset = startFileOffset;
-      node.fileOffset = fileOffset;
-      node.fileEndOffset = fileEndOffset;
-      node.flags = flags;
-      node.name = name;
-      node.fileUri = fileUri;
-      node.annotations = annotations;
-      node.function = function..parent = node;
-      node.transformerFlags = transformerFlags;
-    }
+    node.startFileOffset = startFileOffset;
+    node.fileOffset = fileOffset;
+    node.fileEndOffset = fileEndOffset;
+    node.flags = flags;
+    node.name = name;
+    node.fileUri = fileUri;
+    node.annotations = annotations;
+    node.function = function..parent = node;
+    node.transformerFlags = transformerFlags;
     return node;
   }
 
@@ -1344,7 +1285,6 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
       node = new Procedure(null, null, null, reference: reference);
     }
@@ -1373,26 +1313,24 @@ class BinaryBuilder {
     var function = readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     var transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
-    if (shouldWriteData) {
-      node.startFileOffset = startFileOffset;
-      node.fileOffset = fileOffset;
-      node.fileEndOffset = fileEndOffset;
-      node.kind = kind;
-      node.flags = flags;
-      node.name = name;
-      node.fileUri = fileUri;
-      node.annotations = annotations;
-      node.function = function;
-      function?.parent = node;
-      node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
-      node.forwardingStubSuperTargetReference =
-          forwardingStubSuperTargetReference;
-      node.forwardingStubInterfaceTargetReference =
-          forwardingStubInterfaceTargetReference;
+    node.startFileOffset = startFileOffset;
+    node.fileOffset = fileOffset;
+    node.fileEndOffset = fileEndOffset;
+    node.kind = kind;
+    node.flags = flags;
+    node.name = name;
+    node.fileUri = fileUri;
+    node.annotations = annotations;
+    node.function = function;
+    function?.parent = node;
+    node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
+    node.forwardingStubSuperTargetReference =
+        forwardingStubSuperTargetReference;
+    node.forwardingStubInterfaceTargetReference =
+        forwardingStubInterfaceTargetReference;
 
-      assert((node.forwardingStubSuperTargetReference != null) ||
-          !(node.isForwardingStub && node.function.body != null));
-    }
+    assert((node.forwardingStubSuperTargetReference != null) ||
+        !(node.isForwardingStub && node.function.body != null));
     _byteOffset = endOffset;
     return node;
   }
@@ -1406,7 +1344,6 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
       node = new RedirectingFactoryConstructor(null, reference: reference);
     }
@@ -1432,20 +1369,18 @@ class BinaryBuilder {
     variableStack.length = variableStackHeight;
     typeParameterStack.length = typeParameterStackHeight;
     debugPath.removeLast();
-    if (shouldWriteData) {
-      node.fileOffset = fileOffset;
-      node.fileEndOffset = fileEndOffset;
-      node.flags = flags;
-      node.name = name;
-      node.fileUri = fileUri;
-      node.annotations = annotations;
-      node.targetReference = targetReference;
-      node.typeArguments.addAll(typeArguments);
-      node.typeParameters = typeParameters;
-      node.requiredParameterCount = requiredParameterCount;
-      node.positionalParameters = positional;
-      node.namedParameters = named;
-    }
+    node.fileOffset = fileOffset;
+    node.fileEndOffset = fileEndOffset;
+    node.flags = flags;
+    node.name = name;
+    node.fileUri = fileUri;
+    node.annotations = annotations;
+    node.targetReference = targetReference;
+    node.typeArguments.addAll(typeArguments);
+    node.typeParameters = typeParameters;
+    node.requiredParameterCount = requiredParameterCount;
+    node.positionalParameters = positional;
+    node.namedParameters = named;
     return node;
   }
 
@@ -1791,8 +1726,10 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.IsExpression:
         int offset = readOffset();
+        int flags = readByte();
         return new IsExpression(readExpression(), readDartType())
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..flags = flags;
       case Tag.AsExpression:
         int offset = readOffset();
         int flags = readByte();

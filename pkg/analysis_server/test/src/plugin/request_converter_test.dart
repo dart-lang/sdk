@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'protocol_test_utilities.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RequestConverterTest);
   });
@@ -20,11 +20,10 @@ main() {
 
 @reflectiveTest
 class RequestConverterTest extends ProtocolTestUtilities {
-  RequestConverter converter = new RequestConverter();
+  RequestConverter converter = RequestConverter();
 
   void test_convertAnalysisService() {
-    Map<plugin.AnalysisService, server.AnalysisService> kindMap =
-        <plugin.AnalysisService, server.AnalysisService>{
+    var kindMap = <plugin.AnalysisService, server.AnalysisService>{
       plugin.AnalysisService.FOLDING: server.AnalysisService.FOLDING,
       plugin.AnalysisService.HIGHLIGHTS: server.AnalysisService.HIGHLIGHTS,
       plugin.AnalysisService.NAVIGATION: server.AnalysisService.NAVIGATION,
@@ -38,27 +37,23 @@ class RequestConverterTest extends ProtocolTestUtilities {
   }
 
   void test_convertAnalysisSetPriorityFilesParams() {
-    List<String> files = <String>['a', 'b', 'c'];
-    plugin.AnalysisSetPriorityFilesParams result =
-        converter.convertAnalysisSetPriorityFilesParams(
-            new server.AnalysisSetPriorityFilesParams(files));
+    var files = <String>['a', 'b', 'c'];
+    var result = converter.convertAnalysisSetPriorityFilesParams(
+        server.AnalysisSetPriorityFilesParams(files));
     expect(result, isNotNull);
     expect(result.files, files);
   }
 
   void test_convertAnalysisSetSubscriptionsParams() {
-    Map<server.AnalysisService, List<String>> serverSubscriptions =
-        <server.AnalysisService, List<String>>{
+    var serverSubscriptions = <server.AnalysisService, List<String>>{
       server.AnalysisService.HIGHLIGHTS: <String>['a', 'b'],
       server.AnalysisService.OUTLINE: <String>['c'],
       server.AnalysisService.OVERRIDES: <String>['d', 'e']
     };
-    plugin.AnalysisSetSubscriptionsParams result =
-        converter.convertAnalysisSetSubscriptionsParams(
-            new server.AnalysisSetSubscriptionsParams(serverSubscriptions));
+    var result = converter.convertAnalysisSetSubscriptionsParams(
+        server.AnalysisSetSubscriptionsParams(serverSubscriptions));
     expect(result, isNotNull);
-    Map<plugin.AnalysisService, List<String>> pluginSubscriptions =
-        result.subscriptions;
+    var pluginSubscriptions = result.subscriptions;
     expect(pluginSubscriptions, hasLength(2));
     expect(
         pluginSubscriptions[plugin.AnalysisService.HIGHLIGHTS], hasLength(2));
@@ -66,15 +61,14 @@ class RequestConverterTest extends ProtocolTestUtilities {
   }
 
   void test_convertAnalysisUpdateContentParams() {
-    Map<String, dynamic> serverFiles = <String, dynamic>{
-      'file1': new AddContentOverlay('content1'),
-      'file2': new AddContentOverlay('content2'),
+    var serverFiles = <String, dynamic>{
+      'file1': AddContentOverlay('content1'),
+      'file2': AddContentOverlay('content2'),
     };
-    plugin.AnalysisUpdateContentParams result =
-        converter.convertAnalysisUpdateContentParams(
-            new server.AnalysisUpdateContentParams(serverFiles));
+    var result = converter.convertAnalysisUpdateContentParams(
+        server.AnalysisUpdateContentParams(serverFiles));
     expect(result, isNotNull);
-    Map<String, dynamic> pluginFiles = result.files;
+    var pluginFiles = result.files;
     expect(pluginFiles, hasLength(2));
     expect(pluginFiles['file1'], const TypeMatcher<AddContentOverlay>());
     expect(pluginFiles['file2'], const TypeMatcher<AddContentOverlay>());

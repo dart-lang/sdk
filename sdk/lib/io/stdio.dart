@@ -6,11 +6,13 @@
 
 part of dart.io;
 
+// These match enum StdioHandleType in file.h
 const int _stdioHandleTypeTerminal = 0;
 const int _stdioHandleTypePipe = 1;
 const int _stdioHandleTypeFile = 2;
 const int _stdioHandleTypeSocket = 3;
 const int _stdioHandleTypeOther = 4;
+const int _stdioHandleTypeError = 5;
 
 class _StdStream extends Stream<List<int>> {
   final Stream<List<int>> _stream;
@@ -436,7 +438,12 @@ StdioType stdioType(object) {
     object = object._stream;
   } else if (object == stdout || object == stderr) {
     int stdiofd = object == stdout ? _stdoutFD : _stderrFD;
-    switch (_StdIOUtils._getStdioHandleType(stdiofd)) {
+    final type = _StdIOUtils._getStdioHandleType(stdiofd);
+    if (type is OSError) {
+      throw FileSystemException(
+          "Failed to get type of stdio handle (fd $stdiofd)", "", type);
+    }
+    switch (type) {
       case _stdioHandleTypeTerminal:
         return StdioType.terminal;
       case _stdioHandleTypePipe:

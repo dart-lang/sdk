@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  operator [](core::int index) → core::String
+    ;
+  operator []=(core::int index, core::String value) → void
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+  method test() → void
+    ;
+}
+extension E on core::String {
+  get foo = self::E|get#foo;
+  operator []= = self::E|[]=;
+  operator [] = self::E|[];
+}
+static method E|get#foo(final core::String #this) → core::int
+  ;
+static method E|[]=(final core::String #this, core::int index, core::int value) → void
+  ;
+static method E|[](final core::String #this, core::int index) → core::int
+  ;
+static method warning(core::String s, core::List<core::String> l, core::Map<core::String, core::int> m) → dynamic
+  ;
+static method main() → dynamic
+  ;

@@ -86,5 +86,8 @@ class ExpressionChecksOrigin extends EdgeOrigin {
       : super(source, node);
 
   @override
+  String get description => 'data flow';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.expressionChecks;
 }

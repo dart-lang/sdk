@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:smith/smith.dart';
 
 import 'bots/results.dart';
 
@@ -78,56 +79,6 @@ Future<ProcessResult> runProcessInheritStdio(
   return processResult;
 }
 
-/// Returns the operating system of a builder.
-String systemOfBuilder(String builder) {
-  return builder.split("-").firstWhere(
-      (component) => ["linux", "mac", "win"].contains(component),
-      orElse: () => null);
-}
-
-/// Returns the product mode of a builder.
-String modeOfBuilder(String builder) {
-  return builder.split("-").firstWhere(
-      (component) => ["debug", "product", "release"].contains(component),
-      orElse: () => null);
-}
-
-/// Returns the machine architecture of a builder.
-String archOfBuilder(String builder) {
-  return builder.split("-").firstWhere(
-      (component) => [
-            "arm",
-            "arm64",
-            "ia32",
-            "simarm",
-            "simarm64",
-            "x64",
-          ].contains(component),
-      orElse: () => null);
-}
-
-/// Returns the runtime environment of a builder.
-String runtimeOfBuilder(String builder) {
-  return builder.split("-").firstWhere(
-      (component) => ["chrome", "d8", "edge", "firefox", "ie11", "safari"]
-          .contains(component),
-      orElse: () => null);
-}
-
-/// Expands a variable in a test matrix step command.
-String expandVariable(String string, String variable, String value) {
-  return string.replaceAll("\${$variable}", value ?? "");
-}
-
-/// Expands all variables in a test matrix step command.
-String expandVariables(String string, String builder) {
-  string = expandVariable(string, "system", systemOfBuilder(builder));
-  string = expandVariable(string, "mode", modeOfBuilder(builder));
-  string = expandVariable(string, "arch", archOfBuilder(builder));
-  string = expandVariable(string, "runtime", runtimeOfBuilder(builder));
-  return string;
-}
-
 /// Finds the branch of a builder given the list of branches.
 String branchOfBuilder(String builder, List<String> branches) {
   return branches.where((branch) => branch != "master").firstWhere(
@@ -135,60 +86,44 @@ String branchOfBuilder(String builder, List<String> branches) {
       orElse: () => "master");
 }
 
-class ResolvedConfigurations {
-  final Set<String> configurationNames;
-  final Set<String> builders;
-  ResolvedConfigurations(this.configurationNames, this.builders);
-}
-
 /// Finds the named configuration to test according to the test matrix
 /// information and the command line options.
-ResolvedConfigurations resolveNamedConfigurations(
-    List<String> branches,
-    List<dynamic> buildersConfigurations,
+Map<String, Set<Builder>> resolveNamedConfigurations(
+    TestMatrix testMatrix,
     String requestedBranch,
     List<String> requestedNamedConfigurations,
     String requestedBuilder) {
-  Set<String> namedConfigurations = {};
-  Set<String> builders = {};
-  bool foundBuilder = false;
-  for (final builderConfiguration in buildersConfigurations) {
-    for (final builder in builderConfiguration["builders"]) {
-      if (requestedBuilder != null && builder != requestedBuilder) {
+  assert(requestedBranch != null);
+  final testedConfigurations = <String, Set<Builder>>{};
+  var foundBuilder = false;
+  for (final builder in testMatrix.builders) {
+    if (requestedBuilder != null && builder.name != requestedBuilder) {
+      continue;
+    }
+    final branch = branchOfBuilder(builder.name, testMatrix.branches);
+    if (branch != requestedBranch) {
+      if (requestedBuilder == null) {
         continue;
       }
-      final branch = branchOfBuilder(builder, branches);
-      if (branch != requestedBranch) {
-        if (requestedBuilder == null) {
-          continue;
-        }
-        stderr.writeln("error: Builder $requestedBuilder is on branch $branch "
-            "rather than $requestedBranch");
-        stderr.writeln("error: To compare with that branch, use: -B $branch");
-        return null;
+      stderr.writeln("error: Builder $requestedBuilder is on branch $branch "
+          "rather than $requestedBranch");
+      stderr.writeln("error: To compare with that branch, use: -B $branch");
+      return null;
+    }
+    foundBuilder = true;
+    for (final step in builder.steps.where((step) => step.isTestStep)) {
+      final testedConfiguration = step.testedConfiguration;
+      if (testedConfiguration == null) {
+        // This test step does not use a configuration; for example,
+        // because it is a simple script that does not produce results.
+        continue;
       }
-      foundBuilder = true;
-      final steps = (builderConfiguration["steps"] as List).cast<Map>();
-      final testSteps = steps
-          .where((step) =>
-              !step.containsKey("script") || step["script"] == "tools/test.py")
-          .toList();
-      for (final step in testSteps) {
-        final arguments = step["arguments"]
-            .map((argument) => expandVariables(argument, builder))
-            .toList();
-        final String namedConfiguration = arguments
-            .firstWhere((argument) => (argument as String).startsWith("-n"))
-            .substring(2);
-        if (namedConfiguration.contains(",")) {
-          throw "Multiple named configurations in builder configurations: "
-              "are currently not supported: '$arguments'";
-        }
-        if (requestedNamedConfigurations.isEmpty ||
-            requestedNamedConfigurations.contains(namedConfiguration)) {
-          namedConfigurations.add(namedConfiguration);
-          builders.add(builder);
-        }
+      final namedConfiguration = testedConfiguration.name;
+      if (requestedNamedConfigurations.isEmpty ||
+          requestedNamedConfigurations.contains(namedConfiguration)) {
+        testedConfigurations
+            .putIfAbsent(namedConfiguration, () => {})
+            .add(builder);
       }
     }
   }
@@ -197,26 +132,30 @@ ResolvedConfigurations resolveNamedConfigurations(
     return null;
   }
   if (requestedBuilder != null &&
-      requestedNamedConfigurations == null &&
-      namedConfigurations.isEmpty) {
+      requestedNamedConfigurations.isEmpty &&
+      testedConfigurations.isEmpty) {
     stderr.writeln("error: Builder $requestedBuilder isn't testing any named "
         "configurations");
     return null;
   }
-  if (requestedBuilder != null &&
-      requestedNamedConfigurations != null &&
-      namedConfigurations.isEmpty) {
-    stderr.writeln("error: The builder $requestedBuilder isn't testing the "
-        "named configuration $requestedNamedConfigurations");
-    return null;
-  }
-  if (requestedNamedConfigurations != null && builders.isEmpty) {
-    stderr.writeln("error: The named configuration "
-        "$requestedNamedConfigurations isn't tested on any builders");
-    return null;
+  if (requestedNamedConfigurations.isNotEmpty) {
+    var hasUntestedConfiguration = false;
+    for (final requestedConfiguration in requestedNamedConfigurations) {
+      if (!testedConfigurations.containsKey(requestedConfiguration)) {
+        final builder = requestedBuilder != null
+            ? "builder $requestedBuilder"
+            : "any builder";
+        stderr.writeln("error: The named configuration "
+            "$requestedConfiguration isn't tested on $builder");
+        hasUntestedConfiguration = true;
+      }
+    }
+    if (hasUntestedConfiguration) {
+      return null;
+    }
   }
 
-  return ResolvedConfigurations(namedConfigurations, builders);
+  return testedConfigurations;
 }
 
 /// Locates the merge base between head and the [branch] on the given [remote].
@@ -409,18 +348,18 @@ void main(List<String> args) async {
   }
 
   final requestedBuilder = options["builder"];
-  final namedConfigurations =
+  final requestedNamedConfigurations =
       (options["named-configuration"] as List).cast<String>();
   final localConfiguration = options["local-configuration"] as String;
 
-  if (requestedBuilder == null && namedConfigurations.isEmpty) {
+  if (requestedBuilder == null && requestedNamedConfigurations.isEmpty) {
     printUsage(parser,
         error: "Please specify either a configuration (-n) or "
             "a builder (-b)");
     return;
   }
 
-  if (localConfiguration != null && namedConfigurations.length > 1) {
+  if (localConfiguration != null && requestedNamedConfigurations.length > 1) {
     printUsage(parser,
         error: "Local configuration (-N) can only be used with a"
             " single named configuration (-n)");
@@ -432,38 +371,34 @@ void main(List<String> args) async {
       Platform.script.resolve("../third_party/gsutil/gsutil.py").toFilePath();
 
   // Load the test matrix.
-  final scriptPath = Platform.script.toFilePath();
-  final testMatrixPath =
-      scriptPath.substring(0, scriptPath.length - "test.dart".length) +
-          "bots/test_matrix.json";
-  final testMatrix = jsonDecode(await new File(testMatrixPath).readAsString());
-  final branches = (testMatrix["branches"] as List).cast<String>();
-  final buildersConfigurations =
-      testMatrix["builder_configurations"] as List<dynamic>;
+  final testMatrixPath = Platform.script.resolve("bots/test_matrix.json");
+  final testMatrix = TestMatrix.fromPath(testMatrixPath.toFilePath());
   // Determine what named configuration to run and which builders to download
   // existing results from.
-  ResolvedConfigurations configurations = resolveNamedConfigurations(
-      branches,
-      buildersConfigurations,
-      options["branch"],
-      namedConfigurations,
-      requestedBuilder);
-  if (configurations == null) {
+  final testedConfigurations = resolveNamedConfigurations(testMatrix,
+      options["branch"], requestedNamedConfigurations, requestedBuilder);
+  if (testedConfigurations == null) {
     // No valid configuration could be found. The error has already been
-    // reported by [resolveConfiguration].
+    // reported by [resolveConfigurations].
     exitCode = 1;
     return;
   }
+  final namedConfigurations = testedConfigurations.keys.toSet();
+  final builders =
+      testedConfigurations.values.expand((builders) => builders).toSet();
   // Print information about the resolved builders to compare with.
-  for (final builder in configurations.builders) {
+  for (final namedConfiguration in namedConfigurations) {
+    final testedBuilders = testedConfigurations[namedConfiguration];
+    final onWhichBuilders = testedBuilders.length == 1
+        ? "builder ${testedBuilders.single.name}"
+        : "builders${testedBuilders.map((b) => "\n  ${b.name}").join()}";
     if (localConfiguration != null) {
-      print("Testing the named configuration $localConfiguration "
-          "compared with builder $builder's configuration "
-          "${namedConfigurations.single}");
+      print("Testing named configuration $localConfiguration "
+          "compared with configuration ${namedConfiguration} "
+          "on $onWhichBuilders");
     } else {
-      print("Testing the named configuration(s) "
-          "${namedConfigurations.join(",")} "
-          "compared with builder $builder");
+      print("Testing named configuration $namedConfiguration "
+          "compared with $onWhichBuilders");
     }
   }
   // Use given commit or find out where the current HEAD branched.
@@ -476,35 +411,37 @@ void main(List<String> args) async {
     final tasks = <Future>[];
     bool needsConfigurationOverride = localConfiguration != null &&
         localConfiguration != namedConfigurations.single;
-    bool needsMerge = configurations.builders.length > 1;
+    bool needsMerge = builders.length > 1;
     final inexactBuilds = <String, String>{};
     var previousFileName = "previous.json";
     var flakyFileName = "flaky.json";
     var downloadNumber = 0;
     // Download the previous results and flakiness info from cloud storage.
-    for (final builder in configurations.builders) {
+    for (final builder in builders) {
+      final builderName = builder.name;
       if (needsMerge) {
         previousFileName = "previous-$downloadNumber.json";
         flakyFileName = "flaky-$downloadNumber.json";
         downloadNumber++;
       }
-      print("Finding build on builder $builder to compare with...");
+      print("Finding build on builder $builderName to compare with...");
       // Use the buildbucket API to search for builds of the right commit.
       final buildSearchResult =
-          await searchForApproximateBuild(builder, commit);
+          await searchForApproximateBuild(builderName, commit);
       if (buildSearchResult.commit != commit) {
         print("Warning: Using commit ${buildSearchResult.commit} "
-            "as baseline instead of $commit for $builder");
-        inexactBuilds[builder] = buildSearchResult.commit;
+            "as baseline instead of $commit for $builderName");
+        inexactBuilds[builderName] = buildSearchResult.commit;
       }
       final buildNumber = buildSearchResult.build.toString();
-      print("Downloading results from builder $builder build $buildNumber...");
+      print("Downloading results from builder $builderName "
+          "build $buildNumber...");
       tasks.add(cpGsutil(
-          buildFileCloudPath(builder, buildNumber, "results.json"),
+          buildFileCloudPath(builderName, buildNumber, "results.json"),
           "${outDirectory.path}/$previousFileName"));
       if (!options["report-flakes"]) {
         tasks.add(cpGsutil(
-            buildFileCloudPath(builder, buildNumber, "flaky.json"),
+            buildFileCloudPath(builderName, buildNumber, "flaky.json"),
             "${outDirectory.path}/$flakyFileName"));
       }
     }
@@ -555,10 +492,6 @@ void main(List<String> args) async {
         }
       }
     }
-    // Deflake results of the tests if required.
-    if (options["deflake"]) {
-      await deflake(outDirectory, configurationsToRun, options.rest);
-    }
     // Write out the merged results for the builders.
     if (needsMerge || needsConfigurationOverride) {
       await new File("${outDirectory.path}/previous.json").writeAsString(
@@ -568,6 +501,10 @@ void main(List<String> args) async {
     if (needsMerge || needsConfigurationOverride || options["report-flakes"]) {
       await new File("${outDirectory.path}/flaky.json").writeAsString(
           mergedFlaky.values.map((data) => jsonEncode(data) + "\n").join(""));
+    }
+    // Deflake results of the tests if required.
+    if (options["deflake"]) {
+      await deflake(outDirectory, configurationsToRun, options.rest);
     }
     // Write out the final comparison.
     print("".padLeft(80, "="));

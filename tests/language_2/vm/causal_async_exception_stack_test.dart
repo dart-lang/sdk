@@ -34,11 +34,11 @@ main() async {
     } catch (e, st) {
       expect(
           h.stringContainsInOrder(st.toString(), [
-            'thrower', '.dart:10', //
-            'generator', '.dart:19', //
-            '<asynchronous suspension>', //
-            'foo', '.dart:23', //
-            'main', //
+            'thrower', '.dart:10', // no auto-format.
+            'generator', '.dart:19', // no auto-format.
+            '<asynchronous suspension>', // no auto-format.
+            'foo', '.dart', // no auto-format.
+            'main',
           ]),
           isTrue);
     }
@@ -72,8 +72,8 @@ main() async {
     } catch (e, st) {
       expect(
           h.stringContainsInOrder(st.toString(), [
-            'thrower', '.dart:10', //
-            'main.<anonymous closure>', '.dart:71', //
+            'thrower', '.dart:10', // no auto-format.
+            'main.<anonymous closure>', '.dart:71', // no auto-format.
           ]),
           isTrue);
     }

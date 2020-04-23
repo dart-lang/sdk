@@ -1,0 +1,2 @@
+strong=tests/compiler/dart2js/codegen/model_test.dart
+omit=tests/compiler/dart2js/codegen/model_test.dart

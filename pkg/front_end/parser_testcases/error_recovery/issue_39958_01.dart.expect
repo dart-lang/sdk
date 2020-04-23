@@ -1,0 +1,28 @@
+Problems reported:
+
+parser/error_recovery/issue_39958_01:1:5: Type 'void' can't have type arguments.
+void<int> f() {}
+    ^
+
+beginCompilationUnit(void)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(, null)
+      handleRecoverableError(VoidWithTypeArguments, <, <)
+      beginTypeArguments(<)
+        handleIdentifier(int, typeReference)
+        handleNoTypeArguments(>)
+        handleType(int, null)
+      endTypeArguments(1, <, >)
+      handleVoidKeywordWithTypeArguments(void)
+      handleIdentifier(f, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+      endBlockFunctionBody(0, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

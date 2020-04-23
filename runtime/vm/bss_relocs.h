@@ -5,7 +5,7 @@
 #ifndef RUNTIME_VM_BSS_RELOCS_H_
 #define RUNTIME_VM_BSS_RELOCS_H_
 
-#include <platform/allocation.h>
+#include "platform/allocation.h"
 
 namespace dart {
 class Thread;

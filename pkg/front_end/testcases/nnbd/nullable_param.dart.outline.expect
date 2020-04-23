@@ -1,29 +1,13 @@
-library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/nnbd/nullable_param.dart:4:7: Error: The non-abstract class 'Foo' is missing implementations for these members:
-//  - Foo.bar
-// Try to either
-//  - provide an implementation,
-//  - inherit an implementation from a superclass or mixin,
-//  - mark the class as abstract, or
-//  - provide a 'noSuchMethod' implementation.
-//
-// class Foo {
-//       ^^^
-// pkg/front_end/testcases/nnbd/nullable_param.dart:6:8: Context: 'Foo.bar' is defined here.
-//   int? bar(int? x);
-//        ^^^
-//
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
   field core::int? field;
-  synthetic constructor •() → self::Foo*
+  synthetic constructor •() → self::Foo
     ;
-  abstract method bar(core::int? x) → core::int?;
+  method bar(core::int? x) → core::int?
+    ;
 }
 static method main() → dynamic
   ;

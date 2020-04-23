@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int* value;
+  synthetic constructor •() → self::C*
+    ;
+}
+extension Extension1 on self::C* {
+  operator [] = self::Extension1|[];
+  operator []= = self::Extension1|[]=;
+  operator - = self::Extension1|-;
+}
+static method Extension1|[](final self::C* #this, core::int* index) → self::C*
+  ;
+static method Extension1|[]=(final self::C* #this, core::int* index, self::C* other) → void
+  ;
+static method Extension1|-(final self::C* #this, core::int* val) → self::C*
+  ;
+static method main() → dynamic
+  ;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'annotated_code_helper.dart';
+
 enum IdKind {
   /// Id used for top level or class members. This is used in [MemberId].
   member,
@@ -60,9 +62,10 @@ abstract class Id {
 
 class IdValue {
   final Id id;
+  final Annotation annotation;
   final String value;
 
-  const IdValue(this.id, this.value);
+  const IdValue(this.id, this.annotation, this.value);
 
   @override
   int get hashCode => id.hashCode * 13 + value.hashCode * 17;
@@ -122,7 +125,8 @@ class IdValue {
   static const String stmtPrefix = "stmt: ";
   static const String errorPrefix = "error: ";
 
-  static IdValue decode(Uri sourceUri, int offset, String text) {
+  static IdValue decode(Uri sourceUri, Annotation annotation, String text) {
+    int offset = annotation.offset;
     Id id;
     String expected;
     if (text.startsWith(memberPrefix)) {
@@ -180,7 +184,7 @@ class IdValue {
     }
     // Remove newlines.
     expected = expected.replaceAll(new RegExp(r'\s*(\n\s*)+\s*'), '');
-    return new IdValue(id, expected);
+    return new IdValue(id, annotation, expected);
   }
 }
 
@@ -293,7 +297,9 @@ class NodeId implements Id {
   @override
   final IdKind kind;
 
-  const NodeId(this.value, this.kind);
+  const NodeId(this.value, this.kind)
+      : assert(value != null),
+        assert(value >= 0);
 
   @override
   bool get isGlobal => false;

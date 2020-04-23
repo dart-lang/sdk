@@ -8,17 +8,15 @@ import 'package:args/args.dart';
 
 import 'completion_runner.dart';
 
-/**
- * The main entry point for the code completion stress test.
- */
+/// The main entry point for the code completion stress test.
 void main(List<String> args) async {
-  ArgParser parser = createArgParser();
-  ArgResults result = parser.parse(args);
+  var parser = createArgParser();
+  var result = parser.parse(args);
 
   if (validArguments(parser, result)) {
-    String analysisRoot = result.rest[0];
+    var analysisRoot = result.rest[0];
 
-    CompletionRunner runner = new CompletionRunner(
+    var runner = CompletionRunner(
         output: stdout,
         printMissing: result['missing'],
         printQuality: result['quality'],
@@ -29,11 +27,9 @@ void main(List<String> args) async {
   }
 }
 
-/**
- * Create a parser that can be used to parse the command-line arguments.
- */
+/// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
-  ArgParser parser = new ArgParser();
+  var parser = ArgParser();
   parser.addFlag(
     'help',
     abbr: 'h',
@@ -64,9 +60,7 @@ ArgParser createArgParser() {
   return parser;
 }
 
-/**
- * Print usage information for this tool.
- */
+/// Print usage information for this tool.
 void printUsage(ArgParser parser, {String error}) {
   if (error != null) {
     print(error);
@@ -81,10 +75,8 @@ void printUsage(ArgParser parser, {String error}) {
   print(parser.usage);
 }
 
-/**
- * Return `true` if the command-line arguments (represented by the [result] and
- * parsed by the [parser]) are valid.
- */
+/// Return `true` if the command-line arguments (represented by the [result] and
+/// parsed by the [parser]) are valid.
 bool validArguments(ArgParser parser, ArgResults result) {
   if (result.wasParsed('help')) {
     printUsage(parser);

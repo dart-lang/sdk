@@ -20,11 +20,15 @@ import "dart:_internal" show VMLibraryHooks, patch;
 _fatal(msg) native "DartAsync_fatal";
 
 class _AsyncAwaitCompleter<T> implements Completer<T> {
+  @pragma("vm:entry-point")
   final _future = new _Future<T>();
+  @pragma("vm:entry-point")
   bool isSync;
 
+  @pragma("vm:entry-point")
   _AsyncAwaitCompleter() : isSync = false;
 
+  @pragma("vm:entry-point")
   void complete([FutureOr<T> value]) {
     if (!isSync || value is Future<T>) {
       _future._asyncComplete(value);
@@ -33,7 +37,8 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
     }
   }
 
-  void completeError(e, [st]) {
+  void completeError(Object e, [StackTrace st]) {
+    st ??= AsyncError.defaultStackTrace(e);
     if (isSync) {
       _future._completeError(e, st);
     } else {
@@ -41,6 +46,7 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
     }
   }
 
+  @pragma("vm:entry-point")
   void start(f) {
     f();
     isSync = true;
@@ -70,14 +76,14 @@ Function _asyncThenWrapperHelper(continuation) {
   // `Future` implementation could potentially invoke the callback with the
   // wrong number of arguments.
   if (Zone.current == Zone.root) return continuation;
-  return Zone.current.registerUnaryCallback((x) => continuation(x, null, null));
+  return Zone.current.registerUnaryCallback(continuation);
 }
 
 // We need to pass the exception and stack trace objects as second and third
 // parameter to the continuation.  See vm/ast_transformer.cc for usage.
 Function _asyncErrorWrapperHelper(continuation) {
   // See comments of `_asyncThenWrapperHelper`.
-  var errorCallback = (e, s) => continuation(null, e, s);
+  void errorCallback(Object e, StackTrace s) => continuation(null, e, s);
   if (Zone.current == Zone.root) return errorCallback;
   return Zone.current.registerBinaryCallback(errorCallback);
 }
@@ -133,6 +139,7 @@ void _asyncStarMoveNextHelper(var stream) {
 // async* generator functions.
 @pragma("vm:entry-point")
 class _AsyncStarStreamController<T> {
+  @pragma("vm:entry-point")
   StreamController<T> controller;
   Function asyncStarBody;
   bool isAdding = false;
@@ -206,6 +213,7 @@ class _AsyncStarStreamController<T> {
   }
 
   void addError(Object error, StackTrace stackTrace) {
+    ArgumentError.checkNotNull(error, "error");
     if ((cancellationFuture != null) && cancellationFuture._mayComplete) {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -17,10 +15,29 @@ main() {
 
 @reflectiveTest
 class ExtensionOverrideAccessToStaticMemberTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+  test_call() async {
+    await assertErrorsInCode('''
+extension E on int {
+  static void call() {}
+}
+
+void f() {
+  E(0)();
+}
+''', [
+      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER, 65,
+          2),
+    ]);
+
+    var invocation = findNode.functionExpressionInvocation('();');
+    assertFunctionExpressionInvocation(
+      invocation,
+      element: findElement.method('call', of: 'E'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+  }
 
   test_getter() async {
     await assertErrorsInCode('''

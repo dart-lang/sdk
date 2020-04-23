@@ -54,15 +54,16 @@ TEST_CASE(SlotFromGuardedField) {
   const Field& field = Field::Handle(
       Field::New(String::Handle(Symbols::New(thread, "field")),
                  /*is_static=*/false, /*is_final=*/false, /*is_const=*/false,
-                 /*is_reflectable=*/true, dummy_class, Object::dynamic_type(),
-                 TokenPosition::kMinSource, TokenPosition::kMinSource));
+                 /*is_reflectable=*/true, /*is_late=*/false, dummy_class,
+                 Object::dynamic_type(), TokenPosition::kMinSource,
+                 TokenPosition::kMinSource));
 
   // Set non-trivial guarded state on the field.
   field.set_guarded_cid(kSmiCid);
   field.set_is_nullable(false);
 
   // Enter compiler state.
-  CompilerState compiler_state(thread);
+  CompilerState compiler_state(thread, /*is_aot=*/false);
 
   const Field& field_clone_1 = Field::ZoneHandle(field.CloneFromOriginal());
   const Field& field_clone_2 = Field::ZoneHandle(field.CloneFromOriginal());

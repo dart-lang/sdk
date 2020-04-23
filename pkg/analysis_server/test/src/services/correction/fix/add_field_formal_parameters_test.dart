@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddFieldFormalParametersTest);
   });
@@ -19,7 +19,7 @@ class AddFieldFormalParametersTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_FIELD_FORMAL_PARAMETERS;
 
-  test_flutter() async {
+  Future<void> test_flutter() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -45,7 +45,7 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
-  test_hasRequiredParameter() async {
+  Future<void> test_hasRequiredParameter() async {
     await resolveTestUnit('''
 class Test {
   final int a;
@@ -64,7 +64,7 @@ class Test {
 ''');
   }
 
-  test_noParameters() async {
+  Future<void> test_noParameters() async {
     await resolveTestUnit('''
 class Test {
   final int a;
@@ -83,7 +83,7 @@ class Test {
 ''');
   }
 
-  test_noRequiredParameter() async {
+  Future<void> test_noRequiredParameter() async {
     await resolveTestUnit('''
 class Test {
   final int a;
@@ -102,7 +102,7 @@ class Test {
 ''');
   }
 
-  test_notAllFinal() async {
+  Future<void> test_notAllFinal() async {
     await resolveTestUnit('''
 class Test {
   final int a;

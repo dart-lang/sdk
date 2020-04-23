@@ -3,32 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // This file contains test functions for the dart:ffi test cases.
+// This file is not allowed to depend on any symbols from the embedder and is
+// therefore not allowed to use `dart_api.h`. (The flutter/flutter integration
+// tests will run dart tests using this library only.)
 
 #include <stddef.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <csignal>
 
-#include "platform/globals.h"
-#if defined(HOST_OS_WINDOWS)
-#include <psapi.h>
-#else
-#include <unistd.h>
-
-// Only OK to use here because this is test code.
-#include <condition_variable>  // NOLINT(build/c++11)
-#include <functional>          // NOLINT(build/c++11)
-#include <mutex>               // NOLINT(build/c++11)
-#include <thread>  // NOLINT(build/c++11)
-#endif
-
-#include <setjmp.h>
-#include <signal.h>
+#include <cmath>
 #include <iostream>
 #include <limits>
 
-#include "include/dart_api.h"
-#include "include/dart_native_api.h"
+#if defined(_WIN32)
+#define DART_EXPORT extern "C" __declspec(dllexport)
+#else
+#define DART_EXPORT                                                            \
+  extern "C" __attribute__((visibility("default"))) __attribute((used))
+#endif
 
 namespace dart {
 
@@ -52,13 +44,12 @@ namespace dart {
 // int.
 DART_EXPORT int32_t SumPlus42(int32_t a, int32_t b) {
   std::cout << "SumPlus42(" << a << ", " << b << ")\n";
-  int32_t retval = 42 + a + b;
+  const int32_t retval = 42 + a + b;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
 
-//// Tests for sign and zero extension of arguments and results.
-
+// Tests for sign and zero extension return values when passed to Dart.
 DART_EXPORT uint8_t ReturnMaxUint8() {
   return 0xff;
 }
@@ -83,34 +74,98 @@ DART_EXPORT int32_t ReturnMinInt32() {
   return 0x80000000;
 }
 
+// Test that return values are truncated by callee before passed to Dart.
+DART_EXPORT uint8_t ReturnMaxUint8v2() {
+  uint64_t v = 0xabcff;
+  // Truncated to 8 bits and zero extended, or truncated to 32 bits, depending
+  // on ABI.
+  return v;
+}
+
+DART_EXPORT uint16_t ReturnMaxUint16v2() {
+  uint64_t v = 0xabcffff;
+  return v;
+}
+
+DART_EXPORT uint32_t ReturnMaxUint32v2() {
+  uint64_t v = 0xabcffffffff;
+  return v;
+}
+
+DART_EXPORT int8_t ReturnMinInt8v2() {
+  int64_t v = 0x8abc80;
+  return v;
+}
+
+DART_EXPORT int16_t ReturnMinInt16v2() {
+  int64_t v = 0x8abc8000;
+  return v;
+}
+
+DART_EXPORT int32_t ReturnMinInt32v2() {
+  int64_t v = 0x8abc80000000;
+  return v;
+}
+
+// Test that arguments are truncated correctly.
 DART_EXPORT intptr_t TakeMaxUint8(uint8_t x) {
+  std::cout << "TakeMaxUint8(" << static_cast<int>(x) << ")\n";
   return x == 0xff ? 1 : 0;
 }
 
 DART_EXPORT intptr_t TakeMaxUint16(uint16_t x) {
+  std::cout << "TakeMaxUint16(" << x << ")\n";
   return x == 0xffff ? 1 : 0;
 }
 
 DART_EXPORT intptr_t TakeMaxUint32(uint32_t x) {
+  std::cout << "TakeMaxUint32(" << x << ")\n";
   return x == 0xffffffff ? 1 : 0;
 }
 
 DART_EXPORT intptr_t TakeMinInt8(int8_t x) {
+  std::cout << "TakeMinInt8(" << static_cast<int>(x) << ")\n";
   const int64_t expected = -0x80;
   const int64_t received = x;
   return expected == received ? 1 : 0;
 }
 
 DART_EXPORT intptr_t TakeMinInt16(int16_t x) {
+  std::cout << "TakeMinInt16(" << x << ")\n";
   const int64_t expected = -0x8000;
   const int64_t received = x;
   return expected == received ? 1 : 0;
 }
 
 DART_EXPORT intptr_t TakeMinInt32(int32_t x) {
-  const int64_t expected = kMinInt32;
+  std::cout << "TakeMinInt32(" << x << ")\n";
+  const int64_t expected = INT32_MIN;
   const int64_t received = x;
   return expected == received ? 1 : 0;
+}
+
+// Test that arguments are truncated correctly, including stack arguments
+DART_EXPORT intptr_t TakeMaxUint8x10(uint8_t a,
+                                     uint8_t b,
+                                     uint8_t c,
+                                     uint8_t d,
+                                     uint8_t e,
+                                     uint8_t f,
+                                     uint8_t g,
+                                     uint8_t h,
+                                     uint8_t i,
+                                     uint8_t j) {
+  std::cout << "TakeMaxUint8x10(" << static_cast<int>(a) << ", "
+            << static_cast<int>(b) << ", " << static_cast<int>(c) << ", "
+            << static_cast<int>(d) << ", " << static_cast<int>(e) << ", "
+            << static_cast<int>(f) << ", " << static_cast<int>(g) << ", "
+            << static_cast<int>(h) << ", " << static_cast<int>(i) << ", "
+            << static_cast<int>(j) << ", "
+            << ")\n";
+  return (a == 0xff && b == 0xff && c == 0xff && d == 0xff && e == 0xff &&
+          f == 0xff && g == 0xff && h == 0xff && i == 0xff && j == 0xff)
+             ? 1
+             : 0;
 }
 
 // Performs some computation on various sized signed ints.
@@ -118,7 +173,7 @@ DART_EXPORT intptr_t TakeMinInt32(int32_t x) {
 DART_EXPORT int64_t IntComputation(int8_t a, int16_t b, int32_t c, int64_t d) {
   std::cout << "IntComputation(" << static_cast<int>(a) << ", " << b << ", "
             << c << ", " << d << ")\n";
-  int64_t retval = d - c + b - a;
+  const int64_t retval = d - c + b - a;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -131,6 +186,21 @@ DART_EXPORT int64_t Regress39044(int64_t a, int8_t b) {
   return retval;
 }
 
+DART_EXPORT intptr_t Regress40537(uint8_t x) {
+  std::cout << "Regress40537(" << static_cast<int>(x) << ")\n";
+  return x == 249 ? 1 : 0;
+}
+
+DART_EXPORT intptr_t Regress40537Variant2(uint8_t x) {
+  std::cout << "Regress40537Variant2(" << static_cast<int>(x) << ")\n";
+  return x;
+}
+
+DART_EXPORT uint8_t Regress40537Variant3(intptr_t x) {
+  std::cout << "Regress40537Variant3(" << static_cast<int>(x) << ")\n";
+  return x;
+}
+
 // Performs some computation on various sized unsigned ints.
 // Used for testing value ranges for unsigned ints.
 DART_EXPORT int64_t UintComputation(uint8_t a,
@@ -139,16 +209,16 @@ DART_EXPORT int64_t UintComputation(uint8_t a,
                                     uint64_t d) {
   std::cout << "UintComputation(" << static_cast<int>(a) << ", " << b << ", "
             << c << ", " << d << ")\n";
-  uint64_t retval = d - c + b - a;
+  const uint64_t retval = d - c + b - a;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
 
-// Multiplies pointer sized int by three.
+// Multiplies pointer sized intptr_t by three.
 // Used for testing pointer sized parameter and return value.
 DART_EXPORT intptr_t Times3(intptr_t a) {
   std::cout << "Times3(" << a << ")\n";
-  intptr_t retval = a * 3;
+  const intptr_t retval = a * 3;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -159,7 +229,7 @@ DART_EXPORT intptr_t Times3(intptr_t a) {
 // double.
 DART_EXPORT double Times1_337Double(double a) {
   std::cout << "Times1_337Double(" << a << ")\n";
-  double retval = a * 1.337;
+  const double retval = a * 1.337;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -168,7 +238,7 @@ DART_EXPORT double Times1_337Double(double a) {
 // Used for testing float parameter and return value.
 DART_EXPORT float Times1_337Float(float a) {
   std::cout << "Times1_337Float(" << a << ")\n";
-  float retval = a * 1.337f;
+  const float retval = a * 1.337f;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -189,7 +259,168 @@ DART_EXPORT intptr_t SumManyInts(intptr_t a,
   std::cout << "SumManyInts(" << a << ", " << b << ", " << c << ", " << d
             << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
             << ", " << j << ")\n";
-  intptr_t retval = a + b + c + d + e + f + g + h + i + j;
+  const intptr_t retval = a + b + c + d + e + f + g + h + i + j;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
+// Sums many ints.
+// Used for testing calling conventions. With small integers on stack slots we
+// test stack alignment.
+DART_EXPORT int16_t SumManySmallInts(int8_t a,
+                                     int16_t b,
+                                     int8_t c,
+                                     int16_t d,
+                                     int8_t e,
+                                     int16_t f,
+                                     int8_t g,
+                                     int16_t h,
+                                     int8_t i,
+                                     int16_t j) {
+  std::cout << "SumManySmallInts(" << static_cast<int>(a) << ", " << b << ", "
+            << static_cast<int>(c) << ", " << d << ", " << static_cast<int>(e)
+            << ", " << f << ", " << static_cast<int>(g) << ", " << h << ", "
+            << static_cast<int>(i) << ", " << j << ")\n";
+  const int16_t retval = a + b + c + d + e + f + g + h + i + j;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
+// Used for testing floating point argument backfilling on Arm32 in hardfp.
+DART_EXPORT double SumFloatsAndDoubles(float a, double b, float c) {
+  std::cout << "SumFloatsAndDoubles(" << a << ", " << b << ", " << c << ")\n";
+  const double retval = a + b + c;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
+// Very many small integers, tests alignment on stack.
+DART_EXPORT int16_t SumVeryManySmallInts(int8_t a01,
+                                         int16_t a02,
+                                         int8_t a03,
+                                         int16_t a04,
+                                         int8_t a05,
+                                         int16_t a06,
+                                         int8_t a07,
+                                         int16_t a08,
+                                         int8_t a09,
+                                         int16_t a10,
+                                         int8_t a11,
+                                         int16_t a12,
+                                         int8_t a13,
+                                         int16_t a14,
+                                         int8_t a15,
+                                         int16_t a16,
+                                         int8_t a17,
+                                         int16_t a18,
+                                         int8_t a19,
+                                         int16_t a20,
+                                         int8_t a21,
+                                         int16_t a22,
+                                         int8_t a23,
+                                         int16_t a24,
+                                         int8_t a25,
+                                         int16_t a26,
+                                         int8_t a27,
+                                         int16_t a28,
+                                         int8_t a29,
+                                         int16_t a30,
+                                         int8_t a31,
+                                         int16_t a32,
+                                         int8_t a33,
+                                         int16_t a34,
+                                         int8_t a35,
+                                         int16_t a36,
+                                         int8_t a37,
+                                         int16_t a38,
+                                         int8_t a39,
+                                         int16_t a40) {
+  std::cout << "SumVeryManySmallInts(" << static_cast<int>(a01) << ", " << a02
+            << ", " << static_cast<int>(a03) << ", " << a04 << ", "
+            << static_cast<int>(a05) << ", " << a06 << ", "
+            << static_cast<int>(a07) << ", " << a08 << ", "
+            << static_cast<int>(a09) << ", " << a10 << ", "
+            << static_cast<int>(a11) << ", " << a12 << ", "
+            << static_cast<int>(a13) << ", " << a14 << ", "
+            << static_cast<int>(a15) << ", " << a16 << ", "
+            << static_cast<int>(a17) << ", " << a18 << ", "
+            << static_cast<int>(a19) << ", " << a20 << ", "
+            << static_cast<int>(a21) << ", " << a22 << ", "
+            << static_cast<int>(a23) << ", " << a24 << ", "
+            << static_cast<int>(a25) << ", " << a26 << ", "
+            << static_cast<int>(a27) << ", " << a28 << ", "
+            << static_cast<int>(a29) << ", " << a30 << ", "
+            << static_cast<int>(a31) << ", " << a32 << ", "
+            << static_cast<int>(a33) << ", " << a34 << ", "
+            << static_cast<int>(a35) << ", " << a36 << ", "
+            << static_cast<int>(a37) << ", " << a38 << ", "
+            << static_cast<int>(a39) << ", " << a40 << ")\n";
+  const int16_t retval = a01 + a02 + a03 + a04 + a05 + a06 + a07 + a08 + a09 +
+                         a10 + a11 + a12 + a13 + a14 + a15 + a16 + a17 + a18 +
+                         a19 + a20 + a21 + a22 + a23 + a24 + a25 + a26 + a27 +
+                         a28 + a29 + a30 + a31 + a32 + a33 + a34 + a35 + a36 +
+                         a37 + a38 + a39 + a40;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
+// Very many floating points, tests alignment on stack, and packing in
+// floating point registers in hardfp.
+DART_EXPORT double SumVeryManyFloatsDoubles(float a01,
+                                            double a02,
+                                            float a03,
+                                            double a04,
+                                            float a05,
+                                            double a06,
+                                            float a07,
+                                            double a08,
+                                            float a09,
+                                            double a10,
+                                            float a11,
+                                            double a12,
+                                            float a13,
+                                            double a14,
+                                            float a15,
+                                            double a16,
+                                            float a17,
+                                            double a18,
+                                            float a19,
+                                            double a20,
+                                            float a21,
+                                            double a22,
+                                            float a23,
+                                            double a24,
+                                            float a25,
+                                            double a26,
+                                            float a27,
+                                            double a28,
+                                            float a29,
+                                            double a30,
+                                            float a31,
+                                            double a32,
+                                            float a33,
+                                            double a34,
+                                            float a35,
+                                            double a36,
+                                            float a37,
+                                            double a38,
+                                            float a39,
+                                            double a40) {
+  std::cout << "SumVeryManyFloatsDoubles(" << a01 << ", " << a02 << ", " << a03
+            << ", " << a04 << ", " << a05 << ", " << a06 << ", " << a07 << ", "
+            << a08 << ", " << a09 << ", " << a10 << ", " << a11 << ", " << a12
+            << ", " << a13 << ", " << a14 << ", " << a15 << ", " << a16 << ", "
+            << a17 << ", " << a18 << ", " << a19 << ", " << a20 << ", " << a21
+            << ", " << a22 << ", " << a23 << ", " << a24 << ", " << a25 << ", "
+            << a26 << ", " << a27 << ", " << a28 << ", " << a29 << ", " << a30
+            << ", " << a31 << ", " << a32 << ", " << a33 << ", " << a34 << ", "
+            << a35 << ", " << a36 << ", " << a37 << ", " << a38 << ", " << a39
+            << ", " << a40 << ")\n";
+  const double retval = a01 + a02 + a03 + a04 + a05 + a06 + a07 + a08 + a09 +
+                        a10 + a11 + a12 + a13 + a14 + a15 + a16 + a17 + a18 +
+                        a19 + a20 + a21 + a22 + a23 + a24 + a25 + a26 + a27 +
+                        a28 + a29 + a30 + a31 + a32 + a33 + a34 + a35 + a36 +
+                        a37 + a38 + a39 + a40;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -211,7 +442,7 @@ DART_EXPORT intptr_t SumManyIntsOdd(intptr_t a,
   std::cout << "SumManyInts(" << a << ", " << b << ", " << c << ", " << d
             << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
             << ", " << j << ", " << k << ")\n";
-  intptr_t retval = a + b + c + d + e + f + g + h + i + j + k;
+  const intptr_t retval = a + b + c + d + e + f + g + h + i + j + k;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -232,7 +463,7 @@ DART_EXPORT double SumManyDoubles(double a,
   std::cout << "SumManyDoubles(" << a << ", " << b << ", " << c << ", " << d
             << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
             << ", " << j << ")\n";
-  double retval = a + b + c + d + e + f + g + h + i + j;
+  const double retval = a + b + c + d + e + f + g + h + i + j;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -240,33 +471,33 @@ DART_EXPORT double SumManyDoubles(double a,
 // Sums many numbers.
 // Used for testing calling conventions. With so many parameters we are using
 // both registers and stack slots.
-DART_EXPORT double SumManyNumbers(int a,
+DART_EXPORT double SumManyNumbers(intptr_t a,
                                   float b,
-                                  int c,
+                                  intptr_t c,
                                   double d,
-                                  int e,
+                                  intptr_t e,
                                   float f,
-                                  int g,
+                                  intptr_t g,
                                   double h,
-                                  int i,
+                                  intptr_t i,
                                   float j,
-                                  int k,
+                                  intptr_t k,
                                   double l,
-                                  int m,
+                                  intptr_t m,
                                   float n,
-                                  int o,
+                                  intptr_t o,
                                   double p,
-                                  int q,
+                                  intptr_t q,
                                   float r,
-                                  int s,
+                                  intptr_t s,
                                   double t) {
   std::cout << "SumManyNumbers(" << a << ", " << b << ", " << c << ", " << d
             << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
             << ", " << j << ", " << k << ", " << l << ", " << m << ", " << n
             << ", " << o << ", " << p << ", " << q << ", " << r << ", " << s
             << ", " << t << ")\n";
-  double retval = a + b + c + d + e + f + g + h + i + j + k + l + m + n + o +
-                  p + q + r + s + t;
+  const double retval = a + b + c + d + e + f + g + h + i + j + k + l + m + n +
+                        o + p + q + r + s + t;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -455,7 +686,7 @@ DART_EXPORT int64_t SumVeryLargeStruct(VeryLargeStruct* vls) {
     retval += vls->parent->a;
   }
   std::cout << "has " << vls->numChildren << " children\n";
-  for (int i = 0; i < vls->numChildren; i++) {
+  for (intptr_t i = 0; i < vls->numChildren; i++) {
     retval += vls->children[i].a;
   }
   std::cout << "returning " << retval << "\n";
@@ -500,139 +731,20 @@ DART_EXPORT void DevNullFloat(float a) {
   std::cout << "returning nothing\n";
 }
 
-// Invents an elite floating point number.
+// Invents an elite floating pointptr_t number.
 // Used for testing functions that do not take any arguments.
 DART_EXPORT float InventFloatValue() {
   std::cout << "InventFloatValue()\n";
-  float retval = 1337.0f;
+  const float retval = 1337.0f;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Functions for stress-testing.
-
-DART_EXPORT int64_t MinInt64() {
-  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
-                              reinterpret_cast<void*>(1));
-  return 0x8000000000000000;
-}
-
-DART_EXPORT int64_t MinInt32() {
-  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
-                              reinterpret_cast<void*>(1));
-  return 0x80000000;
-}
-
-DART_EXPORT double SmallDouble() {
-  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
-                              reinterpret_cast<void*>(1));
-  return 0x80000000 * -1.0;
-}
-
-// Requires boxing on 32-bit and 64-bit systems, even if the top 32-bits are
-// truncated.
-DART_EXPORT void* LargePointer() {
-  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
-                              reinterpret_cast<void*>(1));
-  uint64_t origin = 0x8100000082000000;
-  return reinterpret_cast<void*>(origin);
-}
-
-DART_EXPORT void TriggerGC(uint64_t count) {
-  Dart_ExecuteInternalCommand("gc-now", nullptr);
-}
-
-DART_EXPORT void CollectOnNthAllocation(intptr_t num_allocations) {
-  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
-                              reinterpret_cast<void*>(num_allocations));
-}
-
-// Triggers GC. Has 11 dummy arguments as unboxed odd integers which should be
-// ignored by GC.
-DART_EXPORT void Regress37069(uint64_t a,
-                              uint64_t b,
-                              uint64_t c,
-                              uint64_t d,
-                              uint64_t e,
-                              uint64_t f,
-                              uint64_t g,
-                              uint64_t h,
-                              uint64_t i,
-                              uint64_t j,
-                              uint64_t k) {
-  Dart_ExecuteInternalCommand("gc-now", nullptr);
-}
-
-#if !defined(HOST_OS_WINDOWS)
-DART_EXPORT void* UnprotectCodeOtherThread(void* isolate,
-                                           std::condition_variable* var,
-                                           std::mutex* mut) {
-  std::function<void()> callback = [&]() {
-    mut->lock();
-    var->notify_all();
-    mut->unlock();
-
-    // Wait for mutator thread to continue (and block) before leaving the
-    // safepoint.
-    while (Dart_ExecuteInternalCommand("is-mutator-in-native", isolate) !=
-           nullptr) {
-      usleep(10 * 1000 /*10 ms*/);
-    }
-  };
-
-  struct {
-    void* isolate;
-    std::function<void()>* callback;
-  } args = {.isolate = isolate, .callback = &callback};
-
-  Dart_ExecuteInternalCommand("run-in-safepoint-and-rw-code", &args);
-  return nullptr;
-}
-
-struct HelperThreadState {
-  std::mutex mutex;
-  std::condition_variable cvar;
-  std::unique_ptr<std::thread> helper;
-};
-
-DART_EXPORT void* TestUnprotectCode(void (*fn)(void*)) {
-  HelperThreadState* state = new HelperThreadState;
-
-  {
-    std::unique_lock<std::mutex> lock(state->mutex);  // locks the mutex
-    state->helper.reset(new std::thread(UnprotectCodeOtherThread,
-                                        Dart_CurrentIsolate(), &state->cvar,
-                                        &state->mutex));
-
-    state->cvar.wait(lock);
-  }
-
-  if (fn != nullptr) {
-    fn(state);
-    return nullptr;
-  } else {
-    return state;
-  }
-}
-
-DART_EXPORT void WaitForHelper(HelperThreadState* helper) {
-  helper->helper->join();
-  delete helper;
-}
-#else
-// Our version of VSC++ doesn't support std::thread yet.
-DART_EXPORT void WaitForHelper(void* helper) {}
-DART_EXPORT void* TestUnprotectCode(void (*fn)(void)) {
-  return nullptr;
-}
-#endif
-
-////////////////////////////////////////////////////////////////////////////////
 // Tests for callbacks.
 
 // Sanity test.
-DART_EXPORT int TestSimpleAddition(int (*add)(int, int)) {
+DART_EXPORT intptr_t TestSimpleAddition(intptr_t (*add)(int, int)) {
   CHECK_EQ(add(10, 20), 30);
   return 0;
 }
@@ -640,8 +752,8 @@ DART_EXPORT int TestSimpleAddition(int (*add)(int, int)) {
 //// Following tests are copied from above, with the role of Dart and C++ code
 //// reversed.
 
-DART_EXPORT int TestIntComputation(
-    int64_t (*fn)(int8_t, int16_t, int32_t, int64_t)) {
+DART_EXPORT intptr_t
+TestIntComputation(int64_t (*fn)(int8_t, int16_t, int32_t, int64_t)) {
   CHECK_EQ(fn(125, 250, 500, 1000), 625);
   CHECK_EQ(0x7FFFFFFFFFFFFFFFLL, fn(0, 0, 0, 0x7FFFFFFFFFFFFFFFLL));
   CHECK_EQ(((int64_t)-0x8000000000000000LL),
@@ -649,78 +761,183 @@ DART_EXPORT int TestIntComputation(
   return 0;
 }
 
-DART_EXPORT int TestUintComputation(
-    uint64_t (*fn)(uint8_t, uint16_t, uint32_t, uint64_t)) {
+DART_EXPORT intptr_t
+TestUintComputation(uint64_t (*fn)(uint8_t, uint16_t, uint32_t, uint64_t)) {
   CHECK_EQ(0x7FFFFFFFFFFFFFFFLL, fn(0, 0, 0, 0x7FFFFFFFFFFFFFFFLL));
   CHECK_EQ(-0x8000000000000000LL, fn(0, 0, 0, -0x8000000000000000LL));
   CHECK_EQ(-1, (int64_t)fn(0, 0, 0, -1));
   return 0;
 }
 
-DART_EXPORT int TestSimpleMultiply(double (*fn)(double)) {
+DART_EXPORT intptr_t TestSimpleMultiply(double (*fn)(double)) {
   CHECK_EQ(fn(2.0), 2.0 * 1.337);
   return 0;
 }
 
-DART_EXPORT int TestSimpleMultiplyFloat(float (*fn)(float)) {
-  CHECK(std::abs(fn(2.0) - 2.0 * 1.337) < 0.001);
+DART_EXPORT intptr_t TestSimpleMultiplyFloat(float (*fn)(float)) {
+  CHECK(::std::abs(fn(2.0) - 2.0 * 1.337) < 0.001);
   return 0;
 }
 
-DART_EXPORT int TestManyInts(intptr_t (*fn)(intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t)) {
+DART_EXPORT intptr_t TestManyInts(intptr_t (*fn)(intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t)) {
   CHECK_EQ(55, fn(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
   return 0;
 }
 
-DART_EXPORT int TestManyDoubles(double (*fn)(double,
-                                             double,
-                                             double,
-                                             double,
-                                             double,
-                                             double,
-                                             double,
-                                             double,
-                                             double,
-                                             double)) {
+DART_EXPORT intptr_t TestManyDoubles(double (*fn)(double,
+                                                  double,
+                                                  double,
+                                                  double,
+                                                  double,
+                                                  double,
+                                                  double,
+                                                  double,
+                                                  double,
+                                                  double)) {
   CHECK_EQ(55, fn(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
   return 0;
 }
 
-DART_EXPORT int TestManyArgs(double (*fn)(intptr_t a,
-                                          float b,
-                                          intptr_t c,
-                                          double d,
-                                          intptr_t e,
-                                          float f,
-                                          intptr_t g,
-                                          double h,
-                                          intptr_t i,
-                                          float j,
-                                          intptr_t k,
-                                          double l,
-                                          intptr_t m,
-                                          float n,
-                                          intptr_t o,
-                                          double p,
-                                          intptr_t q,
-                                          float r,
-                                          intptr_t s,
-                                          double t)) {
+DART_EXPORT intptr_t TestManyArgs(double (*fn)(intptr_t a,
+                                               float b,
+                                               intptr_t c,
+                                               double d,
+                                               intptr_t e,
+                                               float f,
+                                               intptr_t g,
+                                               double h,
+                                               intptr_t i,
+                                               float j,
+                                               intptr_t k,
+                                               double l,
+                                               intptr_t m,
+                                               float n,
+                                               intptr_t o,
+                                               double p,
+                                               intptr_t q,
+                                               float r,
+                                               intptr_t s,
+                                               double t)) {
   CHECK(210.0 == fn(1, 2.0, 3, 4.0, 5, 6.0, 7, 8.0, 9, 10.0, 11, 12.0, 13, 14.0,
                     15, 16.0, 17, 18.0, 19, 20.0));
   return 0;
 }
 
-DART_EXPORT int TestStore(int64_t* (*fn)(int64_t* a)) {
+// Used for testing floating point argument backfilling on Arm32 in hardfp.
+DART_EXPORT intptr_t TestSumFloatsAndDoubles(double (*fn)(float,
+                                                          double,
+                                                          float)) {
+  CHECK_EQ(6.0, fn(1.0, 2.0, 3.0));
+  return 0;
+}
+
+// Very many small integers, tests alignment on stack.
+DART_EXPORT intptr_t TestSumVeryManySmallInts(int16_t (*fn)(int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t)) {
+  CHECK_EQ(40 * 41 / 2, fn(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                           16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+                           29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40));
+  return 0;
+}
+
+// Very many floating points, tests alignment on stack, and packing in
+// floating point registers in hardfp.
+DART_EXPORT intptr_t TestSumVeryManyFloatsDoubles(double (*fn)(float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double)) {
+  CHECK_EQ(40 * 41 / 2,
+           fn(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
+              13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0,
+              24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0,
+              35.0, 36.0, 37.0, 38.0, 39.0, 40.0));
+  return 0;
+}
+
+DART_EXPORT intptr_t TestStore(int64_t* (*fn)(int64_t* a)) {
   int64_t p[2] = {42, 1000};
   int64_t* result = fn(p);
   CHECK_EQ(*result, 1337);
@@ -729,142 +946,60 @@ DART_EXPORT int TestStore(int64_t* (*fn)(int64_t* a)) {
   return 0;
 }
 
-DART_EXPORT int TestReturnNull(int32_t (*fn)()) {
+DART_EXPORT intptr_t TestReturnNull(int32_t (*fn)()) {
   CHECK_EQ(fn(), 42);
   return 0;
 }
 
-DART_EXPORT int TestNullPointers(int64_t* (*fn)(int64_t* ptr)) {
+DART_EXPORT intptr_t TestNullPointers(int64_t* (*fn)(int64_t* ptr)) {
   CHECK_EQ(fn(nullptr), reinterpret_cast<void*>(sizeof(int64_t)));
   int64_t p[2] = {0};
   CHECK_EQ(fn(p), p + 1);
   return 0;
 }
 
-// Defined in ffi_test_functions.S.
-//
-// Clobbers some registers with special meaning in Dart before re-entry, for
-// stress-testing. Not used on 32-bit Windows due to complications with Windows
-// "safeseh".
-#if defined(TARGET_OS_WINDOWS) && defined(HOST_ARCH_IA32)
-void ClobberAndCall(void (*fn)()) {
-  fn();
-}
-#else
-extern "C" void ClobberAndCall(void (*fn)());
-#endif
-
-DART_EXPORT int TestGC(void (*do_gc)()) {
-  ClobberAndCall(do_gc);
-  return 0;
-}
-
-DART_EXPORT int TestReturnVoid(int (*return_void)()) {
+DART_EXPORT intptr_t TestReturnVoid(intptr_t (*return_void)()) {
   CHECK_EQ(return_void(), 0);
   return 0;
 }
 
-DART_EXPORT int TestThrowExceptionDouble(double (*fn)()) {
+DART_EXPORT intptr_t TestThrowExceptionDouble(double (*fn)()) {
   CHECK_EQ(fn(), 42.0);
   return 0;
 }
 
-DART_EXPORT int TestThrowExceptionPointer(void* (*fn)()) {
+DART_EXPORT intptr_t TestThrowExceptionPointer(void* (*fn)()) {
   CHECK_EQ(fn(), nullptr);
   return 0;
 }
 
-DART_EXPORT int TestThrowException(int (*fn)()) {
+DART_EXPORT intptr_t TestThrowException(intptr_t (*fn)()) {
   CHECK_EQ(fn(), 42);
   return 0;
 }
 
-struct CallbackTestData {
-  int success;
-  void (*callback)();
-};
-
-#if defined(TARGET_OS_LINUX)
-
-thread_local sigjmp_buf buf;
-void CallbackTestSignalHandler(int) {
-  siglongjmp(buf, 1);
+DART_EXPORT intptr_t TestTakeMaxUint8x10(intptr_t (*fn)(uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t)) {
+  CHECK_EQ(1, fn(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF));
+  // Check the argument values are properly truncated.
+  uint64_t v = 0xabcFF;
+  CHECK_EQ(1, fn(v, v, v, v, v, v, v, v, v, v));
+  return 0;
 }
 
-int ExpectAbort(void (*fn)()) {
-  fprintf(stderr, "**** EXPECT STACKTRACE TO FOLLOW. THIS IS OK. ****\n");
-
-  struct sigaction old_action = {};
-  int result = __sigsetjmp(buf, /*savesigs=*/1);
-  if (result == 0) {
-    // Install signal handler.
-    struct sigaction handler = {};
-    handler.sa_handler = CallbackTestSignalHandler;
-    sigemptyset(&handler.sa_mask);
-    handler.sa_flags = 0;
-
-    sigaction(SIGABRT, &handler, &old_action);
-
-    fn();
-  } else {
-    // Caught the setjmp.
-    sigaction(SIGABRT, &old_action, NULL);
-    exit(0);
-  }
-  fprintf(stderr, "Expected abort!!!\n");
-  exit(1);
+DART_EXPORT intptr_t TestReturnMaxUint8(uint8_t (*fn)()) {
+  std::cout << "TestReturnMaxUint8(fn): " << static_cast<int>(fn()) << "\n";
+  CHECK_EQ(0xFF, fn());
+  return 0;
 }
-
-void* TestCallbackOnThreadOutsideIsolate(void* parameter) {
-  CallbackTestData* data = reinterpret_cast<CallbackTestData*>(parameter);
-  data->success = ExpectAbort(data->callback);
-  return NULL;
-}
-
-int TestCallbackOtherThreadHelper(void* (*tester)(void*), void (*fn)()) {
-  CallbackTestData data = {1, fn};
-  pthread_attr_t attr;
-  int result = pthread_attr_init(&attr);
-  CHECK_EQ(result, 0);
-
-  pthread_t tid;
-  result = pthread_create(&tid, &attr, tester, &data);
-  CHECK_EQ(result, 0);
-
-  result = pthread_attr_destroy(&attr);
-  CHECK_EQ(result, 0);
-
-  void* retval;
-  result = pthread_join(tid, &retval);
-
-  // Doesn't actually return because the other thread will exit when the test is
-  // finished.
-  return 1;
-}
-
-// Run a callback on another thread and verify that it triggers SIGABRT.
-DART_EXPORT int TestCallbackWrongThread(void (*fn)()) {
-  return TestCallbackOtherThreadHelper(&TestCallbackOnThreadOutsideIsolate, fn);
-}
-
-// Verify that we get SIGABRT when invoking a native callback outside an
-// isolate.
-DART_EXPORT int TestCallbackOutsideIsolate(void (*fn)()) {
-  Dart_Isolate current = Dart_CurrentIsolate();
-
-  Dart_ExitIsolate();
-  CallbackTestData data = {1, fn};
-  TestCallbackOnThreadOutsideIsolate(&data);
-  Dart_EnterIsolate(current);
-
-  return data.success;
-}
-
-DART_EXPORT int TestCallbackWrongIsolate(void (*fn)()) {
-  return ExpectAbort(fn);
-}
-
-#endif  // defined(TARGET_OS_LINUX)
 
 // Receives some pointer (Pointer<NativeType> in Dart) and writes some bits.
 DART_EXPORT void NativeTypePointerParam(void* p) {

@@ -18,14 +18,17 @@ class FlowGraphSerializer;
 class SExpression;
 class SExpList;
 
+template <typename T>
+class GrowableArray;
+
 // CompileType describes type of a value produced by a definition.
 //
 // It captures the following properties:
 //    - whether the value can potentially be null or if it is definitely not
 //      null;
 //    - concrete class id of the value or kDynamicCid if unknown statically;
-//    - abstract super type of the value, concrete type of the value in runtime
-//      is guaranteed to be sub type of this type.
+//    - abstract super type of the value, where the concrete type of the value
+//      in runtime is guaranteed to be sub type of this type.
 //
 // Values of CompileType form a lattice with a None type as a bottom and a
 // nullable Dynamic type as a top element. Method Union provides a join
@@ -78,10 +81,11 @@ class CompileType : public ZoneAllocated {
 
   // Return true if value of this type is assignable to a location of the
   // given type.
-  bool IsAssignableTo(const AbstractType& type) {
-    bool is_instance;
-    return CanComputeIsInstanceOf(type, kNullable, &is_instance) && is_instance;
-  }
+  bool IsAssignableTo(const AbstractType& other);
+
+  // Return true if value of this type always passes 'is' test
+  // against given type.
+  bool IsInstanceOf(const AbstractType& other);
 
   // Create a new CompileType representing given combination of class id and
   // abstract type. The pair is assumed to be coherent.
@@ -181,6 +185,9 @@ class CompileType : public ZoneAllocated {
   // Return true if value of this type is a non-nullable double.
   bool IsDouble() { return !is_nullable() && IsNullableDouble(); }
 
+  // Return true if value of this type is a non-nullable double.
+  bool IsBool() { return !is_nullable() && IsNullableBool(); }
+
   // Return true if value of this type is either int or null.
   bool IsNullableInt() {
     if (cid_ == kSmiCid || cid_ == kMintCid) {
@@ -215,6 +222,21 @@ class CompileType : public ZoneAllocated {
     return false;
   }
 
+  // Return true if value of this type is either double or null.
+  bool IsNullableBool() {
+    if (cid_ == kBoolCid) {
+      return true;
+    }
+    if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
+      return type_ != nullptr && compiler::IsBoolType(*type_);
+    }
+    return false;
+  }
+
+  bool Specialize(GrowableArray<intptr_t>* class_ids);
+
+  bool IsNotSmi();
+
   void PrintTo(BufferFormatter* f) const;
   SExpression* ToSExpression(FlowGraphSerializer* s) const;
   void AddExtraInfoToSExpression(SExpList* sexp, FlowGraphSerializer* s) const;
@@ -232,10 +254,6 @@ class CompileType : public ZoneAllocated {
   Definition* owner() const { return owner_; }
 
  private:
-  bool CanComputeIsInstanceOf(const AbstractType& type,
-                              bool is_nullable,
-                              bool* is_instance);
-
   bool is_nullable_;
   classid_t cid_;
   const AbstractType* type_;

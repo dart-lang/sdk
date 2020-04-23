@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// Helper program that shows the equivalence-based data on a dart program.
 
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
+import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:args/args.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import 'id_equivalence_helper.dart';

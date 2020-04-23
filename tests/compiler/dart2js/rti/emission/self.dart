@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: C:checkedInstance,checks=[],instance,typeLiteral*/
+// @dart = 2.7
+
+/*class: C:checks=[],instance,typeLiteral*/
 class C {}
 
 @pragma('dart2js:noInline')

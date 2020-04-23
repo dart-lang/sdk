@@ -43,12 +43,13 @@ ARCH_RENAMES = {
 
 
 class Channel(object):
+    BETA = 'beta'
     BLEEDING_EDGE = 'be'
     DEV = 'dev'
     STABLE = 'stable'
     TRY = 'try'
     INTEGRATION = 'integration'
-    ALL_CHANNELS = [BLEEDING_EDGE, DEV, STABLE, TRY, INTEGRATION]
+    ALL_CHANNELS = [BETA, BLEEDING_EDGE, DEV, STABLE, TRY, INTEGRATION]
 
 
 class ReleaseType(object):
@@ -71,7 +72,7 @@ class GCSNamer(object):
 
   For every (channel,revision,release-type) tuple we have a base path:
 
-    gs://dart-archive/channels/{be,dev,stable,try,integration}
+    gs://dart-archive/channels/{be,beta,dev,stable,try,integration}
                      /{raw,signed,release}/{revision,latest}/
 
   Under every base path, the following structure is used:

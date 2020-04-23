@@ -5,6 +5,7 @@
 #include "vm/lockers.h"
 #include "platform/assert.h"
 #include "vm/heap/safepoint.h"
+#include "vm/isolate.h"
 
 namespace dart {
 
@@ -26,7 +27,7 @@ Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
     // Fast update failed which means we could potentially be in the middle
     // of a safepoint operation and need to block for it.
     monitor_->Exit();
-    SafepointHandler* handler = thread->isolate()->safepoint_handler();
+    SafepointHandler* handler = thread->isolate_group()->safepoint_handler();
     handler->ExitSafepointUsingLock(thread);
     monitor_->Enter();
   }
@@ -46,12 +47,8 @@ SafepointMutexLocker::SafepointMutexLocker(Mutex* mutex) : mutex_(mutex) {
     // accordingly.
     Thread* thread = Thread::Current();
     if (thread != NULL) {
-      thread->set_execution_state(Thread::kThreadInBlockedState);
-      thread->EnterSafepoint();
+      TransitionVMToBlocked transition(thread);
       mutex->Lock();
-      // Update thread state and block if a safepoint operation is in progress.
-      thread->ExitSafepoint();
-      thread->set_execution_state(Thread::kThreadInVM);
     } else {
       mutex->Lock();
     }
@@ -66,12 +63,8 @@ SafepointMonitorLocker::SafepointMonitorLocker(Monitor* monitor)
     // accordingly.
     Thread* thread = Thread::Current();
     if (thread != NULL) {
-      thread->set_execution_state(Thread::kThreadInBlockedState);
-      thread->EnterSafepoint();
+      TransitionVMToBlocked transition(thread);
       monitor_->Enter();
-      // Update thread state and block if a safepoint operation is in progress.
-      thread->ExitSafepoint();
-      thread->set_execution_state(Thread::kThreadInVM);
     } else {
       monitor_->Enter();
     }
@@ -81,42 +74,15 @@ SafepointMonitorLocker::SafepointMonitorLocker(Monitor* monitor)
 Monitor::WaitResult SafepointMonitorLocker::Wait(int64_t millis) {
   Thread* thread = Thread::Current();
   if (thread != NULL) {
-    thread->set_execution_state(Thread::kThreadInBlockedState);
-    thread->EnterSafepoint();
-    Monitor::WaitResult result = monitor_->Wait(millis);
-    // First try a fast update of the thread state to indicate it is not at a
-    // safepoint anymore.
-    if (!thread->TryExitSafepoint()) {
-      // Fast update failed which means we could potentially be in the middle
-      // of a safepoint operation and need to block for it.
-      monitor_->Exit();
-      SafepointHandler* handler = thread->isolate()->safepoint_handler();
-      handler->ExitSafepointUsingLock(thread);
-      monitor_->Enter();
+    Monitor::WaitResult result;
+    {
+      TransitionVMToBlocked transition(thread);
+      result = monitor_->Wait(millis);
     }
-    thread->set_execution_state(Thread::kThreadInVM);
     return result;
   } else {
     return monitor_->Wait(millis);
   }
-}
-
-ReadRwLocker::ReadRwLocker(ThreadState* thread_state, RwLock* rw_lock)
-    : StackResource(thread_state), rw_lock_(rw_lock) {
-  rw_lock_->EnterRead();
-}
-
-ReadRwLocker::~ReadRwLocker() {
-  rw_lock_->LeaveRead();
-}
-
-WriteRwLocker::WriteRwLocker(ThreadState* thread_state, RwLock* rw_lock)
-    : StackResource(thread_state), rw_lock_(rw_lock) {
-  rw_lock_->EnterWrite();
-}
-
-WriteRwLocker::~WriteRwLocker() {
-  rw_lock_->LeaveWrite();
 }
 
 }  // namespace dart

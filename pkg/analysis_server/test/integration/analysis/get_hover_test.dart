@@ -11,7 +11,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetHoverIntegrationTest);
   });
@@ -20,14 +20,10 @@ main() {
 @reflectiveTest
 class AnalysisGetHoverIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
-  /**
-   * Pathname of the file containing Dart code.
-   */
+  /// Pathname of the file containing Dart code.
   String pathname;
 
-  /**
-   * Dart code under test.
-   */
+  /// Dart code under test.
   final String text = r'''
 library lib.test;
 
@@ -48,19 +44,17 @@ main() {
 }
 ''';
 
-  /**
-   * Check that a getHover request on the substring [target] produces a result
-   * which has length [length], has an elementDescription matching every
-   * regexp in [descriptionRegexps], has a kind of [kind], and has a staticType
-   * matching [staticTypeRegexps].
-   *
-   * [isCore] means the hover info should indicate that the element is defined
-   * in dart.core.  [docRegexp], if specified, should match the documentation
-   * string of the element.  [isLiteral] means the hover should indicate a
-   * literal value.  [parameterRegexps] means is a set of regexps which should
-   * match the hover parameters.  [propagatedType], if specified, is the
-   * expected propagated type of the element.
-   */
+  /// Check that a getHover request on the substring [target] produces a result
+  /// which has length [length], has an elementDescription matching every
+  /// regexp in [descriptionRegexps], has a kind of [kind], and has a staticType
+  /// matching [staticTypeRegexps].
+  ///
+  /// [isCore] means the hover info should indicate that the element is defined
+  /// in dart.core.  [docRegexp], if specified, should match the documentation
+  /// string of the element.  [isLiteral] means the hover should indicate a
+  /// literal value.  [parameterRegexps] means is a set of regexps which should
+  /// match the hover parameters.  [propagatedType], if specified, is the
+  /// expected propagated type of the element.
   Future<AnalysisGetHoverResult> checkHover(
     String target,
     int length,
@@ -69,14 +63,14 @@ main() {
     List<String> staticTypeRegexps, {
     bool isLocal = false,
     bool isCore = false,
-    String docRegexp = null,
+    String docRegexp,
     bool isLiteral = false,
-    List<String> parameterRegexps = null,
+    List<String> parameterRegexps,
   }) {
-    int offset = text.indexOf(target);
+    var offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) async {
       expect(result.hovers, hasLength(1));
-      HoverInformation info = result.hovers[0];
+      var info = result.hovers[0];
       expect(info.offset, equals(offset));
       expect(info.length, equals(length));
       if (isCore) {
@@ -98,7 +92,7 @@ main() {
         expect(info.elementDescription, isNull);
       } else {
         expect(info.elementDescription, isString);
-        for (String descriptionRegexp in descriptionRegexps) {
+        for (var descriptionRegexp in descriptionRegexps) {
           expect(info.elementDescription, matches(descriptionRegexp));
         }
       }
@@ -107,7 +101,7 @@ main() {
         expect(info.parameter, isNull);
       } else {
         expect(info.parameter, isString);
-        for (String parameterRegexp in parameterRegexps) {
+        for (var parameterRegexp in parameterRegexps) {
           expect(info.parameter, matches(parameterRegexp));
         }
       }
@@ -115,7 +109,7 @@ main() {
         expect(info.staticType, isNull);
       } else {
         expect(info.staticType, isString);
-        for (String staticTypeRegexp in staticTypeRegexps) {
+        for (var staticTypeRegexp in staticTypeRegexps) {
           expect(info.staticType, matches(staticTypeRegexp));
         }
       }
@@ -123,24 +117,23 @@ main() {
     });
   }
 
-  /**
-   * Check that a getHover request on the substring [target] produces no
-   * results.
-   */
+  /// Check that a getHover request on the substring [target] produces no
+  /// results.
   Future checkNoHover(String target) {
-    int offset = text.indexOf(target);
+    var offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) {
       expect(result.hovers, hasLength(0));
     });
   }
 
-  setUp() {
+  @override
+  Future<void> setUp() {
     return super.setUp().then((_) {
       pathname = sourcePath('test.dart');
     });
   }
 
-  test_getHover() {
+  Future<void> test_getHover() {
     writeFile(pathname, text);
     standardAnalysisSetup();
 
@@ -148,7 +141,7 @@ main() {
     // returns the latest results that are available at the time that the
     // request is made.  So wait for analysis to finish before testing anything.
     return analysisFinished.then((_) {
-      List<Future> tests = [];
+      var tests = <Future>[];
       tests.add(checkHover('topLevelVar;', 11, ['List', 'topLevelVar'],
           'top level variable', ['List']));
       tests.add(checkHover(
@@ -175,8 +168,7 @@ main() {
           isLocal: true,
           docRegexp: 'Documentation for func',
           parameterRegexps: ['.*']));
-      tests.add(checkHover(
-          'add(', 3, ['List', 'add'], 'method', ['dynamic', 'void'],
+      tests.add(checkHover('add(', 3, ['add'], 'method', ['dynamic', 'void'],
           isCore: true, docRegexp: '.*'));
       tests.add(checkHover(
           'localVar)', 8, ['num', 'localVar'], 'local variable', ['num'],

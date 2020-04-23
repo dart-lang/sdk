@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToSingleQuotedStringTest);
   });
@@ -24,15 +24,15 @@ class ConvertToSingleQuotedStringTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_single_quotes;
 
   /// More coverage in the `convert_to_single_quoted_string_test.dart` assist test.
-  test_one_simple() async {
+  Future<void> test_one_simple() async {
     await resolveTestUnit('''
 main() {
-  print(/*LINT*/"abc");
+  print("abc");
 }
 ''');
     await assertHasFix('''
 main() {
-  print(/*LINT*/'abc');
+  print('abc');
 }
 ''');
   }

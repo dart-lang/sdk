@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToSingleQuotedStringTest);
   });
@@ -20,7 +20,7 @@ class ConvertToSingleQuotedStringTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING;
 
-  test_one_embeddedTarget() async {
+  Future<void> test_one_embeddedTarget() async {
     await resolveTestUnit('''
 main() {
   print("a'b'c");
@@ -29,7 +29,7 @@ main() {
     await assertNoAssistAt('"a');
   }
 
-  test_one_enclosingTarget() async {
+  Future<void> test_one_enclosingTarget() async {
     await resolveTestUnit('''
 main() {
   print('abc');
@@ -38,7 +38,7 @@ main() {
     await assertNoAssistAt("'ab");
   }
 
-  test_one_interpolation() async {
+  Future<void> test_one_interpolation() async {
     await resolveTestUnit(r'''
 main() {
   var b = 'b';
@@ -55,7 +55,7 @@ main() {
 ''');
   }
 
-  test_one_raw() async {
+  Future<void> test_one_raw() async {
     await resolveTestUnit('''
 main() {
   print(r"abc");
@@ -68,7 +68,7 @@ main() {
 ''');
   }
 
-  test_one_simple() async {
+  Future<void> test_one_simple() async {
     await resolveTestUnit('''
 main() {
   print("abc");
@@ -81,7 +81,7 @@ main() {
 ''');
   }
 
-  test_one_simple_noAssistWithLint() async {
+  Future<void> test_one_simple_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.prefer_single_quotes]);
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
@@ -92,7 +92,7 @@ main() {
     await assertNoAssist();
   }
 
-  test_three_embeddedTarget() async {
+  Future<void> test_three_embeddedTarget() async {
     await resolveTestUnit('''
 main() {
   print("""a''\'bc""");
@@ -101,7 +101,7 @@ main() {
     await assertNoAssistAt('"a');
   }
 
-  test_three_enclosingTarget() async {
+  Future<void> test_three_enclosingTarget() async {
     await resolveTestUnit("""
 main() {
   print('''abc''');
@@ -110,7 +110,7 @@ main() {
     await assertNoAssistAt("'ab");
   }
 
-  test_three_interpolation() async {
+  Future<void> test_three_interpolation() async {
     await resolveTestUnit(r'''
 main() {
   var b = 'b';
@@ -127,7 +127,7 @@ main() {
 """);
   }
 
-  test_three_raw() async {
+  Future<void> test_three_raw() async {
     await resolveTestUnit('''
 main() {
   print(r"""abc""");
@@ -140,7 +140,7 @@ main() {
 """);
   }
 
-  test_three_simple() async {
+  Future<void> test_three_simple() async {
     await resolveTestUnit('''
 main() {
   print("""abc""");

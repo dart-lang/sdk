@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetNavigationTest);
   });
@@ -17,9 +16,9 @@ main() {
 
 @reflectiveTest
 class GetNavigationTest extends AbstractAnalysisServerIntegrationTest {
-  test_navigation() async {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+  Future<void> test_navigation() async {
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 class Foo {}
 
 class Bar {
@@ -31,10 +30,10 @@ class Bar {
 
     await analysisFinished;
 
-    AnalysisGetNavigationResult result =
+    var result =
         await sendAnalysisGetNavigation(pathname, text.indexOf('Foo foo'), 0);
     expect(result.targets, hasLength(1));
-    NavigationTarget target = result.targets.first;
+    var target = result.targets.first;
     expect(target.kind, ElementKind.CLASS);
     expect(target.offset, text.indexOf('Foo {}'));
     expect(target.length, 3);
@@ -43,10 +42,10 @@ class Bar {
   }
 
   @failingTest
-  test_navigation_no_result() async {
+  Future<void> test_navigation_no_result() async {
     // This fails - it returns navigation results for a whitespace area (#28799).
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 //
 
 class Foo {}
@@ -60,8 +59,7 @@ class Bar {
 
     await analysisFinished;
 
-    AnalysisGetNavigationResult result =
-        await sendAnalysisGetNavigation(pathname, 0, 0);
+    var result = await sendAnalysisGetNavigation(pathname, 0, 0);
     expect(result.targets, isEmpty);
   }
 }

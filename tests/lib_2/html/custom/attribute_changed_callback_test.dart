@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import 'utils.dart';
 
@@ -51,17 +51,12 @@ void customElementsTakeRecords() {
   }
 }
 
-main() {
+main() async {
   // Adapted from Blink's fast/dom/custom/attribute-changed-callback test.
 
-  var registered = false;
-  setUp(() => customElementsReady.then((_) {
-        if (!registered) {
-          registered = true;
-          document.registerElement2(A.tag, {'prototype': A});
-          document.registerElement2(B.tag, {'prototype': B});
-        }
-      }));
+  await customElementsReady;
+  document.registerElement2(A.tag, {'prototype': A});
+  document.registerElement2(B.tag, {'prototype': B});
 
   group('fully_supported', () {
     test('transfer attribute changed callback', () {

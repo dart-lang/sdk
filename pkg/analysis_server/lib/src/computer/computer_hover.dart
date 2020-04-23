@@ -5,7 +5,6 @@
 import 'package:analysis_server/protocol/protocol_generated.dart'
     show HoverInformation;
 import 'package:analysis_server/src/computer/computer_overrides.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -14,9 +13,8 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:path/path.dart' as path;
 
-/**
- * A computer for the hover at the specified offset of a Dart [CompilationUnit].
- */
+/// A computer for the hover at the specified offset of a Dart
+/// [CompilationUnit].
 class DartUnitHoverComputer {
   final DartdocDirectiveInfo _dartdocInfo;
   final CompilationUnit _unit;
@@ -24,11 +22,13 @@ class DartUnitHoverComputer {
 
   DartUnitHoverComputer(this._dartdocInfo, this._unit, this._offset);
 
-  /**
-   * Returns the computed hover, maybe `null`.
-   */
+  bool get _isNonNullableByDefault {
+    return _unit.declaredElement.library.isNonNullableByDefault;
+  }
+
+  /// Returns the computed hover, maybe `null`.
   HoverInformation compute() {
-    AstNode node = new NodeLocator(_offset).searchWithin(_unit);
+    var node = NodeLocator(_offset).searchWithin(_unit);
     if (node == null) {
       return null;
     }
@@ -42,18 +42,18 @@ class DartUnitHoverComputer {
       node = node.parent.parent;
     }
     if (node is Expression) {
-      Expression expression = node;
+      var expression = node;
       // For constructor calls the whole expression is selected (above) but this
       // results in the range covering the whole call so narrow it to just the
       // ConstructorName.
-      HoverInformation hover = expression is InstanceCreationExpression
-          ? new HoverInformation(
+      var hover = expression is InstanceCreationExpression
+          ? HoverInformation(
               expression.constructorName.offset,
               expression.constructorName.length,
             )
-          : new HoverInformation(expression.offset, expression.length);
+          : HoverInformation(expression.offset, expression.length);
       // element
-      Element element = ElementLocator.locate(expression);
+      var element = ElementLocator.locate(expression);
       if (element != null) {
         // variable, if synthetic accessor
         if (element is PropertyAccessorElement) {
@@ -63,9 +63,9 @@ class DartUnitHoverComputer {
           }
         }
         // description
-        hover.elementDescription = element.toString();
+        hover.elementDescription = _elementDisplayString(element);
         if (node is InstanceCreationExpression && node.keyword == null) {
-          String prefix = node.isConst ? '(const) ' : '(new) ';
+          var prefix = node.isConst ? '(const) ' : '(new) ';
           hover.elementDescription = prefix + hover.elementDescription;
         }
         hover.elementKind = element.kind.displayName;
@@ -73,26 +73,24 @@ class DartUnitHoverComputer {
         // not local element
         if (element.enclosingElement is! ExecutableElement) {
           // containing class
-          ClassElement containingClass =
-              element.getAncestor((e) => e is ClassElement);
+          var containingClass = element.thisOrAncestorOfType<ClassElement>();
           if (containingClass != null) {
             hover.containingClassDescription = containingClass.displayName;
           }
           // containing library
-          LibraryElement library = element.library;
+          var library = element.library;
           if (library != null) {
-            Uri uri = library.source.uri;
+            var uri = library.source.uri;
             if (uri.scheme != '' && uri.scheme == 'file') {
               // for 'file:' URIs, use the path after the project root
-              AnalysisSession analysisSession = _unit.declaredElement.session;
-              path.Context context =
-                  analysisSession.resourceProvider.pathContext;
-              String projectRootDir =
+              var analysisSession = _unit.declaredElement.session;
+              var context = analysisSession.resourceProvider.pathContext;
+              var projectRootDir =
                   analysisSession.analysisContext.contextRoot.root.path;
-              String relativePath =
+              var relativePath =
                   context.relative(context.fromUri(uri), from: projectRootDir);
               if (context.style == path.Style.windows) {
-                List<String> pathList = context.split(relativePath);
+                var pathList = context.split(relativePath);
                 hover.containingLibraryName = pathList.join('/');
               } else {
                 hover.containingLibraryName = relativePath;
@@ -107,10 +105,12 @@ class DartUnitHoverComputer {
         hover.dartdoc = computeDocumentation(_dartdocInfo, element);
       }
       // parameter
-      hover.parameter = _safeToString(expression.staticParameterElement);
+      hover.parameter = _elementDisplayString(
+        expression.staticParameterElement,
+      );
       // types
       {
-        AstNode parent = expression.parent;
+        var parent = expression.parent;
         DartType staticType;
         if (element == null || element is VariableElement) {
           staticType = _getTypeOfDeclarationOrReference(node);
@@ -121,13 +121,23 @@ class DartUnitHoverComputer {
             staticType = null;
           }
         }
-        hover.staticType = _safeToString(staticType);
+        hover.staticType = _typeDisplayString(staticType);
       }
       // done
       return hover;
     }
     // not an expression
     return null;
+  }
+
+  String _elementDisplayString(Element element) {
+    return element?.getDisplayString(
+      withNullability: _isNonNullableByDefault,
+    );
+  }
+
+  String _typeDisplayString(DartType type) {
+    return type?.getDisplayString(withNullability: _isNonNullableByDefault);
   }
 
   static String computeDocumentation(
@@ -150,13 +160,14 @@ class DartUnitHoverComputer {
       return dartdocInfo.processDartdoc(element.documentationComment);
     }
     // Look for documentation comments of overridden members.
-    OverriddenElements overridden = findOverriddenElements(element);
-    for (Element superElement in []
-      ..addAll(overridden.superElements)
-      ..addAll(overridden.interfaceElements)) {
-      String rawDoc = superElement.documentationComment;
+    var overridden = findOverriddenElements(element);
+    for (var superElement in [
+      ...overridden.superElements,
+      ...overridden.interfaceElements
+    ]) {
+      var rawDoc = superElement.documentationComment;
       if (rawDoc != null) {
-        Element interfaceClass = superElement.enclosingElement;
+        var interfaceClass = superElement.enclosingElement;
         return dartdocInfo.processDartdoc(rawDoc) +
             '\n\nCopied from `${interfaceClass.displayName}`.';
       }
@@ -179,6 +190,4 @@ class DartUnitHoverComputer {
     }
     return node.staticType;
   }
-
-  static String _safeToString(obj) => obj?.toString();
 }

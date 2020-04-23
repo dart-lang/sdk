@@ -9,6 +9,8 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/reference_from_index.dart';
+import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
@@ -41,6 +43,7 @@ class VmTarget extends Target {
   Class _oneByteString;
   Class _twoByteString;
   Class _smi;
+  Class _double; // _Double, not double.
 
   VmTarget(this.flags);
 
@@ -52,6 +55,10 @@ class VmTarget extends Target {
 
   @override
   bool get supportsLateFields => !flags.forceLateLoweringForTesting;
+
+  @override
+  bool get supportsExplicitGetterCalls =>
+      !flags.forceNoExplicitGetterCallsForTesting;
 
   @override
   String get name => 'vm';
@@ -98,7 +105,7 @@ class VmTarget extends Target {
     final Field little =
         coreTypes.index.getMember('dart:typed_data', 'Endian', 'little');
     host.isConst = true;
-    host.initializer = new CloneVisitor().clone(little.initializer)
+    host.initializer = new CloneVisitorNotMembers().clone(little.initializer)
       ..parent = host;
   }
 
@@ -108,7 +115,8 @@ class VmTarget extends Target {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg)}) {
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {
     super.performPreConstantEvaluationTransformations(
         component, coreTypes, libraries, diagnosticReporter,
         logger: logger);
@@ -137,16 +145,25 @@ class VmTarget extends Target {
       List<Library> libraries,
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg)}) {
-    transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries,
+      ReferenceFromIndex referenceFromIndex,
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {
+    transformMixins.transformLibraries(
+        this, coreTypes, hierarchy, libraries, referenceFromIndex,
         doSuperResolution: false /* resolution is done in Dart VM */);
     logger?.call("Transformed mixin applications");
 
     transformFfi.ReplacedMembers replacedFields =
         transformFfiDefinitions.transformLibraries(
-            component, coreTypes, hierarchy, libraries, diagnosticReporter);
+            component,
+            coreTypes,
+            hierarchy,
+            libraries,
+            diagnosticReporter,
+            referenceFromIndex,
+            changedStructureNotifier);
     transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
-        libraries, diagnosticReporter, replacedFields);
+        libraries, diagnosticReporter, replacedFields, referenceFromIndex);
     logger?.call("Transformed ffi annotations");
 
     // TODO(kmillikin): Make this run on a per-method basis.
@@ -368,7 +385,8 @@ class VmTarget extends Target {
   // purposes.
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
-      importer.path.contains('runtime/tests/vm/dart');
+      importer.path.contains('runtime/tests/vm/dart') ||
+      importer.path.contains('test-lib');
 
   // TODO(sigmund,ahe): limit this to `dart-ext` libraries only (see
   // https://github.com/dart-lang/sdk/issues/29763).
@@ -424,6 +442,11 @@ class VmTarget extends Target {
   }
 
   @override
+  Class concreteDoubleLiteralClass(CoreTypes coreTypes, double value) {
+    return _double ??= coreTypes.index.getClass('dart:core', '_Double');
+  }
+
+  @override
   Class concreteStringLiteralClass(CoreTypes coreTypes, String value) {
     const int maxLatin1 = 0xff;
     for (int i = 0; i < value.length; ++i) {
@@ -439,4 +462,28 @@ class VmTarget extends Target {
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
       new VmConstantsBackend(coreTypes);
+
+  @override
+  Map<String, String> updateEnvironmentDefines(Map<String, String> map) {
+    // TODO(alexmarkov): Call this from the front-end in order to have
+    //  the same defines when compiling platform.
+    assert(map != null);
+    if (map['dart.vm.product'] == 'true') {
+      map['dart.developer.causal_async_stacks'] = 'false';
+    }
+    map['dart.isVM'] = 'true';
+    // TODO(dartbug.com/36460): Derive dart.library.* definitions from platform.
+    for (String library in extraRequiredLibraries) {
+      Uri libraryUri = Uri.parse(library);
+      if (libraryUri.scheme == 'dart') {
+        final path = libraryUri.path;
+        if (!path.startsWith('_')) {
+          map['dart.library.${path}'] = 'true';
+        }
+      }
+    }
+    // dart:core is not mentioned in Target.extraRequiredLibraries.
+    map['dart.library.core'] = 'true';
+    return map;
+  }
 }

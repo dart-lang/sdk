@@ -1,0 +1,17 @@
+f() {
+var a, b;
+return a
+? [
+b([])
+]
+: null;
+}
+
+f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] a[StringToken],[SimpleToken] b[StringToken];[SimpleToken]
+return[KeywordToken] a[StringToken]
+?[SimpleToken] [[BeginToken]
+b[StringToken]([BeginToken][][SimpleToken])[SimpleToken]
+][SimpleToken]
+:[SimpleToken] null[KeywordToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

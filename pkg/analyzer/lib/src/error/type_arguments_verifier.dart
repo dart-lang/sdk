@@ -7,6 +7,7 @@ import "dart:math" as math;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -17,12 +18,18 @@ import 'package:analyzer/src/generated/resolver.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptionsImpl _options;
-  final TypeSystemImpl _typeSystem;
+  final LibraryElement _libraryElement;
   final ErrorReporter _errorReporter;
 
-  TypeArgumentsVerifier(this._options, this._typeSystem, this._errorReporter);
+  TypeArgumentsVerifier(
+    this._options,
+    this._libraryElement,
+    this._errorReporter,
+  );
 
-  TypeProvider get _typeProvider => _typeSystem.typeProvider;
+  TypeProvider get _typeProvider => _libraryElement.typeProvider;
+
+  TypeSystemImpl get _typeSystem => _libraryElement.typeSystem;
 
   void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _checkTypeArguments(node);
@@ -222,22 +229,23 @@ class TypeArgumentsVerifier {
       }
       DartType boundType = typeParameters[i].bound;
       if (argType != null && boundType != null) {
+        boundType = _libraryElement.toLegacyTypeIfOptOut(boundType);
         if (shouldSubstitute) {
           boundType = Substitution.fromPairs(typeParameters, typeArguments)
               .substituteType(boundType);
         }
 
-        if (!_typeSystem.isSubtypeOf(argType, boundType)) {
+        if (!_typeSystem.isSubtypeOf2(argType, boundType)) {
           if (_shouldAllowSuperBoundedTypes(typeName)) {
             var replacedType =
                 (argType as TypeImpl).replaceTopAndBottom(_typeProvider);
             if (!identical(replacedType, argType) &&
-                _typeSystem.isSubtypeOf(replacedType, boundType)) {
+                _typeSystem.isSubtypeOf2(replacedType, boundType)) {
               // Bound is satisfied under super-bounded rules, so we're ok.
               continue;
             }
           }
-          _errorReporter.reportTypeErrorForNode(
+          _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               argumentNode,
               [argType, boundType]);
@@ -328,8 +336,8 @@ class TypeArgumentsVerifier {
 
         var substitution = Substitution.fromPairs(fnTypeParams, typeArgs);
         var bound = substitution.substituteType(rawBound);
-        if (!_typeSystem.isSubtypeOf(argType, bound)) {
-          _errorReporter.reportTypeErrorForNode(
+        if (!_typeSystem.isSubtypeOf2(argType, bound)) {
+          _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList[i],
               [argType, bound]);

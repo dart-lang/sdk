@@ -49,7 +49,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
   /// A queue holding the nodes that have not yet been visited in the order in
   /// which they ought to be visited.
-  Queue<AstNode> _queue = new Queue<AstNode>();
+  final Queue<AstNode> _queue = Queue<AstNode>();
 
   /// A visitor, used to visit the children of the current node, that will add
   /// the nodes it visits to the [_queue].
@@ -57,7 +57,7 @@ class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
 
   /// Initialize a newly created visitor.
   BreadthFirstVisitor() {
-    _childVisitor = new _BreadthFirstChildVisitor(this);
+    _childVisitor = _BreadthFirstChildVisitor(this);
   }
 
   /// Visit all nodes in the tree starting at the given [root] node, in
@@ -2096,7 +2096,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R visitYieldStatement(YieldStatement node) => _throw(node);
 
   R _throw(AstNode node) {
-    throw new Exception('Missing implementation of visit${node.runtimeType}');
+    throw Exception('Missing implementation of visit${node.runtimeType}');
   }
 }
 
@@ -2113,7 +2113,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   /// Initialize a newly created visitor to time calls to the given base
   /// visitor's visits.
   TimedAstVisitor(this._baseVisitor, [Stopwatch watch])
-      : stopwatch = watch ?? new Stopwatch();
+      : stopwatch = watch ?? Stopwatch();
 
   @override
   T visitAdjacentStrings(AdjacentStrings node) {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: A.:[subclass=B]*/
 abstract class A {
   /*member: A.noSuchMethod:[exact=JSUInt31]*/
@@ -31,19 +33,19 @@ class D implements A {
 
   /*member: D.noSuchMethod:[exact=JSDouble]*/
   noSuchMethod(
-          /*strong.[null|subclass=Object]*/
           /*omit.[null|exact=JSInvocationMirror]*/
+          /*strong.[null|subclass=Object]*/
           im) =>
       42.5;
 }
 
-/*member: a:Union([exact=D], [null|subclass=B])*/
+/*member: a:Union(null, [exact=D], [subclass=B])*/
 dynamic a = [new B(), new C(), new D()]
     /*Container([exact=JSExtendableArray], element: Union([exact=D], [subclass=B]), length: 3)*/
     [0];
 
 /*member: test1:Dictionary([subclass=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
-test1() => a. /*invoke: Union([exact=D], [null|subclass=B])*/ foo();
+test1() => a. /*invoke: Union(null, [exact=D], [subclass=B])*/ foo();
 
 /*member: test2:Dictionary([subclass=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
 test2() => new B(). /*invoke: [exact=B]*/ foo();
@@ -62,7 +64,7 @@ test5() {
 
 // Can hit A.noSuchMethod, D.noSuchMethod and Object.noSuchMethod.
 /*member: test6:Union([exact=JSDouble], [exact=JSUInt31])*/
-test6() => a. /*invoke: Union([exact=D], [null|subclass=B])*/ bar();
+test6() => a. /*invoke: Union(null, [exact=D], [subclass=B])*/ bar();
 
 // Can hit A.noSuchMethod.
 /*member: test7:[exact=JSUInt31]*/

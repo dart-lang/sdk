@@ -7,7 +7,8 @@ import 'dart:developer';
 import 'dart:isolate' as I;
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:observatory/models.dart' as M;
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -30,7 +31,7 @@ Future during() async {
 int numPaused(vm) {
   int paused = 0;
   for (var isolate in vm.isolates) {
-    if (isolate.paused) {
+    if (isolate.paused && isolate.pauseEvent is M.PauseExitEvent) {
       paused++;
     }
   }

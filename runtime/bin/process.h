@@ -87,6 +87,9 @@ enum ProcessStartMode {
 
 class Process {
  public:
+  static void Init();
+  static void Cleanup();
+
   // Start a new process providing access to stdin, stdout, stderr and
   // process exit streams.
   static int Start(Namespace* namespc,

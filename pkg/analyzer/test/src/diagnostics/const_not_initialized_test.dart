@@ -11,23 +11,14 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-//    defineReflectiveTests(ConstNotInitializedTest);
-    defineReflectiveTests(ConstNotInitializedWithExtensionMethodsTest);
-//    defineReflectiveTests(ConstNotInitializedWithNnbdTest);
+    defineReflectiveTests(ConstNotInitializedTest);
+    defineReflectiveTests(ConstNotInitializedWithNnbdTest);
   });
 }
 
 @reflectiveTest
-class ConstNotInitializedTest extends DriverResolutionTest {}
-
-@reflectiveTest
-class ConstNotInitializedWithExtensionMethodsTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
-  test_instance() async {
+class ConstNotInitializedTest extends DriverResolutionTest {
+  test_extension_static() async {
     await assertErrorsInCode('''
 extension E on String {
   static const F;
@@ -35,12 +26,41 @@ extension E on String {
       error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 39, 1),
     ]);
   }
+
+  test_instanceField_static() async {
+    await assertErrorsInCode(r'''
+class A {
+  static const F;
+}
+''', [
+      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 25, 1),
+    ]);
+  }
+
+  test_local() async {
+    await assertErrorsInCode(r'''
+f() {
+  const int x;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 18, 1),
+    ]);
+  }
+
+  test_top_level() async {
+    await assertErrorsInCode('''
+const F;
+''', [
+      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 6, 1),
+    ]);
+  }
 }
 
 @reflectiveTest
-class ConstNotInitializedWithNnbdTest extends DriverResolutionTest {
+class ConstNotInitializedWithNnbdTest extends ConstNotInitializedTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
 }

@@ -11,7 +11,24 @@ namespace dart {
 
 DECLARE_FLAG(int, worker_timeout_millis);
 
-VM_UNIT_TEST_CASE(ThreadPool_Create) {
+// Some of these tests change VM flags, so they should run without a full VM
+// startup to prevent races on the flag changes. None of the tests require full
+// VM startup, so we do this for all of them.
+#define THREAD_POOL_UNIT_TEST_CASE(name)                                       \
+  static void name##helper();                                                  \
+  UNIT_TEST_CASE(name) {                                                       \
+    OSThread::Init();                                                          \
+    name##helper();                                                            \
+    /* Delete the current thread's TLS and set it's TLS to null. */            \
+    /* If it is the last thread then the destructor would call */              \
+    /* OSThread::Cleanup. */                                                   \
+    OSThread* os_thread = OSThread::Current();                                 \
+    OSThread::SetCurrent(nullptr);                                             \
+    delete os_thread;                                                          \
+  }                                                                            \
+  void name##helper()
+
+THREAD_POOL_UNIT_TEST_CASE(ThreadPool_Create) {
   ThreadPool thread_pool;
 }
 
@@ -40,7 +57,7 @@ class TestTask : public ThreadPool::Task {
   bool* done_;
 };
 
-VM_UNIT_TEST_CASE(ThreadPool_RunOne) {
+THREAD_POOL_UNIT_TEST_CASE(ThreadPool_RunOne) {
   ThreadPool thread_pool;
   Monitor sync;
   bool done = true;
@@ -60,7 +77,7 @@ VM_UNIT_TEST_CASE(ThreadPool_RunOne) {
   EXPECT_EQ(0U, thread_pool.workers_stopped());
 }
 
-VM_UNIT_TEST_CASE(ThreadPool_RunMany) {
+THREAD_POOL_UNIT_TEST_CASE(ThreadPool_RunMany) {
   const int kTaskCount = 100;
   ThreadPool thread_pool;
   Monitor sync[kTaskCount];
@@ -113,7 +130,7 @@ class SleepTask : public ThreadPool::Task {
   int millis_;
 };
 
-VM_UNIT_TEST_CASE(ThreadPool_WorkerShutdown) {
+THREAD_POOL_UNIT_TEST_CASE(ThreadPool_WorkerShutdown) {
   const int kTaskCount = 10;
   Monitor sync;
   int slept_count = 0;
@@ -150,39 +167,42 @@ VM_UNIT_TEST_CASE(ThreadPool_WorkerShutdown) {
   EXPECT_EQ(kTaskCount, final_count);
 }
 
-VM_UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
+THREAD_POOL_UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
   // Adjust the worker timeout so that we timeout quickly.
   int saved_timeout = FLAG_worker_timeout_millis;
   FLAG_worker_timeout_millis = 1;
 
-  ThreadPool thread_pool;
-  EXPECT_EQ(0U, thread_pool.workers_started());
-  EXPECT_EQ(0U, thread_pool.workers_stopped());
-
-  // Run a worker.
-  Monitor sync;
-  bool done = true;
-  thread_pool.Run<TestTask>(&sync, &done);
-  EXPECT_EQ(1U, thread_pool.workers_started());
-  EXPECT_EQ(0U, thread_pool.workers_stopped());
   {
-    MonitorLocker ml(&sync);
-    done = false;
-    ml.Notify();
-    while (!done) {
-      ml.Wait();
-    }
-  }
-  EXPECT(done);
+    ThreadPool thread_pool;
+    EXPECT_EQ(0U, thread_pool.workers_started());
+    EXPECT_EQ(0U, thread_pool.workers_stopped());
 
-  // Wait up to 5 seconds to see if a worker times out.
-  const int kMaxWait = 5000;
-  int waited = 0;
-  while (thread_pool.workers_stopped() == 0 && waited < kMaxWait) {
-    OS::Sleep(1);
-    waited += 1;
+    // Run a worker.
+    Monitor sync;
+    bool done = true;
+    thread_pool.Run<TestTask>(&sync, &done);
+    EXPECT_EQ(1U, thread_pool.workers_started());
+    EXPECT_EQ(0U, thread_pool.workers_stopped());
+    {
+      MonitorLocker ml(&sync);
+      done = false;
+      ml.Notify();
+      while (!done) {
+        ml.Wait();
+      }
+    }
+    EXPECT(done);
+
+    // Wait up to 5 seconds to see if a worker times out.
+    const int kMaxWait = 5000;
+    int waited = 0;
+    while (thread_pool.workers_stopped() == 0 && waited < kMaxWait) {
+      OS::Sleep(1);
+      waited += 1;
+    }
+    EXPECT_EQ(1U, thread_pool.workers_stopped());
   }
-  EXPECT_EQ(1U, thread_pool.workers_stopped());
+
   FLAG_worker_timeout_millis = saved_timeout;
 }
 
@@ -220,7 +240,7 @@ class SpawnTask : public ThreadPool::Task {
   int* done_;
 };
 
-VM_UNIT_TEST_CASE(ThreadPool_RecursiveSpawn) {
+THREAD_POOL_UNIT_TEST_CASE(ThreadPool_RecursiveSpawn) {
   ThreadPool thread_pool;
   Monitor sync;
   const int kTotalTasks = 500;

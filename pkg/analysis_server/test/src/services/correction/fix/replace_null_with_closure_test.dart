@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceNullWithClosureTest);
   });
@@ -23,64 +23,41 @@ class ReplaceNullWithClosureTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.null_closures;
 
-  test_null_closure_named_expression() async {
+  Future<void> test_named() async {
     await resolveTestUnit('''
-main() {
-  [1, 3, 5].firstWhere((e) => e.isOdd, orElse: /*LINT*/null);
+void f(List<int> l) {
+  l.firstWhere((e) => e.isEven, orElse: null);
 }
 ''');
     await assertHasFix('''
-main() {
-  [1, 3, 5].firstWhere((e) => e.isOdd, orElse: /*LINT*/() => null);
+void f(List<int> l) {
+  l.firstWhere((e) => e.isEven, orElse: () => null);
 }
 ''');
   }
 
-  test_null_closure_named_expression_with_args() async {
+  Future<void> test_named_withArgs() async {
     await resolveTestUnit('''
-void f({int closure(x, y)}) { }
-main() {
-  f(closure: /*LINT*/null);
+void f(String s) {
+  s.splitMapJoin('', onNonMatch: null);
 }
 ''');
     await assertHasFix('''
-void f({int closure(x, y)}) { }
-main() {
-  f(closure: /*LINT*/(x, y) => null);
+void f(String s) {
+  s.splitMapJoin('', onNonMatch: (String p1) => null);
 }
 ''');
   }
 
-  test_null_closure_named_expression_with_args_2() async {
+  Future<void> test_required() async {
     await resolveTestUnit('''
-void f({int closure(x, y, {z})}) { }
-main() {
-  f(closure: /*LINT*/null);
+void f(List<int> l) {
+  l.firstWhere(null);
 }
 ''');
     await assertHasFix('''
-void f({int closure(x, y, {z})}) { }
-main() {
-  f(closure: /*LINT*/(x, y, {z}) => null);
-}
-''');
-  }
-
-  /// Currently failing since the LINT annotation is tagging the ArgumentList
-  /// where the fix (and lint) expect a NullLiteral.
-  /// todo (pq): re-write FixProcessorLintTest to run the actual lints.
-  @failingTest
-  test_null_closure_literal() async {
-    await resolveTestUnit('''
-void f(dynamic x) { }
-main() {
-  f(null/*LINT*/);
-}
-''');
-    await assertHasFix('''
-void f(dynamic x) { }
-main() {
-  f(/*LINT*/() => null);
+void f(List<int> l) {
+  l.firstWhere(() => null);
 }
 ''');
   }

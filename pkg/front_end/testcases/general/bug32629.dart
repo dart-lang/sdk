@@ -12,6 +12,8 @@ typedef S Reducer<S>(S a, dynamic b);
 
 void foo<S>(Reducer<S> v) {}
 
-void main() {
-  foo<String>(new /*@error=InvalidAssignment*/ A());
+void test() {
+  foo<String>(new A());
 }
+
+main() {}

@@ -20,6 +20,8 @@ typedef NativeDoubleUnaryOp = Double Function(Double);
 typedef NativeFloatUnaryOp = Float Function(Float);
 typedef NativeDecenaryOp = IntPtr Function(IntPtr, IntPtr, IntPtr, IntPtr,
     IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr);
+typedef NativeDecenaryOp2 = Int16 Function(
+    Int8, Int16, Int8, Int16, Int8, Int16, Int8, Int16, Int8, Int16);
 typedef NativeDoubleDecenaryOp = Double Function(Double, Double, Double, Double,
     Double, Double, Double, Double, Double, Double);
 typedef NativeVigesimalOp = Double Function(
@@ -144,6 +146,15 @@ main() {
     // Function with many arguments: arguments get passed in registers and stack.
     DecenaryOp sumManyInts = ffiTestFunctions
         .lookupFunction<NativeDecenaryOp, DecenaryOp>("SumManyInts");
+    var result = sumManyInts(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+    print(result);
+    print(result.runtimeType);
+  }
+
+  {
+    // Function with many arguments: arguments get passed in registers and stack.
+    DecenaryOp sumManyInts = ffiTestFunctions
+        .lookupFunction<NativeDecenaryOp2, DecenaryOp>("SumManySmallInts");
     var result = sumManyInts(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     print(result);
     print(result.runtimeType);

@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
@@ -19,6 +19,27 @@ static method main() → dynamic {
   self::expect(null, lateLocalInit);
   self::expect(123, #lateLocal#get.call());
   self::expect(123, lateLocalInit);
+  function local<T extends core::Object? = dynamic>(T? value) → core::Null? {
+    T? lateGenericLocalInit;
+    function initLateGenericLocal(T? value) → T? {
+      return lateGenericLocalInit = value;
+    }
+    final T? lateGenericLocal;
+    core::bool #lateGenericLocal#isSet = false;
+    function #lateGenericLocal#get() → T? {
+      if(!#lateGenericLocal#isSet) {
+        #lateGenericLocal#isSet = true;
+        lateGenericLocal = initLateGenericLocal.call(value);
+      }
+      return lateGenericLocal;
+    }
+    self::expect(null, lateGenericLocalInit);
+    self::expect(value, #lateGenericLocal#get.call());
+    self::expect(value, lateGenericLocalInit);
+  }
+  local.call<core::int?>(null);
+  local.call<core::int?>(42);
+  local.call<core::int>(42);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))

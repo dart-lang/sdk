@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///variance_from_dill_lib.dart";
+
+typedef G<unrelated T extends core::Object* = dynamic> = (() →* dynamic) →* dynamic;
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+typedef F<unrelated T extends core::Object* = dynamic> = () →* dynamic;

@@ -43,12 +43,18 @@ prebuilt_dart_action("generate_summary_strong") {
   packages = "../../.packages"
   inputs = sdk_lib_files + analyzer_files
   output = "$root_gen_dir/strong.sum"
-  outputs = [
-    output,
-  ]
-  args = [
-    "build-strong",
-    rebase_path(output),
-    rebase_path("../../sdk"),
-  ]
+  outputs = [ output ]
+  if (use_nnbd) {
+    args = [
+      "build-non-nullable",
+      rebase_path(output),
+      rebase_path("../../sdk_nnbd"),
+    ]
+  } else {
+    args = [
+      "build-legacy",
+      rebase_path(output),
+      rebase_path("../../sdk"),
+    ]
+  }
 }

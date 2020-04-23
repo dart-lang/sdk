@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'lib.dart';
 import 'lib.dart' deferred as defer;
 
@@ -101,19 +103,19 @@ stringMapLiteral() => const {'foo': false};
 /*member: setLiteral:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:_UnmodifiableSet<dynamic>]*/
 setLiteral() => const {true, false};
 
-/*strong.member: instanceConstant:
+/*member: instanceConstant:
  static=[Class.field2=BoolConstant(false),SuperClass.field1=BoolConstant(true)],
  type=[const:Class,inst:JSBool]
 */
 instanceConstant() => const Class(true, false);
 
-/*member: typeLiteral:static=[createRuntimeType(1)],type=[inst:Type,inst:TypeImpl,lit:String]*/
+/*member: typeLiteral:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:String]*/
 typeLiteral() {
   const dynamic local = String;
   return local;
 }
 
-/*member: instantiation:static=[extractFunctionTypeObjectFromInternal(1),id,instantiate1(1),instantiatedGenericFunctionType(2)],type=[inst:Instantiation1<dynamic>]*/
+/*member: instantiation:static=[closureFunctionType(1),id,instantiate1(1),instantiatedGenericFunctionType(2)],type=[inst:Instantiation1<dynamic>]*/
 instantiation() {
   const int Function(int) local = id;
   return local;
@@ -131,103 +133,103 @@ staticTearOff() {
   return local;
 }
 
-/*strong.member: nullLiteralRef:type=[inst:JSNull]*/
+/*member: nullLiteralRef:type=[inst:JSNull]*/
 nullLiteralRef() => nullLiteralField;
 
-/*strong.member: boolLiteralRef:type=[inst:JSBool]*/
+/*member: boolLiteralRef:type=[inst:JSBool]*/
 boolLiteralRef() => boolLiteralField;
 
-/*strong.member: intLiteralRef:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: intLiteralRef:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
 intLiteralRef() => intLiteralField;
 
-/*strong.member: doubleLiteralRef:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: doubleLiteralRef:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
 doubleLiteralRef() => doubleLiteralField;
 
-/*strong.member: stringLiteralRef:type=[inst:JSString]*/
+/*member: stringLiteralRef:type=[inst:JSString]*/
 stringLiteralRef() => stringLiteralField;
 
-/*strong.member: symbolLiteralRef:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*member: symbolLiteralRef:static=[Symbol.(1)],type=[inst:Symbol]*/
 symbolLiteralRef() => symbolLiteralField;
 
-/*strong.member: listLiteralRef:type=[inst:JSBool,inst:List<bool>]*/
+/*member: listLiteralRef:type=[inst:JSBool,inst:List<bool>]*/
 listLiteralRef() => listLiteralField;
 
-/*strong.member: mapLiteralRef:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool]*/
+/*member: mapLiteralRef:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool]*/
 mapLiteralRef() => mapLiteralField;
 
-/*strong.member: stringMapLiteralRef:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:JSString]*/
+/*member: stringMapLiteralRef:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:JSString]*/
 stringMapLiteralRef() => stringMapLiteralField;
 
-/*strong.member: setLiteralRef:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:_UnmodifiableSet<dynamic>]*/
+/*member: setLiteralRef:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:_UnmodifiableSet<dynamic>]*/
 setLiteralRef() => setLiteralField;
 
-/*strong.member: instanceConstantRef:
+/*member: instanceConstantRef:
  static=[Class.field2=BoolConstant(false),SuperClass.field1=BoolConstant(true)],
  type=[const:Class,inst:JSBool]
 */
 instanceConstantRef() => instanceConstantField;
 
-/*strong.member: typeLiteralRef:static=[createRuntimeType(1)],type=[inst:Type,inst:TypeImpl,lit:String]*/
+/*member: typeLiteralRef:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:String]*/
 typeLiteralRef() => typeLiteralField;
 
-/*strong.member: instantiationRef:static=[extractFunctionTypeObjectFromInternal(1),id,instantiate1(1),instantiatedGenericFunctionType(2)],type=[inst:Instantiation1<dynamic>]*/
+/*member: instantiationRef:static=[closureFunctionType(1),id,instantiate1(1),instantiatedGenericFunctionType(2)],type=[inst:Instantiation1<dynamic>]*/
 instantiationRef() => instantiationField;
 
-/*strong.member: topLevelTearOffRef:static=[topLevelMethod]*/
+/*member: topLevelTearOffRef:static=[topLevelMethod]*/
 topLevelTearOffRef() => topLevelTearOffField;
 
-/*strong.member: staticTearOffRef:static=[Class.staticMethodField]*/
+/*member: staticTearOffRef:static=[Class.staticMethodField]*/
 staticTearOffRef() => staticTearOffField;
 
-/*strong.member: nullLiteralDeferred:type=[inst:JSNull]*/
+/*member: nullLiteralDeferred:type=[inst:JSNull]*/
 nullLiteralDeferred() => defer.nullLiteralField;
 
-/*strong.member: boolLiteralDeferred:type=[inst:JSBool]*/
+/*member: boolLiteralDeferred:type=[inst:JSBool]*/
 boolLiteralDeferred() => defer.boolLiteralField;
 
-/*strong.member: intLiteralDeferred:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: intLiteralDeferred:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
 intLiteralDeferred() => defer.intLiteralField;
 
-/*strong.member: doubleLiteralDeferred:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: doubleLiteralDeferred:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
 doubleLiteralDeferred() => defer.doubleLiteralField;
 
-/*strong.member: stringLiteralDeferred:type=[inst:JSString]*/
+/*member: stringLiteralDeferred:type=[inst:JSString]*/
 stringLiteralDeferred() => defer.stringLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
-/*strong.member: symbolLiteralDeferred:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*member: symbolLiteralDeferred:static=[Symbol.(1)],type=[inst:Symbol]*/
 symbolLiteralDeferred() => defer.symbolLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
-/*strong.member: listLiteralDeferred:type=[inst:JSBool,inst:List<bool>]*/
+/*member: listLiteralDeferred:type=[inst:JSBool,inst:List<bool>]*/
 listLiteralDeferred() => defer.listLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
-/*strong.member: mapLiteralDeferred:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool]*/
+/*member: mapLiteralDeferred:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool]*/
 mapLiteralDeferred() => defer.mapLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
-/*strong.member: stringMapLiteralDeferred:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:JSString]*/
+/*member: stringMapLiteralDeferred:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:JSString]*/
 stringMapLiteralDeferred() => defer.stringMapLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
-/*strong.member: setLiteralDeferred:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:_UnmodifiableSet<dynamic>]*/
+/*member: setLiteralDeferred:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:_UnmodifiableSet<dynamic>]*/
 setLiteralDeferred() => defer.setLiteralField;
 
-/*strong.member: instanceConstantDeferred:
+/*member: instanceConstantDeferred:
  static=[Class.field2=BoolConstant(false),SuperClass.field1=BoolConstant(true)],
  type=[const:Class{defer},inst:JSBool]
 */
 instanceConstantDeferred() => defer.instanceConstantField;
 
-/*strong.member: typeLiteralDeferred:static=[createRuntimeType(1)],type=[inst:Type,inst:TypeImpl,lit:String{defer}]*/
+/*member: typeLiteralDeferred:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:String{defer}]*/
 typeLiteralDeferred() => defer.typeLiteralField;
 
-/*strong.member: instantiationDeferred:static=[extractFunctionTypeObjectFromInternal(1),id{defer},instantiate1(1),instantiatedGenericFunctionType(2)],type=[inst:Instantiation1<dynamic>]*/
+/*member: instantiationDeferred:static=[closureFunctionType(1),id{defer},instantiate1(1),instantiatedGenericFunctionType(2)],type=[inst:Instantiation1<dynamic>]*/
 instantiationDeferred() => defer.instantiationField;
 
-/*strong.member: topLevelTearOffDeferred:static=[topLevelMethod{defer}]*/
+/*member: topLevelTearOffDeferred:static=[topLevelMethod{defer}]*/
 topLevelTearOffDeferred() => defer.topLevelTearOffField;
 
-/*strong.member: staticTearOffDeferred:static=[Class.staticMethodField{defer}]*/
+/*member: staticTearOffDeferred:static=[Class.staticMethodField{defer}]*/
 staticTearOffDeferred() => defer.staticTearOffField;

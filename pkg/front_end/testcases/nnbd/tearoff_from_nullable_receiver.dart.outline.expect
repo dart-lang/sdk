@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  method call() → core::int
+    ;
+}
+static method functionContext(() → core::int f) → dynamic
+  ;
+static method nullableFunctionContext(() →? core::int f) → dynamic
+  ;
+static method foo<T extends self::C? = self::C?>(self::C? c, self::foo::T% t, self::foo::T? nt) → dynamic
+  ;
+static method bar<T extends self::C = self::C>(self::C c, self::bar::T t) → dynamic
+  ;
+static method main() → dynamic
+  ;

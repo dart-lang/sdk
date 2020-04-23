@@ -17,8 +17,9 @@ $!MEMBERS
     }
   }
 
-  ScriptProcessorNode createScriptProcessor([int bufferSize,
-      int numberOfInputChannels, int numberOfOutputChannels]) {
+  ScriptProcessorNode createScriptProcessor([int$NULLABLE bufferSize,
+      int$NULLABLE numberOfInputChannels,
+      int$NULLABLE numberOfOutputChannels]) {
     var function = JS(
         '=Object',
         '#.createScriptProcessor || '
@@ -41,13 +42,13 @@ $!MEMBERS
   }
 
   @JSName('decodeAudioData')
-  Future _decodeAudioData(ByteBuffer audioData,
-      [DecodeSuccessCallback successCallback,
-      DecodeErrorCallback errorCallback]) native;
+  Future$#NULLSAFECAST(<AudioBuffer>) _decodeAudioData(ByteBuffer audioData,
+      [DecodeSuccessCallback$NULLABLE successCallback,
+      DecodeErrorCallback$NULLABLE errorCallback]) native;
 
   Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
-      [DecodeSuccessCallback successCallback,
-      DecodeErrorCallback errorCallback]) {
+      [DecodeSuccessCallback$NULLABLE successCallback,
+      DecodeErrorCallback$NULLABLE errorCallback]) {
     if (successCallback != null &&  errorCallback != null) {
       return _decodeAudioData(audioData, successCallback, errorCallback);
     }

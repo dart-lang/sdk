@@ -18,7 +18,7 @@ import "dart:typed_data" show Uint8List, Uint16List;
 // JSON conversion.
 
 @patch
-_parseJson(String source, reviver(key, value)) {
+dynamic _parseJson(String source, reviver(key, value)) {
   _BuildJsonListener listener;
   if (reviver == null) {
     listener = new _BuildJsonListener();
@@ -99,7 +99,7 @@ abstract class _JsonListener {
    *
    * Must only be called when the entire input has been parsed.
    */
-  get result;
+  dynamic get result;
 }
 
 /**
@@ -118,11 +118,11 @@ class _BuildJsonListener extends _JsonListener {
    */
   List stack = [];
   /** The current [Map] or [List] being built. */
-  var currentContainer;
+  dynamic currentContainer;
   /** The most recently read property key. */
   String key;
   /** The most recently read value. */
-  var value;
+  dynamic value;
 
   /** Pushes the currently active container (and key, if a [Map]). */
   void pushContainer() {
@@ -188,7 +188,7 @@ class _BuildJsonListener extends _JsonListener {
   }
 
   /** Read out the final result of parsing a JSON string. */
-  get result {
+  dynamic get result {
     assert(currentContainer == null);
     return value;
   }
@@ -209,7 +209,7 @@ class _ReviverJsonListener extends _BuildJsonListener {
     super.propertyValue();
   }
 
-  get result {
+  dynamic get result {
     return reviver(null, value);
   }
 }
@@ -456,7 +456,7 @@ abstract class _ChunkedJsonParser<T> {
    *
    * May contain a string buffer while parsing strings.
    */
-  var buffer = null;
+  dynamic buffer = null;
 
   _ChunkedJsonParser(this.listener);
 
@@ -519,7 +519,7 @@ abstract class _ChunkedJsonParser<T> {
    * The parser is closed by calling [close] or calling [addSourceChunk] with
    * `true` as second (`isLast`) argument.
    */
-  Object get result {
+  dynamic get result {
     return listener.result;
   }
 

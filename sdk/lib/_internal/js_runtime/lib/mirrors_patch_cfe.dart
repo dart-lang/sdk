@@ -15,7 +15,7 @@ const String _message = 'dart:mirrors is no longer supported for web apps';
 MirrorSystem currentMirrorSystem() => throw new UnsupportedError(_message);
 
 @patch
-InstanceMirror reflect(Object reflectee) =>
+InstanceMirror reflect(dynamic reflectee) =>
     throw new UnsupportedError(_message);
 
 @patch
@@ -24,3 +24,23 @@ ClassMirror reflectClass(Type key) => throw new UnsupportedError(_message);
 @patch
 TypeMirror reflectType(Type key, [List<Type> typeArguments]) =>
     throw new UnsupportedError(_message);
+
+@patch
+abstract class MirrorSystem {
+  Map<Uri, LibraryMirror> get libraries;
+  IsolateMirror get isolate;
+  TypeMirror get dynamicType;
+  TypeMirror get voidType;
+  TypeMirror get neverType;
+
+  @patch
+  LibraryMirror findLibrary(Symbol libraryName) =>
+      throw new UnsupportedError(_message);
+
+  @patch
+  static String getName(Symbol symbol) => throw new UnsupportedError(_message);
+
+  @patch
+  static Symbol getSymbol(String name, [LibraryMirror library]) =>
+      throw new UnsupportedError(_message);
+}

@@ -159,7 +159,6 @@ class BytecodeFlowGraphBuilder {
   Value* Pop();
   intptr_t GetStackDepth() const;
   bool IsStackEmpty() const;
-  ArgumentArray GetArguments(int count);
   InferredTypeMetadata GetInferredType(intptr_t pc);
   void PropagateStackState(intptr_t target_pc);
   void DropUnusedValuesFromStack();
@@ -203,11 +202,11 @@ class BytecodeFlowGraphBuilder {
   Thread* thread() const { return flow_graph_builder_->thread_; }
   Isolate* isolate() const { return thread()->isolate(); }
 
-  ParsedFunction* parsed_function() {
+  ParsedFunction* parsed_function() const {
     ASSERT(!is_generating_interpreter());
     return parsed_function_;
   }
-  const Function& function() { return parsed_function()->function(); }
+  const Function& function() const { return parsed_function()->function(); }
 
   BaseFlowGraphBuilder* flow_graph_builder_;
   Zone* zone_;

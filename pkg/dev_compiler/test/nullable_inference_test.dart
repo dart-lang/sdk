@@ -498,7 +498,7 @@ Future expectNotNull(String code, String expectedNotNull) async {
       // against the underlying constant value instead.
       .map((e) {
         if (e is ConstantExpression) {
-          Constant c = e.constant;
+          var c = e.constant;
           if (c is DoubleConstant &&
               c.value.isFinite &&
               c.value.truncateToDouble() == c.value) {
@@ -507,7 +507,7 @@ Future expectNotNull(String code, String expectedNotNull) async {
           }
           return c.toString();
         }
-        return e.toString();
+        return e.leakingDebugToString();
       })
       // Filter out our own NotNull annotations.  The library prefix changes
       // per test, so just filter on the suffix.
@@ -534,10 +534,11 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   _TestRecursiveVisitor(this.librariesFromDill);
 
   @override
-  visitComponent(Component node) {
-    var hierarchy = ClassHierarchy(node);
+  void visitComponent(Component node) {
+    var coreTypes = CoreTypes(node);
+    var hierarchy = ClassHierarchy(node, coreTypes);
     var jsTypeRep = JSTypeRep(
-      fe.TypeSchemaEnvironment(CoreTypes(node), hierarchy),
+      fe.TypeSchemaEnvironment(coreTypes, hierarchy),
       hierarchy,
     );
     _typeEnvironment = jsTypeRep.types;
@@ -552,7 +553,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   }
 
   @override
-  visitLibrary(Library node) {
+  void visitLibrary(Library node) {
     _staticTypeContext.enterLibrary(node);
     if (librariesFromDill.contains(node) ||
         node.importUri.scheme == 'package' &&
@@ -564,28 +565,28 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   }
 
   @override
-  visitField(Field node) {
+  void visitField(Field node) {
     _staticTypeContext.enterMember(node);
     super.visitField(node);
     _staticTypeContext.leaveMember(node);
   }
 
   @override
-  visitConstructor(Constructor node) {
+  void visitConstructor(Constructor node) {
     _staticTypeContext.enterMember(node);
     super.visitConstructor(node);
     _staticTypeContext.leaveMember(node);
   }
 
   @override
-  visitProcedure(Procedure node) {
+  void visitProcedure(Procedure node) {
     _staticTypeContext.enterMember(node);
     super.visitProcedure(node);
     _staticTypeContext.leaveMember(node);
   }
 
   @override
-  visitFunctionNode(FunctionNode node) {
+  void visitFunctionNode(FunctionNode node) {
     _functionNesting++;
     if (_functionNesting == 1) {
       inference.enterFunction(node);
@@ -602,7 +603,7 @@ class NotNullCollector extends _TestRecursiveVisitor {
   NotNullCollector(Set<Library> librariesFromDill) : super(librariesFromDill);
 
   @override
-  defaultExpression(Expression node) {
+  void defaultExpression(Expression node) {
     if (!inference.isNullable(node)) {
       notNullExpressions.add(node);
     }
@@ -614,7 +615,7 @@ class ExpectAllNotNull extends _TestRecursiveVisitor {
   ExpectAllNotNull(Set<Library> librariesFromDill) : super(librariesFromDill);
 
   @override
-  defaultExpression(Expression node) {
+  void defaultExpression(Expression node) {
     expect(inference.isNullable(node), false,
         reason: 'expression `$node` should be inferred as not-null');
     super.defaultExpression(node);
@@ -668,10 +669,10 @@ const nullCheck = const _NullCheck();
       experiments: const {},
       environmentDefines: const {});
   if (!identical(oldCompilerState, _compilerState)) inference = null;
-  fe.DdcResult result =
+  var result =
       await fe.compile(_compilerState, [mainUri], diagnosticMessageHandler);
   expect(succeeded, true);
 
-  Set<Library> librariesFromDill = result.computeLibrariesFromDill();
+  var librariesFromDill = result.computeLibrariesFromDill();
   return CompileResult(result.component, librariesFromDill);
 }

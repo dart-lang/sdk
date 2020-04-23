@@ -6,10 +6,12 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix/test_all.dart' as fix;
 import 'nnbd_migration/test_all.dart' as nnbd_migration;
+import 'preview/test_all.dart' as preview;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     fix.main();
     nnbd_migration.main();
+    preview.main();
   }, name: 'edit');
 }

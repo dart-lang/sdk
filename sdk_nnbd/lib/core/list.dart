@@ -16,7 +16,7 @@ part of dart.core;
  *
  * * Growable list. Full implementation of the API defined in this class.
  *
- * The default growable list, as returned by `new List()` or `[]`, keeps
+ * The default growable list, as created by `[]`, keeps
  * an internal buffer, and grows that buffer when necessary. This guarantees
  * that a sequence of [add] operations will each execute in amortized constant
  * time. Setting the length directly may take time proportional to the new
@@ -84,6 +84,13 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *
    * If the element type is not nullable, [length] must not be greater than
    * zero.
+   *
+   * This constructor cannot be used in null-safe code.
+   * Use [List.filled] to create a non-empty list.
+   * This requires a fill value to initialize the list elements with.
+   * To create an empty list, use `[]` for a growable list or
+   * `List.empty` for a fixed length list (or where growability is determined
+   * at run-time).
    */
   external factory List([int? length]);
 
@@ -124,11 +131,12 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /**
    * Creates a new empty list.
    *
-   * If [growable] is `true`, which is the default,
-   * the list is growable and equivalent to `<E>[]`.
-   * If [growable] is `false`, the list is a fixed-length list of length zero.
+   * If [growable] is `false`, which is the default,
+   * the list is a fixed-length list of length zero.
+   * If [growable] is `true`, the list is growable and equivalent to `<E>[]`.
    */
-  external factory List.empty({bool growable = true});
+  @Since("2.8")
+  external factory List.empty({bool growable = false});
 
   /**
    * Creates a list containing all [elements].
@@ -157,8 +165,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * This constructor creates a growable list when [growable] is true;
    * otherwise, it returns a fixed-length list.
    */
-  factory List.of(Iterable<E> elements, {bool growable = true}) =>
-      List<E>.from(elements, growable: growable);
+  external factory List.of(Iterable<E> elements, {bool growable = true});
 
   /**
    * Generates a list of values.
@@ -166,23 +173,15 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Creates a list with [length] positions and fills it with values created by
    * calling [generator] for each index in the range `0` .. `length - 1`
    * in increasing order.
+   * ```dart
+   * List<int>.generate(3, (int index) => index * index); // [0, 1, 4]
+   * ```
+   * The created list is fixed-length if [growable] is set to false.
    *
-   *     new List<int>.generate(3, (int index) => index * index); // [0, 1, 4]
-   *
-   * The created list is fixed-length unless [growable] is true.
+   * The [length] must be non-negative.
    */
-  factory List.generate(int length, E generator(int index),
-      {bool growable = true}) {
-    if (length <= 0) {
-      if (growable) return <E>[];
-      return List<E>.empty();
-    }
-    List<E> result = List<E>.filled(length, generator(0), growable: growable);
-    for (int i = 1; i < length; i++) {
-      result[i] = generator(i);
-    }
-    return result;
-  }
+  external factory List.generate(int length, E generator(int index),
+      {bool growable = true});
 
   /**
    * Creates an unmodifiable list containing all [elements].

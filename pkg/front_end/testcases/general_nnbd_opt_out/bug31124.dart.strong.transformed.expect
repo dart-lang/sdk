@@ -1,0 +1,20 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/bug31124.dart:6:22: Error: Expected a function body or '=>'.
+// Try adding {}.
+// var a = () => 'b';a();
+//                      ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/bug31124.dart:6:19: Error: 'a' is already declared in this scope.
+// var a = () => 'b';a();
+//                   ^
+// pkg/front_end/testcases/general_nnbd_opt_out/bug31124.dart:6:5: Context: Previous declaration of 'a'.
+// var a = () => 'b';a();
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field () →* core::String* a;

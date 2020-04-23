@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -14,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../analysis_abstract.dart';
 import '../mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OrganizeDirectivesTest);
   });
@@ -28,16 +27,16 @@ class OrganizeDirectivesTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    handler = new EditDomainHandler(server);
+    handler = EditDomainHandler(server);
   }
 
   @failingTest
   Future test_BAD_doesNotExist() async {
     // The analysis driver fails to return an error
-    Request request =
-        new EditOrganizeDirectivesParams(convertPath('/no/such/file.dart'))
+    var request =
+        EditOrganizeDirectivesParams(convertPath('/no/such/file.dart'))
             .toRequest('0');
-    Response response = await waitResponse(request);
+    var response = await waitResponse(request);
     expect(
         response, isResponseFailure('0', RequestErrorCode.FILE_NOT_ANALYZED));
   }
@@ -48,23 +47,23 @@ import 'dart:async'
 
 main() {}
 ''');
-    Request request = new EditOrganizeDirectivesParams(testFile).toRequest('0');
-    Response response = await waitResponse(request);
+    var request = EditOrganizeDirectivesParams(testFile).toRequest('0');
+    var response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.ORGANIZE_DIRECTIVES_ERROR));
   }
 
   Future test_BAD_notDartFile() async {
-    Request request = new EditOrganizeDirectivesParams(
+    var request = EditOrganizeDirectivesParams(
       convertPath('/not-a-Dart-file.txt'),
     ).toRequest('0');
-    Response response = await waitResponse(request);
+    var response = await waitResponse(request);
     expect(
         response, isResponseFailure('0', RequestErrorCode.FILE_NOT_ANALYZED));
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
-    var request = new EditOrganizeDirectivesParams('test.dart').toRequest('0');
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
+    var request = EditOrganizeDirectivesParams('test.dart').toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -72,9 +71,9 @@ main() {}
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request =
-        new EditOrganizeDirectivesParams(convertPath('/foo/../bar/test.dart'))
+        EditOrganizeDirectivesParams(convertPath('/foo/../bar/test.dart'))
             .toRequest('0');
     var response = await waitResponse(request);
     expect(
@@ -150,14 +149,14 @@ main() {
 
   Future _assertOrganized(String expectedCode) async {
     await _requestOrganize();
-    String resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
+    var resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
     expect(resultCode, expectedCode);
   }
 
   Future _requestOrganize() async {
-    Request request = new EditOrganizeDirectivesParams(testFile).toRequest('0');
-    Response response = await waitResponse(request);
-    var result = new EditOrganizeDirectivesResult.fromResponse(response);
+    var request = EditOrganizeDirectivesParams(testFile).toRequest('0');
+    var response = await waitResponse(request);
+    var result = EditOrganizeDirectivesResult.fromResponse(response);
     fileEdit = result.edit;
   }
 }

@@ -6,9 +6,9 @@ class Class {
   late final int field;
 
   Class.constructor1();
-  Class.constructor2(int this.field);
+  Class.constructor2(this.field);
   Class.constructor3(int value) : this.field = value + 1;
-  Class.constructor4([int this.field = 42]);
+  Class.constructor4([this.field = 42]);
 }
 
 class Subclass extends Class {
@@ -89,7 +89,7 @@ throws(f(), String message) {
   dynamic value;
   try {
     value = f();
-  } catch (e) {
+  } on LateInitializationError catch (e) {
     print(e);
     return;
   }

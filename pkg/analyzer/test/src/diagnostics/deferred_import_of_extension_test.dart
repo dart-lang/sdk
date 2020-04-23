@@ -74,9 +74,9 @@ void f() {
 
   test_invalidUri() {
     assertErrorsInCode('''
-import '' deferred as foo;
+import 'ht:' deferred as foo;
 ''', [
-      error(CompileTimeErrorCode.INVALID_URI, 7, 2),
+      error(CompileTimeErrorCode.INVALID_URI, 7, 5),
     ]);
   }
 }

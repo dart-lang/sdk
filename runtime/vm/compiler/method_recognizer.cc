@@ -61,6 +61,14 @@ intptr_t MethodRecognizer::ResultCidFromPragma(
           }
         }
       }
+    } else if (option.IsArray()) {
+      const Array& array = Array::Cast(option);
+      if (array.Length() > 0) {
+        const Object& type = Object::Handle(Array::Cast(option).At(0));
+        if (type.IsType()) {
+          return Type::Cast(type).type_class_id();
+        }
+      }
     }
   }
 
@@ -202,6 +210,16 @@ void MethodRecognizer::InitializeState() {
                          recognized_methods[i].enum_name,
                          recognized_methods[i].fp);
       func.set_recognized_kind(kind);
+      switch (kind) {
+#define RECOGNIZE_METHOD(class_name, function_name, enum_name, fp)             \
+  case MethodRecognizer::k##enum_name:                                         \
+    func.reset_unboxed_parameters_and_return();                                \
+    break;
+        ALL_INTRINSICS_LIST(RECOGNIZE_METHOD)
+#undef RECOGNIZE_METHOD
+        default:
+          break;
+      }
     } else if (!FLAG_precompiled_mode) {
       FATAL2("Missing %s::%s\n", recognized_methods[i].class_name,
              recognized_methods[i].function_name);

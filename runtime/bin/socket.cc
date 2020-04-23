@@ -6,6 +6,7 @@
 
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
+#include "bin/file.h"
 #include "bin/io_buffer.h"
 #include "bin/isolate_data.h"
 #include "bin/lockers.h"
@@ -178,7 +179,7 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
 
   Socket* socketfd = new Socket(fd);
   OSSocket* os_socket =
-      new OSSocket(addr, allocated_port, v6_only, shared, socketfd);
+      new OSSocket(addr, allocated_port, v6_only, shared, socketfd, NULL);
   os_socket->ref_count = 1;
   os_socket->next = first_os_socket;
 
@@ -186,6 +187,73 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
   InsertByFd(socketfd, os_socket);
 
   // We set as a side-effect the port on the dart socket_object.
+  Socket::ReuseSocketIdNativeField(socket_object, socketfd,
+                                   Socket::kFinalizerListening);
+
+  return Dart_True();
+}
+
+Dart_Handle ListeningSocketRegistry::CreateUnixDomainBindListen(
+    Dart_Handle socket_object,
+    Namespace* namespc,
+    const char* path,
+    intptr_t backlog,
+    bool shared) {
+  MutexLocker ml(&mutex_);
+
+  if (unix_domain_sockets_ != NULL && File::Exists(namespc, path)) {
+    // If there is a socket listening on this file. Ensure
+    // that it was created with `shared` mode and current `shared`
+    // is also true.
+    OSSocket* os_socket = unix_domain_sockets_;
+    OSSocket* os_socket_same_addr =
+        FindOSSocketWithPath(os_socket, namespc, path);
+    if (os_socket_same_addr != NULL) {
+      if (!os_socket_same_addr->shared || !shared) {
+        OSError os_error(-1,
+                         "The shared flag to bind() needs to be `true` if "
+                         "binding multiple times on the same path.",
+                         OSError::kUnknown);
+        return DartUtils::NewDartOSError(&os_error);
+      }
+
+      // This socket creation is the exact same as the one which originally
+      // created the socket. Feed the same fd and store it into the native field
+      // of dart socket_object. Sockets here will share same fd but contain a
+      // different port() through EventHandler_SendData.
+      Socket* socketfd = new Socket(os_socket->fd);
+      os_socket->ref_count++;
+      // We set as a side-effect the file descriptor on the dart
+      // socket_object.
+      Socket::ReuseSocketIdNativeField(socket_object, socketfd,
+                                       Socket::kFinalizerListening);
+      InsertByFd(socketfd, os_socket);
+      return Dart_True();
+    }
+  }
+
+  RawAddr addr;
+  Dart_Handle result =
+      SocketAddress::GetUnixDomainSockAddr(path, namespc, &addr);
+  if (!Dart_IsNull(result)) {
+    return result;
+  }
+
+  // There is no socket listening on that path, so we create new one.
+  intptr_t fd = ServerSocket::CreateUnixDomainBindListen(addr, backlog);
+
+  if (fd < 0) {
+    return DartUtils::NewDartOSError();
+  }
+
+  Socket* socketfd = new Socket(fd);
+  OSSocket* os_socket =
+      new OSSocket(addr, -1, false, shared, socketfd, namespc);
+  os_socket->ref_count = 1;
+  os_socket->next = unix_domain_sockets_;
+  unix_domain_sockets_ = os_socket;
+  InsertByFd(socketfd, os_socket);
+
   Socket::ReuseSocketIdNativeField(socket_object, socketfd,
                                    Socket::kFinalizerListening);
 
@@ -202,7 +270,12 @@ bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket,
   if (os_socket->ref_count > 0) {
     return false;
   }
-
+  // Unlink the socket file, if os_socket contains unix domain sockets.
+  if (os_socket->address.addr.sa_family == AF_UNIX) {
+    unlink(os_socket->address.un.sun_path);
+    delete os_socket;
+    return true;
+  }
   OSSocket* prev = NULL;
   OSSocket* current = LookupByPort(os_socket->port);
   while (current != os_socket) {
@@ -298,6 +371,81 @@ void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
   }
 }
 
+void FUNCTION_NAME(Socket_CreateUnixDomainBindConnect)(
+    Dart_NativeArguments args) {
+#if defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
+  OSError os_error(
+      -1, "Unix domain sockets are not available on this operating system.",
+      OSError::kUnknown);
+  Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+#else
+  RawAddr addr;
+  Dart_Handle address = Dart_GetNativeArgument(args, 1);
+  if (Dart_IsNull(address)) {
+    Dart_SetReturnValue(args,
+        DartUtils::NewDartArgumentError("expect address to be of type String"));
+  }
+  Dart_Handle result = SocketAddress::GetUnixDomainSockAddr(
+      DartUtils::GetStringValue(address), Namespace::GetNamespace(args, 3),
+      &addr);
+  if (!Dart_IsNull(result)) {
+    return Dart_SetReturnValue(args, result);
+  }
+
+  RawAddr sourceAddr;
+  address = Dart_GetNativeArgument(args, 2);
+  if (Dart_IsNull(address)) {
+    Dart_SetReturnValue(args,
+        DartUtils::NewDartArgumentError("expect address to be of type String"));
+  }
+  result = SocketAddress::GetUnixDomainSockAddr(
+      DartUtils::GetStringValue(address), Namespace::GetNamespace(args, 3),
+      &sourceAddr);
+  if (!Dart_IsNull(result)) {
+    return Dart_SetReturnValue(args, result);
+  }
+
+  intptr_t socket = Socket::CreateUnixDomainBindConnect(addr, sourceAddr);
+  if (socket >= 0) {
+    Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket,
+                                   Socket::kFinalizerNormal);
+    Dart_SetReturnValue(args, Dart_True());
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
+#endif  // defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
+}
+
+void FUNCTION_NAME(Socket_CreateUnixDomainConnect)(Dart_NativeArguments args) {
+#if defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
+  OSError os_error(
+      -1, "Unix domain sockets are only available on linux, android and macos.",
+      OSError::kUnknown);
+  Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+#else
+  RawAddr addr;
+  Dart_Handle address = Dart_GetNativeArgument(args, 1);
+  if (Dart_IsNull(address)) {
+    Dart_SetReturnValue(args,
+        DartUtils::NewDartArgumentError("expect address to be of type String"));
+  }
+  Dart_Handle result = SocketAddress::GetUnixDomainSockAddr(
+      DartUtils::GetStringValue(address), Namespace::GetNamespace(args, 2),
+      &addr);
+  if (!Dart_IsNull(result)) {
+    return Dart_SetReturnValue(args, result);
+  }
+  intptr_t socket = Socket::CreateUnixDomainConnect(addr);
+  if (socket >= 0) {
+    Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket,
+                                   Socket::kFinalizerNormal);
+    Dart_SetReturnValue(args, Dart_True());
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
+#endif  // defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
+}
+
 void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
   RawAddr addr;
   SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
@@ -344,8 +492,7 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
     uint8_t* buffer = NULL;
     Dart_Handle result = IOBuffer::Allocate(length, &buffer);
     if (Dart_IsNull(result)) {
-      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-      return;
+      Dart_ThrowException(DartUtils::NewDartOSError());
     }
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
@@ -359,8 +506,7 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
       uint8_t* new_buffer = NULL;
       Dart_Handle new_result = IOBuffer::Allocate(bytes_read, &new_buffer);
       if (Dart_IsNull(new_result)) {
-        Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-        return;
+        Dart_ThrowException(DartUtils::NewDartOSError());
       }
       if (Dart_IsError(new_result)) {
         Dart_PropagateError(new_result);
@@ -374,11 +520,11 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
       Dart_SetReturnValue(args, Dart_Null());
     } else {
       ASSERT(bytes_read == -1);
-      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+      Dart_ThrowException(DartUtils::NewDartOSError());
     }
   } else {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_ThrowException(DartUtils::NewDartOSError(&os_error));
   }
 }
 
@@ -407,17 +553,15 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   }
   if (bytes_read < 0) {
     ASSERT(bytes_read == -1);
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-    return;
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 
   // Datagram data read. Copy into buffer of the exact size,
-  ASSERT(bytes_read > 0);
+  ASSERT(bytes_read >= 0);
   uint8_t* data_buffer = NULL;
   Dart_Handle data = IOBuffer::Allocate(bytes_read, &data_buffer);
   if (Dart_IsNull(data)) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-    return;
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
   if (Dart_IsError(data)) {
     Dart_PropagateError(data);
@@ -425,20 +569,31 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   ASSERT(data_buffer != NULL);
   memmove(data_buffer, recv_buffer, bytes_read);
 
+  // Memory Sanitizer complains addr not being initialized, which is done
+  // through RecvFrom().
+  // Issue: https://github.com/google/sanitizers/issues/1201
+  MSAN_UNPOISON(&addr, sizeof(RawAddr));
+
   // Get the port and clear it in the sockaddr structure.
   int port = SocketAddress::GetAddrPort(addr);
+  // TODO(21403): Add checks for AF_UNIX, if unix domain sockets
+  // are used in SOCK_DGRAM.
+  enum internet_type { IPv4, IPv6 };
+  internet_type type;
   if (addr.addr.sa_family == AF_INET) {
     addr.in.sin_port = 0;
+    type = IPv4;
   } else {
     ASSERT(addr.addr.sa_family == AF_INET6);
     addr.in6.sin6_port = 0;
+    type = IPv6;
   }
   // Format the address to a string using the numeric format.
   char numeric_address[INET6_ADDRSTRLEN];
   SocketBase::FormatNumericAddress(addr, numeric_address, INET6_ADDRSTRLEN);
 
   // Create a Datagram object with the data and sender address and port.
-  const int kNumArgs = 4;
+  const int kNumArgs = 5;
   Dart_Handle dart_args[kNumArgs];
   dart_args[0] = data;
   dart_args[1] = Dart_NewStringFromCString(numeric_address);
@@ -447,6 +602,7 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   }
   dart_args[2] = SocketAddress::ToTypedData(addr);
   dart_args[3] = Dart_NewInteger(port);
+  dart_args[4] = Dart_NewInteger(type);
   if (Dart_IsError(dart_args[3])) {
     Dart_PropagateError(dart_args[3]);
   }
@@ -497,9 +653,13 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
     }
   } else {
     // Extract OSError before we release data, as it may override the error.
-    OSError os_error;
-    Dart_TypedDataReleaseData(buffer_obj);
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_Handle error;
+    {
+      OSError os_error;
+      Dart_TypedDataReleaseData(buffer_obj);
+      error = DartUtils::NewDartOSError(&os_error);
+    }
+    Dart_ThrowException(error);
   }
 }
 
@@ -533,16 +693,19 @@ void FUNCTION_NAME(Socket_SendTo)(Dart_NativeArguments args) {
     Dart_SetIntegerReturnValue(args, bytes_written);
   } else {
     // Extract OSError before we release data, as it may override the error.
-    OSError os_error;
-    Dart_TypedDataReleaseData(buffer_obj);
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_Handle error;
+    {
+      OSError os_error;
+      Dart_TypedDataReleaseData(buffer_obj);
+      error = DartUtils::NewDartOSError(&os_error);
+    }
+    Dart_ThrowException(error);
   }
 }
 
 void FUNCTION_NAME(Socket_GetPort)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
-  OSError os_error;
   intptr_t port = SocketBase::GetPort(socket->fd());
   if (port > 0) {
     Dart_SetIntegerReturnValue(args, port);
@@ -554,25 +717,28 @@ void FUNCTION_NAME(Socket_GetPort)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
-  OSError os_error;
   intptr_t port = 0;
   SocketAddress* addr = SocketBase::GetRemotePeer(socket->fd(), &port);
   if (addr != NULL) {
     Dart_Handle list = Dart_NewList(2);
-
-    Dart_Handle entry = Dart_NewList(3);
-    Dart_ListSetAt(entry, 0, Dart_NewInteger(addr->GetType()));
+    int type = addr->GetType();
+    Dart_Handle entry;
+    if (type == SocketAddress::TYPE_UNIX) {
+      entry = Dart_NewList(2);
+    } else {
+      entry = Dart_NewList(3);
+      RawAddr raw = addr->addr();
+      Dart_ListSetAt(entry, 2, SocketAddress::ToTypedData(raw));
+    }
+    Dart_ListSetAt(entry, 0, Dart_NewInteger(type));
     Dart_ListSetAt(entry, 1, Dart_NewStringFromCString(addr->as_string()));
-
-    RawAddr raw = addr->addr();
-    Dart_ListSetAt(entry, 2, SocketAddress::ToTypedData(raw));
 
     Dart_ListSetAt(list, 0, entry);
     Dart_ListSetAt(list, 1, Dart_NewInteger(port));
     Dart_SetReturnValue(args, list);
     delete addr;
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 
@@ -649,6 +815,32 @@ void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, result);
 }
 
+void FUNCTION_NAME(ServerSocket_CreateUnixDomainBindListen)(
+    Dart_NativeArguments args) {
+#if defined(HOST_OS_WINDOWS)
+  OSError os_error(
+      -1, "Unix domain sockets are only available on linux, android and macos.",
+      OSError::kUnknown);
+  Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+#else
+  Dart_Handle address = Dart_GetNativeArgument(args, 1);
+  if (Dart_IsNull(address)) {
+    Dart_SetReturnValue(args,
+        DartUtils::NewDartArgumentError("expect address to be of type String"));
+  }
+  const char* path = DartUtils::GetStringValue(address);
+  int64_t backlog = DartUtils::GetInt64ValueCheckRange(
+      Dart_GetNativeArgument(args, 2), 0, 65535);
+  bool shared = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
+  Namespace* namespc = Namespace::GetNamespace(args, 4);
+  Dart_Handle socket_object = Dart_GetNativeArgument(args, 0);
+  Dart_Handle result =
+      ListeningSocketRegistry::Instance()->CreateUnixDomainBindListen(
+          socket_object, namespc, path, backlog, shared);
+  Dart_SetReturnValue(args, result);
+#endif  // defined(HOST_OS_WINDOWS)
+}
+
 void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
@@ -657,10 +849,8 @@ void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
     Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 1), new_socket,
                                    Socket::kFinalizerNormal);
     Dart_SetReturnValue(args, Dart_True());
-  } else if (new_socket == ServerSocket::kTemporaryFailure) {
-    Dart_SetReturnValue(args, Dart_False());
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    Dart_SetReturnValue(args, Dart_False());
   }
 }
 
@@ -840,7 +1030,7 @@ void FUNCTION_NAME(Socket_GetOption)(Dart_NativeArguments args) {
   }
   // In case of failure the return value is not set above.
   if (!ok) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 
@@ -881,10 +1071,8 @@ void FUNCTION_NAME(Socket_SetOption)(Dart_NativeArguments args) {
       Dart_PropagateError(Dart_NewApiError("Value outside expected range"));
       break;
   }
-  if (result) {
-    Dart_SetReturnValue(args, Dart_Null());
-  } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  if (!result) {
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 
@@ -910,10 +1098,8 @@ void FUNCTION_NAME(Socket_SetRawOption)(Dart_NativeArguments args) {
 
   Dart_TypedDataReleaseData(data_obj);
 
-  if (result) {
-    Dart_SetReturnValue(args, Dart_Null());
-  } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  if (!result) {
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 
@@ -938,11 +1124,8 @@ void FUNCTION_NAME(Socket_GetRawOption)(Dart_NativeArguments args) {
                             static_cast<int>(option), data, &int_length);
 
   Dart_TypedDataReleaseData(data_obj);
-
-  if (result) {
-    Dart_SetReturnValue(args, Dart_Null());
-  } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  if (!result) {
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 
@@ -999,11 +1182,9 @@ void FUNCTION_NAME(Socket_JoinMulticast)(Dart_NativeArguments args) {
   }
   int interfaceIndex =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-  if (SocketBase::JoinMulticast(socket->fd(), addr, interface,
-                                interfaceIndex)) {
-    Dart_SetReturnValue(args, Dart_Null());
-  } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  if (!SocketBase::JoinMulticast(socket->fd(), addr, interface,
+                                 interfaceIndex)) {
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 
@@ -1018,12 +1199,22 @@ void FUNCTION_NAME(Socket_LeaveMulticast)(Dart_NativeArguments args) {
   }
   int interfaceIndex =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-  if (SocketBase::LeaveMulticast(socket->fd(), addr, interface,
-                                 interfaceIndex)) {
-    Dart_SetReturnValue(args, Dart_Null());
-  } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  if (!SocketBase::LeaveMulticast(socket->fd(), addr, interface,
+                                  interfaceIndex)) {
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
+}
+
+void FUNCTION_NAME(Socket_AvailableDatagram)(Dart_NativeArguments args) {
+  const int kReceiveBufferLen = 1;
+  Socket* socket =
+      Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
+  ASSERT(socket != NULL);
+  // Ensure that a receive buffer for peeking the UDP socket exists.
+  uint8_t recv_buffer[kReceiveBufferLen];
+  bool available = SocketBase::AvailableDatagram(socket->fd(), recv_buffer,
+                                                 kReceiveBufferLen);
+  Dart_SetBooleanReturnValue(args, available);
 }
 
 static void NormalSocketFinalizer(void* isolate_data,

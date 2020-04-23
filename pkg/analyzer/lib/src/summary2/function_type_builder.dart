@@ -19,6 +19,8 @@ class FunctionTypeBuilder extends TypeBuilder {
   final List<TypeParameterElement> typeFormals;
   final List<ParameterElement> parameters;
   final DartType returnType;
+
+  @override
   final NullabilitySuffix nullabilitySuffix;
 
   /// The node for which this builder is created, or `null` if the builder
@@ -89,7 +91,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   @override
-  String toString({bool withNullability = false}) {
+  String toString() {
     var buffer = StringBuffer();
 
     if (typeFormals.isNotEmpty) {

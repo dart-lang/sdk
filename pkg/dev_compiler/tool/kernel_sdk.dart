@@ -57,19 +57,19 @@ Future main(List<String> args) async {
     }
   }
 
-  String customScheme = "org-dartlang-sdk";
+  var customScheme = 'org-dartlang-sdk';
   var fileSystem = MultiRootFileSystem(
       customScheme, [Uri.base], StandardFileSystem.instance);
-  Uri sdkRoot = Uri.parse("$customScheme:/");
-  Uri packagesFileUri = sdkRoot
+  var sdkRoot = Uri.parse('$customScheme:/');
+  var packagesFileUri = sdkRoot
       .resolve(p.relative(Uri.file(packagesPath).path, from: Uri.base.path));
   if (packagesFileUri.scheme != customScheme) {
-    throw "packagesPath has to be under ${Uri.base}";
+    throw 'packagesPath has to be under ${Uri.base}';
   }
-  Uri librariesSpecificationUri = sdkRoot
+  var librariesSpecificationUri = sdkRoot
       .resolve(p.relative(Uri.file(librarySpecPath).path, from: Uri.base.path));
   if (librariesSpecificationUri.scheme != customScheme) {
-    throw "librarySpecPath has to be under ${Uri.base}";
+    throw 'librarySpecPath has to be under ${Uri.base}';
   }
 
   var options = CompilerOptions()
@@ -93,9 +93,12 @@ Future main(List<String> args) async {
   File(librarySpecPath)
       .copySync(p.join(p.dirname(outputDir), p.basename(librarySpecPath)));
 
-  var jsModule = ProgramCompiler(component, compilerResult.classHierarchy,
-          SharedCompilerOptions(moduleName: 'dart_sdk'))
-      .emitModule(component, [], [], {});
+  var jsModule = ProgramCompiler(
+      component,
+      compilerResult.classHierarchy,
+      SharedCompilerOptions(moduleName: 'dart_sdk'),
+      const {},
+      const {}).emitModule(component);
   var moduleFormats = {
     'amd': ModuleFormat.amd,
     'common': ModuleFormat.common,
@@ -113,7 +116,8 @@ Future main(List<String> args) async {
         jsUrl: jsPath,
         mapUrl: mapPath,
         buildSourceMap: true,
-        customScheme: customScheme);
+        customScheme: customScheme,
+        component: component);
     await File(jsPath).writeAsString(jsCode.code);
     await File(mapPath).writeAsString(json.encode(jsCode.sourceMap));
   }

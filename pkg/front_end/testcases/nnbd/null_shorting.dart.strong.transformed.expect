@@ -1,127 +1,262 @@
-library;
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/null_shorting.dart:87:47: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
+//  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
+// Try accessing using ?. instead.
+//   throws(() => (n1?.nullable1 = new Class1()).nullable1);
+//                                               ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/null_shorting.dart:88:43: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
+//  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
+// Try accessing using ?. instead.
+//   throws(() => (n1?.nonNullable1Method()).nullable1);
+//                                           ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/null_shorting.dart:220:33: Error: Operator '+' cannot be called on 'Class1?' because it is potentially null.
+//  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
+//   throws(() => n1?.nonNullable1 + 0);
+//                                 ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting.dart:221:16: Error: Operator 'unary-' cannot be called on 'Class1?' because it is potentially null.
+//  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
+//   throws(() => -n1?.nonNullable1);
+//                ^
+//
 import self as self;
 import "dart:core" as core;
 
-class Class extends core::Object {
-  field self::Class? field = null;
-  synthetic constructor •() → self::Class*
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
     : super core::Object::•()
     ;
-  method method() → self::Class?
-    return this.{self::Class::field};
-  operator [](self::Class? key) → self::Class?
-    return this.{self::Class::field};
-  operator []=(self::Class? key, self::Class? value) → void {
-    this.{self::Class::field} = value;
+  get property() → self::Class1?
+    return null;
+  set property(self::Class1? value) → void {}
+  get property1() → self::Class1
+    return new self::Class1::•();
+  get property2() → self::Class2
+    return new self::Class2::•();
+  get nullable1() → self::Class1?
+    return this.{self::Class1::property1};
+  set nullable1(self::Class1? value) → void {
+    this.{self::Class1::property} = value;
   }
-  operator +(core::int value) → self::Class?
-    return this.{self::Class::field};
-  operator unary-() → self::Class?
-    return this.{self::Class::field};
+  method nonNullable1Method() → self::Class1
+    return this.{self::Class1::nonNullable1};
+  operator [](self::Class1? key) → self::Class1?
+    return this.{self::Class1::nullable1};
+  operator []=(self::Class1? key, self::Class1? value) → void {
+    this.{self::Class1::property} = value;
+  }
+  operator +(core::int value) → self::Class1?
+    return this.{self::Class1::nullable1};
+  operator unary-() → self::Class1?
+    return this.{self::Class1::nullable1};
+  get nonNullable1() → self::Class1
+    return this.{self::Class1::property1};
+  get nonNullable2() → self::Class2
+    return this.{self::Class1::property2};
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2
+    : super core::Object::•()
+    ;
+  get property() → self::Class2
+    return this;
+  set property(self::Class2 value) → void {}
+  method nonNullable2Method() → self::Class2
+    return this.{self::Class2::nonNullable2};
+  operator [](self::Class2? key) → self::Class2
+    return this.{self::Class2::property};
+  operator []=(self::Class2? key, self::Class2? value) → void
+    return this.{self::Class2::property};
+  operator +(core::int value) → self::Class2
+    return this.{self::Class2::property};
+  operator unary-() → self::Class2
+    return this.{self::Class2::property};
+  get nonNullable2() → self::Class2
+    return this.{self::Class2::property};
+  set nonNullable2(self::Class2 value) → void {
+    this.{self::Class2::property} = value;
+  }
+}
+class Class3 extends core::Object {
+  synthetic constructor •() → self::Class3
+    : super core::Object::•()
+    ;
+  get property() → self::Class2?
+    return null;
+  operator [](self::Class3? key) → self::Class2?
+    return this.{self::Class3::property};
 }
 static method main() → dynamic {
   self::propertyAccess(null);
-  self::indexAccess(null);
-  self::operatorAccess(null);
+  self::indexAccess(null, null, null);
+  self::operatorAccess(null, null);
   self::ifNull(null);
 }
-static method propertyAccess(self::Class? c) → void {
-  let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{self::Class?} null : #t1.{self::Class::field};
-  let final self::Class? #t2 = c in #t2.{core::Object::==}(null) ?{self::Class} null : #t2.{self::Class::field} = new self::Class::•();
-  c = let final self::Class? #t3 = c in #t3.{core::Object::==}(null) ?{self::Class} null : #t3.{self::Class::field} = new self::Class::•();
-  let final self::Class? #t4 = c in #t4.{core::Object::==}(null) ?{self::Class?} null : #t4.{self::Class::method}();
-  let final self::Class? #t5 = c in #t5.{core::Object::==}(null) ?{self::Class?} null : #t5.{self::Class::field}.{self::Class::field};
-  let final self::Class? #t6 = c in #t6.{core::Object::==}(null) ?{self::Class} null : #t6.{self::Class::field}.{self::Class::field} = new self::Class::•();
-  self::throws(() → self::Class? => (let final self::Class? #t7 = c in #t7.{core::Object::==}(null) ?{self::Class?} null : #t7.{self::Class::field}).{self::Class::field});
-  self::throws(() → self::Class? => (let final self::Class? #t8 = c in #t8.{core::Object::==}(null) ?{self::Class} null : #t8.{self::Class::field} = new self::Class::•()).{self::Class::field});
-  self::throws(() → self::Class? => (let final self::Class? #t9 = c in #t9.{core::Object::==}(null) ?{self::Class?} null : #t9.{self::Class::method}()).{self::Class::field});
-  c = let final self::Class? #t10 = c in #t10.{core::Object::==}(null) ?{self::Class} null : #t10.{self::Class::field}.{self::Class::field} = new self::Class::•();
-  let final self::Class? #t11 = c in #t11.{core::Object::==}(null) ?{self::Class?} null : #t11.{self::Class::field}.{self::Class::method}();
-  let final self::Class? #t12 = c in #t12.{core::Object::==}(null) ?{self::Class?} null : #t12.{self::Class::field} = new self::Class::•().{self::Class::field};
-  c = let final self::Class? #t13 = c in #t13.{core::Object::==}(null) ?{self::Class?} null : #t13.{self::Class::field} = new self::Class::•().{self::Class::field};
-  let final self::Class? #t14 = c in #t14.{core::Object::==}(null) ?{self::Class} null : #t14.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
-  c = let final self::Class? #t15 = c in #t15.{core::Object::==}(null) ?{self::Class} null : #t15.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
-  let final self::Class? #t16 = c in #t16.{core::Object::==}(null) ?{self::Class?} null : #t16.{self::Class::field} = new self::Class::•().{self::Class::method}();
-  c = let final self::Class? #t17 = c in #t17.{core::Object::==}(null) ?{self::Class?} null : #t17.{self::Class::field} = new self::Class::•().{self::Class::method}();
-  let final self::Class? #t18 = c in #t18.{core::Object::==}(null) ?{self::Class?} null : #t18.{self::Class::method}().{self::Class::field};
-  let final self::Class? #t19 = c in #t19.{core::Object::==}(null) ?{self::Class} null : #t19.{self::Class::method}().{self::Class::field} = new self::Class::•();
-  let final self::Class? #t20 = c in #t20.{core::Object::==}(null) ?{self::Class?} null : #t20.{self::Class::method}().{self::Class::method}();
-  let final self::Class? #t21 = c in #t21.{core::Object::==}(null) ?{self::Class?} null : #t21.{self::Class::field}.{self::Class::field}.{self::Class::field};
-  let final self::Class? #t22 = c in #t22.{core::Object::==}(null) ?{self::Class} null : #t22.{self::Class::field}.{self::Class::field}.{self::Class::field} = new self::Class::•();
-  c = let final self::Class? #t23 = c in #t23.{core::Object::==}(null) ?{self::Class} null : #t23.{self::Class::field}.{self::Class::field}.{self::Class::field} = new self::Class::•();
-  let final self::Class? #t24 = c in #t24.{core::Object::==}(null) ?{self::Class?} null : #t24.{self::Class::field}.{self::Class::field}.{self::Class::method}();
-  let final self::Class? #t25 = c in #t25.{core::Object::==}(null) ?{self::Class?} null : #t25.{self::Class::field} = new self::Class::•().{self::Class::field}.{self::Class::field};
-  c = let final self::Class? #t26 = c in #t26.{core::Object::==}(null) ?{self::Class?} null : #t26.{self::Class::field} = new self::Class::•().{self::Class::field}.{self::Class::field};
-  let final self::Class? #t27 = c in #t27.{core::Object::==}(null) ?{self::Class} null : #t27.{self::Class::field} = new self::Class::•().{self::Class::field}.{self::Class::field} = new self::Class::•();
-  c = let final self::Class? #t28 = c in #t28.{core::Object::==}(null) ?{self::Class} null : #t28.{self::Class::field} = new self::Class::•().{self::Class::field}.{self::Class::field} = new self::Class::•();
-  let final self::Class? #t29 = c in #t29.{core::Object::==}(null) ?{self::Class?} null : #t29.{self::Class::field} = new self::Class::•().{self::Class::field}.{self::Class::method}();
-  c = let final self::Class? #t30 = c in #t30.{core::Object::==}(null) ?{self::Class?} null : #t30.{self::Class::field} = new self::Class::•().{self::Class::field}.{self::Class::method}();
-  let final self::Class? #t31 = c in #t31.{core::Object::==}(null) ?{self::Class?} null : #t31.{self::Class::method}().{self::Class::field}.{self::Class::field};
-  let final self::Class? #t32 = c in #t32.{core::Object::==}(null) ?{self::Class} null : #t32.{self::Class::method}().{self::Class::field}.{self::Class::field} = new self::Class::•();
-  let final self::Class? #t33 = c in #t33.{core::Object::==}(null) ?{self::Class?} null : #t33.{self::Class::method}().{self::Class::field}.{self::Class::method}();
-  let final self::Class? #t34 = c in #t34.{core::Object::==}(null) ?{self::Class?} null : #t34.{self::Class::field}.{self::Class::field} = new self::Class::•().{self::Class::field};
-  c = let final self::Class? #t35 = c in #t35.{core::Object::==}(null) ?{self::Class?} null : #t35.{self::Class::field}.{self::Class::field} = new self::Class::•().{self::Class::field};
-  let final self::Class? #t36 = c in #t36.{core::Object::==}(null) ?{self::Class} null : #t36.{self::Class::field}.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
-  c = let final self::Class? #t37 = c in #t37.{core::Object::==}(null) ?{self::Class} null : #t37.{self::Class::field}.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
-  let final self::Class? #t38 = c in #t38.{core::Object::==}(null) ?{self::Class?} null : #t38.{self::Class::field}.{self::Class::field} = new self::Class::•().{self::Class::method}();
-  c = let final self::Class? #t39 = c in #t39.{core::Object::==}(null) ?{self::Class?} null : #t39.{self::Class::field}.{self::Class::field} = new self::Class::•().{self::Class::method}();
-  let final self::Class? #t40 = c in #t40.{core::Object::==}(null) ?{self::Class?} null : #t40.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•().{self::Class::field};
-  c = let final self::Class? #t41 = c in #t41.{core::Object::==}(null) ?{self::Class?} null : #t41.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•().{self::Class::field};
-  let final self::Class? #t42 = c in #t42.{core::Object::==}(null) ?{self::Class} null : #t42.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
-  c = let final self::Class? #t43 = c in #t43.{core::Object::==}(null) ?{self::Class} null : #t43.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
-  let final self::Class? #t44 = c in #t44.{core::Object::==}(null) ?{self::Class?} null : #t44.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•().{self::Class::method}();
-  c = let final self::Class? #t45 = c in #t45.{core::Object::==}(null) ?{self::Class?} null : #t45.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•().{self::Class::method}();
-  let final self::Class? #t46 = c in #t46.{core::Object::==}(null) ?{self::Class?} null : #t46.{self::Class::method}().{self::Class::field} = new self::Class::•().{self::Class::field};
-  c = let final self::Class? #t47 = c in #t47.{core::Object::==}(null) ?{self::Class?} null : #t47.{self::Class::method}().{self::Class::field} = new self::Class::•().{self::Class::field};
-  let final self::Class? #t48 = c in #t48.{core::Object::==}(null) ?{self::Class} null : #t48.{self::Class::method}().{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
-  c = let final self::Class? #t49 = c in #t49.{core::Object::==}(null) ?{self::Class} null : #t49.{self::Class::method}().{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
-  let final self::Class? #t50 = c in #t50.{core::Object::==}(null) ?{self::Class?} null : #t50.{self::Class::method}().{self::Class::field} = new self::Class::•().{self::Class::method}();
-  c = let final self::Class? #t51 = c in #t51.{core::Object::==}(null) ?{self::Class?} null : #t51.{self::Class::method}().{self::Class::field} = new self::Class::•().{self::Class::method}();
-  let final self::Class? #t52 = c in #t52.{core::Object::==}(null) ?{self::Class?} null : #t52.{self::Class::field}.{self::Class::method}().{self::Class::field};
-  let final self::Class? #t53 = c in #t53.{core::Object::==}(null) ?{self::Class} null : #t53.{self::Class::field}.{self::Class::method}().{self::Class::field} = new self::Class::•();
-  c = let final self::Class? #t54 = c in #t54.{core::Object::==}(null) ?{self::Class} null : #t54.{self::Class::field}.{self::Class::method}().{self::Class::field} = new self::Class::•();
-  let final self::Class? #t55 = c in #t55.{core::Object::==}(null) ?{self::Class?} null : #t55.{self::Class::field}.{self::Class::method}().{self::Class::method}();
-  let final self::Class? #t56 = c in #t56.{core::Object::==}(null) ?{self::Class?} null : #t56.{self::Class::field} = new self::Class::•().{self::Class::method}().{self::Class::field};
-  c = let final self::Class? #t57 = c in #t57.{core::Object::==}(null) ?{self::Class?} null : #t57.{self::Class::field} = new self::Class::•().{self::Class::method}().{self::Class::field};
-  let final self::Class? #t58 = c in #t58.{core::Object::==}(null) ?{self::Class} null : #t58.{self::Class::field} = new self::Class::•().{self::Class::method}().{self::Class::field} = new self::Class::•();
-  c = let final self::Class? #t59 = c in #t59.{core::Object::==}(null) ?{self::Class} null : #t59.{self::Class::field} = new self::Class::•().{self::Class::method}().{self::Class::field} = new self::Class::•();
-  let final self::Class? #t60 = c in #t60.{core::Object::==}(null) ?{self::Class?} null : #t60.{self::Class::field} = new self::Class::•().{self::Class::method}().{self::Class::method}();
-  c = let final self::Class? #t61 = c in #t61.{core::Object::==}(null) ?{self::Class?} null : #t61.{self::Class::field} = new self::Class::•().{self::Class::method}().{self::Class::method}();
-  let final self::Class? #t62 = c in #t62.{core::Object::==}(null) ?{self::Class?} null : #t62.{self::Class::method}().{self::Class::method}().{self::Class::field};
-  let final self::Class? #t63 = c in #t63.{core::Object::==}(null) ?{self::Class} null : #t63.{self::Class::method}().{self::Class::method}().{self::Class::field} = new self::Class::•();
-  let final self::Class? #t64 = c in #t64.{core::Object::==}(null) ?{self::Class?} null : #t64.{self::Class::method}().{self::Class::method}().{self::Class::method}();
+static method propertyAccess(self::Class1? n1) → void {
+  self::Class1? nullable1 = n1;
+  let final self::Class1? #t1 = n1 in #t1.{core::Object::==}(null) ?{self::Class1?} null : #t1{self::Class1}.{self::Class1::nullable1};
+  let final self::Class1? #t2 = n1 in #t2.{core::Object::==}(null) ?{self::Class1?} null : #t2{self::Class1}.{self::Class1::nullable1} = new self::Class1::•();
+  nullable1 = let final self::Class1? #t3 = n1 in #t3.{core::Object::==}(null) ?{self::Class1?} null : #t3{self::Class1}.{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t4 = n1 in #t4.{core::Object::==}(null) ?{self::Class1?} null : #t4{self::Class1}.{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t5 = n1 in #t5.{core::Object::==}(null) ?{self::Class1?} null : #t5{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1};
+  let final self::Class1? #t6 = n1 in #t6.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t7 = #t6{self::Class1}.{self::Class1::nullable1} in #t7.{core::Object::==}(null) ?{self::Class1?} null : #t7{self::Class1}.{self::Class1::nullable1};
+  let final self::Class1? #t8 = n1 in #t8.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t9 = #t8{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} in #t9.{core::Object::==}(null) ?{self::Class1?} null : #t9{self::Class1}.{self::Class1::nullable1};
+  let final self::Class1? #t10 = n1 in #t10.{core::Object::==}(null) ?{self::Class1?} null : #t10{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t11 = n1 in #t11.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t12 = #t11{self::Class1}.{self::Class1::nullable1} in #t12.{core::Object::==}(null) ?{self::Class1?} null : #t12{self::Class1}.{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t13 = n1 in #t13.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t14 = #t13{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} in #t14.{core::Object::==}(null) ?{self::Class1?} null : #t14{self::Class1}.{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t15 = let final self::Class1? #t16 = n1 in #t16.{core::Object::==}(null) ?{self::Class1?} null : #t16{self::Class1}.{self::Class1::nullable1} in #t15.{core::Object::==}(null) ?{self::Class1?} null : #t15{self::Class1}.{self::Class1::nullable1};
+  self::throws(() → self::Class1? => let final<BottomType> #t17 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:87:47: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
+ - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
+Try accessing using ?. instead.
+  throws(() => (n1?.nullable1 = new Class1()).nullable1);
+                                              ^^^^^^^^^" in (let final self::Class1? #t18 = n1 in #t18.{core::Object::==}(null) ?{self::Class1?} null : #t18{self::Class1}.{self::Class1::nullable1} = new self::Class1::•()).{self::Class1::nullable1});
+  self::throws(() → self::Class1? => let final<BottomType> #t19 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:88:43: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
+ - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
+Try accessing using ?. instead.
+  throws(() => (n1?.nonNullable1Method()).nullable1);
+                                          ^^^^^^^^^" in (let final self::Class1? #t20 = n1 in #t20.{core::Object::==}(null) ?{self::Class1?} null : #t20{self::Class1}.{self::Class1::nonNullable1Method}()).{self::Class1::nullable1});
+  nullable1 = let final self::Class1? #t21 = n1 in #t21.{core::Object::==}(null) ?{self::Class1?} null : #t21{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} = new self::Class1::•();
+  nullable1 = let final self::Class1? #t22 = n1 in #t22.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t23 = #t22{self::Class1}.{self::Class1::nullable1} in #t23.{core::Object::==}(null) ?{self::Class1?} null : #t23{self::Class1}.{self::Class1::nullable1} = new self::Class1::•();
+  nullable1 = let final self::Class1? #t24 = n1 in #t24.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t25 = #t24{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} in #t25.{core::Object::==}(null) ?{self::Class1?} null : #t25{self::Class1}.{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t26 = n1 in #t26.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t27 = #t26{self::Class1}.{self::Class1::nullable1} in #t27.{core::Object::==}(null) ?{self::Class1?} null : #t27{self::Class1}.{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t28 = n1 in #t28.{core::Object::==}(null) ?{self::Class1?} null : #t28{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1};
+  nullable1 = let final self::Class1? #t29 = n1 in #t29.{core::Object::==}(null) ?{self::Class1?} null : #t29{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1};
+  let final self::Class1? #t30 = n1 in #t30.{core::Object::==}(null) ?{self::Class1?} null : #t30{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•();
+  nullable1 = let final self::Class1? #t31 = n1 in #t31.{core::Object::==}(null) ?{self::Class1?} null : #t31{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t32 = n1 in #t32.{core::Object::==}(null) ?{self::Class1?} null : #t32{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}();
+  nullable1 = let final self::Class1? #t33 = n1 in #t33.{core::Object::==}(null) ?{self::Class1?} null : #t33{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t34 = n1 in #t34.{core::Object::==}(null) ?{self::Class1?} null : #t34{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nullable1};
+  let final self::Class1? #t35 = n1 in #t35.{core::Object::==}(null) ?{self::Class1?} null : #t35{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t36 = n1 in #t36.{core::Object::==}(null) ?{self::Class1?} null : #t36{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t37 = n1 in #t37.{core::Object::==}(null) ?{self::Class1?} null : #t37{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nonNullable1}.{self::Class1::nullable1};
+  let final self::Class1? #t38 = n1 in #t38.{core::Object::==}(null) ?{self::Class1?} null : #t38{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} = new self::Class1::•();
+  nullable1 = let final self::Class1? #t39 = n1 in #t39.{core::Object::==}(null) ?{self::Class1?} null : #t39{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t40 = n1 in #t40.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t41 = #t40{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} in #t41.{core::Object::==}(null) ?{self::Class1?} null : #t41{self::Class1}.{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t42 = n1 in #t42.{core::Object::==}(null) ?{self::Class1?} null : #t42{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1}.{self::Class1::nullable1};
+  nullable1 = let final self::Class1? #t43 = n1 in #t43.{core::Object::==}(null) ?{self::Class1?} null : #t43{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1}.{self::Class1::nullable1};
+  let final self::Class1? #t44 = n1 in #t44.{core::Object::==}(null) ?{self::Class1?} null : #t44{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1}.{self::Class1::nullable1} = new self::Class1::•();
+  nullable1 = let final self::Class1? #t45 = n1 in #t45.{core::Object::==}(null) ?{self::Class1?} null : #t45{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1}.{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t46 = n1 in #t46.{core::Object::==}(null) ?{self::Class1?} null : #t46{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1}.{self::Class1::nonNullable1Method}();
+  nullable1 = let final self::Class1? #t47 = n1 in #t47.{core::Object::==}(null) ?{self::Class1?} null : #t47{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1}.{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t48 = n1 in #t48.{core::Object::==}(null) ?{self::Class1?} null : #t48{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nonNullable1}.{self::Class1::nullable1};
+  let final self::Class1? #t49 = n1 in #t49.{core::Object::==}(null) ?{self::Class1?} null : #t49{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nonNullable1}.{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t50 = n1 in #t50.{core::Object::==}(null) ?{self::Class1?} null : #t50{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nonNullable1}.{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t51 = n1 in #t51.{core::Object::==}(null) ?{self::Class1?} null : #t51{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1};
+  nullable1 = let final self::Class1? #t52 = n1 in #t52.{core::Object::==}(null) ?{self::Class1?} null : #t52{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1};
+  let final self::Class1? #t53 = n1 in #t53.{core::Object::==}(null) ?{self::Class1?} null : #t53{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•();
+  nullable1 = let final self::Class1? #t54 = n1 in #t54.{core::Object::==}(null) ?{self::Class1?} null : #t54{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t55 = n1 in #t55.{core::Object::==}(null) ?{self::Class1?} null : #t55{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}();
+  nullable1 = let final self::Class1? #t56 = n1 in #t56.{core::Object::==}(null) ?{self::Class1?} null : #t56{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t57 = n1 in #t57.{core::Object::==}(null) ?{self::Class1?} null : #t57{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1};
+  nullable1 = let final self::Class1? #t58 = n1 in #t58.{core::Object::==}(null) ?{self::Class1?} null : #t58{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1};
+  let final self::Class1? #t59 = n1 in #t59.{core::Object::==}(null) ?{self::Class1?} null : #t59{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•();
+  nullable1 = let final self::Class1? #t60 = n1 in #t60.{core::Object::==}(null) ?{self::Class1?} null : #t60{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t61 = n1 in #t61.{core::Object::==}(null) ?{self::Class1?} null : #t61{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}();
+  nullable1 = let final self::Class1? #t62 = n1 in #t62.{core::Object::==}(null) ?{self::Class1?} null : #t62{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t63 = n1 in #t63.{core::Object::==}(null) ?{self::Class1?} null : #t63{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1};
+  nullable1 = let final self::Class1? #t64 = n1 in #t64.{core::Object::==}(null) ?{self::Class1?} null : #t64{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1};
+  let final self::Class1? #t65 = n1 in #t65.{core::Object::==}(null) ?{self::Class1?} null : #t65{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•();
+  nullable1 = let final self::Class1? #t66 = n1 in #t66.{core::Object::==}(null) ?{self::Class1?} null : #t66{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t67 = n1 in #t67.{core::Object::==}(null) ?{self::Class1?} null : #t67{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}();
+  nullable1 = let final self::Class1? #t68 = n1 in #t68.{core::Object::==}(null) ?{self::Class1?} null : #t68{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t69 = n1 in #t69.{core::Object::==}(null) ?{self::Class1?} null : #t69{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nonNullable1Method}().{self::Class1::nullable1};
+  let final self::Class1? #t70 = n1 in #t70.{core::Object::==}(null) ?{self::Class1?} null : #t70{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nonNullable1Method}().{self::Class1::nullable1} = new self::Class1::•();
+  nullable1 = let final self::Class1? #t71 = n1 in #t71.{core::Object::==}(null) ?{self::Class1?} null : #t71{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nonNullable1Method}().{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t72 = n1 in #t72.{core::Object::==}(null) ?{self::Class1?} null : #t72{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nonNullable1Method}().{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t73 = n1 in #t73.{core::Object::==}(null) ?{self::Class1?} null : #t73{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}().{self::Class1::nullable1};
+  nullable1 = let final self::Class1? #t74 = n1 in #t74.{core::Object::==}(null) ?{self::Class1?} null : #t74{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}().{self::Class1::nullable1};
+  let final self::Class1? #t75 = n1 in #t75.{core::Object::==}(null) ?{self::Class1?} null : #t75{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}().{self::Class1::nullable1} = new self::Class1::•();
+  nullable1 = let final self::Class1? #t76 = n1 in #t76.{core::Object::==}(null) ?{self::Class1?} null : #t76{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}().{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t77 = n1 in #t77.{core::Object::==}(null) ?{self::Class1?} null : #t77{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}().{self::Class1::nonNullable1Method}();
+  nullable1 = let final self::Class1? #t78 = n1 in #t78.{core::Object::==}(null) ?{self::Class1?} null : #t78{self::Class1}.{self::Class1::nullable1} = new self::Class1::•().{self::Class1::nonNullable1Method}().{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t79 = n1 in #t79.{core::Object::==}(null) ?{self::Class1?} null : #t79{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nonNullable1Method}().{self::Class1::nullable1};
+  let final self::Class1? #t80 = n1 in #t80.{core::Object::==}(null) ?{self::Class1?} null : #t80{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nonNullable1Method}().{self::Class1::nullable1} = new self::Class1::•();
+  let final self::Class1? #t81 = n1 in #t81.{core::Object::==}(null) ?{self::Class1?} null : #t81{self::Class1}.{self::Class1::nonNullable1Method}().{self::Class1::nonNullable1Method}().{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t82 = n1 in #t82.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t83 = #t82{self::Class1}.{self::Class1::nonNullable1Method}() in #t83.{core::Object::==}(null) ?{self::Class1?} null : #t83{self::Class1}.{self::Class1::nonNullable1Method}();
 }
-static method indexAccess(self::Class? c) → void {
-  let final self::Class? #t65 = c in #t65.{core::Object::==}(null) ?{self::Class?} null : #t65.{self::Class::[]}(c);
-  let final self::Class? #t66 = c in #t66.{core::Object::==}(null) ?{self::Class} null : #t66.{self::Class::[]=}(c, new self::Class::•());
-  let final self::Class? #t67 = c in #t67.{core::Object::==}(null) ?{self::Class?} null : #t67.{self::Class::[]}(c).{self::Class::method}();
-  let final self::Class? #t68 = c in #t68.{core::Object::==}(null) ?{self::Class?} null : #t68.{self::Class::field}.{self::Class::[]}(c);
-  let final self::Class? #t69 = c in #t69.{core::Object::==}(null) ?{self::Class} null : #t69.{self::Class::field}.{self::Class::[]=}(c, new self::Class::•());
-  c = let final self::Class? #t70 = c in #t70.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t71 = #t70.{self::Class::field} in let final self::Class? #t72 = c in let final self::Class #t73 = new self::Class::•() in let final void #t74 = #t71.{self::Class::[]=}(#t72, #t73) in #t73;
-  let final self::Class? #t75 = c in #t75.{core::Object::==}(null) ?{self::Class?} null : #t75.{self::Class::field}.{self::Class::[]}(c).{self::Class::method}();
-  let final self::Class? #t76 = c in #t76.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t77 = #t76.{self::Class::field} in let final self::Class? #t78 = c in #t77.{self::Class::[]=}(#t78, #t77.{self::Class::[]}(#t78).{self::Class::+}(0));
-  c = let final self::Class? #t79 = c in #t79.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t80 = #t79.{self::Class::field} in let final self::Class? #t81 = c in let final self::Class? #t82 = #t80.{self::Class::[]}(#t81).{self::Class::+}(0) in let final void #t83 = #t80.{self::Class::[]=}(#t81, #t82) in #t82;
-  let final self::Class? #t84 = c in #t84.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t85 = #t84.{self::Class::field} in let final self::Class? #t86 = c in #t85.{self::Class::[]=}(#t86, #t85.{self::Class::[]}(#t86).{self::Class::+}(1));
-  c = let final self::Class? #t87 = c in #t87.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t88 = #t87.{self::Class::field} in let final self::Class? #t89 = c in let final self::Class? #t90 = #t88.{self::Class::[]}(#t89) in let final void #t91 = #t88.{self::Class::[]=}(#t89, #t90.{self::Class::+}(1)) in #t90;
-  let final self::Class? #t92 = c in #t92.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t93 = #t92.{self::Class::field} in let final self::Class? #t94 = c in let final self::Class? #t95 = #t93.{self::Class::[]}(#t94).{self::Class::+}(1) in let final void #t96 = #t93.{self::Class::[]=}(#t94, #t95) in #t95;
-  c = let final self::Class? #t97 = c in #t97.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t98 = #t97.{self::Class::field} in let final self::Class? #t99 = c in let final self::Class? #t100 = #t98.{self::Class::[]}(#t99).{self::Class::+}(1) in let final void #t101 = #t98.{self::Class::[]=}(#t99, #t100) in #t100;
+static method indexAccess(self::Class1? n1, self::Class2? n2, self::Class3? n3) → void {
+  self::Class1? nullable1 = n1;
+  self::Class2? nullable2 = n2;
+  self::Class3? nullable3 = n3;
+  let final self::Class1? #t84 = n1 in #t84.{core::Object::==}(null) ?{self::Class1?} null : #t84{self::Class1}.{self::Class1::[]}(nullable1);
+  let final self::Class1? #t85 = n1 in #t85.{core::Object::==}(null) ?{self::Class1?} null : #t85{self::Class1}.{self::Class1::[]=}(nullable1, new self::Class1::•());
+  let final self::Class1? #t86 = n1 in #t86.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t87 = #t86{self::Class1}.{self::Class1::[]}(nullable1) in #t87.{core::Object::==}(null) ?{self::Class1?} null : #t87{self::Class1}.{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t88 = n1 in #t88.{core::Object::==}(null) ?{self::Class1?} null : #t88{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::[]}(nullable1);
+  let final self::Class1? #t89 = n1 in #t89.{core::Object::==}(null) ?{self::Class1?} null : #t89{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::[]=}(nullable1, new self::Class1::•());
+  nullable1 = let final self::Class1? #t90 = n1 in #t90.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1 #t91 = #t90{self::Class1}.{self::Class1::nonNullable1} in let final self::Class1? #t92 = nullable1 in let final self::Class1 #t93 = new self::Class1::•() in let final void #t94 = #t91.{self::Class1::[]=}(#t92, #t93) in #t93;
+  let final self::Class1? #t95 = n1 in #t95.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t96 = #t95{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::[]}(nullable1) in #t96.{core::Object::==}(null) ?{self::Class1?} null : #t96{self::Class1}.{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t97 = n1 in #t97.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t98 = #t97{self::Class1}.{self::Class1::nonNullable2} in let final self::Class2? #t99 = nullable2 in #t98.{self::Class2::[]=}(#t99, #t98.{self::Class2::[]}(#t99).{self::Class2::+}(0));
+  nullable2 = let final self::Class1? #t100 = n1 in #t100.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t101 = #t100{self::Class1}.{self::Class1::nonNullable2} in let final self::Class2? #t102 = nullable2 in let final self::Class2 #t103 = #t101.{self::Class2::[]}(#t102).{self::Class2::+}(0) in let final void #t104 = #t101.{self::Class2::[]=}(#t102, #t103) in #t103;
+  let final self::Class1? #t105 = n1 in #t105.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t106 = nullable1 in #t105{self::Class1}.{self::Class1::[]}(#t106).{core::Object::==}(null) ?{self::Class1?} #t105{self::Class1}.{self::Class1::[]=}(#t106, nullable1) : null;
+  nullable1 = let final self::Class1? #t107 = n1 in #t107.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t108 = nullable1 in let final self::Class1? #t109 = #t107{self::Class1}.{self::Class1::[]}(#t108) in #t109.{core::Object::==}(null) ?{self::Class1?} let final self::Class1? #t110 = nullable1 in let final void #t111 = #t107{self::Class1}.{self::Class1::[]=}(#t108, #t110) in #t110 : #t109{self::Class1};
+  let final self::Class2? #t112 = n2 in #t112.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t113 = nullable2 in #t112{self::Class2}.{self::Class2::[]=}(#t113, #t112{self::Class2}.{self::Class2::[]}(#t113).{self::Class2::+}(0));
+  nullable2 = let final self::Class2? #t114 = n2 in #t114.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t115 = nullable2 in let final self::Class2 #t116 = #t114{self::Class2}.{self::Class2::[]}(#t115).{self::Class2::+}(0) in let final void #t117 = #t114{self::Class2}.{self::Class2::[]=}(#t115, #t116) in #t116;
+  let final self::Class2? #t118 = n2 in #t118.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t119 = nullable2 in #t118{self::Class2}.{self::Class2::[]=}(#t119, #t118{self::Class2}.{self::Class2::[]}(#t119).{self::Class2::+}(0));
+  nullable2 = let final self::Class2? #t120 = n2 in #t120.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t121 = nullable2 in let final self::Class2 #t122 = #t120{self::Class2}.{self::Class2::[]}(#t121).{self::Class2::+}(0) in let final void #t123 = #t120{self::Class2}.{self::Class2::[]=}(#t121, #t122) in #t122;
+  let final self::Class2? #t124 = n2 in #t124.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t125 = nullable2 in #t124{self::Class2}.{self::Class2::[]=}(#t125, #t124{self::Class2}.{self::Class2::[]}(#t125).{self::Class2::+}(1));
+  nullable2 = let final self::Class2? #t126 = n2 in #t126.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t127 = nullable2 in let final self::Class2 #t128 = #t126{self::Class2}.{self::Class2::[]}(#t127) in let final void #t129 = #t126{self::Class2}.{self::Class2::[]=}(#t127, #t128.{self::Class2::+}(1)) in #t128;
+  let final self::Class2? #t130 = n2 in #t130.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t131 = nullable2 in let final self::Class2 #t132 = #t130{self::Class2}.{self::Class2::[]}(#t131).{self::Class2::+}(1) in let final void #t133 = #t130{self::Class2}.{self::Class2::[]=}(#t131, #t132) in #t132;
+  nullable2 = let final self::Class2? #t134 = n2 in #t134.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t135 = nullable2 in let final self::Class2 #t136 = #t134{self::Class2}.{self::Class2::[]}(#t135).{self::Class2::+}(1) in let final void #t137 = #t134{self::Class2}.{self::Class2::[]=}(#t135, #t136) in #t136;
+  let final self::Class1? #t138 = n1 in #t138.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t139 = #t138{self::Class1}.{self::Class1::nonNullable2} in let final self::Class2? #t140 = nullable2 in #t139.{self::Class2::[]=}(#t140, #t139.{self::Class2::[]}(#t140).{self::Class2::+}(1));
+  nullable2 = let final self::Class1? #t141 = n1 in #t141.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t142 = #t141{self::Class1}.{self::Class1::nonNullable2} in let final self::Class2? #t143 = nullable2 in let final self::Class2 #t144 = #t142.{self::Class2::[]}(#t143) in let final void #t145 = #t142.{self::Class2::[]=}(#t143, #t144.{self::Class2::+}(1)) in #t144;
+  let final self::Class1? #t146 = n1 in #t146.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t147 = #t146{self::Class1}.{self::Class1::nonNullable2} in let final self::Class2? #t148 = nullable2 in let final self::Class2 #t149 = #t147.{self::Class2::[]}(#t148).{self::Class2::+}(1) in let final void #t150 = #t147.{self::Class2::[]=}(#t148, #t149) in #t149;
+  nullable2 = let final self::Class1? #t151 = n1 in #t151.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t152 = #t151{self::Class1}.{self::Class1::nonNullable2} in let final self::Class2? #t153 = nullable2 in let final self::Class2 #t154 = #t152.{self::Class2::[]}(#t153).{self::Class2::+}(1) in let final void #t155 = #t152.{self::Class2::[]=}(#t153, #t154) in #t154;
+  let final self::Class1? #t156 = n1 in #t156.{core::Object::==}(null) ?{self::Class2?} null : #t156{self::Class1}.{self::Class1::nonNullable2}.{self::Class2::[]}(nullable2).{self::Class2::[]}(nullable2);
+  let final self::Class1? #t157 = n1 in #t157.{core::Object::==}(null) ?{self::Class2?} null : #t157{self::Class1}.{self::Class1::nonNullable2}.{self::Class2::[]}(nullable2).{self::Class2::[]=}(nullable2, new self::Class2::•());
+  nullable2 = let final self::Class1? #t158 = n1 in #t158.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t159 = #t158{self::Class1}.{self::Class1::nonNullable2}.{self::Class2::[]}(nullable2) in let final self::Class2? #t160 = nullable2 in let final self::Class2 #t161 = new self::Class2::•() in let final void #t162 = #t159.{self::Class2::[]=}(#t160, #t161) in #t161;
+  let final self::Class1? #t163 = n1 in #t163.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t164 = #t163{self::Class1}.{self::Class1::nonNullable2}.{self::Class2::[]}(nullable2).{self::Class2::[]}(nullable2) in #t164.{core::Object::==}(null) ?{self::Class2?} null : #t164{self::Class2}.{self::Class2::nonNullable2Method}();
+  let final self::Class1? #t165 = n1 in #t165.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t166 = #t165{self::Class1}.{self::Class1::nonNullable2}.{self::Class2::[]}(nullable2) in let final self::Class2? #t167 = nullable2 in #t166.{self::Class2::[]=}(#t167, #t166.{self::Class2::[]}(#t167).{self::Class2::+}(0));
+  nullable2 = let final self::Class1? #t168 = n1 in #t168.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t169 = #t168{self::Class1}.{self::Class1::nonNullable2}.{self::Class2::[]}(nullable2) in let final self::Class2? #t170 = nullable2 in let final self::Class2 #t171 = #t169.{self::Class2::[]}(#t170).{self::Class2::+}(0) in let final void #t172 = #t169.{self::Class2::[]=}(#t170, #t171) in #t171;
+  let final self::Class1? #t173 = n1 in #t173.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t174 = #t173{self::Class1}.{self::Class1::nonNullable2}.{self::Class2::[]}(nullable2) in let final self::Class2? #t175 = nullable2 in #t174.{self::Class2::[]=}(#t175, #t174.{self::Class2::[]}(#t175).{self::Class2::+}(1));
+  nullable2 = let final self::Class1? #t176 = n1 in #t176.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t177 = #t176{self::Class1}.{self::Class1::nonNullable2}.{self::Class2::[]}(nullable2) in let final self::Class2? #t178 = nullable2 in let final self::Class2 #t179 = #t177.{self::Class2::[]}(#t178) in let final void #t180 = #t177.{self::Class2::[]=}(#t178, #t179.{self::Class2::+}(1)) in #t179;
+  let final self::Class1? #t181 = n1 in #t181.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t182 = #t181{self::Class1}.{self::Class1::nonNullable2}.{self::Class2::[]}(nullable2) in let final self::Class2? #t183 = nullable2 in let final self::Class2 #t184 = #t182.{self::Class2::[]}(#t183).{self::Class2::+}(1) in let final void #t185 = #t182.{self::Class2::[]=}(#t183, #t184) in #t184;
+  nullable2 = let final self::Class1? #t186 = n1 in #t186.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t187 = #t186{self::Class1}.{self::Class1::nonNullable2}.{self::Class2::[]}(nullable2) in let final self::Class2? #t188 = nullable2 in let final self::Class2 #t189 = #t187.{self::Class2::[]}(#t188).{self::Class2::+}(1) in let final void #t190 = #t187.{self::Class2::[]=}(#t188, #t189) in #t189;
+  let final self::Class1? #t191 = n1 in #t191.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t192 = #t191{self::Class1}.{self::Class1::[]}(nullable1) in #t192.{core::Object::==}(null) ?{self::Class1?} null : #t192{self::Class1}.{self::Class1::[]}(nullable1);
+  let final self::Class1? #t193 = n1 in #t193.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t194 = #t193{self::Class1}.{self::Class1::[]}(nullable1) in #t194.{core::Object::==}(null) ?{self::Class1?} null : #t194{self::Class1}.{self::Class1::[]=}(nullable1, new self::Class1::•());
+  nullable1 = let final self::Class1? #t195 = n1 in #t195.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t196 = #t195{self::Class1}.{self::Class1::[]}(nullable1) in #t196.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t197 = nullable1 in let final self::Class1 #t198 = new self::Class1::•() in let final void #t199 = #t196{self::Class1}.{self::Class1::[]=}(#t197, #t198) in #t198;
+  let final self::Class1? #t200 = n1 in #t200.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t201 = #t200{self::Class1}.{self::Class1::[]}(nullable1) in #t201.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t202 = #t201{self::Class1}.{self::Class1::[]}(nullable1) in #t202.{core::Object::==}(null) ?{self::Class1?} null : #t202{self::Class1}.{self::Class1::nonNullable1Method}();
+  nullable1 = let final self::Class1? #t203 = n1 in #t203.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t204 = #t203{self::Class1}.{self::Class1::[]}(nullable1) in #t204.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t205 = #t204{self::Class1}.{self::Class1::[]}(nullable1) in #t205.{core::Object::==}(null) ?{self::Class1?} null : #t205{self::Class1}.{self::Class1::nonNullable1Method}();
+  let final self::Class1? #t206 = n1 in #t206.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t207 = #t206{self::Class1}.{self::Class1::[]}(nullable1) in #t207.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t208 = nullable1 in #t207{self::Class1}.{self::Class1::[]}(#t208).{core::Object::==}(null) ?{self::Class1?} #t207{self::Class1}.{self::Class1::[]=}(#t208, nullable1) : null;
+  nullable1 = let final self::Class1? #t209 = n1 in #t209.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t210 = #t209{self::Class1}.{self::Class1::[]}(nullable1) in #t210.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t211 = nullable1 in let final self::Class1? #t212 = #t210{self::Class1}.{self::Class1::[]}(#t211) in #t212.{core::Object::==}(null) ?{self::Class1?} let final self::Class1? #t213 = nullable1 in let final void #t214 = #t210{self::Class1}.{self::Class1::[]=}(#t211, #t213) in #t213 : #t212{self::Class1};
+  let final self::Class3? #t215 = n3 in #t215.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t216 = #t215{self::Class3}.{self::Class3::[]}(nullable3) in #t216.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t217 = nullable2 in #t216{self::Class2}.{self::Class2::[]=}(#t217, #t216{self::Class2}.{self::Class2::[]}(#t217).{self::Class2::+}(0));
+  nullable2 = let final self::Class3? #t218 = n3 in #t218.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t219 = #t218{self::Class3}.{self::Class3::[]}(nullable3) in #t219.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t220 = nullable2 in let final self::Class2 #t221 = #t219{self::Class2}.{self::Class2::[]}(#t220).{self::Class2::+}(0) in let final void #t222 = #t219{self::Class2}.{self::Class2::[]=}(#t220, #t221) in #t221;
+  let final self::Class3? #t223 = n3 in #t223.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t224 = #t223{self::Class3}.{self::Class3::[]}(nullable3) in #t224.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t225 = nullable2 in #t224{self::Class2}.{self::Class2::[]=}(#t225, #t224{self::Class2}.{self::Class2::[]}(#t225).{self::Class2::+}(1));
+  nullable2 = let final self::Class3? #t226 = n3 in #t226.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t227 = #t226{self::Class3}.{self::Class3::[]}(nullable3) in #t227.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t228 = nullable2 in let final self::Class2 #t229 = #t227{self::Class2}.{self::Class2::[]}(#t228) in let final void #t230 = #t227{self::Class2}.{self::Class2::[]=}(#t228, #t229.{self::Class2::+}(1)) in #t229;
+  let final self::Class3? #t231 = n3 in #t231.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t232 = #t231{self::Class3}.{self::Class3::[]}(nullable3) in #t232.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t233 = nullable2 in let final self::Class2 #t234 = #t232{self::Class2}.{self::Class2::[]}(#t233).{self::Class2::+}(1) in let final void #t235 = #t232{self::Class2}.{self::Class2::[]=}(#t233, #t234) in #t234;
+  nullable2 = let final self::Class3? #t236 = n3 in #t236.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t237 = #t236{self::Class3}.{self::Class3::[]}(nullable3) in #t237.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2? #t238 = nullable2 in let final self::Class2 #t239 = #t237{self::Class2}.{self::Class2::[]}(#t238).{self::Class2::+}(1) in let final void #t240 = #t237{self::Class2}.{self::Class2::[]=}(#t238, #t239) in #t239;
 }
-static method operatorAccess(self::Class? c) → void {
-  self::throws(() → self::Class? => (let final self::Class? #t102 = c in #t102.{core::Object::==}(null) ?{self::Class?} null : #t102.{self::Class::field}).{self::Class::+}(0));
-  self::throws(() → self::Class? => (let final self::Class? #t103 = c in #t103.{core::Object::==}(null) ?{self::Class?} null : #t103.{self::Class::field}).{self::Class::unary-}());
-  let final self::Class? #t104 = c in #t104.{core::Object::==}(null) ?{self::Class?} null : #t104.{self::Class::field} = #t104.{self::Class::field}.{self::Class::+}(0);
-  c = let final self::Class? #t105 = c in #t105.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t106 = #t105.{self::Class::field}.{self::Class::+}(0) in let final void #t107 = #t105.{self::Class::field} = #t106 in #t106;
-  let final self::Class? #t108 = c in #t108.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t109 = #t108.{self::Class::field} in #t109.{self::Class::field} = #t109.{self::Class::field}.{self::Class::+}(0);
-  c = let final self::Class? #t110 = c in #t110.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t111 = #t110.{self::Class::field} in #t111.{self::Class::field} = #t111.{self::Class::field}.{self::Class::+}(0);
-  let final self::Class? #t112 = c in #t112.{core::Object::==}(null) ?{self::Class?} null : #t112.{self::Class::field} = #t112.{self::Class::field}.{self::Class::+}(1);
-  c = let final self::Class? #t113 = c in #t113.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t114 = #t113.{self::Class::field} in let final void #t115 = #t113.{self::Class::field} = #t114.{self::Class::+}(1) in #t114;
-  let final self::Class? #t116 = c in #t116.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t117 = #t116.{self::Class::field}.{self::Class::+}(1) in let final void #t118 = #t116.{self::Class::field} = #t117 in #t117;
-  c = let final self::Class? #t119 = c in #t119.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t120 = #t119.{self::Class::field}.{self::Class::+}(1) in let final void #t121 = #t119.{self::Class::field} = #t120 in #t120;
+static method operatorAccess(self::Class1? n1, self::Class2? n2) → void {
+  self::Class2? nullable2 = n2;
+  self::throws(() → self::Class1? => let final<BottomType> #t241 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:220:33: Error: Operator '+' cannot be called on 'Class1?' because it is potentially null.
+ - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
+  throws(() => n1?.nonNullable1 + 0);
+                                ^" in (let final self::Class1? #t242 = n1 in #t242.{core::Object::==}(null) ?{self::Class1?} null : #t242{self::Class1}.{self::Class1::nonNullable1}).{self::Class1::+}(0));
+  self::throws(() → self::Class1? => let final<BottomType> #t243 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:221:16: Error: Operator 'unary-' cannot be called on 'Class1?' because it is potentially null.
+ - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
+  throws(() => -n1?.nonNullable1);
+               ^" in (let final self::Class1? #t244 = n1 in #t244.{core::Object::==}(null) ?{self::Class1?} null : #t244{self::Class1}.{self::Class1::nonNullable1}).{self::Class1::unary-}());
+  let final self::Class2? #t245 = n2 in #t245.{core::Object::==}(null) ?{self::Class2?} null : #t245.{self::Class2::nonNullable2} = #t245.{self::Class2::nonNullable2}.{self::Class2::+}(0);
+  nullable2 = let final self::Class2? #t246 = n2 in #t246.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t247 = #t246.{self::Class2::nonNullable2}.{self::Class2::+}(0) in let final void #t248 = #t246.{self::Class2::nonNullable2} = #t247 in #t247;
+  let final self::Class2? #t249 = n2 in #t249.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t250 = #t249{self::Class2}.{self::Class2::nonNullable2} in #t250.{self::Class2::nonNullable2} = #t250.{self::Class2::nonNullable2}.{self::Class2::+}(0);
+  nullable2 = let final self::Class2? #t251 = n2 in #t251.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t252 = #t251{self::Class2}.{self::Class2::nonNullable2} in #t252.{self::Class2::nonNullable2} = #t252.{self::Class2::nonNullable2}.{self::Class2::+}(0);
+  let final self::Class2? #t253 = n2 in #t253.{core::Object::==}(null) ?{self::Class2?} null : #t253.{self::Class2::nonNullable2} = #t253.{self::Class2::nonNullable2}.{self::Class2::+}(1);
+  nullable2 = let final self::Class2? #t254 = n2 in #t254.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t255 = #t254.{self::Class2::nonNullable2} in let final void #t256 = #t254.{self::Class2::nonNullable2} = #t255.{self::Class2::+}(1) in #t255;
+  let final self::Class2? #t257 = n2 in #t257.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t258 = #t257.{self::Class2::nonNullable2}.{self::Class2::+}(1) in let final void #t259 = #t257.{self::Class2::nonNullable2} = #t258 in #t258;
+  nullable2 = let final self::Class2? #t260 = n2 in #t260.{core::Object::==}(null) ?{self::Class2?} null : let final self::Class2 #t261 = #t260.{self::Class2::nonNullable2}.{self::Class2::+}(1) in let final void #t262 = #t260.{self::Class2::nonNullable2} = #t261 in #t261;
 }
-static method ifNull(self::Class? c) → void {
-  let final self::Class? #t122 = c in #t122.{core::Object::==}(null) ?{self::Class?} null : #t122.{self::Class::field}.{core::Object::==}(null) ?{self::Class?} #t122.{self::Class::field} = c : null;
-  c = let final self::Class? #t123 = c in #t123.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t124 = #t123.{self::Class::field} in #t124.{core::Object::==}(null) ?{self::Class?} #t123.{self::Class::field} = c : #t124;
-  let final self::Class? #t125 = c in #t125.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t126 = #t125.{self::Class::field} in let final self::Class? #t127 = c in #t126.{self::Class::[]}(#t127).{core::Object::==}(null) ?{self::Class?} #t126.{self::Class::[]=}(#t127, c) : null;
+static method ifNull(self::Class1? n1) → void {
+  self::Class1? nullable1 = n1;
+  let final self::Class1? #t263 = n1 in #t263.{core::Object::==}(null) ?{self::Class1?} null : #t263.{self::Class1::nullable1}.{core::Object::==}(null) ?{self::Class1} #t263.{self::Class1::nullable1} = n1{self::Class1} : null;
+  n1 = let final self::Class1? #t264 = n1 in #t264.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t265 = #t264.{self::Class1::nullable1} in #t265.{core::Object::==}(null) ?{self::Class1} #t264.{self::Class1::nullable1} = n1{self::Class1} : #t265{self::Class1};
+  let final self::Class1? #t266 = n1 in #t266.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t267 = #t266{self::Class1}.{self::Class1::nonNullable1} in #t267{self::Class1}.{self::Class1::nullable1}.{core::Object::==}(null) ?{self::Class1} #t267{self::Class1}.{self::Class1::nullable1} = n1{self::Class1} : null;
+  n1 = let final self::Class1? #t268 = n1 in #t268.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t269 = #t268{self::Class1}.{self::Class1::nonNullable1} in let final self::Class1? #t270 = #t269{self::Class1}.{self::Class1::nullable1} in #t270.{core::Object::==}(null) ?{self::Class1} #t269{self::Class1}.{self::Class1::nullable1} = n1{self::Class1} : #t270{self::Class1};
+  let final self::Class1? #t271 = n1 in #t271.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1 #t272 = #t271{self::Class1}.{self::Class1::nonNullable1} in let final self::Class1 #t273 = n1{self::Class1} in #t272.{self::Class1::[]}(#t273).{core::Object::==}(null) ?{self::Class1} #t272.{self::Class1::[]=}(#t273, n1{self::Class1}) : null;
+  n1 = let final self::Class1? #t274 = n1 in #t274.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1 #t275 = #t274{self::Class1}.{self::Class1::nonNullable1} in let final self::Class1 #t276 = n1{self::Class1} in let final self::Class1? #t277 = #t275.{self::Class1::[]}(#t276) in #t277.{core::Object::==}(null) ?{self::Class1} let final self::Class1 #t278 = n1{self::Class1} in let final void #t279 = #t275.{self::Class1::[]=}(#t276, #t278) in #t278 : #t277{self::Class1};
 }
 static method throws(() → void f) → void {
   try {

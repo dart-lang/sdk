@@ -1,94 +1,77 @@
 library HistoryTest;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'dart:html';
 import 'dart:async';
 
 main() {
-  useHtmlIndividualConfiguration();
-
-  group('supported_state', () {
-    test('supportsState', () {
-      expect(History.supportsState, true);
-    });
-  });
-
-  group('supported_HashChangeEvent', () {
-    test('supported', () {
-      expect(HashChangeEvent.supported, true);
-    });
-  });
-
   var expectation = History.supportsState ? returnsNormally : throws;
 
-  group('history', () {
-    test('pushState', () {
-      expect(() {
-        window.history.pushState(null, document.title, '?dummy');
-        var length = window.history.length;
+  test('pushState', () {
+    expect(() {
+      window.history.pushState(null, document.title, '?dummy');
+      var length = window.history.length;
 
-        window.history.pushState(null, document.title, '?foo=bar');
+      window.history.pushState(null, document.title, '?foo=bar');
 
-        expect(window.location.href.endsWith('foo=bar'), isTrue);
-      }, expectation);
-    });
+      expect(window.location.href.endsWith('foo=bar'), isTrue);
+    }, expectation);
+  });
 
-    test('pushState with data', () {
-      expect(() {
-        window.history.pushState({'one': 1}, document.title, '?dummy');
-        expect(window.history.state, equals({'one': 1}));
-        window.history.pushState(null, document.title, '?foo=bar');
+  test('pushState with data', () {
+    expect(() {
+      window.history.pushState({'one': 1}, document.title, '?dummy');
+      expect(window.history.state, equals({'one': 1}));
+      window.history.pushState(null, document.title, '?foo=bar');
 
-        expect(window.location.href.endsWith('foo=bar'), isTrue);
-      }, expectation);
-    });
+      expect(window.location.href.endsWith('foo=bar'), isTrue);
+    }, expectation);
+  });
 
-    test('back', () {
-      expect(() {
-        window.history.pushState(null, document.title, '?dummy1');
-        window.history.pushState(null, document.title, '?dummy2');
-        var length = window.history.length;
+  test('back', () {
+    expect(() {
+      window.history.pushState(null, document.title, '?dummy1');
+      window.history.pushState(null, document.title, '?dummy2');
+      var length = window.history.length;
 
-        expect(window.location.href.endsWith('dummy2'), isTrue);
+      expect(window.location.href.endsWith('dummy2'), isTrue);
 
-        // Need to wait a frame or two to let the pushState events occur.
-        new Timer(const Duration(milliseconds: 100), expectAsync(() {
-          window.onPopState.first.then(expectAsync((_) {
-            expect(window.history.length, length);
-            expect(window.location.href.endsWith('dummy1'), isTrue);
-          }));
-
-          window.history.back();
+      // Need to wait a frame or two to let the pushState events occur.
+      new Timer(const Duration(milliseconds: 100), expectAsync(() {
+        window.onPopState.first.then(expectAsync((_) {
+          expect(window.history.length, length);
+          expect(window.location.href.endsWith('dummy1'), isTrue);
         }));
-      }, expectation);
-    });
 
-    test('replaceState', () {
-      expect(() {
-        var length = window.history.length;
+        window.history.back();
+      }));
+    }, expectation);
+  });
 
-        window.history.replaceState(null, document.title, '?foo=baz');
-        expect(window.history.length, length);
-        expect(window.location.href.endsWith('foo=baz'), isTrue);
-      }, expectation);
-    });
+  test('replaceState', () {
+    expect(() {
+      var length = window.history.length;
 
-    test('popstatevent', () {
-      expect(() {
-        var event = new Event.eventType('PopStateEvent', 'popstate');
-        expect(event is PopStateEvent, true);
-      }, expectation);
-    });
+      window.history.replaceState(null, document.title, '?foo=baz');
+      expect(window.history.length, length);
+      expect(window.location.href.endsWith('foo=baz'), isTrue);
+    }, expectation);
+  });
 
-    test('hashchangeevent', () {
-      var expectation = HashChangeEvent.supported ? returnsNormally : throws;
-      expect(() {
-        var event = new HashChangeEvent('change', oldUrl: 'old', newUrl: 'new');
-        expect(event is HashChangeEvent, true);
-        expect(event.oldUrl, 'old');
-        expect(event.newUrl, 'new');
-      }, expectation);
-    });
+  test('popstatevent', () {
+    expect(() {
+      var event = new Event.eventType('PopStateEvent', 'popstate');
+      expect(event is PopStateEvent, true);
+    }, expectation);
+  });
+
+  test('hashchangeevent', () {
+    var expectation = HashChangeEvent.supported ? returnsNormally : throws;
+    expect(() {
+      var event = new HashChangeEvent('change', oldUrl: 'old', newUrl: 'new');
+      expect(event is HashChangeEvent, true);
+      expect(event.oldUrl, 'old');
+      expect(event.newUrl, 'new');
+    }, expectation);
   });
 }

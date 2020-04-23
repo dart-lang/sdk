@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -22,7 +21,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../../../support/abstract_context.dart';
 import 'dart/dart_change_builder_mixin.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DartChangeBuilderImplTest);
     defineReflectiveTests(DartEditBuilderImplTest);
@@ -36,14 +35,13 @@ main() {
 @reflectiveTest
 class DartChangeBuilderImplTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  test_createFileEditBuilder() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_createFileEditBuilder() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'library test;');
-    DartChangeBuilderImpl builder = newBuilder();
-    DartFileEditBuilderImpl fileEditBuilder =
-        await builder.createFileEditBuilder(path);
+    var builder = newBuilder();
+    var fileEditBuilder = await builder.createFileEditBuilder(path);
     expect(fileEditBuilder, const TypeMatcher<DartFileEditBuilder>());
-    SourceFileEdit fileEdit = fileEditBuilder.fileEdit;
+    var fileEdit = fileEditBuilder.fileEdit;
     expect(fileEdit.file, path);
   }
 }
@@ -51,43 +49,43 @@ class DartChangeBuilderImplTest extends AbstractContextTest
 @reflectiveTest
 class DartEditBuilderImplTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  test_writeClassDeclaration_interfaces() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeClassDeclaration_interfaces() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeClassDeclaration('C', interfaces: [typeA]);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(
         edit.replacement, equalsIgnoringWhitespace('class C implements A { }'));
   }
 
-  test_writeClassDeclaration_isAbstract() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeClassDeclaration_isAbstract() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeClassDeclaration('C', isAbstract: true);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('abstract class C { }'));
   }
 
-  test_writeClassDeclaration_memberWriter() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeClassDeclaration_memberWriter() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder).writeClassDeclaration('C',
@@ -96,95 +94,93 @@ class DartEditBuilderImplTest extends AbstractContextTest
         });
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('class C { /**/}'));
   }
 
-  test_writeClassDeclaration_mixins_noSuperclass() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeClassDeclaration_mixins_noSuperclass() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeClassDeclaration('C', mixins: [typeA]);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement,
         equalsIgnoringWhitespace('class C extends Object with A { }'));
   }
 
-  test_writeClassDeclaration_mixins_superclass() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeClassDeclaration_mixins_superclass() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {} class B {}');
     DartType typeA = await _getType(path, 'A');
     DartType typeB = await _getType(path, 'B');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeClassDeclaration('C', mixins: [typeB], superclass: typeA);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement,
         equalsIgnoringWhitespace('class C extends A with B { }'));
   }
 
-  test_writeClassDeclaration_nameGroupName() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeClassDeclaration_nameGroupName() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeClassDeclaration('C', nameGroupName: 'name');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('class C { }'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 1);
     expect(group.positions, hasLength(1));
   }
 
-  test_writeClassDeclaration_superclass() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeClassDeclaration_superclass() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class B {}');
     DartType typeB = await _getType(path, 'B');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder).writeClassDeclaration('C',
             superclass: typeB, superclassGroupName: 'superclass');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('class C extends B { }'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 1);
     expect(group.positions, hasLength(1));
   }
 
-  test_writeConstructorDeclaration_bodyWriter() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeConstructorDeclaration_bodyWriter() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class C {}');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (DartFileEditBuilder builder) {
       builder.addInsertion(9, (DartEditBuilder builder) {
         builder.writeConstructorDeclaration('A', bodyWriter: () {
@@ -192,12 +188,12 @@ class DartEditBuilderImplTest extends AbstractContextTest
         });
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A() { print(42); }'));
   }
 
-  test_writeConstructorDeclaration_fieldNames() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeConstructorDeclaration_fieldNames() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, r'''
 class C {
   final int a;
@@ -205,21 +201,21 @@ class C {
 }
 ''');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (DartFileEditBuilder builder) {
       builder.addInsertion(42, (DartEditBuilder builder) {
         builder.writeConstructorDeclaration('A', fieldNames: ['a', 'bb']);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A(this.a, this.bb);'));
   }
 
-  test_writeConstructorDeclaration_initializerWriter() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeConstructorDeclaration_initializerWriter() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class C {}');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (DartFileEditBuilder builder) {
       builder.addInsertion(9, (DartEditBuilder builder) {
         builder.writeConstructorDeclaration('A', initializerWriter: () {
@@ -227,15 +223,15 @@ class C {
         });
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A() : super();'));
   }
 
-  test_writeConstructorDeclaration_parameterWriter() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeConstructorDeclaration_parameterWriter() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class C {}');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (DartFileEditBuilder builder) {
       builder.addInsertion(9, (DartEditBuilder builder) {
         builder.writeConstructorDeclaration('A', parameterWriter: () {
@@ -243,16 +239,16 @@ class C {
         });
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A(int a, {this.b});'));
   }
 
-  test_writeFieldDeclaration_initializerWriter() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeFieldDeclaration_initializerWriter() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeFieldDeclaration('f',
@@ -261,162 +257,161 @@ class C {
         });
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('var f = e;'));
   }
 
-  test_writeFieldDeclaration_isConst() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeFieldDeclaration_isConst() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeFieldDeclaration('f', isConst: true);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('const f;'));
   }
 
-  test_writeFieldDeclaration_isConst_isFinal() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeFieldDeclaration_isConst_isFinal() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeFieldDeclaration('f', isConst: true, isFinal: true);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('const f;'));
   }
 
-  test_writeFieldDeclaration_isConst_type() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeFieldDeclaration_isConst_type() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeFieldDeclaration('f', isConst: true, type: typeA);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('const A f;'));
   }
 
-  test_writeFieldDeclaration_isFinal() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeFieldDeclaration_isFinal() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeFieldDeclaration('f', isFinal: true);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('final f;'));
   }
 
-  test_writeFieldDeclaration_isFinal_type() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeFieldDeclaration_isFinal_type() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeFieldDeclaration('f', isFinal: true, type: typeA);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('final A f;'));
   }
 
-  test_writeFieldDeclaration_isStatic() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeFieldDeclaration_isStatic() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeFieldDeclaration('f', isStatic: true);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('static var f;'));
   }
 
-  test_writeFieldDeclaration_nameGroupName() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeFieldDeclaration_nameGroupName() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeFieldDeclaration('f', nameGroupName: 'name');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('var f;'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 1);
     expect(group.positions, hasLength(1));
-    Position position = group.positions[0];
+    var position = group.positions[0];
     expect(position.offset, equals(13));
   }
 
-  test_writeFieldDeclaration_type_typeGroupName() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {} class B {}';
+  Future<void> test_writeFieldDeclaration_type_typeGroupName() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {} class B {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeFieldDeclaration('f', type: typeA, typeGroupName: 'type');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A f;'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 1);
     expect(group.positions, hasLength(1));
-    Position position = group.positions[0];
+    var position = group.positions[0];
     expect(position.offset, equals(20));
   }
 
-  test_writeFunctionDeclaration_noReturnType_noParams_body() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = '';
+  Future<void>
+      test_writeFunctionDeclaration_noReturnType_noParams_body() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder).writeFunctionDeclaration('fib',
@@ -425,39 +420,40 @@ class C {
         });
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('fib() { ... }'));
   }
 
-  test_writeFunctionDeclaration_noReturnType_noParams_noBody() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = '';
+  Future<void>
+      test_writeFunctionDeclaration_noReturnType_noParams_noBody() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeFunctionDeclaration('fib', nameGroupName: 'name');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('fib() {}'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 3);
     expect(group.positions, hasLength(1));
   }
 
-  test_writeFunctionDeclaration_noReturnType_params_noBody() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = '';
+  Future<void>
+      test_writeFunctionDeclaration_noReturnType_params_noBody() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder).writeFunctionDeclaration('fib',
@@ -466,41 +462,41 @@ class C {
         });
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('fib(p, q, r) {}'));
   }
 
-  test_writeFunctionDeclaration_returnType_noParams_noBody() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void>
+      test_writeFunctionDeclaration_returnType_noParams_noBody() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
     DartType typeA = await _getType(path, 'A');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder).writeFunctionDeclaration('fib',
             returnType: typeA, returnTypeGroupName: 'type');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A fib() => null;'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 1);
     expect(group.positions, hasLength(1));
   }
 
-  test_writeGetterDeclaration_bodyWriter() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeGetterDeclaration_bodyWriter() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeGetterDeclaration('g',
@@ -509,87 +505,85 @@ class C {
         });
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('get g {}'));
   }
 
-  test_writeGetterDeclaration_isStatic() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeGetterDeclaration_isStatic() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeGetterDeclaration('g', isStatic: true);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('static get g => null;'));
   }
 
-  test_writeGetterDeclaration_nameGroupName() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeGetterDeclaration_nameGroupName() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeGetterDeclaration('g', nameGroupName: 'name');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('get g => null;'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 1);
     expect(group.positions, hasLength(1));
-    Position position = group.positions[0];
+    var position = group.positions[0];
     expect(position.offset, equals(13));
   }
 
-  test_writeGetterDeclaration_returnType() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {} class B {}';
+  Future<void> test_writeGetterDeclaration_returnType() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {} class B {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeGetterDeclaration('g',
             returnType: typeA, returnTypeGroupName: 'returnType');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A get g => null;'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 1);
     expect(group.positions, hasLength(1));
-    Position position = group.positions[0];
+    var position = group.positions[0];
     expect(position.offset, equals(20));
   }
 
-  test_writeLocalVariableDeclaration_noType_initializer() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = '''
+  Future<void> test_writeLocalVariableDeclaration_noType_initializer() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
 void f() {
 
 }''';
     addSource(path, content);
     await driver.getResult(path);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(11, (EditBuilder builder) {
         (builder as DartEditBuilder).writeLocalVariableDeclaration('foo',
@@ -598,90 +592,91 @@ void f() {
         });
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('var foo = null;'));
   }
 
-  test_writeLocalVariableDeclaration_noType_noInitializer() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = '''
+  Future<void> test_writeLocalVariableDeclaration_noType_noInitializer() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
 void f() {
 
 }''';
     addSource(path, content);
     await driver.getResult(path);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(11, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeLocalVariableDeclaration('foo', nameGroupName: 'name');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('var foo;'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 3);
     expect(group.positions, hasLength(1));
   }
 
-  test_writeLocalVariableDeclaration_noType_noInitializer_const() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = '''
+  Future<void>
+      test_writeLocalVariableDeclaration_noType_noInitializer_const() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
 void f() {
 
 }''';
     addSource(path, content);
     await driver.getResult(path);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(11, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeLocalVariableDeclaration('foo', isConst: true);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('const foo;'));
   }
 
-  test_writeLocalVariableDeclaration_noType_noInitializer_final() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = '''
+  Future<void>
+      test_writeLocalVariableDeclaration_noType_noInitializer_final() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
 void f() {
 
 }''';
     addSource(path, content);
     await driver.getResult(path);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(11, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeLocalVariableDeclaration('foo', isFinal: true);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('final foo;'));
   }
 
-  test_writeLocalVariableDeclaration_type_initializer() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = '''
+  Future<void> test_writeLocalVariableDeclaration_type_initializer() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
 void f() {
 
 }
 class MyClass {}''';
     addSource(path, content);
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
+    var unit = (await driver.getResult(path))?.unit;
 
-    ClassDeclaration A = unit.declarations[1] as ClassDeclaration;
+    var A = unit.declarations[1] as ClassDeclaration;
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(11, (EditBuilder builder) {
         (builder as DartEditBuilder).writeLocalVariableDeclaration(
@@ -696,23 +691,23 @@ class MyClass {}''';
         );
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('MyClass foo = null;'));
   }
 
-  test_writeLocalVariableDeclaration_type_noInitializer() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = '''
+  Future<void> test_writeLocalVariableDeclaration_type_noInitializer() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
 void f() {
 
 }
 class MyClass {}''';
     addSource(path, content);
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
+    var unit = (await driver.getResult(path))?.unit;
 
-    ClassDeclaration A = unit.declarations[1] as ClassDeclaration;
+    var A = unit.declarations[1] as ClassDeclaration;
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(11, (EditBuilder builder) {
         (builder as DartEditBuilder).writeLocalVariableDeclaration(
@@ -725,30 +720,30 @@ class MyClass {}''';
         );
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('MyClass foo;'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 7);
     expect(group.positions, hasLength(1));
   }
 
-  test_writeLocalVariableDeclaration_type_noInitializer_final() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = '''
+  Future<void>
+      test_writeLocalVariableDeclaration_type_noInitializer_final() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
 void f() {
 
 }
 class MyClass {}''';
     addSource(path, content);
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
+    var unit = (await driver.getResult(path))?.unit;
 
-    ClassDeclaration A = unit.declarations[1] as ClassDeclaration;
+    var A = unit.declarations[1] as ClassDeclaration;
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(11, (EditBuilder builder) {
         (builder as DartEditBuilder).writeLocalVariableDeclaration(
@@ -762,57 +757,57 @@ class MyClass {}''';
         );
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('final MyClass foo;'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 7);
     expect(group.positions, hasLength(1));
   }
 
-  test_writeMixinDeclaration_interfaces() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeMixinDeclaration_interfaces() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeMixinDeclaration('M', interfaces: [typeA]);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(
         edit.replacement, equalsIgnoringWhitespace('mixin M implements A { }'));
   }
 
-  test_writeMixinDeclaration_interfacesAndSuperclassConstraints() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void>
+      test_writeMixinDeclaration_interfacesAndSuperclassConstraints() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {} class B {}');
     DartType typeA = await _getType(path, 'A');
     DartType typeB = await _getType(path, 'B');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder).writeMixinDeclaration('M',
             interfaces: [typeA], superclassConstraints: [typeB]);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement,
         equalsIgnoringWhitespace('mixin M on B implements A { }'));
   }
 
-  test_writeMixinDeclaration_memberWriter() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeMixinDeclaration_memberWriter() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder).writeMixinDeclaration('M',
@@ -821,82 +816,81 @@ class MyClass {}''';
         });
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('mixin M { /**/}'));
   }
 
-  test_writeMixinDeclaration_nameGroupName() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeMixinDeclaration_nameGroupName() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeMixinDeclaration('M', nameGroupName: 'name');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('mixin M { }'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 1);
     expect(group.positions, hasLength(1));
   }
 
-  test_writeMixinDeclaration_superclassConstraints() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_writeMixinDeclaration_superclassConstraints() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeMixinDeclaration('M', superclassConstraints: [typeA]);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('mixin M on A { }'));
   }
 
-  test_writeParameter() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeParameter() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeParameter('a');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('a'));
   }
 
-  test_writeParameter_type() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeParameter_type() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeParameter('a', type: typeA);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A a'));
   }
 
-  test_writeParameterMatchingArgument() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = r'''
+  Future<void> test_writeParameterMatchingArgument() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = r'''
 f() {}
 g() {
   f(new A());
@@ -904,148 +898,142 @@ g() {
 class A {}
 ''';
     addSource(path, content);
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
-    FunctionDeclaration g = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body = g.functionExpression.body as BlockFunctionBody;
-    ExpressionStatement statement =
-        body.block.statements[0] as ExpressionStatement;
-    MethodInvocation invocation = statement.expression as MethodInvocation;
-    Expression argument = invocation.argumentList.arguments[0];
+    var unit = (await driver.getResult(path))?.unit;
+    var g = unit.declarations[1] as FunctionDeclaration;
+    var body = g.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var invocation = statement.expression as MethodInvocation;
+    var argument = invocation.argumentList.arguments[0];
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(2, (EditBuilder builder) {
         (builder as DartEditBuilder)
-            .writeParameterMatchingArgument(argument, 0, new Set<String>());
+            .writeParameterMatchingArgument(argument, 0, <String>{});
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A a'));
   }
 
-  test_writeParameters_named() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'f(int a, {bool b = false, String c}) {}';
+  Future<void> test_writeParameters_named() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'f(int a, {bool b = false, String c}) {}';
     addSource(path, content);
 
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
-    FunctionDeclaration f = unit.declarations[0] as FunctionDeclaration;
-    FormalParameterList parameters = f.functionExpression.parameters;
-    Iterable<ParameterElement> elements =
-        parameters.parameters.map((p) => p.declaredElement);
+    var unit = (await driver.getResult(path))?.unit;
+    var f = unit.declarations[0] as FunctionDeclaration;
+    var parameters = f.functionExpression.parameters;
+    var elements = parameters.parameters.map((p) => p.declaredElement);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeParameters(elements);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement,
         equalsIgnoringWhitespace('(int a, {bool b = false, String c})'));
   }
 
-  test_writeParameters_positional() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'f(int a, [bool b = false, String c]) {}';
+  Future<void> test_writeParameters_positional() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'f(int a, [bool b = false, String c]) {}';
     addSource(path, content);
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
-    FunctionDeclaration f = unit.declarations[0] as FunctionDeclaration;
-    FormalParameterList parameters = f.functionExpression.parameters;
-    Iterable<ParameterElement> elements =
-        parameters.parameters.map((p) => p.declaredElement);
+    var unit = (await driver.getResult(path))?.unit;
+    var f = unit.declarations[0] as FunctionDeclaration;
+    var parameters = f.functionExpression.parameters;
+    var elements = parameters.parameters.map((p) => p.declaredElement);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeParameters(elements);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement,
         equalsIgnoringWhitespace('(int a, [bool b = false, String c])'));
   }
 
-  test_writeParameters_required() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'f(int i, String s) {}';
+  Future<void> test_writeParameters_required() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'f(int i, String s) {}';
     addSource(path, content);
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
-    FunctionDeclaration f = unit.declarations[0] as FunctionDeclaration;
-    FormalParameterList parameters = f.functionExpression.parameters;
-    Iterable<ParameterElement> elements =
-        parameters.parameters.map((p) => p.declaredElement);
+    var unit = (await driver.getResult(path))?.unit;
+    var f = unit.declarations[0] as FunctionDeclaration;
+    var parameters = f.functionExpression.parameters;
+    var elements = parameters.parameters.map((p) => p.declaredElement);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeParameters(elements);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('(int i, String s)'));
   }
 
-  test_writeParametersMatchingArguments_named() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = '''
+  Future<void> test_writeParametersMatchingArguments_named() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
 f(int i, String s) {
   g(s, index: i);
 }''';
     addSource(path, content);
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
-    FunctionDeclaration f = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body = f.functionExpression.body as BlockFunctionBody;
-    ExpressionStatement statement =
-        body.block.statements[0] as ExpressionStatement;
-    MethodInvocation invocation = statement.expression as MethodInvocation;
+    var unit = (await driver.getResult(path))?.unit;
+    var f = unit.declarations[0] as FunctionDeclaration;
+    var body = f.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var invocation = statement.expression as MethodInvocation;
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeParametersMatchingArguments(invocation.argumentList);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('String s, {int index}'));
   }
 
-  test_writeParametersMatchingArguments_required() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = '''
+  Future<void> test_writeParametersMatchingArguments_required() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
 f(int i, String s) {
   g(s, i);
 }''';
     addSource(path, content);
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
-    FunctionDeclaration f = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body = f.functionExpression.body as BlockFunctionBody;
-    ExpressionStatement statement =
-        body.block.statements[0] as ExpressionStatement;
-    MethodInvocation invocation = statement.expression as MethodInvocation;
+    var unit = (await driver.getResult(path))?.unit;
+    var f = unit.declarations[0] as FunctionDeclaration;
+    var body = f.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var invocation = statement.expression as MethodInvocation;
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeParametersMatchingArguments(invocation.argumentList);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('String s, int i'));
   }
 
-  test_writeReference_method() async {
-    String aPath = convertPath('/a.dart');
+  Future<void> test_writeReference_method() async {
+    var aPath = convertPath('/a.dart');
     addSource(aPath, r'''
 class A {
   void foo() {}
 }
 ''');
 
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = r'''
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = r'''
 import 'a.dart';
 ''';
     addSource(path, content);
@@ -1053,88 +1041,88 @@ import 'a.dart';
     var aElement = await _getClassElement(aPath, 'A');
     var fooElement = aElement.methods[0];
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (DartFileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
         builder.writeReference(fooElement);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('foo'));
   }
 
-  test_writeReference_topLevel_hasImport_noPrefix() async {
-    String aPath = convertPath('/home/test/lib/a.dart');
+  Future<void> test_writeReference_topLevel_hasImport_noPrefix() async {
+    var aPath = convertPath('/home/test/lib/a.dart');
     addSource(aPath, 'const a = 42;');
 
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = r'''
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = r'''
 import 'a.dart';
 ''';
     addSource(path, content);
 
     var aElement = await _getTopLevelAccessorElement(aPath, 'a');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (DartFileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
         builder.writeReference(aElement);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('a'));
   }
 
-  test_writeReference_topLevel_hasImport_prefix() async {
-    String aPath = convertPath('/home/test/lib/a.dart');
+  Future<void> test_writeReference_topLevel_hasImport_prefix() async {
+    var aPath = convertPath('/home/test/lib/a.dart');
     addSource(aPath, 'const a = 42;');
 
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = r'''
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = r'''
 import 'a.dart' as p;
 ''';
     addSource(path, content);
 
     var aElement = await _getTopLevelAccessorElement(aPath, 'a');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (DartFileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
         builder.writeReference(aElement);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('p.a'));
   }
 
-  test_writeReference_topLevel_noImport() async {
-    String aPath = convertPath('/home/test/bin/a.dart');
+  Future<void> test_writeReference_topLevel_noImport() async {
+    var aPath = convertPath('/home/test/bin/a.dart');
     addSource(aPath, 'const a = 42;');
 
-    String path = convertPath('/home/test/bin/test.dart');
-    String content = '';
+    var path = convertPath('/home/test/bin/test.dart');
+    var content = '';
     addSource(path, content);
 
     var aElement = await _getTopLevelAccessorElement(aPath, 'a');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (DartFileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
         builder.writeReference(aElement);
       });
     });
-    List<SourceEdit> edits = getEdits(builder);
+    var edits = getEdits(builder);
     expect(edits, hasLength(2));
     expect(edits[0].replacement, equalsIgnoringWhitespace("import 'a.dart';"));
     expect(edits[1].replacement, equalsIgnoringWhitespace('a'));
   }
 
-  test_writeSetterDeclaration_bodyWriter() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeSetterDeclaration_bodyWriter() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeSetterDeclaration('s',
@@ -1143,181 +1131,176 @@ import 'a.dart' as p;
         });
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('set s(s) {/* TODO */}'));
   }
 
-  test_writeSetterDeclaration_isStatic() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeSetterDeclaration_isStatic() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeSetterDeclaration('s', isStatic: true);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('static set s(s) {}'));
   }
 
-  test_writeSetterDeclaration_nameGroupName() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeSetterDeclaration_nameGroupName() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeSetterDeclaration('s', nameGroupName: 'name');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('set s(s) {}'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 1);
     expect(group.positions, hasLength(1));
-    Position position = group.positions[0];
+    var position = group.positions[0];
     expect(position.offset, equals(13));
   }
 
-  test_writeSetterDeclaration_parameterType() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {} class B {}';
+  Future<void> test_writeSetterDeclaration_parameterType() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {} class B {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeSetterDeclaration('s',
             parameterType: typeA, parameterTypeGroupName: 'returnType');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('set s(A s) {}'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group.length, 1);
     expect(group.positions, hasLength(1));
-    Position position = group.positions[0];
+    var position = group.positions[0];
     expect(position.offset, equals(26));
   }
 
-  test_writeType_dynamic() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeType_dynamic() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
+    var unit = (await driver.getResult(path))?.unit;
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        var typeProvider = unit.declaredElement.context.typeProvider;
+        var typeProvider = unit.declaredElement.library.typeProvider;
         (builder as DartEditBuilder).writeType(typeProvider.dynamicType);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace(''));
   }
 
-  test_writeType_function() async {
+  Future<void> test_writeType_function() async {
     await _assertWriteType('int Function(double a, String b)');
   }
 
-  test_writeType_function_generic() async {
+  Future<void> test_writeType_function_generic() async {
     await _assertWriteType('T Function<T, U>(T a, U b)');
   }
 
-  test_writeType_function_noReturnType() async {
+  Future<void> test_writeType_function_noReturnType() async {
     await _assertWriteType('Function()');
   }
 
-  test_writeType_function_parameters_named() async {
+  Future<void> test_writeType_function_parameters_named() async {
     await _assertWriteType('int Function(int a, {int b, int c})');
   }
 
-  test_writeType_function_parameters_noName() async {
-    await _assertWriteType('int Function(double, String)');
+  Future<void> test_writeType_function_parameters_noName() async {
+    await _assertWriteType('int Function(double p1, String p2)');
   }
 
-  test_writeType_function_parameters_positional() async {
+  Future<void> test_writeType_function_parameters_positional() async {
     await _assertWriteType('int Function(int a, [int b, int c])');
   }
 
-  test_writeType_genericType() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {} class B<E> {}';
+  Future<void> test_writeType_genericType() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {} class B<E> {}';
     addSource(path, content);
-    InterfaceType typeA = await _getType(path, 'A');
-    InterfaceType typeBofA = await _getType(path, 'B', typeArguments: [typeA]);
+    var typeA = await _getType(path, 'A');
+    var typeBofA = await _getType(path, 'B', typeArguments: [typeA]);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeType(typeBofA);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('B<A>'));
   }
 
-  test_writeType_groupName() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {} class B extends A {} class C extends B {}';
+  Future<void> test_writeType_groupName() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {} class B extends A {} class C extends B {}';
     addSource(path, content);
     DartType typeC = await _getType(path, 'C');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeType(typeC, groupName: 'type');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('C'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
+    var group = linkedEditGroups[0];
     expect(group, isNotNull);
   }
 
-  test_writeType_groupName_addSupertypeProposals() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {} class B extends A {} class C extends B {}';
+  Future<void> test_writeType_groupName_addSupertypeProposals() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {} class B extends A {} class C extends B {}';
     addSource(path, content);
     DartType typeC = await _getType(path, 'C');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder)
             .writeType(typeC, addSupertypeProposals: true, groupName: 'type');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('C'));
 
-    List<LinkedEditGroup> linkedEditGroups =
-        builder.sourceChange.linkedEditGroups;
+    var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
-    LinkedEditGroup group = linkedEditGroups[0];
-    List<LinkedEditSuggestion> suggestions = group.suggestions;
+    var group = linkedEditGroups[0];
+    var suggestions = group.suggestions;
     expect(suggestions, hasLength(4));
-    Iterable<String> values =
-        suggestions.map((LinkedEditSuggestion suggestion) {
+    var values = suggestions.map((LinkedEditSuggestion suggestion) {
       expect(suggestion.kind, LinkedEditSuggestionKind.TYPE);
       return suggestion.value;
     });
@@ -1327,9 +1310,9 @@ import 'a.dart' as p;
     expect(values, contains('C'));
   }
 
-  test_writeType_groupName_invalidType() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A<T> {}';
+  Future<void> test_writeType_groupName_invalidType() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A<T> {}';
     addSource(path, content);
 
     var classA = await _getClassElement(path, 'A');
@@ -1348,32 +1331,32 @@ import 'a.dart' as p;
     expect(builder.sourceChange.linkedEditGroups, isEmpty);
   }
 
-  test_writeType_interface_typeArguments() async {
+  Future<void> test_writeType_interface_typeArguments() async {
     await _assertWriteType('Map<int, List<String>>');
   }
 
-  test_writeType_interface_typeArguments_allDynamic() async {
+  Future<void> test_writeType_interface_typeArguments_allDynamic() async {
     await _assertWriteType('Map');
   }
 
-  test_writeType_null() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeType_null() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeType(null);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace(''));
   }
 
-  test_writeType_prefixGenerator() async {
-    String aPath = convertPath('/home/test/lib/a.dart');
-    String bPath = convertPath('/home/test/lib/b.dart');
+  Future<void> test_writeType_prefixGenerator() async {
+    var aPath = convertPath('/home/test/lib/a.dart');
+    var bPath = convertPath('/home/test/lib/b.dart');
 
     addSource(aPath, r'''
 class A1 {}
@@ -1383,15 +1366,15 @@ class A2 {}
 class B {}
 ''');
 
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = '';
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '';
     addSource(path, content);
 
-    ClassElement a1 = await _getClassElement(aPath, 'A1');
-    ClassElement a2 = await _getClassElement(aPath, 'A2');
-    ClassElement b = await _getClassElement(bPath, 'B');
+    var a1 = await _getClassElement(aPath, 'A1');
+    var a2 = await _getClassElement(aPath, 'A2');
+    var b = await _getClassElement(bPath, 'B');
 
-    int nextPrefixIndex = 0;
+    var nextPrefixIndex = 0;
     String prefixGenerator(_) {
       return '_prefix${nextPrefixIndex++}';
     }
@@ -1418,7 +1401,7 @@ class B {}
         builder.write(' b;');
       });
     }, importPrefixGenerator: prefixGenerator);
-    List<SourceEdit> edits = getEdits(builder);
+    var edits = getEdits(builder);
     expect(edits, hasLength(2));
     expect(
         edits[0].replacement,
@@ -1430,148 +1413,148 @@ class B {}
             '_prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;'));
   }
 
-  test_writeType_required_dynamic() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeType_required_dynamic() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
+    var unit = (await driver.getResult(path))?.unit;
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        var typeProvider = unit.declaredElement.context.typeProvider;
+        var typeProvider = unit.declaredElement.library.typeProvider;
         (builder as DartEditBuilder)
             .writeType(typeProvider.dynamicType, required: true);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('var'));
   }
 
-  test_writeType_required_notNull() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeType_required_notNull() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeType(typeA, required: true);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A'));
   }
 
-  test_writeType_required_null() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeType_required_null() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeType(null, required: true);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('var'));
   }
 
-  test_writeType_simpleType() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeType_simpleType() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeType(typeA);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A'));
   }
 
-  test_writeType_typedef_typeArguments() async {
+  Future<void> test_writeType_typedef_typeArguments() async {
     await _assertWriteType('F<int, String>',
         declarations: 'typedef void F<T, U>(T t, U u);');
   }
 
-  test_writeType_void() async {
+  Future<void> test_writeType_void() async {
     await _assertWriteType('void Function()');
   }
 
-  test_writeTypes_empty() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeTypes_empty() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilderImpl).writeTypes([]);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, isEmpty);
   }
 
-  test_writeTypes_noPrefix() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {} class B {}';
+  Future<void> test_writeTypes_noPrefix() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {} class B {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
     DartType typeB = await _getType(path, 'B');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilderImpl).writeTypes([typeA, typeB]);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A, B'));
   }
 
-  test_writeTypes_null() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {}';
+  Future<void> test_writeTypes_null() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
     addSource(path, content);
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilderImpl).writeTypes(null);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, isEmpty);
   }
 
-  test_writeTypes_prefix() async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = 'class A {} class B {}';
+  Future<void> test_writeTypes_prefix() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {} class B {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
     DartType typeB = await _getType(path, 'B');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilderImpl)
             .writeTypes([typeA, typeB], prefix: 'implements ');
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('implements A, B'));
   }
 
   Future<void> _assertWriteType(String typeCode, {String declarations}) async {
-    String path = convertPath('/home/test/lib/test.dart');
-    String content = (declarations ?? '') + '$typeCode v;';
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = (declarations ?? '') + '$typeCode v;';
     addSource(path, content);
 
     var f = await _getTopLevelAccessorElement(path, 'v');
@@ -1582,18 +1565,18 @@ class B {}
         builder.writeType(f.returnType);
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, typeCode);
   }
 
   Future<ClassElement> _getClassElement(String path, String name) async {
-    UnitElementResult result = await driver.getUnitElement(path);
+    var result = await driver.getUnitElement(path);
     return result.element.getType(name);
   }
 
   Future<PropertyAccessorElement> _getTopLevelAccessorElement(
       String path, String name) async {
-    UnitElementResult result = await driver.getUnitElement(path);
+    var result = await driver.getUnitElement(path);
     return result.element.accessors.firstWhere((v) => v.name == name);
   }
 
@@ -1602,7 +1585,7 @@ class B {}
     String name, {
     List<DartType> typeArguments = const [],
   }) async {
-    ClassElement classElement = await _getClassElement(path, name);
+    var classElement = await _getClassElement(path, name);
     return classElement.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.star,
@@ -1613,61 +1596,61 @@ class B {}
 @reflectiveTest
 class DartFileEditBuilderImplTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  test_convertFunctionFromSyncToAsync_closure() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_convertFunctionFromSyncToAsync_closure() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '''var f = () {}''');
 
     var resolvedUnit = await driver.getResult(path);
     var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
     var body = findNode.functionBody('{}');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       (builder as DartFileEditBuilder)
           .convertFunctionFromSyncToAsync(body, resolvedUnit.typeProvider);
     });
-    List<SourceEdit> edits = getEdits(builder);
+    var edits = getEdits(builder);
     expect(edits, hasLength(1));
     expect(edits[0].replacement, equalsIgnoringWhitespace('async'));
   }
 
-  test_convertFunctionFromSyncToAsync_topLevelFunction() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_convertFunctionFromSyncToAsync_topLevelFunction() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'String f() {}');
 
     var resolvedUnit = await driver.getResult(path);
     var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
     var body = findNode.functionBody('{}');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       (builder as DartFileEditBuilder)
           .convertFunctionFromSyncToAsync(body, resolvedUnit.typeProvider);
     });
-    List<SourceEdit> edits = getEdits(builder);
+    var edits = getEdits(builder);
     expect(edits, hasLength(2));
     expect(edits[0].replacement, equalsIgnoringWhitespace('async'));
     expect(edits[1].replacement, equalsIgnoringWhitespace('Future<String>'));
   }
 
-  test_createEditBuilder() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_createEditBuilder() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'library test;');
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
-      int offset = 4;
-      int length = 5;
-      DartEditBuilderImpl editBuilder = (builder as DartFileEditBuilderImpl)
+      var offset = 4;
+      var length = 5;
+      var editBuilder = (builder as DartFileEditBuilderImpl)
           .createEditBuilder(offset, length);
       expect(editBuilder, const TypeMatcher<DartEditBuilder>());
-      SourceEdit sourceEdit = editBuilder.sourceEdit;
+      var sourceEdit = editBuilder.sourceEdit;
       expect(sourceEdit.length, length);
       expect(sourceEdit.offset, offset);
       expect(sourceEdit.replacement, isEmpty);
     });
   }
 
-  test_format_hasEdits() async {
+  Future<void> test_format_hasEdits() async {
     var initialCode = r'''
 void functionBefore() {
   1 +  2;
@@ -1719,7 +1702,7 @@ void functionAfter() {
 ''');
   }
 
-  test_format_noEdits() async {
+  Future<void> test_format_noEdits() async {
     var initialCode = r'''
 void functionBefore() {
   1 +  2;
@@ -1762,20 +1745,20 @@ void functionAfter() {
 ''');
   }
 
-  test_replaceTypeWithFuture() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_replaceTypeWithFuture() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'String f() {}');
 
     var resolvedUnit = await driver.getResult(path);
     var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
     var type = findNode.typeAnnotation('String');
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       (builder as DartFileEditBuilder)
           .replaceTypeWithFuture(type, resolvedUnit.typeProvider);
     });
-    List<SourceEdit> edits = getEdits(builder);
+    var edits = getEdits(builder);
     expect(edits, hasLength(1));
     expect(edits[0].replacement, equalsIgnoringWhitespace('Future<String>'));
   }
@@ -1783,23 +1766,23 @@ void functionAfter() {
 
 @reflectiveTest
 class DartLinkedEditBuilderImplTest extends AbstractContextTest {
-  test_addSuperTypesAsSuggestions() async {
-    String path = convertPath('/home/test/lib/test.dart');
+  Future<void> test_addSuperTypesAsSuggestions() async {
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '''
 class A {}
 class B extends A {}
 class C extends B {}
 ''');
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
-    ClassDeclaration classC = unit.declarations[2] as ClassDeclaration;
-    DartLinkedEditBuilderImpl builder = new DartLinkedEditBuilderImpl(null);
+    var unit = (await driver.getResult(path))?.unit;
+    var classC = unit.declarations[2] as ClassDeclaration;
+    var builder = DartLinkedEditBuilderImpl(null);
     builder.addSuperTypesAsSuggestions(
       classC.declaredElement.instantiate(
         typeArguments: [],
         nullabilitySuffix: NullabilitySuffix.star,
       ),
     );
-    List<LinkedEditSuggestion> suggestions = builder.suggestions;
+    var suggestions = builder.suggestions;
     expect(suggestions, hasLength(4));
     expect(suggestions.map((s) => s.value),
         unorderedEquals(['Object', 'A', 'B', 'C']));
@@ -1809,7 +1792,7 @@ class C extends B {}
 @reflectiveTest
 class ImportLibraryTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  test_dart_beforeDart() async {
+  Future<void> test_dart_beforeDart() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:aaa';
@@ -1824,7 +1807,7 @@ import 'dart:ccc';
     );
   }
 
-  test_dart_beforeDart_first() async {
+  Future<void> test_dart_beforeDart_first() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:bbb';
@@ -1837,7 +1820,7 @@ import 'dart:bbb';
     );
   }
 
-  test_dart_beforePackage() async {
+  Future<void> test_dart_beforePackage() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:foo/foo.dart';
@@ -1851,7 +1834,7 @@ import 'package:foo/foo.dart';
     );
   }
 
-  test_multiple_dart_then_package() async {
+  Future<void> test_multiple_dart_then_package() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:aaa';
@@ -1873,7 +1856,7 @@ import 'package:ccc/ccc.dart';
     );
   }
 
-  test_multiple_package_then_dart() async {
+  Future<void> test_multiple_package_then_dart() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:aaa';
@@ -1895,7 +1878,7 @@ import 'package:ccc/ccc.dart';
     );
   }
 
-  test_noDirectives_docComment() async {
+  Future<void> test_noDirectives_docComment() async {
     await _assertImportLibrary(
       initialCode: '''
 /// Documentation comment.
@@ -1913,7 +1896,7 @@ void main() {}
     );
   }
 
-  test_noDirectives_hashBang() async {
+  Future<void> test_noDirectives_hashBang() async {
     await _assertImportLibrary(
       initialCode: '''
 #!/bin/dart
@@ -1931,7 +1914,7 @@ void main() {}
     );
   }
 
-  test_noDirectives_lineComment() async {
+  Future<void> test_noDirectives_lineComment() async {
     await _assertImportLibrary(
       initialCode: '''
 // Not documentation comment.
@@ -1951,7 +1934,7 @@ void main() {}
     );
   }
 
-  test_noImports_afterLibrary_hasDeclaration() async {
+  Future<void> test_noImports_afterLibrary_hasDeclaration() async {
     await _assertImportLibrary(
       initialCode: '''
 library test;
@@ -1969,7 +1952,7 @@ class A {}
     );
   }
 
-  test_noImports_afterLibrary_hasPart() async {
+  Future<void> test_noImports_afterLibrary_hasPart() async {
     await _assertImportLibrary(
       initialCode: '''
 library test;
@@ -1988,7 +1971,7 @@ part 'a.dart';
     );
   }
 
-  test_noImports_beforePart() async {
+  Future<void> test_noImports_beforePart() async {
     await _assertImportLibrary(
       initialCode: '''
 part 'a.dart';
@@ -2003,7 +1986,7 @@ part 'a.dart';
     );
   }
 
-  test_package_afterDart() async {
+  Future<void> test_package_afterDart() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:async';
@@ -2017,7 +2000,7 @@ import 'package:aaa/aaa.dart';
     );
   }
 
-  test_package_afterPackage() async {
+  Future<void> test_package_afterPackage() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:aaa/a1.dart';
@@ -2034,7 +2017,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_afterPackage_leadingComment() async {
+  Future<void> test_package_afterPackage_leadingComment() async {
     await _assertImportLibrary(
       initialCode: '''
 // comment
@@ -2053,7 +2036,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_afterPackage_trailingComment() async {
+  Future<void> test_package_afterPackage_trailingComment() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:aaa/a1.dart'; // comment
@@ -2070,7 +2053,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_beforePackage() async {
+  Future<void> test_package_beforePackage() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:aaa/a1.dart';
@@ -2089,7 +2072,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_beforePackage_first() async {
+  Future<void> test_package_beforePackage_first() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:aaa/a2.dart';
@@ -2106,7 +2089,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_beforePackage_leadingComments() async {
+  Future<void> test_package_beforePackage_leadingComments() async {
     await _assertImportLibrary(
       initialCode: '''
 // comment a2
@@ -2125,7 +2108,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_beforePackage_trailingComments() async {
+  Future<void> test_package_beforePackage_trailingComments() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:aaa/a2.dart'; // comment a2
@@ -2142,7 +2125,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_beforeRelative() async {
+  Future<void> test_package_beforeRelative() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'foo.dart';
@@ -2156,7 +2139,7 @@ import 'foo.dart';
     );
   }
 
-  test_relative_afterDart() async {
+  Future<void> test_relative_afterDart() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:async';
@@ -2170,7 +2153,7 @@ import 'aaa.dart';
     );
   }
 
-  test_relative_afterPackage() async {
+  Future<void> test_relative_afterPackage() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:foo/foo.dart';
@@ -2184,7 +2167,7 @@ import 'aaa.dart';
     );
   }
 
-  test_relative_beforeRelative() async {
+  Future<void> test_relative_beforeRelative() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:async';
@@ -2207,7 +2190,7 @@ import 'ccc.dart';
     );
   }
 
-  test_relative_beforeRelative_first() async {
+  Future<void> test_relative_beforeRelative_first() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:async';
@@ -2228,7 +2211,7 @@ import 'bbb.dart';
     );
   }
 
-  test_relative_last() async {
+  Future<void> test_relative_last() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:async';
@@ -2251,9 +2234,9 @@ import 'aaa.dart';
     List<String> uriList,
     String expectedCode,
   }) async {
-    String path = convertPath('/home/test/lib/test.dart');
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, initialCode);
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (DartFileEditBuilder builder) {
       for (var i = 0; i < uriList.length; ++i) {
         var uri = Uri.parse(uriList[i]);
@@ -2261,9 +2244,9 @@ import 'aaa.dart';
       }
     });
 
-    String resultCode = initialCode;
-    List<SourceEdit> edits = getEdits(builder);
-    for (SourceEdit edit in edits) {
+    var resultCode = initialCode;
+    var edits = getEdits(builder);
+    for (var edit in edits) {
       resultCode = edit.apply(resultCode);
     }
     expect(resultCode, expectedCode);
@@ -2273,7 +2256,7 @@ import 'aaa.dart';
 @reflectiveTest
 class WriteOverrideTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  test_getter_abstract() async {
+  Future<void> test_getter_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2286,14 +2269,14 @@ class B extends A {
       expected: '''
   @override
   // TODO: implement zero
-  int get zero => null;
+  int get zero => throw UnimplementedError();
 ''',
       displayText: 'zero => …',
-      selection: new SourceRange(111, 4),
+      selection: SourceRange(111, 26),
     );
   }
 
-  test_getter_concrete() async {
+  Future<void> test_getter_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2310,11 +2293,11 @@ class B extends A {
   int get zero => super.zero;
 ''',
       displayText: 'zero => …',
-      selection: new SourceRange(107, 10),
+      selection: SourceRange(107, 10),
     );
   }
 
-  test_method_abstract() async {
+  Future<void> test_method_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2328,15 +2311,15 @@ class B extends A {
   @override
   A add(A a) {
     // TODO: implement add
-    return null;
+    throw UnimplementedError();
   }
 ''',
       displayText: 'add(A a) { … }',
-      selection: new SourceRange(111, 12),
+      selection: SourceRange(111, 27),
     );
   }
 
-  test_method_concrete() async {
+  Future<void> test_method_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2355,11 +2338,11 @@ class B extends A {
   }
 ''',
       displayText: 'add(A a) { … }',
-      selection: new SourceRange(110, 20),
+      selection: SourceRange(110, 20),
     );
   }
 
-  test_method_functionTypeAlias_abstract() async {
+  Future<void> test_method_functionTypeAlias_abstract() async {
     await _assertWriteOverride(
       content: '''
 typedef int F(int left, int right);
@@ -2380,7 +2363,7 @@ class B extends A {
     );
   }
 
-  test_method_functionTypeAlias_concrete() async {
+  Future<void> test_method_functionTypeAlias_concrete() async {
     await _assertWriteOverride(
       content: '''
 typedef int F(int left, int right);
@@ -2400,11 +2383,11 @@ class B extends A {
   }
 ''',
       displayText: 'perform(F f) { … }',
-      selection: new SourceRange(158, 17),
+      selection: SourceRange(158, 17),
     );
   }
 
-  test_method_functionTypedParameter_abstract() async {
+  Future<void> test_method_functionTypedParameter_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2418,15 +2401,15 @@ class B extends A {
   @override
   forEach(int Function(double p1, String p2) f) {
     // TODO: implement forEach
-    return null;
+    throw UnimplementedError();
   }
 ''',
       displayText: 'forEach(int Function(double p1, String p2) f) { … }',
-      selection: new SourceRange(176, 12),
+      selection: SourceRange(176, 27),
     );
   }
 
-  test_method_functionTypedParameter_concrete() async {
+  Future<void> test_method_functionTypedParameter_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2445,11 +2428,11 @@ class B extends A {
   }
 ''',
       displayText: 'forEach(int Function(double p1, String p2) f) { … }',
-      selection: new SourceRange(169, 24),
+      selection: SourceRange(169, 24),
     );
   }
 
-  test_method_generic_noBounds_abstract() async {
+  Future<void> test_method_generic_noBounds_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2463,15 +2446,15 @@ class B implements A {
   @override
   List<T> get<T>(T key) {
     // TODO: implement get
-    return null;
+    throw UnimplementedError();
   }
 ''',
       displayText: 'get<T>(T key) { … }',
-      selection: new SourceRange(136, 12),
+      selection: SourceRange(136, 27),
     );
   }
 
-  test_method_generic_noBounds_concrete() async {
+  Future<void> test_method_generic_noBounds_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2490,11 +2473,11 @@ class B implements A {
   }
 ''',
       displayText: 'get<T>(T key) { … }',
-      selection: new SourceRange(129, 22),
+      selection: SourceRange(129, 22),
     );
   }
 
-  test_method_generic_withBounds_abstract() async {
+  Future<void> test_method_generic_withBounds_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A<K1, V1> {
@@ -2508,15 +2491,15 @@ class B<K2, V2> implements A<K2, V2> {
   @override
   List<T> get<T extends V2>(K2 key) {
     // TODO: implement get
-    return null;
+    throw UnimplementedError();
   }
 ''',
       displayText: 'get<T extends V2>(K2 key) { … }',
-      selection: new SourceRange(184, 12),
+      selection: SourceRange(184, 27),
     );
   }
 
-  test_method_generic_withBounds_concrete() async {
+  Future<void> test_method_generic_withBounds_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A<K1, V1> {
@@ -2537,11 +2520,11 @@ class B<K2, V2> implements A<K2, V2> {
   }
 ''',
       displayText: 'get<T extends V2>(K2 key) { … }',
-      selection: new SourceRange(197, 22),
+      selection: SourceRange(197, 22),
     );
   }
 
-  test_method_genericFunctionTypedParameter_abstract() async {
+  Future<void> test_method_genericFunctionTypedParameter_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2555,15 +2538,15 @@ class B extends A {
   @override
   int foo(T Function<T>() fn) {
     // TODO: implement foo
-    return null;
+    throw UnimplementedError();
  }
 ''',
       displayText: 'foo(T Function<T>() fn) { … }',
-      selection: new SourceRange(145, 12),
+      selection: SourceRange(145, 27),
     );
   }
 
-  test_method_genericFunctionTypedParameter_concrete() async {
+  Future<void> test_method_genericFunctionTypedParameter_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2582,11 +2565,11 @@ class B extends A {
  }
 ''',
       displayText: 'foo(T Function<T>() fn) { … }',
-      selection: new SourceRange(141, 21),
+      selection: SourceRange(141, 21),
     );
   }
 
-  test_method_nullAsTypeArgument_abstract() async {
+  Future<void> test_method_nullAsTypeArgument_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2600,15 +2583,15 @@ class B extends A {
   @override
   List<Null> foo() {
     // TODO: implement foo
-    return null;
+    throw UnimplementedError();
  }
 ''',
       displayText: 'foo() { … }',
-      selection: new SourceRange(123, 12),
+      selection: SourceRange(123, 27),
     );
   }
 
-  test_method_nullAsTypeArgument_concrete() async {
+  Future<void> test_method_nullAsTypeArgument_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2627,11 +2610,11 @@ class B extends A {
  }
 ''',
       displayText: 'foo() { … }',
-      selection: new SourceRange(121, 19),
+      selection: SourceRange(121, 19),
     );
   }
 
-  test_method_returnVoid_abstract() async {
+  Future<void> test_method_returnVoid_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2648,11 +2631,11 @@ class B extends A {
   }
 ''',
       displayText: 'test() { … }',
-      selection: new SourceRange(109, 0),
+      selection: SourceRange(109, 0),
     );
   }
 
-  test_method_voidAsTypeArgument_abstract() async {
+  Future<void> test_method_voidAsTypeArgument_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2666,15 +2649,15 @@ class B extends A {
   @override
   List<void> foo() {
     // TODO: implement foo
-    return null;
+    throw UnimplementedError();
   }
 ''',
       displayText: 'foo() { … }',
-      selection: new SourceRange(123, 12),
+      selection: SourceRange(123, 27),
     );
   }
 
-  test_method_voidAsTypeArgument_concrete() async {
+  Future<void> test_method_voidAsTypeArgument_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2693,11 +2676,11 @@ class B extends A {
   }
 ''',
       displayText: 'foo() { … }',
-      selection: new SourceRange(122, 19),
+      selection: SourceRange(122, 19),
     );
   }
 
-  test_mixin_method_of_interface() async {
+  Future<void> test_mixin_method_of_interface() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2716,11 +2699,11 @@ mixin M implements A {
   }
 ''',
       displayText: 'foo(int a) { … }',
-      selection: new SourceRange(113, 0),
+      selection: SourceRange(113, 0),
     );
   }
 
-  test_mixin_method_of_superclassConstraint() async {
+  Future<void> test_mixin_method_of_superclassConstraint() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2741,11 +2724,11 @@ mixin M on A {
   }
 ''',
       displayText: 'foo(int a) { … }',
-      selection: new SourceRange(110, 13),
+      selection: SourceRange(110, 13),
     );
   }
 
-  test_setter_abstract() async {
+  Future<void> test_setter_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2762,11 +2745,11 @@ class B extends A {
   }
 ''',
       displayText: 'value(int value) { … }',
-      selection: new SourceRange(133, 0),
+      selection: SourceRange(133, 0),
     );
   }
 
-  test_setter_concrete() async {
+  Future<void> test_setter_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2785,20 +2768,18 @@ class B extends A {
   }
 ''',
       displayText: 'value(int value) { … }',
-      selection: new SourceRange(131, 20),
+      selection: SourceRange(131, 20),
     );
   }
 
-  /**
-   * Assuming that the [content] being edited defines a class named `A` whose
-   * member with the given [nameToOverride] to be overridden and has
-   * `class B extends A {...}` to which an inherited method is to be added,
-   * assert that the text of the overridden member matches the [expected] text
-   * (modulo white space). Assert that the generated display text matches the
-   * given [displayText]. If a [selection] is provided, assert that the
-   * generated selection range matches it.
-   */
-  _assertWriteOverride({
+  /// Assuming that the [content] being edited defines a class named `A` whose
+  /// member with the given [nameToOverride] to be overridden and has
+  /// `class B extends A {...}` to which an inherited method is to be added,
+  /// assert that the text of the overridden member matches the [expected] text
+  /// (modulo white space). Assert that the generated display text matches the
+  /// given [displayText]. If a [selection] is provided, assert that the
+  /// generated selection range matches it.
+  Future<void> _assertWriteOverride({
     String content,
     String nameToOverride,
     String expected,
@@ -2808,7 +2789,7 @@ class B extends A {
     String targetMixinName,
     bool invokeSuper = false,
   }) async {
-    String path = convertPath('/home/test/lib/test.dart');
+    var path = convertPath('/home/test/lib/test.dart');
     addSource(path, content);
 
     ClassElement targetElement;
@@ -2830,15 +2811,14 @@ class B extends A {
       nullabilitySuffix: NullabilitySuffix.star,
     );
 
-    var inherited = new InheritanceManager3().getInherited(
+    var inherited = InheritanceManager3().getInherited(
       targetType,
-      new Name(null, nameToOverride),
+      Name(null, nameToOverride),
     );
 
-    StringBuffer displayBuffer =
-        displayText != null ? new StringBuffer() : null;
+    var displayBuffer = displayText != null ? StringBuffer() : null;
 
-    DartChangeBuilderImpl builder = newBuilder();
+    var builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 2, (EditBuilder builder) {
         (builder as DartEditBuilder).writeOverride(
@@ -2848,7 +2828,7 @@ class B extends A {
         );
       });
     });
-    SourceEdit edit = getEdit(builder);
+    var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace(expected));
     expect(displayBuffer?.toString(), displayText);
     if (selection != null) {

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertDocumentationIntoLineTest);
   });
@@ -23,12 +23,12 @@ class ConvertDocumentationIntoLineTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.slash_for_doc_comments;
 
-  // More coverage in the `convert_to_documentation_line_test.dart` assist test.
-  test_onText() async {
+  /// More coverage in the `convert_to_documentation_line_test.dart` assist test.
+  Future<void> test_onText() async {
     await resolveTestUnit('''
 class A {
   /**
-   * /*LINT*/AAAAAAA [int] AAAAAAA
+   * AAAAAAA [int] AAAAAAA
    * BBBBBBBB BBBB BBBB
    * CCC [A] CCCCCCCCCCC
    */
@@ -37,7 +37,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  /// /*LINT*/AAAAAAA [int] AAAAAAA
+  /// AAAAAAA [int] AAAAAAA
   /// BBBBBBBB BBBB BBBB
   /// CCC [A] CCCCCCCCCCC
   mmm() {}

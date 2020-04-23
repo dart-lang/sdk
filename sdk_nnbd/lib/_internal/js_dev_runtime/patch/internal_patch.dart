@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:core' hide Symbol;
+import 'dart:core' as core show Symbol;
 import 'dart:_js_primitives' show printString;
 import 'dart:_js_helper' show patch;
 import 'dart:_interceptors' show JSArray;
@@ -48,5 +50,5 @@ List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList) {
 }
 
 @patch
-Object extractTypeArguments<T>(T instance, Function extract) =>
+Object? extractTypeArguments<T>(T instance, Function extract) =>
     dart.extractTypeArguments<T>(instance, extract);

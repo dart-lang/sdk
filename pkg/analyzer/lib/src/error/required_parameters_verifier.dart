@@ -141,6 +141,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   static String _requiredReason(ElementAnnotationImpl annotation) {
     DartObject constantValue = annotation.computeConstantValue();
-    return constantValue?.getField('reason')?.toStringValue();
+    String value = constantValue?.getField('reason')?.toStringValue();
+    return (value == null || value.isEmpty) ? null : value;
   }
 }

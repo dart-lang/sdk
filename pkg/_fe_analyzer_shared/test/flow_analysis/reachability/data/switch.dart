@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+enum MyEnum { a, b }
+
 void case_never_completes(bool b, int i) {
   switch (i) {
     case 1:
@@ -30,6 +32,17 @@ void all_cases_exit(int i) {
     case 1:
       return;
     default:
+      return;
+  }
+  /*stmt: unreachable*/ 1;
+}
+
+/*member: enum_no_default:doesNotComplete*/
+void enum_no_default(MyEnum e) {
+  switch (e) {
+    case MyEnum.a:
+      return;
+    case MyEnum.b:
       return;
   }
   /*stmt: unreachable*/ 1;

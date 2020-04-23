@@ -5,7 +5,7 @@
 
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -20,26 +20,25 @@ testMain() {
 
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
-  markDartColonLibrariesDebuggable,
   stoppedAtLine(18),
   stepInto,
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
-    expect(stack['frames'].length, greaterThan(3));
-
-    var frame = stack['frames'][0];
-    expect(frame.function.name, equals('_AsyncAwaitCompleter'));
-    expect(await frame.location.getLine(), greaterThan(0));
-    expect(await frame.location.getColumn(), greaterThan(0));
+    expect(stack['frames'].length, greaterThan(2));
 
     // We used to return a negative token position for this frame.
     // See issue #27128.
-    frame = stack['frames'][1];
-    expect(frame.function.name, equals('helper'));
-    expect(await frame.location.getLine(), equals(12));
-    expect(await frame.location.getColumn(), equals(16));
+    var frame = stack['frames'][0];
+    expect(frame.function.qualifiedName, equals('helper.async_op'));
+    if (useCausalAsyncStacks) {
+      expect(await frame.location.getLine(), equals(14));
+      expect(await frame.location.getColumn(), equals(1));
+    } else {
+      expect(await frame.location.getLine(), equals(12));
+      expect(await frame.location.getColumn(), equals(7));
+    }
 
-    frame = stack['frames'][2];
+    frame = stack['frames'][1];
     expect(frame.function.name, equals('testMain'));
     expect(await frame.location.getLine(), equals(18));
     expect(await frame.location.getColumn(), equals(3));

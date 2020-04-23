@@ -5,8 +5,12 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:meta/meta.dart';
 
 /// Description of a failure to find a valid override from superinterfaces.
 class Conflict {
@@ -38,7 +42,7 @@ class InheritanceManager3 {
 
   /// The set of classes that are currently being processed, used to detect
   /// self-referencing cycles.
-  final Set<ClassElement> _processingClasses = new Set<ClassElement>();
+  final Set<ClassElement> _processingClasses = <ClassElement>{};
 
   InheritanceManager3([@deprecated TypeSystem typeSystem]);
 
@@ -68,7 +72,7 @@ class InheritanceManager3 {
     if (interface._inheritedMap == null) {
       interface._inheritedMap = {};
       _findMostSpecificFromNamedCandidates(
-        type.element.library.typeSystem,
+        type.element,
         interface._inheritedMap,
         interface._overridden,
       );
@@ -94,30 +98,42 @@ class InheritanceManager3 {
       return Interface._empty;
     }
 
-    var typeSystem = classElement.library.typeSystem;
+    var classLibrary = classElement.library;
+    var isNonNullableByDefault = classLibrary.isNonNullableByDefault;
 
     Map<Name, List<ExecutableElement>> namedCandidates = {};
     List<Map<Name, ExecutableElement>> superImplemented = [];
     Map<Name, ExecutableElement> declared;
     Interface superInterface;
     Map<Name, ExecutableElement> implemented;
-    Map<Name, ExecutableElement> implementedForMixing;
     try {
       // If a class declaration has a member declaration, the signature of that
       // member declaration becomes the signature in the interface.
       declared = _getTypeMembers(type);
 
-      for (var interface in type.interfaces) {
+      for (var interface in type.interfaces.reversed) {
         var interfaceObj = getInterface(interface);
-        _addCandidates(namedCandidates, interfaceObj);
+        _addCandidates(
+          namedCandidates,
+          interfaceObj,
+          isNonNullableByDefault: isNonNullableByDefault,
+        );
       }
 
       if (classElement.isMixin) {
         var superClassCandidates = <Name, List<ExecutableElement>>{};
         for (var constraint in type.superclassConstraints) {
           var interfaceObj = getInterface(constraint);
-          _addCandidates(superClassCandidates, interfaceObj);
-          _addCandidates(namedCandidates, interfaceObj);
+          _addCandidates(
+            superClassCandidates,
+            interfaceObj,
+            isNonNullableByDefault: isNonNullableByDefault,
+          );
+          _addCandidates(
+            namedCandidates,
+            interfaceObj,
+            isNonNullableByDefault: isNonNullableByDefault,
+          );
         }
 
         implemented = {};
@@ -126,7 +142,7 @@ class InheritanceManager3 {
         // from its superclass constraints, whether it is abstract or concrete.
         var superClass = <Name, ExecutableElement>{};
         _findMostSpecificFromNamedCandidates(
-          typeSystem,
+          classElement,
           superClass,
           superClassCandidates,
         );
@@ -134,7 +150,11 @@ class InheritanceManager3 {
       } else {
         if (type.superclass != null) {
           superInterface = getInterface(type.superclass);
-          _addCandidates(namedCandidates, superInterface);
+          _addCandidates(
+            namedCandidates,
+            superInterface,
+            isNonNullableByDefault: isNonNullableByDefault,
+          );
 
           implemented = superInterface.implemented;
           superImplemented.add(implemented);
@@ -142,29 +162,31 @@ class InheritanceManager3 {
           implemented = {};
         }
 
-        implementedForMixing = {};
         for (var mixin in type.mixins) {
           var interfaceObj = getInterface(mixin);
-          _addCandidates(namedCandidates, interfaceObj);
+          _addCandidates(
+            namedCandidates,
+            interfaceObj,
+            isNonNullableByDefault: isNonNullableByDefault,
+          );
 
-          implemented = <Name, ExecutableElement>{}
-            ..addAll(implemented)
-            ..addAll(interfaceObj._implementedForMixing);
+          implemented = <Name, ExecutableElement>{}..addAll(implemented);
+          implemented.addEntries(
+            interfaceObj.implemented.entries.where((entry) {
+              var executable = entry.value;
+              if (executable.isAbstract) {
+                return false;
+              }
+              var class_ = executable.enclosingElement;
+              return class_ is ClassElement && !class_.isDartCoreObject;
+            }),
+          );
+
           superImplemented.add(implemented);
-          implementedForMixing.addAll(interfaceObj._implementedForMixing);
         }
       }
     } finally {
       _processingClasses.remove(classElement);
-    }
-
-    var thisImplemented = <Name, ExecutableElement>{};
-    _addImplemented(thisImplemented, type);
-
-    if (classElement.isMixin) {
-      implementedForMixing = thisImplemented;
-    } else {
-      implementedForMixing.addAll(thisImplemented);
     }
 
     implemented = <Name, ExecutableElement>{}..addAll(implemented);
@@ -176,14 +198,14 @@ class InheritanceManager3 {
     // super-interfaces that is a valid override of all the other
     // super-interface signatures with the same name. That "most specific"
     // signature becomes the signature of the class's interface.
-    Map<Name, ExecutableElement> map = new Map.of(declared);
+    Map<Name, ExecutableElement> map = Map.of(declared);
     List<Conflict> conflicts = _findMostSpecificFromNamedCandidates(
-      typeSystem,
+      classElement,
       map,
       namedCandidates,
     );
 
-    var noSuchMethodForwarders = Set<Name>();
+    var noSuchMethodForwarders = <Name>{};
     if (classElement.isAbstract) {
       if (superInterface != null) {
         noSuchMethodForwarders = superInterface._noSuchMethodForwarders;
@@ -202,12 +224,11 @@ class InheritanceManager3 {
       }
     }
 
-    var interface = new Interface._(
+    var interface = Interface._(
       map,
       declared,
       implemented,
       noSuchMethodForwarders,
-      implementedForMixing,
       namedCandidates,
       superImplemented,
       conflicts ?? const [],
@@ -230,9 +251,9 @@ class InheritanceManager3 {
   ExecutableElement getMember(
     InterfaceType type,
     Name name, {
-    bool concrete: false,
-    int forMixinIndex: -1,
-    bool forSuper: false,
+    bool concrete = false,
+    int forMixinIndex = -1,
+    bool forSuper = false,
   }) {
     var interface = getInterface(type);
     if (forSuper) {
@@ -261,23 +282,35 @@ class InheritanceManager3 {
     return interface._overridden[name];
   }
 
-  void _addCandidate(Map<Name, List<ExecutableElement>> namedCandidates,
-      Name name, ExecutableElement candidate) {
+  void _addCandidate(
+    Map<Name, List<ExecutableElement>> namedCandidates,
+    Name name,
+    ExecutableElement candidate, {
+    @required bool isNonNullableByDefault,
+  }) {
     var candidates = namedCandidates[name];
     if (candidates == null) {
       candidates = <ExecutableElement>[];
       namedCandidates[name] = candidates;
     }
 
+    if (!isNonNullableByDefault) {
+      candidate = Member.legacy(candidate);
+    }
+
     candidates.add(candidate);
   }
 
   void _addCandidates(
-      Map<Name, List<ExecutableElement>> namedCandidates, Interface interface) {
+    Map<Name, List<ExecutableElement>> namedCandidates,
+    Interface interface, {
+    @required bool isNonNullableByDefault,
+  }) {
     var map = interface.map;
     for (var name in map.keys) {
       var candidate = map[name];
-      _addCandidate(namedCandidates, name, candidate);
+      _addCandidate(namedCandidates, name, candidate,
+          isNonNullableByDefault: isNonNullableByDefault);
     }
   }
 
@@ -287,7 +320,7 @@ class InheritanceManager3 {
 
     void addMember(ExecutableElement member) {
       if (!member.isAbstract && !member.isStatic) {
-        var name = new Name(libraryUri, member.name);
+        var name = Name(libraryUri, member.name);
         implemented[name] = member;
       }
     }
@@ -338,7 +371,7 @@ class InheritanceManager3 {
         method ??= candidate;
       }
     }
-    return new Conflict(name, candidates, getter, method);
+    return Conflict(name, candidates, getter, method);
   }
 
   /// The given [namedCandidates] maps names to candidates from direct
@@ -347,9 +380,11 @@ class InheritanceManager3 {
   /// such single most specific signature (i.e. no valid override), then add a
   /// new conflict description.
   List<Conflict> _findMostSpecificFromNamedCandidates(
-      TypeSystemImpl typeSystem,
+      ClassElement targetClass,
       Map<Name, ExecutableElement> map,
       Map<Name, List<ExecutableElement>> namedCandidates) {
+    TypeSystemImpl typeSystem = targetClass.library.typeSystem;
+
     List<Conflict> conflicts;
 
     for (var name in namedCandidates.keys) {
@@ -377,28 +412,32 @@ class InheritanceManager3 {
       // candidates from [I1, I2, S, M1, M2]. But during method lookup
       // candidates should be considered in backward order, i.e. from `M2`,
       // then from `M1`, then from `S`.
-      ExecutableElement validOverride;
+      var validOverrides = <ExecutableElement>[];
       for (var i = candidates.length - 1; i >= 0; i--) {
-        validOverride = candidates[i];
+        var validOverride = candidates[i];
+        var overrideHelper = CorrectOverrideHelper(
+          library: targetClass.library,
+          thisMember: validOverride,
+        );
         for (var j = 0; j < candidates.length; j++) {
           var candidate = candidates[j];
-          if (!typeSystem.isOverrideSubtypeOf(
-              validOverride.type, candidate.type)) {
+          if (!overrideHelper.isCorrectOverrideOf(superMember: candidate)) {
             validOverride = null;
             break;
           }
         }
         if (validOverride != null) {
-          break;
+          validOverrides.add(validOverride);
         }
       }
 
-      if (validOverride != null) {
-        map[name] = validOverride;
-      } else {
+      if (validOverrides.isEmpty) {
         conflicts ??= <Conflict>[];
-        conflicts.add(new Conflict(name, candidates));
+        conflicts.add(Conflict(name, candidates));
+        continue;
       }
+
+      map[name] = _topMerge(typeSystem, targetClass, validOverrides);
     }
 
     return conflicts;
@@ -412,7 +451,7 @@ class InheritanceManager3 {
     for (var i = 0; i < methods.length; i++) {
       var method = methods[i];
       if (!method.isStatic) {
-        var name = new Name(libraryUri, method.name);
+        var name = Name(libraryUri, method.name);
         declared[name] = method;
       }
     }
@@ -421,12 +460,78 @@ class InheritanceManager3 {
     for (var i = 0; i < accessors.length; i++) {
       var accessor = accessors[i];
       if (!accessor.isStatic) {
-        var name = new Name(libraryUri, accessor.name);
+        var name = Name(libraryUri, accessor.name);
         declared[name] = accessor;
       }
     }
 
     return declared;
+  }
+
+  /// Given one or more [validOverrides], merge them into a single resulting
+  /// signature. This signature always exists.
+  ExecutableElement _topMerge(
+    TypeSystemImpl typeSystem,
+    ClassElement targetClass,
+    List<ExecutableElement> validOverrides,
+  ) {
+    var first = validOverrides[0];
+
+    if (validOverrides.length == 1) {
+      return first;
+    }
+
+    if (!typeSystem.isNonNullableByDefault) {
+      return first;
+    }
+
+    var firstType = first.type;
+    var allTypesEqual = true;
+    for (var executable in validOverrides) {
+      if (executable.type != firstType) {
+        allTypesEqual = false;
+        break;
+      }
+    }
+
+    if (allTypesEqual) {
+      return first;
+    }
+
+    FunctionType resultType;
+    for (var executable in validOverrides) {
+      var type = executable.type;
+      var normalizedType = typeSystem.normalize(type);
+      if (resultType == null) {
+        resultType = normalizedType;
+      } else {
+        resultType = typeSystem.topMerge(resultType, normalizedType);
+      }
+    }
+
+    for (var executable in validOverrides) {
+      if (executable.type == resultType) {
+        return executable;
+      }
+    }
+
+    if (first is MethodElement) {
+      var firstMethod = first;
+      var result = MethodElementImpl(firstMethod.name, -1);
+      result.enclosingElement = targetClass;
+      result.typeParameters = resultType.typeFormals;
+      result.returnType = resultType.returnType;
+      result.parameters = resultType.parameters;
+      return result;
+    } else {
+      var firstAccessor = first as PropertyAccessorElement;
+      var result = PropertyAccessorElementImpl(firstAccessor.name, -1);
+      result.enclosingElement = targetClass;
+      result.getter = firstAccessor.isGetter;
+      result.returnType = resultType.returnType;
+      result.parameters = resultType.parameters;
+      return result;
+    }
   }
 
   static bool _isDeclaredInObject(ExecutableElement element) {
@@ -443,8 +548,7 @@ class Interface {
     const {},
     const {},
     const {},
-    Set<Name>(),
-    const {},
+    <Name>{},
     const {},
     const [{}],
     const [],
@@ -461,10 +565,6 @@ class Interface {
 
   /// The set of names that are `noSuchMethod` forwarders in [implemented].
   final Set<Name> _noSuchMethodForwarders;
-
-  /// The map of names to their concrete implementations that can be mixed
-  /// when this type is used as a mixin.
-  final Map<Name, ExecutableElement> _implementedForMixing;
 
   /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
@@ -490,7 +590,6 @@ class Interface {
     this.declared,
     this.implemented,
     this._noSuchMethodForwarders,
-    this._implementedForMixing,
     this._overridden,
     this._superImplemented,
     this.conflicts,
@@ -517,14 +616,15 @@ class Name {
   final bool isPublic;
 
   /// The cached, pre-computed hash code.
+  @override
   final int hashCode;
 
   factory Name(Uri libraryUri, String name) {
     if (name.startsWith('_')) {
       var hashCode = JenkinsSmiHash.hash2(libraryUri.hashCode, name.hashCode);
-      return new Name._internal(libraryUri, name, false, hashCode);
+      return Name._internal(libraryUri, name, false, hashCode);
     } else {
-      return new Name._internal(null, name, true, name.hashCode);
+      return Name._internal(null, name, true, name.hashCode);
     }
   }
 

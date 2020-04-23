@@ -282,9 +282,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitCompilationUnit(CompilationUnit node) {
+    var nodeImpl = node as CompilationUnitImpl;
     var builder = LinkedNodeBuilder.compilationUnit(
       compilationUnit_declarations: _writeNodeList(node.declarations),
       compilationUnit_directives: _writeNodeList(node.directives),
+      compilationUnit_languageVersionMajor: nodeImpl.languageVersionMajor,
+      compilationUnit_languageVersionMinor: nodeImpl.languageVersionMinor,
       compilationUnit_scriptTag: node.scriptTag?.accept(this),
       informativeId: getInformativeId(node),
     );
@@ -823,6 +826,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
     builder.flags = AstBinaryFlags.encode(
       hasPeriod: node.period != null,
+      hasQuestion: node.question != null,
     );
     return builder;
   }
@@ -1484,6 +1488,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     return _ElementComponents(elementIndex, null);
   }
 
+  UnlinkedTokenType _getVarianceToken(TypeParameter parameter) {
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    var parameterImpl = parameter as TypeParameterImpl;
+    return parameterImpl.varianceKeyword != null
+        ? TokensWriter.astToBinaryTokenType(parameterImpl.varianceKeyword.type)
+        : null;
+  }
+
   int _indexOfElement(Element element) {
     return _linkingContext.indexOfElement(element);
   }
@@ -1624,7 +1637,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   void _storeTypedLiteral(LinkedNodeBuilder builder, TypedLiteral node,
-      {bool isMap: false, bool isSet: false}) {
+      {bool isMap = false, bool isSet = false}) {
     _storeExpression(builder, node);
     builder
       ..flags = AstBinaryFlags.encode(
@@ -1679,15 +1692,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     return _linkingContext.writeType(type);
   }
 
-  UnlinkedTokenType _getVarianceToken(TypeParameter parameter) {
-    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
-    // added to the interface.
-    var parameterImpl = parameter as TypeParameterImpl;
-    return parameterImpl.varianceKeyword != null
-        ? TokensWriter.astToBinaryTokenType(parameterImpl.varianceKeyword.type)
-        : null;
-  }
-
   /// Return `true` if the expression might be successfully serialized.
   ///
   /// This does not mean that the expression is constant, it just means that
@@ -1712,7 +1716,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     } else if (node.isOptionalNamed) {
       return LinkedNodeFormalParameterKind.optionalNamed;
     } else {
-      throw new StateError('Unknown kind of parameter');
+      throw StateError('Unknown kind of parameter');
     }
   }
 }

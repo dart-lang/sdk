@@ -591,7 +591,7 @@ function saveTimeline() {
   var defaultFilename = 'dart-timeline-' +
                         now.getFullYear() +
                         '-' +
-                        now.getMonth() +
+                        (now.getMonth() + 1) +
                         '-' +
                         now.getDate() +
                         '.json';

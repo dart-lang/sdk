@@ -11,7 +11,6 @@ import 'package:test/test.dart'
         greaterThan,
         group,
         isEmpty,
-        isFalse,
         isNotEmpty,
         isNotNull,
         isTrue,
@@ -102,63 +101,6 @@ main() {
           isNotNull);
     });
 
-    test('code from summary dependencies are marked external', () async {
-      Component component = (await compileScript(
-              'a() => print("hi"); main() {}',
-              fileName: 'a.dart'))
-          ?.component;
-      for (var lib in component.libraries) {
-        if (lib.importUri.scheme == 'dart') {
-          // ignore: DEPRECATED_MEMBER_USE
-          expect(lib.isExternal, isTrue);
-        }
-      }
-
-      // Pretend that the compiled code is a summary
-      var bytes = serializeComponent(component);
-      component = (await compileScript(
-              {
-                'b.dart': 'import "a.dart" as m; b() => m.a(); main() {}',
-                'summary.dill': bytes
-              },
-              fileName: 'b.dart',
-              inputSummaries: ['summary.dill']))
-          ?.component;
-
-      var aLib = component.libraries
-          .firstWhere((lib) => lib.importUri.path == '/a/b/c/a.dart');
-      // ignore: DEPRECATED_MEMBER_USE
-      expect(aLib.isExternal, isTrue);
-    });
-
-    test('code from linked dependencies are not marked external', () async {
-      Component component = (await compileScript(
-              'a() => print("hi"); main() {}',
-              fileName: 'a.dart'))
-          ?.component;
-      for (var lib in component.libraries) {
-        if (lib.importUri.scheme == 'dart') {
-          // ignore: DEPRECATED_MEMBER_USE
-          expect(lib.isExternal, isTrue);
-        }
-      }
-
-      var bytes = serializeComponent(component);
-      component = (await compileScript(
-              {
-                'b.dart': 'import "a.dart" as m; b() => m.a(); main() {}',
-                'link.dill': bytes
-              },
-              fileName: 'b.dart',
-              linkedDependencies: ['link.dill']))
-          ?.component;
-
-      var aLib = component.libraries
-          .firstWhere((lib) => lib.importUri.path == '/a/b/c/a.dart');
-      // ignore: DEPRECATED_MEMBER_USE
-      expect(aLib.isExternal, isFalse);
-    });
-
     // TODO(sigmund): add tests discovering libraries.json
   });
 
@@ -196,7 +138,7 @@ main() {
       sources['a.dill'] = serializeComponent(unitA);
 
       var unitBC = await compileUnit(['b.dart', 'c.dart'], sources,
-          inputSummaries: ['a.dill']);
+          additionalDills: ['a.dill']);
 
       // Pretend that the compiled code is a summary
       sources['bc.dill'] = serializeComponent(unitBC);
@@ -213,11 +155,11 @@ main() {
       }
 
       var unitD1 = await compileUnit(['d.dart'], sources,
-          inputSummaries: ['a.dill', 'bc.dill']);
+          additionalDills: ['a.dill', 'bc.dill']);
       checkDCallsC(unitD1);
 
       var unitD2 = await compileUnit(['d.dart'], sources,
-          inputSummaries: ['bc.dill', 'a.dill']);
+          additionalDills: ['bc.dill', 'a.dill']);
       checkDCallsC(unitD2);
     });
 

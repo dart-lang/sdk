@@ -3,16 +3,16 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == spec_parser ]
-built_in_identifier_prefix_test: Skip # A built-in identifier can _not_ be a prefix.
-closure_type_test: Pass # Marked as RuntimeError for all in language_2.status.
-const_native_factory_test: Skip # Uses `native`.
-deep_nesting_expression_test: Skip # JVM stack overflow.
-deep_nesting_statement_test: Skip # JVM stack overflow.
-double_invalid_test: Skip # Contains illegaly formatted double.
-issue_1751477_test: Skip # Times out: 9 levels, exponential blowup => 430 secs.
-large_class_declaration_test: Skip # JVM stack overflow.
+class/large_class_declaration_test: Skip # JVM stack overflow.
+closure/type_test: Pass # Marked as RuntimeError for all in language_2.status.
+const/native_factory_test: Skip # Uses `native`.
+double/invalid_test: Skip # Contains illegaly formatted double.
+identifier/built_in_prefix_test: Skip # A built-in identifier can _not_ be a prefix.
 nnbd/syntax/opt_out_nnbd_modifiers_test: Skip # Requires opt-out of NNBD.
 nnbd/syntax/pre_nnbd_modifiers_test: Skip # Requires opt-out of NNBD.
+regress/regress1751477_test: Skip # Times out: 9 levels, exponential blowup => 430 secs.
+syntax/deep_nesting_expression_test: Skip # JVM stack overflow.
+syntax/deep_nesting_statement_test: Skip # JVM stack overflow.
 variance: Skip # Not yet supported.
 vm/debug_break_enabled_vm_test/01: Fail # Uses debug break.
 vm/debug_break_enabled_vm_test/none: Fail # Uses debug break.

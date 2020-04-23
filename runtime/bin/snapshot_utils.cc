@@ -192,16 +192,35 @@ class ElfAppSnapshot : public AppSnapshot {
   const uint8_t* isolate_snapshot_instructions_;
 };
 
-static AppSnapshot* TryReadAppSnapshotElf(const char* script_name,
-                                          uint64_t file_offset) {
+static AppSnapshot* TryReadAppSnapshotElf(
+    const char* script_name,
+    uint64_t file_offset,
+    bool force_load_elf_from_memory = false) {
   const char* error = nullptr;
   const uint8_t *vm_data_buffer = nullptr, *vm_instructions_buffer = nullptr,
                 *isolate_data_buffer = nullptr,
                 *isolate_instructions_buffer = nullptr;
-  Dart_LoadedElf* handle =
-      Dart_LoadELF(script_name, file_offset, &error, &vm_data_buffer,
-                   &vm_instructions_buffer, &isolate_data_buffer,
-                   &isolate_instructions_buffer);
+  Dart_LoadedElf* handle = nullptr;
+  if (force_load_elf_from_memory) {
+    File* const file =
+        File::Open(/*namespc=*/nullptr, script_name, File::kRead);
+    if (file == nullptr) return nullptr;
+    MappedMemory* memory = file->Map(File::kReadOnly, /*position=*/0,
+                                     /*length=*/file->Length());
+    if (memory == nullptr) return nullptr;
+    const uint8_t* address =
+        reinterpret_cast<const uint8_t*>(memory->address());
+    handle =
+        Dart_LoadELF_Memory(address + file_offset, file->Length(), &error,
+                            &vm_data_buffer, &vm_instructions_buffer,
+                            &isolate_data_buffer, &isolate_instructions_buffer);
+    delete memory;
+    file->Release();
+  } else {
+    handle = Dart_LoadELF(script_name, file_offset, &error, &vm_data_buffer,
+                          &vm_instructions_buffer, &isolate_data_buffer,
+                          &isolate_instructions_buffer);
+  }
   if (handle == nullptr) {
     Syslog::PrintErr("Loading failed: %s\n", error);
     return nullptr;
@@ -310,7 +329,8 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
 
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
+AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name,
+                                          bool force_load_elf_from_memory) {
   if (File::GetType(nullptr, script_name, true) != File::kIsFile) {
     // If 'script_name' refers to a pipe, don't read to check for an app
     // snapshot since we cannot rewind if it isn't (and couldn't mmap it in
@@ -333,12 +353,15 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
   script_name = absolute_path.get();
 #endif
 
-  snapshot = TryReadAppSnapshotDynamicLibrary(script_name);
-  if (snapshot != nullptr) {
-    return snapshot;
+  if (!force_load_elf_from_memory) {
+    snapshot = TryReadAppSnapshotDynamicLibrary(script_name);
+    if (snapshot != nullptr) {
+      return snapshot;
+    }
   }
 
-  snapshot = TryReadAppSnapshotElf(script_name, /*file_offset=*/0);
+  snapshot = TryReadAppSnapshotElf(script_name, /*file_offset=*/0,
+                                   force_load_elf_from_memory);
   if (snapshot != nullptr) {
     return snapshot;
   }
@@ -486,28 +509,6 @@ void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
 #endif
 }
 
-void Snapshot::GenerateAppAOTAsBlobs(const char* snapshot_filename) {
-  uint8_t* vm_data_buffer = NULL;
-  intptr_t vm_data_size = 0;
-  uint8_t* vm_instructions_buffer = NULL;
-  intptr_t vm_instructions_size = 0;
-  uint8_t* isolate_data_buffer = NULL;
-  intptr_t isolate_data_size = 0;
-  uint8_t* isolate_instructions_buffer = NULL;
-  intptr_t isolate_instructions_size = 0;
-  Dart_Handle result = Dart_CreateAppAOTSnapshotAsBlobs(
-      &vm_data_buffer, &vm_data_size, &vm_instructions_buffer,
-      &vm_instructions_size, &isolate_data_buffer, &isolate_data_size,
-      &isolate_instructions_buffer, &isolate_instructions_size);
-  if (Dart_IsError(result)) {
-    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
-  }
-  WriteAppSnapshot(snapshot_filename, vm_data_buffer, vm_data_size,
-                   vm_instructions_buffer, vm_instructions_size,
-                   isolate_data_buffer, isolate_data_size,
-                   isolate_instructions_buffer, isolate_instructions_size);
-}
-
 static void StreamingWriteCallback(void* callback_data,
                                    const uint8_t* buffer,
                                    intptr_t size) {
@@ -524,8 +525,9 @@ void Snapshot::GenerateAppAOTAsAssembly(const char* snapshot_filename) {
     ErrorExit(kErrorExitCode, "Unable to open file %s for writing snapshot\n",
               snapshot_filename);
   }
-  Dart_Handle result =
-      Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file);
+  Dart_Handle result = Dart_CreateAppAOTSnapshotAsAssembly(
+      StreamingWriteCallback, file, /*strip=*/false,
+      /*debug_callback_data=*/nullptr);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }

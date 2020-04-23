@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
@@ -16,15 +17,16 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script
+  Directory dataDir = Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/constants/data'));
-  await runTests(dataDir,
-      args: args,
-      supportedMarkers: sharedMarkers,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const ConstantsDataComputer(), [analyzerConstantUpdate2018Config]));
+  await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+    return runTests<String>(dataDir,
+        args: args,
+        createUriForFileName: createUriForFileName,
+        onFailure: onFailure,
+        runTest: runTestFor(
+            const ConstantsDataComputer(), [analyzerConstantUpdate2018Config]));
+  });
 }
 
 class ConstantsDataComputer extends DataComputer<String> {
@@ -63,21 +65,25 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
   String _stringify(DartObject value) {
     var type = value.type;
     if (type is InterfaceType) {
-      if (type.isDartCoreNull) return 'Null()';
-      if (type.isDartCoreBool) return 'Bool(${value.toBoolValue()})';
-      if (type.isDartCoreString) return 'String(${value.toStringValue()})';
-      if (type.isDartCoreInt) return 'Int(${value.toIntValue()})';
-      if (type.isDartCoreDouble) return 'Double(${value.toDoubleValue()})';
-      if (type.isDartCoreSymbol) return 'Symbol(${value.toSymbolValue()})';
-      if (type.isDartCoreSet) {
+      if (type.isDartCoreNull) {
+        return 'Null()';
+      } else if (type.isDartCoreBool) {
+        return 'Bool(${value.toBoolValue()})';
+      } else if (type.isDartCoreString) {
+        return 'String(${value.toStringValue()})';
+      } else if (type.isDartCoreInt) {
+        return 'Int(${value.toIntValue()})';
+      } else if (type.isDartCoreDouble) {
+        return 'Double(${value.toDoubleValue()})';
+      } else if (type.isDartCoreSymbol) {
+        return 'Symbol(${value.toSymbolValue()})';
+      } else if (type.isDartCoreSet) {
         var elements = value.toSetValue().map(_stringify).join(',');
         return 'Set<${type.typeArguments[0]}>($elements)';
-      }
-      if (type.isDartCoreList) {
+      } else if (type.isDartCoreList) {
         var elements = value.toListValue().map(_stringify).join(',');
         return 'List<${type.typeArguments[0]}>($elements)';
-      }
-      if (type.isDartCoreMap) {
+      } else if (type.isDartCoreMap) {
         var typeArguments = type.typeArguments.join(',');
         var elements = value.toMapValue().entries.map((entry) {
           var key = _stringify(entry.key);
@@ -85,7 +91,12 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
           return '$key:$value';
         }).join(',');
         return 'Map<$typeArguments>($elements)';
+      } else {
+        // TODO(paulberry): Add `isDartCoreType` to properly recognize type
+        // literal constants.
+        return 'TypeLiteral(${value.toTypeValue()})';
       }
+      // TODO(paulberry): Support object constants.
     } else if (type is FunctionType) {
       var element = value.toFunctionValue();
       return 'Function(${element.name},type=${value.type})';

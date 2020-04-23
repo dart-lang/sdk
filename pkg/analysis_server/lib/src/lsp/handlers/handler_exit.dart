@@ -18,6 +18,7 @@ class ExitMessageHandler extends MessageHandler<void, void> {
     this.clientDidCallShutdown = false,
   }) : super(server);
 
+  @override
   Method get handlesMessage => Method.exit;
 
   @override
@@ -31,7 +32,7 @@ class ExitMessageHandler extends MessageHandler<void, void> {
     server.willExit = true;
 
     await server.shutdown();
-    new Future(() {
+    Future(() {
       exit(clientDidCallShutdown ? 0 : 1);
     });
     return success();

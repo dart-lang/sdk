@@ -258,8 +258,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
       PcDescriptors::Handle(zone, code.pc_descriptors());
   THR_Print("%s}\n", descriptors.ToCString());
 
-  const auto& instructions = Instructions::Handle(code.instructions());
-  const uword start = instructions.PayloadStart();
+  const uword start = code.PayloadStart();
   const uword base = FLAG_disassemble_relative ? 0 : start;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -330,24 +329,33 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
       ExceptionHandlers::Handle(zone, code.exception_handlers());
   THR_Print("%s}\n", handlers.ToCString());
 
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+  if (code.catch_entry_moves_maps() != Object::null()) {
+    THR_Print("Catch entry moves for function '%s' {\n", function_fullname);
+    CatchEntryMovesMapReader reader(
+        TypedData::Handle(code.catch_entry_moves_maps()));
+    reader.PrintEntries();
+    THR_Print("}\n");
+  }
+#endif  // defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+
   {
     THR_Print("Entry points for function '%s' {\n", function_fullname);
     THR_Print("  [code+0x%02" Px "] %" Px " kNormal\n",
               Code::entry_point_offset(CodeEntryKind::kNormal) - kHeapObjectTag,
-              Instructions::EntryPoint(instructions.raw()) - start + base);
+              code.EntryPoint() - start + base);
     THR_Print(
         "  [code+0x%02" Px "] %" Px " kMonomorphic\n",
         Code::entry_point_offset(CodeEntryKind::kMonomorphic) - kHeapObjectTag,
-        Instructions::MonomorphicEntryPoint(instructions.raw()) - start + base);
+        code.MonomorphicEntryPoint() - start + base);
     THR_Print(
         "  [code+0x%02" Px "] %" Px " kUnchecked\n",
         Code::entry_point_offset(CodeEntryKind::kUnchecked) - kHeapObjectTag,
-        Instructions::UncheckedEntryPoint(instructions.raw()) - start + base);
+        code.UncheckedEntryPoint() - start + base);
     THR_Print("  [code+0x%02" Px "] %" Px " kMonomorphicUnchecked\n",
               Code::entry_point_offset(CodeEntryKind::kMonomorphicUnchecked) -
                   kHeapObjectTag,
-              Instructions::MonomorphicUncheckedEntryPoint(instructions.raw()) -
-                  start + base);
+              code.MonomorphicUncheckedEntryPoint() - start + base);
     THR_Print("}\n");
   }
 
@@ -379,9 +387,6 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
         switch (kind) {
           case Code::kPcRelativeCall:
             skind = "pc-relative-call";
-            break;
-          case Code::kPcRelativeTailCall:
-            skind = "pc-relative-tail-call";
             break;
           case Code::kCallViaCode:
             skind = "call-via-code";
@@ -420,6 +425,7 @@ void Disassembler::DisassembleCode(const Function& function,
                                    const Code& code,
                                    bool optimized) {
   const char* function_fullname = function.ToFullyQualifiedCString();
+  LogBlock lb;
   DisassembleCodeHelper(function_fullname, code, optimized);
 }
 

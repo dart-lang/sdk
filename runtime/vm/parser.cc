@@ -204,9 +204,10 @@ void ParsedFunction::AllocateVariables() {
       tmp = Symbols::FromConcat(T, Symbols::OriginalParam(), variable->name());
 
       RELEASE_ASSERT(scope->LocalLookupVariable(tmp) == NULL);
-      raw_parameter =
-          new LocalVariable(variable->declaration_token_pos(),
-                            variable->token_pos(), tmp, variable->type());
+      raw_parameter = new LocalVariable(
+          variable->declaration_token_pos(), variable->token_pos(), tmp,
+          variable->type(), variable->parameter_type(),
+          variable->parameter_value());
       if (variable->is_explicit_covariant_parameter()) {
         raw_parameter->set_is_explicit_covariant_parameter();
       }
@@ -221,8 +222,17 @@ void ParsedFunction::AllocateVariables() {
         // them before call sites (in some shape or form).
         //
         // Since we are guaranteed to not need that, we tell the try/catch
-        // spilling mechanism not to care about this variable.
-        raw_parameter->set_is_captured_parameter(true);
+        // sync moves mechanism not to care about this variable.
+        //
+        // Receiver (this variable) is an exception from this rule because
+        // it is immutable and we don't reload captured it from the context but
+        // instead use raw_parameter to access it. This means we must still
+        // consider it when emitting the catch entry moves.
+        const bool is_receiver_var =
+            function().HasThisParameter() && receiver_var_ == variable;
+        if (!is_receiver_var) {
+          raw_parameter->set_is_captured_parameter(true);
+        }
 
       } else {
         raw_parameter->set_index(

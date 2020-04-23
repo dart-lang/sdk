@@ -21,9 +21,7 @@ convert/utf85_test: Skip # Pass, Slow Issue 20111.
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 html/*: SkipByDesign # dart:html not supported on VM.
-js/datetime_roundtrip_test: CompileTimeError
-js/null_test: CompileTimeError
-js/prototype_access_test: CompileTimeError
+js/*: SkipByDesign
 mirrors/deferred_type_test: CompileTimeError
 mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_bounded_test/01: MissingCompileTimeError
@@ -32,8 +30,6 @@ mirrors/generic_interface_test/01: MissingCompileTimeError
 mirrors/generics_test/01: MissingCompileTimeError
 mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
 mirrors/metadata_nested_constructor_call_test/none: CompileTimeError
-mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
-mirrors/native_class_test: SkipByDesign # Imports dart:html
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/redirecting_factory_test/01: RuntimeError
 mirrors/redirecting_factory_test/none: RuntimeError
@@ -82,5 +78,93 @@ mirrors/library_uri_package_test: RuntimeError
 [ $runtime == vm && ($arch == simarm || $arch == simarmv6) ]
 convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
+[ $arch == simarm || $arch == simarm64 || $hot_reload || $hot_reload_rollback ]
+convert/chunked_conversion_utf88_test: SkipSlow
+convert/streamed_conversion_json_utf8_decode_test: SkipSlow
+convert/utf85_test: SkipSlow
+
 [ $arch == simarmv6 || $arch == simarm && $runtime == vm ]
 convert/chunked_conversion_utf88_test: Skip # Pass, Slow Issue 12644.
+
+[ $hot_reload || $hot_reload_rollback ]
+isolate/bool_from_environment_default_value_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/capability_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/compile_time_error_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/count_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/cross_isolate_message_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/enum_const_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/error_at_spawn_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/error_at_spawnuri_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/error_exit_at_spawn_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/error_exit_at_spawnuri_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/exit_at_spawn_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/exit_at_spawnuri_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/function_send1_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/function_send_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/handle_error2_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/handle_error3_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/handle_error_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/illegal_msg_function_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/illegal_msg_mirror_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/int32_length_overflow_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/int_from_environment_default_value_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/isolate_complex_messages_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/isolate_current_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/isolate_import_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/issue_21398_parent_isolate1_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/issue_21398_parent_isolate2_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/issue_21398_parent_isolate_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/issue_22778_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/issue_35626_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/issue_6610_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/kill2_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/kill_self_synchronously_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/kill_self_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/kill_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/large_byte_data_leak_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/large_byte_data_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/mandel_isolate_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/message2_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/message3_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/message4_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/message_const_type_arguments_1_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/message_const_type_arguments_2_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/message_enum_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/message_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/mint_maker_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/native_wrapper_message_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/nested_spawn2_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/nested_spawn_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/non_fatal_exception_in_timer_callback_test/none: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/non_fatal_exception_in_timer_callback_test/sleep: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/object_leak_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/ondone_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/pause_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/ping_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/port_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/raw_port_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/regress_34752_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/regress_flutter_22796_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/request_reply_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/resolve_package_uri_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/send_private_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/simple_message_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/spawn_function_custom_class_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/spawn_function_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/spawn_generic_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/spawn_uri_exported_main_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/spawn_uri_missing_from_isolate_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/spawn_uri_missing_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/spawn_uri_multi_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/spawn_uri_nested_vm_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/spawn_uri_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/spawn_uri_vm_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/start_paused_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/string_from_environment_default_value_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/timer_isolate_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/timer_multiple_isolates_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/transferable_failed_to_send_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/transferable_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/typed_message_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/unresolved_ports_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/vm_rehash_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.

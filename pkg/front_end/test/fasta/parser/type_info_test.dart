@@ -2923,6 +2923,11 @@ class TypeInfoListener implements Listener {
     calls.add('handleVoidKeyword $token');
   }
 
+  @override
+  void handleVoidKeywordWithTypeArguments(Token token) {
+    calls.add('handleVoidKeywordWithTypeArguments $token');
+  }
+
   noSuchMethod(Invocation invocation) {
     throw '${invocation.memberName} should not be called.';
   }

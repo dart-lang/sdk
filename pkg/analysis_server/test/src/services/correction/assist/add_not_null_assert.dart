@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddNotNullAssert);
   });
@@ -19,7 +19,7 @@ class AddNotNullAssert extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.ADD_NOT_NULL_ASSERT;
 
-  test_function_expressionBody_noAssert() async {
+  Future<void> test_function_expressionBody_noAssert() async {
     await resolveTestUnit('''
 int double(int x) => x * 2;
 ''');
@@ -27,7 +27,7 @@ int double(int x) => x * 2;
     await assertNoAssistAt('x');
   }
 
-  test_function_noAssert() async {
+  Future<void> test_function_noAssert() async {
     await resolveTestUnit('''
 foo(int x) {
 }
@@ -39,7 +39,7 @@ foo(int x) {
 ''');
   }
 
-  test_function_withAssert() async {
+  Future<void> test_function_withAssert() async {
     await resolveTestUnit('''
 foo(int x) {
   assert(x != null);
@@ -48,7 +48,7 @@ foo(int x) {
     await assertNoAssistAt('x');
   }
 
-  test_function_withAssert2() async {
+  Future<void> test_function_withAssert2() async {
     await resolveTestUnit('''
 foo(int x) {
   print('foo');
@@ -58,7 +58,7 @@ foo(int x) {
     await assertNoAssistAt('x');
   }
 
-  test_method_noAssert() async {
+  Future<void> test_method_noAssert() async {
     await resolveTestUnit('''
 class A {
   foo(int x) {

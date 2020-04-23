@@ -59,6 +59,7 @@ class Precedence {
 
   const Precedence._(this._index);
 
+  @override
   int get hashCode => _index.hashCode;
 
   /// Returns `true` if this precedence represents a looser binding than

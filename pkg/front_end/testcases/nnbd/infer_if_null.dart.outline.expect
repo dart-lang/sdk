@@ -1,0 +1,53 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A2 extends core::Object {
+  field core::String? foo;
+  synthetic constructor •() → self::A2
+    ;
+}
+class A5 extends core::Object {
+  synthetic constructor •() → self::A5
+    ;
+  operator []=(core::int index, core::String? value) → void
+    ;
+  operator [](core::int index) → core::String?
+    ;
+}
+class B5 extends self::A5 {
+  synthetic constructor •() → self::B5
+    ;
+  method test5() → dynamic
+    ;
+}
+class A7 extends core::Object {
+  field core::String foo;
+  field core::String? bar;
+  synthetic constructor •() → self::A7
+    ;
+}
+extension E6 on core::double {
+  operator []= = self::E6|[]=;
+  operator [] = self::E6|[];
+}
+static method hest1<T extends core::Object? = dynamic>() → self::hest1::T%
+  ;
+static method test1() → dynamic
+  ;
+static method test2(self::A2 a) → dynamic
+  ;
+static method test3() → dynamic
+  ;
+static method test4() → dynamic
+  ;
+static method E6|[]=(final core::double #this, core::int index, core::String? value) → void
+  ;
+static method E6|[](final core::double #this, core::int index) → core::String?
+  ;
+static method test6() → dynamic
+  ;
+static method test7(self::A7? a) → dynamic
+  ;
+static method main() → dynamic
+  ;

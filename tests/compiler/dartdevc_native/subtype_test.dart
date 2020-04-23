@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 import 'dart:async';
 
 import 'runtime_utils.dart';
@@ -29,11 +31,13 @@ void main() {
   checkProperSubtype(Null, A);
 
   // FutureOr<Null> <: Future<Null>
-  checkSubtype(generic1(FutureOr, Null), generic1(Future, Null));
+  checkSubtype(futureOrOf(Null), generic1(Future, Null));
+  // Future<Null> <: FutureOr<Null>
+  checkSubtype(generic1(Future, Null), futureOrOf(Null));
   // Future<B> <: FutureOr<A>
-  checkProperSubtype(generic1(Future, B), generic1(FutureOr, A));
+  checkProperSubtype(generic1(Future, B), futureOrOf(A));
   // B <: <: FutureOr<A>
-  checkProperSubtype(B, generic1(FutureOr, A));
+  checkProperSubtype(B, futureOrOf(A));
   // Future<B> <: Future<A>
   checkProperSubtype(generic1(Future, B), generic1(Future, A));
   // B <: A
@@ -111,16 +115,15 @@ void main() {
   // Bound is a FutureOr.
   // <T extends FutureOr<B>> void -> void <:
   //    <T extends FutureOr<B>> void -> void
-  checkSubtype(genericFunction(generic1(FutureOr, B)),
-      genericFunction(generic1(FutureOr, B)));
+  checkSubtype(genericFunction(futureOrOf(B)), genericFunction(futureOrOf(B)));
 
   // <T extends FutureOr<B>> A -> T <: <T extends FutureOr<B>> B -> T
-  checkProperSubtype(functionGenericReturn(generic1(FutureOr, B), A),
-      functionGenericReturn(generic1(FutureOr, B), B));
+  checkProperSubtype(functionGenericReturn(futureOrOf(B), A),
+      functionGenericReturn(futureOrOf(B), B));
 
   // <T extends FutureOr<B>> T -> B <: <T extends FutureOr<B>> T -> A
-  checkProperSubtype(functionGenericArg(generic1(FutureOr, B), B),
-      functionGenericArg(generic1(FutureOr, B), A));
+  checkProperSubtype(functionGenericArg(futureOrOf(B), B),
+      functionGenericArg(futureOrOf(B), A));
 
   // D <: D<B>
   checkSubtype(D, generic1(D, B));

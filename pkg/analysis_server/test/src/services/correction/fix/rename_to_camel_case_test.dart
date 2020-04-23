@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameToCamelCaseTest);
   });
@@ -23,10 +23,10 @@ class RenameToCamelCaseTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.non_constant_identifier_names;
 
-  test_localVariable() async {
+  Future<void> test_localVariable() async {
     await resolveTestUnit('''
 main() {
-  int /*LINT*/my_integer_variable = 42;
+  int my_integer_variable = 42;
   int foo;
   print(my_integer_variable);
   print(foo);
@@ -34,7 +34,7 @@ main() {
 ''');
     await assertHasFix('''
 main() {
-  int /*LINT*/myIntegerVariable = 42;
+  int myIntegerVariable = 42;
   int foo;
   print(myIntegerVariable);
   print(foo);
@@ -42,70 +42,70 @@ main() {
 ''');
   }
 
-  test_parameter_closure() async {
+  Future<void> test_parameter_closure() async {
     await resolveTestUnit('''
 main() {
-  [0, 1, 2].forEach((/*LINT*/my_integer_variable) {
+  [0, 1, 2].forEach((my_integer_variable) {
     print(my_integer_variable);
   });
 }
 ''');
     await assertHasFix('''
 main() {
-  [0, 1, 2].forEach((/*LINT*/myIntegerVariable) {
+  [0, 1, 2].forEach((myIntegerVariable) {
     print(myIntegerVariable);
   });
 }
 ''');
   }
 
-  test_parameter_function() async {
+  Future<void> test_parameter_function() async {
     await resolveTestUnit('''
-main(int /*LINT*/my_integer_variable) {
+main(int my_integer_variable) {
   print(my_integer_variable);
 }
 ''');
     await assertHasFix('''
-main(int /*LINT*/myIntegerVariable) {
+main(int myIntegerVariable) {
   print(myIntegerVariable);
 }
 ''');
   }
 
-  test_parameter_method() async {
+  Future<void> test_parameter_method() async {
     await resolveTestUnit('''
 class A {
-  main(int /*LINT*/my_integer_variable) {
+  main(int my_integer_variable) {
     print(my_integer_variable);
   }
 }
 ''');
     await assertHasFix('''
 class A {
-  main(int /*LINT*/myIntegerVariable) {
+  main(int myIntegerVariable) {
     print(myIntegerVariable);
   }
 }
 ''');
   }
 
-  test_parameter_optionalNamed() async {
+  Future<void> test_parameter_optionalNamed() async {
     await resolveTestUnit('''
-foo({int /*LINT*/my_integer_variable}) {
+foo({int my_integer_variable}) {
   print(my_integer_variable);
 }
 ''');
     await assertNoFix();
   }
 
-  test_parameter_optionalPositional() async {
+  Future<void> test_parameter_optionalPositional() async {
     await resolveTestUnit('''
-main([int /*LINT*/my_integer_variable]) {
+main([int my_integer_variable]) {
   print(my_integer_variable);
 }
 ''');
     await assertHasFix('''
-main([int /*LINT*/myIntegerVariable]) {
+main([int myIntegerVariable]) {
   print(myIntegerVariable);
 }
 ''');

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test for positive and negative uses of named declarations. This file is
 // also used in tests/compiler/dart2js/model/native_test.dart.
 

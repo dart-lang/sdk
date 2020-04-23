@@ -43,7 +43,7 @@ application_snapshot("dartdevc") {
       # some regressions in type-promotion in the CFE when nnbd is enabled.
       # The following test file is pretty simple and has no imports, so it
       # should be easier to compile while we bootstrap NNBD.
-      rebase_path("../../tests/language_2/abstract_equal_test.dart"),
+      rebase_path("../../tests/language_2/abstract/equal_test.dart"),
     ]
   } else {
     training_args += [ rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart") ]
@@ -54,9 +54,7 @@ application_snapshot("dartdevc") {
     ":dartdevc_platform",
   ]
 
-  inputs = [
-    sdk_outline_dill,
-  ]
+  inputs = [ sdk_outline_dill ]
 }
 
 # TODO(#38701) Cleanup after merging the forked SDK into mainline.
@@ -98,17 +96,13 @@ template("dart2js_compile") {
   abs_output = rebase_path(out)
 
   prebuilt_dart_action(target_name) {
-    deps = [
-      "../compiler:compile_dart2js_platform",
-    ]
+    deps = [ "../compiler:compile_dart2js_platform" ]
 
     inputs = sdk_lib_files + compiler_files + dev_compiler_files + [
                "$root_out_dir/dart2js_platform.dill",
                "$root_out_dir/dart2js_outline.dill",
              ]
-    outputs = [
-      out,
-    ]
+    outputs = [ out ]
 
     script = "../../pkg/compiler/lib/src/dart2js.dart"
 
@@ -132,8 +126,6 @@ dart2js_compile("stack_trace_mapper") {
 # Apply dev_compiler's patch files to create the Dart version of the dartdevc
 # SDK.
 prebuilt_dart_action("dartdevc_patch_sdk") {
-  # TODO(rnystrom): Unfork DDC's patch_sdk.dart script with the
-  # tools/patch_sdk.dart and then change this to use generate_patch_sdk().
   deps = [
     ":dartdevc_files_stamp",
     ":dartdevc_sdk_patch_stamp",
@@ -145,106 +137,25 @@ prebuilt_dart_action("dartdevc_patch_sdk") {
 
   script = "../../pkg/dev_compiler/tool/patch_sdk.dart"
 
-  # The main SDK library sources.
   inputs = sdk_lib_files
-
-  # dev_compiler's additional sources and patch files.
-  inputs += exec_script("../../tools/list_dart_files.py",
-                        [
-                          "absolute",
-                          rebase_path("$sdk_root/lib/_internal/js_dev_runtime"),
-                        ],
-                        "list lines")
 
   # Arbitrarily use the version file as a token file to check against to see if
   # the sources have changed.
   # TODO(rnystrom): List the outputs more precisely?
-  outputs = [
-    "$patched_sdk_dir/version",
-  ]
+  outputs = [ "$patched_sdk_dir/version" ]
 
   args = [
-    rebase_path("../../"),
-    rebase_path("$sdk_root/lib/_internal/js_dev_runtime"),
-    rebase_path(patched_sdk_dir),
+    "--libraries",
+    rebase_path("$sdk_root/lib/libraries.json"),
+    "--target",
+    "dartdevc",
+    "--out",
+    rebase_path("$patched_sdk_dir/"),
   ]
 
   # TODO(#38701) Cleanup after merging the forked SDK into mainline.
   if (use_nnbd) {
-    args += [ "sdk_nnbd" ]
-  }
-}
-
-# Compiles the Dart core libraries and DDC runtime to an analyzer summary and
-# JS.
-prebuilt_dart_action("dartdevc_sdk") {
-  deps = [
-    ":dartdevc_files_stamp",
-    ":dartdevc_patch_sdk",
-    "../../pkg:pkg_files_stamp",
-  ]
-
-  script = "../../pkg/dev_compiler/tool/build_sdk.dart"
-
-  inputs = [
-    "../../pkg/dev_compiler/tool/build_sdk.dart",
-
-    # Since the entire patched SDK is built in one step, if any file changes,
-    # they all will. Instead of listing them all as outputs of
-    # dartdevc_patch_sdk (which would require something like a depfile), just
-    # use version as the token file whose timestamp we track.
-    # TODO(rnystrom): Do something better?
-    "$patched_sdk_dir/version",
-
-    # If dev_compiler itself changes, it can affect the generated SDK.
-    "$target_gen_dir/dartdevc_files.stamp",
-
-    # Likewise, the packages dev_compiler depends on may affect its output.
-    "$root_gen_dir/pkg_files.stamp",
-  ]
-
-  outputs = [
-    sdk_summary,
-    "$target_gen_dir/js/amd/dart_sdk.js",
-    "$target_gen_dir/js/amd/dart_sdk.js.map",
-    "$target_gen_dir/js/common/dart_sdk.js",
-    "$target_gen_dir/js/common/dart_sdk.js.map",
-    "$target_gen_dir/js/es6/dart_sdk.js",
-    "$target_gen_dir/js/es6/dart_sdk.js.map",
-    "$target_gen_dir/js/legacy/dart_sdk.js",
-    "$target_gen_dir/js/legacy/dart_sdk.js.map",
-  ]
-
-  args = [
-    "--dart-sdk",
-    rebase_path(patched_sdk_dir),
-    "--dart-sdk-summary=build",
-    "--summary-out",
-    rebase_path(sdk_summary),
-    "--source-map",
-    "--source-map-comment",
-    "--modules=amd",
-    "-o",
-    rebase_path("$target_gen_dir/js/amd/dart_sdk.js"),
-    "--modules=es6",
-    "-o",
-    rebase_path("$target_gen_dir/js/es6/dart_sdk.js"),
-    "--modules=common",
-    "-o",
-    rebase_path("$target_gen_dir/js/common/dart_sdk.js"),
-    "--modules=legacy",
-    "-o",
-    rebase_path("$target_gen_dir/js/legacy/dart_sdk.js"),
-  ]
-
-  # TODO(38701): Cleanup after merging the forked SDK into mainline.
-  if (use_nnbd) {
-    args += [
-      "--enable-experiment=non-nullable",
-
-      # TODO(38813): Ignore incorrect analyzer errors.
-      "--unsafe-force-compile",
-    ]
+    args += [ "--nnbd" ]
   }
 }
 
@@ -253,9 +164,7 @@ group("dartdevc_test") {
   deps = [
     ":dartdevc",
     ":dartdevc_kernel_sdk",
-    ":dartdevc_sdk",
     ":dartdevc_test_kernel_pkg",
-    ":dartdevc_test_legacy_pkg",
     "../..:create_sdk",
   ]
 }
@@ -266,9 +175,7 @@ group("dartdevc_test") {
 group("dartdevc_test_local") {
   deps = [
     ":dartdevc_kernel_sdk",
-    ":dartdevc_sdk",
     ":dartdevc_test_kernel_pkg",
-    ":dartdevc_test_legacy_pkg",
   ]
 }
 
@@ -289,72 +196,6 @@ create_timestamp_file("dartdevc_sdk_patch_stamp") {
   output = "$target_gen_dir/dartdevc_sdk_patch_stamp.stamp"
 }
 
-# Compiles the packages used by the tests to JS with dartdevc so that they are
-# available for loading by the tests.
-prebuilt_dart_action("dartdevc_test_legacy_pkg") {
-  deps = [
-    ":dartdevc_files_stamp",
-    ":dartdevc_sdk",
-    "../../pkg:pkg_files_stamp",
-  ]
-
-  inputs = [
-    sdk_summary,
-    "$target_gen_dir/dartdevc_files.stamp",
-    "$root_gen_dir/pkg_files.stamp",
-  ]
-
-  outputs = [
-    "$target_gen_dir/pkg/async_helper.js",
-    "$target_gen_dir/pkg/async_helper.sum",
-    "$target_gen_dir/pkg/collection.js",
-    "$target_gen_dir/pkg/collection.sum",
-    "$target_gen_dir/pkg/expect.js",
-    "$target_gen_dir/pkg/expect.sum",
-    "$target_gen_dir/pkg/js.js",
-    "$target_gen_dir/pkg/js.sum",
-    "$target_gen_dir/pkg/matcher.js",
-    "$target_gen_dir/pkg/matcher.sum",
-    "$target_gen_dir/pkg/meta.js",
-    "$target_gen_dir/pkg/meta.sum",
-    "$target_gen_dir/pkg/path.js",
-    "$target_gen_dir/pkg/path.sum",
-    "$target_gen_dir/pkg/stack_trace.js",
-    "$target_gen_dir/pkg/stack_trace.sum",
-
-    # TODO(rnystrom): Remove this when unittest is no longer used. Also remove
-    # any of the above packages that are only here because unittest uses them.
-    "$target_gen_dir/pkg/unittest.js",
-    "$target_gen_dir/pkg/unittest.sum",
-  ]
-
-  script = "../../pkg/dev_compiler/tool/build_pkgs.dart"
-
-  args = [
-    "--analyzer-sdk",
-    rebase_path(sdk_summary),
-    "--output",
-    rebase_path("$target_gen_dir"),
-  ]
-
-  # TODO(38701): Cleanup after merging the forked SDK into mainline.
-  if (use_nnbd) {
-    args += [
-      # TODO(sigmund): reenable. We turned this off temporarily while the
-      # migration of libraries is in flux, this step otherwise fails
-      # with many nnbd-related compile-time errors because the packages are
-      # assumed to be nnbd compilant.
-      #  "--enable-experiment=non-nullable",
-
-      # TODO(rnystrom): Most of the packages used by tests can be cleanly
-      # compiled as opted-in libraries, but js.dart has an optional parameter
-      # of type String with no default value. Changing that would be a breaking
-      # API change. For now, ignore the error.
-      "--unsafe-force-compile",
-    ]
-  }
-}
-
 # Compiles to JavaScript any package used from tests.
 # TODO(sigmund): generate a js bundle or a module that load these indirectly so
 # we can stop referring to this list of packages explicitly in the test_runner.
@@ -368,7 +209,6 @@ group("dartdevc_test_kernel_pkg") {
     ":meta_js",
     ":path_js",
     ":stack_trace_js",
-    ":unittest_js",
   ]
 }
 
@@ -383,10 +223,6 @@ template("dartdevc_kernel_compile") {
   #   * package_dependencies: the name of other packages this package depends
   #     on. When providing `name`, a separate `dartdevc_kernel_compile` target
   #     named `${name}_js` must exist.
-  #   * nnbd_disabled: whether to disable the non-nullable experiment under the
-  #     NNBD build. This is used temporariy until we either migrate the packages
-  #     or add support to read the language version information from the package
-  #     itself.
   #   * args: additional args to pass to dartdevc
 
   prebuilt_dart_action(target_name) {
@@ -439,15 +275,9 @@ template("dartdevc_kernel_compile") {
       args += invoker.args
     }
 
-    # TODO(sigmund): remove nnbd_disabled. We turned this off temporarily while
-    # the migration of libraries is in flux, this step otherwise fails with many
-    # nnbd-related compile-time errors because the packages are assumed to be
-    # nnbd compilant.
-    if (!defined(invoker.nnbd_disabled) || !invoker.nnbd_disabled) {
-      # TODO(38701): Cleanup after merging the forked SDK into mainline.
-      if (use_nnbd) {
-        args += [ "--enable-experiment=non-nullable" ]
-      }
+    # TODO(38701): Cleanup after merging the forked SDK into mainline.
+    if (use_nnbd) {
+      args += [ "--enable-experiment=non-nullable" ]
     }
   }
 }
@@ -458,7 +288,6 @@ dartdevc_kernel_compile("async_helper_js") {
 
 dartdevc_kernel_compile("collection_js") {
   package = "collection"
-  nnbd_disabled = true
 }
 
 dartdevc_kernel_compile("expect_js") {
@@ -474,7 +303,6 @@ dartdevc_kernel_compile("js_js") {
 dartdevc_kernel_compile("matcher_js") {
   package = "matcher"
   package_dependencies = [ "stack_trace" ]
-  nnbd_disabled = true
 }
 
 dartdevc_kernel_compile("meta_js") {
@@ -483,29 +311,11 @@ dartdevc_kernel_compile("meta_js") {
 
 dartdevc_kernel_compile("path_js") {
   package = "path"
-  nnbd_disabled = true
 }
 
 dartdevc_kernel_compile("stack_trace_js") {
   package = "stack_trace"
   package_dependencies = [ "path" ]
-  nnbd_disabled = true
-}
-
-# TODO(rnystrom): Remove this when unittest is no longer used. Also remove
-# any of the above packages that are only here because unittest uses them.
-dartdevc_kernel_compile("unittest_js") {
-  package = "unittest"
-  package_dependencies = [
-    "path",
-    "stack_trace",
-  ]
-  extra_libraries = [
-    "html_config",
-    "html_individual_config",
-    "html_enhanced_config",
-  ]
-  nnbd_disabled = true
 }
 
 compile_platform("dartdevc_platform") {

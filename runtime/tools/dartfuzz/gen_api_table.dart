@@ -21,146 +21,275 @@ import 'package:analyzer/dart/element/type.dart';
 
 import 'gen_util.dart';
 
-// Class to represent a library method by name and prototype representation.
+// Enum for different restrictions on parameters for library methods.
+// none - No restriction on the corresponding parameter.
+// small - Corresponding parameter should be a small value.
+// This enum has an equivalent enum in the generated Dartfuzz API table.
+enum Restriction { none, small }
+
+// Class that represents Dart library methods.
+//
+// Proto is a list (of Strings that represent DartTypes) whose first element is
+// the DartType of the receiver (DartType.VOID if none). The remaining elements
+// are DartTypes of the parameters. The second element is DartType.VOID if there
+// are no parameters.
+// This class has an equivalent class in the generated Dartfuzz API table.
 class DartLib {
   final String name;
-  final String proto;
-  const DartLib(this.name, this.proto);
+  final List<String> proto;
+  final List<Restriction> restrictions;
+  final bool isMethod;
+  const DartLib(this.name, this.proto, this.restrictions, this.isMethod);
 }
 
-// Lists of recognized methods, organized by return type.
-var voidTable = <DartLib>[];
-var boolTable = <DartLib>[];
-var intTable = <DartLib>[];
-var doubleTable = <DartLib>[];
-var stringTable = <DartLib>[];
-var listTable = <DartLib>[];
-var setTable = <DartLib>[];
-var mapTable = <DartLib>[];
-var int8ListTable = <DartLib>[];
-var int16ListTable = <DartLib>[];
-var int32ListTable = <DartLib>[];
-var int32x4Table = <DartLib>[];
-var int32x4ListTable = <DartLib>[];
-var int64ListTable = <DartLib>[];
-var float32ListTable = <DartLib>[];
-var float32x4ListTable = <DartLib>[];
-var float32x4Table = <DartLib>[];
-var float64ListTable = <DartLib>[];
-var float64x2Table = <DartLib>[];
-var float64x2ListTable = <DartLib>[];
-var uint8ClampedListTable = <DartLib>[];
-var uint8ListTable = <DartLib>[];
-var uint16ListTable = <DartLib>[];
-var uint32ListTable = <DartLib>[];
-var uint64ListTable = <DartLib>[];
+// Constants for strings corresponding to the DartType.
+const abstractClassInstantiationErrorEncoding =
+    'DartType.ABSTRACTCLASSINSTANTIATIONERROR';
+const argumentErrorEncoding = 'DartType.ARGUMENTERROR';
+const assertionErrorEncoding = 'DartType.ERROR';
+const boolEncoding = 'DartType.BOOL';
+const byteDataEncoding = 'DartType.BYTEDATA';
+const castErrorEncoding = 'DartType.CASTERROR';
+const concurrentModificationErrorEncoding =
+    'DartType.CONCURRENTMODIFICATIONERROR';
+const cyclicInitializationErrorEncoding = 'DartType.CYCLICINITIALIZATIONERROR';
+const deprecatedEncoding = 'DartType.DEPRECATED';
+const doubleEncoding = 'DartType.DOUBLE';
+const endianEncoding = 'DartType.ENDIAN';
+const errorEncoding = 'DartType.ERROR';
+const exceptionEncoding = 'DartType.EXCEPTION';
+const expandoDoubleEncoding = 'DartType.EXPANDO_DOUBLE';
+const expandoIntEncoding = 'DartType.EXPANDO_INT';
+const fallThroughErrorEncoding = 'DartType.FALLTHROUGHERROR';
+const float32ListEncoding = 'DartType.FLOAT32LIST';
+const float32x4Encoding = 'DartType.FLOAT32X4';
+const float32x4ListEncoding = 'DartType.FLOAT32X4LIST';
+const float64ListEncoding = 'DartType.FLOAT64LIST';
+const float64x2Encoding = 'DartType.FLOAT64X2';
+const float64x2ListEncoding = 'DartType.FLOAT64X2LIST';
+const formatExceptionEncoding = 'DartType.FORMATEXCEPTION';
+const indexErrorEncoding = 'DartType.INDEXERROR';
+const int16ListEncoding = 'DartType.INT16LIST';
+const int32ListEncoding = 'DartType.INT32LIST';
+const int32x4Encoding = 'DartType.INT32X4';
+const int32x4ListEncoding = 'DartType.INT32X4LIST';
+const int64ListEncoding = 'DartType.INT64LIST';
+const int8ListEncoding = 'DartType.INT8LIST';
+const intEncoding = 'DartType.INT';
+const integerDivisionByZeroExceptionEncoding =
+    'DartType.INTEGERDIVISIONBYZEROEXCEPTION';
+const listIntEncoding = 'DartType.LIST_INT';
+const mapEntryIntStringEncoding = 'DartType.MAPENTRY_INT_STRING';
+const mapIntStringEncoding = 'DartType.MAP_INT_STRING';
+const nullEncoding = 'DartType.NULL';
+const nullThrownErrorEncoding = 'DartType.NULLTHROWNERROR';
+const numEncoding = 'DartType.NUM';
+const provisionalEncoding = 'DartType.PROVISIONAL';
+const rangeErrorEncoding = 'DartType.RANGEERROR';
+const regExpEncoding = 'DartType.REGEXP';
+const runeIteratorEncoding = 'DartType.RUNEITERATOR';
+const runesEncoding = 'DartType.RUNES';
+const setIntEncoding = 'DartType.SET_INT';
+const stackOverflowErrorEncoding = 'DartType.STACKOVERFLOWERROR';
+const stateErrorEncoding = 'DartType.STATEERROR';
+const stringBufferEncoding = 'DartType.STRINGBUFFER';
+const stringEncoding = 'DartType.STRING';
+const symbolEncoding = 'DartType.SYMBOL';
+const typeErrorEncoding = 'DartType.TYPEERROR';
+const uint16ListEncoding = 'DartType.UINT16LIST';
+const uint32ListEncoding = 'DartType.UINT32LIST';
+const uint64ListEncoding = 'DartType.UINT64LIST';
+const uint8ClampedListEncoding = 'DartType.UINT8CLAMPEDLIST';
+const uint8ListEncoding = 'DartType.UINT8LIST';
+const unimplementedErrorEncoding = 'DartType.UNIMPLEMENTEDERROR';
+const unsupportedErrorEncoding = 'DartType.UNSUPPORTEDERROR';
+const voidEncoding = 'DartType.VOID';
 
-const voidEncoding = 'V';
-const boolEncoding = 'B';
-const intEncoding = 'I';
-const doubleEncoding = 'D';
-const stringEncoding = 'S';
-const listEncoding = 'L';
-const setEncoding = 'X';
-const mapEncoding = 'M';
-const int8ListEncoding = 'A';
-const int16ListEncoding = 'C';
-const int32ListEncoding = 'E';
-const int32x4Encoding = 'F';
-const int32x4ListEncoding = 'G';
-const int64ListEncoding = 'H';
-const float32ListEncoding = 'J';
-const float32x4Encoding = 'K';
-const float32x4ListEncoding = 'N';
-const float64ListEncoding = 'O';
-const float64x2Encoding = 'P';
-const float64x2ListEncoding = 'Q';
-const uint8ClampedListEncoding = 'R';
-const uint8ListEncoding = 'T';
-const uint16ListEncoding = 'U';
-const uint32ListEncoding = 'W';
-const uint64ListEncoding = 'Y';
-
-final voidLibs = 'voidLibs';
+// Constants for the library methods lists' names in dart_api_table.dart.
+final abstractClassInstantiationErrorLibs =
+    'abstractClassInstantiationErrorLibs';
+final argumentErrorLibs = 'argumentErrorLibs';
+final assertionErrorLibs = 'assertionErrorLibs';
 final boolLibs = 'boolLibs';
-final intLibs = 'intLibs';
+final byteDataLibs = 'byteDataLibs';
+final castErrorLibs = 'castErrorLibs';
+final concurrentModificationErrorLibs = 'concurrentModificationErrorLibs';
+final cyclicInitializationErrorLibs = 'cyclicInitializationErrorLibs';
+final deprecatedLibs = 'deprecatedLibs';
 final doubleLibs = 'doubleLibs';
-final stringLibs = 'stringLibs';
-final listLibs = 'listLibs';
-final setLibs = 'setLibs';
-final mapLibs = 'mapLibs';
-final int8ListLibs = 'int8ListLibs';
-final int16ListLibs = 'int16ListLibs';
-final int32ListLibs = 'int32ListLibs';
-final int32x4Libs = 'int32x4Libs';
-final int32x4ListLibs = 'int32x4ListLibs';
-final int64ListLibs = 'int64ListLibs';
+final endianLibs = 'endianLibs';
+final errorLibs = 'errorLibs';
+final exceptionLibs = 'exceptionLibs';
+final expandoDoubleLibs = 'expandoDoubleLibs';
+final expandoIntLibs = 'expandoIntLibs';
+final fallThroughErrorLibs = 'fallThroughErrorLibs';
 final float32ListLibs = 'float32ListLibs';
 final float32x4Libs = 'float32x4Libs';
 final float32x4ListLibs = 'float32x4ListLibs';
 final float64ListLibs = 'float64ListLibs';
 final float64x2Libs = 'float64x2Libs';
 final float64x2ListLibs = 'float64x2ListLibs';
-final uint8ClampedListLibs = 'uint8ClampedListLibs';
-final uint8ListLibs = 'uint8ListLibs';
+final formatExceptionLibs = 'formatExceptionLibs';
+final indexErrorLibs = 'indexErrorLibs';
+final int16ListLibs = 'int16ListLibs';
+final int32ListLibs = 'int32ListLibs';
+final int32x4Libs = 'int32x4Libs';
+final int32x4ListLibs = 'int32x4ListLibs';
+final int64ListLibs = 'int64ListLibs';
+final int8ListLibs = 'int8ListLibs';
+final intLibs = 'intLibs';
+final integerDivisionByZeroExceptionLibs = 'integerDivisionByZeroExceptionLibs';
+final listLibs = 'listLibs';
+final mapEntryIntStringLibs = 'mapEntryIntStringLibs';
+final mapLibs = 'mapLibs';
+final nullLibs = 'nullLibs';
+final nullThrownErrorLibs = 'nullThrownErrorLibs';
+final numLibs = 'numLibs';
+final provisionalLibs = 'provisionalLibs';
+final rangeErrorLibs = 'rangeErrorLibs';
+final regExpLibs = 'regExpLibs';
+final runeIteratorLibs = 'runeIteratorLibs';
+final runesLibs = 'runesLibs';
+final setLibs = 'setLibs';
+final stackOverflowErrorLibs = 'stackOverflowErrorLibs';
+final stateErrorLibs = 'stateErrorLibs';
+final stringBufferLibs = 'stringBufferLibs';
+final stringLibs = 'stringLibs';
+final symbolLibs = 'symbolLibs';
+final typeErrorLibs = 'typeErrorLibs';
 final uint16ListLibs = 'uint16ListLibs';
 final uint32ListLibs = 'uint32ListLibs';
 final uint64ListLibs = 'uint64ListLibs';
+final uint8ClampedListLibs = 'uint8ClampedListLibs';
+final uint8ListLibs = 'uint8ListLibs';
+final unimplementedErrorLibs = 'unimplementedErrorLibs';
+final unsupportedErrorLibs = 'unsupportedErrorLibs';
+final voidLibs = 'voidLibs';
 
-final stringToType = {
-  voidEncoding: 'DartType.VOID',
-  boolEncoding: 'DartType.BOOL',
-  intEncoding: 'DartType.INT',
-  doubleEncoding: 'DartType.DOUBLE',
-  stringEncoding: 'DartType.STRING',
-  listEncoding: 'DartType.LIST_INT',
-  setEncoding: 'DartType.SET_INT',
-  mapEncoding: 'DartType.MAP_INT_STRING',
-  int8ListEncoding: 'DartType.INT8LIST',
-  int16ListEncoding: 'DartType.INT16LIST',
-  int32ListEncoding: 'DartType.INT32LIST',
-  int32x4Encoding: 'DartType.INT32X4',
-  int32x4ListEncoding: 'DartType.INT32X4LIST',
-  int64ListEncoding: 'DartType.INT64LIST',
-  float32ListEncoding: 'DartType.FLOAT32LIST',
-  float32x4Encoding: 'DartType.FLOAT32X4',
-  float32x4ListEncoding: 'DartType.FLOAT32X4LIST',
-  float64ListEncoding: 'DartType.FLOAT64LIST',
-  float64x2Encoding: 'DartType.FLOAT64X2',
-  float64x2ListEncoding: 'DartType.FLOAT64X2LIST',
-  uint8ClampedListEncoding: 'DartType.UINT8CLAMPEDLIST',
-  uint8ListEncoding: 'DartType.UINT8LIST',
-  uint16ListEncoding: 'DartType.UINT16LIST',
-  uint32ListEncoding: 'DartType.UINT32LIST',
-  uint64ListEncoding: 'DartType.UINT64LIST'
+// Map from the DartType (string) to the name of the library methods list.
+final Map<String, String> typeToLibraryMethodsListName = {
+  abstractClassInstantiationErrorEncoding: abstractClassInstantiationErrorLibs,
+  argumentErrorEncoding: argumentErrorLibs,
+  assertionErrorEncoding: assertionErrorLibs,
+  boolEncoding: boolLibs,
+  byteDataEncoding: byteDataLibs,
+  castErrorEncoding: castErrorLibs,
+  concurrentModificationErrorEncoding: concurrentModificationErrorLibs,
+  cyclicInitializationErrorEncoding: cyclicInitializationErrorLibs,
+  deprecatedEncoding: deprecatedLibs,
+  doubleEncoding: doubleLibs,
+  endianEncoding: endianLibs,
+  errorEncoding: errorLibs,
+  exceptionEncoding: exceptionLibs,
+  expandoDoubleEncoding: expandoDoubleLibs,
+  expandoIntEncoding: expandoIntLibs,
+  fallThroughErrorEncoding: fallThroughErrorLibs,
+  float32ListEncoding: float32ListLibs,
+  float32x4Encoding: float32x4Libs,
+  float32x4ListEncoding: float32x4ListLibs,
+  float64ListEncoding: float64ListLibs,
+  float64x2Encoding: float64x2Libs,
+  float64x2ListEncoding: float64x2ListLibs,
+  formatExceptionEncoding: formatExceptionLibs,
+  indexErrorEncoding: indexErrorLibs,
+  int16ListEncoding: int16ListLibs,
+  int32ListEncoding: int32ListLibs,
+  int32x4Encoding: int32x4Libs,
+  int32x4ListEncoding: int32x4ListLibs,
+  int64ListEncoding: int64ListLibs,
+  int8ListEncoding: int8ListLibs,
+  intEncoding: intLibs,
+  integerDivisionByZeroExceptionEncoding: integerDivisionByZeroExceptionLibs,
+  listIntEncoding: listLibs,
+  mapEntryIntStringEncoding: mapEntryIntStringLibs,
+  mapIntStringEncoding: mapLibs,
+  nullEncoding: nullLibs,
+  nullThrownErrorEncoding: nullThrownErrorLibs,
+  numEncoding: numLibs,
+  provisionalEncoding: provisionalLibs,
+  rangeErrorEncoding: rangeErrorLibs,
+  regExpEncoding: regExpLibs,
+  runeIteratorEncoding: runeIteratorLibs,
+  runesEncoding: runesLibs,
+  setIntEncoding: setLibs,
+  stackOverflowErrorEncoding: stackOverflowErrorLibs,
+  stateErrorEncoding: stateErrorLibs,
+  stringBufferEncoding: stringBufferLibs,
+  stringEncoding: stringLibs,
+  stringEncoding: stringLibs,
+  symbolEncoding: symbolLibs,
+  typeErrorEncoding: typeErrorLibs,
+  uint16ListEncoding: uint16ListLibs,
+  uint32ListEncoding: uint32ListLibs,
+  uint64ListEncoding: uint64ListLibs,
+  uint8ClampedListEncoding: uint8ClampedListLibs,
+  uint8ListEncoding: uint8ListLibs,
+  unimplementedErrorEncoding: unimplementedErrorLibs,
+  unsupportedErrorEncoding: unsupportedErrorLibs,
+  voidEncoding: voidLibs
 };
 
-final typeToLibraryMethods = {
-  'DartType.VOID': voidLibs,
-  'DartType.BOOL': boolLibs,
-  'DartType.INT': intLibs,
-  'DartType.DOUBLE': doubleLibs,
-  'DartType.STRING': stringLibs,
-  'DartType.LIST_INT': listLibs,
-  'DartType.SET_INT': setLibs,
-  'DartType.MAP_INT_STRING': mapLibs,
-  'DartType.INT8LIST': int8ListLibs,
-  'DartType.INT16LIST': int16ListLibs,
-  'DartType.INT32LIST': int32ListLibs,
-  'DartType.INT32X4': int32x4Libs,
-  'DartType.INT32X4LIST': int32x4ListLibs,
-  'DartType.INT64LIST': int64ListLibs,
-  'DartType.FLOAT32LIST': float32ListLibs,
-  'DartType.FLOAT32X4': float32x4Libs,
-  'DartType.FLOAT32X4LIST': float32x4ListLibs,
-  'DartType.FLOAT64LIST': float64ListLibs,
-  'DartType.FLOAT64X2': float64x2Libs,
-  'DartType.FLOAT64X2LIST': float64x2ListLibs,
-  'DartType.UINT8CLAMPEDLIST': uint8ClampedListLibs,
-  'DartType.UINT8LIST': uint8ListLibs,
-  'DartType.UINT16LIST': uint16ListLibs,
-  'DartType.UINT32LIST': uint32ListLibs,
-  'DartType.UINT64LIST': uint64ListLibs
+// Map from return type encoding to list of recognized methods with that
+// return type.
+final Map<String, List<DartLib>> typeToLibraryMethodsList = {
+  abstractClassInstantiationErrorEncoding: <DartLib>[],
+  argumentErrorEncoding: <DartLib>[],
+  assertionErrorEncoding: <DartLib>[],
+  boolEncoding: <DartLib>[],
+  byteDataEncoding: <DartLib>[],
+  castErrorEncoding: <DartLib>[],
+  concurrentModificationErrorEncoding: <DartLib>[],
+  cyclicInitializationErrorEncoding: <DartLib>[],
+  deprecatedEncoding: <DartLib>[],
+  doubleEncoding: <DartLib>[],
+  endianEncoding: <DartLib>[],
+  errorEncoding: <DartLib>[],
+  exceptionEncoding: <DartLib>[],
+  expandoDoubleEncoding: <DartLib>[],
+  expandoIntEncoding: <DartLib>[],
+  fallThroughErrorEncoding: <DartLib>[],
+  float32ListEncoding: <DartLib>[],
+  float32x4Encoding: <DartLib>[],
+  float32x4ListEncoding: <DartLib>[],
+  float64ListEncoding: <DartLib>[],
+  float64x2Encoding: <DartLib>[],
+  float64x2ListEncoding: <DartLib>[],
+  formatExceptionEncoding: <DartLib>[],
+  indexErrorEncoding: <DartLib>[],
+  int16ListEncoding: <DartLib>[],
+  int32ListEncoding: <DartLib>[],
+  int32x4Encoding: <DartLib>[],
+  int32x4ListEncoding: <DartLib>[],
+  int64ListEncoding: <DartLib>[],
+  int8ListEncoding: <DartLib>[],
+  intEncoding: <DartLib>[],
+  integerDivisionByZeroExceptionEncoding: <DartLib>[],
+  listIntEncoding: <DartLib>[],
+  mapEntryIntStringEncoding: <DartLib>[],
+  mapIntStringEncoding: <DartLib>[],
+  nullEncoding: <DartLib>[],
+  nullThrownErrorEncoding: <DartLib>[],
+  numEncoding: <DartLib>[],
+  provisionalEncoding: <DartLib>[],
+  rangeErrorEncoding: <DartLib>[],
+  regExpEncoding: <DartLib>[],
+  runeIteratorEncoding: <DartLib>[],
+  runesEncoding: <DartLib>[],
+  setIntEncoding: <DartLib>[],
+  stackOverflowErrorEncoding: <DartLib>[],
+  stateErrorEncoding: <DartLib>[],
+  stringBufferEncoding: <DartLib>[],
+  stringEncoding: <DartLib>[],
+  symbolEncoding: <DartLib>[],
+  typeErrorEncoding: <DartLib>[],
+  uint16ListEncoding: <DartLib>[],
+  uint32ListEncoding: <DartLib>[],
+  uint64ListEncoding: <DartLib>[],
+  uint8ClampedListEncoding: <DartLib>[],
+  uint8ListEncoding: <DartLib>[],
+  unimplementedErrorEncoding: <DartLib>[],
+  unsupportedErrorEncoding: <DartLib>[],
+  voidEncoding: <DartLib>[]
 };
 
 final typedDataFloatTypes = [
@@ -188,34 +317,15 @@ main() async {
 
   // Generate the tables in a stand-alone Dart class.
   dumpHeader();
-  dumpStringToTypeMap();
   dumpTypeToLibraryMethodMap();
   dumpTypedDataFloatTypes();
-  dumpTable(voidLibs, voidTable);
-  dumpTable(boolLibs, boolTable);
-  dumpTable(intLibs, intTable);
-  dumpTable(doubleLibs, doubleTable);
-  dumpTable(stringLibs, stringTable);
-  dumpTable(listLibs, listTable);
-  dumpTable(setLibs, setTable);
-  dumpTable(mapLibs, mapTable);
-  dumpTable(int8ListLibs, int8ListTable);
-  dumpTable(int16ListLibs, int16ListTable);
-  dumpTable(int32ListLibs, int32ListTable);
-  dumpTable(int32x4Libs, int32x4Table);
-  dumpTable(int32x4ListLibs, int32x4ListTable);
-  dumpTable(int64ListLibs, int64ListTable);
-  dumpTable(float32ListLibs, float32ListTable);
-  dumpTable(float32x4Libs, float32x4Table);
-  dumpTable(float32x4ListLibs, float32x4ListTable);
-  dumpTable(float64ListLibs, float64ListTable);
-  dumpTable(float64x2Libs, float64x2Table);
-  dumpTable(float64x2ListLibs, float64x2ListTable);
-  dumpTable(uint8ClampedListLibs, uint8ClampedListTable);
-  dumpTable(uint8ListLibs, uint8ListTable);
-  dumpTable(uint16ListLibs, uint16ListTable);
-  dumpTable(uint32ListLibs, uint32ListTable);
-  dumpTable(uint64ListLibs, uint64ListTable);
+  for (var key in typeToLibraryMethodsList.keys.toList()..sort()) {
+    if (typeToLibraryMethodsList[key].isNotEmpty) {
+      // Only output library methods lists that are non-empty.
+      dumpTable(
+          typeToLibraryMethodsListName[key], typeToLibraryMethodsList[key]);
+    }
+  }
   dumpFooter();
 }
 
@@ -245,7 +355,9 @@ visitCompilationUnit(CompilationUnitElement unit) {
   // to visit typedefs, etc.
   for (TopLevelVariableElement variable in unit.topLevelVariables) {
     if (variable.isPublic) {
-      addToTable(typeString(variable.type), variable.name, 'Vv');
+      addToTable(typeString(variable.type), variable.name,
+          [voidEncoding, voidEncoding],
+          isMethod: false);
     }
   }
   for (FunctionElement function in unit.functions) {
@@ -299,11 +411,15 @@ void visitClass(ClassElement classElement) {
     if (accessor.isPublic && accessor.isGetter) {
       var variable = accessor.variable;
       if (accessor.isStatic) {
-        addToTable(typeString(variable.type),
-            '${classElement.name}.${variable.name}', 'Vv');
+        addToTable(
+            typeString(variable.type),
+            '${classElement.name}.${variable.name}',
+            [voidEncoding, voidEncoding],
+            isMethod: false);
       } else {
         addToTable(typeString(variable.type), variable.name,
-            '${typeString(classElement.thisType)}v');
+            [typeString(classElement.thisType), voidEncoding],
+            isMethod: false);
       }
     }
   }
@@ -312,11 +428,11 @@ void visitClass(ClassElement classElement) {
 // Function that returns the explicit class name.
 String classString(ClassElement classElement) {
   switch (typeString(classElement.thisType)) {
-    case setEncoding:
+    case setIntEncoding:
       return 'Set<int>';
-    case listEncoding:
+    case listIntEncoding:
       return 'List<int>';
-    case mapEncoding:
+    case mapIntStringEncoding:
       return 'Map<int, String>';
     default:
       return classElement.name;
@@ -340,42 +456,34 @@ String typeString(DartType type) {
   // TODO(ajcbik): inspect type structure semantically, not by display name
   //               and unify DartFuzz's DartType with analyzer DartType.
   switch (type.displayName) {
-    case 'void':
-      return voidEncoding;
+    case 'AbstractClassInstantiationError':
+      return abstractClassInstantiationErrorEncoding;
+    case 'ArgumentError':
+      return argumentErrorEncoding;
+    case 'AssertionError':
+      return assertionErrorEncoding;
+    case 'CastError':
+      return castErrorEncoding;
+    case 'ConcurrentModificationError':
+      return concurrentModificationErrorEncoding;
+    case 'CyclicInitializationError':
+      return cyclicInitializationErrorEncoding;
+    case 'Deprecated':
+      return deprecatedEncoding;
     case 'E':
       return intEncoding;
-    case 'num':
-      return doubleEncoding;
-    case 'List<E>':
-    case 'List<Object>':
-    case 'List<dynamic>':
-    case 'List<int>':
-    case 'List':
-      return listEncoding;
-    case 'Set<E>':
-    case 'Set<Object>':
-    case 'Set<dynamic>':
-    case 'Set<int>':
-    case 'Set':
-      return setEncoding;
-    case 'Map<K, V>':
-    case 'Map<dynamic, dynamic>':
-    case 'Map<int, String>':
-    case 'Map':
-      return mapEncoding;
-    // TypedData types.
-    case 'Int8List':
-      return int8ListEncoding;
-    case 'Int16List':
-      return int16ListEncoding;
-    case 'Int32List':
-      return int32ListEncoding;
-    case 'Int32x4':
-      return int32x4Encoding;
-    case 'Int32x4List':
-      return int32x4ListEncoding;
-    case 'Int64List':
-      return int64ListEncoding;
+    case 'Endian':
+      return endianEncoding;
+    case 'Error':
+      return errorEncoding;
+    case 'Exception':
+      return exceptionEncoding;
+    case 'Expando<double>':
+      return expandoDoubleEncoding;
+    case 'Expando<int>':
+      return expandoIntEncoding;
+    case 'FallThroughError':
+      return fallThroughErrorEncoding;
     case 'Float32List':
       return float32ListEncoding;
     case 'Float32x4':
@@ -388,91 +496,111 @@ String typeString(DartType type) {
       return float64x2Encoding;
     case 'Float64x2List':
       return float64x2ListEncoding;
-    case 'Uint8ClampedList':
-      return uint8ClampedListEncoding;
-    case 'Uint8List':
-      return uint8ListEncoding;
+    case 'FormatException':
+      return formatExceptionEncoding;
+    case 'IndexError':
+      return indexErrorEncoding;
+    case 'Int16List':
+      return int16ListEncoding;
+    case 'Int32List':
+      return int32ListEncoding;
+    case 'Int32x4':
+      return int32x4Encoding;
+    case 'Int32x4List':
+      return int32x4ListEncoding;
+    case 'Int64List':
+      return int64ListEncoding;
+    case 'Int8List':
+      return int8ListEncoding;
+    case 'IntegerDivisionByZeroException':
+      return integerDivisionByZeroExceptionEncoding;
+    case 'List':
+    case 'List<E>':
+    case 'List<Object>':
+    case 'List<dynamic>':
+    case 'List<int>':
+      return listIntEncoding;
+    case 'Map':
+    case 'Map<K, V>':
+    case 'Map<dynamic, dynamic>':
+    case 'Map<int, String>':
+      return mapIntStringEncoding;
+    case 'MapEntry':
+    case 'MapEntry<K, V>':
+    case 'MapEntry<dynamic, dynamic>':
+    case 'MapEntry<int, String>':
+      return mapEntryIntStringEncoding;
+    case 'Null':
+      return nullEncoding;
+    case 'NullThrownError':
+      return nullThrownErrorEncoding;
+    case 'Provisional':
+      return provisionalEncoding;
+    case 'RangeError':
+      return rangeErrorEncoding;
+    case 'RegExp':
+      return regExpEncoding;
+    case 'RuneIterator':
+      return runeIteratorEncoding;
+    case 'Runes':
+      return runesEncoding;
+    case 'Set':
+    case 'Set<E>':
+    case 'Set<Object>':
+    case 'Set<dynamic>':
+    case 'Set<int>':
+      return setIntEncoding;
+    case 'StackOverflowError':
+      return stackOverflowErrorEncoding;
+    case 'StateError':
+      return stateErrorEncoding;
+    case 'StringBuffer':
+      return stringBufferEncoding;
+    case 'Symbol':
+      return symbolEncoding;
+    case 'TypeError':
+      return typeErrorEncoding;
     case 'Uint16List':
       return uint16ListEncoding;
     case 'Uint32List':
       return uint32ListEncoding;
     case 'Uint64List':
       return uint64ListEncoding;
+    case 'Uint8ClampedList':
+      return uint8ClampedListEncoding;
+    case 'Uint8List':
+      return uint8ListEncoding;
+    case 'UnimplementedError':
+      return unimplementedErrorEncoding;
+    case 'UnsupportedError':
+      return unsupportedErrorEncoding;
+    case 'num':
+      return doubleEncoding;
+    case 'void':
+      return voidEncoding;
   }
   return '?';
 }
 
-String protoString(DartType receiver, List<ParameterElement> parameters) {
-  var proto = receiver == null ? voidEncoding : typeString(receiver);
+List<String> protoString(DartType receiver, List<ParameterElement> parameters) {
+  final proto = [receiver == null ? voidEncoding : typeString(receiver)];
   // Construct prototype for non-named parameters.
   for (ParameterElement parameter in parameters) {
     if (!parameter.isNamed) {
-      proto += typeString(parameter.type);
+      proto.add(typeString(parameter.type));
     }
   }
   // Use 'void' for an empty parameter list.
-  return proto.length == 1 ? proto + voidEncoding : proto;
+  proto.length == 1 ? proto.add(voidEncoding) : proto;
+  return proto;
 }
 
-List<DartLib> getTable(String ret) {
-  switch (ret) {
-    case voidEncoding:
-      return voidTable;
-    case boolEncoding:
-      return boolTable;
-    case intEncoding:
-      return intTable;
-    case doubleEncoding:
-      return doubleTable;
-    case stringEncoding:
-      return stringTable;
-    case listEncoding:
-      return listTable;
-    case setEncoding:
-      return setTable;
-    case mapEncoding:
-      return mapTable;
-    // TypedData types.
-    case int8ListEncoding:
-      return int8ListTable;
-    case int16ListEncoding:
-      return int16ListTable;
-    case int32ListEncoding:
-      return int32ListTable;
-    case int32x4Encoding:
-      return int32x4Table;
-    case int32x4ListEncoding:
-      return int32x4ListTable;
-    case int64ListEncoding:
-      return int64ListTable;
-    case float32ListEncoding:
-      return float32ListTable;
-    case float32x4Encoding:
-      return float32x4Table;
-    case float32x4ListEncoding:
-      return float32x4ListTable;
-    case float64ListEncoding:
-      return float64ListTable;
-    case float64x2Encoding:
-      return float64x2Table;
-    case float64x2ListEncoding:
-      return float64x2ListTable;
-    case uint8ClampedListEncoding:
-      return uint8ClampedListTable;
-    case uint8ListEncoding:
-      return uint8ListTable;
-    case uint16ListEncoding:
-      return uint16ListTable;
-    case uint32ListEncoding:
-      return uint32ListTable;
-    case uint64ListEncoding:
-      return uint64ListTable;
-    default:
-      throw ArgumentError('Invalid ret value: $ret');
-  }
-}
+List<DartLib> getTable(String ret) => typeToLibraryMethodsList.containsKey(ret)
+    ? typeToLibraryMethodsList[ret]
+    : throw ArgumentError('Invalid ret value: $ret');
 
-void addToTable(String ret, String name, String proto) {
+void addToTable(String ret, String name, List<String> proto,
+    {bool isMethod = true}) {
   // If any of the type representations contains a question
   // mark, this means that DartFuzz' type system cannot
   // deal with such an expression yet. So drop the entry.
@@ -480,22 +608,44 @@ void addToTable(String ret, String name, String proto) {
     return;
   }
   // Avoid the exit function and other functions that give false divergences.
+  // Note: to prevent certain constructors from being emitted, update the
+  // blacklist in `shouldFilterConstructor` in gen_type_table.dart and
+  // regenerate the type table.
   if (name == 'exit' ||
       name == 'pid' ||
       name == 'hashCode' ||
-      name == 'exitCode') {
+      name == 'exitCode' ||
+      // TODO(fizaaluthra): Enable reciprocal and reciprocalSqrt after we resolve
+      // https://github.com/dart-lang/sdk/issues/39551
+      name == 'reciprocal' ||
+      name == 'reciprocalSqrt') {
     return;
   }
+
+  List<Restriction> restrictions;
   // Restrict parameters for a few hardcoded cases,
   // for example, to avoid excessive runtime or memory
   // allocation in the generated fuzzing program.
   if (name == 'padLeft' || name == 'padRight') {
-    proto = proto.replaceFirst('IS', 'is');
+    for (int i = 0; i < proto.length - 1; ++i) {
+      if (proto[i] == intEncoding && proto[i + 1] == stringEncoding) {
+        restrictions = List<Restriction>.filled(proto.length, Restriction.none);
+        restrictions[i] = Restriction.small;
+        restrictions[i + 1] = Restriction.small;
+        break;
+      }
+    }
   } else if (name == 'List<int>.filled') {
-    proto = proto.replaceFirst(intEncoding, 'i');
+    for (int i = 0; i < proto.length; ++i) {
+      if (proto[i] == intEncoding) {
+        restrictions = List<Restriction>.filled(proto.length, Restriction.none);
+        restrictions[i] = Restriction.small;
+        break;
+      }
+    }
   }
   // Add to table.
-  getTable(ret).add(DartLib(name, proto));
+  getTable(ret).add(DartLib(name, proto, restrictions, isMethod));
 }
 
 void dumpHeader() {
@@ -504,68 +654,45 @@ void dumpHeader() {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// NOTE: this code has been generated automatically.
+
 import \"dartfuzz_type_table.dart\";
+
+/// Enum for different restrictions on parameters for library methods.
+/// none - No restriction on the corresponding parameter.
+/// small - Corresponding parameter should be a small value.
+enum Restriction {
+  none,
+  small
+}
 
 /// Class that represents Dart library methods.
 ///
 /// The invididual lists are organized by return type.
-/// The proto string has the following format:
-///    +-------> receiver type (V denotes none)
-///    |+------> param1 type  (V denotes none, v denotes getter)
-///    ||+-----> param2 type
-///    |||+----> ..
-///    ||||
-///   'TTTT..'
-/// where:
-///   V void
-///   v void (special)
-///   B bool
-///   I int
-///   i int (small)
-///   D double
-///   S String
-///   s String (small)
-///   L List<int>
-///   X Set<int>
-///   M Map<int, String>
-///   A Int8List
-///   C Int16List
-///   E Int32List
-///   F Int32x4
-///   G Int32x4List
-///   H Int64List
-///   J Float32List
-///   K Float32x4
-///   N Float32x4List
-///   O Float64List
-///   P Float64x2
-///   Q Float64x2List
-///   R uint8ClampedList
-///   T uint8List
-///   U uint16List
-///   W uint32List
-///   Y uint64List
-/// NOTE: this code has been generated automatically.
-///
+/// Proto is a list of DartTypes whose first element is the type of the
+/// DartType of the receiver (DartType.VOID if none). The remaining elements are
+/// DartTypes of the parameters. The second element is DartType.VOID if there
+/// are no parameters.
 class DartLib {
   final String name;
-  final String proto;
-  const DartLib(this.name, this.proto);
+  final List<DartType> proto;
+  final List<Restriction> restrictions;
+  final bool isMethod;
+  const DartLib(this.name, this.proto, this.isMethod,
+  {this.restrictions});
+  Restriction getRestriction(int paramIndex) => (restrictions == null) ?
+  Restriction.none : restrictions[paramIndex];
 """);
-}
-
-void dumpStringToTypeMap() {
-  print('  static const stringToType = {');
-  for (var key in stringToType.keys) {
-    print('    \'${key}\': ${stringToType[key]},');
-  }
-  print('  };');
 }
 
 void dumpTypeToLibraryMethodMap() {
   print('  static final typeToLibraryMethods = {');
-  for (var key in typeToLibraryMethods.keys) {
-    print('    ${key}: ${typeToLibraryMethods[key]},');
+  for (var key in typeToLibraryMethodsListName.keys.toList()..sort()) {
+    if (typeToLibraryMethodsList[key].isNotEmpty) {
+      // Only output a mapping from type to library methods list name for those
+      // types that have a non-empty library methods list.
+      print('    ${key}: ${typeToLibraryMethodsListName[key]},');
+    }
   }
   print('  };');
 }
@@ -573,15 +700,20 @@ void dumpTypeToLibraryMethodMap() {
 void dumpTypedDataFloatTypes() {
   print('  static const typedDataFloatTypes = [');
   for (var type in typedDataFloatTypes) {
-    print('    \'${type}\',');
+    print('    ${type},');
   }
   print('  ];');
 }
 
 void dumpTable(String identifier, List<DartLib> table) {
   print('  static const $identifier = [');
-  table.sort((a, b) => a.name.compareTo(b.name));
-  table.forEach((t) => print('    DartLib(\'${t.name}\', \'${t.proto}\'),'));
+  table.sort((a, b) => (a.name.compareTo(b.name) == 0)
+      ? a.proto.join().compareTo(b.proto.join())
+      : a.name.compareTo(b.name));
+  table.forEach(
+      (t) => print('    DartLib(\'${t.name}\', ${t.proto}, ${t.isMethod}'
+          '${t.restrictions == null ? "" : ", "
+              "restrictions: ${t.restrictions}"}),'));
   print('  ];');
 }
 

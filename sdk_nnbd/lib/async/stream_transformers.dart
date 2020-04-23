@@ -16,7 +16,7 @@ class _EventSinkWrapper<T> implements EventSink<T> {
   }
 
   void addError(Object error, [StackTrace? stackTrace]) {
-    _sink._addError(error, stackTrace);
+    _sink._addError(error, stackTrace ?? AsyncError.defaultStackTrace(error));
   }
 
   void close() {
@@ -76,7 +76,7 @@ class _SinkTransformerStreamSubscription<S, T>
    * events when the stream is already closed. Report them as state
    * error.
    */
-  void _addError(Object error, StackTrace? stackTrace) {
+  void _addError(Object error, StackTrace stackTrace) {
     if (_isClosed) {
       throw new StateError("Stream is already closed");
     }
@@ -124,7 +124,7 @@ class _SinkTransformerStreamSubscription<S, T>
     }
   }
 
-  void _handleError(Object error, StackTrace? stackTrace) {
+  void _handleError(Object error, StackTrace stackTrace) {
     try {
       _transformerSink.addError(error, stackTrace);
     } catch (e, s) {
@@ -193,7 +193,7 @@ typedef void _TransformDataHandler<S, T>(S data, EventSink<T> sink);
 
 /// Error-handler coming from [StreamTransformer.fromHandlers].
 typedef void _TransformErrorHandler<T>(
-    Object error, StackTrace? stackTrace, EventSink<T> sink);
+    Object error, StackTrace stackTrace, EventSink<T> sink);
 
 /// Done-handler coming from [StreamTransformer.fromHandlers].
 typedef void _TransformDoneHandler<T>(EventSink<T> sink);
@@ -229,11 +229,14 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   }
 
   void addError(Object error, [StackTrace? stackTrace]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(error, "error");
     var sink = _sink;
     if (sink == null) {
       throw StateError("Sink is closed");
     }
     var handleError = _handleError;
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     if (handleError != null) {
       handleError(error, stackTrace, sink);
     } else {
@@ -262,8 +265,7 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
 class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {
   _StreamHandlerTransformer(
       {void handleData(S data, EventSink<T> sink)?,
-      void handleError(
-          Object error, StackTrace? stackTrace, EventSink<T> sink)?,
+      void handleError(Object error, StackTrace stackTrace, EventSink<T> sink)?,
       void handleDone(EventSink<T> sink)?})
       : super((EventSink<T> outputSink) {
           return new _HandlerEventSink<S, T>(

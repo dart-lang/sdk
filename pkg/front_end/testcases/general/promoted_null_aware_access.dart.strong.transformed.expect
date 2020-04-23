@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method method<T extends core::Object* = dynamic>(self::method::T* o) → dynamic {
+  if(o is core::String*) {
+    let final self::method::T* & core::String* /* '*' & '*' = '*' */ #t1 = o{self::method::T* & core::String* /* '*' & '*' = '*' */} in #t1.{core::String::==}(null) ?{core::int*} null : #t1.{core::String::length};
+  }
+}
+static method main() → dynamic {
+  self::method<core::String*>("");
+}

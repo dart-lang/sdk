@@ -7,7 +7,6 @@
 #include "vm/compiler/assembler/assembler.h"
 
 #include "vm/code_patcher.h"
-#include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
@@ -33,7 +32,6 @@
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/kernel.h"
-#include "vm/kernel_loader.h"  // For kernel::ParseStaticFieldInitializer.
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -88,7 +86,6 @@ DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
-DECLARE_FLAG(bool, unbox_numeric_fields);
 
 static void PrecompilationModeHandler(bool value) {
   if (value) {
@@ -108,11 +105,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_reorder_basic_blocks = true;
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    // Not present with DART_PRECOMPILED_RUNTIME
-    FLAG_unbox_numeric_fields = false;
-#endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for gen_snapshot.
@@ -147,8 +139,6 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
   ASSERT(graph != NULL);
   return graph;
 }
-
-void DartCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) {}
 
 void IrregexpCompilationPipeline::ParseFunction(
     ParsedFunction* parsed_function) {
@@ -201,10 +191,6 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
   PrologueInfo prologue_info(-1, -1);
   return new (zone) FlowGraph(*parsed_function, result.graph_entry,
                               result.num_blocks, prologue_info);
-}
-
-void IrregexpCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) {
-  backtrack_goto_->ComputeOffsetTable();
 }
 
 CompilationPipeline* CompilationPipeline::New(Zone* zone,
@@ -361,7 +347,7 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
     compiler::Assembler* assembler,
     FlowGraphCompiler* graph_compiler,
     FlowGraph* flow_graph) {
-  ASSERT(!FLAG_precompiled_mode);
+  ASSERT(!CompilerState::Current().is_aot());
   const Function& function = parsed_function()->function();
   Zone* const zone = thread()->zone();
 
@@ -545,7 +531,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       FlowGraph* flow_graph = nullptr;
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
 
-      CompilerState compiler_state(thread());
+      CompilerState compiler_state(thread(), /*is_aot=*/false);
 
       {
         if (optimized()) {
@@ -642,7 +628,6 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "CompileGraph");
         graph_compiler.CompileGraph();
-        pipeline->FinalizeCompilation(flow_graph);
       }
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
@@ -765,7 +750,6 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
 
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
 
-
     const Code& result = Code::Handle(helper.Compile(pipeline));
 
     if (result.IsNull()) {
@@ -846,11 +830,10 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
     per_compile_timer.Stop();
 
     if (trace_compiler) {
+      const auto& code = Code::Handle(function.CurrentCode());
       THR_Print("--> '%s' entry: %#" Px " size: %" Pd " time: %" Pd64 " us\n",
-                function.ToFullyQualifiedCString(),
-                Code::Handle(function.CurrentCode()).PayloadStart(),
-                Code::Handle(function.CurrentCode()).Size(),
-                per_compile_timer.TotalElapsedTime());
+                function.ToFullyQualifiedCString(), code.PayloadStart(),
+                code.Size(), per_compile_timer.TotalElapsedTime());
     }
 
     return result.raw();
@@ -878,19 +861,15 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
 
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
-  if (FLAG_precompiled_mode) {
-    return Precompiler::CompileFunction(
-        /* precompiler = */ NULL, thread, thread->zone(), function);
-  }
+  RELEASE_ASSERT(!FLAG_precompiled_mode);
 #endif
 
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    FATAL3("Precompilation missed function %s (%s, %s)\n",
-           function.ToLibNamePrefixedQualifiedCString(),
-           function.token_pos().ToCString(),
-           Function::KindToCString(function.kind()));
-  }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  FATAL3("Precompilation missed function %s (%s, %s)\n",
+         function.ToLibNamePrefixedQualifiedCString(),
+         function.token_pos().ToCString(),
+         Function::KindToCString(function.kind()));
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
 #if defined(SUPPORT_TIMELINE)
@@ -968,6 +947,7 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
 
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(!code.is_optimized());
+  ASSERT(!FLAG_precompiled_mode);
   const Function& function = Function::Handle(code.function());
   ASSERT(code.var_descriptors() == Object::null());
   // IsIrregexpFunction have eager var descriptors generation.
@@ -976,7 +956,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   // if state changed while compiling in background.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  CompilerState state(thread);
+  CompilerState state(thread, /*is_aot=*/false);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     ParsedFunction* parsed_function =
@@ -1023,12 +1003,6 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   Object& result = Object::Handle(zone);
   Array& functions = Array::Handle(zone, cls.functions());
   Function& func = Function::Handle(zone);
-  // Class dynamic lives in the vm isolate. Its array fields cannot be set to
-  // an empty array.
-  if (functions.IsNull()) {
-    ASSERT(cls.IsDynamicClass());
-    return Error::null();
-  }
   // Compile all the regular functions.
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
@@ -1053,12 +1027,6 @@ RawError* Compiler::ReadAllBytecode(const Class& cls) {
   ASSERT(error.IsNull());
   Array& functions = Array::Handle(zone, cls.functions());
   Function& func = Function::Handle(zone);
-  // Class dynamic lives in the vm isolate. Its array fields cannot be set to
-  // an empty array.
-  if (functions.IsNull()) {
-    ASSERT(cls.IsDynamicClass());
-    return Error::null();
-  }
   // Compile all the regular functions.
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
@@ -1231,9 +1199,11 @@ void BackgroundCompiler::Run() {
       Function& function = Function::Handle(zone);
       {
         MonitorLocker ml(&queue_monitor_);
-        function = function_queue()->PeekFunction();
+        if (running_) {
+          function = function_queue()->PeekFunction();
+        }
       }
-      while (running_ && !function.IsNull()) {
+      while (!function.IsNull()) {
         if (is_optimizing()) {
           Compiler::CompileOptimizedFunction(thread, function,
                                              Compiler::kNoOSRDeoptId);
@@ -1245,7 +1215,7 @@ void BackgroundCompiler::Run() {
         QueueElement* qelem = NULL;
         {
           MonitorLocker ml(&queue_monitor_);
-          if (function_queue()->IsEmpty()) {
+          if (!running_ || function_queue()->IsEmpty()) {
             // We are shutting down, queue was cleared.
             function = Function::null();
           } else {

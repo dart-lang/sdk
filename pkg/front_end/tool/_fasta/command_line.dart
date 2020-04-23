@@ -6,7 +6,7 @@ library fasta.tool.command_line;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show exit, stderr;
+import 'dart:io' show exit;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
@@ -24,6 +24,7 @@ import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
+import 'package:front_end/src/base/nnbd_mode.dart';
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -32,6 +33,8 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+
+import 'package:front_end/src/base/command_line_options.dart';
 
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
@@ -249,7 +252,8 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--omit-platform": false,
   "--fatal": ",",
   "--fatal-skip": String,
-  "--force-late-lowering": false,
+  Flags.forceLateLowering: false,
+  Flags.forceNoExplicitGetterCalls: false,
   "--help": false,
   // TODO(johnniwinther): Remove legacy option flags. Legacy mode is no longer
   // supported.
@@ -263,8 +267,10 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--sdk": Uri,
   "--single-root-base": Uri,
   "--single-root-scheme": String,
+  Flags.nnbdStrongMode: false,
+  Flags.nnbdAgnosticMode: false,
   "--supermixin": true,
-  "--target": String,
+  Flags.target: String,
   "--enable-asserts": false,
   "--verbose": false,
   "--verify": false,
@@ -305,8 +311,18 @@ ProcessedOptions analyzeCommandLine(
 
   final String targetName = options["--target"] ?? "vm";
 
+  Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
+      parseExperimentalArguments(options["--enable-experiment"]),
+      onError: throwCommandLineProblem,
+      onWarning: print);
+
   final TargetFlags flags = new TargetFlags(
-      forceLateLoweringForTesting: options["--force-late-lowering"]);
+      forceLateLoweringForTesting: options[Flags.forceLateLowering],
+      forceNoExplicitGetterCallsForTesting:
+          options[Flags.forceNoExplicitGetterCalls],
+      enableNullSafety:
+          experimentalFlags.containsKey(ExperimentalFlag.nonNullable) &&
+              experimentalFlags[ExperimentalFlag.nonNullable]);
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {
@@ -343,6 +359,20 @@ ProcessedOptions analyzeCommandLine(
   final String singleRootScheme = options["--single-root-scheme"];
   final Uri singleRootBase = options["--single-root-base"];
 
+  final bool nnbdStrongMode = options[Flags.nnbdStrongMode];
+
+  final bool nnbdAgnosticMode = options[Flags.nnbdAgnosticMode];
+
+  final NnbdMode nnbdMode = nnbdAgnosticMode
+      ? NnbdMode.Agnostic
+      : (nnbdStrongMode ? NnbdMode.Strong : NnbdMode.Weak);
+
+  if (nnbdStrongMode && nnbdAgnosticMode) {
+    return throw new CommandLineProblem.deprecated(
+        "Can't specify both '${Flags.nnbdStrongMode}' and "
+        "'${Flags.nnbdAgnosticMode}'.");
+  }
+
   FileSystem fileSystem = StandardFileSystem.instance;
   if (singleRootScheme != null) {
     fileSystem = new SchemeBasedFileSystem({
@@ -355,11 +385,6 @@ ProcessedOptions analyzeCommandLine(
           singleRootScheme, singleRootBase, fileSystem),
     });
   }
-
-  Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
-      parseExperimentalArguments(options["--enable-experiment"]),
-      onError: throwCommandLineProblem,
-      onWarning: print);
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {
@@ -393,7 +418,8 @@ ProcessedOptions analyzeCommandLine(
           ..verify = verify
           ..bytecode = bytecode
           ..experimentalFlags = experimentalFlags
-          ..environmentDefines = noDefines ? null : parsedArguments.defines,
+          ..environmentDefines = noDefines ? null : parsedArguments.defines
+          ..nnbdMode = nnbdMode,
         inputs: <Uri>[Uri.parse(arguments[0])],
         output: resolveInputUri(arguments[3]));
   } else if (arguments.isEmpty) {
@@ -449,7 +475,8 @@ ProcessedOptions analyzeCommandLine(
     ..verbose = verbose
     ..verify = verify
     ..experimentalFlags = experimentalFlags
-    ..environmentDefines = noDefines ? null : parsedArguments.defines;
+    ..environmentDefines = noDefines ? null : parsedArguments.defines
+    ..nnbdMode = nnbdMode;
 
   // TODO(ahe): What about chase dependencies?
 
@@ -480,13 +507,6 @@ Future<T> withGlobalOptions<T>(
   ProcessedOptions options;
   CommandLineProblem problem;
   try {
-    if (arguments.contains("--strong") &&
-        arguments.contains("--target=flutter")) {
-      // TODO(ahe): Temporarily ignore option to unbreak flutter build.
-      arguments = new List<String>.from(arguments);
-      arguments.remove("--strong");
-      stderr.writeln("Note: the option '--strong' is deprecated.");
-    }
     parsedArguments = ParsedArguments.parse(arguments, optionSpecification);
     options = analyzeCommandLine(
         programName, parsedArguments, areRestArgumentsInputs, verbose);
@@ -503,7 +523,7 @@ Future<T> withGlobalOptions<T>(
     }
 
     return f(c, parsedArguments.arguments);
-  });
+  }, errorOnMissingInput: problem == null);
 }
 
 Message computeUsage(String programName, bool verbose) {

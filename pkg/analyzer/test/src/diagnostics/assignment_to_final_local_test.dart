@@ -141,16 +141,15 @@ f() { x = 1; }''', [
 class AssignmentToFinalLocalWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   test_localVariable_late() async {
     await assertNoErrorsInCode('''
 void f() {
   late final int a;
-  late final int b = 0;
   a = 1;
-  b = 1;
+  a;
 }
 ''');
   }

@@ -50,9 +50,9 @@ class CastStreamSubscription<S, T> implements StreamSubscription<T> {
     _source.onError(handleError);
     if (handleError == null) {
       _handleError = null;
-    } else if (handleError is void Function(Object, StackTrace?)) {
+    } else if (handleError is void Function(Object, StackTrace)) {
       _handleError = _zone
-          .registerBinaryCallback<dynamic, Object, StackTrace?>(handleError);
+          .registerBinaryCallback<dynamic, Object, StackTrace>(handleError);
     } else if (handleError is void Function(Object)) {
       _handleError = _zone.registerUnaryCallback<dynamic, Object>(handleError);
     } else {
@@ -74,8 +74,8 @@ class CastStreamSubscription<S, T> implements StreamSubscription<T> {
       var handleError = _handleError;
       if (handleError == null) {
         _zone.handleUncaughtError(error, stack);
-      } else if (handleError is void Function(Object, StackTrace?)) {
-        _zone.runBinaryGuarded<Object, StackTrace?>(handleError, error, stack);
+      } else if (handleError is void Function(Object, StackTrace)) {
+        _zone.runBinaryGuarded<Object, StackTrace>(handleError, error, stack);
       } else {
         _zone.runUnaryGuarded<Object>(
             handleError as void Function(Object), error);

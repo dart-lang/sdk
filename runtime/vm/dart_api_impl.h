@@ -28,6 +28,17 @@ const char* CanonicalFunction(const char* func);
 
 #define CURRENT_FUNC CanonicalFunction(__FUNCTION__)
 
+// Checks that the current isolate group is not NULL.
+#define CHECK_ISOLATE_GROUP(isolate_group)                                     \
+  do {                                                                         \
+    if ((isolate_group) == NULL) {                                             \
+      FATAL1(                                                                  \
+          "%s expects there to be a current isolate group. Did you "           \
+          "forget to call Dart_CreateIsolateGroup or Dart_EnterIsolate?",      \
+          CURRENT_FUNC);                                                       \
+    }                                                                          \
+  } while (0)
+
 // Checks that the current isolate is not NULL.
 #define CHECK_ISOLATE(isolate)                                                 \
   do {                                                                         \
@@ -106,11 +117,11 @@ const char* CanonicalFunction(const char* func);
 
 #ifdef SUPPORT_TIMELINE
 #define API_TIMELINE_DURATION(thread)                                          \
-  TimelineDurationScope api_tds(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
+  TimelineBeginEndScope api_tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
 #define API_TIMELINE_DURATION_BASIC(thread)                                    \
   API_TIMELINE_DURATION(thread);                                               \
-  api_tds.SetNumArguments(1);                                                  \
-  api_tds.CopyArgument(0, "mode", "basic");
+  api_tbes.SetNumArguments(1);                                                 \
+  api_tbes.CopyArgument(0, "mode", "basic");
 
 #define API_TIMELINE_BEGIN_END(thread)                                         \
   TimelineBeginEndScope api_tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
@@ -173,18 +184,15 @@ class Api : AllStatic {
   // Casts the internal Isolate* type to the external Dart_Isolate type.
   static Dart_Isolate CastIsolate(Isolate* isolate);
 
+  // Casts the internal IsolateGroup* type to the external Dart_IsolateGroup
+  // type.
+  static Dart_IsolateGroup CastIsolateGroup(IsolateGroup* isolate);
+
   // Gets the handle used to designate successful return.
   static Dart_Handle Success() { return Api::True(); }
 
-  // Sets up the acquired error object after initializing an Isolate. This
-  // object is pre-created because we will not be able to allocate this
-  // object when the error actually occurs. When the error occurs there will
-  // be outstanding acquires to internal data pointers making it unsafe to
-  // allocate objects on the dart heap.
-  static void SetupAcquiredError(Isolate* isolate);
-
   // Gets the handle which holds the pre-created acquired error object.
-  static Dart_Handle AcquiredError(Isolate* isolate);
+  static Dart_Handle AcquiredError(IsolateGroup* isolate_group);
 
   // Returns true if the handle holds a Smi.
   static bool IsSmi(Dart_Handle handle) {
@@ -300,18 +308,9 @@ class Api : AllStatic {
   static RawString* GetEnvironmentValue(Thread* thread, const String& name);
 
   static bool IsFfiEnabled() {
-    // dart:ffi is not implemented for the following configurations
-#if defined(TARGET_ARCH_ARM) &&                                                \
-    !(defined(TARGET_OS_ANDROID) || defined(TARGET_OS_MACOS_IOS))
-    // TODO(36309): Support hardfp calling convention.
-    return false;
-#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                \
-    !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_WINDOWS)
+#if defined(TAGET_OS_FUCHSIA)
     return false;
 #else
-    // dart:ffi is also not implemented for precompiled in which case
-    // FLAG_enable_ffi is set to false by --precompilation.
-    // Once dart:ffi is supported on all targets, only users will set this flag
     return FLAG_enable_ffi;
 #endif
   }
@@ -341,13 +340,7 @@ class Api : AllStatic {
 #define CHECK_CALLBACK_STATE(thread)                                           \
   if (thread->no_callback_scope_depth() != 0) {                                \
     return reinterpret_cast<Dart_Handle>(                                      \
-        Api::AcquiredError(thread->isolate()));                                \
-  }
-
-#define CHECK_COMPILATION_ALLOWED(isolate)                                     \
-  if (!isolate->compilation_allowed()) {                                       \
-    return Api::NewError("%s: Cannot load after Dart_Precompile",              \
-                         CURRENT_FUNC);                                        \
+        Api::AcquiredError(thread->isolate_group()));                          \
   }
 
 #define ASSERT_CALLBACK_STATE(thread)                                          \

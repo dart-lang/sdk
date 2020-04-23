@@ -7,7 +7,7 @@ import 'dart:developer' as dev;
 import 'dart:isolate' as Core;
 
 import 'package:observatory/service_io.dart' as Service;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -30,6 +30,12 @@ Future testeeMain() async {
   childId = dev.Service.getIsolateID(childIsolate);
   dev.debugger();
 }
+
+@pragma("vm:entry-point")
+getSelfId() => selfId;
+
+@pragma("vm:entry-point")
+getChildId() => childId;
 
 // tester state:
 Service.Isolate initialIsolate;
@@ -65,7 +71,7 @@ var tests = <VMTest>[
 
     // Grab self id.
     Service.Instance localSelfId =
-        await initialIsolate.eval(rootLbirary, 'selfId');
+        await initialIsolate.invoke(rootLbirary, 'getSelfId');
 
     // Check that the id reported from dart:developer matches the id reported
     // from the service protocol.
@@ -74,7 +80,7 @@ var tests = <VMTest>[
 
     // Grab the child isolate's id.
     Service.Instance localChildId =
-        await initialIsolate.eval(rootLbirary, 'childId');
+        await initialIsolate.invoke(rootLbirary, 'getChildId');
 
     // Check that the id reported from dart:developer matches the id reported
     // from the service protocol.

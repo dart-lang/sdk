@@ -76,7 +76,7 @@ void VirtualMemory::Init() {
   if (FLAG_dual_map_code) {
     intptr_t size = PageSize();
     intptr_t alignment = 256 * 1024;  // e.g. heap page size.
-    VirtualMemory* vm = AllocateAligned(size, alignment, true, NULL);
+    VirtualMemory* vm = AllocateAligned(size, alignment, true, "memfd-test");
     if (vm == NULL) {
       LOG_INFO("memfd_create not supported; disabling dual mapping of code.\n");
       FLAG_dual_map_code = false;
@@ -178,13 +178,13 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   ASSERT(Utils::IsAligned(size, PageSize()));
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, PageSize()));
+  ASSERT(name != nullptr);
   const intptr_t allocated_size = size + alignment - PageSize();
 #if defined(DUAL_MAPPING_SUPPORTED)
-  int fd = -1;
   const bool dual_mapping =
       is_executable && FLAG_write_protect_code && FLAG_dual_map_code;
   if (dual_mapping) {
-    fd = memfd_create("dart_vm", MFD_CLOEXEC);
+    int fd = memfd_create(name, MFD_CLOEXEC);
     if (fd == -1) {
       return NULL;
     }
@@ -218,9 +218,34 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     return new VirtualMemory(region, alias, region);
   }
 #endif  // defined(DUAL_MAPPING_SUPPORTED)
+
   const int prot =
       PROT_READ | PROT_WRITE |
       ((is_executable && !FLAG_write_protect_code) ? PROT_EXEC : 0);
+
+#if defined(DUAL_MAPPING_SUPPORTED)
+  // Try to use memfd for single-mapped regions too, so they will have an
+  // associated name for memory attribution. Skip if FLAG_dual_map_code is
+  // false, which happens if we detected memfd wasn't working in Init above.
+  if (FLAG_dual_map_code) {
+    int fd = memfd_create(name, MFD_CLOEXEC);
+    if (fd == -1) {
+      return NULL;
+    }
+    if (ftruncate(fd, size) == -1) {
+      close(fd);
+      return NULL;
+    }
+    void* region_ptr = MapAligned(fd, prot, size, alignment, allocated_size);
+    close(fd);
+    if (region_ptr == NULL) {
+      return NULL;
+    }
+    MemoryRegion region(region_ptr, size);
+    return new VirtualMemory(region, region);
+  }
+#endif
+
   int map_flags = MAP_PRIVATE | MAP_ANONYMOUS;
 #if (defined(HOST_OS_MACOS) && !defined(HOST_OS_IOS))
   if (is_executable && IsAtLeastOS10_14()) {
@@ -263,7 +288,8 @@ void VirtualMemory::FreeSubSegment(void* address,
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT((thread == nullptr) || thread->IsMutatorThread() ||
+  ASSERT(thread == nullptr || thread->IsMutatorThread() ||
+         thread->isolate() == nullptr ||
          thread->isolate()->mutator_thread()->IsAtSafepoint());
 #endif
   uword start_address = reinterpret_cast<uword>(address);

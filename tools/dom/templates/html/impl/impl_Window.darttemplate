@@ -41,10 +41,10 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    */
   Document get document => JS('Document', '#.document', this);
 
-  WindowBase _open2(url, name) =>
+  WindowBase$NULLABLE _open2(url, name) =>
       JS('Window|Null', '#.open(#,#)', this, url, name);
 
-  WindowBase _open3(url, name, options) =>
+  WindowBase$NULLABLE _open3(url, name, options) =>
       JS('Window|Null', '#.open(#,#,#)', this, url, name, options);
 
   /**
@@ -55,7 +55,7 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
    *   from MDN.
    */
-  WindowBase open(String url, String name, [String options]) {
+  WindowBase open(String url, String name, [String$NULLABLE options]) {
     if (options == null) {
       return _DOMWindowCrossFrame._createSafe(_open2(url, name));
     } else {
@@ -106,7 +106,7 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    */
   int requestAnimationFrame(FrameRequestCallback callback) {
     _ensureRequestAnimationFrame();
-    return _requestAnimationFrame(_wrapZone(callback));
+    return _requestAnimationFrame(_wrapZone(callback)$NULLASSERT);
   }
 
   /**
@@ -163,7 +163,7 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  IdbFactory get indexedDB =>
+  IdbFactory$NULLABLE get indexedDB =>
       JS('IdbFactory|Null',  // If not supported, returns null.
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
@@ -219,7 +219,7 @@ $!MEMBERS
    *   from W3C.
    */
   void moveTo(Point p) {
-    _moveTo(p.x, p.y);
+    _moveTo(p.x.toInt(), p.y.toInt());
   }
 
   @JSName('openDatabase')
@@ -228,7 +228,7 @@ $!MEMBERS
   @Creates('SqlDatabase')
   SqlDatabase openDatabase(
       String name, String version, String displayName, int estimatedSize,
-      [DatabaseCallback creationCallback]) {
+      [DatabaseCallback$NULLABLE creationCallback]) {
     var db;
     if (creationCallback == null)
       db = _openDatabase(name, version, displayName, estimatedSize);
@@ -257,7 +257,7 @@ $!MEMBERS
    */
   int get scrollX => JS<bool>('bool', '("scrollX" in #)', this) ?
       JS<num>('num', '#.scrollX', this).round() :
-      document.documentElement.scrollLeft;
+      document.documentElement$NULLASSERT.scrollLeft;
 
   /**
    * The distance this window has been scrolled vertically.
@@ -271,13 +271,19 @@ $!MEMBERS
    */
   int get scrollY => JS<bool>('bool', '("scrollY" in #)', this) ?
       JS<num>('num', '#.scrollY', this).round() :
-      document.documentElement.scrollTop;
+      document.documentElement$NULLASSERT.scrollTop;
 }
 
 class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
   String _returnValue;
 
-  _BeforeUnloadEvent(Event base): super(base);
+$if NNBD
+  _BeforeUnloadEvent(Event base)
+    : _returnValue = '',
+      super(base);
+$else
+  _BeforeUnloadEvent(Event base) : super(base);
+$endif
 
   String get returnValue => _returnValue;
 
@@ -297,7 +303,7 @@ class _BeforeUnloadEventStreamProvider implements
 
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
-  Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+  Stream<BeforeUnloadEvent> forTarget(EventTarget$NULLABLE e, {bool useCapture: false}) {
     // Specify the generic type for EventStream only in dart2js.
     var stream = new _EventStream<BeforeUnloadEvent>(e, _eventType, useCapture);
     var controller = new StreamController<BeforeUnloadEvent>(sync: true);

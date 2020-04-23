@@ -21,7 +21,7 @@ namespace dart {
 // Native implementations for the dart:developer library.
 DEFINE_NATIVE_ENTRY(Developer_debugger, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, when, arguments->NativeArgAt(0));
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   GET_NATIVE_ARGUMENT(String, msg, arguments->NativeArgAt(1));
   Debugger* debugger = isolate->debugger();
   if (debugger == nullptr) {
@@ -37,9 +37,7 @@ DEFINE_NATIVE_ENTRY(Developer_debugger, 0, 2) {
 DEFINE_NATIVE_ENTRY(Developer_inspect, 0, 1) {
   GET_NATIVE_ARGUMENT(Instance, inspectee, arguments->NativeArgAt(0));
 #ifndef PRODUCT
-  if (FLAG_support_service) {
-    Service::SendInspectEvent(isolate, inspectee);
-  }
+  Service::SendInspectEvent(isolate, inspectee);
 #endif  // !PRODUCT
   return inspectee.raw();
 }
@@ -48,9 +46,6 @@ DEFINE_NATIVE_ENTRY(Developer_log, 0, 8) {
 #if defined(PRODUCT)
   return Object::null();
 #else
-  if (!FLAG_support_service) {
-    return Object::null();
-  }
   GET_NON_NULL_NATIVE_ARGUMENT(String, message, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, timestamp, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, sequence, arguments->NativeArgAt(2));
@@ -70,9 +65,6 @@ DEFINE_NATIVE_ENTRY(Developer_postEvent, 0, 2) {
 #if defined(PRODUCT)
   return Object::null();
 #else
-  if (!FLAG_support_service) {
-    return Object::null();
-  }
   GET_NON_NULL_NATIVE_ARGUMENT(String, event_kind, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, event_data, arguments->NativeArgAt(1));
   Service::SendExtensionEvent(isolate, event_kind, event_data);
@@ -84,9 +76,6 @@ DEFINE_NATIVE_ENTRY(Developer_lookupExtension, 0, 1) {
 #if defined(PRODUCT)
   return Object::null();
 #else
-  if (!FLAG_support_service) {
-    return Object::null();
-  }
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
   return isolate->LookupServiceExtensionHandler(name);
 #endif  // PRODUCT
@@ -96,9 +85,6 @@ DEFINE_NATIVE_ENTRY(Developer_registerExtension, 0, 2) {
 #if defined(PRODUCT)
   return Object::null();
 #else
-  if (!FLAG_support_service) {
-    return Object::null();
-  }
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, handler, arguments->NativeArgAt(1));
   // We don't allow service extensions to be registered for the
@@ -140,6 +126,7 @@ DEFINE_NATIVE_ENTRY(Developer_getServerInfo, 0, 1) {
   SendNull(port);
   return Object::null();
 #else
+  ServiceIsolate::WaitForServiceIsolateStartup();
   if (!ServiceIsolate::IsRunning()) {
     SendNull(port);
   } else {
@@ -156,6 +143,7 @@ DEFINE_NATIVE_ENTRY(Developer_webServerControl, 0, 2) {
   return Object::null();
 #else
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, enabled, arguments->NativeArgAt(1));
+  ServiceIsolate::WaitForServiceIsolateStartup();
   if (!ServiceIsolate::IsRunning()) {
     SendNull(port);
   } else {

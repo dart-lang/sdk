@@ -25,20 +25,22 @@ class InstrumentationLogAdapter implements InstrumentationService {
   static const String TAG_WATCH_EVENT = 'Watch';
 
   /// A logger used to log instrumentation in string format.
-  InstrumentationLogger _instrumentationLogger;
+  final InstrumentationLogger _instrumentationLogger;
 
   /// Initialize a newly created instrumentation service to communicate with the
   /// given [_instrumentationLogger].
   InstrumentationLogAdapter(this._instrumentationLogger);
 
   /// The current time, expressed as a decimal encoded number of milliseconds.
-  String get _timestamp => new DateTime.now().millisecondsSinceEpoch.toString();
+  String get _timestamp => DateTime.now().millisecondsSinceEpoch.toString();
 
   @override
   void logError(String message) => _log(TAG_ERROR, message);
 
   @override
-  void logException(dynamic exception, [StackTrace stackTrace]) {
+  void logException(dynamic exception,
+      [StackTrace stackTrace,
+      List<InstrumentationServiceAttachment> attachments]) {
     if (_instrumentationLogger != null) {
       String message = _toString(exception);
       String trace = _toString(stackTrace);
@@ -190,7 +192,7 @@ class InstrumentationLogAdapter implements InstrumentationService {
   /// Return the result of joining the values of the given fields, escaping the
   /// separator character by doubling it.
   String _join(List<String> fields) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write(_timestamp);
     int length = fields.length;
     for (int i = 0; i < length; i++) {

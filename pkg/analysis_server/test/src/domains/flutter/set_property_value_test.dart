@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'base.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetPropertyValueTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class SetPropertyValueTest extends FlutterBase {
-  test_named_add() async {
+  Future<void> test_named_add() async {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
@@ -45,7 +45,7 @@ void main() {
 ''');
   }
 
-  test_named_change() async {
+  Future<void> test_named_change() async {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
@@ -71,7 +71,7 @@ void main() {
 ''');
   }
 
-  test_named_remove() async {
+  Future<void> test_named_remove() async {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
@@ -94,7 +94,7 @@ void main() {
 ''');
   }
 
-  test_required_change() async {
+  Future<void> test_required_change() async {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 

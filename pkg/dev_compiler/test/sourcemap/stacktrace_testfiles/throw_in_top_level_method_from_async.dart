@@ -6,10 +6,10 @@ void main() {
   /*1:main*/ test1();
 }
 
-test1 /*ddk.2:test1*/ () /*ddc.2:test1*/ async {
+Future<void> test1 /*ddk.2:test1*/ () /*ddc.2:test1*/ async {
   /*3:test1*/ test2();
 }
 
-test2() {
+void test2() {
   /*4:test2*/ throw '>ExceptionMarker<';
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
 import "dart:_internal" show patch;
@@ -23,14 +21,15 @@ const Map<Type, int> _knownSizes = {
   Double: 8,
 };
 
-final int _intPtrSize = [8, 4, 4][_abi()];
+@pragma("vm:prefer-inline")
+int get _intPtrSize => (const [8, 4, 4])[_abi()];
 
 @patch
 int sizeOf<T extends NativeType>() {
   // This is not super fast, but it is faster than a runtime entry.
   // Hot loops with elementAt().load() do not use this sizeOf, elementAt is
   // optimized per NativeType statically to prevent use of sizeOf at runtime.
-  final int knownSize = _knownSizes[T];
+  final int? knownSize = _knownSizes[T];
   if (knownSize != null) return knownSize;
   if (T == IntPtr) return _intPtrSize;
   if (T == Pointer) return _intPtrSize;
@@ -85,7 +84,7 @@ class Pointer<T extends NativeType> {
   @patch
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
-      [Object exceptionalReturn]) {
+      [Object? exceptionalReturn]) {
     throw UnsupportedError(
         "Pointer.fromFunction cannot be called dynamically.");
   }
@@ -106,11 +105,6 @@ class Pointer<T extends NativeType> {
 
   @patch
   Pointer<U> cast<U extends NativeType>() => Pointer.fromAddress(address);
-
-  @patch
-  R asFunction<R extends Function>() {
-    throw UnsupportedError("Pointer.asFunction cannot be called dynamically.");
-  }
 }
 
 /// Returns an integer encoding the ABI used for size and alignment
@@ -126,70 +120,68 @@ int _abi()
 // allocating a Pointer with in elementAt/offsetBy. Allocating these pointers
 // and GCing new spaces takes a lot of the benchmark time. The next speedup is
 // getting rid of these allocations by inlining these functions.
-//
-// TODO(37773): Change _loadInt8 etc to take an index.
-int _loadInt8(Pointer<Int8> pointer, int index) native "Ffi_loadInt8";
+int _loadInt8(Pointer pointer, int offsetInBytes) native "Ffi_loadInt8";
 
-int _loadInt16(Pointer<Int16> pointer, int index) native "Ffi_loadInt16";
+int _loadInt16(Pointer pointer, int offsetInBytes) native "Ffi_loadInt16";
 
-int _loadInt32(Pointer<Int32> pointer, int index) native "Ffi_loadInt32";
+int _loadInt32(Pointer pointer, int offsetInBytes) native "Ffi_loadInt32";
 
-int _loadInt64(Pointer<Int64> pointer, int index) native "Ffi_loadInt64";
+int _loadInt64(Pointer pointer, int offsetInBytes) native "Ffi_loadInt64";
 
-int _loadUint8(Pointer<Uint8> pointer, int index) native "Ffi_loadUint8";
+int _loadUint8(Pointer pointer, int offsetInBytes) native "Ffi_loadUint8";
 
-int _loadUint16(Pointer<Uint16> pointer, int index) native "Ffi_loadUint16";
+int _loadUint16(Pointer pointer, int offsetInBytes) native "Ffi_loadUint16";
 
-int _loadUint32(Pointer<Uint32> pointer, int index) native "Ffi_loadUint32";
+int _loadUint32(Pointer pointer, int offsetInBytes) native "Ffi_loadUint32";
 
-int _loadUint64(Pointer<Uint64> pointer, int index) native "Ffi_loadUint64";
+int _loadUint64(Pointer pointer, int offsetInBytes) native "Ffi_loadUint64";
 
-int _loadIntPtr(Pointer<IntPtr> pointer, int index) native "Ffi_loadIntPtr";
+int _loadIntPtr(Pointer pointer, int offsetInBytes) native "Ffi_loadIntPtr";
 
-double _loadFloat(Pointer<Float> pointer, int index) native "Ffi_loadFloat";
+double _loadFloat(Pointer pointer, int offsetInBytes) native "Ffi_loadFloat";
 
-double _loadDouble(Pointer<Double> pointer, int index) native "Ffi_loadDouble";
+double _loadDouble(Pointer pointer, int offsetInBytes) native "Ffi_loadDouble";
 
 Pointer<S> _loadPointer<S extends NativeType>(
-    Pointer<Pointer<S>> pointer, int index) native "Ffi_loadPointer";
+    Pointer pointer, int offsetInBytes) native "Ffi_loadPointer";
 
 S _loadStruct<S extends Struct>(Pointer<S> pointer, int index)
     native "Ffi_loadStruct";
 
-void _storeInt8(Pointer<Int8> pointer, int index, int value)
+void _storeInt8(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeInt8";
 
-void _storeInt16(Pointer<Int16> pointer, int index, int value)
+void _storeInt16(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeInt16";
 
-void _storeInt32(Pointer<Int32> pointer, int index, int value)
+void _storeInt32(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeInt32";
 
-void _storeInt64(Pointer<Int64> pointer, int index, int value)
+void _storeInt64(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeInt64";
 
-void _storeUint8(Pointer<Uint8> pointer, int index, int value)
+void _storeUint8(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeUint8";
 
-void _storeUint16(Pointer<Uint16> pointer, int index, int value)
+void _storeUint16(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeUint16";
 
-void _storeUint32(Pointer<Uint32> pointer, int index, int value)
+void _storeUint32(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeUint32";
 
-void _storeUint64(Pointer<Uint64> pointer, int index, int value)
+void _storeUint64(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeUint64";
 
-void _storeIntPtr(Pointer<IntPtr> pointer, int index, int value)
+void _storeIntPtr(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeIntPtr";
 
-void _storeFloat(Pointer<Float> pointer, int index, double value)
+void _storeFloat(Pointer pointer, int offsetInBytes, double value)
     native "Ffi_storeFloat";
 
-void _storeDouble(Pointer<Double> pointer, int index, double value)
+void _storeDouble(Pointer pointer, int offsetInBytes, double value)
     native "Ffi_storeDouble";
 
-void _storePointer<S extends NativeType>(Pointer<Pointer<S>> pointer, int index,
+void _storePointer<S extends NativeType>(Pointer pointer, int offsetInBytes,
     Pointer<S> value) native "Ffi_storePointer";
 
 Pointer<Int8> _elementAtInt8(Pointer<Int8> pointer, int index) =>
@@ -229,6 +221,13 @@ Pointer<Pointer<S>> _elementAtPointer<S extends NativeType>(
         Pointer<Pointer<S>> pointer, int index) =>
     Pointer.fromAddress(pointer.address + _intPtrSize * index);
 
+extension NativeFunctionPointer<NF extends Function>
+    on Pointer<NativeFunction<NF>> {
+  @patch
+  DF asFunction<DF extends Function>() =>
+      throw UnsupportedError("The body is inlined in the frontend.");
+}
+
 //
 // The following code is generated, do not edit by hand.
 //
@@ -260,10 +259,10 @@ extension Int16Pointer on Pointer<Int16> {
   set value(int value) => _storeInt16(this, 0, value);
 
   @patch
-  int operator [](int index) => _loadInt16(this, index);
+  int operator [](int index) => _loadInt16(this, 2 * index);
 
   @patch
-  operator []=(int index, int value) => _storeInt16(this, index, value);
+  operator []=(int index, int value) => _storeInt16(this, 2 * index, value);
 
   @patch
   Int16List asTypedList(int elements) => _asExternalTypedData(this, elements);
@@ -277,10 +276,10 @@ extension Int32Pointer on Pointer<Int32> {
   set value(int value) => _storeInt32(this, 0, value);
 
   @patch
-  int operator [](int index) => _loadInt32(this, index);
+  int operator [](int index) => _loadInt32(this, 4 * index);
 
   @patch
-  operator []=(int index, int value) => _storeInt32(this, index, value);
+  operator []=(int index, int value) => _storeInt32(this, 4 * index, value);
 
   @patch
   Int32List asTypedList(int elements) => _asExternalTypedData(this, elements);
@@ -294,10 +293,10 @@ extension Int64Pointer on Pointer<Int64> {
   set value(int value) => _storeInt64(this, 0, value);
 
   @patch
-  int operator [](int index) => _loadInt64(this, index);
+  int operator [](int index) => _loadInt64(this, 8 * index);
 
   @patch
-  operator []=(int index, int value) => _storeInt64(this, index, value);
+  operator []=(int index, int value) => _storeInt64(this, 8 * index, value);
 
   @patch
   Int64List asTypedList(int elements) => _asExternalTypedData(this, elements);
@@ -328,10 +327,10 @@ extension Uint16Pointer on Pointer<Uint16> {
   set value(int value) => _storeUint16(this, 0, value);
 
   @patch
-  int operator [](int index) => _loadUint16(this, index);
+  int operator [](int index) => _loadUint16(this, 2 * index);
 
   @patch
-  operator []=(int index, int value) => _storeUint16(this, index, value);
+  operator []=(int index, int value) => _storeUint16(this, 2 * index, value);
 
   @patch
   Uint16List asTypedList(int elements) => _asExternalTypedData(this, elements);
@@ -345,10 +344,10 @@ extension Uint32Pointer on Pointer<Uint32> {
   set value(int value) => _storeUint32(this, 0, value);
 
   @patch
-  int operator [](int index) => _loadUint32(this, index);
+  int operator [](int index) => _loadUint32(this, 4 * index);
 
   @patch
-  operator []=(int index, int value) => _storeUint32(this, index, value);
+  operator []=(int index, int value) => _storeUint32(this, 4 * index, value);
 
   @patch
   Uint32List asTypedList(int elements) => _asExternalTypedData(this, elements);
@@ -362,10 +361,10 @@ extension Uint64Pointer on Pointer<Uint64> {
   set value(int value) => _storeUint64(this, 0, value);
 
   @patch
-  int operator [](int index) => _loadUint64(this, index);
+  int operator [](int index) => _loadUint64(this, 8 * index);
 
   @patch
-  operator []=(int index, int value) => _storeUint64(this, index, value);
+  operator []=(int index, int value) => _storeUint64(this, 8 * index, value);
 
   @patch
   Uint64List asTypedList(int elements) => _asExternalTypedData(this, elements);
@@ -379,10 +378,11 @@ extension IntPtrPointer on Pointer<IntPtr> {
   set value(int value) => _storeIntPtr(this, 0, value);
 
   @patch
-  int operator [](int index) => _loadIntPtr(this, index);
+  int operator [](int index) => _loadIntPtr(this, _intPtrSize * index);
 
   @patch
-  operator []=(int index, int value) => _storeIntPtr(this, index, value);
+  operator []=(int index, int value) =>
+      _storeIntPtr(this, _intPtrSize * index, value);
 }
 
 extension FloatPointer on Pointer<Float> {
@@ -393,10 +393,10 @@ extension FloatPointer on Pointer<Float> {
   set value(double value) => _storeFloat(this, 0, value);
 
   @patch
-  double operator [](int index) => _loadFloat(this, index);
+  double operator [](int index) => _loadFloat(this, 4 * index);
 
   @patch
-  operator []=(int index, double value) => _storeFloat(this, index, value);
+  operator []=(int index, double value) => _storeFloat(this, 4 * index, value);
 
   @patch
   Float32List asTypedList(int elements) => _asExternalTypedData(this, elements);
@@ -410,10 +410,10 @@ extension DoublePointer on Pointer<Double> {
   set value(double value) => _storeDouble(this, 0, value);
 
   @patch
-  double operator [](int index) => _loadDouble(this, index);
+  double operator [](int index) => _loadDouble(this, 8 * index);
 
   @patch
-  operator []=(int index, double value) => _storeDouble(this, index, value);
+  operator []=(int index, double value) => _storeDouble(this, 8 * index, value);
 
   @patch
   Float64List asTypedList(int elements) => _asExternalTypedData(this, elements);
@@ -431,11 +431,11 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
   set value(Pointer<T> value) => _storePointer(this, 0, value);
 
   @patch
-  Pointer<T> operator [](int index) => _loadPointer(this, index);
+  Pointer<T> operator [](int index) => _loadPointer(this, _intPtrSize * index);
 
   @patch
   operator []=(int index, Pointer<T> value) =>
-      _storePointer(this, index, value);
+      _storePointer(this, _intPtrSize * index, value);
 }
 
 extension StructPointer<T extends Struct> on Pointer<T> {
@@ -449,4 +449,27 @@ extension StructPointer<T extends Struct> on Pointer<T> {
 extension NativePort on SendPort {
   @patch
   int get nativePort native "SendPortImpl_get_id";
+}
+
+int _nativeApiFunctionPointer(String symbol) native "NativeApiFunctionPointer";
+
+@patch
+abstract class NativeApi {
+  @patch
+  static Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
+      get postCObject =>
+          Pointer.fromAddress(_nativeApiFunctionPointer("Dart_PostCObject"));
+
+  @patch
+  static Pointer<
+      NativeFunction<
+          Int64 Function(
+              Pointer<Uint8>,
+              Pointer<NativeFunction<Dart_NativeMessageHandler>>,
+              Int8)>> get newNativePort =>
+      Pointer.fromAddress(_nativeApiFunctionPointer("Dart_NewNativePort"));
+
+  @patch
+  static Pointer<NativeFunction<Int8 Function(Int64)>> get closeNativePort =>
+      Pointer.fromAddress(_nativeApiFunctionPointer("Dart_CloseNativePort"));
 }

@@ -12,10 +12,10 @@ import 'package:analyzer/src/generated/engine.dart';
 void sendFlutterNotificationOutline(
     AnalysisServer server, ResolvedUnitResult resolvedUnit) {
   _sendNotification(server, () {
-    var computer = new FlutterOutlineComputer(resolvedUnit);
-    protocol.FlutterOutline outline = computer.compute();
+    var computer = FlutterOutlineComputer(resolvedUnit);
+    var outline = computer.compute();
     // send notification
-    var params = new protocol.FlutterOutlineParams(
+    var params = protocol.FlutterOutlineParams(
       resolvedUnit.path,
       outline,
     );
@@ -23,10 +23,8 @@ void sendFlutterNotificationOutline(
   });
 }
 
-/**
- * Runs the given notification producing function [f], catching exceptions.
- */
-void _sendNotification(AnalysisServer server, f()) {
+/// Runs the given notification producing function [f], catching exceptions.
+void _sendNotification(AnalysisServer server, Function() f) {
   ServerPerformanceStatistics.notices.makeCurrentWhile(() {
     try {
       f();

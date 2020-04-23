@@ -9,16 +9,15 @@ import 'package:analysis_server/src/lsp/json_parsing.dart';
 
 const jsonRpcVersion = '2.0';
 
-const NullJsonHandler = const LspJsonHandler<Null>(_alwaysTrue, _alwaysNull);
+const NullJsonHandler = LspJsonHandler<Null>(_alwaysTrue, _alwaysNull);
 
 ErrorOr<R> cancelled<R>([R t]) =>
     error(ErrorCodes.RequestCancelled, 'Request was cancelled', null);
 
 ErrorOr<R> error<R>(ErrorCodes code, String message, [String data]) =>
-    new ErrorOr<R>.error(new ResponseError(code, message, data));
+    ErrorOr<R>.error(ResponseError(code, message, data));
 
-ErrorOr<R> failure<R>(ErrorOr<dynamic> error) =>
-    new ErrorOr<R>.error(error.error);
+ErrorOr<R> failure<R>(ErrorOr<dynamic> error) => ErrorOr<R>.error(error.error);
 
 Object specToJson(Object obj) {
   if (obj is ToJsonable) {
@@ -28,7 +27,7 @@ Object specToJson(Object obj) {
   }
 }
 
-ErrorOr<R> success<R>([R t]) => new ErrorOr<R>.success(t);
+ErrorOr<R> success<R>([R t]) => ErrorOr<R>.success(t);
 
 Null _alwaysNull(_, [__]) => null;
 
@@ -47,8 +46,9 @@ class Either2<T1, T2> {
         _which = 2;
 
   @override
-  get hashCode => map((t) => t.hashCode, (t) => t.hashCode);
+  int get hashCode => map((t) => t.hashCode, (t) => t.hashCode);
 
+  @override
   bool operator ==(o) => o is Either2<T1, T2> && o._t1 == _t1 && o._t2 == _t2;
 
   T map<T>(T Function(T1) f1, T Function(T2) f2) {
@@ -84,8 +84,10 @@ class Either3<T1, T2, T3> {
         _which = 3;
 
   @override
-  get hashCode => map((t) => t.hashCode, (t) => t.hashCode, (t) => t.hashCode);
+  int get hashCode =>
+      map((t) => t.hashCode, (t) => t.hashCode, (t) => t.hashCode);
 
+  @override
   bool operator ==(o) =>
       o is Either3<T1, T2, T3> && o._t1 == _t1 && o._t2 == _t2 && o._t3 == _t3;
 
@@ -144,9 +146,10 @@ class Either4<T1, T2, T3, T4> {
         _which = 4;
 
   @override
-  get hashCode => map((t) => t.hashCode, (t) => t.hashCode, (t) => t.hashCode,
-      (t) => t.hashCode);
+  int get hashCode => map((t) => t.hashCode, (t) => t.hashCode,
+      (t) => t.hashCode, (t) => t.hashCode);
 
+  @override
   bool operator ==(o) =>
       o is Either4<T1, T2, T3, T4> &&
       o._t1 == _t1 &&
@@ -212,7 +215,7 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
   FutureOr<ErrorOr<N>> mapResult<N>(FutureOr<ErrorOr<N>> Function(T) f) {
     return isError
         // Re-wrap the error using our new type arg
-        ? new ErrorOr<N>.error(error)
+        ? ErrorOr<N>.error(error)
         // Otherwise call the map function
         : f(result);
   }

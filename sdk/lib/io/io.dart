@@ -193,6 +193,7 @@ import 'dart:collection'
     show HashMap, HashSet, Queue, ListQueue, MapBase, UnmodifiableMapView;
 import 'dart:convert';
 import 'dart:developer' hide log;
+import 'dart:_http' show HttpClient;
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';

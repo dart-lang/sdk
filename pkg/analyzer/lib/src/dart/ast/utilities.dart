@@ -17,11 +17,9 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 
 export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 
-/**
- * A function used to handle exceptions that are thrown by delegates while using
- * an [ExceptionHandlingDelegatingAstVisitor].
- */
-typedef void ExceptionInDelegateHandler(
+/// A function used to handle exceptions that are thrown by delegates while
+/// using an [ExceptionHandlingDelegatingAstVisitor].
+typedef ExceptionInDelegateHandler = void Function(
     AstNode node, AstVisitor visitor, dynamic exception, StackTrace stackTrace);
 
 /**
@@ -39,7 +37,7 @@ class AstCloner implements AstVisitor<AstNode> {
   /**
    * Mapping from original tokes to cloned.
    */
-  final Map<Token, Token> _clonedTokens = new Map<Token, Token>.identity();
+  final Map<Token, Token> _clonedTokens = Map<Token, Token>.identity();
 
   /**
    * The next original token to clone.
@@ -80,7 +78,7 @@ class AstCloner implements AstVisitor<AstNode> {
    */
   List<E> cloneNodeList<E extends AstNode>(List<E> nodes) {
     int count = nodes.length;
-    List<E> clonedNodes = new List<E>();
+    List<E> clonedNodes = <E>[];
     for (int i = 0; i < count; i++) {
       clonedNodes.add((nodes[i]).accept(this) as E);
     }
@@ -265,7 +263,7 @@ class AstCloner implements AstVisitor<AstNode> {
     // Clone the tokens in that stream here and add them to _clondedTokens
     // for use when cloning the comment reference.
     Token token = node.beginToken;
-    Token lastCloned = new Token.eof(-1);
+    Token lastCloned = Token.eof(-1);
     while (token != null) {
       Token clone = token.copy();
       _clonedTokens[token] = clone;
@@ -683,17 +681,17 @@ class AstCloner implements AstVisitor<AstNode> {
   IndexExpression visitIndexExpression(IndexExpression node) {
     Token period = node.period;
     if (period == null) {
-      return astFactory.indexExpressionForTarget(
-          cloneNode(node.target),
-          cloneToken(node.leftBracket),
-          cloneNode(node.index),
-          cloneToken(node.rightBracket));
+      return astFactory.indexExpressionForTarget2(
+          target: cloneNode(node.target),
+          leftBracket: cloneToken(node.leftBracket),
+          index: cloneNode(node.index),
+          rightBracket: cloneToken(node.rightBracket));
     } else {
-      return astFactory.indexExpressionForCascade(
-          cloneToken(period),
-          cloneToken(node.leftBracket),
-          cloneNode(node.index),
-          cloneToken(node.rightBracket));
+      return astFactory.indexExpressionForCascade2(
+          period: cloneToken(period),
+          leftBracket: cloneToken(node.leftBracket),
+          index: cloneNode(node.index),
+          rightBracket: cloneToken(node.rightBracket));
     }
   }
 
@@ -1097,7 +1095,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
     token = nonComment(token);
     if (_lastCloned == null) {
-      _lastCloned = new Token.eof(-1);
+      _lastCloned = Token.eof(-1);
     }
     while (token != null) {
       Token clone = token.copy();
@@ -1129,7 +1127,7 @@ class AstCloner implements AstVisitor<AstNode> {
    * Return a clone of the given [node].
    */
   static AstNode clone(AstNode node) {
-    return node.accept(new AstCloner());
+    return node.accept(AstCloner());
   }
 }
 
@@ -2391,7 +2389,7 @@ class AstComparator implements AstVisitor<bool> {
    * Return `true` if the [first] and [second] nodes are equal.
    */
   static bool equalNodes(AstNode first, AstNode second) {
-    AstComparator comparator = new AstComparator();
+    AstComparator comparator = AstComparator();
     return comparator.isEqualNodes(first, second);
   }
 }
@@ -2448,7 +2446,7 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
       Iterable<AstVisitor<T>> delegates, this.handler)
       : super(delegates) {
     if (handler == null) {
-      throw new ArgumentError('A handler must be provided');
+      throw ArgumentError('A handler must be provided');
     }
   }
 
@@ -2471,7 +2469,7 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
    */
   static void logException(
       AstNode node, Object visitor, dynamic exception, StackTrace stackTrace) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('Exception while using a ${visitor.runtimeType} to visit a ');
     AstNode currentNode = node;
     bool first = true;
@@ -2486,7 +2484,7 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
     }
     // TODO(39284): should this exception be silent?
     AnalysisEngine.instance.instrumentationService.logException(
-        new SilentException(buffer.toString(), exception, stackTrace));
+        SilentException(buffer.toString(), exception, stackTrace));
   }
 }
 
@@ -2500,12 +2498,12 @@ class NodeLocator extends UnifyingAstVisitor<void> {
   /**
    * The start offset of the range used to identify the node.
    */
-  int _startOffset = 0;
+  final int _startOffset;
 
   /**
    * The end offset of the range used to identify the node.
    */
-  int _endOffset = 0;
+  final int _endOffset;
 
   /**
    * The element that was found that corresponds to the given source range, or
@@ -2542,7 +2540,7 @@ class NodeLocator extends UnifyingAstVisitor<void> {
     } catch (exception, stackTrace) {
       // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          new SilentException(
+          SilentException(
               "Unable to locate element at offset ($_startOffset - $_endOffset)",
               exception,
               stackTrace));
@@ -2583,10 +2581,8 @@ class NodeLocator extends UnifyingAstVisitor<void> {
       // structure.
       // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          new SilentException(
-              "Exception caught while traversing an AST structure.",
-              exception,
-              stackTrace));
+          SilentException("Exception caught while traversing an AST structure.",
+              exception, stackTrace));
     }
     // Found a child.
     if (_foundNode != null) {
@@ -2605,15 +2601,11 @@ class NodeLocator extends UnifyingAstVisitor<void> {
  * encompasses the specified range.
  */
 class NodeLocator2 extends UnifyingAstVisitor<void> {
-  /**
-   * The inclusive start offset of the range used to identify the node.
-   */
-  int _startOffset = 0;
+  /// The inclusive start offset of the range used to identify the node.
+  final int _startOffset;
 
-  /**
-   * The inclusive end offset of the range used to identify the node.
-   */
-  int _endOffset = 0;
+  /// The inclusive end offset of the range used to identify the node.
+  final int _endOffset;
 
   /**
    * The found node or `null` if there is no such node.
@@ -2644,7 +2636,7 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
     } catch (exception, stackTrace) {
       // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          new SilentException(
+          SilentException(
               "Unable to locate element at offset ($_startOffset - $_endOffset)",
               exception,
               stackTrace));
@@ -2685,10 +2677,8 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
       // structure.
       // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          new SilentException(
-              "Exception caught while traversing an AST structure.",
-              exception,
-              stackTrace));
+          SilentException("Exception caught while traversing an AST structure.",
+              exception, stackTrace));
     }
     // Found a child.
     if (_foundNode != null) {
@@ -3155,6 +3145,7 @@ class NodeReplacer implements AstVisitor<bool> {
     return visitNode(node);
   }
 
+  @override
   bool visitExtensionDeclaration(ExtensionDeclaration node) {
     if (identical(node.documentationComment, _oldNode)) {
       node.documentationComment = _newNode as Comment;
@@ -3676,7 +3667,7 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   bool visitNode(AstNode node) {
-    throw new ArgumentError("The old node is not a child of it's parent");
+    throw ArgumentError("The old node is not a child of it's parent");
   }
 
   bool visitNormalFormalParameter(NormalFormalParameter node) {
@@ -4064,15 +4055,15 @@ class NodeReplacer implements AstVisitor<bool> {
    */
   static bool replace(AstNode oldNode, AstNode newNode) {
     if (oldNode == null || newNode == null) {
-      throw new ArgumentError("The old and new nodes must be non-null");
+      throw ArgumentError("The old and new nodes must be non-null");
     } else if (identical(oldNode, newNode)) {
       return true;
     }
     AstNode parent = oldNode.parent;
     if (parent == null) {
-      throw new ArgumentError("The old node is not a child of another node");
+      throw ArgumentError("The old node is not a child of another node");
     }
-    NodeReplacer replacer = new NodeReplacer(oldNode, newNode);
+    NodeReplacer replacer = NodeReplacer(oldNode, newNode);
     return parent.accept(replacer);
   }
 }
@@ -5620,7 +5611,7 @@ class ResolutionCopier implements AstVisitor<bool> {
    * Copy resolution data from the [fromNode] to the [toNode].
    */
   static void copyResolutionData(AstNode fromNode, AstNode toNode) {
-    ResolutionCopier copier = new ResolutionCopier();
+    ResolutionCopier copier = ResolutionCopier();
     copier._isEqualNodes(fromNode, toNode);
   }
 }
@@ -5639,8 +5630,8 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
 
   AstNode _immediateChild;
 
-  Map<String, SimpleIdentifier> _locals =
-      new HashMap<String, SimpleIdentifier>();
+  final Map<String, SimpleIdentifier> _locals =
+      HashMap<String, SimpleIdentifier>();
 
   final int _position;
 

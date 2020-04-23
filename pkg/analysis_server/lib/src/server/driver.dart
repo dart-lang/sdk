@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:ffi' as ffi;
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:analysis_server/protocol/protocol_constants.dart'
@@ -12,13 +13,16 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
 import 'package:analysis_server/src/server/crash_reporting.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/dev_server.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/http_server.dart';
+import 'package:analysis_server/src/server/isolate_analysis_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
+import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart'
@@ -33,7 +37,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:path/path.dart' as path;
@@ -53,7 +56,7 @@ class CommandLineParser {
   /// Creates a new command line parser
   CommandLineParser()
       : _knownFlags = <String>[],
-        _parser = new ArgParser(allowTrailingOptions: true);
+        _parser = ArgParser(allowTrailingOptions: true);
 
   ArgParser get parser => _parser;
 
@@ -64,7 +67,7 @@ class CommandLineParser {
       String help,
       bool defaultsTo = false,
       bool negatable = true,
-      void callback(bool value),
+      void Function(bool value) callback,
       bool hide = false}) {
     _knownFlags.add(name);
     _parser.addFlag(name,
@@ -85,7 +88,7 @@ class CommandLineParser {
       Iterable<String> allowed,
       Map<String, String> allowedHelp,
       Iterable<String> defaultsTo,
-      void callback(List<String> values),
+      void Function(List<String> values) callback,
       bool splitCommas = true,
       bool hide = false}) {
     _knownFlags.add(name);
@@ -109,7 +112,7 @@ class CommandLineParser {
       List<String> allowed,
       Map<String, String> allowedHelp,
       String defaultsTo,
-      void callback(value)}) {
+      void Function(Object) callback}) {
     _knownFlags.add(name);
     _parser.addOption(name,
         abbr: abbr,
@@ -134,15 +137,15 @@ class CommandLineParser {
 
   List<String> parseDefinedVariables(
       List<String> args, Map<String, String> definedVariables) {
-    int count = args.length;
-    List<String> remainingArgs = <String>[];
-    for (int i = 0; i < count; i++) {
-      String arg = args[i];
+    var count = args.length;
+    var remainingArgs = <String>[];
+    for (var i = 0; i < count; i++) {
+      var arg = args[i];
       if (arg == '--') {
         while (i < count) {
           remainingArgs.add(args[i++]);
         }
-      } else if (arg.startsWith("-D")) {
+      } else if (arg.startsWith('-D')) {
         definedVariables[arg.substring(2)] = args[++i];
       } else {
         remainingArgs.add(arg);
@@ -158,17 +161,17 @@ class CommandLineParser {
     // Only filter args if the ignore flag is specified.
     if (args.contains('--ignore-unrecognized-flags')) {
       // Filter all unrecognized flags and options.
-      List<String> filtered = <String>[];
-      for (int i = 0; i < args.length; ++i) {
-        String arg = args[i];
+      var filtered = <String>[];
+      for (var i = 0; i < args.length; ++i) {
+        var arg = args[i];
         if (arg.startsWith('--') && arg.length > 2) {
-          String option = arg.substring(2);
+          var option = arg.substring(2);
           // remove any leading 'no-'
           if (option.startsWith('no-')) {
             option = option.substring(3);
           }
           // strip the last '=value'
-          int equalsOffset = option.lastIndexOf('=');
+          var equalsOffset = option.lastIndexOf('=');
           if (equalsOffset != -1) {
             option = option.substring(0, equalsOffset);
           }
@@ -200,175 +203,123 @@ class CommandLineParser {
   }
 }
 
-/**
- * The [Driver] class represents a single running instance of the analysis
- * server application.  It is responsible for parsing command line options
- * and starting the HTTP and/or stdio servers.
- */
+/// The [Driver] class represents a single running instance of the analysis
+/// server application.  It is responsible for parsing command line options
+/// and starting the HTTP and/or stdio servers.
 class Driver implements ServerStarter {
-  /**
-   * The name of the application that is used to start a server.
-   */
-  static const BINARY_NAME = "server";
+  /// The name of the application that is used to start a server.
+  static const BINARY_NAME = 'server';
 
-  /**
-   * The name of the option used to set the identifier for the client.
-   */
-  static const String CLIENT_ID = "client-id";
+  /// The name of the option used to set the identifier for the client.
+  static const String CLIENT_ID = 'client-id';
 
-  /**
-   * The name of the option used to set the version for the client.
-   */
-  static const String CLIENT_VERSION = "client-version";
+  /// The name of the option used to set the version for the client.
+  static const String CLIENT_VERSION = 'client-version';
 
-  /**
-   * The name of the option used to enable DartPad specific functionality.
-   */
-  static const String DARTPAD_OPTION = "dartpad";
+  /// The name of the option used to enable DartPad specific functionality.
+  static const String DARTPAD_OPTION = 'dartpad';
 
-  /**
-   * The name of the option to disable the completion feature.
-   */
+  /// The name of the option used to disable exception handling.
+  static const String DISABLE_SERVER_EXCEPTION_HANDLING =
+      'disable-server-exception-handling';
+
+  /// The name of the option to disable the completion feature.
   static const String DISABLE_SERVER_FEATURE_COMPLETION =
-      "disable-server-feature-completion";
+      'disable-server-feature-completion';
 
-  /**
-   * The name of the option to disable the search feature.
-   */
+  /// The name of the option to disable the search feature.
   static const String DISABLE_SERVER_FEATURE_SEARCH =
-      "disable-server-feature-search";
+      'disable-server-feature-search';
 
-  /**
-   * The name of the option used to enable experiments.
-   */
+  /// The name of the option used to enable experiments.
   static const String ENABLE_EXPERIMENT_OPTION = 'enable-experiment';
 
-  /**
-   * The name of the option used to enable instrumentation.
-   */
-  static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
+  /// The name of the option used to enable instrumentation.
+  static const String ENABLE_INSTRUMENTATION_OPTION = 'enable-instrumentation';
 
-  /**
-   * The name of the option used to set the file read mode.
-   */
-  static const String FILE_READ_MODE = "file-read-mode";
+  /// The name of the option used to set the file read mode.
+  static const String FILE_READ_MODE = 'file-read-mode';
 
-  /**
-   * The name of the option used to print usage information.
-   */
-  static const String HELP_OPTION = "help";
+  /// The name of the option used to print usage information.
+  static const String HELP_OPTION = 'help';
 
-  /**
-   * The name of the flag used to configure reporting analytics.
-   */
-  static const String ANALYTICS_FLAG = "analytics";
+  /// The name of the flag used to configure reporting analytics.
+  static const String ANALYTICS_FLAG = 'analytics';
 
-  /**
-   * Suppress analytics for this session.
-   */
-  static const String SUPPRESS_ANALYTICS_FLAG = "suppress-analytics";
+  /// Suppress analytics for this session.
+  static const String SUPPRESS_ANALYTICS_FLAG = 'suppress-analytics';
 
-  /**
-   * The name of the option used to cause instrumentation to also be written to
-   * a local file.
-   */
-  static const String INSTRUMENTATION_LOG_FILE = "instrumentation-log-file";
+  /// The name of the option used to cause instrumentation to also be written to
+  /// a local file.
+  static const String INSTRUMENTATION_LOG_FILE = 'instrumentation-log-file';
 
-  /**
-   * The name of the option used to specify if [print] should print to the
-   * console instead of being intercepted.
-   */
-  static const String INTERNAL_PRINT_TO_CONSOLE = "internal-print-to-console";
+  /// The name of the option used to specify if [print] should print to the
+  /// console instead of being intercepted.
+  static const String INTERNAL_PRINT_TO_CONSOLE = 'internal-print-to-console';
 
-  /**
-   * The name of the option used to describe the new analysis driver logger.
-   */
+  /// The name of the option used to describe the new analysis driver logger.
   static const String NEW_ANALYSIS_DRIVER_LOG = 'new-analysis-driver-log';
 
-  /**
-   * The name of the flag used to enable version 2 of semantic highlight
-   * notification.
-   */
-  static const String USE_ANALYSIS_HIGHLIGHT2 = "useAnalysisHighlight2";
+  /// The name of the flag used to enable version 2 of semantic highlight
+  /// notification.
+  static const String USE_ANALYSIS_HIGHLIGHT2 = 'useAnalysisHighlight2';
 
-  /**
-   * The option for specifying the http diagnostic port.
-   * If specified, users can review server status and performance information
-   * by opening a web browser on http://localhost:<port>
-   */
-  static const String PORT_OPTION = "port";
+  /// The option for specifying the http diagnostic port.
+  /// If specified, users can review server status and performance information
+  /// by opening a web browser on http://localhost:<port>
+  static const String PORT_OPTION = 'port';
 
-  /**
-   * The path to the SDK.
-   */
-  static const String SDK_OPTION = "sdk";
+  /// The path to the SDK.
+  static const String SDK_OPTION = 'sdk';
 
-  /**
-   * The path to the data cache.
-   */
-  static const String CACHE_FOLDER = "cache";
+  /// The path to the data cache.
+  static const String CACHE_FOLDER = 'cache';
 
-  /**
-   * Whether to enable parsing via the Fasta parser.
-   */
-  static const String USE_FASTA_PARSER = "use-fasta-parser";
+  /// Whether to enable parsing via the Fasta parser.
+  static const String USE_FASTA_PARSER = 'use-fasta-parser';
 
-  /**
-   * The name of the flag to use the Language Server Protocol (LSP).
-   */
-  static const String USE_LSP = "lsp";
+  /// The name of the flag to use the Language Server Protocol (LSP).
+  static const String USE_LSP = 'lsp';
 
-  /**
-   * Whether or not to enable ML ranking for code completion.
-   */
-  static const String ENABLE_COMPLETION_MODEL = "enable-completion-model";
+  /// Whether or not to enable ML ranking for code completion.
+  static const String ENABLE_COMPLETION_MODEL = 'enable-completion-model';
 
-  /**
-   * The path on disk to a directory containing language model files for smart
-   * code completion.
-   */
-  static const String COMPLETION_MODEL_FOLDER = "completion-model";
+  /// The path on disk to a directory containing language model files for smart
+  /// code completion.
+  static const String COMPLETION_MODEL_FOLDER = 'completion-model';
 
-  /**
-   * A directory to analyze in order to train an analysis server snapshot.
-   */
-  static const String TRAIN_USING = "train-using";
+  /// A directory to analyze in order to train an analysis server snapshot.
+  static const String TRAIN_USING = 'train-using';
 
-  /**
-   * The instrumentation service that is to be used by the analysis server.
-   */
-  InstrumentationService instrumentationService;
+  /// A flag indicating that the new code completion relevance computation
+  /// should be used to compute relevance scores.
+  static const String USE_NEW_RELEVANCE = 'use-new-relevance';
 
-  /**
-   * The file resolver provider used to override the way file URI's are
-   * resolved in some contexts.
-   */
-  ResolverProvider fileResolverProvider;
+  /// The builder for attachments that should be included into crash reports.
+  CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder =
+      CrashReportingAttachmentsBuilder.empty;
 
-  /**
-   * The package resolver provider used to override the way package URI's are
-   * resolved in some contexts.
-   */
-  ResolverProvider packageResolverProvider;
-
-  /***
-   * An optional manager to handle file systems which may not always be
-   * available.
-   */
+  /// An optional manager to handle file systems which may not always be
+  /// available.
   DetachableFileSystemManager detachableFileSystemManager;
+
+  /// The instrumentation service that is to be used by the analysis server.
+  InstrumentationService instrumentationService;
 
   HttpAnalysisServer httpServer;
 
   Driver();
 
-  /**
-   * Use the given command-line [arguments] to start this server.
-   */
-  void start(List<String> arguments) {
-    CommandLineParser parser = _createArgParser();
-    ArgResults results = parser.parse(arguments, <String, String>{});
+  /// Use the given command-line [arguments] to start this server.
+  ///
+  /// If [sendPort] is not null, assumes this is launched in an isolate and will
+  /// connect to the original isolate via an [IsolateChannel].
+  @override
+  void start(List<String> arguments, [SendPort sendPort]) {
+    var parser = _createArgParser();
+    var results = parser.parse(arguments, <String, String>{});
 
-    AnalysisServerOptions analysisServerOptions = new AnalysisServerOptions();
+    var analysisServerOptions = AnalysisServerOptions();
     analysisServerOptions.useAnalysisHighlight2 =
         results[USE_ANALYSIS_HIGHLIGHT2];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
@@ -383,7 +334,13 @@ class Driver implements ServerStarter {
     }
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
+    analysisServerOptions.useNewRelevance = results[USE_NEW_RELEVANCE];
 
+    // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
+    var sdkConfig = SdkConfiguration.readFromSdk();
+    analysisServerOptions.configurationOverrides = sdkConfig;
+
+    // ML model configuration.
     final bool enableCompletionModel = results[ENABLE_COMPLETION_MODEL];
     analysisServerOptions.completionModelFolder =
         results[COMPLETION_MODEL_FOLDER];
@@ -392,6 +349,7 @@ class Driver implements ServerStarter {
       // code completion.
       analysisServerOptions.completionModelFolder = null;
     }
+    // TODO(devoncarew): Simplify this logic and use the value from sdkConfig.
     if (enableCompletionModel &&
         analysisServerOptions.completionModelFolder == null) {
       // The user has enabled ML code completion without explicitly setting a
@@ -406,14 +364,21 @@ class Driver implements ServerStarter {
       );
     }
 
+    // Analytics
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
     if (results.wasParsed(TRAIN_USING)) {
       disableAnalyticsForSession = true;
     }
 
-    telemetry.Analytics analytics = telemetry.createAnalyticsInstance(
-        'UA-26406144-29', 'analysis-server',
-        disableForSession: disableAnalyticsForSession);
+    // Use sdkConfig to optionally override analytics settings.
+    final analyticsId = sdkConfig.analyticsId ?? 'UA-26406144-29';
+    final forceAnalyticsEnabled = sdkConfig.analyticsForceEnabled == true;
+    var analytics = telemetry.createAnalyticsInstance(
+      analyticsId,
+      'analysis-server',
+      disableForSession: disableAnalyticsForSession,
+      forceEnabled: forceAnalyticsEnabled,
+    );
     analysisServerOptions.analytics = analytics;
 
     if (analysisServerOptions.clientId != null) {
@@ -424,13 +389,22 @@ class Driver implements ServerStarter {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
 
-    final shouldSendCallback = () {
+    var shouldSendCallback = () {
+      // Check sdkConfig to optionally force reporting on.
+      if (sdkConfig.crashReportingForceEnabled == true) {
+        return true;
+      }
+
       // TODO(devoncarew): Replace with a real enablement check.
       return false;
     };
 
+    // Crash reporting
+
+    // Use sdkConfig to optionally override analytics settings.
+    final crashProductId = sdkConfig.crashReportingId ?? 'Dart_analysis_server';
     final crashReportSender =
-        new CrashReportSender('Dart_analysis_server', shouldSendCallback);
+        CrashReportSender(crashProductId, shouldSendCallback);
 
     if (telemetry.SHOW_ANALYTICS_UI) {
       if (results.wasParsed(ANALYTICS_FLAG)) {
@@ -461,29 +435,30 @@ class Driver implements ServerStarter {
     }
 
     final defaultSdkPath = _getSdkPath(results);
-    final dartSdkManager = new DartSdkManager(defaultSdkPath, true);
+    final dartSdkManager = DartSdkManager(defaultSdkPath, true);
 
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    DartSdk defaultSdk = _createDefaultSdk(defaultSdkPath, true);
+    var defaultSdk = _createDefaultSdk(defaultSdkPath, true);
     //
     // Initialize the instrumentation service.
     //
     String logFilePath = results[INSTRUMENTATION_LOG_FILE];
-    List<InstrumentationService> allInstrumentationServices =
-        instrumentationService == null ? [] : [instrumentationService];
+    var allInstrumentationServices = instrumentationService == null
+        ? <InstrumentationService>[]
+        : [instrumentationService];
     if (logFilePath != null) {
       _rollLogFiles(logFilePath, 5);
-      allInstrumentationServices.add(InstrumentationLogAdapter(
-          new FileInstrumentationLogger(logFilePath)));
+      allInstrumentationServices.add(
+          InstrumentationLogAdapter(FileInstrumentationLogger(logFilePath)));
     }
 
-    ErrorNotifier errorNotifier = ErrorNotifier();
+    var errorNotifier = ErrorNotifier();
     allInstrumentationServices
         .add(CrashReportingInstrumentation(crashReportSender));
     instrumentationService =
-        new MulticastInstrumentationService(allInstrumentationServices);
+        MulticastInstrumentationService(allInstrumentationServices);
 
     instrumentationService.logVersion(
         results[TRAIN_USING] != null
@@ -509,6 +484,10 @@ class Driver implements ServerStarter {
     }
 
     if (analysisServerOptions.useLanguageServerProtocol) {
+      if (sendPort != null) {
+        throw UnimplementedError(
+            'Isolate usage not implemented for LspAnalysisServer');
+      }
       startLspServer(results, analysisServerOptions, dartSdkManager,
           instrumentationService, diagnosticServerPort, errorNotifier);
     } else {
@@ -517,11 +496,13 @@ class Driver implements ServerStarter {
           analysisServerOptions,
           parser,
           dartSdkManager,
+          crashReportingAttachmentsBuilder,
           instrumentationService,
           RequestStatisticsHelper(),
           analytics,
           diagnosticServerPort,
-          errorNotifier);
+          errorNotifier,
+          sendPort);
     }
   }
 
@@ -530,12 +511,17 @@ class Driver implements ServerStarter {
     AnalysisServerOptions analysisServerOptions,
     CommandLineParser parser,
     DartSdkManager dartSdkManager,
+    CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService,
     RequestStatisticsHelper requestStatistics,
     telemetry.Analytics analytics,
     int diagnosticServerPort,
     ErrorNotifier errorNotifier,
+    SendPort sendPort,
   ) {
+    var capture = results[DISABLE_SERVER_EXCEPTION_HANDLING]
+        ? (_, Function f, {Function(String) print}) => f()
+        : _captureExceptions;
     String trainDirectory = results[TRAIN_USING];
     if (trainDirectory != null) {
       if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
@@ -551,7 +537,7 @@ class Driver implements ServerStarter {
     //
     linter.registerLintRules();
 
-    _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
+    var diagnosticServer = _DiagnosticServerImpl();
 
     // Ping analytics with our initial call.
     analytics.sendScreenView('home');
@@ -559,16 +545,15 @@ class Driver implements ServerStarter {
     //
     // Create the sockets and start listening for requests.
     //
-    final socketServer = new SocketServer(
+    final socketServer = SocketServer(
         analysisServerOptions,
         dartSdkManager,
+        crashReportingAttachmentsBuilder,
         instrumentationService,
         requestStatistics,
         diagnosticServer,
-        fileResolverProvider,
-        packageResolverProvider,
         detachableFileSystemManager);
-    httpServer = new HttpAnalysisServer(socketServer);
+    httpServer = HttpAnalysisServer(socketServer);
 
     errorNotifier.server = socketServer.analysisServer;
 
@@ -578,17 +563,21 @@ class Driver implements ServerStarter {
     }
 
     if (trainDirectory != null) {
-      Directory tempDriverDir =
+      if (sendPort != null) {
+        throw UnimplementedError(
+            'isolate usage not supported for DevAnalysisServer');
+      }
+      var tempDriverDir =
           Directory.systemTemp.createTempSync('analysis_server_');
       analysisServerOptions.cacheFolder = tempDriverDir.path;
 
-      DevAnalysisServer devServer = new DevAnalysisServer(socketServer);
+      var devServer = DevAnalysisServer(socketServer);
       devServer.initServer();
 
       () async {
         // We first analyze code with an empty driver cache.
         print('Analyzing with an empty driver cache:');
-        int exitCode = await devServer.processDirectories([trainDirectory]);
+        var exitCode = await devServer.processDirectories([trainDirectory]);
         if (exitCode != 0) exit(exitCode);
 
         print('');
@@ -614,9 +603,16 @@ class Driver implements ServerStarter {
         exit(exitCode);
       }();
     } else {
-      _captureExceptions(instrumentationService, () {
-        StdioAnalysisServer stdioServer = new StdioAnalysisServer(socketServer);
-        stdioServer.serveStdio().then((_) async {
+      capture(instrumentationService, () {
+        Future serveResult;
+        if (sendPort == null) {
+          var stdioServer = StdioAnalysisServer(socketServer);
+          serveResult = stdioServer.serveStdio();
+        } else {
+          var isolateAnalysisServer = IsolateAnalysisServer(socketServer);
+          serveResult = isolateAnalysisServer.serveIsolate(sendPort);
+        }
+        serveResult.then((_) async {
           // TODO(brianwilkerson) Determine whether this await is necessary.
           await null;
 
@@ -625,7 +621,7 @@ class Driver implements ServerStarter {
           }
           await instrumentationService.shutdown();
           socketServer.analysisServer.shutdown();
-          exit(0);
+          if (sendPort == null) exit(0);
         });
         startCompletionRanking(socketServer, null, analysisServerOptions);
       },
@@ -673,13 +669,16 @@ class Driver implements ServerStarter {
     int diagnosticServerPort,
     ErrorNotifier errorNotifier,
   ) {
+    var capture = args[DISABLE_SERVER_EXCEPTION_HANDLING]
+        ? (_, Function f, {Function(String) print}) => f()
+        : _captureExceptions;
     final serve_http = diagnosticServerPort != null;
 
     linter.registerLintRules();
 
-    _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
+    var diagnosticServer = _DiagnosticServerImpl();
 
-    final socketServer = new LspSocketServer(
+    final socketServer = LspSocketServer(
       analysisServerOptions,
       diagnosticServer,
       dartSdkManager,
@@ -687,16 +686,15 @@ class Driver implements ServerStarter {
     );
     errorNotifier.server = socketServer.analysisServer;
 
-    httpServer = new HttpAnalysisServer(socketServer);
+    httpServer = HttpAnalysisServer(socketServer);
 
     diagnosticServer.httpServer = httpServer;
     if (serve_http) {
       diagnosticServer.startOnPort(diagnosticServerPort);
     }
 
-    _captureExceptions(instrumentationService, () {
-      LspStdioAnalysisServer stdioServer =
-          new LspStdioAnalysisServer(socketServer);
+    capture(instrumentationService, () {
+      var stdioServer = LspStdioAnalysisServer(socketServer);
       stdioServer.serveStdio().then((_) async {
         // Only shutdown the server and exit if the server is not already
         // handling the shutdown.
@@ -709,14 +707,13 @@ class Driver implements ServerStarter {
     });
   }
 
-  /**
-   * Execute the given [callback] within a zone that will capture any unhandled
-   * exceptions and both report them to the client and send them to the given
-   * instrumentation [service]. If a [print] function is provided, then also
-   * capture any data printed by the callback and redirect it to the function.
-   */
-  dynamic _captureExceptions(InstrumentationService service, dynamic callback(),
-      {void print(String line)}) {
+  /// Execute the given [callback] within a zone that will capture any unhandled
+  /// exceptions and both report them to the client and send them to the given
+  /// instrumentation [service]. If a [print] function is provided, then also
+  /// capture any data printed by the callback and redirect it to the function.
+  void _captureExceptions(
+      InstrumentationService service, void Function() callback,
+      {void Function(String line) print}) {
     void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
       service.logException(exception, stackTrace);
@@ -730,21 +727,26 @@ class Driver implements ServerStarter {
             // reserved for communication to the client.
             print(line);
           };
-    ZoneSpecification zoneSpecification = new ZoneSpecification(
+    var zoneSpecification = ZoneSpecification(
         handleUncaughtError: errorFunction, print: printFunction);
     return runZoned(callback, zoneSpecification: zoneSpecification);
   }
 
-  /**
-   * Create and return the parser used to parse the command-line arguments.
-   */
+  /// Create and return the parser used to parse the command-line arguments.
   CommandLineParser _createArgParser() {
-    CommandLineParser parser = new CommandLineParser();
+    var parser = CommandLineParser();
     parser.addOption(CLIENT_ID,
-        help: "an identifier used to identify the client");
-    parser.addOption(CLIENT_VERSION, help: "the version of the client");
+        help: 'an identifier used to identify the client');
+    parser.addOption(CLIENT_VERSION, help: 'the version of the client');
     parser.addFlag(DARTPAD_OPTION,
         help: 'enable DartPad specific functionality',
+        defaultsTo: false,
+        hide: true);
+    parser.addFlag(DISABLE_SERVER_EXCEPTION_HANDLING,
+        // TODO(jcollins-g): Pipeline option through and apply to all
+        // exception-nullifying runZoned() calls.
+        help: 'disable analyzer exception capture for interactive debugging '
+            'of the server',
         defaultsTo: false,
         hide: true);
     parser.addFlag(DISABLE_SERVER_FEATURE_COMPLETION,
@@ -757,18 +759,18 @@ class Driver implements ServerStarter {
         hide: true,
         splitCommas: true);
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
-        help: "enable sending instrumentation information to a server",
+        help: 'enable sending instrumentation information to a server',
         defaultsTo: false,
         negatable: false);
     parser.addFlag(HELP_OPTION,
-        help: "print this help message without starting a server",
+        help: 'print this help message without starting a server',
         abbr: 'h',
         defaultsTo: false,
         negatable: false);
     parser.addOption(INSTRUMENTATION_LOG_FILE,
-        help: "write instrumentation data to the given file");
+        help: 'write instrumentation data to the given file');
     parser.addFlag(INTERNAL_PRINT_TO_CONSOLE,
-        help: "enable sending `print` output to the console",
+        help: 'enable sending `print` output to the console',
         defaultsTo: false,
         negatable: false);
     parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
@@ -781,59 +783,61 @@ class Driver implements ServerStarter {
         help: 'suppress analytics for this session',
         hide: !telemetry.SHOW_ANALYTICS_UI);
     parser.addOption(PORT_OPTION,
-        help: "the http diagnostic port on which the server provides"
-            " status and performance information");
-    parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
+        help: 'the http diagnostic port on which the server provides'
+            ' status and performance information');
+    parser.addOption(SDK_OPTION, help: '[path] the path to the sdk');
     parser.addFlag(USE_ANALYSIS_HIGHLIGHT2,
-        help: "enable version 2 of semantic highlight",
+        help: 'enable version 2 of semantic highlight',
         defaultsTo: false,
         negatable: false);
     parser.addOption(FILE_READ_MODE,
-        help: "an option for reading files (some clients normalize eol "
-            "characters, which make the file offset and range information "
-            "incorrect)",
-        allowed: ["as-is", "normalize-eol-always"],
+        help: 'an option for reading files (some clients normalize eol '
+            'characters, which make the file offset and range information '
+            'incorrect)',
+        allowed: ['as-is', 'normalize-eol-always'],
         allowedHelp: {
-          "as-is": "file contents are read as-is",
-          "normalize-eol-always":
+          'as-is': 'file contents are read as-is',
+          'normalize-eol-always':
               r"eol characters normalized to the single character new line ('\n')"
         },
-        defaultsTo: "as-is");
+        defaultsTo: 'as-is');
     parser.addOption(CACHE_FOLDER,
-        help: "[path] path to the location where to cache data");
-    parser.addFlag("preview-dart-2",
-        help: "Enable the Dart 2.0 preview (deprecated)", hide: true);
+        help: '[path] path to the location where to cache data');
+    parser.addFlag('preview-dart-2',
+        help: 'Enable the Dart 2.0 preview (deprecated)', hide: true);
     parser.addFlag(USE_FASTA_PARSER,
         defaultsTo: true,
-        help: "Whether to enable parsing via the Fasta parser");
+        help: 'Whether to enable parsing via the Fasta parser');
     parser.addFlag(USE_LSP,
-        defaultsTo: false, help: "Whether to use the Language Server Protocol");
+        defaultsTo: false, help: 'Whether to use the Language Server Protocol');
     parser.addFlag(ENABLE_COMPLETION_MODEL,
-        help: "Whether or not to turn on ML ranking for code completion");
+        help: 'Whether or not to turn on ML ranking for code completion');
     parser.addOption(COMPLETION_MODEL_FOLDER,
-        help: "[path] path to the location of a code completion model");
+        help: '[path] path to the location of a code completion model');
     parser.addOption(TRAIN_USING,
-        help: "Pass in a directory to analyze for purposes of training an "
-            "analysis server snapshot.");
+        help: 'Pass in a directory to analyze for purposes of training an '
+            'analysis server snapshot.');
+    //
+    // Temporary flags.
+    //
+    parser.addFlag(USE_NEW_RELEVANCE,
+        help: 'Use the new relevance computation for code completion.');
 
     return parser;
   }
 
   DartSdk _createDefaultSdk(String defaultSdkPath, bool useSummaries) {
-    PhysicalResourceProvider resourceProvider =
-        PhysicalResourceProvider.INSTANCE;
-    FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+    var resourceProvider = PhysicalResourceProvider.INSTANCE;
+    var sdk = FolderBasedDartSdk(
         resourceProvider, resourceProvider.getFolder(defaultSdkPath));
     sdk.useSummary = useSummaries;
     return sdk;
   }
 
-  /**
-   * Constructs a uuid combining the current date and a random integer.
-   */
+  /// Constructs a uuid combining the current date and a random integer.
   String _generateUuidString() {
-    int millisecondsSinceEpoch = new DateTime.now().millisecondsSinceEpoch;
-    int random = new Random().nextInt(0x3fffffff);
+    var millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
+    var random = Random().nextInt(0x3fffffff);
     return '$millisecondsSinceEpoch$random';
   }
 
@@ -849,9 +853,7 @@ class Driver implements ServerStarter {
     }
   }
 
-  /**
-   * Print information about how to use the server.
-   */
+  /// Print information about how to use the server.
   void _printUsage(ArgParser parser, telemetry.Analytics analytics,
       {bool fromHelp = false}) {
     print('Usage: $BINARY_NAME [flags]');
@@ -871,19 +873,17 @@ class Driver implements ServerStarter {
     }
   }
 
-  /**
-   * Read the UUID from disk, generating and storing a new one if necessary.
-   */
+  /// Read the UUID from disk, generating and storing a new one if necessary.
   String _readUuid(InstrumentationService service) {
     final instrumentationLocation =
         PhysicalResourceProvider.INSTANCE.getStateLocation('.instrumentation');
     if (instrumentationLocation == null) {
       return _generateUuidString();
     }
-    File uuidFile = new File(instrumentationLocation.getChild('uuid.txt').path);
+    var uuidFile = File(instrumentationLocation.getChild('uuid.txt').path);
     try {
       if (uuidFile.existsSync()) {
-        String uuid = uuidFile.readAsStringSync();
+        var uuid = uuidFile.readAsStringSync();
         if (uuid != null && uuid.length > 5) {
           return uuid;
         }
@@ -891,7 +891,7 @@ class Driver implements ServerStarter {
     } catch (exception, stackTrace) {
       service.logException(exception, stackTrace);
     }
-    String uuid = _generateUuidString();
+    var uuid = _generateUuidString();
     try {
       uuidFile.parent.createSync(recursive: true);
       uuidFile.writeAsStringSync(uuid);
@@ -903,26 +903,25 @@ class Driver implements ServerStarter {
     return uuid;
   }
 
-  /**
-   * Perform log files rolling.
-   *
-   * Rename existing files with names `[path].(x)` to `[path].(x+1)`.
-   * Keep at most [numOld] files.
-   * Rename the file with the given [path] to `[path].1`.
-   */
+  /// Perform log files rolling.
+  ///
+  /// Rename existing files with names `[path].(x)` to `[path].(x+1)`.
+  /// Keep at most [numOld] files.
+  /// Rename the file with the given [path] to `[path].1`.
   static void _rollLogFiles(String path, int numOld) {
-    for (int i = numOld - 1; i >= 0; i--) {
+    for (var i = numOld - 1; i >= 0; i--) {
       try {
-        String oldPath = i == 0 ? path : '$path.$i';
-        new File(oldPath).renameSync('$path.${i + 1}');
-      } catch (e) {}
+        var oldPath = i == 0 ? path : '$path.$i';
+        File(oldPath).renameSync('$path.${i + 1}');
+      } catch (e) {
+        // If a file can't be renamed, then leave it and attempt to rename the
+        // remaining files.
+      }
     }
   }
 }
 
-/**
- * Implements the [DiagnosticServer] class by wrapping an [HttpAnalysisServer].
- */
+/// Implements the [DiagnosticServer] class by wrapping an [HttpAnalysisServer].
 class _DiagnosticServerImpl extends DiagnosticServer {
   HttpAnalysisServer httpServer;
 

@@ -23,7 +23,7 @@ class AnalysisSessionHelperTest extends DriverResolutionTest {
   @override
   void setUp() {
     super.setUp();
-    helper = new AnalysisSessionHelper(driver.currentSession);
+    helper = AnalysisSessionHelper(driver.currentSession);
   }
 
   test_getClass_defined() async {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
+import 'package:dev_compiler/src/compiler/shared_compiler.dart';
 import 'package:path/path.dart' as p;
 
 import '../js_ast/js_ast.dart';
@@ -71,6 +72,7 @@ void addModuleFormatOptions(ArgParser argParser, {bool hide = true}) {
 Program transformModuleFormat(ModuleFormat format, Program module) {
   switch (format) {
     case ModuleFormat.ddc:
+      // Legacy format always generates output compatible with single file mode.
       return DdcModuleBuilder().build(module);
     case ModuleFormat.common:
       return CommonJSModuleBuilder().build(module);
@@ -108,11 +110,11 @@ abstract class _ModuleBuilder {
     }
   }
 
-  visitImportDeclaration(ImportDeclaration node) {
+  void visitImportDeclaration(ImportDeclaration node) {
     imports.add(node);
   }
 
-  visitExportDeclaration(ExportDeclaration node) {
+  void visitExportDeclaration(ExportDeclaration node) {
     exports.add(node);
     var exported = node.exported;
     if (exported is! ExportClause) {
@@ -120,7 +122,7 @@ abstract class _ModuleBuilder {
     }
   }
 
-  visitStatement(Statement node) {
+  void visitStatement(Statement node) {
     statements.add(node);
   }
 }
@@ -185,12 +187,13 @@ class DdcModuleBuilder extends _ModuleBuilder {
         js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
         true);
 
-    var moduleDef = js.statement("dart_library.library(#, #, #, #)", [
+    var moduleDef = js.statement('dart_library.library(#, #, #, #, #)', [
       js.string(module.name, "'"),
       LiteralNull(),
       js.commentExpression(
-          "Imports", ArrayInitializer(importNames, multiline: true)),
-      resultModule
+          'Imports', ArrayInitializer(importNames, multiline: true)),
+      resultModule,
+      SharedCompiler.metricsLocationID
     ]);
     return Program(<ModuleItem>[moduleDef]);
   }
@@ -316,4 +319,4 @@ String pathToJSIdentifier(String path) {
 }
 
 // Replacement string for path separators (i.e., '/', '\', '..').
-final encodedSeparator = "__";
+final encodedSeparator = '__';

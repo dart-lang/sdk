@@ -16,12 +16,11 @@ import '../compiler_new.dart' as api;
 import '../compiler_new.dart';
 import 'colors.dart' as colors;
 import 'dart2js.dart' show AbortLeg;
-import 'filenames.dart';
 import 'io/source_file.dart';
 
 abstract class SourceFileProvider implements CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
-  Uri cwd = currentDirectory;
+  Uri cwd = Uri.base;
   Map<Uri, api.Input> utf8SourceFiles = <Uri, api.Input>{};
   Map<Uri, api.Input> binarySourceFiles = <Uri, api.Input>{};
   int dartCharactersRead = 0;
@@ -390,8 +389,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
       onFailure('$e');
     }
 
-    allOutputFiles
-        .add(fe.relativizeUri(currentDirectory, uri, Platform.isWindows));
+    allOutputFiles.add(fe.relativizeUri(Uri.base, uri, Platform.isWindows));
 
     int charactersWritten = 0;
 
@@ -424,10 +422,9 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
 
   @override
   BinaryOutputSink createBinarySink(Uri uri) {
-    uri = currentDirectory.resolveUri(uri);
+    uri = Uri.base.resolveUri(uri);
 
-    allOutputFiles
-        .add(fe.relativizeUri(currentDirectory, uri, Platform.isWindows));
+    allOutputFiles.add(fe.relativizeUri(Uri.base, uri, Platform.isWindows));
 
     if (uri.scheme != 'file') {
       onFailure('Unhandled scheme ${uri.scheme} in $uri.');
@@ -541,7 +538,7 @@ class BazelInputProvider extends SourceFileProvider {
   BazelInputProvider(List<String> searchPaths)
       : dirs = searchPaths.map(_resolve).toList();
 
-  static Uri _resolve(String path) => currentDirectory.resolve(path);
+  static Uri _resolve(String path) => Uri.base.resolve(path);
 
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,

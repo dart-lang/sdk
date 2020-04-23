@@ -1,0 +1,53 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int? _#Class#field1;
+  field core::int? _#Class#field2;
+  field core::int? _#Class#field3;
+  field core::int? _#Class#field4;
+  synthetic constructor •() → self::Class
+    ;
+  get field1() → core::int;
+  set field1(core::int #t1) → void;
+  get field2() → core::int;
+  set field2(core::int #t2) → void;
+  get field3() → core::int;
+  set field3(core::int #t3) → void;
+  get field4() → core::int;
+  set field4(core::int #t4) → void;
+}
+class SubClass extends self::Class {
+  field core::int? _#SubClass#field1;
+  field core::int? _#SubClass#field2;
+  field core::int? _#SubClass#field3;
+  field core::int? _#SubClass#field4;
+  synthetic constructor •() → self::SubClass
+    ;
+  get field1() → core::int;
+  set field1(core::int #t5) → void;
+  get field2() → core::int;
+  set field2(core::int #t6) → void;
+  get field3() → core::int;
+  set field3(core::int #t7) → void;
+  get field4() → core::int;
+  get directField1() → core::int
+    ;
+  set directField1(core::int value) → void
+    ;
+  get directField2() → core::int
+    ;
+  set directField2(core::int value) → void
+    ;
+  get directField3() → core::int
+    ;
+  get directField4() → core::int
+    ;
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → dynamic f, core::String message) → dynamic
+  ;

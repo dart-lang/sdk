@@ -63,7 +63,7 @@ class Gauge extends Metric {
   }
 
   Gauge(String name, String description, this.min, this.max)
-      : _value = min ?? double.negativeInfinity,
+      : _value = min,
         super(name, description) {
     // TODO: When NNBD is complete, delete the following two lines.
     ArgumentError.checkNotNull(min, 'min');
@@ -128,6 +128,7 @@ class Metrics {
   }
 
   // ignore: unused_element, called from native code
+  @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
   static String? _printMetric(String id) {
     var metric = _metrics[id];
     if (metric == null) {

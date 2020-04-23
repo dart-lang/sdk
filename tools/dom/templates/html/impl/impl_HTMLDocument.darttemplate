@@ -9,28 +9,29 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
 
-  BodyElement body;
+  BodyElement$NULLABLE get body native;
+  set body(BodyElement$NULLABLE value) native;
 
   /// UNSTABLE: Chrome-only - create a Range from the given point.
   @Unstable()
-  Range caretRangeFromPoint(int x, int y) {
+  Range caretRangeFromPoint(int$NULLABLE x, int$NULLABLE y) {
     return _caretRangeFromPoint(x, y);
   }
 
-  Element elementFromPoint(int x, int y) {
+  Element$NULLABLE elementFromPoint(int x, int y) {
     return _elementFromPoint(x, y);
   }
 
-  HeadElement get head => _head;
+  HeadElement$NULLABLE get head => _head;
 
   String get lastModified => _lastModified;
 
-  String get preferredStylesheetSet => _preferredStylesheetSet;
+  String$NULLABLE get preferredStylesheetSet => _preferredStylesheetSet;
 
   String get referrer => _referrer;
 
-  String get selectedStylesheetSet => _selectedStylesheetSet;
-  set selectedStylesheetSet(String value) {
+  String$NULLABLE get selectedStylesheetSet => _selectedStylesheetSet;
+  set selectedStylesheetSet(String$NULLABLE value) {
     _selectedStylesheetSet = value;
   }
 
@@ -102,13 +103,14 @@ $!MEMBERS
    * `<input is="x-bar"></input>`
    *
    */
-  Function registerElement2(String tag, [Map options]) {
+  Function registerElement2(String tag, [Map$NULLABLE options]) {
     return _registerCustomElement(JS('', 'window'), this, tag, options);
   }
 
   /** *Deprecated*: use [registerElement] instead. */
   @deprecated
-  void register(String tag, Type customElementClass, {String extendsTag}) {
+  void register(String tag, Type customElementClass,
+      {String$NULLABLE extendsTag}) {
     return registerElement(tag, customElementClass, extendsTag: extendsTag);
   }
 
@@ -153,7 +155,8 @@ $!MEMBERS
   ///
   /// If the type is not a direct subclass of HtmlElement then the extendsTag
   /// parameter must be provided.
-  ElementUpgrader createElementUpgrader(Type type, {String extendsTag}) {
+  ElementUpgrader createElementUpgrader(Type type,
+      {String$NULLABLE extendsTag}) {
     return new _JSElementUpgrader(this, type, extendsTag);
   }
 }

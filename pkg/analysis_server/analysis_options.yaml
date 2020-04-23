@@ -9,32 +9,31 @@ analyzer:
   errors:
     # Increase the severity of the unused_import hint.
     unused_import: warning
-    # Ignoring "style" lint rules from pedantic for now. There are pre-existing
-    # violations that need to be cleaned up. Each one can be cleaned up and
-    # enabled according to the value provided.
-    avoid_init_to_null: ignore
-    avoid_return_types_on_setters: ignore
-    curly_braces_in_flow_control_structures: ignore
-    empty_catches: ignore
-    prefer_iterable_wheretype: ignore
-    prefer_contains: ignore
-    # TODO(srawlins): At the time of writing, 2400 violations in lib/. The fix
-    # is mechanical, via `dartfmt --fix-doc-comments`, but not worth the churn
-    # today.
-    slash_for_doc_comments: ignore
     # TODO(srawlins): At the time of writing, 20 violations in lib/. The fix
     # is not mechanical; each violation probably needs to be scrutinized.
     unawaited_futures: ignore
-    # TODO(srawlins): At the time of writing, 1100 violations in lib/. The fix
-    # is mechanical, via `dartfmt --fix-optional-const`, but not worth the
-    # churn today.
-    unnecessary_const: ignore
-    # TODO(srawlins): At the time of writing, 2500 violations in lib/. The fix
-    # is mechanical, via `dartfmt --fix-optional-new`, but not worth the churn
-    # today.
-    unnecessary_new: ignore
 
 linter:
   rules:
     - empty_statements
     - unnecessary_brace_in_string_interps
+    #
+    # Delta from pedantic 1.8.0 to 1.9.0
+    #
+    - always_declare_return_types
+    - always_require_non_null_named_parameters
+    - annotate_overrides
+    - avoid_null_checks_in_equality_operators
+    - camel_case_extensions
+    - omit_local_variable_types
+    - prefer_adjacent_string_concatenation
+    - prefer_collection_literals
+    - prefer_conditional_assignment
+    - prefer_final_fields
+    - prefer_for_elements_to_map_fromIterable
+    - prefer_generic_function_type_aliases
+    - prefer_if_null_operators
+    - prefer_single_quotes
+    - prefer_spread_collections
+    - unnecessary_this
+    - use_function_type_syntax_for_parameters

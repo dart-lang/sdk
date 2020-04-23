@@ -1,30 +1,13 @@
-library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/nnbd/nullable_param.dart:4:7: Error: The non-abstract class 'Foo' is missing implementations for these members:
-//  - Foo.bar
-// Try to either
-//  - provide an implementation,
-//  - inherit an implementation from a superclass or mixin,
-//  - mark the class as abstract, or
-//  - provide a 'noSuchMethod' implementation.
-//
-// class Foo {
-//       ^^^
-// pkg/front_end/testcases/nnbd/nullable_param.dart:6:8: Context: 'Foo.bar' is defined here.
-//   int? bar(int? x);
-//        ^^^
-//
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
   field core::int? field = null;
-  synthetic constructor •() → self::Foo*
+  synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
-  abstract method bar(core::int? x) → core::int?;
+  method bar(core::int? x) → core::int? {}
 }
 static method main() → dynamic {
   self::Foo foo = new self::Foo::•();
@@ -33,7 +16,7 @@ static method main() → dynamic {
   self::test_nullable_function_type_formal_param(f: () → core::int => 2);
 }
 static method test_nullable_function_type_formal_param({() →? core::int f = #C1}) → core::int {
-  return let final core::int #t1 = f.call() in #t1.{core::num::==}(null) ?{core::int*} 1.{core::int::unary-}() : #t1;
+  return let final core::int? #t1 = let final () →? core::int #t2 = f in #t2.{core::Object::==}(null) ?{core::int?} null : #t2{() → core::int}.call() in #t1.{core::num::==}(null) ?{core::int*} 1.{core::int::unary-}() : #t1{core::int};
 }
 
 constants  {

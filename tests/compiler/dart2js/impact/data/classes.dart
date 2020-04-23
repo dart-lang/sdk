@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: main:
  static=[
   testAbstractClassWithField(0),
@@ -137,10 +139,7 @@ class ForwardingConstructorClass = ForwardingConstructorSuperClass
 testForwardingConstructor() => new ForwardingConstructorClass(null);
 
 class ForwardingConstructorTypedSuperClass {
-  /*member: ForwardingConstructorTypedSuperClass.:
-   static=[Object.(0)],
-   type=[inst:JSBool,param:int]
-  */
+  /*member: ForwardingConstructorTypedSuperClass.:static=[Object.(0),Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),findType(1),instanceType(1)],type=[inst:Closure,inst:JSBool,param:int]*/
   ForwardingConstructorTypedSuperClass(int arg);
 }
 
@@ -154,45 +153,21 @@ class ForwardingConstructorTypedClass = ForwardingConstructorTypedSuperClass
 testForwardingConstructorTyped() => new ForwardingConstructorTypedClass(null);
 
 class ForwardingConstructorGenericSuperClass<T> {
-  /*member: ForwardingConstructorGenericSuperClass.:
-   static=[
-    Object.(0),
-    checkSubtype(4),
-    checkSubtypeOfRuntimeType(2),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
-    setRuntimeTypeInfo(2)],
-   type=[
-    inst:JSArray<dynamic>,
-    inst:JSBool,
-    inst:JSExtendableArray<dynamic>,
-    inst:JSFixedArray<dynamic>,
-    inst:JSMutableArray<dynamic>,
-    inst:JSUnmodifiableArray<dynamic>,
-    param:ForwardingConstructorGenericSuperClass.T]
-  */
+  /*member: ForwardingConstructorGenericSuperClass.:static=[Object.(0),Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),checkSubtype(4),checkSubtypeOfRuntimeType(2),findType(1),getRuntimeTypeArgument(3),getRuntimeTypeArgumentIntercepted(4),getRuntimeTypeInfo(1),getTypeArgumentByIndex(2),instanceType(1),setRuntimeTypeInfo(2)],type=[inst:Closure,inst:JSArray<dynamic>,inst:JSBool,inst:JSExtendableArray<dynamic>,inst:JSFixedArray<dynamic>,inst:JSMutableArray<dynamic>,inst:JSUnmodifiableArray<dynamic>,param:ForwardingConstructorGenericSuperClass.T]*/
   ForwardingConstructorGenericSuperClass(T arg);
 }
 
 class ForwardingConstructorGenericClass<
     S> = ForwardingConstructorGenericSuperClass<S> with EmptyMixin;
 
-/*member: testForwardingConstructorGeneric:
- static=[
-  ForwardingConstructorGenericClass.(1),
-  assertIsSubtype(5),
-  throwTypeError(1)],
- type=[inst:JSNull]
-*/
+/*member: testForwardingConstructorGeneric:static=[ForwardingConstructorGenericClass.(1),checkTypeBound(4),throwTypeError(1)],type=[inst:JSNull]*/
 testForwardingConstructorGeneric() {
   new ForwardingConstructorGenericClass<int>(null);
 }
 
 enum Enum { A }
 
-/*strong.member: testEnum:
+/*member: testEnum:
  static=[
   Enum._name=StringConstant("Enum.A"),
   Enum.index=IntConstant(0)],
@@ -208,26 +183,7 @@ enum Enum { A }
 */
 testEnum() => Enum.A;
 
-/*member: staticGenericMethod:
- static=[
-  checkSubtype(4),
-  checkSubtypeOfRuntimeType(2),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
-  getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSUnmodifiableArray<dynamic>,
-  inst:List<staticGenericMethod.T>,
-  param:Object,
-  param:staticGenericMethod.T]
-*/
+/*member: staticGenericMethod:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),checkSubtype(4),checkSubtypeOfRuntimeType(2),findType(1),getRuntimeTypeArgument(3),getRuntimeTypeArgumentIntercepted(4),getRuntimeTypeInfo(1),getTypeArgumentByIndex(2),instanceType(1),setRuntimeTypeInfo(2)],type=[inst:Closure,inst:JSArray<dynamic>,inst:JSBool,inst:JSExtendableArray<dynamic>,inst:JSFixedArray<dynamic>,inst:JSMutableArray<dynamic>,inst:JSUnmodifiableArray<dynamic>,inst:List<staticGenericMethod.T>,param:Object,param:staticGenericMethod.T]*/
 List<T> staticGenericMethod<T>(T arg) => [arg];
 
 /*member: testStaticGenericMethod:
@@ -238,14 +194,7 @@ testStaticGenericMethod() {
   staticGenericMethod<bool>(true);
 }
 
-/*member: testInstanceGenericMethod:
- dynamic=[exact:GenericClass.genericMethod<bool>(1)],
- static=[
-  GenericClass.generative(0),
-  assertIsSubtype(5),
-  throwTypeError(1)],
- type=[inst:JSBool]
-*/
+/*member: testInstanceGenericMethod:dynamic=[exact:GenericClass.genericMethod<bool>(1)],static=[GenericClass.generative(0),checkTypeBound(4),throwTypeError(1)],type=[inst:JSBool]*/
 testInstanceGenericMethod() {
   new GenericClass<int, String>.generative().genericMethod<bool>(false);
 }
@@ -267,20 +216,10 @@ testMixinInstantiation() => new Sub();
 /*member: testNamedMixinInstantiation:static=[NamedMixin.(0)]*/
 testNamedMixinInstantiation() => new NamedMixin();
 
-/*member: testGenericMixinInstantiation:
- static=[
-  GenericSub.(0),
-  assertIsSubtype(5),
-  throwTypeError(1)]
-*/
+/*member: testGenericMixinInstantiation:static=[GenericSub.(0),checkTypeBound(4),throwTypeError(1)]*/
 testGenericMixinInstantiation() => new GenericSub<int, String>();
 
-/*member: testGenericNamedMixinInstantiation:
- static=[
-  GenericNamedMixin.(0),
-  assertIsSubtype(5),
-  throwTypeError(1)]
-*/
+/*member: testGenericNamedMixinInstantiation:static=[GenericNamedMixin.(0),checkTypeBound(4),throwTypeError(1)]*/
 testGenericNamedMixinInstantiation() => new GenericNamedMixin<int, String>();
 
 class Class {
@@ -291,27 +230,7 @@ class Class {
 class GenericClass<X, Y> {
   const GenericClass.generative();
 
-  /*member: GenericClass.genericMethod:
-   static=[
-    checkSubtype(4),
-    checkSubtypeOfRuntimeType(2),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
-    setRuntimeTypeInfo(2)],
-   type=[
-    inst:JSArray<dynamic>,
-    inst:JSBool,
-    inst:JSExtendableArray<dynamic>,
-    inst:JSFixedArray<dynamic>,
-    inst:JSMutableArray<dynamic>,
-    inst:JSNull,
-    inst:JSUnmodifiableArray<dynamic>,
-    inst:Map<GenericClass.X,genericMethod.T>,
-    param:Object,
-    param:genericMethod.T]
-   */
+  /*member: GenericClass.genericMethod:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),checkSubtype(4),checkSubtypeOfRuntimeType(2),findType(1),getRuntimeTypeArgument(3),getRuntimeTypeArgumentIntercepted(4),getRuntimeTypeInfo(1),getTypeArgumentByIndex(2),instanceType(1),setRuntimeTypeInfo(2)],type=[inst:Closure,inst:JSArray<dynamic>,inst:JSBool,inst:JSExtendableArray<dynamic>,inst:JSFixedArray<dynamic>,inst:JSMutableArray<dynamic>,inst:JSNull,inst:JSUnmodifiableArray<dynamic>,inst:Map<GenericClass.X,genericMethod.T>,param:Object,param:genericMethod.T]*/
   Map<X, T> genericMethod<T>(T arg) => {null: arg};
 }
 

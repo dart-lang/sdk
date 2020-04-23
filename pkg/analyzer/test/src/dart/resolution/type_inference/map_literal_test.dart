@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -261,24 +263,50 @@ var a = {if (0 < 1) ...c else ...d};
     assertType(setOrMapLiteral('{'), 'Map<dynamic, dynamic>');
   }
 
-  @failingTest
-  test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull() async {
-    await resolveTestCode('''
-f() {
+  test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull_map() async {
+    await assertNoErrorsInCode('''
+f() async {
   var futureNull = Future.value(null);
   var a = {1 : 'a', ...?await futureNull, 2 : 'b'};
+  a;
 }
 ''');
-    assertType(setOrMapLiteral('{1'), 'Map<int, String>');
+    assertType(
+      setOrMapLiteral('{1'),
+      typeStringByNullability(
+        nullable: 'Map<int?, String?>',
+        legacy: 'Map<int, String>',
+      ),
+    );
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull_set() async {
+    await assertNoErrorsInCode('''
+f() async {
+  var futureNull = Future.value(null);
+  var a = {1, ...?await futureNull, 2};
+  a;
+}
+''');
+    assertType(
+      setOrMapLiteral('{1'),
+      typeStringByNullability(
+        nullable: 'Set<int?>',
+        legacy: 'Set<int>',
+      ),
+    );
   }
 
   test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
-    await resolveTestCode('''
-f() {
+    await assertErrorsInCode('''
+f() async {
   var futureNull = Future.value(null);
   var a = {...?await futureNull};
+  a;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 61, 22),
+    ]);
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
 
@@ -327,22 +355,15 @@ var a = <num, String>{};
 }
 
 @reflectiveTest
-class MapLiteralWithNnbdTest extends DriverResolutionTest {
+class MapLiteralWithNnbdTest extends MapLiteralTest {
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    );
 
   @override
   bool get typeToStringWithNullability => true;
-
-  AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
-
-  test_context_noTypeArgs_noEntries() async {
-    await resolveTestCode('''
-Map<String, String> a = {};
-''');
-    assertType(setOrMapLiteral('{'), 'Map<String, String>');
-  }
 
   test_context_noTypeArgs_noEntries_typeParameterNullable() async {
     await resolveTestCode('''
@@ -357,5 +378,23 @@ class C<T extends Object?> {
     assertType(setOrMapLiteral('{}; // 2'), 'Map<String, T>');
     assertType(setOrMapLiteral('{}; // 3'), 'Map<String, T?>');
     assertType(setOrMapLiteral('{}; // 4'), 'Map<String, T?>');
+  }
+
+  test_context_spread_nullAware() async {
+    await assertNoErrorsInCode('''
+T f<T>(T t) => t;
+
+main() {
+  <int, double>{...?f(null)};
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('f(null)'),
+      element: findElement.topFunction('f'),
+      typeArgumentTypes: ['Map<int, double>?'],
+      invokeType: 'Map<int, double>? Function(Map<int, double>?)',
+      type: 'Map<int, double>?',
+    );
   }
 }

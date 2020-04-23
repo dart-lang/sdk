@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 
-String constantToText(ConstantValue constant) {
+String constantToText(DartTypes dartTypes, ConstantValue constant) {
   StringBuffer sb = new StringBuffer();
-  new ConstantToTextVisitor().visit(constant, sb);
+  new ConstantToTextVisitor(dartTypes).visit(constant, sb);
   return sb.toString();
 }
 
@@ -25,13 +27,19 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
 
   @override
   void visitLegacyType(LegacyType type, StringBuffer sb) {
+    bool wrapFunction = type.baseType is FunctionType;
+    if (wrapFunction) sb.write('(');
     visit(type.baseType, sb);
+    if (wrapFunction) sb.write(')');
     sb.write('*');
   }
 
   @override
   void visitNullableType(NullableType type, StringBuffer sb) {
+    bool wrapFunction = type.baseType is FunctionType;
+    if (wrapFunction) sb.write('(');
     visit(type.baseType, sb);
+    if (wrapFunction) sb.write(')');
     sb.write('?');
   }
 
@@ -43,6 +51,21 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
   @override
   void visitVoidType(VoidType type, StringBuffer sb) {
     sb.write('void');
+  }
+
+  @override
+  void visitDynamicType(DynamicType type, StringBuffer sb) {
+    sb.write('dynamic');
+  }
+
+  @override
+  void visitErasedType(ErasedType type, StringBuffer sb) {
+    sb.write('erased');
+  }
+
+  @override
+  void visitAnyType(AnyType type, StringBuffer sb) {
+    sb.write('any');
   }
 
   @override
@@ -94,21 +117,6 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
   }
 
   @override
-  void visitTypedefType(TypedefType type, StringBuffer sb) {
-    sb.write(type.element.name);
-    if (type.typeArguments.isNotEmpty) {
-      sb.write('<');
-      visitList(type.typeArguments, sb);
-      sb.write('>');
-    }
-  }
-
-  @override
-  void visitDynamicType(DynamicType type, StringBuffer sb) {
-    sb.write('dynamic');
-  }
-
-  @override
   void visitFutureOrType(FutureOrType type, StringBuffer sb) {
     sb.write('FutureOr<');
     visit(type.typeArgument, sb);
@@ -118,7 +126,10 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
 
 class ConstantToTextVisitor
     implements ConstantValueVisitor<void, StringBuffer> {
+  final DartTypes _dartTypes;
   final DartTypeToTextVisitor typeToText = new DartTypeToTextVisitor();
+
+  ConstantToTextVisitor(this._dartTypes);
 
   void visit(ConstantValue constant, StringBuffer sb) =>
       constant.accept(this, sb);
@@ -224,33 +235,33 @@ class ConstantToTextVisitor
   @override
   void visitInterceptor(InterceptorConstantValue constant, StringBuffer sb) {
     throw new UnsupportedError(
-        'Unsupported constant value: ${constant.toStructuredText()}');
+        'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}');
   }
 
   @override
   void visitDummyInterceptor(
       DummyInterceptorConstantValue constant, StringBuffer sb) {
     throw new UnsupportedError(
-        'Unsupported constant value: ${constant.toStructuredText()}');
+        'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}');
   }
 
   @override
   void visitUnreachable(UnreachableConstantValue constant, StringBuffer sb) {
     throw new UnsupportedError(
-        'Unsupported constant value: ${constant.toStructuredText()}');
+        'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}');
   }
 
   @override
   void visitJsName(JsNameConstantValue constant, StringBuffer sb) {
     throw new UnsupportedError(
-        'Unsupported constant value: ${constant.toStructuredText()}');
+        'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}');
   }
 
   @override
   void visitDeferredGlobal(
       DeferredGlobalConstantValue constant, StringBuffer sb) {
     throw new UnsupportedError(
-        'Unsupported constant value: ${constant.toStructuredText()}');
+        'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}');
   }
 
   @override

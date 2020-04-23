@@ -4,12 +4,15 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'builder.dart';
 import 'configuration.dart';
 
 /// The manifest that defines the set of supported test [Configuration]s and
-/// how they are run on the bots.
+/// how they are run on the [Builders]s.
 class TestMatrix {
   final List<Configuration> configurations;
+  final List<Builder> builders;
+  final List<String> branches;
 
   /// Reads a test matrix from the file at [path].
   static TestMatrix fromPath(String path) {
@@ -18,7 +21,8 @@ class TestMatrix {
   }
 
   static TestMatrix fromJson(Map<String, dynamic> json) {
-    var configurationsJson = json["configurations"] as Map<String, dynamic>;
+    var configurationsJson =
+        json["configurations"] as Map<String, dynamic> ?? <String, dynamic>{};
 
     // Keep track of the configurations and which templates they were expanded
     // from.
@@ -30,7 +34,7 @@ class TestMatrix {
       for (var configuration in Configuration.expandTemplate(
           template, options as Map<String, dynamic>)) {
         for (var existing in configurations) {
-          // Make the names don't collide.
+          // Make sure the names don't collide.
           if (configuration.name == existing.name) {
             throw FormatException(
                 'Configuration "${configuration.name}" already exists.');
@@ -48,8 +52,12 @@ class TestMatrix {
       }
     });
 
-    return TestMatrix._(configurations);
+    var builderConfigurations = <Map>[...?json["builder_configurations"]];
+    var builders = parseBuilders(builderConfigurations, configurations);
+    var branches = <String>[...?json["branches"]];
+
+    return TestMatrix._(configurations, builders, branches);
   }
 
-  TestMatrix._(this.configurations);
+  TestMatrix._(this.configurations, this.builders, this.branches);
 }

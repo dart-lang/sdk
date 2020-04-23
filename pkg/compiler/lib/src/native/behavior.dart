@@ -9,6 +9,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/native_data.dart' show NativeBasicData;
+import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import 'js.dart';
@@ -363,7 +364,7 @@ class NativeBehavior {
   /// [nullType] define the types for `Object` and `Null`, respectively. The
   /// latter is used for the type strings of the form '' and 'var'.
   /// [validTags] can be used to restrict which tags are accepted.
-  static void processSpecString(
+  static void processSpecString(DartTypes dartTypes,
       DiagnosticReporter reporter, Spannable spannable, String specString,
       {Iterable<String> validTags,
       void setSideEffects(SideEffects newEffects),
@@ -397,7 +398,7 @@ class NativeBehavior {
     /// *  'void' - in which case [onVoid] is called,
     /// *  '' or 'var' - in which case [onVar] is called,
     /// *  'T1|...|Tn' - in which case [onType] is called for each resolved Ti.
-    void resolveTypesString(String typesString,
+    void resolveTypesString(DartTypes dartTypes, String typesString,
         {onVoid(), onVar(), onType(type)}) {
       // Various things that are not in fact types.
       if (typesString == 'void') {
@@ -413,13 +414,13 @@ class NativeBehavior {
         return;
       }
       for (final typeString in typesString.split('|')) {
-        onType(_parseType(typeString.trim(), lookupType));
+        onType(_parseType(dartTypes, typeString.trim(), lookupType));
       }
     }
 
     if (!specString.contains(';') && !specString.contains(':')) {
       // Form (1), types or pseudo-types like 'void' and 'var'.
-      resolveTypesString(specString.trim(), onVar: () {
+      resolveTypesString(dartTypes, specString.trim(), onVar: () {
         typesReturned.add(objectType);
         typesReturned.add(nullType);
       }, onType: (type) {
@@ -478,7 +479,7 @@ class NativeBehavior {
 
     String returns = values['returns'];
     if (returns != null) {
-      resolveTypesString(returns, onVar: () {
+      resolveTypesString(dartTypes, returns, onVar: () {
         typesReturned.add(objectType);
         typesReturned.add(nullType);
       }, onType: (type) {
@@ -488,13 +489,13 @@ class NativeBehavior {
 
     String creates = values['creates'];
     if (creates != null) {
-      resolveTypesString(creates, onVoid: () {
+      resolveTypesString(dartTypes, creates, onVoid: () {
         reportError("Invalid type string 'creates:$creates'");
       }, onType: (type) {
         typesInstantiated.add(type);
       });
     } else if (returns != null) {
-      resolveTypesString(returns, onType: (type) {
+      resolveTypesString(dartTypes, returns, onType: (type) {
         typesInstantiated.add(type);
       });
     }
@@ -634,7 +635,7 @@ class NativeBehavior {
       behavior.useGvn = useGvn;
     }
 
-    processSpecString(reporter, spannable, specString,
+    processSpecString(commonElements.dartTypes, reporter, spannable, specString,
         setSideEffects: setSideEffects,
         setThrows: setThrows,
         setIsAllocation: setIsAllocation,
@@ -669,7 +670,7 @@ class NativeBehavior {
       behavior.sideEffects.setTo(newEffects);
     }
 
-    processSpecString(reporter, spannable, specString,
+    processSpecString(commonElements.dartTypes, reporter, spannable, specString,
         validTags: validTags,
         lookupType: lookupType,
         setSideEffects: setSideEffects,
@@ -711,10 +712,10 @@ class NativeBehavior {
   }
 
   static dynamic /*DartType|SpecialType*/ _parseType(
-      String typeString, TypeLookup lookupType) {
+      DartTypes dartTypes, String typeString, TypeLookup lookupType) {
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
-      return DynamicType();
+      return dartTypes.dynamicType();
     }
     int index = typeString.indexOf('<');
     var type = lookupType(typeString, required: index == -1);
@@ -727,7 +728,7 @@ class NativeBehavior {
         return type;
       }
     }
-    return DynamicType();
+    return dartTypes.dynamicType();
   }
 }
 
@@ -737,6 +738,8 @@ abstract class BehaviorBuilder {
   NativeBasicData get nativeBasicData;
   bool get trustJSInteropTypeAnnotations;
   ElementEnvironment get elementEnvironment;
+  CompilerOptions get options;
+  DartTypes get dartTypes => commonElements.dartTypes;
 
   NativeBehavior _behavior;
 
@@ -762,11 +765,12 @@ abstract class BehaviorBuilder {
   /// Returns a list of type constraints from the annotations of
   /// [annotationClass].
   /// Returns `null` if no constraints.
-  List _collect(Iterable<String> annotations, TypeLookup lookupType) {
-    var types = null;
+  List<dynamic> _collect(Iterable<String> annotations, TypeLookup lookupType) {
+    List<dynamic> types = null;
     for (String specString in annotations) {
       for (final typeString in specString.split('|')) {
-        var type = NativeBehavior._parseType(typeString, lookupType);
+        var type = NativeBehavior._parseType(
+            commonElements.dartTypes, typeString, lookupType);
         if (types == null) types = [];
         types.add(type);
       }
@@ -777,13 +781,12 @@ abstract class BehaviorBuilder {
   /// Models the behavior of having instances of [type] escape from Dart code
   /// into native code.
   void _escape(DartType type, bool isJsInterop) {
-    type = elementEnvironment.getUnaliasedType(type);
+    type = type.withoutNullability;
     if (type is FunctionType) {
-      FunctionType functionType = type;
       // A function might be called from native code, passing us novel
       // parameters.
-      _escape(functionType.returnType, isJsInterop);
-      for (DartType parameter in functionType.parameterTypes) {
+      _escape(type.returnType, isJsInterop);
+      for (DartType parameter in type.parameterTypes) {
         _capture(parameter, isJsInterop);
       }
     }
@@ -796,7 +799,7 @@ abstract class BehaviorBuilder {
   /// We assume that JS-interop APIs cannot instantiate Dart types or
   /// non-JSInterop native types.
   void _capture(DartType type, bool isJsInterop) {
-    type = elementEnvironment.getUnaliasedType(type);
+    type = type.withoutNullability;
     if (type is FunctionType) {
       FunctionType functionType = type;
       _capture(functionType.returnType, isJsInterop);
@@ -814,9 +817,7 @@ abstract class BehaviorBuilder {
           _behavior.typesInstantiated.add(type);
         }
 
-        if (!trustJSInteropTypeAnnotations ||
-            type is DynamicType ||
-            type == commonElements.objectType) {
+        if (!trustJSInteropTypeAnnotations || dartTypes.isTopType(type)) {
           // By saying that only JS-interop types can be created, we prevent
           // pulling in every other native type (e.g. all of dart:html) when a
           // JS interop API returns dynamic or when we don't trust the type
@@ -835,6 +836,26 @@ abstract class BehaviorBuilder {
     }
   }
 
+  void _handleSideEffects() {
+    // TODO(sra): We can probably assume DOM getters are idempotent.
+    // TODO(sra): Add an annotation that includes other attributes, for example,
+    // a @Behavior() annotation that supports the same language as JS().
+    _behavior.sideEffects.setDependsOnSomething();
+    _behavior.sideEffects.setAllSideEffects();
+  }
+
+  void _addReturnType(DartType type) {
+    _behavior.typesReturned.add(type.withoutNullability);
+
+    // Breakdown nullable type into TypeWithoutNullability|Null.
+    // Pre-nnbd Declared types are nullable, so we also add null in that case.
+    if (type is NullableType ||
+        type is LegacyType ||
+        (!options.useNullSafety && type is! VoidType)) {
+      _behavior.typesReturned.add(commonElements.nullType);
+    }
+  }
+
   NativeBehavior buildFieldLoadBehavior(
       DartType type,
       Iterable<String> createsAnnotations,
@@ -843,14 +864,13 @@ abstract class BehaviorBuilder {
       {bool isJsInterop}) {
     _behavior = new NativeBehavior();
     // TODO(sigmund,sra): consider doing something better for numeric types.
-    _behavior.typesReturned.add(!isJsInterop || trustJSInteropTypeAnnotations
+    _addReturnType(!isJsInterop || trustJSInteropTypeAnnotations
         ? type
         : commonElements.dynamicType);
-    // Declared types are nullable.
-    _behavior.typesReturned.add(commonElements.nullType);
     _capture(type, isJsInterop);
     _overrideWithAnnotations(
         createsAnnotations, returnsAnnotations, lookupType);
+    _handleSideEffects();
     return _behavior;
   }
 
@@ -859,6 +879,7 @@ abstract class BehaviorBuilder {
     _escape(type, false);
     // We don't override the default behaviour - the annotations apply to
     // loading the field.
+    _handleSideEffects();
     return _behavior;
   }
 
@@ -879,13 +900,9 @@ abstract class BehaviorBuilder {
     // an interop call returns a DOM type and declares a dynamic return type,
     // but otherwise we would include a lot of code by default).
     // TODO(sigmund,sra): consider doing something better for numeric types.
-    _behavior.typesReturned.add(!isJsInterop || trustJSInteropTypeAnnotations
+    _addReturnType(!isJsInterop || trustJSInteropTypeAnnotations
         ? returnType
         : commonElements.dynamicType);
-    if (type.returnType is! VoidType) {
-      // Declared types are nullable.
-      _behavior.typesReturned.add(commonElements.nullType);
-    }
     _capture(type, isJsInterop);
 
     for (DartType type in type.optionalParameterTypes) {
@@ -896,11 +913,13 @@ abstract class BehaviorBuilder {
     }
 
     _overrideWithAnnotations(createAnnotations, returnsAnnotations, lookupType);
+    _handleSideEffects();
+
     return _behavior;
   }
 }
 
-List<String> _getAnnotations(DiagnosticReporter reporter,
+List<String> _getAnnotations(DartTypes dartTypes, DiagnosticReporter reporter,
     Iterable<ConstantValue> metadata, ClassEntity cls) {
   List<String> annotations = [];
   for (ConstantValue value in metadata) {
@@ -912,7 +931,7 @@ List<String> _getAnnotations(DiagnosticReporter reporter,
     // TODO(sra): Better validation of the constant.
     if (fields.length != 1 || !fields.single.isString) {
       reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-          'Annotations needs one string: ${value.toStructuredText()}');
+          'Annotations needs one string: ${value.toStructuredText(dartTypes)}');
     }
     StringConstantValue specStringConstant = fields.single;
     String specString = specStringConstant.stringValue;
@@ -921,14 +940,20 @@ List<String> _getAnnotations(DiagnosticReporter reporter,
   return annotations;
 }
 
-List<String> getCreatesAnnotations(DiagnosticReporter reporter,
-    CommonElements commonElements, Iterable<ConstantValue> metadata) {
+List<String> getCreatesAnnotations(
+    DartTypes dartTypes,
+    DiagnosticReporter reporter,
+    CommonElements commonElements,
+    Iterable<ConstantValue> metadata) {
   return _getAnnotations(
-      reporter, metadata, commonElements.annotationCreatesClass);
+      dartTypes, reporter, metadata, commonElements.annotationCreatesClass);
 }
 
-List<String> getReturnsAnnotations(DiagnosticReporter reporter,
-    CommonElements commonElements, Iterable<ConstantValue> metadata) {
+List<String> getReturnsAnnotations(
+    DartTypes dartTypes,
+    DiagnosticReporter reporter,
+    CommonElements commonElements,
+    Iterable<ConstantValue> metadata) {
   return _getAnnotations(
-      reporter, metadata, commonElements.annotationReturnsClass);
+      dartTypes, reporter, metadata, commonElements.annotationReturnsClass);
 }

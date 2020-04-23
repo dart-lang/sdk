@@ -8,6 +8,7 @@ library _js_helper;
 
 import 'dart:_js_embedded_names'
     show
+        ARRAY_RTI_PROPERTY,
         CURRENT_SCRIPT,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
@@ -3087,34 +3088,30 @@ void checkDeferredIsLoaded(String loadId) {
 /// visible to anyone, and is only injected into special libraries.
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
-// TODO(lrn): These exceptions should be implemented in core.
-// When they are, remove the 'Implementation' here.
-
 /// Thrown by type assertions that fail.
-class TypeErrorImplementation extends Error implements TypeError {
-  final String message;
+class TypeErrorImplementation extends Error implements TypeError, CastError {
+  final String _message;
 
   /// Normal type error caused by a failed subtype test.
   TypeErrorImplementation(Object value, String type)
-      : message = "TypeError: ${Error.safeToString(value)}: type "
+      : _message = "TypeError: ${Error.safeToString(value)}: type "
             "'${_typeDescription(value)}' is not a subtype of type '$type'";
 
-  TypeErrorImplementation.fromMessage(String this.message);
+  TypeErrorImplementation.fromMessage(String this._message);
 
-  String toString() => message;
+  String toString() => _message;
 }
 
 /// Thrown by the 'as' operator if the cast isn't valid.
-class CastErrorImplementation extends Error implements CastError {
-  // TODO(lrn): Rename to CastError (and move implementation into core).
-  final String message;
+class CastErrorImplementation extends Error implements CastError, TypeError {
+  final String _message;
 
   /// Normal cast error caused by a failed type cast.
   CastErrorImplementation(Object value, Object type)
-      : message = "CastError: ${Error.safeToString(value)}: type "
+      : _message = "TypeError: ${Error.safeToString(value)}: type "
             "'${_typeDescription(value)}' is not a subtype of type '$type'";
 
-  String toString() => message;
+  String toString() => _message;
 }
 
 String _typeDescription(value) {
@@ -3546,3 +3543,12 @@ void registerGlobalObject(object) {}
 // Hook to register new browser classes.
 // This is currently a no-op in dart2js.
 void applyExtension(name, nativeObject) {}
+
+// See tests/compiler/dart2js_extra/platform_environment_variable1_test.dart
+const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
+    'dart2js.test.platform.environment.variable',
+    defaultValue: 'not-specified');
+
+String testingGetPlatformEnvironmentVariable() {
+  return testPlatformEnvironmentVariableValue;
+}

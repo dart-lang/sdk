@@ -22,8 +22,9 @@ import 'fasta/fast_strong_suite.dart' as fast_strong show createContext;
 import 'fasta/incremental_suite.dart' as incremental show createContext;
 import 'fasta/messages_suite.dart' as messages show createContext;
 import 'fasta/strong_tester.dart' as strong show createContext;
-import 'fasta/text_serialization_suite.dart' as text_serialization
+import 'fasta/text_serialization_tester.dart' as text_serialization
     show createContext;
+import 'fasta/weak_suite.dart' as weak show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
 import 'incremental_load_from_dill_suite.dart' as incremental_load
@@ -214,8 +215,30 @@ const List<Suite> suites = [
   const Suite(
       "fasta/incremental", incremental.createContext, "../../testing.json"),
   const Suite("fasta/messages", messages.createContext, "../../testing.json"),
-  const Suite("fasta/text_serialization", text_serialization.createContext,
-      "../../testing.json"),
+  const Suite("fasta/text_serialization1", text_serialization.createContext,
+      "../../testing.json",
+      path: "fasta/text_serialization_tester.dart",
+      shardCount: 4,
+      shard: 0,
+      prefix: "fasta/text_serialization"),
+  const Suite("fasta/text_serialization2", text_serialization.createContext,
+      "../../testing.json",
+      path: "fasta/text_serialization_tester.dart",
+      shardCount: 4,
+      shard: 1,
+      prefix: "fasta/text_serialization"),
+  const Suite("fasta/text_serialization3", text_serialization.createContext,
+      "../../testing.json",
+      path: "fasta/text_serialization_tester.dart",
+      shardCount: 4,
+      shard: 2,
+      prefix: "fasta/text_serialization"),
+  const Suite("fasta/text_serialization4", text_serialization.createContext,
+      "../../testing.json",
+      path: "fasta/text_serialization_tester.dart",
+      shardCount: 4,
+      shard: 3,
+      prefix: "fasta/text_serialization"),
   const Suite("fasta/strong1", strong.createContext, "../../testing.json",
       path: "fasta/strong_tester.dart",
       shardCount: 4,
@@ -247,9 +270,10 @@ const List<Suite> suites = [
       "../testing.json"),
   const Suite(
       "spelling_test_src", spelling_src.createContext, "../testing.json"),
+  const Suite("fasta/weak", weak.createContext, "../../testing.json"),
 ];
 
-const Duration timeoutDuration = Duration(minutes: 10);
+const Duration timeoutDuration = Duration(minutes: 25);
 
 class SuiteConfiguration {
   final String name;
@@ -345,8 +369,8 @@ main([List<String> arguments = const <String>[]]) async {
       await exitPort.first;
       timer.cancel();
       if (!timedOut) {
-        print(
-            "Suite $name finished (took ${stopwatch.elapsedMilliseconds}ms).");
+        int seconds = stopwatch.elapsedMilliseconds ~/ 1000;
+        print("Suite $name finished (took ${seconds} seconds)");
       }
       return timedOut;
     });

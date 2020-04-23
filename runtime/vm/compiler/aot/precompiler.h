@@ -8,6 +8,7 @@
 #ifndef DART_PRECOMPILED_RUNTIME
 
 #include "vm/allocation.h"
+#include "vm/compiler/aot/dispatch_table_generator.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/hash_map.h"
 #include "vm/hash_table.h"
@@ -31,6 +32,24 @@ class Precompiler;
 class FlowGraph;
 class PrecompilerEntryPointsPrinter;
 
+class TableSelectorKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef int32_t Key;
+  typedef int32_t Value;
+  typedef int32_t Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) { return key; }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) { return pair == key; }
+};
+
+typedef DirectChainedHashMap<TableSelectorKeyValueTrait> TableSelectorSet;
+
 class SymbolKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -50,29 +69,6 @@ class SymbolKeyValueTrait {
 };
 
 typedef DirectChainedHashMap<SymbolKeyValueTrait> SymbolSet;
-
-class UnlinkedCallKeyValueTrait {
- public:
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef const UnlinkedCall* Key;
-  typedef const UnlinkedCall* Value;
-  typedef const UnlinkedCall* Pair;
-
-  static Key KeyOf(Pair kv) { return kv; }
-
-  static Value ValueOf(Pair kv) { return kv; }
-
-  static inline intptr_t Hashcode(Key key) {
-    return String::Handle(key->target_name()).Hash();
-  }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) {
-    return (pair->target_name() == key->target_name()) &&
-           (pair->args_descriptor() == key->args_descriptor());
-  }
-};
-
-typedef DirectChainedHashMap<UnlinkedCallKeyValueTrait> UnlinkedCallSet;
 
 // Traits for the HashTable template.
 struct FunctionKeyTraits {
@@ -213,9 +209,17 @@ class Precompiler : public ValueObject {
     return &global_object_pool_builder_;
   }
 
+  compiler::SelectorMap* selector_map() {
+    ASSERT(FLAG_use_bare_instructions && FLAG_use_table_dispatch);
+    return dispatch_table_generator_->selector_map();
+  }
+
   void* il_serialization_stream() const { return il_serialization_stream_; }
 
   static Precompiler* Instance() { return singleton_; }
+
+  void AddRetainedStaticField(const Field& field);
+  void AddTableSelector(const compiler::TableSelector* selector);
 
  private:
   static Precompiler* singleton_;
@@ -239,10 +243,12 @@ class Precompiler : public ValueObject {
   void AddConstObject(const class Instance& instance);
   void AddClosureCall(const Array& arguments_descriptor);
   void AddField(const Field& field);
-  void AddFunction(const Function& function);
+  void AddFunction(const Function& function, bool retain = true);
   void AddInstantiatedClass(const Class& cls);
   void AddSelector(const String& selector);
   bool IsSent(const String& selector);
+  bool IsHitByTableSelector(const Function& function);
+  bool MustRetainFunction(const Function& function);
 
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
@@ -261,13 +267,7 @@ class Precompiler : public ValueObject {
   void DropClasses();
   void DropLibraries();
 
-  // Remove the indirection of the CallStaticFunction stub from all static call
-  // sites now that Code is available for all call targets. Allows for dropping
-  // the static call table from each Code object.
-  void BindStaticCalls();
-  // Deduplicate the UnlinkedCall objects in all ObjectPools to reduce snapshot
-  // size.
-  void DedupUnlinkedCalls();
+  DEBUG_ONLY(RawFunction* FindUnvisitedRetainedFunction());
 
   void Obfuscate();
 
@@ -305,15 +305,20 @@ class Precompiler : public ValueObject {
   compiler::ObjectPoolBuilder global_object_pool_builder_;
   GrowableObjectArray& libraries_;
   const GrowableObjectArray& pending_functions_;
+  FieldSet pending_static_fields_to_retain_;
   SymbolSet sent_selectors_;
-  FunctionSet enqueued_functions_;
+  FunctionSet seen_functions_;
+  FunctionSet possibly_retained_functions_;
   FieldSet fields_to_retain_;
   FunctionSet functions_to_retain_;
   ClassSet classes_to_retain_;
   TypeArgumentsSet typeargs_to_retain_;
   AbstractTypeSet types_to_retain_;
   InstanceSet consts_to_retain_;
+  TableSelectorSet seen_table_selectors_;
   Error& error_;
+
+  compiler::DispatchTableGenerator* dispatch_table_generator_;
 
   bool get_runtime_type_is_unique_;
   void* il_serialization_stream_;

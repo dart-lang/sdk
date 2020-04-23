@@ -126,7 +126,7 @@ static method test() → void {
     y = <T extends core::Object* = dynamic>(core::int* x) → core::String* => invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:66:10: Error: The method 'substring' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'substring'.
         .substring(3);
-         ^^^^^^^^^" as{TypeError} core::String*;
+         ^^^^^^^^^" as{TypeError,ForDynamic} core::String*;
     <T extends core::Object* = dynamic>(core::String*) →* core::String* z = string2String;
     z = <T extends core::Object* = dynamic>(core::String* x) → core::String* => x.{core::String::substring}(3);
   }

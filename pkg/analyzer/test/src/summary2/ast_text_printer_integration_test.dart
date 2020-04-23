@@ -7,8 +7,8 @@ import 'dart:io';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:test/test.dart';
 
-import '../dart/ast/parse_base.dart';
 import '../../utils/package_root.dart' as package_root;
+import '../dart/ast/parse_base.dart';
 import 'ast_text_printer_test.dart';
 
 main() {

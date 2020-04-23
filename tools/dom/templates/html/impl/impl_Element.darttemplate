@@ -11,10 +11,10 @@ class _ChildrenElementList extends ListBase<Element>
   final HtmlCollection _childElements;
 
   _ChildrenElementList._wrap(Element element)
-    : _childElements = element._children,
+    : _childElements = element._children $#NULLSAFECAST(as HtmlCollection),
       _element = element;
 
-  bool contains(Object element) => _childElements.contains(element);
+  bool contains(Object$NULLABLE element) => _childElements.contains(element);
 
 
   bool get isEmpty {
@@ -26,7 +26,7 @@ class _ChildrenElementList extends ListBase<Element>
   }
 
   Element operator [](int index) {
-    return _childElements[index];
+    return _childElements[index] $#NULLSAFECAST(as Element);
   }
 
   void operator []=(int index, Element value) {
@@ -55,11 +55,11 @@ class _ChildrenElementList extends ListBase<Element>
     }
   }
 
-  void sort([int compare(Element a, Element b)]) {
+  void sort([int compare(Element a, Element b)$NULLABLE]) {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random$NULLABLE random]) {
     throw new UnsupportedError('Cannot shuffle element lists');
   }
 
@@ -81,7 +81,7 @@ class _ChildrenElementList extends ListBase<Element>
     for (var e in removed) e.remove();
   }
 
-  void fillRange(int start, int end, [Element fillValue]) {
+  void fillRange(int start, int end, [Element$NULLABLE fillValue]) {
     throw new UnimplementedError();
   }
 
@@ -98,7 +98,7 @@ class _ChildrenElementList extends ListBase<Element>
     throw new UnimplementedError();
   }
 
-  bool remove(Object object) {
+  bool remove(Object$NULLABLE object) {
     if (object is Element) {
       Element element = object;
       if (identical(element.parentNode, _element)) {
@@ -145,14 +145,14 @@ class _ChildrenElementList extends ListBase<Element>
   }
 
   Element get first {
-    Element result = _element._firstElementChild;
+    Element$NULLABLE result = _element._firstElementChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
 
 
   Element get last {
-    Element result = _element._lastElementChild;
+    Element$NULLABLE result = _element._lastElementChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -270,7 +270,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
 
   int get length => _nodeList.length;
 
-  E operator [](int index) => _nodeList[index];
+  E operator [](int index) => _nodeList[index] $#NULLSAFECAST(as E);
 
   void operator []=(int index, E value) {
     throw new UnsupportedError('Cannot modify list');
@@ -280,19 +280,19 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
     throw new UnsupportedError('Cannot modify list');
   }
 
-  void sort([Comparator<E> compare]) {
+  void sort([Comparator<E>$NULLABLE compare]) {
     throw new UnsupportedError('Cannot sort list');
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random$NULLABLE random]) {
     throw new UnsupportedError('Cannot shuffle list');
   }
 
-  E get first => _nodeList.first;
+  E get first => _nodeList.first $#NULLSAFECAST(as E);
 
-  E get last => _nodeList.last;
+  E get last => _nodeList.last $#NULLSAFECAST(as E);
 
-  E get single => _nodeList.single;
+  E get single => _nodeList.single $#NULLSAFECAST(as E);
 
   CssClassSet get classes => new _MultiElementCssClassSet(this);
 
@@ -346,11 +346,12 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *
    */
   factory Element.html(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
-    var fragment = document.body.createFragment(html, validator: validator,
-        treeSanitizer: treeSanitizer);
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+    var fragment = document.body$NULLASSERT.createFragment(html,
+        validator: validator, treeSanitizer: treeSanitizer);
 
-    return fragment.nodes.where((e) => e is Element).single;
+    return fragment.nodes.where((e) => e is Element).single $#NULLSAFECAST(as Element);
   }
 
   /**
@@ -395,8 +396,8 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *
    * * [isTagSupported]
    */
-  factory $CLASSNAME.tag(String tag, [String typeExtention]) =>
-      _$(CLASSNAME)FactoryProvider.createElement_tag(tag, typeExtention);
+  factory $CLASSNAME.tag(String tag, [String$NULLABLE typeExtension]) =>
+      _$(CLASSNAME)FactoryProvider.createElement_tag(tag, typeExtension);
 
   /// Creates a new `<a>` element.
   ///
@@ -559,19 +560,19 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
     Map<String, String> attributes = this.attributes;
     attributes.clear();
     for (String key in value.keys) {
-      attributes[key] = value[key];
+      attributes[key] = value[key]$NULLASSERT;
     }
   }
 
   @pragma('dart2js:tryInline')
-  String getAttribute(String name) {
+  String$NULLABLE getAttribute(String name) {
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     return _getAttribute(name);
   }
 
   @pragma('dart2js:tryInline')
-  String getAttributeNS(String namespaceURI, String name) {
+  String$NULLABLE getAttributeNS(String$NULLABLE namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
     assert(name != null, 'Attribute name cannot be null');
@@ -586,7 +587,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   }
 
   @pragma('dart2js:tryInline')
-  bool hasAttributeNS(String namespaceURI, String name) {
+  bool hasAttributeNS(String$NULLABLE namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
     assert(name != null, 'Attribute name cannot be null');
@@ -601,7 +602,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   }
 
   @pragma('dart2js:tryInline')
-  void removeAttributeNS(String namespaceURI, String name) {
+  void removeAttributeNS(String$NULLABLE namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     _removeAttributeNS(namespaceURI, name);
@@ -616,7 +617,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   }
 
   @pragma('dart2js:tryInline')
-  void setAttributeNS(String namespaceURI, String name, String value) {
+  void setAttributeNS(String$NULLABLE namespaceURI, String name, String value) {
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
@@ -732,7 +733,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
     final data = this.dataset;
     data.clear();
     for (String key in value.keys) {
-      data[key] = value[key];
+      data[key] = value[key]$NULLASSERT;
     }
   }
 
@@ -764,7 +765,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * * [Pseudo-elements](https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements)
    *   from MDN.
    */
-  CssStyleDeclaration getComputedStyle([String pseudoElement]) {
+  CssStyleDeclaration getComputedStyle([String$NULLABLE pseudoElement]) {
     if (pseudoElement == null) {
       pseudoElement = '';
     }
@@ -795,8 +796,8 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this element.
    */
-  void appendHtml(String text, {NodeValidator validator,
-      NodeTreeSanitizer treeSanitizer}) {
+  void appendHtml(String text, {NodeValidator$NULLABLE validator,
+      NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     this.insertAdjacentHtml('beforeend', text, validator: validator,
         treeSanitizer: treeSanitizer);
   }
@@ -920,7 +921,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * * [Node.namespaceURI](http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname)
    *   from W3C.
    */
-  String get namespaceUri => _namespaceUri;
+  String$NULLABLE get namespaceUri => _namespaceUri;
 
   /**
    * The string representation of this element.
@@ -948,7 +949,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * * [scrollIntoViewIfNeeded](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoViewIfNeeded)
    *   from MDN.
    */
-  void scrollIntoView([ScrollAlignment alignment]) {
+  void scrollIntoView([ScrollAlignment$NULLABLE alignment]) {
     var hasScrollIntoViewIfNeeded = true;
     hasScrollIntoViewIfNeeded =
         JS('bool', '!!(#.scrollIntoViewIfNeeded)', this);
@@ -1042,8 +1043,9 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * * [insertAdjacentText]
    * * [insertAdjacentElement]
    */
-  void insertAdjacentHtml(String where, String html, {NodeValidator validator,
-      NodeTreeSanitizer treeSanitizer}) {
+  void insertAdjacentHtml(String where, String html,
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
       if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
         _insertAdjacentHtml(where, html);
       } else {
@@ -1081,7 +1083,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   void _insertAdjacentNode(String where, Node node) {
     switch (where.toLowerCase()) {
       case 'beforebegin':
-        this.parentNode.insertBefore(node, this);
+        this.parentNode$NULLASSERT.insertBefore(node, this);
         break;
       case 'afterbegin':
         var first = this.nodes.length > 0 ? this.nodes[0] : null;
@@ -1091,7 +1093,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
         this.append(node);
         break;
       case 'afterend':
-        this.parentNode.insertBefore(node, this.nextNode);
+        this.parentNode$NULLASSERT.insertBefore(node, this.nextNode);
         break;
       default:
         throw new ArgumentError("Invalid position ${where}");
@@ -1119,9 +1121,9 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   /** Checks if this element or any of its parents match the CSS selectors. */
   bool matchesWithAncestors(String selectors) {
-    var elem = this;
+    var elem = this $#NULLSAFECAST(as Element$NULLABLE);
     do {
-      if (elem.matches(selectors)) return true;
+      if (elem$NULLASSERT.matches(selectors)) return true;
       elem = elem.parent;
     } while(elem != null);
     return false;
@@ -1154,7 +1156,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *   from W3C.
    */
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
-  ShadowRoot get shadowRoot =>
+  ShadowRoot$NULLABLE get shadowRoot =>
       JS('ShadowRoot|Null', '#.shadowRoot || #.webkitShadowRoot', this, this);
 
   /**
@@ -1234,7 +1236,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * This method is the Dart equivalent to jQuery's
    * [offset](http://api.jquery.com/offset/) method.
    */
-  Point get documentOffset => offsetTo(document.documentElement);
+  Point get documentOffset => offsetTo(document.documentElement$NULLASSERT);
 
   /**
    * Provides the offset of this element's [borderEdge] relative to the
@@ -1251,7 +1253,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
     return Element._offsetToHelper(this, parent);
   }
 
-  static Point _offsetToHelper(Element current, Element parent) {
+  static Point _offsetToHelper(Element$NULLABLE current, Element parent) {
     // We're hopping from _offsetParent_ to offsetParent (not just parent), so
     // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
@@ -1263,15 +1265,15 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
     }
-    Element parentOffset = current.offsetParent;
+    Element$NULLABLE parentOffset = current.offsetParent;
     Point p = Element._offsetToHelper(parentOffset, parent);
     return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
 
-  static HtmlDocument _parseDocument;
-  static Range _parseRange;
-  static NodeValidatorBuilder _defaultValidator;
-  static _ValidatingTreeSanitizer _defaultSanitizer;
+  static HtmlDocument$NULLABLE _parseDocument;
+  static Range$NULLABLE _parseRange;
+  static NodeValidatorBuilder$NULLABLE _defaultValidator;
+  static _ValidatingTreeSanitizer$NULLABLE _defaultSanitizer;
 
   /**
    * Create a DocumentFragment from the HTML fragment and ensure that it follows
@@ -1294,7 +1296,8 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * * [NodeTreeSanitizer]
    */
   DocumentFragment createFragment(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     if (treeSanitizer == null) {
       if (validator == null) {
         if (_defaultValidator == null) {
@@ -1303,9 +1306,9 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
         validator = _defaultValidator;
       }
       if (_defaultSanitizer == null) {
-        _defaultSanitizer = new _ValidatingTreeSanitizer(validator);
+        _defaultSanitizer = new _ValidatingTreeSanitizer(validator$NULLASSERT);
       } else {
-        _defaultSanitizer.validator = validator;
+        _defaultSanitizer$NULLASSERT.validator = validator$NULLASSERT;
       }
       treeSanitizer = _defaultSanitizer;
     } else if (validator != null) {
@@ -1315,45 +1318,47 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
-      _parseRange = _parseDocument.createRange();
+      _parseRange = _parseDocument$NULLASSERT.createRange();
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
-      BaseElement base = _parseDocument.createElement('base');
+      BaseElement base =
+          _parseDocument$NULLASSERT.createElement('base') $#NULLSAFECAST(as BaseElement);
       base.href = document.baseUri;
-      _parseDocument.head.append(base);
+      _parseDocument$NULLASSERT.head$NULLASSERT.append(base);
     }
 
     // TODO(terry): Fixes Chromium 50 change no body after createHtmlDocument()
-    if (_parseDocument.body == null) {
-      _parseDocument.body = _parseDocument.createElement("body");
+    if (_parseDocument$NULLASSERT.body == null) {
+      _parseDocument$NULLASSERT.body =
+          _parseDocument$NULLASSERT.createElement("body") $#NULLSAFECAST(as BodyElement);
     }
 
     var contextElement;
     if (this is BodyElement) {
-      contextElement = _parseDocument.body;
+      contextElement = _parseDocument$NULLASSERT.body$NULLASSERT;
     } else {
-      contextElement = _parseDocument.createElement(tagName);
-      _parseDocument.body.append(contextElement);
+      contextElement = _parseDocument$NULLASSERT.createElement(tagName);
+      _parseDocument$NULLASSERT.body$NULLASSERT.append(contextElement);
     }
     var fragment;
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
-      _parseRange.selectNodeContents(contextElement);
-      fragment = _parseRange.createContextualFragment(html);
+      _parseRange$NULLASSERT.selectNodeContents(contextElement);
+      fragment = _parseRange$NULLASSERT.createContextualFragment(html);
     } else {
       contextElement._innerHtml = html;
 
-      fragment = _parseDocument.createDocumentFragment();
+      fragment = _parseDocument$NULLASSERT.createDocumentFragment();
       while (contextElement.firstChild != null) {
         fragment.append(contextElement.firstChild);
       }
     }
-    if (contextElement != _parseDocument.body) {
+    if (contextElement != _parseDocument$NULLASSERT.body) {
       contextElement.remove();
     }
 
-    treeSanitizer.sanitizeTree(fragment);
+    treeSanitizer$NULLASSERT.sanitizeTree(fragment);
     // Copy the fragment over to the main document (fix for 14184)
     document.adoptNode(fragment);
 
@@ -1410,7 +1415,8 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * * [NodeTreeSanitizer]
    */
   void setInnerHtml(String html,
-    {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    {NodeValidator$NULLABLE validator,
+     NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     text = null;
     if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
       _innerHtml = html;
@@ -1422,7 +1428,8 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   String get innerHtml => _innerHtml;
 
   @JSName('innerText')
-  String innerText;
+  String get innerText native;
+  set innerText(String value) native;
 
   /**
    * This is an ease-of-use accessor for event streams which should only be
@@ -1499,7 +1506,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
     return result;
   }
 
-  final Element offsetParent;
+  Element$NULLABLE get offsetParent native;
 
   int get offsetHeight => JS<num>('num', '#.offsetHeight', this).round();
 
@@ -1532,7 +1539,7 @@ class _ElementFactoryProvider {
 
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
-  static dynamic createElement_tag(String tag, String typeExtension) {
+  static dynamic createElement_tag(String tag, String$NULLABLE typeExtension) {
     // Firefox may return a JS function for some types (Embed, Object).
     if (typeExtension != null) {
       return JS('Element|=Object', 'document.createElement(#, #)',

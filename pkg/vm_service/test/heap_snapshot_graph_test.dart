@@ -73,6 +73,34 @@ var tests = <IsolateTest>[
       expect(c.libraryUri, isNotNull);
       expect(c.fields, isNotNull);
     });
+
+    // We have the class "Foo".
+    int foosFound = 0;
+    int fooClassId = -1;
+    for (int i = 0; i < snapshotGraph.classes.length; i++) {
+      HeapSnapshotClass c = snapshotGraph.classes[i];
+      if (c.name == "Foo" &&
+          c.libraryUri.toString().endsWith("heap_snapshot_graph_test.dart")) {
+        foosFound++;
+        fooClassId = i;
+      }
+    }
+    expect(foosFound, equals(1));
+
+    // It knows about "Foo" objects.
+    foosFound = 0;
+    snapshotGraph.objects.forEach((HeapSnapshotObject o) {
+      if (o.classId == 0) return;
+      if (o.classId - 1 == fooClassId) {
+        foosFound++;
+      }
+    });
+    expect(foosFound, equals(3));
+
+    // Check that we can get another snapshot.
+    final snapshotGraph2 =
+        await HeapSnapshotGraph.getSnapshot(service, isolate);
+    expect(snapshotGraph2.name, "main");
   },
 ];
 

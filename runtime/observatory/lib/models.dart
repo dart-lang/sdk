@@ -23,7 +23,6 @@ part 'src/models/objects/flag.dart';
 part 'src/models/objects/frame.dart';
 part 'src/models/objects/function.dart';
 part 'src/models/objects/guarded.dart';
-part 'src/models/objects/heap_snapshot.dart';
 part 'src/models/objects/heap_space.dart';
 part 'src/models/objects/icdata.dart';
 part 'src/models/objects/inbound_references.dart';

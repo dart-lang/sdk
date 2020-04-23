@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ServerTest);
   });
@@ -16,15 +16,15 @@ main() {
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerTest {
-  test_inconsistentStateError() async {
+  Future<void> test_inconsistentStateError() async {
     await initialize();
     await openFile(mainFileUri, '');
     // Attempt to make an illegal modification to the file. This indicates the
     // client and server are out of sync and we expect the server to shut down.
     final error = await expectErrorNotification<ShowMessageParams>(() async {
       await changeFile(222, mainFileUri, [
-        new TextDocumentContentChangeEvent(
-            new Range(new Position(99, 99), new Position(99, 99)), null, ' '),
+        TextDocumentContentChangeEvent(
+            Range(Position(99, 99), Position(99, 99)), null, ' '),
       ]);
     });
 
@@ -35,22 +35,22 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await server.exited.timeout(const Duration(seconds: 10));
   }
 
-  test_shutdown_initialized() async {
+  Future<void> test_shutdown_initialized() async {
     await initialize();
     final response = await sendShutdown();
     expect(response, isNull);
   }
 
-  test_shutdown_uninitialized() async {
+  Future<void> test_shutdown_uninitialized() async {
     final response = await sendShutdown();
     expect(response, isNull);
   }
 
-  test_unknownNotifications_logError() async {
+  Future<void> test_unknownNotifications_logError() async {
     await initialize();
 
     final notification =
-        makeNotification(new Method.fromJson(r'some/randomNotification'), null);
+        makeNotification(Method.fromJson(r'some/randomNotification'), null);
 
     final notificationParams = await expectErrorNotification<ShowMessageParams>(
       () => channel.sendNotificationToServer(notification),
@@ -62,10 +62,10 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_unknownOptionalNotifications_silentlyDropped() async {
+  Future<void> test_unknownOptionalNotifications_silentlyDropped() async {
     await initialize();
     final notification =
-        makeNotification(new Method.fromJson(r'$/randomNotification'), null);
+        makeNotification(Method.fromJson(r'$/randomNotification'), null);
     final firstError = errorNotificationsFromServer.first;
     channel.sendNotificationToServer(notification);
 
@@ -83,9 +83,9 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(didTimeout, isTrue);
   }
 
-  test_unknownRequest_rejected() async {
+  Future<void> test_unknownOptionalRequest_rejected() async {
     await initialize();
-    final request = makeRequest(new Method.fromJson('randomRequest'), null);
+    final request = makeRequest(Method.fromJson(r'$/randomRequest'), null);
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.error, isNotNull);
@@ -93,9 +93,9 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(response.result, isNull);
   }
 
-  test_unknownOptionalRequest_rejected() async {
+  Future<void> test_unknownRequest_rejected() async {
     await initialize();
-    final request = makeRequest(new Method.fromJson(r'$/randomRequest'), null);
+    final request = makeRequest(Method.fromJson('randomRequest'), null);
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.error, isNotNull);

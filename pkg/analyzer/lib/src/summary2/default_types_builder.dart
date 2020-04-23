@@ -8,35 +8,35 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
-import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
+import 'package:analyzer/src/util/graph.dart';
 
 class DefaultTypesBuilder {
-  final TypeSystemImpl typeSystem;
-
-  DefaultTypesBuilder(this.typeSystem);
-
   void build(List<AstNode> nodes) {
     for (var node in nodes) {
       if (node is ClassDeclaration) {
-        _breakRawTypeCycles(node.declaredElement, node.typeParameters);
-        _computeBounds(node.typeParameters);
+        var element = node.declaredElement;
+        _breakRawTypeCycles(element, node.typeParameters);
+        _computeBounds(element, node.typeParameters);
       } else if (node is ClassTypeAlias) {
-        _breakRawTypeCycles(node.declaredElement, node.typeParameters);
-        _computeBounds(node.typeParameters);
+        var element = node.declaredElement;
+        _breakRawTypeCycles(element, node.typeParameters);
+        _computeBounds(element, node.typeParameters);
       } else if (node is FunctionTypeAlias) {
-        _breakRawTypeCycles(node.declaredElement, node.typeParameters);
-        _computeBounds(node.typeParameters);
+        var element = node.declaredElement;
+        _breakRawTypeCycles(element, node.typeParameters);
+        _computeBounds(element, node.typeParameters);
       } else if (node is GenericTypeAlias) {
-        _breakRawTypeCycles(node.declaredElement, node.typeParameters);
-        _computeBounds(node.typeParameters);
+        var element = node.declaredElement;
+        _breakRawTypeCycles(element, node.typeParameters);
+        _computeBounds(element, node.typeParameters);
       } else if (node is MixinDeclaration) {
-        _breakRawTypeCycles(node.declaredElement, node.typeParameters);
-        _computeBounds(node.typeParameters);
+        var element = node.declaredElement;
+        _breakRawTypeCycles(element, node.typeParameters);
+        _computeBounds(element, node.typeParameters);
       }
     }
     for (var node in nodes) {
@@ -101,11 +101,15 @@ class DefaultTypesBuilder {
 
   /// Compute bounds to be provided as type arguments in place of missing type
   /// arguments on raw types with the given type parameters.
-  void _computeBounds(TypeParameterList parameterList) {
+  void _computeBounds(
+    Element declarationElement,
+    TypeParameterList parameterList,
+  ) {
     if (parameterList == null) return;
 
-    var dynamicType = typeSystem.typeProvider.dynamicType;
-    var nullType = typeSystem.typeProvider.nullType;
+    var typeProvider = declarationElement.library.typeProvider;
+    var dynamicType = typeProvider.dynamicType;
+    var nullType = typeProvider.nullType;
 
     var nodes = parameterList.typeParameters;
     var length = nodes.length;
@@ -190,7 +194,8 @@ class DefaultTypesBuilder {
                 for (var tail in tails) {
                   paths.add(<_CycleElement>[
                     _CycleElement(startParameter, startType),
-                  ]..addAll(tail));
+                    ...tail,
+                  ]);
                 }
               }
             }
@@ -257,7 +262,7 @@ class _TypeParametersGraph implements Graph<int> {
   // the type parameter with the index `i` in their bounds.
   List<List<int>> _edges;
 
-  Map<TypeParameterElement, int> _parameterToIndex = Map.identity();
+  final Map<TypeParameterElement, int> _parameterToIndex = Map.identity();
 
   _TypeParametersGraph(
     List<TypeParameterElement> parameters,

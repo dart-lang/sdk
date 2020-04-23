@@ -9,11 +9,11 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -84,8 +84,11 @@ class LinkedUnitContext {
     return _unit.featureSet.isEnabled(Feature.non_nullable);
   }
 
-  TypeProvider get typeProvider =>
-      bundleContext.elementFactory.analysisContext.typeProvider;
+  TypeProvider get typeProvider {
+    var libraryReference = libraryContext.reference;
+    var libraryElement = libraryReference.element as LibraryElementImpl;
+    return libraryElement.typeProvider;
+  }
 
   CompilationUnit get unit => _unit;
 
@@ -134,7 +137,7 @@ class LinkedUnitContext {
   /// Return the [LibraryElement] referenced in the [node].
   LibraryElement directiveLibrary(UriBasedDirective node) {
     var uriStr = LazyDirective.getSelectedUri(node);
-    if (uriStr == null || uriStr.isEmpty) return null;
+    if (uriStr == null) return null;
     return bundleContext.elementFactory.libraryOfUri(uriStr);
   }
 
@@ -443,6 +446,14 @@ class LinkedUnitContext {
     }
   }
 
+  int getLanguageVersionMajor(CompilationUnit node) {
+    return LazyCompilationUnit.getLanguageVersionMajor(node);
+  }
+
+  int getLanguageVersionMinor(CompilationUnit node) {
+    return LazyCompilationUnit.getLanguageVersionMinor(node);
+  }
+
   Comment getLibraryDocumentationComment(CompilationUnit unit) {
     for (var directive in unit.directives) {
       if (directive is LibraryDirective) {
@@ -647,12 +658,6 @@ class LinkedUnitContext {
     return node.bound;
   }
 
-  Token getTypeParameterVariance(TypeParameter node) {
-    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
-    // added to the interface.
-    return (node as TypeParameterImpl).varianceKeyword;
-  }
-
   TypeParameterList getTypeParameters2(AstNode node) {
     if (node is ClassDeclaration) {
       return node.typeParameters;
@@ -688,6 +693,12 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
+  }
+
+  Token getTypeParameterVariance(TypeParameter node) {
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    return (node as TypeParameterImpl).varianceKeyword;
   }
 
   WithClause getWithClause(AstNode node) {
@@ -971,9 +982,9 @@ class LinkedUnitContext {
     } else if (kind == LinkedNodeTypeKind.interface) {
       var element = bundleContext.elementOfIndex(linkedType.interfaceClass);
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-      return InterfaceTypeImpl.explicit(
-        element,
-        linkedType.interfaceTypeArguments.map(readType).toList(),
+      return InterfaceTypeImpl(
+        element: element,
+        typeArguments: linkedType.interfaceTypeArguments.map(readType).toList(),
         nullabilitySuffix: nullabilitySuffix,
       );
     } else if (kind == LinkedNodeTypeKind.typeParameter) {
@@ -988,7 +999,7 @@ class LinkedUnitContext {
       }
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
       return TypeParameterTypeImpl(
-        element,
+        element: element,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else if (kind == LinkedNodeTypeKind.void_) {

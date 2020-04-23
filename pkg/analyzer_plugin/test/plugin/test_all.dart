@@ -15,7 +15,7 @@ import 'occurrences_mixin_test.dart' as occurrences_mixin_test;
 import 'outline_mixin_test.dart' as outline_mixin_test;
 import 'plugin_test.dart' as plugin_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     assist_mixin_test.main();
     completion_mixin_test.main();

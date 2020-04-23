@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseEqEqNullTest);
   });
@@ -20,7 +20,7 @@ class UseEqEqNullTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.USE_EQ_EQ_NULL;
 
-  test_isNull() async {
+  Future<void> test_isNull() async {
     await resolveTestUnit('''
 main(p) {
   p is Null;
@@ -33,7 +33,7 @@ main(p) {
 ''');
   }
 
-  test_isNull_all() async {
+  Future<void> test_isNull_all() async {
     await resolveTestUnit('''
 main(p, q) {
   p is Null;

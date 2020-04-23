@@ -11,6 +11,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/compiler/assembler/assembler_base.h"
 #include "vm/constants.h"
 #include "vm/constants_x86.h"
 #include "vm/pointer_tagging.h"
@@ -152,6 +153,7 @@ class Address : public Operand {
 
   Address(Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != ESP);  // Illegal addressing mode.
+    ASSERT(scale != TIMES_16);  // Unsupported scale factor.
     SetModRM(0, ESP);
     SetSIB(scale, index, EBP);
     SetDisp32(disp);
@@ -162,6 +164,7 @@ class Address : public Operand {
 
   Address(Register base, Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != ESP);  // Illegal addressing mode.
+    ASSERT(scale != TIMES_16);  // Unsupported scale factor.
     if (disp == 0 && base != EBP) {
       SetModRM(0, ESP);
       SetSIB(scale, index, base);
@@ -565,14 +568,28 @@ class Assembler : public AssemblerBase {
    * Macros for High-level operations and implemented on all architectures.
    */
 
+  void Ret() { ret(); }
   void CompareRegisters(Register a, Register b);
   void BranchIf(Condition condition, Label* label) { j(condition, label); }
-  void LoadField(Register dst, FieldAddress address) { movw(dst, address); }
+
+  void LoadField(Register dst, FieldAddress address) { movl(dst, address); }
+  void LoadMemoryValue(Register dst, Register base, int32_t offset) {
+    movl(dst, Address(base, offset));
+  }
 
   // Issues a move instruction if 'to' is not the same as 'from'.
   void MoveRegister(Register to, Register from);
   void PushRegister(Register r);
   void PopRegister(Register r);
+
+  void PushRegisterPair(Register r0, Register r1) {
+    PushRegister(r1);
+    PushRegister(r0);
+  }
+  void PopRegisterPair(Register r0, Register r1) {
+    PopRegister(r0);
+    PopRegister(r1);
+  }
 
   void AddImmediate(Register reg, const Immediate& imm);
   void SubImmediate(Register reg, const Immediate& imm);
@@ -683,10 +700,14 @@ class Assembler : public AssemblerBase {
 
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
-  void Call(const Code& code, bool movable_target = false);
+  void Call(const Code& code,
+            bool movable_target = false,
+            CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void CallToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
+
+  void CallNullArgErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
 
   void Jmp(const Code& code);
   void J(Condition condition, const Code& code);
@@ -718,6 +739,7 @@ class Assembler : public AssemblerBase {
   static Address ElementAddressForRegIndex(bool is_external,
                                            intptr_t cid,
                                            intptr_t index_scale,
+                                           bool index_unboxed,
                                            Register array,
                                            Register index,
                                            intptr_t extra_disp = 0);
@@ -788,6 +810,7 @@ class Assembler : public AssemblerBase {
   //   pushl immediate(0)
   //   .....
   void EnterStubFrame();
+  void LeaveStubFrame();
   static const intptr_t kEnterStubFramePushedWords = 2;
 
   // Instruction pattern from entrypoint is used in dart frame prologs
@@ -830,9 +853,6 @@ class Assembler : public AssemblerBase {
 
   // Debugging and bringup support.
   void Breakpoint() override { int3(); }
-  void Stop(const char* message) override;
-
-  static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
   // Check if the given value is an integer value that can be directly
   // emdedded into the code without additional XORing with jit_cookie.

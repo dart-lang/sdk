@@ -1,0 +1,6 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic
+  return core::print(-9223372036854775808.{core::int::unary-}());

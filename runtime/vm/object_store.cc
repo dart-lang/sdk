@@ -42,9 +42,6 @@ void ObjectStore::Init(Isolate* isolate) {
 
 #ifndef PRODUCT
 void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
-  if (!FLAG_support_service) {
-    return;
-  }
   jsobj->AddProperty("type", "_ObjectStore");
 
   {
@@ -266,6 +263,12 @@ void ObjectStore::InitKnownObjects() {
       Function::CreateDynamicInvocationForwarderName(Symbols::Star());
   Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
 #endif
+}
+
+void ObjectStore::PostLoad() {
+  resume_capabilities_ = GrowableObjectArray::New();
+  exit_listeners_ = GrowableObjectArray::New();
+  error_listeners_ = GrowableObjectArray::New();
 }
 
 }  // namespace dart

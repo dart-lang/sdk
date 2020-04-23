@@ -12,23 +12,20 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show SourceChange;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
-import 'package:source_span/source_span.dart';
 
 /// An object used to locate the HTML [Node] associated with a source range.
 /// More specifically, it will return the deepest HTML [Node] which completely
 /// encompasses the specified range.
 class HtmlNodeLocator {
   /// The inclusive start offset of the range used to identify the node.
-  int _startOffset = 0;
+  final int _startOffset;
 
   /// The inclusive end offset of the range used to identify the node.
-  int _endOffset = 0;
+  final int _endOffset;
 
   /// Initialize a newly created locator to locate the deepest [Node] for
   /// which `node.offset <= [start]` and `[end] < node.end`.
@@ -36,25 +33,25 @@ class HtmlNodeLocator {
   /// If the [end] offset is not provided, then it is considered the same as the
   /// [start] offset.
   HtmlNodeLocator({@required int start, int end})
-      : this._startOffset = start,
-        this._endOffset = end ?? start;
+      : _startOffset = start,
+        _endOffset = end ?? start;
 
   /// Search within the given HTML [node] and return the path to the most deeply
   /// nested node that includes the whole target range, or an empty list if no
   /// node was found. The path is represented by all of the elements from the
   /// starting [node] to the most deeply nested node, in reverse order.
   List<Node> searchWithin(Node node) {
-    List<Node> path = [];
+    var path = <Node>[];
     _searchWithin(path, node);
     return path;
   }
 
   void _searchWithin(List<Node> path, Node node) {
-    FileSpan span = node.sourceSpan;
+    var span = node.sourceSpan;
     if (span.start.offset > _endOffset || span.end.offset < _startOffset) {
       return;
     }
-    for (Element element in node.children) {
+    for (var element in node.children) {
       _searchWithin(path, element);
       if (path.isNotEmpty) {
         path.add(node);
@@ -86,7 +83,7 @@ class ManifestFixGenerator {
   ManifestFixGenerator(this.error, this.content, this.document)
       : errorOffset = error.offset,
         errorLength = error.length,
-        lineInfo = new LineInfo.fromContent(content);
+        lineInfo = LineInfo.fromContent(content);
 
   /// Return the absolute, normalized path to the file in which the error was
   /// reported.
@@ -94,14 +91,14 @@ class ManifestFixGenerator {
 
   /// Return the list of fixes that apply to the error being fixed.
   Future<List<Fix>> computeFixes() async {
-    HtmlNodeLocator locator = new HtmlNodeLocator(
-        start: errorOffset, end: errorOffset + errorLength - 1);
+    var locator =
+        HtmlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
     coveringNodePath = locator.searchWithin(document);
     if (coveringNodePath.isEmpty) {
       return fixes;
     }
 
-    ErrorCode errorCode = error.errorCode;
+    var errorCode = error.errorCode;
     if (errorCode == ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE) {
     } else if (errorCode ==
         ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE) {
@@ -114,14 +111,13 @@ class ManifestFixGenerator {
   /// [kind]. If [args] are provided, they will be used to fill in the message
   /// for the fix.
   // ignore: unused_element
-  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List args = null}) {
-    SourceChange change = builder.sourceChange;
+  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind, {List args}) {
+    var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
     }
     change.message = formatList(kind.message, args);
-    fixes.add(new Fix(kind, change));
+    fixes.add(Fix(kind, change));
   }
 
   // ignore: unused_element
@@ -135,10 +131,10 @@ class ManifestFixGenerator {
   // ignore: unused_element
   SourceRange _lines(int start, int end) {
     CharacterLocation startLocation = lineInfo.getLocation(start);
-    int startOffset = lineInfo.getOffsetOfLine(startLocation.lineNumber - 1);
+    var startOffset = lineInfo.getOffsetOfLine(startLocation.lineNumber - 1);
     CharacterLocation endLocation = lineInfo.getLocation(end);
-    int endOffset = lineInfo.getOffsetOfLine(
+    var endOffset = lineInfo.getOffsetOfLine(
         math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
-    return new SourceRange(startOffset, endOffset - startOffset);
+    return SourceRange(startOffset, endOffset - startOffset);
   }
 }

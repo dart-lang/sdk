@@ -181,8 +181,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
           "Type representation for type variable $variable in "
           "$type is not supported.");
       return jsAst.LiteralNull();
-    }, (TypedefType typedef) {
-      return false;
     });
 
     if (representation is jsAst.LiteralString) {
@@ -203,7 +201,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   jsAst.Expression addTypeInOutputUnit(DartType type, OutputUnit outputUnit) {
     _typesMap[outputUnit] ??= new Map<DartType, _BoundMetadataEntry>();
     return _typesMap[outputUnit].putIfAbsent(type, () {
-      if (_options.experimentNewRti) {
+      if (_options.useNewRti) {
         return new _BoundMetadataEntry(_computeTypeRepresentationNewRti(type));
       } else {
         return new _BoundMetadataEntry(_computeTypeRepresentation(type));

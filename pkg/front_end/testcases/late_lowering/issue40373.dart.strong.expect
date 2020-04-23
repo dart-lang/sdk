@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class C extends core::Object {
+  field core::num pi = 3.14;
+  field core::num? _#C#p1 = null;
+  field core::num? _#C#p2 = null;
+  field core::bool _#C#p2#isSet = false;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  get p1() → core::num
+    return let final core::num? #t1 = this.{self::C::_#C#p1} in #t1.==(null) ?{core::num} this.{self::C::_#C#p1} = this.{self::C::pi} : #t1{core::num};
+  set p1(core::num #t2) → void
+    this.{self::C::_#C#p1} = #t2;
+  get p2() → core::num
+    return let final core::num? #t3 = this.{self::C::_#C#p2} in #t3.==(null) ?{core::num} let final core::num #t4 = this.{self::C::pi} in this.{self::C::_#C#p2}.==(null) ?{core::num} this.{self::C::_#C#p2} = #t4 : throw new _in::LateInitializationErrorImpl::•("Field 'p2' has been assigned during initialization.") : #t3{core::num};
+}
+static method main() → dynamic {
+  self::expect(3.14, new self::C::•().{self::C::p1});
+  self::expect(3.14, new self::C::•().{self::C::p2});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

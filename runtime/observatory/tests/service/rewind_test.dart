@@ -4,7 +4,7 @@
 
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -56,7 +56,7 @@ var tests = <IsolateTest>[
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kCannotResume));
-      expect(e.message, 'Frame must be in bounds [1..12]: saw 0');
+      expect(e.message, 'Frame must be in bounds [1..8]: saw 0');
     }
     expect(caughtException, isTrue);
   },
@@ -69,7 +69,7 @@ var tests = <IsolateTest>[
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kCannotResume));
-      expect(e.message, 'Frame must be in bounds [1..12]: saw 13');
+      expect(e.message, 'Frame must be in bounds [1..8]: saw 13');
     }
     expect(caughtException, isTrue);
   },

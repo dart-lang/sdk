@@ -9,7 +9,7 @@
 import 'dart:io';
 import 'package:dev_compiler/src/kernel/command.dart';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   var result = await compileSdkFromDill(args);
   exitCode = result.exitCode;
 }

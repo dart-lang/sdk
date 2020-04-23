@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int nonNullableField;
+  field core::int? nullableField;
+  synthetic constructor •() → self::Class
+    ;
+  operator [](core::int key) → core::int
+    ;
+  operator []=(core::int key, core::int value) → void
+    ;
+  get nonNullableClass() → self::Class
+    ;
+  method call() → self::Class
+    ;
+  get nonNullableNullableIndexClass() → self::NullableIndexClass
+    ;
+}
+class NullableIndexClass extends core::Object {
+  synthetic constructor •() → self::NullableIndexClass
+    ;
+  operator [](core::int key) → core::int?
+    ;
+  operator []=(core::int key, core::int value) → void
+    ;
+}
+static method main() → dynamic
+  ;
+static method errors(self::Class? nullableClass, self::Class nonNullableClass, core::int? nullableInt, core::int nonNullableInt, self::NullableIndexClass? nullableNullableIndexClass) → dynamic
+  ;

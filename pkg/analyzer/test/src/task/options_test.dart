@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
@@ -30,7 +29,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ContextConfigurationTest);
     defineReflectiveTests(ErrorCodeValuesTest);
-    defineReflectiveTests(GenerateOldOptionsErrorsTaskTest);
     defineReflectiveTests(OptionsFileValidatorTest);
     defineReflectiveTests(OptionsProviderTest);
   });
@@ -77,12 +75,12 @@ analyzer:
     List<ErrorProcessor> processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(2));
 
-    var unused_local = new AnalysisError(
-        new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
+    var unused_local =
+        AnalysisError(TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
       ['x']
     ]);
-    var invalid_assignment = new AnalysisError(
-        new TestSource(), 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
+    var invalid_assignment = AnalysisError(
+        TestSource(), 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
       ['x'],
       ['y']
     ]);
@@ -209,46 +207,9 @@ class ErrorProcessorMatcher extends Matcher {
 }
 
 @reflectiveTest
-class GenerateOldOptionsErrorsTaskTest with ResourceProviderMixin {
-  final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
-
-  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
-
-  test_does_analyze_old_options_files() {
-    validate('''
-analyzer:
-  strong-mode: true
-    ''', [
-      AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
-      AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED
-    ]);
-  }
-
-  test_finds_issues_in_old_options_files() {
-    validate('''
-analyzer:
-  strong_mode: true
-    ''', [
-      AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
-      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES
-    ]);
-  }
-
-  void validate(String content, List<ErrorCode> expected) {
-    final source = newFile(optionsFilePath, content: content).createSource();
-    var options = optionsProvider.getOptionsFromSource(source);
-    final OptionsFileValidator validator = new OptionsFileValidator(source);
-    var errors = validator.validate(options);
-    expect(errors.map((AnalysisError e) => e.errorCode),
-        unorderedEquals(expected));
-  }
-}
-
-@reflectiveTest
 class OptionsFileValidatorTest {
-  final OptionsFileValidator validator =
-      new OptionsFileValidator(new TestSource());
-  final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+  final OptionsFileValidator validator = OptionsFileValidator(TestSource());
+  final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
   test_analyzer_enableExperiment_badValue() {
     validate('''
@@ -324,7 +285,7 @@ analyzer:
   }
 
   test_analyzer_lint_codes_recognized() {
-    Registry.ruleRegistry.register(new TestRule());
+    Registry.ruleRegistry.register(TestRule());
     validate('''
 analyzer:
   errors:
@@ -351,7 +312,7 @@ analyzer:
     validate('''
 analyzer:
   errors:
-    assignment_cast: ignore
+    invalid_cast_method: ignore
 ''', []);
   }
 
@@ -417,7 +378,7 @@ analyzer:
   }
 
   test_linter_supported_rules() {
-    Registry.ruleRegistry.register(new TestRule());
+    Registry.ruleRegistry.register(TestRule());
     validate('''
 linter:
   rules:
@@ -450,11 +411,11 @@ class OptionsProviderTest {
   String get optionsFilePath => '/analysis_options.yaml';
 
   void setUp() {
-    var rawProvider = new MemoryResourceProvider();
-    resourceProvider = new TestResourceProvider(rawProvider);
-    pathTranslator = new TestPathTranslator(rawProvider);
-    provider = new AnalysisOptionsProvider(new SourceFactory([
-      new ResourceUriResolver(rawProvider),
+    var rawProvider = MemoryResourceProvider();
+    resourceProvider = TestResourceProvider(rawProvider);
+    pathTranslator = TestPathTranslator(rawProvider);
+    provider = AnalysisOptionsProvider(SourceFactory([
+      ResourceUriResolver(rawProvider),
     ]));
   }
 
@@ -488,8 +449,8 @@ linter:
 ''';
     pathTranslator.newFile(optionsFilePath, code);
 
-    final lowlevellint = new TestRule.withName('lowlevellint');
-    final toplevellint = new TestRule.withName('toplevellint');
+    final lowlevellint = TestRule.withName('lowlevellint');
+    final toplevellint = TestRule.withName('toplevellint');
     Registry.ruleRegistry.register(lowlevellint);
     Registry.ruleRegistry.register(toplevellint);
     final options = _getOptionsObject('/');
@@ -502,21 +463,21 @@ linter:
     expect(
         options.errorProcessors,
         unorderedMatches([
-          new ErrorProcessorMatcher(
-              new ErrorProcessor('toplevelerror', ErrorSeverity.WARNING)),
-          new ErrorProcessorMatcher(
-              new ErrorProcessor('lowlevelerror', ErrorSeverity.WARNING))
+          ErrorProcessorMatcher(
+              ErrorProcessor('toplevelerror', ErrorSeverity.WARNING)),
+          ErrorProcessorMatcher(
+              ErrorProcessor('lowlevelerror', ErrorSeverity.WARNING))
         ]));
   }
 
-  YamlMap _getOptions(String posixPath, {bool crawlUp: false}) {
+  YamlMap _getOptions(String posixPath, {bool crawlUp = false}) {
     Resource resource = pathTranslator.getResource(posixPath);
     return provider.getOptions(resource, crawlUp: crawlUp);
   }
 
-  AnalysisOptions _getOptionsObject(String posixPath, {bool crawlUp: false}) {
+  AnalysisOptions _getOptionsObject(String posixPath, {bool crawlUp = false}) {
     final map = _getOptions(posixPath, crawlUp: crawlUp);
-    final options = new AnalysisOptionsImpl();
+    final options = AnalysisOptionsImpl();
     applyToAnalysisOptions(options, map);
     return options;
   }

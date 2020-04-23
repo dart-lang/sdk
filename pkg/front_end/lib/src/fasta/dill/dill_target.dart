@@ -6,6 +6,9 @@ library fasta.dill_target;
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/fasta/builder/library_builder.dart'
+    show LibraryBuilder;
+
 import 'package:kernel/ast.dart' show Library;
 
 import 'package:kernel/target/targets.dart' show Target;
@@ -49,17 +52,24 @@ class DillTarget extends TargetImplementation {
   }
 
   @override
-  Future<Null> buildOutlines() async {
+  Future<Null> buildOutlines({bool suppressFinalizationErrors: false}) async {
     if (loader.libraries.isNotEmpty) {
       await loader.buildOutlines();
-      loader.finalizeExports();
+      loader.finalizeExports(
+          suppressFinalizationErrors: suppressFinalizationErrors);
     }
     isLoaded = true;
   }
 
   @override
-  DillLibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, origin) {
+  DillLibraryBuilder createLibraryBuilder(
+      Uri uri,
+      Uri fileUri,
+      LibraryBuilder origin,
+      Library referencesFrom,
+      bool referenceIsPartOwner) {
     assert(origin == null);
+    assert(referencesFrom == null);
     DillLibraryBuilder libraryBuilder = libraryBuilders.remove(uri);
     assert(libraryBuilder != null, "No library found for $uri.");
     return libraryBuilder;

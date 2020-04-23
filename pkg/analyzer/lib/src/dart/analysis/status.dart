@@ -8,8 +8,8 @@ import 'dart:async';
  * The status of analysis.
  */
 class AnalysisStatus {
-  static const IDLE = const AnalysisStatus._(false);
-  static const ANALYZING = const AnalysisStatus._(true);
+  static const IDLE = AnalysisStatus._(false);
+  static const ANALYZING = AnalysisStatus._(true);
 
   final bool _analyzing;
 
@@ -37,16 +37,14 @@ class AnalysisStatus {
  * after completion and will not complete until [notify] is called next time.
  */
 class Monitor {
-  Completer<void> _completer = new Completer<void>();
+  Completer<void> _completer = Completer<void>();
 
   /**
    * Return a [Future] that completes when [notify] is called at least once.
    */
   Future<void> get signal async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     await _completer.future;
-    _completer = new Completer<void>();
+    _completer = Completer<void>();
   }
 
   /**
@@ -67,7 +65,7 @@ class StatusSupport {
   /**
    * The controller for the [stream].
    */
-  final _statusController = new StreamController<AnalysisStatus>();
+  final _statusController = StreamController<AnalysisStatus>();
 
   /**
    * The last status sent to the [stream].
@@ -98,7 +96,7 @@ class StatusSupport {
    * as a call to [transitionToAnalyzing], but it has no effect on the [stream].
    */
   void preTransitionToAnalyzing() {
-    _idleCompleter ??= new Completer<void>();
+    _idleCompleter ??= Completer<void>();
   }
 
   /**
@@ -131,6 +129,6 @@ class StatusSupport {
    * immediately.
    */
   Future<void> waitForIdle() {
-    return _idleCompleter?.future ?? new Future<void>.value();
+    return _idleCompleter?.future ?? Future<void>.value();
   }
 }

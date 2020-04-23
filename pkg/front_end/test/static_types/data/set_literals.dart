@@ -8,42 +8,42 @@
 main() {
   // ignore: unused_local_variable
   var a0 =
-      /*cfe|dart2js.Map<dynamic,dynamic>*/
+      /*cfe.Map<dynamic,dynamic>*/
       /*cfe:nnbd.Map<dynamic,dynamic>!*/
       {};
 
   // ignore: unused_local_variable
   var a1 =
-      /*cfe|dart2js.Set<int>*/
+      /*cfe.Set<int>*/
       /*cfe:nnbd.Set<int!>!*/
       {
-    /*cfe|dart2js.int*/
+    /*cfe.int*/
     /*cfe:nnbd.int!*/
     0
   };
 
   // ignore: unused_local_variable
   var a2 =
-      /*cfe|dart2js.Set<num>*/
-      /*cfe:nnbd.Set<num>!*/
+      /*cfe.Set<num>*/
+      /*cfe:nnbd.Set<num!>!*/
       {
-    /*cfe|dart2js.int*/
+    /*cfe.int*/
     /*cfe:nnbd.int!*/
     0,
-    /*cfe|dart2js.double*/
+    /*cfe.double*/
     /*cfe:nnbd.double!*/
     0.5
   };
 
   // ignore: unused_local_variable
   var a3 =
-      /*cfe|dart2js.Set<Object>*/
-      /*cfe:nnbd.Set<Object>!*/
+      /*cfe.Set<Object>*/
+      /*cfe:nnbd.Set<Object!>!*/
       {
-    /*cfe|dart2js.int*/
+    /*cfe.int*/
     /*cfe:nnbd.int!*/
     0,
-    /*cfe|dart2js.String*/
+    /*cfe.String*/
     /*cfe:nnbd.String!*/
     ''
   };

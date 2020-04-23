@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--causal-async-stacks
+// VMOptions=--causal-async-stacks --no-lazy-async-stacks
 
 import 'dart:async';
 
 import 'utils.dart';
 
-Future<void> main(List<String> args) async => doTestsCausal();
+Future<void> main(List<String> args) async => await doTestsCausal();

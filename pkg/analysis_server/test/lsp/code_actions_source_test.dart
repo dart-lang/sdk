@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../tool/lsp_spec/matchers.dart';
 import 'code_actions_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortMembersSourceCodeActionsTest);
     defineReflectiveTests(OrganizeImportsSourceCodeActionsTest);
@@ -19,7 +19,7 @@ main() {
 
 @reflectiveTest
 class OrganizeImportsSourceCodeActionsTest extends AbstractCodeActionsTest {
-  test_appliesCorrectEdits_withDocumentChangesSupport() async {
+  Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {
     const content = '''
 import 'dart:math';
 import 'dart:async';
@@ -48,7 +48,7 @@ int minified(int x, int y) => min(x, y);
         expectDocumentChanges: true);
   }
 
-  test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
+  Future<void> test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
     const content = '''
 import 'dart:math';
 import 'dart:async';
@@ -76,7 +76,7 @@ int minified(int x, int y) => min(x, y);
     await verifyCodeActionEdits(codeAction, content, expectedContent);
   }
 
-  test_availableAsCodeActionLiteral() async {
+  Future<void> test_availableAsCodeActionLiteral() async {
     await newFile(mainFilePath);
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
@@ -92,7 +92,7 @@ int minified(int x, int y) => min(x, y);
     );
   }
 
-  test_availableAsCommand() async {
+  Future<void> test_availableAsCommand() async {
     await newFile(mainFilePath);
     await initialize(
         workspaceCapabilities:
@@ -106,7 +106,7 @@ int minified(int x, int y) => min(x, y);
     );
   }
 
-  test_failsIfFileHasErrors() async {
+  Future<void> test_failsIfFileHasErrors() async {
     final content = 'invalid dart code';
     await newFile(mainFilePath, content: content);
     await initialize(
@@ -128,7 +128,7 @@ int minified(int x, int y) => min(x, y);
         throwsA(isResponseError(ServerErrorCodes.FileHasErrors)));
   }
 
-  test_noEdits() async {
+  Future<void> test_noEdits() async {
     const content = '''
 import 'dart:async';
 import 'dart:math';
@@ -157,7 +157,7 @@ int minified(int x, int y) => min(x, y);
     expect(commandResponse, isNull);
   }
 
-  test_unavailableWhenNotRequested() async {
+  Future<void> test_unavailableWhenNotRequested() async {
     await newFile(mainFilePath);
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
@@ -170,7 +170,7 @@ int minified(int x, int y) => min(x, y);
     expect(codeAction, isNull);
   }
 
-  test_unavailableWithoutApplyEditSupport() async {
+  Future<void> test_unavailableWithoutApplyEditSupport() async {
     await newFile(mainFilePath);
     await initialize();
 
@@ -182,7 +182,7 @@ int minified(int x, int y) => min(x, y);
 
 @reflectiveTest
 class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
-  test_appliesCorrectEdits_withDocumentChangesSupport() async {
+  Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {
     const content = '''
     String b;
     String a;
@@ -204,7 +204,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
         expectDocumentChanges: true);
   }
 
-  test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
+  Future<void> test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
     const content = '''
     String b;
     String a;
@@ -225,7 +225,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
     await verifyCodeActionEdits(codeAction, content, expectedContent);
   }
 
-  test_availableAsCodeActionLiteral() async {
+  Future<void> test_availableAsCodeActionLiteral() async {
     await newFile(mainFilePath);
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
@@ -241,7 +241,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
     );
   }
 
-  test_availableAsCommand() async {
+  Future<void> test_availableAsCommand() async {
     await newFile(mainFilePath);
     await initialize(
         workspaceCapabilities:
@@ -255,7 +255,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
     );
   }
 
-  test_failsIfClientDoesntApplyEdits() async {
+  Future<void> test_failsIfClientDoesntApplyEdits() async {
     const content = '''
     String b;
     String a;
@@ -281,8 +281,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
       // Claim that we failed tpo apply the edits. This is what the client
       // would do if the edits provided were for an old version of the
       // document.
-      handler: (edit) =>
-          new ApplyWorkspaceEditResponse(false, 'Document changed'),
+      handler: (edit) => ApplyWorkspaceEditResponse(false, 'Document changed'),
     );
 
     // Ensure the request returned an error (error repsonses are thrown by
@@ -291,7 +290,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
         throwsA(isResponseError(ServerErrorCodes.ClientFailedToApplyEdit)));
   }
 
-  test_failsIfFileHasErrors() async {
+  Future<void> test_failsIfFileHasErrors() async {
     final content = 'invalid dart code';
     await newFile(mainFilePath, content: content);
     await initialize(
@@ -313,7 +312,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
         throwsA(isResponseError(ServerErrorCodes.FileHasErrors)));
   }
 
-  test_nonDartFile() async {
+  Future<void> test_nonDartFile() async {
     await newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
@@ -326,7 +325,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
     expect(codeActions, isEmpty);
   }
 
-  test_unavailableWhenNotRequested() async {
+  Future<void> test_unavailableWhenNotRequested() async {
     await newFile(mainFilePath);
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
@@ -339,7 +338,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
     expect(codeAction, isNull);
   }
 
-  test_unavailableWithoutApplyEditSupport() async {
+  Future<void> test_unavailableWithoutApplyEditSupport() async {
     await newFile(mainFilePath);
     await initialize();
 

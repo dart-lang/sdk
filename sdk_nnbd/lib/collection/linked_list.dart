@@ -143,7 +143,7 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
       return;
     }
     E predecessor = entry!._previous!;
-    E successor = entry!;
+    E successor = entry;
     newEntry._previous = predecessor;
     newEntry._next = successor;
     predecessor._next = newEntry;
@@ -181,7 +181,10 @@ class _LinkedListIterator<E extends LinkedListEntry<E>> implements Iterator<E> {
         _next = list._first,
         _visitedFirst = false;
 
-  E get current => _current as E;
+  E get current {
+    final cur = _current;
+    return (cur != null) ? cur : cur as E;
+  }
 
   bool moveNext() {
     if (_modificationCount != _list._modificationCount) {

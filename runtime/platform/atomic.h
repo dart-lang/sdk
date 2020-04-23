@@ -7,13 +7,10 @@
 
 #include <atomic>
 
-#include "platform/allocation.h"
-#include "platform/globals.h"
-
 namespace dart {
 
 // Like std::atomic, but operations default to relaxed ordering instead of
-// acquire-release ordering.
+// sequential consistency.
 template <typename T>
 class RelaxedAtomic {
  public:
@@ -21,29 +18,37 @@ class RelaxedAtomic {
   constexpr RelaxedAtomic(T arg) : value_(arg) {}           // NOLINT
   RelaxedAtomic(const RelaxedAtomic& arg) : value_(arg) {}  // NOLINT
 
-  T load() const { return value_.load(std::memory_order_relaxed); }
-  void store(T arg) { value_.store(arg, std::memory_order_relaxed); }
-
-  T fetch_add(T arg) {
-    return value_.fetch_add(arg, std::memory_order_relaxed);
+  T load(std::memory_order order = std::memory_order_relaxed) const {
+    return value_.load(order);
   }
-  T fetch_sub(T arg) {
-    return value_.fetch_sub(arg, std::memory_order_relaxed);
-  }
-  T fetch_or(T arg) { return value_.fetch_or(arg, std::memory_order_relaxed); }
-  T fetch_and(T arg) {
-    return value_.fetch_and(arg, std::memory_order_relaxed);
+  void store(T arg, std::memory_order order = std::memory_order_relaxed) {
+    value_.store(arg, order);
   }
 
-  bool compare_exchange_weak(T& expected, T desired) {  // NOLINT
-    return value_.compare_exchange_weak(expected, desired,
-                                        std::memory_order_relaxed,
-                                        std::memory_order_relaxed);
+  T fetch_add(T arg, std::memory_order order = std::memory_order_relaxed) {
+    return value_.fetch_add(arg, order);
   }
-  bool compare_exchange_strong(T& expected, T desired) {  // NOLINT
-    return value_.compare_exchange_strong(expected, desired,
-                                          std::memory_order_relaxed,
-                                          std::memory_order_relaxed);
+  T fetch_sub(T arg, std::memory_order order = std::memory_order_relaxed) {
+    return value_.fetch_sub(arg, order);
+  }
+  T fetch_or(T arg, std::memory_order order = std::memory_order_relaxed) {
+    return value_.fetch_or(arg, order);
+  }
+  T fetch_and(T arg, std::memory_order order = std::memory_order_relaxed) {
+    return value_.fetch_and(arg, order);
+  }
+
+  bool compare_exchange_weak(
+      T& expected,  // NOLINT
+      T desired,
+      std::memory_order order = std::memory_order_relaxed) {
+    return value_.compare_exchange_weak(expected, desired, order, order);
+  }
+  bool compare_exchange_strong(
+      T& expected,  // NOLINT
+      T desired,
+      std::memory_order order = std::memory_order_relaxed) {
+    return value_.compare_exchange_strong(expected, desired, order, order);
   }
 
   operator T() const { return load(); }
@@ -58,6 +63,59 @@ class RelaxedAtomic {
   }
   T operator+=(T arg) { return fetch_add(arg) + arg; }
   T operator-=(T arg) { return fetch_sub(arg) - arg; }
+
+ private:
+  std::atomic<T> value_;
+};
+
+// Like std::atomic, but operations default to acquire for load, release for
+// stores, and acquire-release for read-and-updates.
+template <typename T>
+class AcqRelAtomic {
+ public:
+  constexpr AcqRelAtomic() : value_() {}
+  constexpr AcqRelAtomic(T arg) : value_(arg) {}  // NOLINT
+  AcqRelAtomic(const AcqRelAtomic& arg) = delete;
+
+  T load(std::memory_order order = std::memory_order_acquire) const {
+    return value_.load(order);
+  }
+  void store(T arg, std::memory_order order = std::memory_order_release) {
+    value_.store(arg, order);
+  }
+
+  T fetch_add(T arg, std::memory_order order = std::memory_order_acq_rel) {
+    return value_.fetch_add(arg, order);
+  }
+  T fetch_sub(T arg, std::memory_order order = std::memory_order_acq_rel) {
+    return value_.fetch_sub(arg, order);
+  }
+  T fetch_or(T arg, std::memory_order order = std::memory_order_acq_rel) {
+    return value_.fetch_or(arg, order);
+  }
+  T fetch_and(T arg, std::memory_order order = std::memory_order_acq_rel) {
+    return value_.fetch_and(arg, order);
+  }
+
+  bool compare_exchange_weak(
+      T& expected,  // NOLINT
+      T desired,
+      std::memory_order order = std::memory_order_acq_rel) {
+    return value_.compare_exchange_weak(expected, desired, order, order);
+  }
+  bool compare_exchange_strong(
+      T& expected,  // NOLINT
+      T desired,
+      std::memory_order order = std::memory_order_acq_rel) {
+    return value_.compare_exchange_strong(expected, desired, order, order);
+  }
+
+  // Require explicit loads and stores.
+  operator T() const = delete;
+  T operator=(T arg) = delete;
+  T operator=(const AcqRelAtomic& arg) = delete;
+  T operator+=(T arg) = delete;
+  T operator-=(T arg) = delete;
 
  private:
   std::atomic<T> value_;

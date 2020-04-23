@@ -7,7 +7,6 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -15,15 +14,14 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NewAnalysisOptionsFileNotificationTest);
-    defineReflectiveTests(OldAnalysisOptionsFileNotificationTest);
+    defineReflectiveTests(AnalysisOptionsFileNotificationTest);
   });
 }
 
-abstract class AnalysisOptionsFileNotificationTest
-    extends AbstractAnalysisTest {
+@reflectiveTest
+class AnalysisOptionsFileNotificationTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
   final testSource = '''
@@ -37,7 +35,7 @@ main() {
 
   List<AnalysisError> get optionsFileErrors => filesErrors[optionsFilePath];
 
-  String get optionsFilePath;
+  String get optionsFilePath => '$projectPath/analysis_options.yaml';
 
   List<AnalysisError> get testFileErrors => filesErrors[testFile];
 
@@ -48,14 +46,14 @@ main() {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = new AnalysisErrorsParams.fromNotification(notification);
+      var decoded = AnalysisErrorsParams.fromNotification(notification);
       filesErrors[decoded.file] = decoded.errors;
     }
   }
 
   void setAnalysisRoot() {
-    Request request =
-        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    var request =
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -64,7 +62,7 @@ main() {
     generateSummaryFiles = true;
     registerLintRules();
     super.setUp();
-    server.handlers = [new AnalysisDomainHandler(server)];
+    server.handlers = [AnalysisDomainHandler(server)];
   }
 
   @override
@@ -74,7 +72,7 @@ main() {
     super.tearDown();
   }
 
-  test_error_filter() async {
+  Future<void> test_error_filter() async {
     addOptionsFile('''
 analyzer:
   errors:
@@ -101,7 +99,7 @@ main() {
     expect(testFileErrors, isEmpty);
   }
 
-  test_error_filter_removed() async {
+  Future<void> test_error_filter_removed() async {
     addOptionsFile('''
 analyzer:
   errors:
@@ -144,7 +142,7 @@ analyzer:
     expect(testFileErrors, hasLength(1));
   }
 
-  test_lint_options_changes() async {
+  Future<void> test_lint_options_changes() async {
     addOptionsFile('''
 linter:
   rules:
@@ -171,7 +169,7 @@ linter:
     verifyLintsEnabled(['camel_case_types']);
   }
 
-  test_lint_options_unsupported() async {
+  Future<void> test_lint_options_unsupported() async {
     addOptionsFile('''
 linter:
   rules:
@@ -189,7 +187,7 @@ linter:
 //    expect(optionsFileErrors.first.type, AnalysisErrorType.STATIC_WARNING);
   }
 
-  test_options_file_added() async {
+  Future<void> test_options_file_added() async {
     addTestFile(testSource);
     setAnalysisRoot();
 
@@ -214,7 +212,7 @@ linter:
     verifyLintsEnabled(['camel_case_types']);
   }
 
-  test_options_file_parse_error() async {
+  Future<void> test_options_file_parse_error() async {
     addOptionsFile('''
 ; #bang
 ''');
@@ -228,7 +226,7 @@ linter:
 //    expect(optionsFileErrors.first.type, AnalysisErrorType.COMPILE_TIME_ERROR);
   }
 
-  test_options_file_removed() async {
+  Future<void> test_options_file_removed() async {
     addOptionsFile('''
 linter:
   rules:
@@ -254,23 +252,9 @@ linter:
   }
 
   void verifyLintsEnabled(List<String> lints) {
-    AnalysisOptions options = analysisOptions;
+    var options = analysisOptions;
     expect(options.lint, true);
     var rules = options.lintRules.map((rule) => rule.name);
     expect(rules, unorderedEquals(lints));
   }
-}
-
-@reflectiveTest
-class NewAnalysisOptionsFileNotificationTest
-    extends AnalysisOptionsFileNotificationTest {
-  @override
-  String get optionsFilePath => '$projectPath/analysis_options.yaml';
-}
-
-@reflectiveTest
-class OldAnalysisOptionsFileNotificationTest
-    extends AnalysisOptionsFileNotificationTest {
-  @override
-  String get optionsFilePath => '$projectPath/.analysis_options';
 }

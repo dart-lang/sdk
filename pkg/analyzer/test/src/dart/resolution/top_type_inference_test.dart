@@ -16,28 +16,28 @@ main() {
 @reflectiveTest
 class TopTypeInferenceDriverResolutionTest extends DriverResolutionTest {
   test_referenceInstanceVariable_withDeclaredType() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   final int a = b + 1;
 }
 final b = new A().a;
 ''');
-    assertNoTestErrors();
 
-    assertElementTypeString(findElement.field('a').type, 'int');
-    assertElementTypeString(findElement.topVar('b').type, 'int');
+    assertType(findElement.field('a').type, 'int');
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_referenceInstanceVariable_withoutDeclaredType() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   final a = b + 1;
 }
 final b = new A().a;
-''');
-    assertTestErrorsWithCodes([StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 49, 1),
+    ]);
 
-    assertElementTypeDynamic(findElement.field('a').type);
-    assertElementTypeDynamic(findElement.topVar('b').type);
+    assertTypeDynamic(findElement.field('a').type);
+    assertTypeDynamic(findElement.topVar('b').type);
   }
 }

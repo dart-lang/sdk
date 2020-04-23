@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindElementByNameOffsetTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class FindElementByNameOffsetTest extends AbstractSingleUnitTest {
-  test_class() async {
+  Future<void> test_class() async {
     await resolveTestUnit(r'''
 class AAA {}
 class BBB {}
@@ -26,7 +26,7 @@ class BBB {}
     _assertElement(19, ElementKind.CLASS, 'BBB');
   }
 
-  test_function() async {
+  Future<void> test_function() async {
     await resolveTestUnit(r'''
 void aaa() {}
 void bbb() {}
@@ -35,7 +35,7 @@ void bbb() {}
     _assertElement(19, ElementKind.FUNCTION, 'bbb');
   }
 
-  test_null() async {
+  Future<void> test_null() async {
     await resolveTestUnit(r'''
 class AAA {}
 class BBB {}
@@ -49,7 +49,7 @@ class BBB {}
     expect(findElementByNameOffset(testUnitElement, 7), isNull);
   }
 
-  test_topLevelVariable() async {
+  Future<void> test_topLevelVariable() async {
     await resolveTestUnit(r'''
 int aaa, bbb;
 int ccc;

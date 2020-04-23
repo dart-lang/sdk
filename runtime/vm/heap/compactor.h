@@ -27,7 +27,7 @@ class GCCompactor : public ValueObject,
  public:
   GCCompactor(Thread* thread, Heap* heap)
       : HandleVisitor(thread),
-        ObjectPointerVisitor(thread->isolate()),
+        ObjectPointerVisitor(thread->isolate_group()),
         heap_(heap) {}
   ~GCCompactor() {}
 
@@ -51,9 +51,9 @@ class GCCompactor : public ValueObject,
     uword base;
     uword size;
   };
-  // There are up to 6 images to consider:
-  // {instructions, data} x {vm isolate, current isolate, shared}
-  static const intptr_t kMaxImagePages = 6;
+  // There are up to 4 images to consider:
+  // {instructions, data} x {vm isolate, current isolate}
+  static const intptr_t kMaxImagePages = 4;
   ImagePageRange image_page_ranges_[kMaxImagePages];
 
   // The typed data views whose inner pointer must be updated after sliding is

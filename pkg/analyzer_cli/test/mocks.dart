@@ -55,12 +55,17 @@ class MockAnalysisErrorInfo implements AnalysisErrorInfo {
 
 class MockCommandLineOptions implements CommandLineOptions {
   bool enableTypeChecks = false;
+  @override
   bool infosAreFatal = false;
+  @override
   bool machineFormat = false;
+  @override
   bool verbose = false;
+  @override
   bool color = false;
 
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockErrorCode implements ErrorCode {
@@ -80,7 +85,7 @@ class MockErrorCode implements ErrorCode {
 
   @override
   String get correction {
-    throw new StateError('Unexpected invocation of correction');
+    throw StateError('Unexpected invocation of correction');
   }
 
   @override
@@ -91,12 +96,12 @@ class MockErrorCode implements ErrorCode {
 
   @override
   String get message {
-    throw new StateError('Unexpected invocation of message');
+    throw StateError('Unexpected invocation of message');
   }
 
   @override
   String get uniqueName {
-    throw new StateError('Unexpected invocation of uniqueName');
+    throw StateError('Unexpected invocation of uniqueName');
   }
 }
 
@@ -107,12 +112,12 @@ class MockLineInfo implements LineInfo {
 
   @override
   int get lineCount {
-    throw new StateError('Unexpected invocation of lineCount');
+    throw StateError('Unexpected invocation of lineCount');
   }
 
   @override
   List<int> get lineStarts {
-    throw new StateError('Unexpected invocation of lineStarts');
+    throw StateError('Unexpected invocation of lineStarts');
   }
 
   @override
@@ -120,17 +125,17 @@ class MockLineInfo implements LineInfo {
     if (defaultLocation != null) {
       return defaultLocation;
     }
-    throw new StateError('Unexpected invocation of getLocation');
+    throw StateError('Unexpected invocation of getLocation');
   }
 
   @override
   int getOffsetOfLine(int lineNumber) {
-    throw new StateError('Unexpected invocation of getOffsetOfLine');
+    throw StateError('Unexpected invocation of getOffsetOfLine');
   }
 
   @override
   int getOffsetOfLineAfter(int offset) {
-    throw new StateError('Unexpected invocation of getOffsetOfLineAfter');
+    throw StateError('Unexpected invocation of getOffsetOfLineAfter');
   }
 }
 
@@ -142,42 +147,42 @@ class MockSource implements Source {
 
   @override
   TimestampedData<String> get contents {
-    throw new StateError('Unexpected invocation of contents');
+    throw StateError('Unexpected invocation of contents');
   }
 
   @override
   String get encoding {
-    throw new StateError('Unexpected invocation of encoding');
+    throw StateError('Unexpected invocation of encoding');
   }
 
   @override
   bool get isInSystemLibrary {
-    throw new StateError('Unexpected invocation of isInSystemLibrary');
+    throw StateError('Unexpected invocation of isInSystemLibrary');
   }
 
   @override
   Source get librarySource {
-    throw new StateError('Unexpected invocation of librarySource');
+    throw StateError('Unexpected invocation of librarySource');
   }
 
   @override
   int get modificationStamp {
-    throw new StateError('Unexpected invocation of modificationStamp');
+    throw StateError('Unexpected invocation of modificationStamp');
   }
 
   @override
   String get shortName {
-    throw new StateError('Unexpected invocation of shortName');
+    throw StateError('Unexpected invocation of shortName');
   }
 
   @override
   Source get source {
-    throw new StateError('Unexpected invocation of source');
+    throw StateError('Unexpected invocation of source');
   }
 
   @override
   Uri get uri {
-    throw new StateError('Unexpected invocation of uri');
+    throw StateError('Unexpected invocation of uri');
   }
 
   @override
@@ -185,6 +190,6 @@ class MockSource implements Source {
 
   @override
   bool exists() {
-    throw new StateError('Unexpected invocation of exists');
+    throw StateError('Unexpected invocation of exists');
   }
 }

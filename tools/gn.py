@@ -19,11 +19,6 @@ DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 GN = os.path.join(DART_ROOT, 'buildtools', 'gn')
 
 # Environment variables for default settings.
-DART_USE_ASAN = "DART_USE_ASAN"  # Use instead of --asan
-DART_USE_LSAN = "DART_USE_LSAN"  # Use instead of --lsan
-DART_USE_MSAN = "DART_USE_MSAN"  # Use instead of --msan
-DART_USE_TSAN = "DART_USE_TSAN"  # Use instead of --tsan
-DART_USE_UBSAN = "DART_USE_UBSAN"  # Use instead of --ubsan
 DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instread of --toolchain-prefix
 DART_USE_SYSROOT = "DART_USE_SYSROOT"  # Use instead of --target-sysroot
 DART_USE_CRASHPAD = "DART_USE_CRASHPAD"  # Use instead of --use-crashpad
@@ -31,26 +26,6 @@ DART_USE_CRASHPAD = "DART_USE_CRASHPAD"  # Use instead of --use-crashpad
 DART_MAKE_PLATFORM_SDK = "DART_MAKE_PLATFORM_SDK"
 
 DART_GN_ARGS = "DART_GN_ARGS"
-
-
-def UseASAN():
-    return DART_USE_ASAN in os.environ
-
-
-def UseLSAN():
-    return DART_USE_LSAN in os.environ
-
-
-def UseMSAN():
-    return DART_USE_MSAN in os.environ
-
-
-def UseTSAN():
-    return DART_USE_TSAN in os.environ
-
-
-def UseUBSAN():
-    return DART_USE_UBSAN in os.environ
 
 
 def ToolchainPrefix(args):
@@ -77,8 +52,9 @@ def GetGNArgs(args):
 
 
 # TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
-def GetOutDir(mode, arch, target_os, use_nnbd):
-    return utils.GetBuildRoot(HOST_OS, mode, arch, target_os, use_nnbd)
+def GetOutDir(mode, arch, target_os, sanitizer, use_nnbd):
+    return utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer,
+                              use_nnbd)
 
 
 def ToCommandLine(gn_args):
@@ -146,10 +122,6 @@ def ParseStringMap(key, string_map):
     return None
 
 
-def UseSanitizer(args):
-    return args.asan or args.lsan or args.msan or args.tsan or args.ubsan
-
-
 def DontUseClang(args, target_os, host_cpu, target_cpu):
     # We don't have clang on Windows.
     return target_os == 'win'
@@ -167,7 +139,7 @@ def UseSysroot(args, gn_args):
 
 
 # TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
-def ToGnArgs(args, mode, arch, target_os, use_nnbd):
+def ToGnArgs(args, mode, arch, target_os, sanitizer, use_nnbd):
     gn_args = {}
 
     host_os = HostOsForGn(HOST_OS)
@@ -203,7 +175,7 @@ def ToGnArgs(args, mode, arch, target_os, use_nnbd):
 
     # Use tcmalloc only when targeting Linux and when not using ASAN.
     gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
-                                    not UseSanitizer(args))
+                                    sanitizer == 'none')
 
     if gn_args['target_os'] == 'linux':
         if gn_args['target_cpu'] == 'arm':
@@ -241,11 +213,11 @@ def ToGnArgs(args, mode, arch, target_os, use_nnbd):
     enable_code_coverage = args.code_coverage and gn_args['is_clang']
     gn_args['dart_vm_code_coverage'] = enable_code_coverage
 
-    gn_args['is_asan'] = args.asan
-    gn_args['is_lsan'] = args.lsan
-    gn_args['is_msan'] = args.msan
-    gn_args['is_tsan'] = args.tsan
-    gn_args['is_ubsan'] = args.ubsan
+    gn_args['is_asan'] = sanitizer == 'asan'
+    gn_args['is_lsan'] = sanitizer == 'lsan'
+    gn_args['is_msan'] = sanitizer == 'msan'
+    gn_args['is_tsan'] = sanitizer == 'tsan'
+    gn_args['is_ubsan'] = sanitizer == 'ubsan'
     gn_args['include_dart2native'] = True
     gn_args['is_qemu'] = args.use_qemu
 
@@ -306,9 +278,12 @@ def ProcessOptions(args):
         args.mode = 'debug,release,product'
     if args.os == 'all':
         args.os = 'host,android'
+    if args.sanitizer == 'all':
+        args.sanitizer = 'none,asan,lsan,msan,tsan,ubsan'
     args.mode = args.mode.split(',')
     args.arch = args.arch.split(',')
     args.os = args.os.split(',')
+    args.sanitizer = args.sanitizer.split(',')
     for mode in args.mode:
         if not mode in ['debug', 'release', 'product']:
             print("Unknown mode %s" % mode)
@@ -389,6 +364,12 @@ def parse_args(args):
         help='Target OSs (comma-separated).',
         metavar='[all,host,android]',
         default='host')
+    common_group.add_argument(
+        '--sanitizer',
+        type=str,
+        help='Build variants (comma-separated).',
+        metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
+        default='none')
     # TODO(38701): Remove this once the forked NNBD SDK is merged back in.
     common_group.add_argument(
         "--nnbd",
@@ -408,13 +389,6 @@ def parse_args(args):
         help='The ARM float ABI (soft, softfp, hard)',
         metavar='[soft,softfp,hard]',
         default='')
-    other_group.add_argument(
-        '--asan',
-        help='Build with ASAN',
-        default=UseASAN(),
-        action='store_true')
-    other_group.add_argument(
-        '--no-asan', help='Disable ASAN', dest='asan', action='store_false')
     other_group.add_argument(
         '--bytecode',
         '-b',
@@ -457,20 +431,6 @@ def parse_args(args):
         dest='exclude_kernel_service',
         action='store_true')
     other_group.add_argument(
-        '--lsan',
-        help='Build with LSAN',
-        default=UseLSAN(),
-        action='store_true')
-    other_group.add_argument(
-        '--no-lsan', help='Disable LSAN', dest='lsan', action='store_false')
-    other_group.add_argument(
-        '--msan',
-        help='Build with MSAN',
-        default=UseMSAN(),
-        action='store_true')
-    other_group.add_argument(
-        '--no-msan', help='Disable MSAN', dest='msan', action='store_false')
-    other_group.add_argument(
         '--gn-args', help='Set extra GN args', dest='gn_args', action='append')
     other_group.add_argument(
         '--platform-sdk',
@@ -487,20 +447,6 @@ def parse_args(args):
         '-t',
         type=str,
         help='Comma-separated list of arch=/path/to/toolchain-prefix mappings')
-    other_group.add_argument(
-        '--tsan',
-        help='Build with TSAN',
-        default=UseTSAN(),
-        action='store_true')
-    other_group.add_argument(
-        '--no-tsan', help='Disable TSAN', dest='tsan', action='store_false')
-    other_group.add_argument(
-        '--ubsan',
-        help='Build with UBSAN',
-        default=UseUBSAN(),
-        action='store_true')
-    other_group.add_argument(
-        '--no-ubsan', help='Disable UBSAN', dest='ubsan', action='store_false')
     other_group.add_argument(
         '--wheezy',
         help='This flag is deprecated.',
@@ -547,7 +493,6 @@ def RunCommand(command):
         return ("Command failed: " + ' '.join(command) + "\n" + "output: " +
                 e.output)
 
-
 def Main(argv):
     starttime = time.time()
     args = parse_args(argv)
@@ -562,20 +507,23 @@ def Main(argv):
     for target_os in args.os:
         for mode in args.mode:
             for arch in args.arch:
-                out_dir = GetOutDir(mode, arch, target_os, args.nnbd)
-                # TODO(infra): Re-enable --check. Many targets fail to use
-                # public_deps to re-expose header files to their dependents.
-                # See dartbug.com/32364
-                command = [gn, 'gen', out_dir]
-                gn_args = ToCommandLine(
-                    ToGnArgs(args, mode, arch, target_os, args.nnbd))
-                gn_args += GetGNArgs(args)
-                if args.verbose:
-                    print("gn gen --check in %s" % out_dir)
-                if args.ide:
-                    command.append(ide_switch(HOST_OS))
-                command.append('--args=%s' % ' '.join(gn_args))
-                commands.append(command)
+                for sanitizer in args.sanitizer:
+                    out_dir = GetOutDir(mode, arch, target_os, sanitizer,
+                                        args.nnbd)
+                    # TODO(infra): Re-enable --check. Many targets fail to use
+                    # public_deps to re-expose header files to their dependents.
+                    # See dartbug.com/32364
+                    command = [gn, 'gen', out_dir]
+                    gn_args = ToCommandLine(
+                        ToGnArgs(args, mode, arch, target_os, sanitizer,
+                                 args.nnbd))
+                    gn_args += GetGNArgs(args)
+                    if args.verbose:
+                        print("gn gen --check in %s" % out_dir)
+                    if args.ide:
+                        command.append(ide_switch(HOST_OS))
+                    command.append('--args=%s' % ' '.join(gn_args))
+                    commands.append(command)
 
     pool = multiprocessing.Pool(args.workers)
     results = pool.map(RunCommand, commands, chunksize=1)

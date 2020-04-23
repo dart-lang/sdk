@@ -29,12 +29,14 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 class CodeActionHandler extends MessageHandler<CodeActionParams,
     List<Either2<Command, CodeAction>>> {
   CodeActionHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_codeAction;
 
   @override
   LspJsonHandler<CodeActionParams> get jsonHandler =>
       CodeActionParams.jsonHandler;
 
+  @override
   Future<ErrorOr<List<Either2<Command, CodeAction>>>> handle(
       CodeActionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
@@ -49,7 +51,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     final clientSupportsLiteralCodeActions =
         capabilities?.codeActionLiteralSupport != null;
 
-    final clientSupportedCodeActionKinds = new HashSet<CodeActionKind>.of(
+    final clientSupportedCodeActionKinds = HashSet<CodeActionKind>.of(
         capabilities?.codeActionLiteralSupport?.codeActionKind?.valueSet ?? []);
 
     final path = pathOfDoc(params.textDocument);
@@ -85,7 +87,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   ) {
     return clientSupportsLiteralCodeActions
         ? Either2<Command, CodeAction>.t2(
-            new CodeAction(command.title, kind, null, null, command),
+            CodeAction(command.title, kind, null, null, command),
           )
         : Either2<Command, CodeAction>.t1(command);
   }
@@ -95,7 +97,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// immediately after computing edits to ensure the document is not modified
   /// before the version number is read.
   Either2<Command, CodeAction> _createAssistAction(Assist assist) {
-    return new Either2<Command, CodeAction>.t2(new CodeAction(
+    return Either2<Command, CodeAction>.t2(CodeAction(
       assist.change.message,
       CodeActionKind.Refactor,
       const [],
@@ -110,7 +112,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// before the version number is read.
   Either2<Command, CodeAction> _createFixAction(
       Fix fix, Diagnostic diagnostic) {
-    return new Either2<Command, CodeAction>.t2(new CodeAction(
+    return Either2<Command, CodeAction>.t2(CodeAction(
       fix.change.message,
       CodeActionKind.QuickFix,
       [diagnostic],
@@ -133,13 +135,13 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     }
 
     try {
-      var context = new DartAssistContextImpl(
+      var context = DartAssistContextImpl(
         DartChangeWorkspace(server.currentSessions),
         unit,
         offset,
         length,
       );
-      final processor = new AssistProcessor(context);
+      final processor = AssistProcessor(context);
       final assists = await processor.compute();
       assists.sort(Assist.SORT_BY_RELEVANCE);
 
@@ -187,15 +189,15 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
     final lineInfo = unit.lineInfo;
     final codeActions = <Either2<Command, CodeAction>>[];
-    final fixContributor = new DartFixContributor();
+    final fixContributor = DartFixContributor();
 
     try {
       for (final error in unit.errors) {
         // Server lineNumber is one-based so subtract one.
-        int errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
+        var errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
         if (errorLine >= range.start.line && errorLine <= range.end.line) {
           var workspace = DartChangeWorkspace(server.currentSessions);
-          var context = new DartFixContextImpl(workspace, unit, error, (name) {
+          var context = DartFixContextImpl(workspace, unit, error, (name) {
             var tracker = server.declarationsTracker;
             return TopLevelDeclarationsProvider(tracker).get(
               unit.session.analysisContext,
@@ -245,7 +247,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
     /// Helper to create refactors that execute commands provided with
     /// the current file, location and document version.
-    createRefactor(
+    Either2<Command, CodeAction> createRefactor(
       CodeActionKind actionKind,
       String name,
       RefactoringKind refactorKind, [
@@ -254,7 +256,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       return _commandOrCodeAction(
           clientSupportsLiteralCodeActions,
           actionKind,
-          new Command(name, Commands.performRefactor, [
+          Command(name, Commands.performRefactor, [
             refactorKind.toJson(),
             path,
             server.getVersionedDocumentIdentifier(path).version,
@@ -320,12 +322,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       _commandOrCodeAction(
         clientSupportsLiteralCodeActions,
         DartCodeActionKind.SortMembers,
-        new Command('Sort Members', Commands.sortMembers, [path]),
+        Command('Sort Members', Commands.sortMembers, [path]),
       ),
       _commandOrCodeAction(
         clientSupportsLiteralCodeActions,
         CodeActionKind.SourceOrganizeImports,
-        new Command('Organize Imports', Commands.organizeImports, [path]),
+        Command('Organize Imports', Commands.organizeImports, [path]),
       ),
     ];
   }

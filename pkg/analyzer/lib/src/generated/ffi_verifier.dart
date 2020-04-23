@@ -6,9 +6,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
@@ -32,7 +32,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   ];
 
   /// The type system used to check types.
-  final TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   /// The error reporter used to report errors.
   final ErrorReporter _errorReporter;
@@ -55,13 +55,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (superclass.name.staticElement.name == 'Struct') {
           inStruct = true;
         } else {
-          _errorReporter.reportTypeErrorForNode(
+          _errorReporter.reportErrorForNode(
               FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
               superclass.name,
               [node.name.name, superclass.name.name]);
         }
       } else if (_isSubtypeOfStruct(superclass)) {
-        _errorReporter.reportTypeErrorForNode(
+        _errorReporter.reportErrorForNode(
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS,
             superclass,
             [node.name.name, superclass.name.name]);
@@ -72,10 +72,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     void checkSupertype(TypeName typename, FfiCode subtypeOfFfiCode,
         FfiCode subtypeOfStructCode) {
       if (_isDartFfiClass(typename)) {
-        _errorReporter.reportTypeErrorForNode(
+        _errorReporter.reportErrorForNode(
             subtypeOfFfiCode, typename, [node.name, typename.name]);
       } else if (_isSubtypeOfStruct(typename)) {
-        _errorReporter.reportTypeErrorForNode(
+        _errorReporter.reportErrorForNode(
             subtypeOfStructCode, typename, [node.name, typename.name]);
       }
     }
@@ -126,12 +126,17 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       Element enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement) {
         if (_isPointer(enclosingElement)) {
-          if (element.name == 'asFunction') {
-            _validateAsFunction(node, element);
-          } else if (element.name == 'fromFunction') {
+          if (element.name == 'fromFunction') {
             _validateFromFunction(node, element);
           }
-        } else if (_isDynamicLibrary(enclosingElement) &&
+        }
+      }
+      if (enclosingElement is ExtensionElement) {
+        if (_isNativeFunctionPointerExtension(enclosingElement)) {
+          if (element.name == 'asFunction') {
+            _validateAsFunction(node, element);
+          }
+        } else if (_isDynamicLibraryExtension(enclosingElement) &&
             element.name == 'lookupFunction') {
           _validateLookupFunction(node);
         }
@@ -152,10 +157,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     return element is ClassElement && element.library.name == 'dart.ffi';
   }
 
-  /// Return `true` if the given [element] represents the class
-  /// `DynamicLibrary`.
-  bool _isDynamicLibrary(ClassElement element) =>
-      element.name == 'DynamicLibrary' && element.library.name == 'dart.ffi';
+  /// Return `true` if the given [element] represents the extension
+  /// `DynamicLibraryExtension`.
+  bool _isDynamicLibraryExtension(Element element) =>
+      element.name == 'DynamicLibraryExtension' &&
+      element.library.name == 'dart.ffi';
 
   /// Returns `true` iff [nativeType] is a `ffi.NativeFunction<???>` type.
   bool _isNativeFunctionInterfaceType(DartType nativeType) {
@@ -183,6 +189,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Return `true` if the given [element] represents the class `Pointer`.
   bool _isPointer(Element element) =>
       element.name == 'Pointer' && element.library.name == 'dart.ffi';
+
+  bool _isNativeFunctionPointerExtension(Element element) =>
+      element.name == 'NativeFunctionPointer' &&
+      element.library.name == 'dart.ffi';
 
   /// Returns `true` iff [nativeType] is a `ffi.Pointer<???>` type.
   bool _isPointerInterfaceType(DartType nativeType) {
@@ -361,18 +371,18 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
               (T as InterfaceType).typeArguments.single)) {
         final AstNode errorNode =
             typeArguments != null ? typeArguments[0] : node;
-        _errorReporter.reportTypeErrorForNode(
+        _errorReporter.reportErrorForNode(
             FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER,
             errorNode,
-            [T.displayName]);
+            [T]);
         return;
       }
 
       final DartType TPrime = (T as InterfaceType).typeArguments[0];
       final DartType F = node.typeArgumentTypes[0];
       if (!_validateCompatibleFunctionTypes(F, TPrime)) {
-        _errorReporter.reportTypeErrorForNode(FfiCode.MUST_BE_A_SUBTYPE, node,
-            [TPrime.displayName, F.displayName, 'asFunction']);
+        _errorReporter.reportErrorForNode(
+            FfiCode.MUST_BE_A_SUBTYPE, node, [TPrime, F, 'asFunction']);
       }
     }
   }
@@ -441,8 +451,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return dartType.isVoid;
     } else if (dartType is InterfaceType && nativeType is InterfaceType) {
       return checkCovariance
-          ? typeSystem.isSubtypeOf(dartType, nativeType)
-          : typeSystem.isSubtypeOf(nativeType, dartType);
+          ? typeSystem.isSubtypeOf2(dartType, nativeType)
+          : typeSystem.isSubtypeOf2(nativeType, dartType);
     } else {
       // If the [nativeType] is not a primitive int/double type then it has to
       // be a Pointer type atm.
@@ -495,17 +505,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     final DartType T = node.typeArgumentTypes[0];
     if (!_isValidFfiNativeFunctionType(T)) {
-      _errorReporter.reportTypeErrorForNode(
-          FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
-          node,
-          [T.displayName, 'fromFunction']);
+      _errorReporter.reportErrorForNode(
+          FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, node, [T, 'fromFunction']);
       return;
     }
 
     Expression f = node.argumentList.arguments[0];
     DartType FT = f.staticType;
     if (!_validateCompatibleFunctionTypes(FT, T)) {
-      _errorReporter.reportTypeErrorForNode(
+      _errorReporter.reportErrorForNode(
           FfiCode.MUST_BE_A_SUBTYPE, f, [f.staticType, T, 'fromFunction']);
       return;
     }
@@ -524,7 +532,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       Expression e = node.argumentList.arguments[1];
       // TODO(brianwilkerson) Validate that `e` is a constant expression.
       if (!_validateCompatibleNativeType(e.staticType, R, true)) {
-        _errorReporter.reportTypeErrorForNode(
+        _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, e, [e.staticType, R, 'fromFunction']);
       }
     }
@@ -546,16 +554,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     final DartType F = argTypes[1];
     if (!_isValidFfiNativeFunctionType(S)) {
       final AstNode errorNode = typeArguments[0];
-      _errorReporter.reportTypeErrorForNode(
-          FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
-          errorNode,
-          [S.displayName, 'lookupFunction']);
+      _errorReporter.reportErrorForNode(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
+          errorNode, [S, 'lookupFunction']);
       return;
     }
     if (!_validateCompatibleFunctionTypes(F, S)) {
       final AstNode errorNode = typeArguments[1];
-      _errorReporter.reportTypeErrorForNode(FfiCode.MUST_BE_A_SUBTYPE,
-          errorNode, [S.displayName, F.displayName, 'lookupFunction']);
+      _errorReporter.reportErrorForNode(
+          FfiCode.MUST_BE_A_SUBTYPE, errorNode, [S, F, 'lookupFunction']);
     }
   }
 

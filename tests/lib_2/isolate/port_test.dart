@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test properties of ports.
-// Note: unittest.dart depends on ports, in particular on the behaviour tested
-// here. To keep things simple, we don't use the unittest library here.
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 
+// Test properties of ports.
 library PortTest;
 
 import "package:expect/expect.dart";

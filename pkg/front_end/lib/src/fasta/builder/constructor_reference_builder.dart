@@ -14,6 +14,7 @@ import 'builder.dart';
 import 'class_builder.dart';
 import 'library_builder.dart';
 import 'prefix_builder.dart';
+import 'type_alias_builder.dart';
 import 'type_builder.dart';
 
 class ConstructorReferenceBuilder {
@@ -46,6 +47,10 @@ class ConstructorReferenceBuilder {
       String prefix = name.qualifier;
       String middle = name.name;
       declaration = scope.lookup(prefix, charOffset, fileUri);
+      if (declaration is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declaration;
+        declaration = aliasBuilder.unaliasDeclaration(typeArguments);
+      }
       if (declaration is PrefixBuilder) {
         PrefixBuilder prefix = declaration;
         declaration = prefix.lookup(middle, name.charOffset, fileUri);

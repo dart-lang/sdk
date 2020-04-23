@@ -9,6 +9,7 @@ import 'dart:math' show Random;
 
 import 'package:js_runtime/shared/embedded_names.dart'
     show
+        ARRAY_RTI_PROPERTY,
         DEFERRED_INITIALIZED,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
@@ -49,7 +50,6 @@ import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show Namer, ConstantEmitter, StringBackedName;
 import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
-import '../../js_backend/native_data.dart' show NativeData;
 import '../../js_backend/runtime_types.dart';
 import '../../js_backend/runtime_types_codegen.dart';
 import '../../js_backend/runtime_types_new.dart'
@@ -69,6 +69,7 @@ import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
 import '../js_emitter.dart' show buildTearOffCode, NativeGenerator;
 import '../model.dart';
+import '../native_emitter.dart';
 
 part 'fragment_emitter.dart';
 
@@ -81,6 +82,7 @@ class ModelEmitter {
   final CompilerTask _task;
   final Emitter _emitter;
   ConstantEmitter _constantEmitter;
+  final NativeEmitter _nativeEmitter;
   final bool _shouldGenerateSourceMap;
   final JClosedWorld _closedWorld;
   final ConstantOrdering _constantOrdering;
@@ -109,6 +111,7 @@ class ModelEmitter {
       this._closedWorld,
       this._task,
       this._emitter,
+      this._nativeEmitter,
       this._sourceInformationStrategy,
       RuntimeTypesEncoder rtiEncoder,
       RecipeEncoder rtiRecipeEncoder,
@@ -189,6 +192,7 @@ class ModelEmitter {
         _emitter,
         _constantEmitter,
         this,
+        _nativeEmitter,
         _closedWorld,
         codegenWorld);
 
@@ -298,20 +302,20 @@ class ModelEmitter {
     List<CodeOutputListener> codeOutputListeners;
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
-        locationCollector = new LocationCollector();
+        locationCollector = LocationCollector();
         codeOutputListeners = <CodeOutputListener>[locationCollector];
       });
     }
 
-    CodeOutput mainOutput = new StreamCodeOutput(
+    CodeOutput mainOutput = StreamCodeOutput(
         _outputProvider.createOutputSink('', 'js', OutputType.js),
         codeOutputListeners);
     outputBuffers[fragment] = mainOutput;
 
-    js.Program program = new js.Program([
+    js.Program program = js.Program([
       buildGeneratedBy(),
-      new js.Comment(HOOKS_API_USAGE),
-      isSplit ? buildDeferredInitializerGlobal() : new js.Block.empty(),
+      js.Comment(HOOKS_API_USAGE),
+      if (isSplit) buildDeferredInitializerGlobal(),
       code
     ]);
 

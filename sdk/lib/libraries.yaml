@@ -93,6 +93,7 @@ vm:
         - "_internal/vm/lib/ffi_patch.dart"
         - "_internal/vm/lib/ffi_dynamic_library_patch.dart"
         - "_internal/vm/lib/ffi_native_type_patch.dart"
+        - "_internal/vm/lib/ffi_struct_patch.dart"
 
     wasm:
       uri: "wasm/wasm.dart"
@@ -153,7 +154,7 @@ vm:
       uri: "vmservice/vmservice.dart"
 
     vmservice_io:
-      uri: "../../runtime/bin/vmservice/vmservice_io.dart"
+      uri: "_internal/vm/bin/vmservice_io.dart"
 
 dart2js:
   libraries:
@@ -200,14 +201,15 @@ dart2js:
       supported: false
 
     js:
-      uri: "js/dart2js/js_dart2js.dart"
+      uri: "js/js.dart"
+      patches: "_internal/js_runtime/lib/js_patch.dart"
 
     _js:
       uri: "js/_js.dart"
       patches: "js/_js_client.dart"
 
     js_util:
-      uri: "js_util/dart2js/js_util_dart2js.dart"
+      uri: "js_util/js_util.dart"
 
     math:
       uri: "math/math.dart"
@@ -307,14 +309,15 @@ dart2js_server:
       supported: false
 
     js:
-      uri: "js/dart2js/js_dart2js.dart"
+      uri: "js/js.dart"
+      patches: "_internal/js_runtime/lib/js_patch.dart"
 
     _js:
       uri: "js/_js.dart"
       patches: "js/_js_server.dart"
 
     js_util:
-      uri: "js_util/dart2js/js_util_dart2js.dart"
+      uri: "js_util/js_util.dart"
 
     math:
       uri: "math/math.dart"
@@ -390,9 +393,6 @@ dartdevc:
       _js_helper:
         uri: "_internal/js_dev_runtime/private/js_helper.dart"
 
-      _js_mirrors:
-        uri: "_internal/js_dev_runtime/private/js_mirrors.dart"
-
       _js_primitives:
         uri: "_internal/js_dev_runtime/private/js_primitives.dart"
 
@@ -434,7 +434,7 @@ dartdevc:
 
       mirrors:
         uri: "mirrors/mirrors.dart"
-        patches: "_internal/js_dev_runtime/patch/mirrors_patch.dart"
+        patches: "_internal/js_runtime/lib/mirrors_patch_cfe.dart"
         supported: false
 
       math:
@@ -455,10 +455,11 @@ dartdevc:
         uri: "indexed_db/dart2js/indexed_db_dart2js.dart"
 
       js:
-        uri: "_internal/js_dev_runtime/lib/js/dart2js/js_dart2js.dart"
+        uri: "js/js.dart"
+        patches: "_internal/js_dev_runtime/patch/js_patch.dart"
 
       js_util:
-        uri: "_internal/js_dev_runtime/lib/js_util/dart2js/js_util_dart2js.dart"
+        uri: "js_util/js_util.dart"
 
       svg:
         uri: "svg/dart2js/svg_dart2js.dart"

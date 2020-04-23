@@ -456,10 +456,6 @@ class WidgetCreatorTracker {
       ..addAll(libraries);
 
     for (Library library in libraries) {
-      // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-      if (library.isExternal) {
-        continue;
-      }
       for (Class class_ in library.classes) {
         _transformWidgetConstructors(
           librariesToTransform,
@@ -477,10 +473,6 @@ class WidgetCreatorTracker {
             tracker: this);
 
     for (Library library in libraries) {
-      // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-      if (library.isExternal) {
-        continue;
-      }
       callsiteTransformer.enterLibrary(library);
       library.transformChildren(callsiteTransformer);
       callsiteTransformer.exitLibrary();

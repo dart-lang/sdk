@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/runtime_api.h"
-#include "platform/utils.h"
 
 namespace dart {
 namespace compiler {
@@ -50,6 +49,10 @@ bool IsEqualType(const AbstractType& a, const AbstractType& b) {
 
 bool IsDoubleType(const AbstractType& type) {
   return type.IsDoubleType();
+}
+
+bool IsBoolType(const AbstractType& type) {
+  return type.IsBoolType();
 }
 
 bool IsIntType(const AbstractType& type) {
@@ -199,7 +202,7 @@ const Field& LookupMathRandomStateFieldOffset() {
 }
 
 word LookupFieldOffsetInBytes(const Field& field) {
-  return field.Offset();
+  return field.TargetOffset();
 }
 
 #if defined(TARGET_ARCH_IA32)
@@ -337,10 +340,10 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
   case kExternalTypedData##clazz##Cid:
       CLASS_LIST_TYPED_DATA(HANDLE_CASE)
 #undef HANDLE_CASE
-      return TranslateOffsetInWords(handle.instance_size());
+      return handle.target_instance_size();
     default:
       if (handle.id() >= kNumPredefinedCids) {
-        return TranslateOffsetInWords(handle.instance_size());
+        return handle.target_instance_size();
       }
   }
   FATAL3("Unsupported class for size translation: %s (id=%" Pd
@@ -359,11 +362,12 @@ intptr_t Class::NumTypeArguments(const dart::Class& klass) {
 }
 
 bool Class::HasTypeArgumentsField(const dart::Class& klass) {
-  return klass.type_arguments_field_offset() != dart::Class::kNoTypeArguments;
+  return klass.host_type_arguments_field_offset() !=
+         dart::Class::kNoTypeArguments;
 }
 
 intptr_t Class::TypeArgumentsFieldOffset(const dart::Class& klass) {
-  return TranslateOffsetInWords(klass.type_arguments_field_offset());
+  return klass.target_type_arguments_field_offset();
 }
 
 bool Class::TraceAllocation(const dart::Class& klass) {
@@ -469,8 +473,19 @@ word Context::variable_offset(word n) {
     return element_offset(index) + field_offset;                               \
   }
 
+#if defined(TARGET_ARCH_IA32)
+
 #define DEFINE_SIZEOF(clazz, name, what)                                       \
   word clazz::name() { return clazz##_##name; }
+
+#else
+
+#define DEFINE_SIZEOF(clazz, name, what)                                       \
+  word clazz::name() {                                                         \
+    return FLAG_precompiled_mode ? AOT_##clazz##_##name : clazz##_##name;      \
+  }
+
+#endif  //  defined(TARGET_ARCH_IA32)
 
 #define DEFINE_RANGE(Class, Getter, Type, First, Last, Filter)                 \
   word Class::Getter(Type index) {                                             \
@@ -501,6 +516,11 @@ OFFSETS_LIST(DEFINE_FIELD,
 const word StoreBufferBlock::kSize = dart::StoreBufferBlock::kSize;
 
 const word MarkingStackBlock::kSize = dart::MarkingStackBlock::kSize;
+
+word InstructionsSection::HeaderSize() {
+  return Utils::RoundUp(InstructionsSection::UnalignedHeaderSize(),
+                        target::kWordSize);
+}
 
 word Instructions::HeaderSize() {
   return Utils::RoundUp(Instructions::UnalignedHeaderSize(), target::kWordSize);
@@ -618,12 +638,344 @@ const word Symbols::kNullCharCodeSymbolOffset =
 
 const word String::kHashBits = dart::String::kHashBits;
 
+const int8_t Nullability::kNullable =
+    static_cast<int8_t>(dart::Nullability::kNullable);
+const int8_t Nullability::kNonNullable =
+    static_cast<int8_t>(dart::Nullability::kNonNullable);
+const int8_t Nullability::kLegacy =
+    static_cast<int8_t>(dart::Nullability::kLegacy);
+
 bool Heap::IsAllocatableInNewSpace(intptr_t instance_size) {
   return dart::Heap::IsAllocatableInNewSpace(instance_size);
 }
 
 word Field::OffsetOf(const dart::Field& field) {
-  return TranslateOffsetInWords(field.Offset());
+  return field.TargetOffset();
+}
+
+word FieldTable::OffsetOf(const dart::Field& field) {
+  return TranslateOffsetInWords(
+      dart::FieldTable::FieldOffsetFor(field.field_id()));
+}
+
+word FreeListElement::FakeInstance::InstanceSize() {
+  return 0;
+}
+
+word ForwardingCorpse::FakeInstance::InstanceSize() {
+  return 0;
+}
+
+word Instance::NextFieldOffset() {
+  return TranslateOffsetInWords(dart::Instance::NextFieldOffset());
+}
+
+word Pointer::NextFieldOffset() {
+  return TranslateOffsetInWords(dart::Pointer::NextFieldOffset());
+}
+
+word WeakSerializationReference::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word ObjectPool::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Class::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Function::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word ICData::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word MegamorphicCache::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word SingleTargetCache::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Array::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word GrowableObjectArray::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word TypedDataBase::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word TypedData::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word ExternalTypedData::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word TypedDataView::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word LinkedHashMap::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Type::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word TypeRef::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Double::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Mint::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word String::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word OneByteString::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word TwoByteString::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word ExternalOneByteString::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word ExternalTwoByteString::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Int32x4::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Float32x4::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Float64x2::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word DynamicLibrary::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word PatchClass::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word SignatureData::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word RedirectionData::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word FfiTrampolineData::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Script::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Library::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Namespace::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word KernelProgramInfo::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Bytecode::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word PcDescriptors::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word CodeSourceMap::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word CompressedStackMaps::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word LocalVarDescriptors::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word ExceptionHandlers::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word ContextScope::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word ParameterTypeCheck::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word UnlinkedCall::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word ApiError::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word LanguageError::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word UnhandledException::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word UnwindError::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Bool::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word TypeParameter::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word LibraryPrefix::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Capability::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word ReceivePort::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word SendPort::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word TransferableTypedData::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word StackTrace::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Integer::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Smi::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word WeakProperty::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word MirrorReference::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Number::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word MonomorphicSmiableCall::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word InstructionsSection::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Instructions::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Code::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word SubtypeTestCache::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Context::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Closure::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word ClosureData::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word RegExp::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word UserTag::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word FutureOr::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Field::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word TypeArguments::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word FreeListElement::FakeInstance::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word ForwardingCorpse::FakeInstance::NextFieldOffset() {
+  return -kWordSize;
 }
 
 }  // namespace target

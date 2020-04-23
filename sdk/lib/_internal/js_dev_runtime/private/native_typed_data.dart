@@ -4,10 +4,8 @@
 
 // @dart = 2.6
 
-/**
- * Specialized integers and floating point numbers,
- * with SIMD support and efficient lists.
- */
+/// Specialized integers and floating point numbers,
+/// with SIMD support and efficient lists.
 library dart.typed_data.implementation;
 
 import 'dart:collection';
@@ -19,7 +17,6 @@ import 'dart:_js_helper'
         JavaScriptIndexingBehavior,
         JSName,
         Native,
-        Null,
         Returns,
         diagnoseIndexError,
         diagnoseRangeError;
@@ -28,7 +25,7 @@ import 'dart:math' as Math;
 
 import 'dart:typed_data';
 
-@Native("ArrayBuffer")
+@Native('ArrayBuffer')
 class NativeByteBuffer implements ByteBuffer {
   @JSName('byteLength')
   external int get lengthInBytes;
@@ -102,20 +99,16 @@ class NativeByteBuffer implements ByteBuffer {
   }
 }
 
-/**
- * A fixed-length list of Float32x4 numbers that is viewable as a
- * [TypedData]. For long lists, this implementation will be considerably more
- * space- and time-efficient than the default [List] implementation.
- */
+/// A fixed-length list of Float32x4 numbers that is viewable as a
+/// [TypedData]. For long lists, this implementation will be considerably more
+/// space- and time-efficient than the default [List] implementation.
 class NativeFloat32x4List extends Object
     with ListMixin<Float32x4>, FixedLengthListMixin<Float32x4>
     implements Float32x4List {
   final NativeFloat32List _storage;
 
-  /**
-   * Creates a [Float32x4List] of the specified length (in elements),
-   * all of whose elements are initially zero.
-   */
+  /// Creates a [Float32x4List] of the specified length (in elements),
+  /// all of whose elements are initially zero.
   NativeFloat32x4List(int length) : _storage = NativeFloat32List(length * 4);
 
   NativeFloat32x4List._externalStorage(this._storage);
@@ -133,10 +126,8 @@ class NativeFloat32x4List extends Object
 
   Type get runtimeType => Float32x4List;
 
-  /**
-   * Creates a [Float32x4List] with the same size as the [elements] list
-   * and copies over the elements.
-   */
+  /// Creates a [Float32x4List] with the same size as the [elements] list
+  /// and copies over the elements.
   factory NativeFloat32x4List.fromList(List<Float32x4> list) {
     if (list is NativeFloat32x4List) {
       return NativeFloat32x4List._externalStorage(
@@ -180,20 +171,16 @@ class NativeFloat32x4List extends Object
   }
 }
 
-/**
- * A fixed-length list of Int32x4 numbers that is viewable as a
- * [TypedData]. For long lists, this implementation will be considerably more
- * space- and time-efficient than the default [List] implementation.
- */
+/// A fixed-length list of Int32x4 numbers that is viewable as a
+/// [TypedData]. For long lists, this implementation will be considerably more
+/// space- and time-efficient than the default [List] implementation.
 class NativeInt32x4List extends Object
     with ListMixin<Int32x4>, FixedLengthListMixin<Int32x4>
     implements Int32x4List {
   final Int32List _storage;
 
-  /**
-   * Creates a [Int32x4List] of the specified length (in elements),
-   * all of whose elements are initially zero.
-   */
+  /// Creates a [Int32x4List] of the specified length (in elements),
+  /// all of whose elements are initially zero.
   NativeInt32x4List(int length) : _storage = NativeInt32List(length * 4);
 
   NativeInt32x4List._externalStorage(Int32List storage) : _storage = storage;
@@ -211,10 +198,8 @@ class NativeInt32x4List extends Object
 
   Type get runtimeType => Int32x4List;
 
-  /**
-   * Creates a [Int32x4List] with the same size as the [elements] list
-   * and copies over the elements.
-   */
+  /// Creates a [Int32x4List] with the same size as the [elements] list
+  /// and copies over the elements.
   factory NativeInt32x4List.fromList(List<Int32x4> list) {
     if (list is NativeInt32x4List) {
       return NativeInt32x4List._externalStorage(
@@ -258,20 +243,16 @@ class NativeInt32x4List extends Object
   }
 }
 
-/**
- * A fixed-length list of Float64x2 numbers that is viewable as a
- * [TypedData]. For long lists, this implementation will be considerably more
- * space- and time-efficient than the default [List] implementation.
- */
+/// A fixed-length list of Float64x2 numbers that is viewable as a
+/// [TypedData]. For long lists, this implementation will be considerably more
+/// space- and time-efficient than the default [List] implementation.
 class NativeFloat64x2List extends Object
     with ListMixin<Float64x2>, FixedLengthListMixin<Float64x2>
     implements Float64x2List {
   final NativeFloat64List _storage;
 
-  /**
-   * Creates a [Float64x2List] of the specified length (in elements),
-   * all of whose elements are initially zero.
-   */
+  /// Creates a [Float64x2List] of the specified length (in elements),
+  /// all of whose elements are initially zero.
   NativeFloat64x2List(int length) : _storage = NativeFloat64List(length * 2);
 
   NativeFloat64x2List._externalStorage(this._storage);
@@ -285,10 +266,8 @@ class NativeFloat64x2List extends Object
     }
   }
 
-  /**
-   * Creates a [Float64x2List] with the same size as the [elements] list
-   * and copies over the elements.
-   */
+  /// Creates a [Float64x2List] with the same size as the [elements] list
+  /// and copies over the elements.
   factory NativeFloat64x2List.fromList(List<Float64x2> list) {
     if (list is NativeFloat64x2List) {
       return NativeFloat64x2List._externalStorage(
@@ -330,32 +309,24 @@ class NativeFloat64x2List extends Object
   }
 }
 
-@Native("ArrayBufferView")
+@Native('ArrayBufferView')
 class NativeTypedData implements TypedData {
-  /**
-   * Returns the byte buffer associated with this object.
-   */
+  /// Returns the byte buffer associated with this object.
   @Creates('NativeByteBuffer')
   // May be Null for IE's CanvasPixelArray.
   @Returns('NativeByteBuffer|Null')
   external ByteBuffer get buffer;
 
-  /**
-   * Returns the length of this view, in bytes.
-   */
+  /// Returns the length of this view, in bytes.
   @JSName('byteLength')
   external int get lengthInBytes;
 
-  /**
-   * Returns the offset in bytes into the underlying byte buffer of this view.
-   */
+  /// Returns the offset in bytes into the underlying byte buffer of this view.
   @JSName('byteOffset')
   external int get offsetInBytes;
 
-  /**
-   * Returns the number of bytes in the representation of each element in this
-   * list.
-   */
+  /// Returns the number of bytes in the representation of each element in this
+  /// list.
   @JSName('BYTES_PER_ELEMENT')
   external int get elementSizeInBytes;
 
@@ -411,26 +382,22 @@ List _ensureNativeList(List list) {
   return result;
 }
 
-@Native("DataView")
+@Native('DataView')
 class NativeByteData extends NativeTypedData implements ByteData {
-  /**
-   * Creates a [ByteData] of the specified length (in elements), all of
-   * whose elements are initially zero.
-   */
+  /// Creates a [ByteData] of the specified length (in elements), all of
+  /// whose elements are initially zero.
   factory NativeByteData(int length) => _create1(_checkLength(length));
 
-  /**
-   * Creates an [ByteData] _view_ of the specified region in the specified
-   * byte buffer. Changes in the [ByteData] will be visible in the byte
-   * buffer and vice versa. If the [offsetInBytes] index of the region is not
-   * specified, it defaults to zero (the first byte in the byte buffer).
-   * If the length is not specified, it defaults to null, which indicates
-   * that the view extends to the end of the byte buffer.
-   *
-   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
-   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
-   * the length of [buffer].
-   */
+  /// Creates an [ByteData] _view_ of the specified region in the specified
+  /// byte buffer. Changes in the [ByteData] will be visible in the byte
+  /// buffer and vice versa. If the [offsetInBytes] index of the region is not
+  /// specified, it defaults to zero (the first byte in the byte buffer).
+  /// If the length is not specified, it defaults to null, which indicates
+  /// that the view extends to the end of the byte buffer.
+  ///
+  /// Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+  /// if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+  /// the length of [buffer].
   factory NativeByteData.view(
       ByteBuffer buffer, int offsetInBytes, int length) {
     _checkViewArguments(buffer, offsetInBytes, length);
@@ -443,14 +410,12 @@ class NativeByteData extends NativeTypedData implements ByteData {
 
   int get elementSizeInBytes => 1;
 
-  /**
-   * Returns the floating point number represented by the four bytes at
-   * the specified [byteOffset] in this object, in IEEE 754
-   * single-precision binary floating-point format (binary32).
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 4` is greater than the length of this object.
-   */
+  /// Returns the floating point number represented by the four bytes at
+  /// the specified [byteOffset] in this object, in IEEE 754
+  /// single-precision binary floating-point format (binary32).
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 4` is greater than the length of this object.
   double getFloat32(int byteOffset, [Endian endian = Endian.big]) =>
       _getFloat32(byteOffset, Endian.little == endian);
 
@@ -458,14 +423,12 @@ class NativeByteData extends NativeTypedData implements ByteData {
   @Returns('double')
   double _getFloat32(int byteOffset, [bool littleEndian]) native;
 
-  /**
-   * Returns the floating point number represented by the eight bytes at
-   * the specified [byteOffset] in this object, in IEEE 754
-   * double-precision binary floating-point format (binary64).
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 8` is greater than the length of this object.
-   */
+  /// Returns the floating point number represented by the eight bytes at
+  /// the specified [byteOffset] in this object, in IEEE 754
+  /// double-precision binary floating-point format (binary64).
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 8` is greater than the length of this object.
   double getFloat64(int byteOffset, [Endian endian = Endian.big]) =>
       _getFloat64(byteOffset, Endian.little == endian);
 
@@ -473,16 +436,14 @@ class NativeByteData extends NativeTypedData implements ByteData {
   @Returns('double')
   double _getFloat64(int byteOffset, [bool littleEndian]) native;
 
-  /**
-   * Returns the (possibly negative) integer represented by the two bytes at
-   * the specified [byteOffset] in this object, in two's complement binary
-   * form.
-   * The return value will be between 2<sup>15</sup> and 2<sup>15</sup> - 1,
-   * inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 2` is greater than the length of this object.
-   */
+  /// Returns the (possibly negative) integer represented by the two bytes at
+  /// the specified [byteOffset] in this object, in two's complement binary
+  /// form.
+  /// The return value will be between 2<sup>15</sup> and 2<sup>15</sup> - 1,
+  /// inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 2` is greater than the length of this object.
   int getInt16(int byteOffset, [Endian endian = Endian.big]) =>
       _getInt16(byteOffset, Endian.little == endian);
 
@@ -490,16 +451,14 @@ class NativeByteData extends NativeTypedData implements ByteData {
   @Returns('int')
   int _getInt16(int byteOffset, [bool littleEndian]) native;
 
-  /**
-   * Returns the (possibly negative) integer represented by the four bytes at
-   * the specified [byteOffset] in this object, in two's complement binary
-   * form.
-   * The return value will be between 2<sup>31</sup> and 2<sup>31</sup> - 1,
-   * inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 4` is greater than the length of this object.
-   */
+  /// Returns the (possibly negative) integer represented by the four bytes at
+  /// the specified [byteOffset] in this object, in two's complement binary
+  /// form.
+  /// The return value will be between 2<sup>31</sup> and 2<sup>31</sup> - 1,
+  /// inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 4` is greater than the length of this object.
   int getInt32(int byteOffset, [Endian endian = Endian.big]) =>
       _getInt32(byteOffset, Endian.little == endian);
 
@@ -507,39 +466,33 @@ class NativeByteData extends NativeTypedData implements ByteData {
   @Returns('int')
   int _getInt32(int byteOffset, [bool littleEndian]) native;
 
-  /**
-   * Returns the (possibly negative) integer represented by the eight bytes at
-   * the specified [byteOffset] in this object, in two's complement binary
-   * form.
-   * The return value will be between 2<sup>63</sup> and 2<sup>63</sup> - 1,
-   * inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 8` is greater than the length of this object.
-   */
+  /// Returns the (possibly negative) integer represented by the eight bytes at
+  /// the specified [byteOffset] in this object, in two's complement binary
+  /// form.
+  /// The return value will be between 2<sup>63</sup> and 2<sup>63</sup> - 1,
+  /// inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 8` is greater than the length of this object.
   int getInt64(int byteOffset, [Endian endian = Endian.big]) {
     throw UnsupportedError('Int64 accessor not supported by dart2js.');
   }
 
-  /**
-   * Returns the (possibly negative) integer represented by the byte at the
-   * specified [byteOffset] in this object, in two's complement binary
-   * representation. The return value will be between -128 and 127, inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * greater than or equal to the length of this object.
-   */
+  /// Returns the (possibly negative) integer represented by the byte at the
+  /// specified [byteOffset] in this object, in two's complement binary
+  /// representation. The return value will be between -128 and 127, inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// greater than or equal to the length of this object.
   int getInt8(int byteOffset) native;
 
-  /**
-   * Returns the positive integer represented by the two bytes starting
-   * at the specified [byteOffset] in this object, in unsigned binary
-   * form.
-   * The return value will be between 0 and  2<sup>16</sup> - 1, inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 2` is greater than the length of this object.
-   */
+  /// Returns the positive integer represented by the two bytes starting
+  /// at the specified [byteOffset] in this object, in unsigned binary
+  /// form.
+  /// The return value will be between 0 and  2<sup>16</sup> - 1, inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 2` is greater than the length of this object.
   int getUint16(int byteOffset, [Endian endian = Endian.big]) =>
       _getUint16(byteOffset, Endian.little == endian);
 
@@ -547,15 +500,13 @@ class NativeByteData extends NativeTypedData implements ByteData {
   @Returns('int')
   int _getUint16(int byteOffset, [bool littleEndian]) native;
 
-  /**
-   * Returns the positive integer represented by the four bytes starting
-   * at the specified [byteOffset] in this object, in unsigned binary
-   * form.
-   * The return value will be between 0 and  2<sup>32</sup> - 1, inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 4` is greater than the length of this object.
-   */
+  /// Returns the positive integer represented by the four bytes starting
+  /// at the specified [byteOffset] in this object, in unsigned binary
+  /// form.
+  /// The return value will be between 0 and  2<sup>32</sup> - 1, inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 4` is greater than the length of this object.
   int getUint32(int byteOffset, [Endian endian = Endian.big]) =>
       _getUint32(byteOffset, Endian.little == endian);
 
@@ -563,172 +514,148 @@ class NativeByteData extends NativeTypedData implements ByteData {
   @Returns('int')
   int _getUint32(int byteOffset, [bool littleEndian]) native;
 
-  /**
-   * Returns the positive integer represented by the eight bytes starting
-   * at the specified [byteOffset] in this object, in unsigned binary
-   * form.
-   * The return value will be between 0 and  2<sup>64</sup> - 1, inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 8` is greater than the length of this object.
-   */
+  /// Returns the positive integer represented by the eight bytes starting
+  /// at the specified [byteOffset] in this object, in unsigned binary
+  /// form.
+  /// The return value will be between 0 and  2<sup>64</sup> - 1, inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 8` is greater than the length of this object.
   int getUint64(int byteOffset, [Endian endian = Endian.big]) {
     throw UnsupportedError('Uint64 accessor not supported by dart2js.');
   }
 
-  /**
-   * Returns the positive integer represented by the byte at the specified
-   * [byteOffset] in this object, in unsigned binary form. The
-   * return value will be between 0 and 255, inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * greater than or equal to the length of this object.
-   */
+  /// Returns the positive integer represented by the byte at the specified
+  /// [byteOffset] in this object, in unsigned binary form. The
+  /// return value will be between 0 and 255, inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// greater than or equal to the length of this object.
   int getUint8(int byteOffset) native;
 
-  /**
-   * Sets the four bytes starting at the specified [byteOffset] in this
-   * object to the IEEE 754 single-precision binary floating-point
-   * (binary32) representation of the specified [value].
-   *
-   * **Note that this method can lose precision.** The input [value] is
-   * a 64-bit floating point value, which will be converted to 32-bit
-   * floating point value by IEEE 754 rounding rules before it is stored.
-   * If [value] cannot be represented exactly as a binary32, it will be
-   * converted to the nearest binary32 value.  If two binary32 values are
-   * equally close, the one whose least significant bit is zero will be used.
-   * Note that finite (but large) values can be converted to infinity, and
-   * small non-zero values can be converted to zero.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 4` is greater than the length of this object.
-   */
+  /// Sets the four bytes starting at the specified [byteOffset] in this
+  /// object to the IEEE 754 single-precision binary floating-point
+  /// (binary32) representation of the specified [value].
+  ///
+  /// **Note that this method can lose precision.** The input [value] is
+  /// a 64-bit floating point value, which will be converted to 32-bit
+  /// floating point value by IEEE 754 rounding rules before it is stored.
+  /// If [value] cannot be represented exactly as a binary32, it will be
+  /// converted to the nearest binary32 value.  If two binary32 values are
+  /// equally close, the one whose least significant bit is zero will be used.
+  /// Note that finite (but large) values can be converted to infinity, and
+  /// small non-zero values can be converted to zero.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 4` is greater than the length of this object.
   void setFloat32(int byteOffset, num value, [Endian endian = Endian.big]) =>
       _setFloat32(byteOffset, value, Endian.little == endian);
 
   @JSName('setFloat32')
   void _setFloat32(int byteOffset, num value, [bool littleEndian]) native;
 
-  /**
-   * Sets the eight bytes starting at the specified [byteOffset] in this
-   * object to the IEEE 754 double-precision binary floating-point
-   * (binary64) representation of the specified [value].
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 8` is greater than the length of this object.
-   */
+  /// Sets the eight bytes starting at the specified [byteOffset] in this
+  /// object to the IEEE 754 double-precision binary floating-point
+  /// (binary64) representation of the specified [value].
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 8` is greater than the length of this object.
   void setFloat64(int byteOffset, num value, [Endian endian = Endian.big]) =>
       _setFloat64(byteOffset, value, Endian.little == endian);
 
   @JSName('setFloat64')
   void _setFloat64(int byteOffset, num value, [bool littleEndian]) native;
 
-  /**
-   * Sets the two bytes starting at the specified [byteOffset] in this
-   * object to the two's complement binary representation of the specified
-   * [value], which must fit in two bytes. In other words, [value] must lie
-   * between 2<sup>15</sup> and 2<sup>15</sup> - 1, inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 2` is greater than the length of this object.
-   */
+  /// Sets the two bytes starting at the specified [byteOffset] in this
+  /// object to the two's complement binary representation of the specified
+  /// [value], which must fit in two bytes. In other words, [value] must lie
+  /// between 2<sup>15</sup> and 2<sup>15</sup> - 1, inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 2` is greater than the length of this object.
   void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) =>
       _setInt16(byteOffset, value, Endian.little == endian);
 
   @JSName('setInt16')
   void _setInt16(int byteOffset, int value, [bool littleEndian]) native;
 
-  /**
-   * Sets the four bytes starting at the specified [byteOffset] in this
-   * object to the two's complement binary representation of the specified
-   * [value], which must fit in four bytes. In other words, [value] must lie
-   * between 2<sup>31</sup> and 2<sup>31</sup> - 1, inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 4` is greater than the length of this object.
-   */
+  /// Sets the four bytes starting at the specified [byteOffset] in this
+  /// object to the two's complement binary representation of the specified
+  /// [value], which must fit in four bytes. In other words, [value] must lie
+  /// between 2<sup>31</sup> and 2<sup>31</sup> - 1, inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 4` is greater than the length of this object.
   void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) =>
       _setInt32(byteOffset, value, Endian.little == endian);
 
   @JSName('setInt32')
   void _setInt32(int byteOffset, int value, [bool littleEndian]) native;
 
-  /**
-   * Sets the eight bytes starting at the specified [byteOffset] in this
-   * object to the two's complement binary representation of the specified
-   * [value], which must fit in eight bytes. In other words, [value] must lie
-   * between 2<sup>63</sup> and 2<sup>63</sup> - 1, inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 8` is greater than the length of this object.
-   */
+  /// Sets the eight bytes starting at the specified [byteOffset] in this
+  /// object to the two's complement binary representation of the specified
+  /// [value], which must fit in eight bytes. In other words, [value] must lie
+  /// between 2<sup>63</sup> and 2<sup>63</sup> - 1, inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 8` is greater than the length of this object.
   void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) {
     throw UnsupportedError('Int64 accessor not supported by dart2js.');
   }
 
-  /**
-   * Sets the byte at the specified [byteOffset] in this object to the
-   * two's complement binary representation of the specified [value], which
-   * must fit in a single byte. In other words, [value] must be between
-   * -128 and 127, inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * greater than or equal to the length of this object.
-   */
+  /// Sets the byte at the specified [byteOffset] in this object to the
+  /// two's complement binary representation of the specified [value], which
+  /// must fit in a single byte. In other words, [value] must be between
+  /// -128 and 127, inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// greater than or equal to the length of this object.
   void setInt8(int byteOffset, int value) native;
 
-  /**
-   * Sets the two bytes starting at the specified [byteOffset] in this object
-   * to the unsigned binary representation of the specified [value],
-   * which must fit in two bytes. in other words, [value] must be between
-   * 0 and 2<sup>16</sup> - 1, inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 2` is greater than the length of this object.
-   */
+  /// Sets the two bytes starting at the specified [byteOffset] in this object
+  /// to the unsigned binary representation of the specified [value],
+  /// which must fit in two bytes. in other words, [value] must be between
+  /// 0 and 2<sup>16</sup> - 1, inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 2` is greater than the length of this object.
   void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) =>
       _setUint16(byteOffset, value, Endian.little == endian);
 
   @JSName('setUint16')
   void _setUint16(int byteOffset, int value, [bool littleEndian]) native;
 
-  /**
-   * Sets the four bytes starting at the specified [byteOffset] in this object
-   * to the unsigned binary representation of the specified [value],
-   * which must fit in four bytes. in other words, [value] must be between
-   * 0 and 2<sup>32</sup> - 1, inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 4` is greater than the length of this object.
-   */
+  /// Sets the four bytes starting at the specified [byteOffset] in this object
+  /// to the unsigned binary representation of the specified [value],
+  /// which must fit in four bytes. in other words, [value] must be between
+  /// 0 and 2<sup>32</sup> - 1, inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 4` is greater than the length of this object.
   void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) =>
       _setUint32(byteOffset, value, Endian.little == endian);
 
   @JSName('setUint32')
   void _setUint32(int byteOffset, int value, [bool littleEndian]) native;
 
-  /**
-   * Sets the eight bytes starting at the specified [byteOffset] in this object
-   * to the unsigned binary representation of the specified [value],
-   * which must fit in eight bytes. in other words, [value] must be between
-   * 0 and 2<sup>64</sup> - 1, inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 8` is greater than the length of this object.
-   */
+  /// Sets the eight bytes starting at the specified [byteOffset] in this object
+  /// to the unsigned binary representation of the specified [value],
+  /// which must fit in eight bytes. in other words, [value] must be between
+  /// 0 and 2<sup>64</sup> - 1, inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative, or
+  /// `byteOffset + 8` is greater than the length of this object.
   void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) {
     throw UnsupportedError('Uint64 accessor not supported by dart2js.');
   }
 
-  /**
-   * Sets the byte at the specified [byteOffset] in this object to the
-   * unsigned binary representation of the specified [value], which must fit
-   * in a single byte. in other words, [value] must be between 0 and 255,
-   * inclusive.
-   *
-   * Throws [RangeError] if [byteOffset] is negative,
-   * or greater than or equal to the length of this object.
-   */
+  /// Sets the byte at the specified [byteOffset] in this object to the
+  /// unsigned binary representation of the specified [value], which must fit
+  /// in a single byte. in other words, [value] must be between 0 and 255,
+  /// inclusive.
+  ///
+  /// Throws [RangeError] if [byteOffset] is negative,
+  /// or greater than or equal to the length of this object.
   void setUint8(int byteOffset, int value) native;
 
   static NativeByteData _create1(arg) =>
@@ -815,7 +742,7 @@ abstract class NativeTypedArrayOfInt extends NativeTypedArray
   }
 }
 
-@Native("Float32Array")
+@Native('Float32Array')
 class NativeFloat32List extends NativeTypedArrayOfDouble
     implements Float32List {
   factory NativeFloat32List(int length) => _create1(_checkLength(length));
@@ -850,7 +777,7 @@ class NativeFloat32List extends NativeTypedArrayOfDouble
       JS<NativeFloat32List>('!', 'new Float32Array(#, #, #)', arg1, arg2, arg3);
 }
 
-@Native("Float64Array")
+@Native('Float64Array')
 class NativeFloat64List extends NativeTypedArrayOfDouble
     implements Float64List {
   factory NativeFloat64List(int length) => _create1(_checkLength(length));
@@ -884,7 +811,7 @@ class NativeFloat64List extends NativeTypedArrayOfDouble
       JS('NativeFloat64List', 'new Float64Array(#, #, #)', arg1, arg2, arg3);
 }
 
-@Native("Int16Array")
+@Native('Int16Array')
 class NativeInt16List extends NativeTypedArrayOfInt implements Int16List {
   factory NativeInt16List(int length) => _create1(_checkLength(length));
 
@@ -922,7 +849,7 @@ class NativeInt16List extends NativeTypedArrayOfInt implements Int16List {
       JS('NativeInt16List', 'new Int16Array(#, #, #)', arg1, arg2, arg3);
 }
 
-@Native("Int32Array")
+@Native('Int32Array')
 class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
   factory NativeInt32List(int length) => _create1(_checkLength(length));
 
@@ -960,7 +887,7 @@ class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
       JS<NativeInt32List>('!', 'new Int32Array(#, #, #)', arg1, arg2, arg3);
 }
 
-@Native("Int8Array")
+@Native('Int8Array')
 class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
   factory NativeInt8List(int length) => _create1(_checkLength(length));
 
@@ -998,7 +925,7 @@ class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
       JS<NativeInt8List>('!', 'new Int8Array(#, #, #)', arg1, arg2, arg3);
 }
 
-@Native("Uint16Array")
+@Native('Uint16Array')
 class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
   factory NativeUint16List(int length) => _create1(_checkLength(length));
 
@@ -1037,7 +964,7 @@ class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
       JS<NativeUint16List>('!', 'new Uint16Array(#, #, #)', arg1, arg2, arg3);
 }
 
-@Native("Uint32Array")
+@Native('Uint32Array')
 class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
   factory NativeUint32List(int length) => _create1(_checkLength(length));
 
@@ -1076,7 +1003,7 @@ class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
       JS<NativeUint32List>('!', 'new Uint32Array(#, #, #)', arg1, arg2, arg3);
 }
 
-@Native("Uint8ClampedArray,CanvasPixelArray")
+@Native('Uint8ClampedArray,CanvasPixelArray')
 class NativeUint8ClampedList extends NativeTypedArrayOfInt
     implements Uint8ClampedList {
   factory NativeUint8ClampedList(int length) => _create1(_checkLength(length));
@@ -1127,7 +1054,7 @@ class NativeUint8ClampedList extends NativeTypedArrayOfInt
 // Uint8List as !nonleaf ensures that the native dispatch correctly handles
 // the potential for Uint8ClampedArray to 'accidentally' pick up the
 // dispatch record for Uint8List.
-@Native("Uint8Array,!nonleaf")
+@Native('Uint8Array,!nonleaf')
 class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
   factory NativeUint8List(int length) => _create1(_checkLength(length));
 
@@ -1167,11 +1094,9 @@ class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
       JS<NativeUint8List>('!', 'new Uint8Array(#, #, #)', arg1, arg2, arg3);
 }
 
-/**
- * Implementation of Dart Float32x4 immutable value type and operations.
- * Float32x4 stores 4 32-bit floating point values in "lanes".
- * The lanes are "x", "y", "z", and "w" respectively.
- */
+/// Implementation of Dart Float32x4 immutable value type and operations.
+/// Float32x4 stores 4 32-bit floating point values in "lanes".
+/// The lanes are "x", "y", "z", and "w" respectively.
 class NativeFloat32x4 implements Float32x4 {
   final double x;
   final double y;
@@ -1501,11 +1426,9 @@ class NativeFloat32x4 implements Float32x4 {
   }
 }
 
-/**
- * Interface of Dart Int32x4 and operations.
- * Int32x4 stores 4 32-bit bit-masks in "lanes".
- * The lanes are "x", "y", "z", and "w" respectively.
- */
+/// Interface of Dart Int32x4 and operations.
+/// Int32x4 stores 4 32-bit bit-masks in "lanes".
+/// The lanes are "x", "y", "z", and "w" respectively.
 class NativeInt32x4 implements Int32x4 {
   final int x;
   final int y;

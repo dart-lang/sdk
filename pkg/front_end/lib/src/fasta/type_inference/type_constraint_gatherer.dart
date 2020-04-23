@@ -20,6 +20,8 @@ import 'package:kernel/ast.dart'
         Variance,
         VoidType;
 
+import 'package:kernel/core_types.dart';
+
 import 'package:kernel/type_algebra.dart' show substitute, Substitution;
 
 import 'package:kernel/type_environment.dart';
@@ -63,18 +65,24 @@ abstract class TypeConstraintGatherer {
 
   Class get nullClass;
 
-  void addUpperBound(TypeConstraint constraint, DartType upper);
+  void addUpperBound(
+      TypeConstraint constraint, DartType upper, Library clientLibrary);
 
-  void addLowerBound(TypeConstraint constraint, DartType lower);
+  void addLowerBound(
+      TypeConstraint constraint, DartType lower, Library clientLibrary);
 
   Member getInterfaceMember(Class class_, Name name, {bool setter: false});
 
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass);
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes);
+
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass);
 
   InterfaceType futureType(DartType type, Nullability nullability);
 
   /// Returns the set of type constraints that was gathered.
-  Map<TypeParameter, TypeConstraint> computeConstraints() {
+  Map<TypeParameter, TypeConstraint> computeConstraints(Library clientLibrary) {
     Map<TypeParameter, TypeConstraint> result =
         <TypeParameter, TypeConstraint>{};
     for (TypeParameter parameter in _parametersToConstrain) {
@@ -82,9 +90,11 @@ abstract class TypeConstraintGatherer {
     }
     for (_ProtoConstraint protoConstraint in _protoConstraints) {
       if (protoConstraint.isUpper) {
-        addUpperBound(result[protoConstraint.parameter], protoConstraint.bound);
+        addUpperBound(result[protoConstraint.parameter], protoConstraint.bound,
+            clientLibrary);
       } else {
-        addLowerBound(result[protoConstraint.parameter], protoConstraint.bound);
+        addLowerBound(result[protoConstraint.parameter], protoConstraint.bound,
+            clientLibrary);
       }
     }
     return result;
@@ -212,26 +222,26 @@ abstract class TypeConstraintGatherer {
     // of supertypes of a given type more than once, the order of the checks
     // above is irrelevant; we just need to find the matched superclass,
     // substitute, and then iterate through type variables.
-    InterfaceType matchingSupertypeOfSubtype =
-        getTypeAsInstanceOf(subtype, supertype.classNode);
-    if (matchingSupertypeOfSubtype == null) return false;
+    List<DartType> matchingSupertypeOfSubtypeArguments =
+        getTypeArgumentsAsInstanceOf(subtype, supertype.classNode);
+    if (matchingSupertypeOfSubtypeArguments == null) return false;
     for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
       // Generate constraints and subtype match with respect to variance.
       int parameterVariance = supertype.classNode.typeParameters[i].variance;
       if (parameterVariance == Variance.contravariant) {
         if (!_isSubtypeMatch(supertype.typeArguments[i],
-            matchingSupertypeOfSubtype.typeArguments[i])) {
+            matchingSupertypeOfSubtypeArguments[i])) {
           return false;
         }
       } else if (parameterVariance == Variance.invariant) {
         if (!_isSubtypeMatch(supertype.typeArguments[i],
-                matchingSupertypeOfSubtype.typeArguments[i]) ||
-            !_isSubtypeMatch(matchingSupertypeOfSubtype.typeArguments[i],
+                matchingSupertypeOfSubtypeArguments[i]) ||
+            !_isSubtypeMatch(matchingSupertypeOfSubtypeArguments[i],
                 supertype.typeArguments[i])) {
           return false;
         }
       } else {
-        if (!_isSubtypeMatch(matchingSupertypeOfSubtype.typeArguments[i],
+        if (!_isSubtypeMatch(matchingSupertypeOfSubtypeArguments[i],
             supertype.typeArguments[i])) {
           return false;
         }
@@ -308,7 +318,8 @@ abstract class TypeConstraintGatherer {
           futureType(subtypeArg, _currentLibrary.nonNullable);
       return _isSubtypeMatch(subtypeFuture, supertype) &&
           _isSubtypeMatch(subtypeArg, supertype) &&
-          new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype)
+          new IsSubtypeOf.basedSolelyOnNullabilities(
+                  subtype, supertype, futureOrClass)
               .isSubtypeWhenUsingNullabilities();
     }
 
@@ -476,13 +487,15 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   Class get nullClass => environment.coreTypes.nullClass;
 
   @override
-  void addUpperBound(TypeConstraint constraint, DartType upper) {
-    environment.addUpperBound(constraint, upper);
+  void addUpperBound(
+      TypeConstraint constraint, DartType upper, Library clientLibrary) {
+    environment.addUpperBound(constraint, upper, clientLibrary);
   }
 
   @override
-  void addLowerBound(TypeConstraint constraint, DartType lower) {
-    environment.addLowerBound(constraint, lower);
+  void addLowerBound(
+      TypeConstraint constraint, DartType lower, Library clientLibrary) {
+    environment.addLowerBound(constraint, lower, clientLibrary);
   }
 
   @override
@@ -492,8 +505,16 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   }
 
   @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
-    return environment.getTypeAsInstanceOf(type, superclass);
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes) {
+    return environment.getTypeAsInstanceOf(
+        type, superclass, clientLibrary, coreTypes);
+  }
+
+  @override
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass) {
+    return environment.getTypeArgumentsAsInstanceOf(type, superclass);
   }
 
   @override

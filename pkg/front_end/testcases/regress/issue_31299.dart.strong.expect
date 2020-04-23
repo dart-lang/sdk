@@ -29,7 +29,9 @@ class A extends core::Object {
     return a.{core::num::+}(b.{core::num::*}(this.{self::A::m}));
 }
 static method test() → dynamic {
-  new self::A::•().{self::A::foo}();
+  let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/regress/issue_31299.dart:15:14: Error: Too few positional arguments: 2 required, 0 given.
+  new A().foo();
+             ^" in new self::A::•().{self::A::foo}();
   new self::A::•().{self::A::foo}(1, 2);
   new self::A::foo();
   invalid-expression "pkg/front_end/testcases/regress/issue_31299.dart:18:12: Error: Too many positional arguments: 0 allowed, but 2 found.

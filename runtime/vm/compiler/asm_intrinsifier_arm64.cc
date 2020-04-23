@@ -1681,55 +1681,80 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
+// Compares cid1 and cid2 to see if they're syntactically equivalent. If this
+// can be determined by this fast path, it jumps to either equal or not_equal,
+// otherwise it jumps to normal_ir_body. May clobber cid1, cid2, and scratch.
+static void EquivalentClassIds(Assembler* assembler,
+                               Label* normal_ir_body,
+                               Label* equal,
+                               Label* not_equal,
+                               Register cid1,
+                               Register cid2,
+                               Register scratch) {
+  Label different_cids, not_integer;
+
+  // Check if left hand side is a closure. Closures are handled in the runtime.
+  __ CompareImmediate(cid1, kClosureCid);
+  __ b(normal_ir_body, EQ);
+
+  // Check whether class ids match. If class ids don't match types may still be
+  // considered equivalent (e.g. multiple string implementation classes map to a
+  // single String type).
+  __ cmp(cid1, Operand(cid2));
+  __ b(&different_cids, NE);
+
+  // Types have the same class and neither is a closure type.
+  // Check if there are no type arguments. In this case we can return true.
+  // Otherwise fall through into the runtime to handle comparison.
+  __ LoadClassById(scratch, cid1);
+  __ ldr(scratch,
+         FieldAddress(scratch, target::Class::num_type_arguments_offset()),
+         kHalfword);
+  __ cbnz(normal_ir_body, scratch);
+  __ b(equal);
+
+  // Class ids are different. Check if we are comparing two string types (with
+  // different representations) or two integer types.
+  __ Bind(&different_cids);
+  __ CompareImmediate(cid1, kNumPredefinedCids);
+  __ b(not_equal, HI);
+
+  // Check if both are integer types.
+  JumpIfNotInteger(assembler, cid1, scratch, &not_integer);
+
+  // First type is an integer. Check if the second is an integer too.
+  // Otherwise types are unequiv because only integers have the same runtime
+  // type as other integers.
+  JumpIfInteger(assembler, cid2, scratch, equal);
+  __ b(not_equal);
+
+  __ Bind(&not_integer);
+  // Check if the first type is String. If it is not then types are not
+  // equivalent because they have different class ids and they are not strings
+  // or integers.
+  JumpIfNotString(assembler, cid1, scratch, not_equal);
+  // First type is String. Check if the second is a string too.
+  JumpIfString(assembler, cid2, scratch, equal);
+  // String types are only equivalent to other String types.
+  // Fall-through to the not equal case.
+  __ b(not_equal);
+}
+
 void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  Label different_cids, equal, not_equal, not_integer;
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   __ LoadClassIdMayBeSmi(R1, R0);
-
-  // Check if left hand size is a closure. Closures are handled in the runtime.
-  __ CompareImmediate(R1, kClosureCid);
-  __ b(normal_ir_body, EQ);
 
   __ ldr(R0, Address(SP, 1 * target::kWordSize));
   __ LoadClassIdMayBeSmi(R2, R0);
 
-  // Check whether class ids match. If class ids don't match objects can still
-  // have the same runtime type (e.g. multiple string implementation classes
-  // map to a single String type).
-  __ cmp(R1, Operand(R2));
-  __ b(&different_cids, NE);
-
-  // Objects have the same class and neither is a closure.
-  // Check if there are no type arguments. In this case we can return true.
-  // Otherwise fall through into the runtime to handle comparison.
-  __ LoadClassById(R3, R1);
-  __ ldr(R3, FieldAddress(R3, target::Class::num_type_arguments_offset()),
-         kHalfword);
-  __ CompareImmediate(R3, 0);
-  __ b(normal_ir_body, NE);
+  Label equal, not_equal;
+  EquivalentClassIds(assembler, normal_ir_body, &equal, &not_equal, R1, R2, R0);
 
   __ Bind(&equal);
   __ LoadObject(R0, CastHandle<Object>(TrueObject()));
-  __ ret();
+  __ Ret();
 
-  // Class ids are different. Check if we are comparing runtime types of
-  // two strings (with different representations) or two integers.
-  __ Bind(&different_cids);
-  __ CompareImmediate(R1, kNumPredefinedCids);
-  __ b(&not_equal, HI);
-
-  // Check if both are integers.
-  JumpIfNotInteger(assembler, R1, R0, &not_integer);
-  JumpIfInteger(assembler, R2, R0, &equal);
-  __ b(&not_equal);
-
-  __ Bind(&not_integer);
-  // Check if both are strings.
-  JumpIfNotString(assembler, R1, R0, &not_equal);
-  JumpIfString(assembler, R2, R0, &equal);
-
-  // Neither strings nor integers and have different class ids.
   __ Bind(&not_equal);
   __ LoadObject(R0, CastHandle<Object>(FalseObject()));
   __ ret();
@@ -1755,6 +1780,60 @@ void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
   __ cbz(normal_ir_body, R0);
   __ ret();
   // Hash not yet computed.
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::Type_equality(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  Label equal, not_equal, equiv_cids, check_legacy;
+
+  __ ldp(R1, R2, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+  __ cmp(R1, Operand(R2));
+  __ b(&equal, EQ);
+
+  // R1 might not be a Type object, so check that first (R2 should be though,
+  // since this is a method on the Type class).
+  __ LoadClassIdMayBeSmi(R0, R1);
+  __ CompareImmediate(R0, kTypeCid);
+  __ b(normal_ir_body, NE);
+
+  // Check if types are syntactically equal.
+  __ ldr(R3, FieldAddress(R1, target::Type::type_class_id_offset()));
+  __ SmiUntag(R3);
+  __ ldr(R4, FieldAddress(R2, target::Type::type_class_id_offset()));
+  __ SmiUntag(R4);
+  EquivalentClassIds(assembler, normal_ir_body, &equiv_cids, &not_equal, R3, R4,
+                     R0);
+
+  // Check nullability.
+  __ Bind(&equiv_cids);
+  __ ldr(R1, FieldAddress(R1, target::Type::nullability_offset()),
+         kUnsignedByte);
+  __ ldr(R2, FieldAddress(R2, target::Type::nullability_offset()),
+         kUnsignedByte);
+  __ cmp(R1, Operand(R2));
+  __ b(&check_legacy, NE);
+  // Fall through to equal case if nullability is strictly equal.
+
+  __ Bind(&equal);
+  __ LoadObject(R0, CastHandle<Object>(TrueObject()));
+  __ Ret();
+
+  // At this point the nullabilities are different, so they can only be
+  // syntactically equivalent if they're both either kNonNullable or kLegacy.
+  // These are the two largest values of the enum, so we can just do a < check.
+  ASSERT(target::Nullability::kNullable < target::Nullability::kNonNullable &&
+         target::Nullability::kNonNullable < target::Nullability::kLegacy);
+  __ Bind(&check_legacy);
+  __ CompareImmediate(R1, target::Nullability::kNonNullable);
+  __ b(&not_equal, LT);
+  __ CompareImmediate(R2, target::Nullability::kNonNullable);
+  __ b(&equal, GE);
+
+  __ Bind(&not_equal);
+  __ LoadObject(R0, CastHandle<Object>(FalseObject()));
+  __ ret();
+
   __ Bind(normal_ir_body);
 }
 

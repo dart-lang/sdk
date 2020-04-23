@@ -27,7 +27,7 @@ class B<U> {
 B<int> b;
 ''');
     var classB_constructor = findElement.class_('B').unnamedConstructor;
-    assertMember2(
+    assertMember(
       classB_constructor.redirectedConstructor,
       findElement.unnamedConstructor('A'),
       {'T': 'U'},
@@ -36,12 +36,12 @@ B<int> b;
     InterfaceType B_int = findElement.topVar('b').type;
     var B_int_constructor = B_int.constructors.single;
     var B_int_redirect = B_int_constructor.redirectedConstructor;
-    assertMember2(
+    assertMember(
       B_int_redirect,
       findElement.unnamedConstructor('A'),
       {'T': 'int'},
     );
-    assertElementTypeString(B_int_redirect.returnType, 'A<int>');
+    assertType(B_int_redirect.returnType, 'A<int>');
   }
 
   test_initializer_field_functionExpression_blockBody() async {

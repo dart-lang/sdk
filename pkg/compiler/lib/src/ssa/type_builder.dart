@@ -52,10 +52,8 @@ abstract class TypeBuilder {
   AbstractValue trustTypeMask(DartType type) {
     if (type == null) return null;
     type = builder.localsHandler.substInContext(type);
-    type = type.unaliased;
-    if (type is DynamicType) return null;
+    if (_closedWorld.dartTypes.isTopType(type)) return null;
     if (type is! InterfaceType) return null;
-    if (type == _closedWorld.commonElements.objectType) return null;
     // The type element is either a class or the void element.
     ClassEntity element = (type as InterfaceType).element;
     return _abstractValueDomain.createNullableSubtype(element);
@@ -251,12 +249,11 @@ abstract class TypeBuilder {
   HInstruction analyzeTypeArgument(
       DartType argument, MemberEntity sourceElement,
       {SourceInformation sourceInformation}) {
-    if (builder.options.experimentNewRti) {
+    if (builder.options.useNewRti) {
       return analyzeTypeArgumentNewRti(argument, sourceElement,
           sourceInformation: sourceInformation);
     }
-    argument = argument.unaliased;
-    if (argument.treatAsDynamic) {
+    if (argument is DynamicType) {
       // Represent [dynamic] as [null].
       return builder.graph.addConstantNull(_closedWorld);
     }
@@ -285,8 +282,6 @@ abstract class TypeBuilder {
   HInstruction analyzeTypeArgumentNewRti(
       DartType argument, MemberEntity sourceElement,
       {SourceInformation sourceInformation}) {
-    argument = argument.unaliased;
-
     if (!argument.containsTypeVariables) {
       HInstruction rti =
           HLoadType.type(argument, _abstractValueDomain.dynamicType)
@@ -425,15 +420,14 @@ abstract class TypeBuilder {
   HInstruction buildTypeConversion(
       HInstruction original, DartType type, int kind,
       {SourceInformation sourceInformation}) {
-    if (builder.options.experimentNewRti) {
+    if (builder.options.useNewRti) {
       return buildAsCheck(original, type,
           isTypeError: kind == HTypeConversion.TYPE_CHECK,
           sourceInformation: sourceInformation);
     }
 
     if (type == null) return original;
-    type = type.unaliased;
-    if (type is InterfaceType && !type.treatAsRaw) {
+    if (type is InterfaceType && !_closedWorld.dartTypes.treatAsRawType(type)) {
       InterfaceType interfaceType = type;
       AbstractValue subtype =
           _abstractValueDomain.createNullableSubtype(interfaceType.element);
@@ -471,11 +465,7 @@ abstract class TypeBuilder {
   HInstruction buildAsCheck(HInstruction original, DartType type,
       {bool isTypeError, SourceInformation sourceInformation}) {
     if (type == null) return original;
-    type = type.unaliased;
-
-    if (type is DynamicType) return original;
-    if (type is VoidType) return original;
-    if (type == _closedWorld.commonElements.objectType) return original;
+    if (_closedWorld.dartTypes.isTopType(type)) return original;
 
     HInstruction reifiedType = analyzeTypeArgumentNewRti(
         type, builder.sourceElement,

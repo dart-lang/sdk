@@ -426,7 +426,7 @@ abstract class ObjectHandle extends BytecodeObject {
           case TypeTag.kVoid:
             return new _VoidTypeHandle();
           case TypeTag.kNever:
-            return new _NeverTypeHandle();
+            return new _NeverTypeHandle(nullability);
           case TypeTag.kSimpleType:
             return new _SimpleTypeHandle._empty(nullability);
           case TypeTag.kTypeParameter:
@@ -746,7 +746,8 @@ class _VoidTypeHandle extends _TypeHandle {
 }
 
 class _NeverTypeHandle extends _TypeHandle {
-  _NeverTypeHandle() : super(TypeTag.kNever, Nullability.nonNullable);
+  _NeverTypeHandle(Nullability nullability)
+      : super(TypeTag.kNever, nullability);
 
   @override
   void writeContents(BufferedWriter writer) {}
@@ -755,12 +756,14 @@ class _NeverTypeHandle extends _TypeHandle {
   void readContents(BufferedReader reader) {}
 
   @override
-  int get hashCode => 2049;
+  int get hashCode => _combineHashes(2049, nullability.index);
 
   @override
-  bool operator ==(other) => other is _NeverTypeHandle;
+  bool operator ==(other) =>
+      other is _NeverTypeHandle && this.nullability == other.nullability;
 
   @override
+  // TODO(regis): Print nullability.
   String toString() => 'Never';
 }
 
@@ -800,7 +803,7 @@ class _SimpleTypeHandle extends _TypeHandle {
       this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
+  // TODO(regis): Print nullability.
   String toString() => '$class_';
 }
 
@@ -854,7 +857,7 @@ class _TypeParameterHandle extends _TypeHandle {
       this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
+  // TODO(regis): Print nullability.
   String toString() => '$parent::TypeParam/$indexInParent';
 }
 
@@ -900,7 +903,7 @@ class _GenericTypeHandle extends _TypeHandle {
       this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
+  // TODO(regis): Print nullability.
   String toString() => '$class_ $typeArgs';
 }
 
@@ -953,7 +956,7 @@ class _RecursiveGenericTypeHandle extends _TypeHandle {
       this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
+  // TODO(regis): Print nullability.
   String toString() => '(recursive #$id) $class_ $typeArgs';
 }
 
@@ -1006,7 +1009,7 @@ class NameAndType {
       this.type == other.type;
 
   @override
-  // TODO(regis): Print nullability, always or only if nnbd experiment is enabled?
+  // TODO(regis): Print nullability.
   String toString() => '$type ${name.name}';
 }
 
@@ -1149,7 +1152,7 @@ class _FunctionTypeHandle extends _TypeHandle {
       this.returnType == other.returnType;
 
   @override
-  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
+  // TODO(regis): Print nullability.
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('FunctionType');
@@ -1744,13 +1747,11 @@ class ObjectTable implements ObjectWriter, ObjectReader {
   List<ObjectHandle> _indexTable;
   _TypeHandle _dynamicType;
   _TypeHandle _voidType;
-  _TypeHandle _neverType;
   _NodeVisitor _nodeVisitor;
 
   ObjectTable(CoreTypes coreTypes) {
     _dynamicType = getOrAddObject(new _DynamicTypeHandle());
     _voidType = getOrAddObject(new _VoidTypeHandle());
-    _neverType = getOrAddObject(new _NeverTypeHandle());
     _nodeVisitor = new _NodeVisitor(this, coreTypes);
   }
 
@@ -2129,10 +2130,12 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
   ObjectHandle visitVoidType(VoidType node) => objectTable._voidType;
 
   @override
-  ObjectHandle visitNeverType(NeverType node) => objectTable._neverType;
+  ObjectHandle visitNeverType(NeverType node) =>
+      objectTable.getOrAddObject(new _NeverTypeHandle(node.nullability));
 
   @override
   ObjectHandle visitBottomType(BottomType node) =>
+      // Map Bottom type to Null type until not emitted by CFE anymore.
       objectTable.getHandle(coreTypes.nullType);
 
   @override

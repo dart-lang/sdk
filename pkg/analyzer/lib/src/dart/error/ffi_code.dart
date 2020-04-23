@@ -11,7 +11,7 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  static const FfiCode ANNOTATION_ON_POINTER_FIELD = const FfiCode(
+  static const FfiCode ANNOTATION_ON_POINTER_FIELD = FfiCode(
       name: 'ANNOTATION_ON_POINTER_FIELD',
       message:
           "Fields in a struct class whose type is 'Pointer' should not have "
@@ -21,7 +21,7 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  static const FfiCode EXTRA_ANNOTATION_ON_STRUCT_FIELD = const FfiCode(
+  static const FfiCode EXTRA_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
       name: 'EXTRA_ANNOTATION_ON_STRUCT_FIELD',
       message: "Fields in a struct class must have exactly one annotation "
           "indicating the native type.",
@@ -30,7 +30,7 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  static const FfiCode FIELD_IN_STRUCT_WITH_INITIALIZER = const FfiCode(
+  static const FfiCode FIELD_IN_STRUCT_WITH_INITIALIZER = FfiCode(
       name: 'FIELD_IN_STRUCT_WITH_INITIALIZER',
       message: "Fields in subclasses of 'Struct' can't have initializers.",
       correction: "Try removing the initializer.");
@@ -38,7 +38,7 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  static const FfiCode FIELD_INITIALIZER_IN_STRUCT = const FfiCode(
+  static const FfiCode FIELD_INITIALIZER_IN_STRUCT = FfiCode(
       name: 'FIELD_INITIALIZER_IN_STRUCT',
       message: "Constructors in subclasses of 'Struct' can't have field "
           "initializers.",
@@ -48,7 +48,7 @@ class FfiCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the struct class
    */
-  static const FfiCode GENERIC_STRUCT_SUBCLASS = const FfiCode(
+  static const FfiCode GENERIC_STRUCT_SUBCLASS = FfiCode(
       name: 'GENERIC_STRUCT_SUBCLASS',
       message: "The class '{0}' can't extend 'Struct' because it is generic.",
       correction: "Try removing the type parameters from '{0}'.");
@@ -56,7 +56,7 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  static const FfiCode INVALID_EXCEPTION_VALUE = const FfiCode(
+  static const FfiCode INVALID_EXCEPTION_VALUE = FfiCode(
       name: 'INVALID_EXCEPTION_VALUE',
       message:
           "The method 'Pointer.fromFunction' must not have an exceptional return "
@@ -68,7 +68,7 @@ class FfiCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the type of the field
    */
-  static const FfiCode INVALID_FIELD_TYPE_IN_STRUCT = const FfiCode(
+  static const FfiCode INVALID_FIELD_TYPE_IN_STRUCT = FfiCode(
       name: 'INVALID_FIELD_TYPE_IN_STRUCT',
       message:
           "Fields in struct classes can't have the type '{0}'. They can only "
@@ -78,7 +78,7 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  static const FfiCode MISMATCHED_ANNOTATION_ON_STRUCT_FIELD = const FfiCode(
+  static const FfiCode MISMATCHED_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
       name: 'MISMATCHED_ANNOTATION_ON_STRUCT_FIELD',
       message: "The annotation does not match the declared type of the field.",
       correction: "Try using a different annotation or changing the declared "
@@ -87,7 +87,7 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  static const FfiCode MISSING_ANNOTATION_ON_STRUCT_FIELD = const FfiCode(
+  static const FfiCode MISSING_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
       name: 'MISSING_ANNOTATION_ON_STRUCT_FIELD',
       message:
           "Fields in a struct class must either have the type 'Pointer' or an "
@@ -97,7 +97,7 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  static const FfiCode MISSING_EXCEPTION_VALUE = const FfiCode(
+  static const FfiCode MISSING_EXCEPTION_VALUE = FfiCode(
       name: 'MISSING_EXCEPTION_VALUE',
       message:
           "The method 'Pointer.fromFunction' must have an exceptional return "
@@ -109,7 +109,7 @@ class FfiCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the type of the field
    */
-  static const FfiCode MISSING_FIELD_TYPE_IN_STRUCT = const FfiCode(
+  static const FfiCode MISSING_FIELD_TYPE_IN_STRUCT = FfiCode(
       name: 'MISSING_FIELD_TYPE_IN_STRUCT',
       message:
           "Fields in struct classes must have an explicitly declared type of "
@@ -121,7 +121,7 @@ class FfiCode extends AnalyzerErrorCode {
    * 0: the type that should be a valid dart:ffi native type.
    * 1: the name of the function whose invocation depends on this relationship
    */
-  static const FfiCode MUST_BE_A_NATIVE_FUNCTION_TYPE = const FfiCode(
+  static const FfiCode MUST_BE_A_NATIVE_FUNCTION_TYPE = FfiCode(
       name: 'MUST_BE_A_NATIVE_FUNCTION_TYPE',
       message:
           "The type '{0}' given to '{1}' must be a valid 'dart:ffi' native "
@@ -134,7 +134,7 @@ class FfiCode extends AnalyzerErrorCode {
    * 1: the supertype that the subtype is compared to
    * 2: the name of the function whose invocation depends on this relationship
    */
-  static const FfiCode MUST_BE_A_SUBTYPE = const FfiCode(
+  static const FfiCode MUST_BE_A_SUBTYPE = FfiCode(
       name: 'MUST_BE_A_SUBTYPE',
       message: "The type '{0}' must be a subtype of '{1}' for '{2}'.",
       correction: "Try changing one or both of the type arguments.");
@@ -143,7 +143,7 @@ class FfiCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the function, method, or constructor having type arguments
    */
-  static const FfiCode NON_CONSTANT_TYPE_ARGUMENT = const FfiCode(
+  static const FfiCode NON_CONSTANT_TYPE_ARGUMENT = FfiCode(
       name: 'NON_CONSTANT_TYPE_ARGUMENT',
       message:
           "The type arguments to '{0}' must be compile time constants but type "
@@ -154,20 +154,18 @@ class FfiCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the type that should be a valid dart:ffi native type.
    */
-  static const FfiCode NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER =
-      const FfiCode(
-          name: 'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
-          message: "The type argument for the pointer '{0}' must be a "
-              "'NativeFunction' in order to use 'asFunction'.",
-          correction:
-              "Try changing the type argument to be a 'NativeFunction'.");
+  static const FfiCode NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER = FfiCode(
+      name: 'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
+      message: "The type argument for the pointer '{0}' must be a "
+          "'NativeFunction' in order to use 'asFunction'.",
+      correction: "Try changing the type argument to be a 'NativeFunction'.");
 
   /**
    * Parameters:
    * 0: the name of the subclass
    * 1: the name of the class being extended, implemented, or mixed in
    */
-  static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_EXTENDS = const FfiCode(
+  static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_EXTENDS = FfiCode(
       name: 'SUBTYPE_OF_FFI_CLASS',
       uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_EXTENDS',
       message: "The class '{0}' can't extend '{1}'.",
@@ -178,7 +176,7 @@ class FfiCode extends AnalyzerErrorCode {
    * 0: the name of the subclass
    * 1: the name of the class being extended, implemented, or mixed in
    */
-  static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS = const FfiCode(
+  static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS = FfiCode(
       name: 'SUBTYPE_OF_FFI_CLASS',
       uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS',
       message: "The class '{0}' can't implement '{1}'.",
@@ -189,7 +187,7 @@ class FfiCode extends AnalyzerErrorCode {
    * 0: the name of the subclass
    * 1: the name of the class being extended, implemented, or mixed in
    */
-  static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_WITH = const FfiCode(
+  static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_WITH = FfiCode(
       name: 'SUBTYPE_OF_FFI_CLASS',
       uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_WITH',
       message: "The class '{0}' can't mix in '{1}'.",
@@ -200,7 +198,7 @@ class FfiCode extends AnalyzerErrorCode {
    * 0: the name of the subclass
    * 1: the name of the class being extended, implemented, or mixed in
    */
-  static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS = const FfiCode(
+  static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS = FfiCode(
       name: 'SUBTYPE_OF_STRUCT_CLASS',
       uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS',
       message:
@@ -213,7 +211,7 @@ class FfiCode extends AnalyzerErrorCode {
    * 0: the name of the subclass
    * 1: the name of the class being extended, implemented, or mixed in
    */
-  static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS = const FfiCode(
+  static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS = FfiCode(
       name: 'SUBTYPE_OF_STRUCT_CLASS',
       uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS',
       message:
@@ -226,7 +224,7 @@ class FfiCode extends AnalyzerErrorCode {
    * 0: the name of the subclass
    * 1: the name of the class being extended, implemented, or mixed in
    */
-  static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_WITH = const FfiCode(
+  static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_WITH = FfiCode(
       name: 'SUBTYPE_OF_STRUCT_CLASS',
       uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
       message:

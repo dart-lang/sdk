@@ -798,6 +798,46 @@ TEST_CASE(DartAPI_EmptyString) {
   Dart_Handle empty = Dart_EmptyString();
   EXPECT_VALID(empty);
   EXPECT(!Dart_IsNull(empty));
+  EXPECT(Dart_IsString(empty));
+  intptr_t length = -1;
+  EXPECT_VALID(Dart_StringLength(empty, &length));
+  EXPECT_EQ(0, length);
+}
+
+TEST_CASE(DartAPI_TypeDynamic) {
+  Dart_Handle type = Dart_TypeDynamic();
+  EXPECT_VALID(type);
+  EXPECT(Dart_IsType(type));
+
+  Dart_Handle str = Dart_ToString(type);
+  EXPECT_VALID(str);
+  const char* cstr = nullptr;
+  EXPECT_VALID(Dart_StringToCString(str, &cstr));
+  EXPECT_STREQ("dynamic", cstr);
+}
+
+TEST_CASE(DartAPI_TypeVoid) {
+  Dart_Handle type = Dart_TypeVoid();
+  EXPECT_VALID(type);
+  EXPECT(Dart_IsType(type));
+
+  Dart_Handle str = Dart_ToString(type);
+  EXPECT_VALID(str);
+  const char* cstr = nullptr;
+  EXPECT_VALID(Dart_StringToCString(str, &cstr));
+  EXPECT_STREQ("void", cstr);
+}
+
+TEST_CASE(DartAPI_TypeNever) {
+  Dart_Handle type = Dart_TypeNever();
+  EXPECT_VALID(type);
+  EXPECT(Dart_IsType(type));
+
+  Dart_Handle str = Dart_ToString(type);
+  EXPECT_VALID(str);
+  const char* cstr = nullptr;
+  EXPECT_VALID(Dart_StringToCString(str, &cstr));
+  EXPECT_STREQ("Never", cstr);
 }
 
 TEST_CASE(DartAPI_IdentityEquals) {
@@ -1142,11 +1182,6 @@ TEST_CASE(DartAPI_ClassLibrary) {
   const char* str = NULL;
   Dart_StringToCString(lib_url, &str);
   EXPECT_STREQ("dart:core", str);
-
-  // Case with no library.
-  type = Dart_GetType(lib, NewString("dynamic"), 0, NULL);
-  EXPECT_VALID(type);
-  EXPECT(Dart_IsNull(Dart_ClassLibrary(type)));
 }
 
 TEST_CASE(DartAPI_BooleanValues) {
@@ -2248,6 +2283,9 @@ TEST_CASE(DartAPI_ExternalByteDataFinalizer) {
 
     const intptr_t kBufferSize = 100;
     void* buffer = malloc(kBufferSize);
+    // The buffer becomes readable by Dart, so ensure it is initialized to
+    // satisfy our eager MSAN check.
+    memset(buffer, 0, kBufferSize);
     Dart_Handle byte_data = Dart_NewExternalTypedDataWithFinalizer(
         Dart_TypedData_kByteData, buffer, kBufferSize, buffer, kBufferSize,
         ByteDataFinalizer);
@@ -2898,9 +2936,12 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   EXPECT(isolate != NULL);
-  ApiState* state = isolate->api_state();
+  ApiState* state = isolate->group()->api_state();
   EXPECT(state != NULL);
   ApiLocalScope* scope = thread->api_top_scope();
+
+  const intptr_t handle_count_start = state->CountPersistentHandles();
+
   Dart_PersistentHandle handles[2000];
   Dart_EnterScope();
   {
@@ -2952,7 +2993,7 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
     }
   }
   EXPECT(scope == thread->api_top_scope());
-  EXPECT_EQ(2001, state->CountPersistentHandles());
+  EXPECT_EQ(handle_count_start + 2000, state->CountPersistentHandles());
   Dart_ShutdownIsolate();
 }
 
@@ -2963,7 +3004,7 @@ VM_UNIT_TEST_CASE(DartAPI_NewPersistentHandle_FromPersistentHandle) {
 
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
-  ApiState* state = isolate->api_state();
+  ApiState* state = isolate->group()->api_state();
   EXPECT(state != NULL);
   Thread* thread = Thread::Current();
   CHECK_API_SCOPE(thread);
@@ -2996,7 +3037,7 @@ VM_UNIT_TEST_CASE(DartAPI_AssignToPersistentHandle) {
   CHECK_API_SCOPE(T);
   Isolate* isolate = T->isolate();
   EXPECT(isolate != NULL);
-  ApiState* state = isolate->api_state();
+  ApiState* state = isolate->group()->api_state();
   EXPECT(state != NULL);
 
   // Start with a known persistent handle.
@@ -3196,6 +3237,52 @@ TEST_CASE(DartAPI_WeakPersistentHandleErrors) {
   Dart_ExitScope();
 }
 
+static Dart_PersistentHandle persistent_handle1;
+static Dart_WeakPersistentHandle weak_persistent_handle2;
+static Dart_WeakPersistentHandle weak_persistent_handle3;
+
+static void WeakPersistentHandlePeerCleanupFinalizer(
+    void* isolate_callback_data,
+    Dart_WeakPersistentHandle handle,
+    void* peer) {
+  Dart_DeletePersistentHandle(persistent_handle1);
+  Dart_DeleteWeakPersistentHandle(weak_persistent_handle2);
+  *static_cast<int*>(peer) = 42;
+}
+
+static void WeakPersistentHandleNoopCallback(void* isolate_callback_data,
+                                             Dart_WeakPersistentHandle handle,
+                                             void* peer) {}
+
+TEST_CASE(DartAPI_WeakPersistentHandleCleanupFinalizer) {
+  Heap* heap = Isolate::Current()->heap();
+
+  const char* kTestString1 = "Test String1";
+  Dart_EnterScope();
+  CHECK_API_SCOPE(thread);
+  Dart_Handle ref1 = Dart_NewStringFromCString(kTestString1);
+  persistent_handle1 = Dart_NewPersistentHandle(ref1);
+  Dart_Handle ref2 = Dart_NewStringFromCString(kTestString1);
+  int peer2 = 0;
+  weak_persistent_handle2 = Dart_NewWeakPersistentHandle(
+      ref2, &peer2, 0, WeakPersistentHandleNoopCallback);
+  int peer3 = 0;
+  {
+    Dart_EnterScope();
+    Dart_Handle ref3 = Dart_NewStringFromCString(kTestString1);
+    weak_persistent_handle3 = Dart_NewWeakPersistentHandle(
+        ref3, &peer3, 0, WeakPersistentHandlePeerCleanupFinalizer);
+    Dart_ExitScope();
+  }
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectAllGarbage();
+    EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
+    EXPECT(peer3 == 42);
+  }
+  Dart_ExitScope();
+}
+
 static void WeakPersistentHandlePeerFinalizer(void* isolate_callback_data,
                                               Dart_WeakPersistentHandle handle,
                                               void* peer) {
@@ -3237,8 +3324,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleNoCallback) {
   }
   // A finalizer is not invoked on a deleted handle.  Therefore, the
   // peer value should not change after the referent is collected.
-  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
-  Dart_DeleteWeakPersistentHandle(isolate, weak_ref);
+  Dart_DeleteWeakPersistentHandle(weak_ref);
   EXPECT(peer == 0);
   {
     TransitionNativeToVM transition(thread);
@@ -3300,9 +3386,6 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
     EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
     EXPECT(heap->ExternalInWords(Heap::kOld) == kWeak2ExternalSize / kWordSize);
   }
-  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
-  Dart_DeleteWeakPersistentHandle(isolate, weak1);
-  Dart_DeleteWeakPersistentHandle(isolate, weak2);
   Dart_DeletePersistentHandle(strong_ref);
   {
     TransitionNativeToVM transition(thread);
@@ -3312,7 +3395,6 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
 }
 
 TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
-  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
   Heap* heap = Isolate::Current()->heap();
   Dart_WeakPersistentHandle weak1 = NULL;
   // Large enough to exceed any new space limit. Not actually allocated.
@@ -3331,7 +3413,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
     Dart_WeakPersistentHandle trigger =
         Dart_NewWeakPersistentHandle(obj, NULL, 1, NopCallback);
     EXPECT_VALID(AsHandle(trigger));
-    Dart_DeleteWeakPersistentHandle(isolate, trigger);
+    Dart_DeleteWeakPersistentHandle(trigger);
     // After the two scavenges above, 'obj' should now be promoted, hence its
     // external size charged to old space.
     {
@@ -3346,7 +3428,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
     EXPECT(heap->ExternalInWords(Heap::kOld) == kWeak1ExternalSize / kWordSize);
     Dart_ExitScope();
   }
-  Dart_DeleteWeakPersistentHandle(isolate, weak1);
+  Dart_DeleteWeakPersistentHandle(weak1);
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::CollectOldSpace();
@@ -3419,9 +3501,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOddReferents) {
            (kWeak1ExternalSize + kWeak2ExternalSize) / kWordSize);
     Dart_ExitScope();
   }
-  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
-  Dart_DeleteWeakPersistentHandle(isolate, weak1);
-  Dart_DeleteWeakPersistentHandle(isolate, weak2);
+  Dart_DeleteWeakPersistentHandle(weak1);
+  Dart_DeleteWeakPersistentHandle(weak2);
   EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
   {
     TransitionNativeToVM transition(thread);
@@ -3696,19 +3777,38 @@ VM_UNIT_TEST_CASE(DartAPI_Isolates) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   EXPECT_EQ(iso_1, isolate);
   Dart_ExitIsolate();
-  EXPECT(NULL == Dart_CurrentIsolate());
+  EXPECT_NULLPTR(Dart_CurrentIsolate());
   Dart_Isolate iso_2 = TestCase::CreateTestIsolate();
   EXPECT_EQ(iso_2, Dart_CurrentIsolate());
   Dart_ExitIsolate();
-  EXPECT(NULL == Dart_CurrentIsolate());
+  EXPECT_NULLPTR(Dart_CurrentIsolate());
   Dart_EnterIsolate(iso_2);
   EXPECT_EQ(iso_2, Dart_CurrentIsolate());
   Dart_ShutdownIsolate();
-  EXPECT(NULL == Dart_CurrentIsolate());
+  EXPECT_NULLPTR(Dart_CurrentIsolate());
   Dart_EnterIsolate(iso_1);
   EXPECT_EQ(iso_1, Dart_CurrentIsolate());
   Dart_ShutdownIsolate();
-  EXPECT(NULL == Dart_CurrentIsolate());
+  EXPECT_NULLPTR(Dart_CurrentIsolate());
+}
+
+VM_UNIT_TEST_CASE(DartAPI_IsolateGroups) {
+  Dart_Isolate iso_1 = TestCase::CreateTestIsolate();
+  EXPECT_NOTNULL(Dart_CurrentIsolateGroup());
+  Dart_ExitIsolate();
+  EXPECT_NULLPTR(Dart_CurrentIsolateGroup());
+  Dart_Isolate iso_2 = TestCase::CreateTestIsolate();
+  EXPECT_NOTNULL(Dart_CurrentIsolateGroup());
+  Dart_ExitIsolate();
+  EXPECT_NULLPTR(Dart_CurrentIsolateGroup());
+  Dart_EnterIsolate(iso_2);
+  EXPECT_NOTNULL(Dart_CurrentIsolateGroup());
+  Dart_ShutdownIsolate();
+  EXPECT_NULLPTR(Dart_CurrentIsolateGroup());
+  Dart_EnterIsolate(iso_1);
+  EXPECT_NOTNULL(Dart_CurrentIsolateGroup());
+  Dart_ShutdownIsolate();
+  EXPECT_NULLPTR(Dart_CurrentIsolateGroup());
 }
 
 VM_UNIT_TEST_CASE(DartAPI_CurrentIsolateData) {
@@ -3809,15 +3909,20 @@ TEST_CASE(DartAPI_TypeGetNonParamtericTypes) {
   bool instanceOf = false;
 
   // First get the type objects of these non parameterized types.
-  Dart_Handle type0 = Dart_GetType(lib, NewString("MyClass0"), 0, NULL);
+  Dart_Handle type0 =
+      Dart_GetNonNullableType(lib, NewString("MyClass0"), 0, NULL);
   EXPECT_VALID(type0);
-  Dart_Handle type1 = Dart_GetType(lib, NewString("MyClass1"), 0, NULL);
+  Dart_Handle type1 =
+      Dart_GetNonNullableType(lib, NewString("MyClass1"), 0, NULL);
   EXPECT_VALID(type1);
-  Dart_Handle type2 = Dart_GetType(lib, NewString("MyClass2"), 0, NULL);
+  Dart_Handle type2 =
+      Dart_GetNonNullableType(lib, NewString("MyClass2"), 0, NULL);
   EXPECT_VALID(type2);
-  Dart_Handle type3 = Dart_GetType(lib, NewString("MyInterface0"), 0, NULL);
+  Dart_Handle type3 =
+      Dart_GetNonNullableType(lib, NewString("MyInterface0"), 0, NULL);
   EXPECT_VALID(type3);
-  Dart_Handle type4 = Dart_GetType(lib, NewString("MyInterface1"), 0, NULL);
+  Dart_Handle type4 =
+      Dart_GetNonNullableType(lib, NewString("MyInterface1"), 0, NULL);
   EXPECT_VALID(type4);
 
   // Now create objects of these non parameterized types and check
@@ -3875,67 +3980,69 @@ TEST_CASE(DartAPI_TypeGetNonParamtericTypes) {
 }
 
 TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
+  // TODO(dartbug.com/40176): Clean up this test once the API supports NNBD.
   const char* kScriptChars =
       "class MyClass0<A, B> {\n"
       "}\n"
       "\n"
       "class MyClass1<A, C> {\n"
       "}\n"
+      "Type type<T>() => T;"
       "MyClass0 getMyClass0() {\n"
       "  return new MyClass0<int, double>();\n"
       "}\n"
       "Type getMyClass0Type() {\n"
-      "  return new MyClass0<int, double>().runtimeType;\n"
+      "  return type<MyClass0<int, double>>();\n"
       "}\n"
       "MyClass1 getMyClass1() {\n"
       "  return new MyClass1<List<int>, List>();\n"
       "}\n"
       "Type getMyClass1Type() {\n"
-      "  return new MyClass1<List<int>, List>().runtimeType;\n"
+      "  return type<MyClass1<List<int>, List>>();\n"
       "}\n"
       "MyClass0 getMyClass0_1() {\n"
       "  return new MyClass0<double, int>();\n"
       "}\n"
       "Type getMyClass0_1Type() {\n"
-      "  return new MyClass0<double, int>().runtimeType;\n"
+      "  return type<MyClass0<double, int>>();\n"
       "}\n"
       "MyClass1 getMyClass1_1() {\n"
       "  return new MyClass1<List<int>, List<double>>();\n"
       "}\n"
       "Type getMyClass1_1Type() {\n"
-      "  return new MyClass1<List<int>, List<double>>().runtimeType;\n"
-      "}\n";
+      "  return type<MyClass1<List<int>, List<double>>>();\n"
+      "}\n"
+      "Type getIntType() { return int; }\n"
+      "Type getDoubleType() { return double; }\n"
+      "Type getListIntType() { return type<List<int>>(); }\n"
+      "Type getListType() { return List; }\n";
 
   Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
   EXPECT_VALID(corelib);
 
-  // First get type objects of some of the basic types used in the test.
-  Dart_Handle int_type = Dart_GetType(corelib, NewString("int"), 0, NULL);
-  EXPECT_VALID(int_type);
-  Dart_Handle double_type = Dart_GetType(corelib, NewString("double"), 0, NULL);
-  EXPECT_VALID(double_type);
-  Dart_Handle list_type = Dart_GetType(corelib, NewString("List"), 0, NULL);
-  EXPECT_VALID(list_type);
-  Dart_Handle type_args = Dart_NewList(1);
-  EXPECT_VALID(Dart_ListSetAt(type_args, 0, int_type));
-  Dart_Handle list_int_type =
-      Dart_GetType(corelib, NewString("List"), 1, &type_args);
-  EXPECT_VALID(list_int_type);
-
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  bool instanceOf = false;
 
   // Now instantiate MyClass0 and MyClass1 types with the same type arguments
   // used in the code above.
-  type_args = Dart_NewList(2);
+  Dart_Handle type_args = Dart_NewList(2);
+  Dart_Handle int_type = Dart_Invoke(lib, NewString("getIntType"), 0, NULL);
+  EXPECT_VALID(int_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 0, int_type));
+  Dart_Handle double_type =
+      Dart_Invoke(lib, NewString("getDoubleType"), 0, NULL);
+  EXPECT_VALID(double_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 1, double_type));
   Dart_Handle myclass0_type =
       Dart_GetType(lib, NewString("MyClass0"), 2, &type_args);
   EXPECT_VALID(myclass0_type);
 
   type_args = Dart_NewList(2);
+  Dart_Handle list_int_type =
+      Dart_Invoke(lib, NewString("getListIntType"), 0, NULL);
+  EXPECT_VALID(list_int_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 0, list_int_type));
+  Dart_Handle list_type = Dart_Invoke(lib, NewString("getListType"), 0, NULL);
+  EXPECT_VALID(list_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 1, list_type));
   Dart_Handle myclass1_type =
       Dart_GetType(lib, NewString("MyClass1"), 2, &type_args);
@@ -3947,6 +4054,7 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   // MyClass0<int, double> type.
   Dart_Handle type0_obj = Dart_Invoke(lib, NewString("getMyClass0"), 0, NULL);
   EXPECT_VALID(type0_obj);
+  bool instanceOf = false;
   EXPECT_VALID(Dart_ObjectIsType(type0_obj, myclass0_type, &instanceOf));
   EXPECT(instanceOf);
   type0_obj = Dart_Invoke(lib, NewString("getMyClass0Type"), 0, NULL);
@@ -4390,7 +4498,7 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
   intptr_t header_size = sizeof(RawObject);
   EXPECT_EQ(
       Utils::RoundUp(((1 + 2) * kWordSize) + header_size, kObjectAlignment),
-      cls.instance_size());
+      cls.host_instance_size());
   EXPECT_EQ(kNumNativeFields, cls.num_native_fields());
 }
 
@@ -5037,6 +5145,44 @@ TEST_CASE(DartAPI_New_Issue2971) {
   EXPECT(Dart_IsList(list_obj));
 }
 
+TEST_CASE(DartAPI_NewListOf) {
+  const char* kScriptChars =
+      "String expectListOfString(List<String> o) => '${o.first}';\n"
+      "String expectListOfDynamic(List<dynamic> o) => '${o.first}';\n"
+      "String expectListOfInt(List<int> o) => '${o.first}';\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  const int kNumArgs = 1;
+  Dart_Handle args[kNumArgs];
+  const char* str;
+
+  Dart_Handle string_list = Dart_NewListOf(Dart_CoreType_String, 1);
+  EXPECT_VALID(string_list);
+  args[0] = string_list;
+  Dart_Handle result =
+      Dart_Invoke(lib, NewString("expectListOfString"), kNumArgs, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_VALID(result);
+  EXPECT_STREQ("null", str);
+
+  Dart_Handle dynamic_list = Dart_NewListOf(Dart_CoreType_Dynamic, 1);
+  EXPECT_VALID(dynamic_list);
+  args[0] = dynamic_list;
+  result = Dart_Invoke(lib, NewString("expectListOfDynamic"), kNumArgs, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("null", str);
+
+  Dart_Handle int_list = Dart_NewListOf(Dart_CoreType_Int, 1);
+  EXPECT_VALID(int_list);
+  args[0] = int_list;
+  result = Dart_Invoke(lib, NewString("expectListOfInt"), kNumArgs, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("null", str);
+}
+
 TEST_CASE(DartAPI_NewListOfType) {
   const char* kScriptChars =
       "class ZXHandle {}\n"
@@ -5045,7 +5191,9 @@ TEST_CASE(DartAPI_NewListOfType) {
       "  ChannelReadResult(this.handles);\n"
       "}\n"
       "void expectListOfString(List<String> _) {}\n"
-      "void expectListOfDynamic(List<dynamic> _) {}\n";
+      "void expectListOfDynamic(List<dynamic> _) {}\n"
+      "void expectListOfVoid(List<void> _) {}\n"
+      "void expectListOfNever(List<Never> _) {}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
   Dart_Handle zxhandle_type = Dart_GetType(lib, NewString("ZXHandle"), 0, NULL);
@@ -5087,14 +5235,91 @@ TEST_CASE(DartAPI_NewListOfType) {
   EXPECT_VALID(
       Dart_Invoke(lib, NewString("expectListOfString"), kNumArgs, args));
 
-  Dart_Handle dynamic_type =
-      Dart_GetType(dart_core, NewString("dynamic"), 0, NULL);
+  Dart_Handle dynamic_type = Dart_TypeDynamic();
   EXPECT_VALID(dynamic_type);
-  Dart_Handle dynamic_list = Dart_NewListOfType(string_type, 0);
+  Dart_Handle dynamic_list = Dart_NewListOfType(dynamic_type, 0);
   EXPECT_VALID(dynamic_list);
   args[0] = dynamic_list;
   EXPECT_VALID(
       Dart_Invoke(lib, NewString("expectListOfDynamic"), kNumArgs, args));
+
+  Dart_Handle void_type = Dart_TypeVoid();
+  EXPECT_VALID(void_type);
+  Dart_Handle void_list = Dart_NewListOfType(void_type, 0);
+  EXPECT_VALID(void_list);
+  args[0] = void_list;
+  EXPECT_VALID(Dart_Invoke(lib, NewString("expectListOfVoid"), kNumArgs, args));
+
+  Dart_Handle never_type = Dart_TypeNever();
+  EXPECT_VALID(never_type);
+  Dart_Handle never_list = Dart_NewListOfType(never_type, 0);
+  EXPECT_VALID(never_list);
+  args[0] = never_list;
+  EXPECT_VALID(
+      Dart_Invoke(lib, NewString("expectListOfNever"), kNumArgs, args));
+}
+
+TEST_CASE(DartAPI_NewListOfTypeFilled) {
+  const char* kScriptChars =
+      "class ZXHandle {}\n"
+      "class ChannelReadResult {\n"
+      "  final List<ZXHandle> handles;\n"
+      "  ChannelReadResult(this.handles);\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  Dart_Handle zxhandle_type =
+      Dart_GetNonNullableType(lib, NewString("ZXHandle"), 0, NULL);
+  EXPECT_VALID(zxhandle_type);
+
+  Dart_Handle nullable_zxhandle_type =
+      Dart_GetNullableType(lib, NewString("ZXHandle"), 0, NULL);
+  EXPECT_VALID(nullable_zxhandle_type);
+
+  Dart_Handle integer = Dart_NewInteger(42);
+  EXPECT_VALID(integer);
+
+  Dart_Handle zxhandle = Dart_New(zxhandle_type, Dart_Null(), 0, NULL);
+  EXPECT_VALID(zxhandle);
+
+  Dart_Handle zxhandle_list =
+      Dart_NewListOfTypeFilled(zxhandle_type, zxhandle, 1);
+  EXPECT_VALID(zxhandle_list);
+
+  Dart_Handle result = Dart_ListGetAt(zxhandle_list, 0);
+  EXPECT_VALID(result);
+
+  EXPECT(Dart_IdentityEquals(result, zxhandle));
+
+  Dart_Handle readresult_type =
+      Dart_GetType(lib, NewString("ChannelReadResult"), 0, NULL);
+  EXPECT_VALID(zxhandle_type);
+
+  const int kNumArgs = 1;
+  Dart_Handle args[kNumArgs];
+  args[0] = zxhandle_list;
+  EXPECT_VALID(Dart_New(readresult_type, Dart_Null(), kNumArgs, args));
+
+  EXPECT_ERROR(Dart_NewListOfTypeFilled(Dart_Null(), Dart_Null(), 1),
+               "Dart_NewListOfTypeFilled expects argument 'element_type' to be "
+               "non-null.");
+  EXPECT_ERROR(Dart_NewListOfTypeFilled(Dart_True(), Dart_Null(), 1),
+               "Dart_NewListOfTypeFilled expects argument 'element_type' to be "
+               "of type Type.");
+  EXPECT_ERROR(
+      Dart_NewListOfTypeFilled(zxhandle_type, Dart_Null(), 1),
+      "Dart_NewListOfTypeFilled expects argument 'fill_object' to be non-null"
+      " for a non-nullable 'element_type'");
+  EXPECT_ERROR(
+      Dart_NewListOfTypeFilled(zxhandle_type, integer, 1),
+      "Dart_NewListOfTypeFilled expects argument 'fill_object' to have the same"
+      " type as 'element_type'.");
+
+  EXPECT_VALID(
+      Dart_NewListOfTypeFilled(nullable_zxhandle_type, Dart_Null(), 1));
+
+  // Null is always valid as the fill argument if we're creating an empty list.
+  EXPECT_VALID(Dart_NewListOfTypeFilled(zxhandle_type, Dart_Null(), 0));
 }
 
 static Dart_Handle PrivateLibName(Dart_Handle lib, const char* str) {
@@ -5800,6 +6025,52 @@ TEST_CASE(DartAPI_GetNativeArgumentCount) {
   EXPECT_EQ(3, value);
 }
 
+TEST_CASE(DartAPI_TypeToNullability) {
+  const char* kScriptChars =
+      "library testlib;\n"
+      "class Class {\n"
+      "  static var name = 'Class';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  const Dart_Handle name = NewString("Class");
+  // Lookup the legacy type for Class.
+  Dart_Handle type = Dart_GetType(lib, name, 0, NULL);
+  EXPECT_VALID(type);
+  bool result = false;
+  EXPECT_VALID(Dart_IsLegacyType(type, &result));
+  EXPECT(result);
+
+  // Legacy -> Nullable
+  Dart_Handle nullableType = Dart_TypeToNullableType(type);
+  EXPECT_VALID(nullableType);
+  result = false;
+  EXPECT_VALID(Dart_IsNullableType(nullableType, &result));
+  EXPECT(result);
+  EXPECT(Dart_IdentityEquals(nullableType,
+                             Dart_GetNullableType(lib, name, 0, nullptr)));
+
+  // Legacy -> Non-Nullable
+  Dart_Handle nonNullableType = Dart_TypeToNonNullableType(type);
+  EXPECT_VALID(nonNullableType);
+  result = false;
+  EXPECT_VALID(Dart_IsNonNullableType(nonNullableType, &result));
+  EXPECT(result);
+  EXPECT(Dart_IdentityEquals(nonNullableType,
+                             Dart_GetNonNullableType(lib, name, 0, nullptr)));
+
+  // Nullable -> Non-Nullable
+  EXPECT(Dart_IdentityEquals(
+      nonNullableType,
+      Dart_TypeToNonNullableType(Dart_GetNullableType(lib, name, 0, nullptr))));
+
+  // Nullable -> Non-Nullable
+  EXPECT(Dart_IdentityEquals(
+      nullableType,
+      Dart_TypeToNullableType(Dart_GetNonNullableType(lib, name, 0, nullptr))));
+}
+
 TEST_CASE(DartAPI_GetType) {
   const char* kScriptChars =
       "library testlib;\n"
@@ -5816,6 +6087,9 @@ TEST_CASE(DartAPI_GetType) {
   // Lookup a class.
   Dart_Handle type = Dart_GetType(lib, NewString("Class"), 0, NULL);
   EXPECT_VALID(type);
+  bool result = false;
+  EXPECT_VALID(Dart_IsLegacyType(type, &result));
+  EXPECT(result);
   Dart_Handle name = Dart_GetField(type, NewString("name"));
   EXPECT_VALID(name);
   const char* name_cstr = "";
@@ -5825,6 +6099,9 @@ TEST_CASE(DartAPI_GetType) {
   // Lookup a private class.
   type = Dart_GetType(lib, NewString("_Class"), 0, NULL);
   EXPECT_VALID(type);
+  result = false;
+  EXPECT_VALID(Dart_IsLegacyType(type, &result));
+  EXPECT(result);
   name = Dart_GetField(type, NewString("name"));
   EXPECT_VALID(name);
   name_cstr = "";
@@ -5844,6 +6121,127 @@ TEST_CASE(DartAPI_GetType) {
 
   // Lookup a type using an error class name.  The error propagates.
   type = Dart_GetType(lib, Api::NewError("myerror"), 0, NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("myerror", Dart_GetError(type));
+}
+
+TEST_CASE(DartAPI_GetNullableType) {
+  const char* kScriptChars =
+      "library testlib;\n"
+      "class Class {\n"
+      "  static var name = 'Class';\n"
+      "}\n"
+      "\n"
+      "class _Class {\n"
+      "  static var name = '_Class';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Lookup a class.
+  Dart_Handle type = Dart_GetNullableType(lib, NewString("Class"), 0, NULL);
+  EXPECT_VALID(type);
+  bool result = false;
+  EXPECT_VALID(Dart_IsNullableType(type, &result));
+  EXPECT(result);
+  Dart_Handle name = Dart_ToString(type);
+  EXPECT_VALID(name);
+  const char* name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("Class?", name_cstr);
+
+  name = Dart_GetField(type, NewString("name"));
+  EXPECT_VALID(name);
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("Class", name_cstr);
+
+  // Lookup a private class.
+  type = Dart_GetNullableType(lib, NewString("_Class"), 0, NULL);
+  EXPECT_VALID(type);
+  result = false;
+  EXPECT_VALID(Dart_IsNullableType(type, &result));
+
+  name = Dart_GetField(type, NewString("name"));
+  EXPECT_VALID(name);
+  name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("_Class", name_cstr);
+
+  // Lookup a class that does not exist.
+  type = Dart_GetNullableType(lib, NewString("DoesNotExist"), 0, NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("Type 'DoesNotExist' not found in library 'testlib'.",
+               Dart_GetError(type));
+
+  // Lookup a class from an error library.  The error propagates.
+  type = Dart_GetNullableType(Api::NewError("myerror"), NewString("Class"), 0,
+                              NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("myerror", Dart_GetError(type));
+
+  // Lookup a type using an error class name.  The error propagates.
+  type = Dart_GetNullableType(lib, Api::NewError("myerror"), 0, NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("myerror", Dart_GetError(type));
+}
+
+TEST_CASE(DartAPI_GetNonNullableType) {
+  const char* kScriptChars =
+      "library testlib;\n"
+      "class Class {\n"
+      "  static var name = 'Class';\n"
+      "}\n"
+      "\n"
+      "class _Class {\n"
+      "  static var name = '_Class';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Lookup a class.
+  Dart_Handle type = Dart_GetNonNullableType(lib, NewString("Class"), 0, NULL);
+  EXPECT_VALID(type);
+  bool result = false;
+  EXPECT_VALID(Dart_IsNonNullableType(type, &result));
+  EXPECT(result);
+  Dart_Handle name = Dart_ToString(type);
+  EXPECT_VALID(name);
+  const char* name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("Class", name_cstr);
+
+  name = Dart_GetField(type, NewString("name"));
+  EXPECT_VALID(name);
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("Class", name_cstr);
+
+  // Lookup a private class.
+  type = Dart_GetNonNullableType(lib, NewString("_Class"), 0, NULL);
+  EXPECT_VALID(type);
+  result = false;
+  EXPECT_VALID(Dart_IsNonNullableType(type, &result));
+  EXPECT(result);
+
+  name = Dart_GetField(type, NewString("name"));
+  EXPECT_VALID(name);
+  name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("_Class", name_cstr);
+
+  // Lookup a class that does not exist.
+  type = Dart_GetNonNullableType(lib, NewString("DoesNotExist"), 0, NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("Type 'DoesNotExist' not found in library 'testlib'.",
+               Dart_GetError(type));
+
+  // Lookup a class from an error library.  The error propagates.
+  type = Dart_GetNonNullableType(Api::NewError("myerror"), NewString("Class"),
+                                 0, NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("myerror", Dart_GetError(type));
+
+  // Lookup a type using an error class name.  The error propagates.
+  type = Dart_GetNonNullableType(lib, Api::NewError("myerror"), 0, NULL);
   EXPECT(Dart_IsError(type));
   EXPECT_STREQ("myerror", Dart_GetError(type));
 }
@@ -6371,6 +6769,30 @@ TEST_CASE(DartAPI_IllegalPost) {
   Dart_Handle message = Dart_True();
   bool success = Dart_Post(ILLEGAL_PORT, message);
   EXPECT(!success);
+}
+
+static void UnreachableFinalizer(void* isolate_callback_data,
+                                 Dart_WeakPersistentHandle handle,
+                                 void* peer) {
+  UNREACHABLE();
+}
+
+TEST_CASE(DartAPI_PostCObject_DoesNotRunFinalizerOnFailure) {
+  char* my_str = strdup("Ownership of this memory remains with the caller");
+
+  Dart_CObject message;
+  message.type = Dart_CObject_kExternalTypedData;
+  message.value.as_external_typed_data.type = Dart_TypedData_kUint8;
+  message.value.as_external_typed_data.length = strlen(my_str);
+  message.value.as_external_typed_data.data =
+      reinterpret_cast<uint8_t*>(my_str);
+  message.value.as_external_typed_data.peer = my_str;
+  message.value.as_external_typed_data.callback = UnreachableFinalizer;
+
+  bool success = Dart_PostCObject(ILLEGAL_PORT, &message);
+  EXPECT(!success);
+
+  free(my_str);  // Never a double-free.
 }
 
 VM_UNIT_TEST_CASE(DartAPI_NewNativePort) {

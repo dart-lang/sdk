@@ -17,7 +17,7 @@ class M1 extends core::Object implements self::I<core::int*> {
     : super core::Object::•()
     ;
 }
-abstract class _A&M1&M0 = self::M1 with self::M0<core::int*, core::int*> {
+abstract class _A&M1&M0 = self::M1 with self::M0<core::int*, core::int*> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A&M1&M0*
     : super self::M1::•()
     ;

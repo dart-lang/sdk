@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Class1 {
+  Class2? get field => null;
   int operator [](int index) => index;
   void operator []=(int index, int value) {}
 }
 
 class Class2 {
-  int field;
+  int field = 42;
 }
 
 extension Extension on Class2 {
@@ -56,4 +57,28 @@ main() {
   Extension(c2)?.[0]++;
   Extension(c2)?.[0] ??= 1;
   Extension(c2)?.[0] ??= 1 + Extension(c2)[1];
+
+  c1?.field?.[0];
+  c1?.field?.[0] = 1;
+  c1?.field?.[0] = 1 + c1[0];
+  c1?.field?.[0] += 1;
+  c1?.field?.[0] += 1 + c1[0];
+  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
+  //  update.
+  ++c1?.field?.[0];
+  c1?.field?.[0]++;
+  c1?.field?.[0] ??= 1;
+  c1?.field?.[0] ??= 1 + c1[1];
+
+  Extension(c1?.field)?.[0];
+  Extension(c1?.field)?.[0] = 1;
+  Extension(c1?.field)?.[0] = 1 + Extension(c2)?.[0]!;
+  Extension(c1?.field)?.[0] += 1;
+  Extension(c1?.field)?.[0] += 1 + Extension(c2)?.[0]!;
+  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
+  //  update.
+  ++Extension(c1?.field)?.[0];
+  Extension(c1?.field)?.[0]++;
+  Extension(c1?.field)?.[0] ??= 1;
+  Extension(c1?.field)?.[0] ??= 1 + Extension(c2)?.[1]!;
 }

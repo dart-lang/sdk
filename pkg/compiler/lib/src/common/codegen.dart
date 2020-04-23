@@ -676,13 +676,6 @@ class ModularName extends js.Name implements js.AstContainer {
         break;
       case ModularNameKind.globalPropertyNameForType:
       case ModularNameKind.runtimeTypeName:
-        bool dataIsClassEntity = source.readBool();
-        if (dataIsClassEntity) {
-          data = source.readClass();
-        } else {
-          data = source.readTypedef();
-        }
-        break;
       case ModularNameKind.className:
       case ModularNameKind.operatorIs:
       case ModularNameKind.substitution:
@@ -730,13 +723,6 @@ class ModularName extends js.Name implements js.AstContainer {
         break;
       case ModularNameKind.globalPropertyNameForType:
       case ModularNameKind.runtimeTypeName:
-        sink.writeBool(data is ClassEntity);
-        if (data is ClassEntity) {
-          sink.writeClass(data);
-        } else {
-          sink.writeTypedef(data);
-        }
-        break;
       case ModularNameKind.className:
       case ModularNameKind.operatorIs:
       case ModularNameKind.substitution:
@@ -868,12 +854,7 @@ class ModularExpression extends js.DeferredExpression
         data = source.readClass();
         break;
       case ModularExpressionKind.globalObjectForType:
-        bool dataIsClassEntity = source.readBool();
-        if (dataIsClassEntity) {
-          data = source.readClass();
-        } else {
-          data = source.readTypedef();
-        }
+        data = source.readClass();
         break;
       case ModularExpressionKind.globalObjectForMember:
         data = source.readMember();
@@ -900,12 +881,7 @@ class ModularExpression extends js.DeferredExpression
         sink.writeClass(data);
         break;
       case ModularExpressionKind.globalObjectForType:
-        sink.writeBool(data is ClassEntity);
-        if (data is ClassEntity) {
-          sink.writeClass(data);
-        } else {
-          sink.writeTypedef(data);
-        }
+        sink.writeClass(data);
         break;
       case ModularExpressionKind.globalObjectForMember:
         sink.writeMember(data);
@@ -958,7 +934,7 @@ class ModularExpression extends js.DeferredExpression
     StringBuffer sb = new StringBuffer();
     sb.write('ModularExpression(kind=$kind,data=');
     if (data is ConstantValue) {
-      sb.write((data as ConstantValue).toStructuredText());
+      sb.write((data as ConstantValue).toStructuredText(null));
     } else {
       sb.write(data);
     }

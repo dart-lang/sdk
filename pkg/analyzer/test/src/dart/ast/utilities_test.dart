@@ -7,10 +7,10 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -40,17 +40,17 @@ class NodeLocator2Test extends ParserTestCase {
     VariableDeclarationList variableList = declaration.variables;
     Identifier typeName = (variableList.type as TypeName).name;
     SimpleIdentifier varName = variableList.variables[0].name;
-    expect(new NodeLocator2(0).searchWithin(unit), same(unit));
-    expect(new NodeLocator2(1).searchWithin(unit), same(typeName));
-    expect(new NodeLocator2(2).searchWithin(unit), same(typeName));
-    expect(new NodeLocator2(3).searchWithin(unit), same(typeName));
-    expect(new NodeLocator2(4).searchWithin(unit), same(variableList));
-    expect(new NodeLocator2(5).searchWithin(unit), same(varName));
-    expect(new NodeLocator2(6).searchWithin(unit), same(varName));
-    expect(new NodeLocator2(7).searchWithin(unit), same(declaration));
-    expect(new NodeLocator2(8).searchWithin(unit), same(unit));
-    expect(new NodeLocator2(9).searchWithin(unit), isNull);
-    expect(new NodeLocator2(100).searchWithin(unit), isNull);
+    expect(NodeLocator2(0).searchWithin(unit), same(unit));
+    expect(NodeLocator2(1).searchWithin(unit), same(typeName));
+    expect(NodeLocator2(2).searchWithin(unit), same(typeName));
+    expect(NodeLocator2(3).searchWithin(unit), same(typeName));
+    expect(NodeLocator2(4).searchWithin(unit), same(variableList));
+    expect(NodeLocator2(5).searchWithin(unit), same(varName));
+    expect(NodeLocator2(6).searchWithin(unit), same(varName));
+    expect(NodeLocator2(7).searchWithin(unit), same(declaration));
+    expect(NodeLocator2(8).searchWithin(unit), same(unit));
+    expect(NodeLocator2(9).searchWithin(unit), isNull);
+    expect(NodeLocator2(100).searchWithin(unit), isNull);
   }
 
   void test_startEndOffset() {
@@ -61,16 +61,16 @@ class NodeLocator2Test extends ParserTestCase {
     VariableDeclarationList variableList = declaration.variables;
     Identifier typeName = (variableList.type as TypeName).name;
     SimpleIdentifier varName = variableList.variables[0].name;
-    expect(new NodeLocator2(-1, 2).searchWithin(unit), isNull);
-    expect(new NodeLocator2(0, 2).searchWithin(unit), same(unit));
-    expect(new NodeLocator2(1, 2).searchWithin(unit), same(typeName));
-    expect(new NodeLocator2(1, 3).searchWithin(unit), same(typeName));
-    expect(new NodeLocator2(1, 4).searchWithin(unit), same(variableList));
-    expect(new NodeLocator2(5, 6).searchWithin(unit), same(varName));
-    expect(new NodeLocator2(5, 7).searchWithin(unit), same(declaration));
-    expect(new NodeLocator2(5, 8).searchWithin(unit), same(unit));
-    expect(new NodeLocator2(5, 100).searchWithin(unit), isNull);
-    expect(new NodeLocator2(100, 200).searchWithin(unit), isNull);
+    expect(NodeLocator2(-1, 2).searchWithin(unit), isNull);
+    expect(NodeLocator2(0, 2).searchWithin(unit), same(unit));
+    expect(NodeLocator2(1, 2).searchWithin(unit), same(typeName));
+    expect(NodeLocator2(1, 3).searchWithin(unit), same(typeName));
+    expect(NodeLocator2(1, 4).searchWithin(unit), same(variableList));
+    expect(NodeLocator2(5, 6).searchWithin(unit), same(varName));
+    expect(NodeLocator2(5, 7).searchWithin(unit), same(declaration));
+    expect(NodeLocator2(5, 8).searchWithin(unit), same(unit));
+    expect(NodeLocator2(5, 100).searchWithin(unit), isNull);
+    expect(NodeLocator2(100, 200).searchWithin(unit), isNull);
   }
 }
 
@@ -83,7 +83,7 @@ class NodeLocatorTest extends ParserTestCase {
   }
 
   void test_searchWithin_null() {
-    NodeLocator locator = new NodeLocator(0, 0);
+    NodeLocator locator = NodeLocator(0, 0);
     expect(locator.searchWithin(null), isNull);
   }
 
@@ -97,7 +97,7 @@ class NodeLocatorTest extends ParserTestCase {
     CompilationUnit unit = parseCompilationUnit(r'''
 class A {}
 class B {}''');
-    NodeLocator locator = new NodeLocator(1024, 1024);
+    NodeLocator locator = NodeLocator(1024, 1024);
     AstNode node = locator.searchWithin(unit.declarations[0]);
     expect(node, isNull);
   }
@@ -106,7 +106,7 @@ class B {}''');
     CompilationUnit unit = parseCompilationUnit(r'''
 class A {}
 class B {}''');
-    NodeLocator locator = new NodeLocator(0, 0);
+    NodeLocator locator = NodeLocator(0, 0);
     AstNode node = locator.searchWithin(unit.declarations[1]);
     expect(node, isNull);
   }
@@ -116,7 +116,7 @@ class B {}''');
     int start,
     int end,
   ) {
-    NodeLocator locator = new NodeLocator(start, end);
+    NodeLocator locator = NodeLocator(start, end);
     AstNode node = locator.searchWithin(unit);
     expect(node, isNotNull);
     expect(locator.foundNode, same(node));
@@ -129,6 +129,7 @@ class B {}''');
 
 @reflectiveTest
 class ResolutionCopierTest with ElementsTypesMixin {
+  @override
   final TypeProvider typeProvider = TestTypeProvider();
 
   void test_visitAdjacentStrings() {
@@ -227,7 +228,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitCompilationUnit() {
     CompilationUnit fromNode = AstTestFactory.compilationUnit();
-    CompilationUnitElement element = new CompilationUnitElementImpl();
+    CompilationUnitElement element = CompilationUnitElementImpl();
     fromNode.element = element;
     CompilationUnit toNode = AstTestFactory.compilationUnit();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -292,7 +293,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitExportDirective() {
     ExportDirective fromNode = AstTestFactory.exportDirective2("dart:uri");
-    ExportElement element = new ExportElementImpl(-1);
+    ExportElement element = ExportElementImpl(-1);
     fromNode.element = element;
     ExportDirective toNode = AstTestFactory.exportDirective2("dart:uri");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -488,7 +489,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_visitImportDirective() {
     ImportDirective fromNode =
         AstTestFactory.importDirective3("dart:uri", null);
-    ImportElement element = new ImportElementImpl(0);
+    ImportElement element = ImportElementImpl(0);
     fromNode.element = element;
     ImportDirective toNode = AstTestFactory.importDirective3("dart:uri", null);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -500,7 +501,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
         AstTestFactory.identifier3("a"), AstTestFactory.integer(0));
     MethodElement staticElement = ElementFactory.methodElement(
         "m", interfaceTypeStar(ElementFactory.classElement2('C')));
-    AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement);
+    AuxiliaryElements auxiliaryElements = AuxiliaryElements(staticElement);
     fromNode.auxiliaryElements = auxiliaryElements;
     fromNode.staticElement = staticElement;
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
@@ -638,8 +639,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitPartDirective() {
     PartDirective fromNode = AstTestFactory.partDirective2("part.dart");
-    LibraryElement element =
-        new LibraryElementImpl(null, null, 'lib', -1, 0, true);
+    LibraryElement element = LibraryElementImpl(null, null, 'lib', -1, 0, true);
     fromNode.element = element;
     PartDirective toNode = AstTestFactory.partDirective2("part.dart");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -649,8 +649,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_visitPartOfDirective() {
     PartOfDirective fromNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));
-    LibraryElement element =
-        new LibraryElementImpl(null, null, 'lib', -1, 0, true);
+    LibraryElement element = LibraryElementImpl(null, null, 'lib', -1, 0, true);
     fromNode.element = element;
     PartOfDirective toNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));
@@ -780,7 +779,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
     SimpleIdentifier fromNode = AstTestFactory.identifier3("x");
     MethodElement staticElement = ElementFactory.methodElement(
         "m", interfaceTypeStar(ElementFactory.classElement2('C')));
-    AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement);
+    AuxiliaryElements auxiliaryElements = AuxiliaryElements(staticElement);
     fromNode.auxiliaryElements = auxiliaryElements;
     fromNode.staticElement = staticElement;
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));

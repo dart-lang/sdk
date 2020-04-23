@@ -36,6 +36,7 @@ include the same source.
   ''';
   }
 
+  @override
   String toString() => _message;
 
   /// Given a set of file paths, find a common prefix.
@@ -75,7 +76,7 @@ class InSummarySource extends BasicSource {
   InSummarySource(Uri uri, this.summaryPath) : super(uri);
 
   @override
-  TimestampedData<String> get contents => new TimestampedData<String>(0, '');
+  TimestampedData<String> get contents => TimestampedData<String>(0, '');
 
   @override
   int get modificationStamp => 0;
@@ -106,7 +107,7 @@ class InSummaryUriResolver extends UriResolver {
     String uriString = uri.toString();
     String summaryPath = _dataStore.uriToSummaryPath[uriString];
     if (summaryPath != null) {
-      return new InSummarySource(actualUri, summaryPath);
+      return InSummarySource(actualUri, summaryPath);
     }
     return null;
   }
@@ -128,8 +129,8 @@ class SummaryDataStore {
    */
   final Map<String, String> uriToSummaryPath = <String, String>{};
 
-  final Set<String> _libraryUris = Set<String>();
-  final Set<String> _partUris = Set<String>();
+  final Set<String> _libraryUris = <String>{};
+  final Set<String> _partUris = <String>{};
 
   /**
    * Create a [SummaryDataStore] and populate it with the summaries in
@@ -190,10 +191,10 @@ class SummaryDataStore {
       var file = resourceProvider.getFile(path);
       buffer = file.readAsBytesSync();
     } else {
-      io.File file = new io.File(path);
+      io.File file = io.File(path);
       buffer = file.readAsBytesSync();
     }
-    PackageBundle bundle = new PackageBundle.fromBuffer(buffer);
+    PackageBundle bundle = PackageBundle.fromBuffer(buffer);
     addBundle(path, bundle);
   }
 }

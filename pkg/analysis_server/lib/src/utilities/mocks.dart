@@ -20,11 +20,11 @@ import 'package:watcher/watcher.dart';
 
 /// A mock [ServerCommunicationChannel] for testing [AnalysisServer].
 class MockServerChannel implements ServerCommunicationChannel {
-  StreamController<Request> requestController = new StreamController<Request>();
+  StreamController<Request> requestController = StreamController<Request>();
   StreamController<Response> responseController =
-      new StreamController<Response>.broadcast();
+      StreamController<Response>.broadcast();
   StreamController<Notification> notificationController =
-      new StreamController<Notification>(sync: true);
+      StreamController<Notification>(sync: true);
   Completer<Response> errorCompleter;
 
   List<Response> responsesReceived = [];
@@ -47,8 +47,8 @@ class MockServerChannel implements ServerCommunicationChannel {
   }
 
   @override
-  void listen(void onRequest(Request request),
-      {Function onError, void onDone()}) {
+  void listen(void Function(Request request) onRequest,
+      {Function onError, void Function() onDone}) {
     requestController.stream
         .listen(onRequest, onError: onError, onDone: onDone);
   }
@@ -63,9 +63,8 @@ class MockServerChannel implements ServerCommunicationChannel {
     if (errorCompleter != null && notification.event == 'server.error') {
       print(
           '[server.error] test: $name message: ${notification.params['message']}');
-      errorCompleter.completeError(
-          new ServerError(notification.params['message']),
-          new StackTrace.fromString(notification.params['stackTrace']));
+      errorCompleter.completeError(ServerError(notification.params['message']),
+          StackTrace.fromString(notification.params['stackTrace']));
     }
     // Wrap send notification in future to simulate websocket
     // TODO(scheglov) ask Dan why and decide what to do
@@ -83,10 +82,10 @@ class MockServerChannel implements ServerCommunicationChannel {
     // have the default behavior be the only behavior.
     // No further requests should be sent after the connection is closed.
     if (_closed) {
-      throw new Exception('sendRequest after connection closed');
+      throw Exception('sendRequest after connection closed');
     }
     // Wrap send request in future to simulate WebSocket.
-    new Future(() => requestController.add(request));
+    Future(() => requestController.add(request));
     return waitForResponse(request, throwOnError: throwOnError);
   }
 
@@ -98,7 +97,7 @@ class MockServerChannel implements ServerCommunicationChannel {
     }
     responsesReceived.add(response);
     // Wrap send response in future to simulate WebSocket.
-    new Future(() => responseController.add(response));
+    Future(() => responseController.add(response));
   }
 
   /// Return a future that will complete when a response associated with the
@@ -113,11 +112,11 @@ class MockServerChannel implements ServerCommunicationChannel {
       {bool throwOnError = true}) {
     // TODO(brianwilkerson) Attempt to remove the `throwOnError` parameter and
     // have the default behavior be the only behavior.
-    String id = request.id;
-    Future<Response> response =
+    var id = request.id;
+    var response =
         responseController.stream.firstWhere((response) => response.id == id);
     if (throwOnError) {
-      errorCompleter = new Completer<Response>();
+      errorCompleter = Completer<Response>();
       try {
         return Future.any([response, errorCompleter.future]);
       } finally {
@@ -133,8 +132,9 @@ class ServerError implements Exception {
 
   ServerError(this.message);
 
+  @override
   String toString() {
-    return "Server Error: $message";
+    return 'Server Error: $message';
   }
 }
 

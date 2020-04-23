@@ -2,6 +2,43 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// This file is an "idl" style description of the summary format.  It
+/// contains abstract classes which declare the interface for reading data from
+/// summaries.  It is parsed and transformed into code that implements the
+/// summary format.
+///
+/// The code generation process introduces the following semantics:
+/// - Getters of type List never return null, and have a default value of the
+///   empty list.
+/// - Getters of type int return unsigned 32-bit integers, never null, and have
+///   a default value of zero.
+/// - Getters of type String never return null, and have a default value of ''.
+/// - Getters of type bool never return null, and have a default value of false.
+/// - Getters of type double never return null, and have a default value of
+///   `0.0`.
+/// - Getters whose type is an enum never return null, and have a default value
+///   of the first value declared in the enum.
+///
+/// Terminology used in this document:
+/// - "Unlinked" refers to information that can be determined from reading a
+///   single .dart file in isolation.
+/// - "Prelinked" refers to information that can be determined from the defining
+///   compilation unit of a library, plus direct imports, plus the transitive
+///   closure of exports reachable from those libraries, plus all part files
+///   constituting those libraries.
+/// - "Linked" refers to all other information; in theory, this information may
+///   depend on all files in the transitive import/export closure.  However, in
+///   practice we expect that the number of additional dependencies will usually
+///   be small, since the additional dependencies only need to be consulted for
+///   type propagation, type inference, and constant evaluation, which typically
+///   have short dependency chains.
+///
+/// Since we expect "linked" and "prelinked" dependencies to be similar, we only
+/// rarely distinguish between them; most information is that is not "unlinked"
+/// is typically considered "linked" for simplicity.
+///
+/// Except as otherwise noted, synthetic elements are not stored in the summary;
+/// they are re-synthesized at the time the summary is read.
 import 'base.dart' as base;
 import 'base.dart' show Id, TopLevel, Variant, VariantId;
 import 'format.dart' as generated;
@@ -288,47 +325,50 @@ abstract class AvailableDeclaration extends base.SummaryClass {
   @Id(11)
   bool get isFinal;
 
-  /// The kind of the declaration.
   @Id(12)
+  bool get isStatic;
+
+  /// The kind of the declaration.
+  @Id(13)
   AvailableDeclarationKind get kind;
 
-  @Id(13)
+  @Id(14)
   int get locationOffset;
 
-  @Id(14)
+  @Id(15)
   int get locationStartColumn;
 
-  @Id(15)
+  @Id(16)
   int get locationStartLine;
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  @Id(16)
+  @Id(17)
   String get name;
 
-  @Id(17)
+  @Id(18)
   List<String> get parameterNames;
 
-  @Id(18)
+  @Id(19)
   String get parameters;
 
-  @Id(19)
+  @Id(20)
   List<String> get parameterTypes;
 
   /// The partial list of relevance tags.  Not every declaration has one (for
   /// example, function do not currently), and not every declaration has to
   /// store one (for classes it can be computed when we know the library that
   /// includes this file).
-  @Id(20)
+  @Id(21)
   List<String> get relevanceTags;
 
-  @Id(21)
+  @Id(22)
   int get requiredParameterCount;
 
-  @Id(22)
+  @Id(23)
   String get returnType;
 
-  @Id(23)
+  @Id(24)
   String get typeParameters;
 }
 
@@ -406,6 +446,39 @@ abstract class AvailableFileExportCombinator extends base.SummaryClass {
   /// List of names which are shown.  Empty if this is a `hide` combinator.
   @Id(0)
   List<String> get shows;
+}
+
+/// Information about linked libraries, a group of libraries that form
+/// a library cycle.
+@TopLevel('CLNB')
+abstract class CiderLinkedLibraryCycle extends base.SummaryClass {
+  factory CiderLinkedLibraryCycle.fromBuffer(List<int> buffer) =>
+      generated.readCiderLinkedLibraryCycle(buffer);
+
+  @Id(1)
+  LinkedNodeBundle get bundle;
+
+  /// The hash signature for this linked cycle. It depends of API signatures
+  /// of all files in the cycle, and on the signatures of the transitive
+  /// closure of the cycle dependencies.
+  @Id(0)
+  List<int> get signature;
+}
+
+/// Information about a compilation unit, contains the content hash
+/// and unlinked summary.
+@TopLevel('CUUN')
+abstract class CiderUnlinkedUnit extends base.SummaryClass {
+  factory CiderUnlinkedUnit.fromBuffer(List<int> buffer) =>
+      generated.readCiderUnlinkedUnit(buffer);
+
+  /// The hash signature of the contents of the file.
+  @Id(0)
+  List<int> get contentDigest;
+
+  /// Unlinked summary of the compilation unit.
+  @Id(1)
+  UnlinkedUnit2 get unlinkedUnit;
 }
 
 abstract class DiagnosticMessage extends base.SummaryClass {
@@ -760,6 +833,14 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(3, variant: LinkedNodeKind.compilationUnit)
   List<LinkedNode> get compilationUnit_directives;
+
+  /// The major component of the actual language version (not just override).
+  @VariantId(15, variant: LinkedNodeKind.compilationUnit)
+  int get compilationUnit_languageVersionMajor;
+
+  /// The minor component of the actual language version (not just override).
+  @VariantId(16, variant: LinkedNodeKind.compilationUnit)
+  int get compilationUnit_languageVersionMinor;
 
   @VariantId(6, variant: LinkedNodeKind.compilationUnit)
   LinkedNode get compilationUnit_scriptTag;
@@ -1947,6 +2028,35 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
   int get nameOffset;
 }
 
+/// Unlinked summary information about a namespace directive.
+abstract class UnlinkedNamespaceDirective extends base.SummaryClass {
+  /// The configurations that control which library will actually be used.
+  @Id(0)
+  List<UnlinkedNamespaceDirectiveConfiguration> get configurations;
+
+  /// The URI referenced by this directive, nad used by default when none
+  /// of the [configurations] matches.
+  @Id(1)
+  String get uri;
+}
+
+/// Unlinked summary information about a namespace directive configuration.
+abstract class UnlinkedNamespaceDirectiveConfiguration
+    extends base.SummaryClass {
+  /// The name of the declared variable used in the condition.
+  @Id(0)
+  String get name;
+
+  /// The URI to be used if the condition is true.
+  @Id(2)
+  String get uri;
+
+  /// The value to which the value of the declared variable will be compared,
+  /// or the empty string if the condition does not include an equality test.
+  @Id(1)
+  String get value;
+}
+
 /// Enum of token types, corresponding to AST token types.
 enum UnlinkedTokenType {
   NOTHING,
@@ -2107,7 +2217,7 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
 
   /// URIs of `export` directives.
   @Id(1)
-  List<String> get exports;
+  List<UnlinkedNamespaceDirective> get exports;
 
   /// Is `true` if the unit contains a `library` directive.
   @Id(6)
@@ -2119,7 +2229,7 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
 
   /// URIs of `import` directives.
   @Id(2)
-  List<String> get imports;
+  List<UnlinkedNamespaceDirective> get imports;
 
   @Id(7)
   List<UnlinkedInformativeData> get informativeData;

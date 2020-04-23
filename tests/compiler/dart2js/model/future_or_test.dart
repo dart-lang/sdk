@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
@@ -99,8 +101,8 @@ main() {
         getReturnType('futureOrFutureOrNum', 'FutureOr<FutureOr<num>>');
 
     DartType futureNull = getReturnType('futureNull', 'Future<Null>');
-    FutureOrType futureOrNull = getReturnType('futureOrNull', 'FutureOr<Null>');
-    DartType Null_ = futureOrNull.typeArgument;
+    InterfaceType futureOrNull = getReturnType('futureOrNull', 'Future<Null>');
+    DartType Null_ = futureOrNull.typeArguments.single;
 
     ClassEntity C = env.getClass('C');
     DartType futureT = getReturnType('futureT', 'Future<C.T>', C);
@@ -111,7 +113,7 @@ main() {
 
     DartType returnVoid = getFunctionType('returnVoid', 'void Function()');
     DartType returnFutureNull =
-        getFunctionType('futureOrNull', 'FutureOr<Null> Function()');
+        getFunctionType('futureOrNull', 'Future<Null> Function()');
 
     List<DartType> all = [
       Object_,
@@ -157,15 +159,22 @@ main() {
         futureOrT,
       ],
       futureListNum: [futureOrListNum],
+      futureT: [futureOrT],
       futureFutureNum: [futureOrFutureOrNum],
       futureOrNum: [futureOrFutureOrNum],
       futureOrInt: [futureOrNum, futureOrFutureOrNum],
       futureOrNull: [
-        futureOrT,
+        futureNull,
+        futureNum,
         futureOrNum,
+        futureInt,
         futureOrInt,
+        futureListNum,
         futureOrListNum,
+        futureFutureNum,
         futureOrFutureOrNum,
+        futureT,
+        futureOrT,
       ],
       returnFutureNull: [returnVoid],
     };

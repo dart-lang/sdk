@@ -4,24 +4,7 @@
 
 library fasta.class_hierarchy_builder;
 
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        DartType,
-        Field,
-        FunctionNode,
-        InterfaceType,
-        InvalidType,
-        Library,
-        Member,
-        Name,
-        Nullability,
-        Procedure,
-        ProcedureKind,
-        Supertype,
-        TypeParameter,
-        TypeParameterType,
-        VariableDeclaration;
+import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -30,6 +13,13 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
+import 'package:kernel/src/future_or.dart';
+import 'package:kernel/src/legacy_erasure.dart';
+import 'package:kernel/src/nnbd_top_merge.dart';
+import 'package:kernel/src/norm.dart';
+
+import '../../testing/id_testing_utils.dart' show typeToText;
+
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/field_builder.dart';
@@ -37,13 +27,11 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
+import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
-
-import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../loader.dart' show Loader;
 
@@ -53,6 +41,7 @@ import '../messages.dart'
         Message,
         messageDeclaredMemberConflictsWithInheritedMember,
         messageDeclaredMemberConflictsWithInheritedMemberCause,
+        messageDeclaredMemberConflictsWithInheritedMembersCause,
         messageInheritedMembersConflict,
         messageInheritedMembersConflictCause1,
         messageInheritedMembersConflictCause2,
@@ -94,6 +83,8 @@ import 'kernel_builder.dart' show ImplicitFieldType;
 
 import 'types.dart' show Types;
 
+const bool useConsolidated = true;
+
 const DebugLogger debug =
     const bool.fromEnvironment("debug.hierarchy") ? const DebugLogger() : null;
 
@@ -103,18 +94,107 @@ class DebugLogger {
 }
 
 int compareDeclarations(ClassMember a, ClassMember b) {
-  return ClassHierarchy.compareMembers(a.member, b.member);
+  if (a == b) return 0;
+  return ClassHierarchy.compareNames(a.name, b.name);
 }
 
-ProcedureKind memberKind(Member member) {
-  return member is Procedure ? member.kind : null;
+int compareClassMembers(ClassMember a, ClassMember b) {
+  if (a.forSetter == b.forSetter) {
+    return compareDeclarations(a, b);
+  } else if (a.forSetter) {
+    return 1;
+  } else {
+    return -1;
+  }
 }
 
 bool isNameVisibleIn(Name name, LibraryBuilder libraryBuilder) {
   return !name.isPrivate || name.library == libraryBuilder.library;
 }
 
+class Tuple {
+  final Name name;
+  ClassMember declaredMember;
+  ClassMember declaredSetter;
+  ClassMember extendedMember;
+  ClassMember extendedSetter;
+  List<ClassMember> implementedMembers;
+  List<ClassMember> implementedSetters;
+
+  Tuple.declareMember(this.declaredMember)
+      : assert(!declaredMember.forSetter),
+        this.name = declaredMember.name;
+
+  Tuple.extendMember(this.extendedMember)
+      : assert(!extendedMember.forSetter),
+        this.name = extendedMember.name;
+
+  Tuple.implementMember(ClassMember implementedMember)
+      : assert(!implementedMember.forSetter),
+        this.name = implementedMember.name,
+        implementedMembers = <ClassMember>[implementedMember];
+
+  Tuple.declareSetter(this.declaredSetter)
+      : assert(declaredSetter.forSetter),
+        this.name = declaredSetter.name;
+
+  Tuple.extendSetter(this.extendedSetter)
+      : assert(extendedSetter.forSetter),
+        this.name = extendedSetter.name;
+
+  Tuple.implementSetter(ClassMember implementedSetter)
+      : assert(implementedSetter.forSetter),
+        this.name = implementedSetter.name,
+        implementedSetters = <ClassMember>[implementedSetter];
+
+  @override
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    String comma = '';
+    sb.write('Tuple(');
+    if (declaredMember != null) {
+      sb.write(comma);
+      sb.write('declaredMember=');
+      sb.write(declaredMember);
+      comma = ',';
+    }
+    if (declaredSetter != null) {
+      sb.write(comma);
+      sb.write('declaredSetter=');
+      sb.write(declaredSetter);
+      comma = ',';
+    }
+    if (extendedMember != null) {
+      sb.write(comma);
+      sb.write('extendedMember=');
+      sb.write(extendedMember);
+      comma = ',';
+    }
+    if (extendedSetter != null) {
+      sb.write(comma);
+      sb.write('extendedSetter=');
+      sb.write(extendedSetter);
+      comma = ',';
+    }
+    if (implementedMembers != null) {
+      sb.write(comma);
+      sb.write('implementedMembers=');
+      sb.write(implementedMembers);
+      comma = ',';
+    }
+    if (implementedSetters != null) {
+      sb.write(comma);
+      sb.write('implementedSetters=');
+      sb.write(implementedSetters);
+      comma = ',';
+    }
+    sb.write(')');
+    return sb.toString();
+  }
+}
+
 abstract class ClassMember {
+  Name get name;
   bool get isStatic;
   bool get isField;
   bool get isAssignable;
@@ -122,12 +202,37 @@ abstract class ClassMember {
   bool get isGetter;
   bool get isFinal;
   bool get isConst;
-  Member get member;
+  bool get forSetter;
+  bool get isSourceDeclaration;
+
+  /// Returns `true` if this member is a regular method or operator.
+  bool get isFunction;
+
+  /// Returns `true` if this member is a field, getter or setter.
+  bool get isProperty;
+  Member getMember(ClassHierarchyBuilder hierarchy);
   bool get isDuplicate;
+  String get fullName;
   String get fullNameForErrors;
   ClassBuilder get classBuilder;
+  bool isObjectMember(ClassBuilder objectClass);
   Uri get fileUri;
   int get charOffset;
+  bool get isAbstract;
+
+  bool get needsComputation;
+  bool get isSynthesized;
+  bool get isInheritableConflict;
+  ClassMember withParent(ClassBuilder classBuilder);
+  bool get hasDeclarations;
+  List<ClassMember> get declarations;
+  ClassMember get abstract;
+  ClassMember get concrete;
+
+  bool operator ==(Object other);
+
+  void inferType(ClassHierarchyBuilder hierarchy);
+  void registerOverrideDependency(ClassMember overriddenMember);
 }
 
 /// Returns true if [a] is a class member conflict with [b].  [a] is assumed to
@@ -138,17 +243,7 @@ abstract class ClassMember {
 /// ../../../../../../docs/language/dartLangSpec.tex#classMemberConflicts).
 bool isInheritanceConflict(ClassMember a, ClassMember b) {
   if (a.isStatic) return true;
-  if (memberKind(a.member) == memberKind(b.member)) return false;
-  if (a.isField) return !(b.isField || b.isGetter || b.isSetter);
-  if (b.isField) return !(a.isField || a.isGetter || a.isSetter);
-  if (a.isSetter) return !(b.isGetter || b.isSetter);
-  if (b.isSetter) return !(a.isGetter || a.isSetter);
-  if (a is InterfaceConflict || b is InterfaceConflict) return false;
-  return true;
-}
-
-bool impliesSetter(ClassMember declaration) {
-  return declaration.isAssignable;
+  return a.isProperty != b.isProperty;
 }
 
 bool hasSameSignature(FunctionNode a, FunctionNode b) {
@@ -217,6 +312,9 @@ bool hasSameSignature(FunctionNode a, FunctionNode b) {
 class ClassHierarchyBuilder {
   final Map<Class, ClassHierarchyNode> nodes = <Class, ClassHierarchyNode>{};
 
+  final Map<ClassBuilder, Map<Class, Substitution>> substitutions =
+      <ClassBuilder, Map<Class, Substitution>>{};
+
   final ClassBuilder objectClassBuilder;
 
   final Loader loader;
@@ -231,11 +329,13 @@ class ClassHierarchyBuilder {
 
   final Class nullClass;
 
-  final List<DelayedOverrideCheck> overrideChecks = <DelayedOverrideCheck>[];
+  final List<DelayedTypeComputation> _delayedTypeComputations =
+      <DelayedTypeComputation>[];
 
-  final List<DelayedMember> delayedMemberChecks = <DelayedMember>[];
+  final List<DelayedOverrideCheck> _overrideChecks = <DelayedOverrideCheck>[];
 
-  // TODO(dmitryas): Consider removing this.
+  final List<ClassMember> _delayedMemberChecks = <ClassMember>[];
+
   final CoreTypes coreTypes;
 
   Types types;
@@ -249,77 +349,179 @@ class ClassHierarchyBuilder {
     types = new Types(this);
   }
 
-  ClassHierarchyNode getNodeFromClass(ClassBuilder classBuilder) {
-    return nodes[classBuilder.cls] ??=
-        new ClassHierarchyNodeBuilder(this, classBuilder).build();
+  void clear() {
+    nodes.clear();
+    substitutions.clear();
+    _overrideChecks.clear();
+    _delayedTypeComputations.clear();
   }
 
-  ClassHierarchyNode getNodeFromType(TypeBuilder type) {
+  void registerDelayedTypeComputation(DelayedTypeComputation computation) {
+    _delayedTypeComputations.add(computation);
+  }
+
+  void registerOverrideCheck(
+      ClassBuilder classBuilder, ClassMember a, ClassMember b) {
+    _overrideChecks.add(new DelayedOverrideCheck(classBuilder, a, b));
+  }
+
+  void registerMemberCheck(ClassMember member) {
+    _delayedMemberChecks.add(member);
+  }
+
+  List<DelayedTypeComputation> takeDelayedTypeComputations() {
+    List<DelayedTypeComputation> list = _delayedTypeComputations.toList();
+    _delayedTypeComputations.clear();
+    return list;
+  }
+
+  List<DelayedOverrideCheck> takeDelayedOverrideChecks() {
+    List<DelayedOverrideCheck> list = _overrideChecks.toList();
+    _overrideChecks.clear();
+    return list;
+  }
+
+  List<ClassMember> takeDelayedMemberChecks() {
+    List<ClassMember> list = _delayedMemberChecks.toList();
+    _delayedMemberChecks.clear();
+    return list;
+  }
+
+  void inferFieldType(SourceFieldBuilder declaredMember,
+      Iterable<ClassMember> overriddenMembers) {
+    ClassHierarchyNodeBuilder.inferFieldType(
+        this,
+        declaredMember.classBuilder,
+        substitutions[declaredMember.classBuilder],
+        declaredMember,
+        overriddenMembers);
+  }
+
+  void inferGetterType(SourceProcedureBuilder declaredMember,
+      Iterable<ClassMember> overriddenMembers) {
+    ClassHierarchyNodeBuilder.inferGetterType(
+        this,
+        declaredMember.classBuilder,
+        substitutions[declaredMember.classBuilder],
+        declaredMember,
+        overriddenMembers);
+  }
+
+  void inferSetterType(SourceProcedureBuilder declaredMember,
+      Iterable<ClassMember> overriddenMembers) {
+    ClassHierarchyNodeBuilder.inferSetterType(
+        this,
+        declaredMember.classBuilder,
+        substitutions[declaredMember.classBuilder],
+        declaredMember,
+        overriddenMembers);
+  }
+
+  void inferMethodType(SourceProcedureBuilder declaredMember,
+      Iterable<ClassMember> overriddenMembers) {
+    ClassHierarchyNodeBuilder.inferMethodType(
+        this,
+        declaredMember.classBuilder,
+        substitutions[declaredMember.classBuilder],
+        declaredMember,
+        overriddenMembers);
+  }
+
+  ClassHierarchyNode getNodeFromClassBuilder(ClassBuilder classBuilder) {
+    return nodes[classBuilder.cls] ??= new ClassHierarchyNodeBuilder(
+            this, classBuilder, substitutions[classBuilder] ??= {})
+        .build();
+  }
+
+  ClassHierarchyNode getNodeFromTypeBuilder(TypeBuilder type) {
     ClassBuilder cls = getClass(type);
-    return cls == null ? null : getNodeFromClass(cls);
+    return cls == null ? null : getNodeFromClassBuilder(cls);
   }
 
-  ClassHierarchyNode getNodeFromKernelClass(Class cls) {
+  ClassHierarchyNode getNodeFromClass(Class cls) {
     return nodes[cls] ??
-        getNodeFromClass(loader.computeClassBuilderFromTargetClass(cls));
+        getNodeFromClassBuilder(loader.computeClassBuilderFromTargetClass(cls));
   }
 
-  TypeBuilder asSupertypeOf(Class cls, Class supertype) {
-    ClassHierarchyNode clsNode = getNodeFromKernelClass(cls);
-    if (cls == supertype) {
-      return new NamedTypeBuilder(
-          clsNode.classBuilder.name, const NullabilityBuilder.omitted(), null)
-        ..bind(clsNode.classBuilder);
+  Supertype asSupertypeOf(InterfaceType subtype, Class supertype) {
+    if (subtype.classNode == supertype) {
+      return new Supertype(supertype, subtype.typeArguments);
     }
-    ClassHierarchyNode supertypeNode = getNodeFromKernelClass(supertype);
-    List<TypeBuilder> supertypes = clsNode.superclasses;
+    ClassHierarchyNode clsNode = getNodeFromClass(subtype.classNode);
+    ClassHierarchyNode supertypeNode = getNodeFromClass(supertype);
+    List<Supertype> superclasses = clsNode.superclasses;
     int depth = supertypeNode.depth;
-    Builder supertypeDeclaration = supertypeNode.classBuilder;
-    if (depth < supertypes.length) {
-      TypeBuilder asSupertypeOf = supertypes[depth];
-      if (asSupertypeOf.declaration == supertypeDeclaration) {
-        return asSupertypeOf;
+    if (depth < superclasses.length) {
+      Supertype superclass = superclasses[depth];
+      if (superclass.classNode == supertype) {
+        return Substitution.fromInterfaceType(subtype)
+            .substituteSupertype(superclass);
       }
     }
-    supertypes = clsNode.interfaces;
-    for (int i = 0; i < supertypes.length; i++) {
-      TypeBuilder type = supertypes[i];
-      if (type.declaration == supertypeDeclaration) return type;
+    List<Supertype> superinterfaces = clsNode.interfaces;
+    for (int i = 0; i < superinterfaces.length; i++) {
+      Supertype superinterface = superinterfaces[i];
+      if (superinterface.classNode == supertype) {
+        return Substitution.fromInterfaceType(subtype)
+            .substituteSupertype(superinterface);
+      }
     }
     return null;
   }
 
   InterfaceType getKernelTypeAsInstanceOf(
-      InterfaceType type, Class superclass) {
+      InterfaceType type, Class superclass, Library clientLibrary) {
     Class kernelClass = type.classNode;
     if (kernelClass == superclass) return type;
     if (kernelClass == nullClass) {
       if (superclass.typeParameters.isEmpty) {
-        return coreTypes.legacyRawType(superclass);
+        return coreTypes.rawType(superclass, clientLibrary.nullable);
       } else {
         // This is a safe fall-back for dealing with `Null`. It will likely be
         // faster to check for `Null` before calling this method.
         return new InterfaceType(
             superclass,
-            Nullability.legacy,
+            clientLibrary.nullable,
             new List<DartType>.filled(
                 superclass.typeParameters.length, coreTypes.nullType));
       }
     }
-    NamedTypeBuilder supertype = asSupertypeOf(kernelClass, superclass);
-    if (supertype == null) return null;
-    if (supertype.arguments == null && superclass.typeParameters.isEmpty) {
-      return coreTypes.legacyRawType(superclass);
+    return asSupertypeOf(type, superclass)
+        .asInterfaceType
+        .withNullability(type.nullability);
+  }
+
+  List<DartType> getKernelTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass) {
+    Class kernelClass = type.classNode;
+    if (kernelClass == superclass) return type.typeArguments;
+    if (kernelClass == nullClass) {
+      if (superclass.typeParameters.isEmpty) return const <DartType>[];
+      return new List<DartType>.filled(
+          superclass.typeParameters.length, coreTypes.nullType);
     }
-    return Substitution.fromInterfaceType(type)
-        .substituteType(supertype.build(null));
+    return asSupertypeOf(type, superclass)?.typeArguments;
   }
 
   InterfaceType getKernelLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2) {
+      InterfaceType type1, InterfaceType type2, Library clientLibrary) {
     if (type1 == type2) return type1;
-    ClassHierarchyNode node1 = getNodeFromKernelClass(type1.classNode);
-    ClassHierarchyNode node2 = getNodeFromKernelClass(type2.classNode);
+
+    // LLUB(Null, List<dynamic>*) works differently for opt-in and opt-out
+    // libraries.  In opt-out libraries the legacy behavior is preserved, so
+    // LLUB(Null, List<dynamic>*) = List<dynamic>*.  In opt-out libraries the
+    // rules imply that LLUB(Null, List<dynamic>*) = List<dynamic>?.
+    if (!clientLibrary.isNonNullableByDefault) {
+      if (type1 is InterfaceType && type1.classNode == nullClass) {
+        return type2;
+      }
+      if (type2 is InterfaceType && type2.classNode == nullClass) {
+        return type1;
+      }
+    }
+
+    ClassHierarchyNode node1 = getNodeFromClass(type1.classNode);
+    ClassHierarchyNode node2 = getNodeFromClass(type2.classNode);
     Set<ClassHierarchyNode> nodes1 = node1.computeAllSuperNodes(this).toSet();
     List<ClassHierarchyNode> nodes2 = node2.computeAllSuperNodes(this);
     List<ClassHierarchyNode> common = <ClassHierarchyNode>[];
@@ -328,48 +530,55 @@ class ClassHierarchyBuilder {
       ClassHierarchyNode node = nodes2[i];
       if (node == null) continue;
       if (nodes1.contains(node)) {
-        DartType candidate1 =
-            getKernelTypeAsInstanceOf(type1, node.classBuilder.cls);
-        DartType candidate2 =
-            getKernelTypeAsInstanceOf(type2, node.classBuilder.cls);
+        DartType candidate1 = getKernelTypeAsInstanceOf(
+            type1, node.classBuilder.cls, clientLibrary);
+        DartType candidate2 = getKernelTypeAsInstanceOf(
+            type2, node.classBuilder.cls, clientLibrary);
         if (candidate1 == candidate2) {
           common.add(node);
         }
       }
     }
 
-    if (common.length == 1) return coreTypes.objectLegacyRawType;
+    if (common.length == 1) {
+      return coreTypes.objectRawType(
+          uniteNullabilities(type1.nullability, type2.nullability));
+    }
     common.sort(ClassHierarchyNode.compareMaxInheritancePath);
 
     for (int i = 0; i < common.length - 1; i++) {
       ClassHierarchyNode node = common[i];
       if (node.maxInheritancePath != common[i + 1].maxInheritancePath) {
-        return getKernelTypeAsInstanceOf(type1, node.classBuilder.cls);
+        return getKernelTypeAsInstanceOf(
+                type1, node.classBuilder.cls, clientLibrary)
+            .withNullability(
+                uniteNullabilities(type1.nullability, type2.nullability));
       } else {
         do {
           i++;
         } while (node.maxInheritancePath == common[i + 1].maxInheritancePath);
       }
     }
-    return coreTypes.objectLegacyRawType;
+    return coreTypes.objectRawType(
+        uniteNullabilities(type1.nullability, type2.nullability));
   }
 
   Member getInterfaceMemberKernel(Class cls, Name name, bool isSetter) {
-    return getNodeFromKernelClass(cls)
+    return getNodeFromClass(cls)
         .getInterfaceMember(name, isSetter)
-        ?.member;
+        ?.getMember(this);
   }
 
   Member getDispatchTargetKernel(Class cls, Name name, bool isSetter) {
-    return getNodeFromKernelClass(cls)
+    return getNodeFromClass(cls)
         .getDispatchTarget(name, isSetter)
-        ?.member;
+        ?.getMember(this);
   }
 
   Member getCombinedMemberSignatureKernel(Class cls, Name name, bool isSetter,
       int charOffset, SourceLibraryBuilder library) {
     ClassMember declaration =
-        getNodeFromKernelClass(cls).getInterfaceMember(name, isSetter);
+        getNodeFromClass(cls).getInterfaceMember(name, isSetter);
     if (declaration?.isStatic ?? true) return null;
     if (declaration.isDuplicate) {
       library?.addProblem(
@@ -379,11 +588,7 @@ class ClassHierarchyBuilder {
           library.fileUri);
       return null;
     }
-    if (declaration is DelayedMember) {
-      return declaration.check(this);
-    } else {
-      return declaration.member;
-    }
+    return declaration.getMember(this);
   }
 
   static ClassHierarchyBuilder build(ClassBuilder objectClass,
@@ -393,14 +598,25 @@ class ClassHierarchyBuilder {
     for (int i = 0; i < classes.length; i++) {
       ClassBuilder classBuilder = classes[i];
       if (!classBuilder.isPatch) {
-        hierarchy.nodes[classBuilder.cls] =
-            new ClassHierarchyNodeBuilder(hierarchy, classBuilder).build();
+        hierarchy.nodes[classBuilder.cls] = new ClassHierarchyNodeBuilder(
+                hierarchy,
+                classBuilder,
+                hierarchy.substitutions[classBuilder] ??= {})
+            .build();
       } else {
         // TODO(ahe): Merge the injected members of patch into the hierarchy
         // node of `cls.origin`.
       }
     }
     return hierarchy;
+  }
+
+  void computeTypes() {
+    List<DelayedTypeComputation> typeComputations =
+        takeDelayedTypeComputations();
+    for (int i = 0; i < typeComputations.length; i++) {
+      typeComputations[i].compute(this);
+    }
   }
 }
 
@@ -413,167 +629,18 @@ class ClassHierarchyNodeBuilder {
 
   List<ClassMember> abstractMembers = null;
 
-  ClassHierarchyNodeBuilder(this.hierarchy, this.classBuilder);
+  final Map<Class, Substitution> substitutions;
+
+  ClassHierarchyNodeBuilder(
+      this.hierarchy, this.classBuilder, this.substitutions);
 
   ClassBuilder get objectClass => hierarchy.objectClassBuilder;
 
-  final Map<Class, Substitution> substitutions = <Class, Substitution>{};
-
-  /// When merging `aList` and `bList`, [a] (from `aList`) and [b] (from
-  /// `bList`) each have the same name.
-  ///
-  /// If [mergeKind] is `MergeKind.superclass`, [a] should override [b].
-  ///
-  /// If [mergeKind] is `MergeKind.interfaces`, we need to record them and
-  /// solve the conflict later.
-  ///
-  /// If [mergeKind] is `MergeKind.supertypes`, [a] should implement [b], and
-  /// [b] is implicitly abstract.
-  ClassMember handleMergeConflict(
-      ClassMember a, ClassMember b, MergeKind mergeKind) {
-    debug?.log(
-        "handleMergeConflict: ${fullName(a)} ${fullName(b)} ${mergeKind}");
-    // TODO(ahe): Enable this optimization, but be careful about abstract
-    // methods overriding concrete methods.
-    // if (cls is DillClassBuilder) return a;
-    if (a == b) return a;
-    if (a.isDuplicate || b.isDuplicate) {
-      // Don't check overrides involving duplicated members.
-      return a;
-    }
-    ClassMember result = checkInheritanceConflict(a, b);
-    if (result != null) return result;
-    result = a;
-    switch (mergeKind) {
-      case MergeKind.superclassMembers:
-      case MergeKind.superclassSetters:
-        // [a] is a method declared in [cls]. This means it defines the
-        // interface of this class regardless if its abstract.
-        debug?.log("superclass: checkValidOverride("
-            "${classBuilder.fullNameForErrors}, "
-            "${fullName(a)}, ${fullName(b)})");
-        checkValidOverride(
-            a, AbstractMemberOverridingImplementation.selectAbstract(b));
-
-        if (isAbstract(a)) {
-          if (isAbstract(b)) {
-            recordAbstractMember(a);
-          } else {
-            if (!classBuilder.isAbstract) {
-              // The interface of this class is [a]. But the implementation is
-              // [b]. So [b] must implement [a], unless [cls] is abstract.
-              checkValidOverride(b, a);
-            }
-            result = new AbstractMemberOverridingImplementation(
-                classBuilder,
-                a,
-                AbstractMemberOverridingImplementation.selectConcrete(b),
-                mergeKind == MergeKind.superclassSetters,
-                classBuilder.library.loader == hierarchy.loader);
-            hierarchy.delayedMemberChecks.add(result);
-          }
-        } else if (classBuilder.isMixinApplication &&
-            a.classBuilder != classBuilder) {
-          result = InheritedImplementationInterfaceConflict.combined(
-              classBuilder,
-              a,
-              b,
-              mergeKind == MergeKind.superclassSetters,
-              classBuilder.library.loader == hierarchy.loader,
-              isInheritableConflict: false);
-          if (result is DelayedMember) {
-            hierarchy.delayedMemberChecks.add(result);
-          }
-        }
-
-        Member target = result.member;
-        if (target.enclosingClass != objectClass.cls &&
-            target.name == noSuchMethodName) {
-          hasNoSuchMethod = true;
-        }
-        break;
-
-      case MergeKind.membersWithSetters:
-      case MergeKind.settersWithMembers:
-        if (a.classBuilder == classBuilder && b.classBuilder != classBuilder) {
-          if (a is FieldBuilder) {
-            if (a.isFinal && b.isSetter) {
-              hierarchy.overrideChecks
-                  .add(new DelayedOverrideCheck(classBuilder, a, b));
-            } else {
-              if (!inferFieldTypes(a, b)) {
-                hierarchy.overrideChecks
-                    .add(new DelayedOverrideCheck(classBuilder, a, b));
-              }
-            }
-          } else if (a is ProcedureBuilder) {
-            if (!inferMethodTypes(a, b)) {
-              hierarchy.overrideChecks
-                  .add(new DelayedOverrideCheck(classBuilder, a, b));
-            }
-          }
-        }
-        break;
-
-      case MergeKind.interfacesMembers:
-        result = InterfaceConflict.combined(classBuilder, a, b, false,
-            classBuilder.library.loader == hierarchy.loader);
-        break;
-
-      case MergeKind.interfacesSetters:
-        result = InterfaceConflict.combined(classBuilder, a, b, true,
-            classBuilder.library.loader == hierarchy.loader);
-        break;
-
-      case MergeKind.supertypesMembers:
-      case MergeKind.supertypesSetters:
-        // [b] is inherited from an interface so it is implicitly abstract.
-
-        a = AbstractMemberOverridingImplementation.selectAbstract(a);
-        b = AbstractMemberOverridingImplementation.selectAbstract(b);
-
-        // If [a] is declared in this class, it defines the interface.
-        if (a.classBuilder == classBuilder) {
-          debug?.log("supertypes: checkValidOverride("
-              "${classBuilder.fullNameForErrors}, "
-              "${fullName(a)}, ${fullName(b)})");
-          checkValidOverride(a, b);
-          if (a is DelayedMember && !a.isInheritableConflict) {
-            if (b is DelayedMember) {
-              b.addAllDeclarationsTo(a.declarations);
-            } else {
-              addDeclarationIfDifferent(b, a.declarations);
-            }
-          }
-        } else {
-          if (isAbstract(a)) {
-            result = InterfaceConflict.combined(
-                classBuilder,
-                a,
-                b,
-                mergeKind == MergeKind.supertypesSetters,
-                classBuilder.library.loader == hierarchy.loader);
-          } else {
-            result = InheritedImplementationInterfaceConflict.combined(
-                classBuilder,
-                a,
-                b,
-                mergeKind == MergeKind.supertypesSetters,
-                classBuilder.library.loader == hierarchy.loader);
-          }
-          debug?.log("supertypes: ${result}");
-          if (result is DelayedMember) {
-            hierarchy.delayedMemberChecks.add(result);
-          }
-        }
-        break;
-    }
-
-    return result;
-  }
+  bool get shouldModifyKernel =>
+      classBuilder.library.loader == hierarchy.loader;
 
   ClassMember checkInheritanceConflict(ClassMember a, ClassMember b) {
-    if (a is DelayedMember) {
+    if (a.hasDeclarations) {
       ClassMember result;
       for (int i = 0; i < a.declarations.length; i++) {
         ClassMember d = checkInheritanceConflict(a.declarations[i], b);
@@ -581,7 +648,7 @@ class ClassHierarchyNodeBuilder {
       }
       return result;
     }
-    if (b is DelayedMember) {
+    if (b.hasDeclarations) {
       ClassMember result;
       for (int i = 0; i < b.declarations.length; i++) {
         ClassMember d = checkInheritanceConflict(a, b.declarations[i]);
@@ -596,398 +663,662 @@ class ClassHierarchyNodeBuilder {
     return null;
   }
 
-  bool inferMethodTypes(ProcedureBuilder a, ClassMember b) {
-    debug?.log(
-        "Trying to infer types for ${fullName(a)} based on ${fullName(b)}");
-    if (b is DelayedMember) {
-      bool hasSameSignature = true;
-      List<ClassMember> declarations = b.declarations;
-      for (int i = 0; i < declarations.length; i++) {
-        if (!inferMethodTypes(a, declarations[i])) {
-          hasSameSignature = false;
-        }
-      }
-      return hasSameSignature;
-    }
-    if (a.isGetter) {
-      return inferGetterType(a, b);
-    } else if (a.isSetter) {
-      return inferSetterType(a, b);
-    }
-    bool hadTypesInferred = a.hadTypesInferred;
-    ClassBuilder aClassBuilder = a.parent;
-    Substitution aSubstitution;
-    if (classBuilder != aClassBuilder) {
-      assert(
-          substitutions.containsKey(aClassBuilder.cls),
-          "${classBuilder.fullNameForErrors} "
-          "${aClassBuilder.fullNameForErrors}");
-      aSubstitution = substitutions[aClassBuilder.cls];
-      debug?.log("${classBuilder.fullNameForErrors} -> "
-          "${aClassBuilder.fullNameForErrors} $aSubstitution");
-    }
-    ClassBuilder bClassBuilder = b.classBuilder;
-    Substitution bSubstitution;
-    if (classBuilder != bClassBuilder) {
-      assert(
-          substitutions.containsKey(bClassBuilder.cls),
-          "${classBuilder.fullNameForErrors} "
-          "${bClassBuilder.fullNameForErrors}");
-      bSubstitution = substitutions[bClassBuilder.cls];
-      debug?.log("${classBuilder.fullNameForErrors} -> "
-          "${bClassBuilder.fullNameForErrors} $bSubstitution");
-    }
-    Procedure aProcedure = a.procedure;
-    if (b.member is! Procedure) {
-      debug?.log("Giving up 1");
-      return false;
-    }
-    Procedure bProcedure = b.member;
-    FunctionNode aFunction = aProcedure.function;
-    FunctionNode bFunction = bProcedure.function;
+  static void inferMethodType(
+      ClassHierarchyBuilder hierarchy,
+      ClassBuilder classBuilder,
+      Map<Class, Substitution> substitutions,
+      SourceProcedureBuilder declaredMember,
+      Iterable<ClassMember> overriddenMembers) {
+    assert(!declaredMember.isGetter && !declaredMember.isSetter);
+    if (declaredMember.classBuilder == classBuilder &&
+        (declaredMember.returnType == null ||
+            declaredMember.formals != null &&
+                declaredMember.formals
+                    .any((parameter) => parameter.type == null))) {
+      Procedure declaredProcedure = declaredMember.member;
+      FunctionNode declaredFunction = declaredProcedure.function;
+      List<TypeParameter> declaredTypeParameters =
+          declaredFunction.typeParameters;
+      List<VariableDeclaration> declaredPositional =
+          declaredFunction.positionalParameters;
+      List<VariableDeclaration> declaredNamed =
+          declaredFunction.namedParameters;
+      declaredNamed = declaredNamed.toList()..sort(compareNamedParameters);
 
-    List<TypeParameter> aTypeParameters = aFunction.typeParameters;
-    List<TypeParameter> bTypeParameters = bFunction.typeParameters;
-    int typeParameterCount = aTypeParameters.length;
-    if (typeParameterCount != bTypeParameters.length) {
-      debug?.log("Giving up 2");
-      return false;
-    }
-    Substitution substitution;
-    if (typeParameterCount != 0) {
-      for (int i = 0; i < typeParameterCount; i++) {
-        copyTypeParameterCovariance(
-            a.parent, aTypeParameters[i], bTypeParameters[i]);
-      }
-      List<DartType> types = new List<DartType>(typeParameterCount);
-      for (int i = 0; i < typeParameterCount; i++) {
-        types[i] = new TypeParameterType.forAlphaRenaming(
-            bTypeParameters[i], aTypeParameters[i]);
-      }
-      substitution = Substitution.fromPairs(bTypeParameters, types);
-      for (int i = 0; i < typeParameterCount; i++) {
-        DartType aBound = aTypeParameters[i].bound;
-        DartType bBound = substitution.substituteType(bTypeParameters[i].bound);
-        if (aBound != bBound) {
-          debug?.log("Giving up 3");
-          return false;
-        }
-      }
-    }
+      DartType inferredReturnType;
+      Map<FormalParameterBuilder, DartType> inferredParameterTypes = {};
 
-    DartType aReturnType = aFunction.returnType;
-    if (aSubstitution != null) {
-      aReturnType = aSubstitution.substituteType(aReturnType);
-    }
-    DartType bReturnType = bFunction.returnType;
-    if (bSubstitution != null) {
-      bReturnType = bSubstitution.substituteType(bReturnType);
-    }
-    if (substitution != null) {
-      bReturnType = substitution.substituteType(bReturnType);
-    }
-    bool result = true;
-    if (aFunction.requiredParameterCount > bFunction.requiredParameterCount) {
-      debug?.log("Giving up 4");
-      return false;
-    }
-    List<VariableDeclaration> aPositional = aFunction.positionalParameters;
-    List<VariableDeclaration> bPositional = bFunction.positionalParameters;
-    if (aPositional.length < bPositional.length) {
-      debug?.log("Giving up 5");
-      return false;
-    }
+      for (ClassMember classMember
+          in toSet(declaredMember.classBuilder, overriddenMembers)) {
+        assert(useConsolidated || !classMember.hasDeclarations);
+        Member overriddenMember = classMember.getMember(hierarchy);
+        Substitution classSubstitution;
+        if (classBuilder.cls != overriddenMember.enclosingClass) {
+          assert(
+              substitutions.containsKey(overriddenMember.enclosingClass),
+              "No substitution found for '${classBuilder.fullNameForErrors}' "
+              "as instance of '${overriddenMember.enclosingClass.name}'. "
+              "Substitutions available for: ${substitutions.keys}");
+          classSubstitution = substitutions[overriddenMember.enclosingClass];
+          debug?.log("${classBuilder.fullNameForErrors} -> "
+              "${overriddenMember.enclosingClass.name} $classSubstitution");
+        }
+        if (overriddenMember is! Procedure) {
+          debug?.log("Giving up 1");
+          continue;
+        }
+        Procedure overriddenProcedure = overriddenMember;
+        FunctionNode overriddenFunction = overriddenProcedure.function;
 
-    if (aReturnType != bReturnType) {
-      if (a.parent == classBuilder && a.returnType == null) {
-        result = inferReturnType(
-            classBuilder, a, bReturnType, hadTypesInferred, hierarchy);
-      } else {
-        debug?.log("Giving up 6");
-        result = false;
-      }
-    }
-
-    for (int i = 0; i < bPositional.length; i++) {
-      VariableDeclaration aParameter = aPositional[i];
-      VariableDeclaration bParameter = bPositional[i];
-      copyParameterCovariance(a.parent, aParameter, bParameter);
-      DartType aType = aParameter.type;
-      if (aSubstitution != null) {
-        aType = aSubstitution.substituteType(aType);
-      }
-      DartType bType = bParameter.type;
-      if (bSubstitution != null) {
-        bType = bSubstitution.substituteType(bType);
-      }
-      if (substitution != null) {
-        bType = substitution.substituteType(bType);
-      }
-      if (aType != bType) {
-        if (a.parent == classBuilder && a.formals[i].type == null) {
-          result = inferParameterType(classBuilder, a, a.formals[i], bType,
-              hadTypesInferred, hierarchy);
-        } else {
-          debug?.log("Giving up 8");
-          result = false;
+        List<TypeParameter> overriddenTypeParameters =
+            overriddenFunction.typeParameters;
+        int typeParameterCount = declaredTypeParameters.length;
+        if (typeParameterCount != overriddenTypeParameters.length) {
+          debug?.log("Giving up 2");
+          continue;
         }
-      }
-    }
-
-    List<VariableDeclaration> aNamed = aFunction.namedParameters;
-    List<VariableDeclaration> bNamed = bFunction.namedParameters;
-    named:
-    if (aNamed.isNotEmpty || bNamed.isNotEmpty) {
-      if (aPositional.length != bPositional.length) {
-        debug?.log("Giving up 9");
-        result = false;
-        break named;
-      }
-      if (aFunction.requiredParameterCount !=
-          bFunction.requiredParameterCount) {
-        debug?.log("Giving up 10");
-        result = false;
-        break named;
-      }
-
-      aNamed = aNamed.toList()..sort(compareNamedParameters);
-      bNamed = bNamed.toList()..sort(compareNamedParameters);
-      int aCount = 0;
-      for (int bCount = 0; bCount < bNamed.length; bCount++) {
-        String name = bNamed[bCount].name;
-        for (; aCount < aNamed.length; aCount++) {
-          if (aNamed[aCount].name == name) break;
-        }
-        if (aCount == aNamed.length) {
-          debug?.log("Giving up 11");
-          result = false;
-          break named;
-        }
-        VariableDeclaration aParameter = aNamed[aCount];
-        VariableDeclaration bParameter = bNamed[bCount];
-        copyParameterCovariance(a.parent, aParameter, bParameter);
-        DartType aType = aParameter.type;
-        if (aSubstitution != null) {
-          aType = aSubstitution.substituteType(aType);
-        }
-        DartType bType = bParameter.type;
-        if (bSubstitution != null) {
-          bType = bSubstitution.substituteType(bType);
-        }
-        if (substitution != null) {
-          bType = substitution.substituteType(bType);
-        }
-        if (aType != bType) {
-          FormalParameterBuilder parameter;
-          for (int i = aPositional.length; i < a.formals.length; ++i) {
-            if (a.formals[i].name == name) {
-              parameter = a.formals[i];
-              break;
+        Substitution methodSubstitution;
+        if (typeParameterCount != 0) {
+          List<DartType> types = new List<DartType>(typeParameterCount);
+          for (int i = 0; i < typeParameterCount; i++) {
+            types[i] = new TypeParameterType.forAlphaRenaming(
+                overriddenTypeParameters[i], declaredTypeParameters[i]);
+          }
+          methodSubstitution =
+              Substitution.fromPairs(overriddenTypeParameters, types);
+          for (int i = 0; i < typeParameterCount; i++) {
+            DartType declaredBound = declaredTypeParameters[i].bound;
+            DartType overriddenBound = methodSubstitution
+                .substituteType(overriddenTypeParameters[i].bound);
+            if (!hierarchy.types
+                .isSameTypeKernel(declaredBound, overriddenBound)
+                .isSubtypeWhenUsingNullabilities()) {
+              debug?.log("Giving up 3");
+              continue;
             }
           }
-          if (a.parent == classBuilder && parameter.type == null) {
-            result = inferParameterType(
-                classBuilder, a, parameter, bType, hadTypesInferred, hierarchy);
-          } else {
-            debug?.log("Giving up 12");
-            result = false;
+        }
+
+        DartType inheritedReturnType = overriddenFunction.returnType;
+        if (classSubstitution != null) {
+          inheritedReturnType =
+              classSubstitution.substituteType(inheritedReturnType);
+        }
+        if (methodSubstitution != null) {
+          inheritedReturnType =
+              methodSubstitution.substituteType(inheritedReturnType);
+        }
+        if (declaredMember.returnType == null &&
+            inferredReturnType is! InvalidType) {
+          inferredReturnType = mergeTypeInLibrary(
+              hierarchy, classBuilder, inferredReturnType, inheritedReturnType);
+          if (inferredReturnType == null) {
+            // A different type has already been inferred.
+            inferredReturnType = const InvalidType();
+            reportCantInferReturnType(
+                classBuilder, declaredMember, hierarchy, overriddenMembers);
+          }
+        }
+        if (declaredFunction.requiredParameterCount >
+            overriddenFunction.requiredParameterCount) {
+          debug?.log("Giving up 4");
+          continue;
+        }
+        List<VariableDeclaration> overriddenPositional =
+            overriddenFunction.positionalParameters;
+        if (declaredPositional.length < overriddenPositional.length) {
+          debug?.log("Giving up 5");
+          continue;
+        }
+
+        for (int i = 0; i < overriddenPositional.length; i++) {
+          FormalParameterBuilder declaredParameter = declaredMember.formals[i];
+          if (declaredParameter.type != null) continue;
+
+          VariableDeclaration overriddenParameter = overriddenPositional[i];
+          DartType inheritedParameterType = overriddenParameter.type;
+          if (classSubstitution != null) {
+            inheritedParameterType =
+                classSubstitution.substituteType(inheritedParameterType);
+          }
+          if (methodSubstitution != null) {
+            inheritedParameterType =
+                methodSubstitution.substituteType(inheritedParameterType);
+          }
+          if (hierarchy.coreTypes.objectClass.enclosingLibrary
+                  .isNonNullableByDefault &&
+              !declaredMember.classBuilder.library.isNonNullableByDefault &&
+              overriddenProcedure == hierarchy.coreTypes.objectEquals) {
+            // In legacy code we special case `Object.==` to infer `dynamic`
+            // instead `Object!`.
+            inheritedParameterType = const DynamicType();
+          }
+          DartType inferredParameterType =
+              inferredParameterTypes[declaredParameter];
+          inferredParameterType = mergeTypeInLibrary(hierarchy, classBuilder,
+              inferredParameterType, inheritedParameterType);
+          if (inferredParameterType == null) {
+            // A different type has already been inferred.
+            inferredParameterType = const InvalidType();
+            reportCantInferParameterType(
+                classBuilder, declaredParameter, hierarchy, overriddenMembers);
+          }
+          inferredParameterTypes[declaredParameter] = inferredParameterType;
+        }
+
+        List<VariableDeclaration> overriddenNamed =
+            overriddenFunction.namedParameters;
+        named:
+        if (declaredNamed.isNotEmpty || overriddenNamed.isNotEmpty) {
+          if (declaredPositional.length != overriddenPositional.length) {
+            debug?.log("Giving up 9");
+            break named;
+          }
+          if (declaredFunction.requiredParameterCount !=
+              overriddenFunction.requiredParameterCount) {
+            debug?.log("Giving up 10");
+            break named;
+          }
+
+          overriddenNamed = overriddenNamed.toList()
+            ..sort(compareNamedParameters);
+          int declaredIndex = 0;
+          for (int overriddenIndex = 0;
+              overriddenIndex < overriddenNamed.length;
+              overriddenIndex++) {
+            String name = overriddenNamed[overriddenIndex].name;
+            for (; declaredIndex < declaredNamed.length; declaredIndex++) {
+              if (declaredNamed[declaredIndex].name == name) break;
+            }
+            if (declaredIndex == declaredNamed.length) {
+              debug?.log("Giving up 11");
+              break named;
+            }
+            FormalParameterBuilder declaredParameter;
+            for (int i = declaredPositional.length;
+                i < declaredMember.formals.length;
+                ++i) {
+              if (declaredMember.formals[i].name == name) {
+                declaredParameter = declaredMember.formals[i];
+                break;
+              }
+            }
+            if (declaredParameter.type != null) continue;
+            VariableDeclaration overriddenParameter =
+                overriddenNamed[overriddenIndex];
+
+            DartType inheritedParameterType = overriddenParameter.type;
+            if (classSubstitution != null) {
+              inheritedParameterType =
+                  classSubstitution.substituteType(inheritedParameterType);
+            }
+            if (methodSubstitution != null) {
+              inheritedParameterType =
+                  methodSubstitution.substituteType(inheritedParameterType);
+            }
+            DartType inferredParameterType =
+                inferredParameterTypes[declaredParameter];
+            inferredParameterType = mergeTypeInLibrary(hierarchy, classBuilder,
+                inferredParameterType, inheritedParameterType);
+            if (inferredParameterType == null) {
+              // A different type has already been inferred.
+              inferredParameterType = const InvalidType();
+              reportCantInferParameterType(classBuilder, declaredParameter,
+                  hierarchy, overriddenMembers);
+            }
+            inferredParameterTypes[declaredParameter] = inferredParameterType;
+          }
+        }
+      }
+      if (declaredMember.returnType == null) {
+        inferredReturnType ??= const DynamicType();
+        declaredFunction.returnType = inferredReturnType;
+      }
+      if (declaredMember.formals != null) {
+        for (FormalParameterBuilder declaredParameter
+            in declaredMember.formals) {
+          if (declaredParameter.type == null) {
+            DartType inferredParameterType =
+                inferredParameterTypes[declaredParameter] ??
+                    const DynamicType();
+            declaredParameter.variable.type = inferredParameterType;
           }
         }
       }
     }
-    debug?.log("Inferring types for ${fullName(a)} based on ${fullName(b)} " +
-        (result ? "succeeded." : "failed."));
-    return result;
   }
 
-  bool inferGetterType(ProcedureBuilder a, ClassMember b) {
-    debug?.log(
-        "Inferring getter types for ${fullName(a)} based on ${fullName(b)}");
-    Member bTarget = b.member;
-    DartType bType;
-    if (bTarget is Field) {
-      bType = bTarget.type;
-    } else if (bTarget is Procedure) {
-      if (b.isSetter) {
-        VariableDeclaration bParameter =
-            bTarget.function.positionalParameters.single;
-        bType = bParameter.type;
-        if (!hasExplicitlyTypedFormalParameter(b, 0)) {
-          debug?.log("Giving up (type may be inferred)");
-          return false;
+  void inferMethodSignature(ClassHierarchyBuilder hierarchy,
+      ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
+    assert(!declaredMember.isGetter && !declaredMember.isSetter);
+    // Trigger computation of method type.
+    Procedure declaredProcedure = declaredMember.getMember(hierarchy);
+    FunctionNode declaredFunction = declaredProcedure.function;
+    List<TypeParameter> declaredTypeParameters =
+        declaredFunction.typeParameters;
+    List<VariableDeclaration> declaredPositional =
+        declaredFunction.positionalParameters;
+    List<VariableDeclaration> declaredNamed = declaredFunction.namedParameters;
+    for (ClassMember overriddenMember
+        in toSet(declaredMember.classBuilder, overriddenMembers)) {
+      assert(useConsolidated || !overriddenMember.hasDeclarations);
+      Member bMember = overriddenMember.getMember(hierarchy);
+      if (bMember is! Procedure) {
+        debug?.log("Giving up 1");
+        continue;
+      }
+      Procedure bProcedure = bMember;
+      FunctionNode bFunction = bProcedure.function;
+
+      List<TypeParameter> bTypeParameters = bFunction.typeParameters;
+      int typeParameterCount = declaredTypeParameters.length;
+      if (typeParameterCount != bTypeParameters.length) {
+        debug?.log("Giving up 2");
+        continue;
+      }
+      if (typeParameterCount != 0) {
+        for (int i = 0; i < typeParameterCount; i++) {
+          copyTypeParameterCovariance(declaredMember.classBuilder,
+              declaredTypeParameters[i], bTypeParameters[i]);
         }
-      } else if (b.isGetter) {
-        bType = bTarget.function.returnType;
-        if (!hasExplicitReturnType(b)) {
-          debug?.log("Giving up (return type may be inferred)");
-          return false;
+      }
+
+      if (declaredFunction.requiredParameterCount >
+          bFunction.requiredParameterCount) {
+        debug?.log("Giving up 4");
+        continue;
+      }
+      List<VariableDeclaration> bPositional = bFunction.positionalParameters;
+      if (declaredPositional.length < bPositional.length) {
+        debug?.log("Giving up 5");
+        continue;
+      }
+
+      for (int i = 0; i < bPositional.length; i++) {
+        VariableDeclaration aParameter = declaredPositional[i];
+        VariableDeclaration bParameter = bPositional[i];
+        copyParameterCovariance(
+            declaredMember.classBuilder, aParameter, bParameter);
+      }
+
+      List<VariableDeclaration> bNamed = bFunction.namedParameters;
+      named:
+      if (declaredNamed.isNotEmpty || bNamed.isNotEmpty) {
+        if (declaredPositional.length != bPositional.length) {
+          debug?.log("Giving up 9");
+          break named;
+        }
+        if (declaredFunction.requiredParameterCount !=
+            bFunction.requiredParameterCount) {
+          debug?.log("Giving up 10");
+          break named;
+        }
+
+        declaredNamed = declaredNamed.toList()..sort(compareNamedParameters);
+        bNamed = bNamed.toList()..sort(compareNamedParameters);
+        int aCount = 0;
+        for (int bCount = 0; bCount < bNamed.length; bCount++) {
+          String name = bNamed[bCount].name;
+          for (; aCount < declaredNamed.length; aCount++) {
+            if (declaredNamed[aCount].name == name) break;
+          }
+          if (aCount == declaredNamed.length) {
+            debug?.log("Giving up 11");
+            break named;
+          }
+          VariableDeclaration aParameter = declaredNamed[aCount];
+          VariableDeclaration bParameter = bNamed[bCount];
+          copyParameterCovariance(
+              declaredMember.classBuilder, aParameter, bParameter);
+        }
+      }
+    }
+  }
+
+  void inferGetterSignature(ClassHierarchyBuilder hierarchy,
+      ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
+    assert(declaredMember.isGetter);
+    // Trigger computation of the getter type.
+    declaredMember.getMember(hierarchy);
+    // Otherwise nothing to do. Getters have no variance.
+  }
+
+  void inferSetterSignature(ClassHierarchyBuilder hierarchy,
+      ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
+    assert(declaredMember.isSetter);
+    // Trigger computation of the getter type.
+    Procedure declaredSetter = declaredMember.getMember(hierarchy);
+    VariableDeclaration setterParameter =
+        declaredSetter.function.positionalParameters.single;
+    for (ClassMember overriddenMember
+        in toSet(declaredMember.classBuilder, overriddenMembers)) {
+      Member bTarget = overriddenMember.getMember(hierarchy);
+      if (bTarget is Field) {
+        copyParameterCovarianceFromField(
+            declaredMember.classBuilder, setterParameter, bTarget);
+      } else if (bTarget is Procedure) {
+        if (overriddenMember.isSetter) {
+          VariableDeclaration bParameter =
+              bTarget.function.positionalParameters.single;
+          copyParameterCovariance(
+              declaredMember.classBuilder, setterParameter, bParameter);
+        } else if (overriddenMember.isGetter) {
+          // No variance to copy from getter.
+        } else {
+          debug?.log("Giving up (not accessor: ${bTarget.kind})");
+          continue;
         }
       } else {
-        debug?.log("Giving up (not accessor: ${bTarget.kind})");
-        return false;
+        debug?.log("Giving up (not field/procedure: ${bTarget.runtimeType})");
+        return;
       }
-    } else {
-      debug?.log("Giving up (not field/procedure: ${bTarget.runtimeType})");
-      return false;
     }
-    return a.procedure.function.returnType == bType;
   }
 
-  bool inferSetterType(ProcedureBuilder a, ClassMember b) {
-    debug?.log(
-        "Inferring setter types for ${fullName(a)} based on ${fullName(b)}");
-    Member bTarget = b.member;
-    Procedure aProcedure = a.procedure;
-    VariableDeclaration aParameter =
-        aProcedure.function.positionalParameters.single;
-    DartType bType;
-    if (bTarget is Field) {
-      bType = bTarget.type;
-      copyParameterCovarianceFromField(a.parent, aParameter, bTarget);
-    }
-    if (bTarget is Procedure) {
-      if (b.isSetter) {
-        VariableDeclaration bParameter =
-            bTarget.function.positionalParameters.single;
-        bType = bParameter.type;
-        copyParameterCovariance(a.parent, aParameter, bParameter);
-        if (!hasExplicitlyTypedFormalParameter(b, 0) ||
-            !hasExplicitlyTypedFormalParameter(a, 0)) {
-          debug?.log("Giving up (type may be inferred)");
-          return false;
+  static void inferGetterType(
+      ClassHierarchyBuilder hierarchy,
+      ClassBuilder classBuilder,
+      Map<Class, Substitution> substitutions,
+      SourceProcedureBuilder declaredMember,
+      Iterable<ClassMember> overriddenMembers) {
+    assert(declaredMember.isGetter);
+    if (declaredMember.classBuilder == classBuilder &&
+        declaredMember.returnType == null) {
+      DartType inferredType;
+
+      void inferFrom(ClassMember classMember) {
+        if (inferredType is InvalidType) return;
+
+        Member overriddenMember = classMember.getMember(hierarchy);
+        Substitution substitution;
+        if (classBuilder.cls != overriddenMember.enclosingClass) {
+          assert(
+              substitutions.containsKey(overriddenMember.enclosingClass),
+              "No substitution found for '${classBuilder.fullNameForErrors}' "
+              "as instance of '${overriddenMember.enclosingClass.name}'. "
+              "Substitutions available for: ${substitutions.keys}");
+          substitution = substitutions[overriddenMember.enclosingClass];
         }
-      } else if (b.isGetter) {
-        bType = bTarget.function.returnType;
-        if (!hasExplicitReturnType(b)) {
-          debug?.log("Giving up (return type may be inferred)");
-          return false;
+        DartType inheritedType;
+        if (overriddenMember is Field) {
+          inheritedType = overriddenMember.type;
+          assert(inheritedType is! ImplicitFieldType);
+        } else if (overriddenMember is Procedure) {
+          if (overriddenMember.kind == ProcedureKind.Setter) {
+            VariableDeclaration bParameter =
+                overriddenMember.function.positionalParameters.single;
+            inheritedType = bParameter.type;
+          } else if (overriddenMember.kind == ProcedureKind.Getter) {
+            inheritedType = overriddenMember.function.returnType;
+          } else {
+            debug?.log("Giving up (not accessor: ${overriddenMember.kind})");
+            return;
+          }
+        } else {
+          debug?.log(
+              "Giving up (not field/procedure: ${overriddenMember.runtimeType})");
+          return;
+        }
+        if (substitution != null) {
+          inheritedType = substitution.substituteType(inheritedType);
+        }
+        inferredType = mergeTypeInLibrary(
+            hierarchy, classBuilder, inferredType, inheritedType);
+
+        if (inferredType == null) {
+          // A different type has already been inferred.
+          inferredType = const InvalidType();
+          reportCantInferReturnType(
+              classBuilder, declaredMember, hierarchy, overriddenMembers);
+        }
+      }
+
+      overriddenMembers = toSet(classBuilder, overriddenMembers);
+      // The getter type must be inferred from getters first.
+      for (ClassMember overriddenMember in overriddenMembers) {
+        if (!overriddenMember.forSetter) {
+          inferFrom(overriddenMember);
+        }
+      }
+      if (inferredType == null) {
+        // The getter type must be inferred from setters if no type was
+        // inferred from getters.
+        for (ClassMember overriddenMember in overriddenMembers) {
+          if (overriddenMember.forSetter) {
+            inferFrom(overriddenMember);
+          }
+        }
+      }
+
+      inferredType ??= const DynamicType();
+      declaredMember.procedure.function.returnType = inferredType;
+    }
+  }
+
+  static void inferSetterType(
+      ClassHierarchyBuilder hierarchy,
+      ClassBuilder classBuilder,
+      Map<Class, Substitution> substitutions,
+      SourceProcedureBuilder declaredMember,
+      Iterable<ClassMember> overriddenMembers) {
+    assert(declaredMember.isSetter);
+    FormalParameterBuilder parameter = declaredMember.formals.first;
+    if (declaredMember.classBuilder == classBuilder && parameter.type == null) {
+      DartType inferredType;
+
+      void inferFrom(ClassMember classMember) {
+        if (inferredType is InvalidType) return;
+
+        Member overriddenMember = classMember.getMember(hierarchy);
+        Substitution substitution;
+        if (classBuilder.cls != overriddenMember.enclosingClass) {
+          assert(
+              substitutions.containsKey(overriddenMember.enclosingClass),
+              "No substitution found for '${classBuilder.fullNameForErrors}' "
+              "as instance of '${overriddenMember.enclosingClass.name}'. "
+              "Substitutions available for: ${substitutions.keys}");
+          substitution = substitutions[overriddenMember.enclosingClass];
+        }
+        DartType inheritedType;
+        if (overriddenMember is Field) {
+          inheritedType = overriddenMember.type;
+          assert(inheritedType is! ImplicitFieldType);
+        } else if (overriddenMember is Procedure) {
+          if (classMember.isSetter) {
+            VariableDeclaration bParameter =
+                overriddenMember.function.positionalParameters.single;
+            inheritedType = bParameter.type;
+          } else if (classMember.isGetter) {
+            inheritedType = overriddenMember.function.returnType;
+          } else {
+            debug?.log("Giving up (not accessor: ${overriddenMember.kind})");
+            return;
+          }
+        } else {
+          debug?.log(
+              "Giving up (not field/procedure: ${overriddenMember.runtimeType})");
+          return;
+        }
+        if (substitution != null) {
+          inheritedType = substitution.substituteType(inheritedType);
+        }
+        inferredType = mergeTypeInLibrary(
+            hierarchy, classBuilder, inferredType, inheritedType);
+        if (inferredType == null) {
+          // A different type has already been inferred.
+          inferredType = const InvalidType();
+          reportCantInferParameterType(
+              classBuilder, parameter, hierarchy, overriddenMembers);
+        }
+      }
+
+      overriddenMembers = toSet(classBuilder, overriddenMembers);
+      // The setter type must be inferred from setters first.
+      for (ClassMember overriddenMember in overriddenMembers) {
+        if (overriddenMember.forSetter) {
+          inferFrom(overriddenMember);
+        }
+      }
+      if (inferredType == null) {
+        // The setter type must be inferred from getters if no type was
+        // inferred from setters.
+        for (ClassMember overriddenMember in overriddenMembers) {
+          if (!overriddenMember.forSetter) {
+            inferFrom(overriddenMember);
+          }
+        }
+      }
+
+      inferredType ??= const DynamicType();
+      parameter.variable.type = inferredType;
+    }
+  }
+
+  /// Merge the [inheritedType] with the currently [inferredType] using
+  /// nnbd-top-merge or legacy-top-merge depending on whether [classBuilder] is
+  /// defined in an opt-in or opt-out library. If the types could not be merged
+  /// `null` is returned and an error should be reported by the caller.
+  static DartType mergeTypeInLibrary(
+      ClassHierarchyBuilder hierarchy,
+      ClassBuilder classBuilder,
+      DartType inferredType,
+      DartType inheritedType) {
+    if (classBuilder.library.isNonNullableByDefault) {
+      if (inferredType == null) {
+        return inheritedType;
+      } else {
+        return nnbdTopMerge(
+            hierarchy.coreTypes,
+            norm(hierarchy.coreTypes, inferredType),
+            norm(hierarchy.coreTypes, inheritedType));
+      }
+    } else {
+      inheritedType = legacyErasure(hierarchy.coreTypes, inheritedType);
+      if (inferredType == null) {
+        return inheritedType;
+      } else {
+        if (inferredType is DynamicType &&
+            inheritedType == hierarchy.coreTypes.objectLegacyRawType) {
+          return inferredType;
+        } else if (inheritedType is DynamicType &&
+            inferredType == hierarchy.coreTypes.objectLegacyRawType) {
+          return inheritedType;
+        }
+        if (inferredType != inheritedType) {
+          return null;
+        }
+        return inferredType;
+      }
+    }
+  }
+
+  /// Infers the field type of [declaredMember] based on [overriddenMembers].
+  static void inferFieldType(
+      ClassHierarchyBuilder hierarchy,
+      ClassBuilder classBuilder,
+      Map<Class, Substitution> substitutions,
+      SourceFieldBuilder fieldBuilder,
+      Iterable<ClassMember> overriddenMembers) {
+    if (fieldBuilder.classBuilder == classBuilder &&
+        fieldBuilder.type == null) {
+      DartType inferredType;
+
+      void inferFrom(ClassMember classMember) {
+        if (inferredType is InvalidType) return;
+
+        assert(useConsolidated || !classMember.hasDeclarations);
+        Member overriddenMember = classMember.getMember(hierarchy);
+        DartType inheritedType;
+        if (overriddenMember is Procedure) {
+          if (overriddenMember.isSetter) {
+            VariableDeclaration parameter =
+                overriddenMember.function.positionalParameters.single;
+            inheritedType = parameter.type;
+          } else if (overriddenMember.isGetter) {
+            inheritedType = overriddenMember.function.returnType;
+          }
+        } else if (overriddenMember is Field) {
+          inheritedType = overriddenMember.type;
+        }
+        if (inheritedType == null) {
+          debug
+              ?.log("Giving up (inheritedType == null)\n${StackTrace.current}");
+          return;
+        }
+        Substitution substitution;
+        if (classBuilder.cls != overriddenMember.enclosingClass) {
+          assert(
+              substitutions.containsKey(overriddenMember.enclosingClass),
+              "${classBuilder.fullNameForErrors} "
+              "${overriddenMember.enclosingClass.name}");
+          substitution = substitutions[overriddenMember.enclosingClass];
+          debug?.log("${classBuilder.fullNameForErrors} -> "
+              "${overriddenMember.enclosingClass.name} $substitution");
+        }
+        assert(inheritedType is! ImplicitFieldType);
+        if (substitution != null) {
+          inheritedType = substitution.substituteType(inheritedType);
+        }
+        inferredType = mergeTypeInLibrary(
+            hierarchy, classBuilder, inferredType, inheritedType);
+        if (inferredType == null) {
+          // A different type has already been inferred.
+          inferredType = const InvalidType();
+          reportCantInferFieldType(
+              classBuilder, fieldBuilder, overriddenMembers);
+        }
+      }
+
+      overriddenMembers = toSet(classBuilder, overriddenMembers);
+      if (fieldBuilder.isAssignable) {
+        // The field type must be inferred from both getters and setters.
+        for (ClassMember overriddenMember in overriddenMembers) {
+          inferFrom(overriddenMember);
         }
       } else {
-        debug?.log("Giving up (not accessor: ${bTarget.kind})");
-        return false;
+        // The field type must be inferred from getters first.
+        for (ClassMember overriddenMember in overriddenMembers) {
+          if (!overriddenMember.forSetter) {
+            inferFrom(overriddenMember);
+          }
+        }
+        if (inferredType == null) {
+          // The field type must be inferred from setters if no type was
+          // inferred from getters.
+          for (ClassMember overriddenMember in overriddenMembers) {
+            if (overriddenMember.forSetter) {
+              inferFrom(overriddenMember);
+            }
+          }
+        }
       }
-    } else {
-      debug?.log("Giving up (not field/procedure: ${bTarget.runtimeType})");
-      return false;
-    }
-    return aParameter.type == bType;
-  }
 
-  void checkValidOverride(ClassMember a, ClassMember b) {
-    debug?.log(
-        "checkValidOverride(${fullName(a)}, ${fullName(b)}) ${a.runtimeType}");
-    if (a is ProcedureBuilder) {
-      if (inferMethodTypes(a, b)) return;
-    } else if (a.isField) {
-      if (inferFieldTypes(a, b)) return;
-    }
-    Member aTarget = a.member;
-    Member bTarget = b.member;
-    if (aTarget is Procedure && !aTarget.isAccessor && bTarget is Procedure) {
-      if (hasSameSignature(aTarget.function, bTarget.function)) return;
-    }
-
-    if (b is DelayedMember) {
-      for (int i = 0; i < b.declarations.length; i++) {
-        hierarchy.overrideChecks
-            .add(new DelayedOverrideCheck(classBuilder, a, b.declarations[i]));
-      }
-    } else {
-      hierarchy.overrideChecks
-          .add(new DelayedOverrideCheck(classBuilder, a, b));
+      inferredType ??= const DynamicType();
+      fieldBuilder.fieldType = inferredType;
     }
   }
 
-  bool inferFieldTypes(MemberBuilder a, ClassMember b) {
-    debug?.log("Trying to infer field types for ${fullName(a)} "
-        "based on ${fullName(b)}");
-    if (b is DelayedMember) {
-      bool hasSameSignature = true;
-      List<ClassMember> declarations = b.declarations;
-      for (int i = 0; i < declarations.length; i++) {
-        if (!inferFieldTypes(a, declarations[i])) {
-          hasSameSignature = false;
+  /// Infers the field signature of [declaredMember] based on
+  /// [overriddenMembers].
+  void inferFieldSignature(ClassHierarchyBuilder hierarchy,
+      ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
+    Field declaredField = declaredMember.getMember(hierarchy);
+    for (ClassMember overriddenMember
+        in toSet(declaredMember.classBuilder, overriddenMembers)) {
+      assert(useConsolidated || !overriddenMember.hasDeclarations);
+      Member bTarget = overriddenMember.getMember(hierarchy);
+      if (bTarget is Procedure) {
+        if (bTarget.isSetter) {
+          VariableDeclaration parameter =
+              bTarget.function.positionalParameters.single;
+          copyFieldCovarianceFromParameter(
+              declaredMember.classBuilder, declaredField, parameter);
         }
-      }
-      return hasSameSignature;
-    }
-    Member bTarget = b.member;
-    DartType inheritedType;
-    if (bTarget is Procedure) {
-      if (bTarget.isSetter) {
-        VariableDeclaration parameter =
-            bTarget.function.positionalParameters.single;
-        // inheritedType = parameter.type;
-        copyFieldCovarianceFromParameter(a.parent, a.member, parameter);
-        if (!hasExplicitlyTypedFormalParameter(b, 0)) {
-          debug?.log("Giving up (type may be inferred)");
-          return false;
-        }
-      } else if (bTarget.isGetter) {
-        if (!hasExplicitReturnType(b)) return false;
-        inheritedType = bTarget.function.returnType;
-      }
-    } else if (bTarget is Field) {
-      copyFieldCovariance(a.parent, a.member, bTarget);
-      inheritedType = bTarget.type;
-    }
-    if (inheritedType == null) {
-      debug?.log("Giving up (inheritedType == null)\n${StackTrace.current}");
-      return false;
-    }
-    ClassBuilder aClassBuilder = a.parent;
-    Substitution aSubstitution;
-    if (classBuilder != aClassBuilder) {
-      assert(
-          substitutions.containsKey(aClassBuilder.cls),
-          "${classBuilder.fullNameForErrors} "
-          "${aClassBuilder.fullNameForErrors}");
-      aSubstitution = substitutions[aClassBuilder.cls];
-      debug?.log("${classBuilder.fullNameForErrors} -> "
-          "${aClassBuilder.fullNameForErrors} $aSubstitution");
-    }
-    ClassBuilder bClassBuilder = b.classBuilder;
-    Substitution bSubstitution;
-    if (classBuilder != bClassBuilder) {
-      assert(
-          substitutions.containsKey(bClassBuilder.cls),
-          "${classBuilder.fullNameForErrors} "
-          "${bClassBuilder.fullNameForErrors}");
-      bSubstitution = substitutions[bClassBuilder.cls];
-      debug?.log("${classBuilder.fullNameForErrors} -> "
-          "${bClassBuilder.fullNameForErrors} $bSubstitution");
-    }
-    if (bSubstitution != null && inheritedType is! ImplicitFieldType) {
-      inheritedType = bSubstitution.substituteType(inheritedType);
-    }
-
-    Field aField = a.member;
-    DartType declaredType = aField.type;
-    if (aSubstitution != null) {
-      declaredType = aSubstitution.substituteType(declaredType);
-    }
-    if (declaredType == inheritedType) return true;
-
-    bool result = false;
-    if (a is FieldBuilder) {
-      if (a.parent == classBuilder && a.type == null) {
-        if (a.hadTypesInferred) {
-          reportCantInferFieldType(classBuilder, a);
-          inheritedType = const InvalidType();
-        } else {
-          result = true;
-          a.hadTypesInferred = true;
-        }
-        if (inheritedType is ImplicitFieldType) {
-          SourceLibraryBuilder library = classBuilder.library;
-          (library.implicitlyTypedFields ??= <FieldBuilder>[]).add(a);
-          a.fieldType = inheritedType.createAlias(a);
-        } else {
-          a.fieldType = inheritedType;
-        }
+      } else if (bTarget is Field) {
+        copyFieldCovariance(
+            declaredMember.classBuilder, declaredField, bTarget);
       }
     }
-    return result;
   }
 
   void copyParameterCovariance(Builder parent, VariableDeclaration aParameter,
@@ -1061,7 +1392,7 @@ class ClassHierarchyNodeBuilder {
       } else {
         classBuilder.addProblem(messageInheritedMembersConflict,
             classBuilder.charOffset, classBuilder.fullNameForErrors.length,
-            context: inheritedConflictContext(a, b));
+            context: _inheritedConflictContext(a, b));
       }
     } else if (a.isStatic != b.isStatic) {
       ClassMember staticMember;
@@ -1107,74 +1438,10 @@ class ClassHierarchyNodeBuilder {
     }
   }
 
-  /// When merging `aList` and `bList`, [member] was only found in `aList`.
-  ///
-  /// If [mergeKind] is `MergeKind.superclass` [member] is declared in current
-  /// class, and isn't overriding a method from the superclass.
-  ///
-  /// If [mergeKind] is `MergeKind.interfaces`, [member] is ignored for now.
-  ///
-  /// If [mergeKind] is `MergeKind.supertypes`, [member] isn't
-  /// implementing/overriding anything.
-  void handleOnlyA(ClassMember member, MergeKind mergeKind) {
-    if (mergeKind == MergeKind.interfacesMembers ||
-        mergeKind == MergeKind.interfacesSetters) {
-      return;
-    }
-    // TODO(ahe): Enable this optimization:
-    // if (cls is DillClassBuilder) return;
-    // assert(mergeKind == MergeKind.interfaces ||
-    //    member is! InterfaceConflict);
-    if ((mergeKind == MergeKind.superclassMembers ||
-            mergeKind == MergeKind.superclassSetters) &&
-        isAbstract(member)) {
-      recordAbstractMember(member);
-    }
-  }
-
-  /// When merging `aList` and `bList`, [member] was only found in `bList`.
-  ///
-  /// If [mergeKind] is `MergeKind.superclass` [member] is being inherited from
-  /// a superclass.
-  ///
-  /// If [mergeKind] is `MergeKind.interfaces`, [member] is ignored for now.
-  ///
-  /// If [mergeKind] is `MergeKind.supertypes`, [member] is implicitly
-  /// abstract, and not implemented.
-  ClassMember handleOnlyB(ClassMember member, MergeKind mergeKind) {
-    if (mergeKind == MergeKind.interfacesMembers ||
-        mergeKind == MergeKind.interfacesSetters) {
-      return member;
-    }
-    // TODO(ahe): Enable this optimization:
-    // if (cls is DillClassBuilder) return member;
-    Member target = member.member;
-    if ((mergeKind == MergeKind.supertypesMembers ||
-            mergeKind == MergeKind.supertypesSetters) ||
-        ((mergeKind == MergeKind.superclassMembers ||
-                mergeKind == MergeKind.superclassSetters) &&
-            target.isAbstract)) {
-      if (isNameVisibleIn(target.name, classBuilder.library)) {
-        recordAbstractMember(member);
-      }
-    }
-    if (mergeKind == MergeKind.superclassMembers &&
-        target.enclosingClass != objectClass.cls &&
-        target.name == noSuchMethodName) {
-      hasNoSuchMethod = true;
-    }
-    if (mergeKind != MergeKind.membersWithSetters &&
-        mergeKind != MergeKind.settersWithMembers &&
-        member is DelayedMember &&
-        member.isInheritableConflict) {
-      hierarchy.delayedMemberChecks.add(member.withParent(classBuilder));
-    }
-    return member;
-  }
-
   void recordAbstractMember(ClassMember member) {
     abstractMembers ??= <ClassMember>[];
-    if (member is DelayedMember) {
+    if (member.hasDeclarations &&
+        (!useConsolidated || classBuilder == member.classBuilder)) {
       abstractMembers.addAll(member.declarations);
     } else {
       abstractMembers.add(member);
@@ -1185,182 +1452,618 @@ class ClassHierarchyNodeBuilder {
     assert(!classBuilder.isPatch);
     ClassHierarchyNode supernode;
     if (objectClass != classBuilder.origin) {
-      supernode = hierarchy.getNodeFromType(classBuilder.supertype);
+      supernode =
+          hierarchy.getNodeFromTypeBuilder(classBuilder.supertypeBuilder);
       if (supernode == null) {
-        supernode = hierarchy.getNodeFromClass(objectClass);
+        supernode = hierarchy.getNodeFromClassBuilder(objectClass);
       }
       assert(supernode != null);
     }
 
     Scope scope = classBuilder.scope;
     if (classBuilder.isMixinApplication) {
-      TypeDeclarationBuilder mixin = classBuilder.mixedInType.declaration;
+      TypeBuilder mixedInTypeBuilder = classBuilder.mixedInTypeBuilder;
+      TypeDeclarationBuilder mixin = mixedInTypeBuilder.declaration;
       inferMixinApplication();
-      // recordSupertype(cls.mixedInType);
       while (mixin.isNamedMixinApplication) {
         ClassBuilder named = mixin;
-        // recordSupertype(named.mixedInType);
-        mixin = named.mixedInType.declaration;
+        mixedInTypeBuilder = named.mixedInTypeBuilder;
+        mixin = mixedInTypeBuilder.declaration;
+      }
+      if (mixin is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = mixin;
+        NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
+        mixin = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
       }
       if (mixin is ClassBuilder) {
         scope = mixin.scope.computeMixinScope();
       }
     }
 
-    /// Members (excluding setters) declared in [cls].
-    List<ClassMember> localMembers = <ClassMember>[];
-
-    /// Setters declared in [cls].
-    List<ClassMember> localSetters = <ClassMember>[];
+    Map<Name, Tuple> memberMap = {};
 
     for (MemberBuilder memberBuilder in scope.localMembers) {
-      localMembers.addAll(memberBuilder.localMembers);
-      localSetters.addAll(memberBuilder.localSetters);
+      for (ClassMember classMember in memberBuilder.localMembers) {
+        Tuple tuple = memberMap[classMember.name];
+        if (tuple == null) {
+          memberMap[classMember.name] = new Tuple.declareMember(classMember);
+        } else {
+          tuple.declaredMember = classMember;
+        }
+      }
+      for (ClassMember classMember in memberBuilder.localSetters) {
+        Tuple tuple = memberMap[classMember.name];
+        if (tuple == null) {
+          memberMap[classMember.name] = new Tuple.declareSetter(classMember);
+        } else {
+          tuple.declaredSetter = classMember;
+        }
+      }
     }
 
     for (MemberBuilder memberBuilder in scope.localSetters) {
-      localMembers.addAll(memberBuilder.localMembers);
-      localSetters.addAll(memberBuilder.localSetters);
+      for (ClassMember classMember in memberBuilder.localMembers) {
+        Tuple tuple = memberMap[classMember.name];
+        if (tuple == null) {
+          memberMap[classMember.name] = new Tuple.declareMember(classMember);
+        } else {
+          tuple.declaredMember = classMember;
+        }
+      }
+      for (ClassMember classMember in memberBuilder.localSetters) {
+        Tuple tuple = memberMap[classMember.name];
+        if (tuple == null) {
+          memberMap[classMember.name] = new Tuple.declareSetter(classMember);
+        } else {
+          tuple.declaredSetter = classMember;
+        }
+      }
     }
 
-    localMembers.sort(compareDeclarations);
-    localSetters.sort(compareDeclarations);
+    List<Supertype> superclasses;
 
-    // Add implied setters from fields in [localMembers].
-    localSetters = mergeAccessors(localMembers, localSetters);
-
-    /// Members (excluding setters) declared in [cls] or its superclasses. This
-    /// includes static methods of [cls], but not its superclasses.
-    List<ClassMember> classMembers;
-
-    /// Setters declared in [cls] or its superclasses. This includes static
-    /// setters of [cls], but not its superclasses.
-    List<ClassMember> classSetters;
-
-    /// Members (excluding setters) inherited from interfaces. This contains no
-    /// static members. Is null if no interfaces are implemented by this class
-    /// or its superclasses.
-    List<ClassMember> interfaceMembers;
-
-    /// Setters inherited from interfaces. This contains no static setters. Is
-    /// null if no interfaces are implemented by this class or its
-    /// superclasses.
-    List<ClassMember> interfaceSetters;
-
-    List<TypeBuilder> superclasses;
-
-    List<TypeBuilder> interfaces;
+    List<Supertype> interfaces;
 
     int maxInheritancePath;
 
+    void extend(Map<Name, ClassMember> superClassMembers) {
+      if (superClassMembers == null) return;
+      for (Name name in superClassMembers.keys) {
+        ClassMember superClassMember = superClassMembers[name];
+        Tuple tuple = memberMap[name];
+        if (tuple != null) {
+          if (superClassMember.forSetter) {
+            tuple.extendedSetter = superClassMember;
+          } else {
+            tuple.extendedMember = superClassMember;
+          }
+        } else {
+          if (superClassMember.forSetter) {
+            memberMap[name] = new Tuple.extendSetter(superClassMember);
+          } else {
+            memberMap[name] = new Tuple.extendMember(superClassMember);
+          }
+        }
+      }
+    }
+
+    void implement(Map<Name, ClassMember> superInterfaceMembers) {
+      if (superInterfaceMembers == null) return;
+      for (Name name in superInterfaceMembers.keys) {
+        ClassMember superInterfaceMember = superInterfaceMembers[name];
+        Tuple tuple = memberMap[name];
+        if (tuple != null) {
+          if (superInterfaceMember.forSetter) {
+            (tuple.implementedSetters ??= <ClassMember>[])
+                .add(superInterfaceMember);
+          } else {
+            (tuple.implementedMembers ??= <ClassMember>[])
+                .add(superInterfaceMember);
+          }
+        } else {
+          if (superInterfaceMember.forSetter) {
+            memberMap[superInterfaceMember.name] =
+                new Tuple.implementSetter(superInterfaceMember);
+          } else {
+            memberMap[superInterfaceMember.name] =
+                new Tuple.implementMember(superInterfaceMember);
+          }
+        }
+      }
+    }
+
+    bool hasInterfaces = false;
     if (supernode == null) {
       // This should be Object.
-      classMembers = localMembers;
-      classSetters = localSetters;
-      superclasses = new List<TypeBuilder>(0);
-      interfaces = new List<TypeBuilder>(0);
+      superclasses = new List<Supertype>(0);
+      interfaces = new List<Supertype>(0);
       maxInheritancePath = 0;
     } else {
       maxInheritancePath = supernode.maxInheritancePath + 1;
-      superclasses = new List<TypeBuilder>(supernode.superclasses.length + 1);
+
+      superclasses = new List<Supertype>(supernode.superclasses.length + 1);
+      Supertype supertype = classBuilder.supertypeBuilder.buildSupertype(
+          classBuilder.library, classBuilder.charOffset, classBuilder.fileUri);
+      if (supertype == null) {
+        // If the superclass is not an interface type we use Object instead.
+        // A similar normalization is performed on [supernode] above.
+        supertype =
+            new Supertype(hierarchy.coreTypes.objectClass, const <DartType>[]);
+      }
       superclasses.setRange(0, superclasses.length - 1,
-          substSupertypes(classBuilder.supertype, supernode.superclasses));
-      superclasses[superclasses.length - 1] =
-          recordSupertype(classBuilder.supertype);
+          substSupertypes(supertype, supernode.superclasses));
+      superclasses[superclasses.length - 1] = supertype;
+      if (!classBuilder.library.isNonNullableByDefault &&
+          supernode.classBuilder.library.isNonNullableByDefault) {
+        for (int i = 0; i < superclasses.length; i++) {
+          superclasses[i] =
+              legacyErasureSupertype(hierarchy.coreTypes, superclasses[i]);
+        }
+      }
 
-      List<TypeBuilder> directInterfaces =
-          ignoreFunction(classBuilder.interfaces);
+      List<TypeBuilder> directInterfaceBuilders =
+          ignoreFunction(classBuilder.interfaceBuilders);
       if (classBuilder.isMixinApplication) {
-        if (directInterfaces == null) {
-          directInterfaces = <TypeBuilder>[classBuilder.mixedInType];
+        if (directInterfaceBuilders == null) {
+          directInterfaceBuilders = <TypeBuilder>[
+            classBuilder.mixedInTypeBuilder
+          ];
         } else {
-          directInterfaces = <TypeBuilder>[classBuilder.mixedInType]
-            ..addAll(directInterfaces);
+          directInterfaceBuilders = <TypeBuilder>[
+            classBuilder.mixedInTypeBuilder
+          ]..addAll(directInterfaceBuilders);
         }
       }
-      if (directInterfaces != null) {
-        for (int i = 0; i < directInterfaces.length; i++) {
-          recordSupertype(directInterfaces[i]);
-        }
-      }
-      List<TypeBuilder> superclassInterfaces = supernode.interfaces;
+
+      List<Supertype> superclassInterfaces = supernode.interfaces;
       if (superclassInterfaces != null) {
-        superclassInterfaces =
-            substSupertypes(classBuilder.supertype, superclassInterfaces);
+        superclassInterfaces = substSupertypes(supertype, superclassInterfaces);
       }
 
-      classMembers = merge(
-          localMembers, supernode.classMembers, MergeKind.superclassMembers);
-      classSetters = merge(
-          localSetters, supernode.classSetters, MergeKind.superclassSetters);
+      extend(supernode.classMemberMap);
+      extend(supernode.classSetterMap);
 
-      if (directInterfaces != null) {
-        MergeResult result = mergeInterfaces(supernode, directInterfaces);
-        interfaceMembers = result.mergedMembers;
-        interfaceSetters = result.mergedSetters;
-        interfaces = <TypeBuilder>[];
+      if (supernode.interfaceMemberMap != null ||
+          supernode.interfaceSetterMap != null) {
+        hasInterfaces = true;
+      }
+
+      implement(supernode.interfaceMemberMap);
+      implement(supernode.interfaceSetterMap);
+
+      if (directInterfaceBuilders != null) {
+        for (int i = 0; i < directInterfaceBuilders.length; i++) {
+          ClassHierarchyNode interfaceNode =
+              hierarchy.getNodeFromTypeBuilder(directInterfaceBuilders[i]);
+          if (interfaceNode != null) {
+            hasInterfaces = true;
+
+            implement(interfaceNode.interfaceMemberMap ??
+                interfaceNode.classMemberMap);
+            implement(interfaceNode.interfaceSetterMap ??
+                interfaceNode.classSetterMap);
+          }
+        }
+
+        interfaces = <Supertype>[];
         if (superclassInterfaces != null) {
           for (int i = 0; i < superclassInterfaces.length; i++) {
             addInterface(interfaces, superclasses, superclassInterfaces[i]);
           }
         }
-        for (int i = 0; i < directInterfaces.length; i++) {
-          TypeBuilder directInterface = directInterfaces[i];
-          addInterface(interfaces, superclasses, directInterface);
-          ClassHierarchyNode interfaceNode =
-              hierarchy.getNodeFromType(directInterface);
-          if (interfaceNode != null) {
-            if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
-              maxInheritancePath = interfaceNode.maxInheritancePath + 1;
-            }
-            List<TypeBuilder> types =
-                substSupertypes(directInterface, interfaceNode.superclasses);
-            for (int i = 0; i < types.length; i++) {
-              addInterface(interfaces, superclasses, types[i]);
-            }
 
-            if (interfaceNode.interfaces != null) {
-              List<TypeBuilder> types =
-                  substSupertypes(directInterface, interfaceNode.interfaces);
+        for (int i = 0; i < directInterfaceBuilders.length; i++) {
+          Supertype directInterface = directInterfaceBuilders[i].buildSupertype(
+              classBuilder.library,
+              classBuilder.charOffset,
+              classBuilder.fileUri);
+          if (directInterface != null) {
+            addInterface(interfaces, superclasses, directInterface);
+            ClassHierarchyNode interfaceNode =
+                hierarchy.getNodeFromClass(directInterface.classNode);
+            if (interfaceNode != null) {
+              if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
+                maxInheritancePath = interfaceNode.maxInheritancePath + 1;
+              }
+
+              List<Supertype> types =
+                  substSupertypes(directInterface, interfaceNode.superclasses);
               for (int i = 0; i < types.length; i++) {
                 addInterface(interfaces, superclasses, types[i]);
+              }
+              if (interfaceNode.interfaces != null) {
+                List<Supertype> types =
+                    substSupertypes(directInterface, interfaceNode.interfaces);
+                for (int i = 0; i < types.length; i++) {
+                  addInterface(interfaces, superclasses, types[i]);
+                }
               }
             }
           }
         }
+      } else if (superclassInterfaces != null &&
+          !classBuilder.library.isNonNullableByDefault &&
+          supernode.classBuilder.library.isNonNullableByDefault) {
+        interfaces = <Supertype>[];
+        for (int i = 0; i < superclassInterfaces.length; i++) {
+          addInterface(interfaces, superclasses, superclassInterfaces[i]);
+        }
       } else {
-        interfaceMembers = supernode.interfaceMembers;
-        interfaceSetters = supernode.interfaceSetters;
         interfaces = superclassInterfaces;
       }
+    }
 
-      // Check if local members conflict with inherited setters. This check has
-      // already been performed in the superclass, so we only need to check the
-      // local members. These checks have to occur late to enable inferring
-      // types between setters and getters, or from a setter to a final field.
-      merge(localMembers, classSetters, MergeKind.membersWithSetters);
-
-      // Check if local setters conflict with inherited members. As above, we
-      // only need to check the local setters.
-      merge(localSetters, classMembers, MergeKind.settersWithMembers);
-
-      if (interfaceMembers != null) {
-        interfaceMembers =
-            merge(classMembers, interfaceMembers, MergeKind.supertypesMembers);
-
-        // Check if class setters conflict with members inherited from
-        // interfaces.
-        merge(classSetters, interfaceMembers, MergeKind.settersWithMembers);
-      }
-      if (interfaceSetters != null) {
-        interfaceSetters =
-            merge(classSetters, interfaceSetters, MergeKind.supertypesSetters);
-
-        // Check if class members conflict with setters inherited from
-        // interfaces.
-        merge(classMembers, interfaceSetters, MergeKind.membersWithSetters);
+    for (Supertype superclass in superclasses) {
+      recordSupertype(superclass);
+    }
+    if (interfaces != null) {
+      for (Supertype superinterface in interfaces) {
+        recordSupertype(superinterface);
       }
     }
+
+    /// Members (excluding setters) declared in [cls] or its superclasses. This
+    /// includes static methods of [cls], but not its superclasses.
+    Map<Name, ClassMember> classMemberMap = {};
+
+    /// Setters declared in [cls] or its superclasses. This includes static
+    /// setters of [cls], but not its superclasses.
+    Map<Name, ClassMember> classSetterMap = {};
+
+    /// Members (excluding setters) inherited from interfaces. This contains no
+    /// static members. If no interfaces are implemented by this class or its
+    /// superclasses this is identical to [classMemberMap] and we do not store
+    /// it in the [ClassHierarchyNode].
+    Map<Name, ClassMember> interfaceMemberMap = {};
+
+    /// Setters inherited from interfaces. This contains no static setters. If
+    /// no interfaces are implemented by this class or its superclasses this is
+    /// identical to [classSetterMap] and we do not store it in the
+    /// [ClassHierarchyNode].
+    Map<Name, ClassMember> interfaceSetterMap = {};
+
+    Map<ClassMember, Set<ClassMember>> overrideDependencies = {};
+
+    // TODO(johnniwinther): Make these non-local and ensure that each
+    // underlying declaration has only on delayed type, signature, and
+    // override computation. Currently fields get one as a getter and as a
+    // setter.
+
+    void registerOverrideDependency(
+        ClassMember member, ClassMember overriddenMember) {
+      if (classBuilder == member.classBuilder && member.isSourceDeclaration) {
+        Set<ClassMember> dependencies =
+            overrideDependencies[member] ??= <ClassMember>{};
+        dependencies.add(overriddenMember);
+        member.registerOverrideDependency(overriddenMember);
+      }
+    }
+
+    void registerOverrideCheck(
+        ClassMember member, ClassMember overriddenMember) {
+      if (overriddenMember.hasDeclarations &&
+          (!useConsolidated || classBuilder == overriddenMember.classBuilder)) {
+        for (int i = 0; i < overriddenMember.declarations.length; i++) {
+          hierarchy.registerOverrideCheck(
+              classBuilder, member, overriddenMember.declarations[i]);
+        }
+      } else {
+        hierarchy.registerOverrideCheck(classBuilder, member, overriddenMember);
+      }
+    }
+
+    memberMap.forEach((Name name, Tuple tuple) {
+      ClassMember computeClassMember(ClassMember declaredMember,
+          ClassMember extendedMember, bool forSetter) {
+        if (declaredMember != null) {
+          if (extendedMember != null && !extendedMember.isStatic) {
+            if (declaredMember == extendedMember) return declaredMember;
+            if (declaredMember.isDuplicate || extendedMember.isDuplicate) {
+              // Don't check overrides involving duplicated members.
+              return declaredMember;
+            }
+            ClassMember result =
+                checkInheritanceConflict(declaredMember, extendedMember);
+            if (result != null) return result;
+            assert(
+                declaredMember.isProperty == extendedMember.isProperty,
+                "Unexpected member combination: "
+                "$declaredMember vs $extendedMember");
+            result = declaredMember;
+
+            // [declaredMember] is a method declared in [cls]. This means it
+            // defines the interface of this class regardless if its abstract.
+            if (!declaredMember.isSynthesized) {
+              registerOverrideDependency(
+                  declaredMember, extendedMember.abstract);
+              registerOverrideCheck(declaredMember, extendedMember.abstract);
+            }
+
+            if (declaredMember.isAbstract) {
+              if (extendedMember.isAbstract) {
+                recordAbstractMember(declaredMember);
+              } else {
+                if (!classBuilder.isAbstract) {
+                  // The interface of this class is [declaredMember]. But the
+                  // implementation is [extendedMember]. So [extendedMember]
+                  // must implement [declaredMember], unless [cls] is abstract.
+                  registerOverrideCheck(extendedMember, declaredMember);
+                }
+                ClassMember concrete = extendedMember.concrete;
+                result = new AbstractMemberOverridingImplementation(
+                    classBuilder,
+                    declaredMember,
+                    concrete,
+                    declaredMember.isProperty,
+                    forSetter,
+                    shouldModifyKernel,
+                    concrete.isAbstract,
+                    concrete.name);
+                hierarchy.registerMemberCheck(result);
+              }
+            } else if (classBuilder.isMixinApplication &&
+                declaredMember.classBuilder != classBuilder) {
+              result = InheritedImplementationInterfaceConflict.combined(
+                  classBuilder,
+                  declaredMember,
+                  extendedMember,
+                  forSetter,
+                  shouldModifyKernel,
+                  isInheritableConflict: false);
+              if (result.needsComputation) {
+                hierarchy.registerMemberCheck(result);
+              }
+            }
+
+            if (result.name == noSuchMethodName &&
+                !result.isObjectMember(objectClass)) {
+              hasNoSuchMethod = true;
+            }
+            return result;
+          } else {
+            if (declaredMember.isAbstract) {
+              recordAbstractMember(declaredMember);
+            }
+            return declaredMember;
+          }
+        } else if (extendedMember != null && !extendedMember.isStatic) {
+          if (extendedMember.isAbstract) {
+            if (isNameVisibleIn(extendedMember.name, classBuilder.library)) {
+              recordAbstractMember(extendedMember);
+            }
+          }
+          if (extendedMember.name == noSuchMethodName &&
+              !extendedMember.isObjectMember(objectClass)) {
+            hasNoSuchMethod = true;
+          }
+          if (extendedMember.isInheritableConflict) {
+            extendedMember = extendedMember.withParent(classBuilder);
+            hierarchy.registerMemberCheck(extendedMember);
+          }
+          if (extendedMember.classBuilder.library.isNonNullableByDefault &&
+              !classBuilder.library.isNonNullableByDefault) {
+            if (!extendedMember.isSynthesized) {
+              extendedMember = new InterfaceConflict(
+                  classBuilder,
+                  [extendedMember],
+                  extendedMember.isProperty,
+                  forSetter,
+                  shouldModifyKernel,
+                  extendedMember.isAbstract,
+                  extendedMember.name,
+                  isImplicitlyAbstract: extendedMember.isAbstract);
+              hierarchy.registerMemberCheck(extendedMember);
+            }
+          }
+          return extendedMember;
+        }
+        return null;
+      }
+
+      ClassMember computeInterfaceMember(ClassMember classMember,
+          List<ClassMember> implementedMembers, bool forSetter) {
+        ClassMember interfaceMember;
+        if (implementedMembers != null) {
+          for (ClassMember member in implementedMembers) {
+            if (member.isStatic) continue;
+            if (interfaceMember == null) {
+              interfaceMember = member;
+            } else {
+              ClassMember handleMergeConflict(ClassMember a, ClassMember b) {
+                if (a == b) return a;
+                if (a.isDuplicate || b.isDuplicate) {
+                  // Don't check overrides involving duplicated members.
+                  return a;
+                }
+                ClassMember result = checkInheritanceConflict(a, b);
+                if (result != null) return result;
+                assert(a.isProperty == b.isProperty,
+                    "Unexpected member combination: $a vs $b");
+                result = a;
+                result = InterfaceConflict.combined(
+                    classBuilder, a, b, forSetter, shouldModifyKernel);
+                return result;
+              }
+
+              interfaceMember = handleMergeConflict(interfaceMember, member);
+            }
+          }
+        }
+        if (hasInterfaces) {
+          if (interfaceMember != null) {
+            if (classMember != null) {
+              if (classMember == interfaceMember) return classMember;
+              if (classMember.isDuplicate || interfaceMember.isDuplicate) {
+                // Don't check overrides involving duplicated members.
+                return classMember;
+              }
+              ClassMember result =
+                  checkInheritanceConflict(classMember, interfaceMember);
+              if (result != null) return result;
+              assert(
+                  classMember.isProperty == interfaceMember.isProperty,
+                  "Unexpected member combination: "
+                  "$classMember vs $interfaceMember");
+              result = classMember;
+
+              // [interfaceMember] is inherited from an interface so it is
+              // implicitly abstract.
+              classMember = classMember.abstract;
+              interfaceMember = interfaceMember.abstract;
+
+              // If [classMember] is declared in this class, it defines the
+              // interface.
+              if (classMember.classBuilder == classBuilder) {
+                if (!classMember.isSynthesized) {
+                  registerOverrideDependency(classMember, interfaceMember);
+                  registerOverrideCheck(classMember, interfaceMember);
+                }
+                if (classMember.hasDeclarations) {
+                  if (interfaceMember.hasDeclarations &&
+                      (!useConsolidated ||
+                          interfaceMember.classBuilder == classBuilder)) {
+                    addAllDeclarationsTo(
+                        interfaceMember, classMember.declarations);
+                  } else {
+                    addDeclarationIfDifferent(
+                        interfaceMember, classMember.declarations);
+                  }
+                }
+              } else {
+                if (classMember.isAbstract) {
+                  result = InterfaceConflict.combined(classBuilder, classMember,
+                      interfaceMember, forSetter, shouldModifyKernel);
+                } else {
+                  result = InheritedImplementationInterfaceConflict.combined(
+                      classBuilder,
+                      classMember,
+                      interfaceMember,
+                      forSetter,
+                      shouldModifyKernel);
+                }
+                if (result.needsComputation) {
+                  hierarchy.registerMemberCheck(result);
+                }
+              }
+
+              return result;
+            } else {
+              if (isNameVisibleIn(interfaceMember.name, classBuilder.library)) {
+                recordAbstractMember(interfaceMember);
+              }
+              if (interfaceMember.isInheritableConflict) {
+                interfaceMember = interfaceMember.withParent(classBuilder);
+                hierarchy.registerMemberCheck(interfaceMember);
+              }
+              if (interfaceMember.classBuilder.library.isNonNullableByDefault &&
+                  !classBuilder.library.isNonNullableByDefault) {
+                if (!interfaceMember.isSynthesized) {
+                  interfaceMember = new InterfaceConflict(
+                      classBuilder,
+                      [interfaceMember],
+                      interfaceMember.isProperty,
+                      forSetter,
+                      shouldModifyKernel,
+                      interfaceMember.isAbstract,
+                      interfaceMember.name,
+                      isImplicitlyAbstract: interfaceMember.isAbstract);
+                  hierarchy.registerMemberCheck(interfaceMember);
+                }
+              }
+              return interfaceMember;
+            }
+          } else if (classMember != null) {
+            return classMember;
+          }
+        }
+        return interfaceMember;
+      }
+
+      void checkMemberVsSetter(
+          ClassMember member, ClassMember overriddenMember) {
+        if (overriddenMember.isStatic) return;
+        if (member == overriddenMember) return;
+        if (member.isDuplicate || overriddenMember.isDuplicate) {
+          // Don't check overrides involving duplicated members.
+          return;
+        }
+        ClassMember result = checkInheritanceConflict(member, overriddenMember);
+        if (result != null) return;
+        assert(member.isProperty == overriddenMember.isProperty,
+            "Unexpected member combination: $member vs $overriddenMember");
+        if (member.classBuilder == classBuilder &&
+            overriddenMember.classBuilder != classBuilder) {
+          if (member is SourceFieldMember) {
+            if (member.isFinal && overriddenMember.isSetter) {
+              registerOverrideDependency(member, overriddenMember);
+              hierarchy.registerOverrideCheck(
+                  classBuilder, member, overriddenMember);
+            } else {
+              registerOverrideDependency(member, overriddenMember);
+              hierarchy.registerOverrideCheck(
+                  classBuilder, member, overriddenMember);
+            }
+          } else if (member is SourceProcedureMember) {
+            registerOverrideDependency(member, overriddenMember);
+            hierarchy.registerOverrideCheck(
+                classBuilder, member, overriddenMember);
+          }
+        }
+      }
+
+      ClassMember classMember =
+          computeClassMember(tuple.declaredMember, tuple.extendedMember, false);
+      ClassMember interfaceMember =
+          computeInterfaceMember(classMember, tuple.implementedMembers, false);
+      ClassMember classSetter =
+          computeClassMember(tuple.declaredSetter, tuple.extendedSetter, true);
+      ClassMember interfaceSetter =
+          computeInterfaceMember(classSetter, tuple.implementedSetters, true);
+
+      if (tuple.declaredMember != null && classSetter != null) {
+        checkMemberVsSetter(tuple.declaredMember, classSetter);
+      }
+      if (tuple.declaredSetter != null && classMember != null) {
+        checkMemberVsSetter(tuple.declaredSetter, classMember);
+      }
+      if (classMember != null && interfaceSetter != null) {
+        checkMemberVsSetter(classMember, interfaceSetter);
+      }
+      if (classSetter != null && interfaceMember != null) {
+        checkMemberVsSetter(classSetter, interfaceMember);
+      }
+
+      if (classMember != null) {
+        classMemberMap[name] = classMember;
+      }
+      if (interfaceMember != null) {
+        interfaceMemberMap[name] = interfaceMember;
+      }
+      if (classSetter != null) {
+        classSetterMap[name] = classSetter;
+      }
+      if (interfaceSetter != null) {
+        interfaceSetterMap[name] = interfaceSetter;
+      }
+    });
+
+    overrideDependencies
+        .forEach((ClassMember member, Set<ClassMember> overriddenMembers) {
+      assert(
+          member == memberMap[member.name].declaredMember ||
+              member == memberMap[member.name].declaredSetter,
+          "Unexpected method type inference for ${memberMap[member.name]}: "
+          "${member} -> ${overriddenMembers}");
+      DelayedTypeComputation computation =
+          new DelayedTypeComputation(this, member, overriddenMembers);
+      hierarchy.registerDelayedTypeComputation(computation);
+    });
+
+    if (!hasInterfaces) {
+      interfaceMemberMap = null;
+      interfaceSetterMap = null;
+    }
+
     if (abstractMembers != null && !classBuilder.isAbstract) {
       if (!hasNoSuchMethod) {
         reportMissingMembers();
@@ -1368,12 +2071,13 @@ class ClassHierarchyNodeBuilder {
         installNsmHandlers();
       }
     }
+
     return new ClassHierarchyNode(
       classBuilder,
-      classMembers,
-      classSetters,
-      interfaceMembers,
-      interfaceSetters,
+      classMemberMap,
+      classSetterMap,
+      interfaceMemberMap,
+      interfaceSetterMap,
       superclasses,
       interfaces,
       maxInheritancePath,
@@ -1381,71 +2085,51 @@ class ClassHierarchyNodeBuilder {
     );
   }
 
-  TypeBuilder recordSupertype(TypeBuilder supertype) {
-    if (supertype is NamedTypeBuilder) {
-      debug?.log("In ${this.classBuilder.fullNameForErrors} "
-          "recordSupertype(${supertype.fullNameForErrors})");
-      Builder declaration = supertype.declaration;
-      if (declaration is! ClassBuilder) return supertype;
-      ClassBuilder classBuilder = declaration;
-      if (classBuilder.isMixinApplication) {
-        recordSupertype(classBuilder.mixedInType);
+  Supertype recordSupertype(Supertype supertype) {
+    debug?.log("In ${this.classBuilder.fullNameForErrors} "
+        "recordSupertype(${supertype})");
+    Class cls = supertype.classNode;
+    List<TypeParameter> supertypeTypeParameters = cls.typeParameters;
+    if (supertypeTypeParameters.isEmpty) {
+      substitutions[cls] = Substitution.empty;
+    } else {
+      List<DartType> arguments = supertype.typeArguments;
+      List<DartType> typeArguments = new List<DartType>(arguments.length);
+      List<TypeParameter> typeParameters =
+          new List<TypeParameter>(arguments.length);
+      for (int i = 0; i < arguments.length; i++) {
+        typeParameters[i] = supertypeTypeParameters[i];
+        typeArguments[i] = arguments[i];
       }
-      List<TypeVariableBuilder> typeVariableBuilders =
-          classBuilder.typeVariables;
-      if (typeVariableBuilders == null) {
-        substitutions[classBuilder.cls] = Substitution.empty;
-        assert(classBuilder.cls.typeParameters.isEmpty);
-      } else {
-        List<TypeBuilder> arguments =
-            supertype.arguments ?? computeDefaultTypeArguments(supertype);
-        if (arguments.length != typeVariableBuilders.length) {
-          arguments = computeDefaultTypeArguments(supertype);
-        }
-        List<DartType> typeArguments = new List<DartType>(arguments.length);
-        List<TypeParameter> typeParameters =
-            new List<TypeParameter>(arguments.length);
-        for (int i = 0; i < arguments.length; i++) {
-          typeParameters[i] = typeVariableBuilders[i].parameter;
-          typeArguments[i] = arguments[i].build(this.classBuilder.parent);
-        }
-        substitutions[classBuilder.cls] =
-            Substitution.fromPairs(typeParameters, typeArguments);
-      }
+      substitutions[cls] =
+          Substitution.fromPairs(typeParameters, typeArguments);
     }
     return supertype;
   }
 
-  List<TypeBuilder> substSupertypes(
-      NamedTypeBuilder supertype, List<TypeBuilder> supertypes) {
-    Builder declaration = supertype.declaration;
-    if (declaration is! ClassBuilder) return supertypes;
-    ClassBuilder cls = declaration;
-    List<TypeVariableBuilder> typeVariables = cls.typeVariables;
-    if (typeVariables == null) {
+  List<Supertype> substSupertypes(
+      Supertype supertype, List<Supertype> supertypes) {
+    List<TypeParameter> typeVariables = supertype.classNode.typeParameters;
+    if (typeVariables.isEmpty) {
       debug?.log("In ${this.classBuilder.fullNameForErrors} "
           "$supertypes aren't substed");
-      for (int i = 0; i < supertypes.length; i++) {
-        recordSupertype(supertypes[i]);
-      }
       return supertypes;
     }
-    Map<TypeVariableBuilder, TypeBuilder> substitution =
-        <TypeVariableBuilder, TypeBuilder>{};
-    List<TypeBuilder> arguments =
-        supertype.arguments ?? computeDefaultTypeArguments(supertype);
+    Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
+    List<DartType> arguments = supertype.typeArguments;
     for (int i = 0; i < typeVariables.length; i++) {
-      substitution[typeVariables[i]] = arguments[i];
+      map[typeVariables[i]] = arguments[i];
     }
-    List<TypeBuilder> result;
+    Substitution substitution = Substitution.fromMap(map);
+    List<Supertype> result;
     for (int i = 0; i < supertypes.length; i++) {
-      TypeBuilder supertype = supertypes[i];
-      TypeBuilder substed = recordSupertype(supertype.subst(substitution));
-      if (supertype != substed) {
-        debug?.log(
-            "In ${this.classBuilder.fullNameForErrors} $supertype -> $substed");
+      Supertype supertype = supertypes[i];
+      Supertype substituted = substitution.substituteSupertype(supertype);
+      if (supertype != substituted) {
+        debug?.log("In ${this.classBuilder.fullNameForErrors} $supertype"
+            " -> $substituted");
         result ??= supertypes.toList();
-        result[i] = substed;
+        result[i] = substituted;
       } else {
         debug?.log("In ${this.classBuilder.fullNameForErrors} "
             "$supertype isn't substed");
@@ -1455,147 +2139,89 @@ class ClassHierarchyNodeBuilder {
   }
 
   List<TypeBuilder> computeDefaultTypeArguments(TypeBuilder type) {
-    ClassBuilder cls = type.declaration;
-    List<TypeBuilder> result = new List<TypeBuilder>(cls.typeVariables.length);
+    TypeDeclarationBuilder decl = type.declaration;
+    List<TypeVariableBuilder> typeVariables;
+    LibraryBuilder library;
+    if (decl is TypeAliasBuilder) {
+      typeVariables = decl.typeVariables;
+      library = decl.library;
+    } else if (decl is ClassBuilder) {
+      typeVariables = decl.typeVariables;
+      library = decl.library;
+    } else {
+      return unhandled("${decl.runtimeType}", "$decl", classBuilder.charOffset,
+          classBuilder.fileUri);
+    }
+    List<TypeBuilder> result = new List<TypeBuilder>(typeVariables.length);
     for (int i = 0; i < result.length; ++i) {
-      TypeVariableBuilder tv = cls.typeVariables[i];
+      TypeVariableBuilder tv = typeVariables[i];
       result[i] = tv.defaultType ??
-          cls.library.loader.computeTypeBuilder(tv.parameter.defaultType);
+          library.loader.computeTypeBuilder(tv.parameter.defaultType);
     }
     return result;
   }
 
-  TypeBuilder addInterface(List<TypeBuilder> interfaces,
-      List<TypeBuilder> superclasses, TypeBuilder type) {
-    ClassHierarchyNode node = hierarchy.getNodeFromType(type);
+  void addInterface(List<Supertype> interfaces, List<Supertype> superclasses,
+      Supertype type) {
+    if (type == null) return null;
+    if (!classBuilder.library.isNonNullableByDefault) {
+      type = legacyErasureSupertype(hierarchy.coreTypes, type);
+    }
+    ClassHierarchyNode node = hierarchy.getNodeFromClass(type.classNode);
     if (node == null) return null;
     int depth = node.depth;
     int myDepth = superclasses.length;
-    if (depth < myDepth &&
-        superclasses[depth].declaration == node.classBuilder) {
+    Supertype superclass = depth < myDepth ? superclasses[depth] : null;
+    if (superclass != null && superclass.classNode == type.classNode) {
       // This is a potential conflict.
-      return superclasses[depth];
+      if (classBuilder.library.isNonNullableByDefault) {
+        superclass = nnbdTopMergeSupertype(
+            hierarchy.coreTypes,
+            normSupertype(hierarchy.coreTypes, superclass),
+            normSupertype(hierarchy.coreTypes, type));
+        if (superclass == null) {
+          // This is a conflict.
+          // TODO(johnniwinther): Report errors here instead of through
+          // the computation of the [ClassHierarchy].
+          superclass = superclasses[depth];
+        } else {
+          superclasses[depth] = superclass;
+        }
+      }
+      return;
     } else {
       for (int i = 0; i < interfaces.length; i++) {
         // This is a quadratic algorithm, but normally, the number of
         // interfaces is really small.
-        if (interfaces[i].declaration == type.declaration) {
+        Supertype interface = interfaces[i];
+        if (interface.classNode == type.classNode) {
           // This is a potential conflict.
-          return interfaces[i];
+          if (classBuilder.library.isNonNullableByDefault) {
+            interface = nnbdTopMergeSupertype(
+                hierarchy.coreTypes,
+                normSupertype(hierarchy.coreTypes, interface),
+                normSupertype(hierarchy.coreTypes, type));
+            if (interface == null) {
+              // This is a conflict.
+              // TODO(johnniwinther): Report errors here instead of through
+              // the computation of the [ClassHierarchy].
+              interface = interfaces[i];
+            } else {
+              interfaces[i] = interface;
+            }
+          }
+          return;
         }
       }
     }
     interfaces.add(type);
-    return null;
-  }
-
-  MergeResult mergeInterfaces(
-      ClassHierarchyNode supernode, List<TypeBuilder> interfaces) {
-    debug?.log("mergeInterfaces($classBuilder (${this.classBuilder}) "
-        "${supernode.interfaces} ${interfaces}");
-    List<List<ClassMember>> memberLists =
-        new List<List<ClassMember>>(interfaces.length + 1);
-    List<List<ClassMember>> setterLists =
-        new List<List<ClassMember>>(interfaces.length + 1);
-    memberLists[0] = supernode.interfaceMembers;
-    setterLists[0] = supernode.interfaceSetters;
-    for (int i = 0; i < interfaces.length; i++) {
-      ClassHierarchyNode interfaceNode =
-          hierarchy.getNodeFromType(interfaces[i]);
-      if (interfaceNode == null) {
-        memberLists[i + 1] = null;
-        setterLists[i + 1] = null;
-      } else {
-        memberLists[i + 1] =
-            interfaceNode.interfaceMembers ?? interfaceNode.classMembers;
-        setterLists[i + 1] =
-            interfaceNode.interfaceSetters ?? interfaceNode.classSetters;
-      }
-    }
-    return new MergeResult(mergeLists(memberLists, MergeKind.interfacesMembers),
-        mergeLists(setterLists, MergeKind.interfacesSetters));
-  }
-
-  List<ClassMember> mergeLists(
-      List<List<ClassMember>> input, MergeKind mergeKind) {
-    // This is a k-way merge sort (where k is `input.length + 1`). We merge the
-    // lists pairwise, which reduces the number of lists to merge by half on
-    // each iteration. Consequently, we perform O(log k) merges.
-    while (input.length > 1) {
-      List<List<ClassMember>> output = <List<ClassMember>>[];
-      for (int i = 0; i < input.length - 1; i += 2) {
-        List<ClassMember> first = input[i];
-        List<ClassMember> second = input[i + 1];
-        if (first == null) {
-          output.add(second);
-        } else if (second == null) {
-          output.add(first);
-        } else {
-          output.add(merge(first, second, mergeKind));
-        }
-      }
-      if (input.length.isOdd) {
-        output.add(input.last);
-      }
-      input = output;
-    }
-    return input.single;
-  }
-
-  /// Merge [and check] accessors. This entails copying mutable fields to
-  /// setters to simulate implied setters, and checking that setters don't
-  /// override regular methods.
-  List<ClassMember> mergeAccessors(
-      List<ClassMember> members, List<ClassMember> setters) {
-    final List<ClassMember> mergedSetters = new List<ClassMember>.filled(
-        members.length + setters.length, null,
-        growable: true);
-    int storeIndex = 0;
-    int i = 0;
-    int j = 0;
-    while (i < members.length && j < setters.length) {
-      final ClassMember member = members[i];
-      final ClassMember setter = setters[j];
-      final int compare = compareDeclarations(member, setter);
-      if (compare == 0) {
-        mergedSetters[storeIndex++] = setter;
-        i++;
-        j++;
-      } else if (compare < 0) {
-        if (impliesSetter(member)) {
-          mergedSetters[storeIndex++] = member;
-        }
-        i++;
-      } else {
-        mergedSetters[storeIndex++] = setters[j];
-        j++;
-      }
-    }
-    while (i < members.length) {
-      final ClassMember member = members[i];
-      if (impliesSetter(member)) {
-        mergedSetters[storeIndex++] = member;
-      }
-      i++;
-    }
-    while (j < setters.length) {
-      mergedSetters[storeIndex++] = setters[j];
-      j++;
-    }
-
-    if (storeIndex == j) {
-      return setters;
-    } else {
-      return mergedSetters..length = storeIndex;
-    }
   }
 
   void reportMissingMembers() {
     Map<String, LocatedMessage> contextMap = <String, LocatedMessage>{};
     for (int i = 0; i < abstractMembers.length; i++) {
       ClassMember declaration = abstractMembers[i];
-      Member target = declaration.member;
-      if (isNameVisibleIn(target.name, classBuilder.library)) {
+      if (isNameVisibleIn(declaration.name, classBuilder.library)) {
         String name = declaration.fullNameForErrors;
         String className = declaration.classBuilder?.fullNameForErrors;
         String displayName =
@@ -1624,63 +2250,6 @@ class ClassHierarchyNodeBuilder {
     // TODO(ahe): Implement this.
   }
 
-  List<ClassMember> merge(
-      List<ClassMember> aList, List<ClassMember> bList, MergeKind mergeKind) {
-    final List<ClassMember> result = new List<ClassMember>.filled(
-        aList.length + bList.length, null,
-        growable: true);
-    int storeIndex = 0;
-    int i = 0;
-    int j = 0;
-    while (i < aList.length && j < bList.length) {
-      final ClassMember a = aList[i];
-      final ClassMember b = bList[j];
-      if ((mergeKind == MergeKind.interfacesMembers ||
-              mergeKind == MergeKind.interfacesSetters) &&
-          a.isStatic) {
-        i++;
-        continue;
-      }
-      if (b.isStatic) {
-        j++;
-        continue;
-      }
-      final int compare = compareDeclarations(a, b);
-      if (compare == 0) {
-        result[storeIndex++] = handleMergeConflict(a, b, mergeKind);
-        i++;
-        j++;
-      } else if (compare < 0) {
-        handleOnlyA(a, mergeKind);
-        result[storeIndex++] = a;
-        i++;
-      } else {
-        result[storeIndex++] = handleOnlyB(b, mergeKind);
-        j++;
-      }
-    }
-    while (i < aList.length) {
-      final ClassMember a = aList[i];
-      if (!(mergeKind == MergeKind.interfacesMembers ||
-              mergeKind == MergeKind.interfacesSetters) ||
-          !a.isStatic) {
-        handleOnlyA(a, mergeKind);
-        result[storeIndex++] = a;
-      }
-      i++;
-    }
-    while (j < bList.length) {
-      final ClassMember b = bList[j];
-      if (!b.isStatic) {
-        result[storeIndex++] = handleOnlyB(b, mergeKind);
-      }
-      j++;
-    }
-    if (aList.isEmpty && storeIndex == bList.length) return bList;
-    if (bList.isEmpty && storeIndex == aList.length) return aList;
-    return result..length = storeIndex;
-  }
-
   void inferMixinApplication() {
     Class cls = classBuilder.cls;
     Supertype mixedInType = cls.mixedInType;
@@ -1699,7 +2268,7 @@ class ClassHierarchyNodeBuilder {
       inferredArguments[i] =
           hierarchy.loader.computeTypeBuilder(typeArguments[i]);
     }
-    NamedTypeBuilder mixedInTypeBuilder = classBuilder.mixedInType;
+    NamedTypeBuilder mixedInTypeBuilder = classBuilder.mixedInTypeBuilder;
     mixedInTypeBuilder.arguments = inferredArguments;
   }
 
@@ -1729,10 +2298,10 @@ class ClassHierarchyNode {
 
   /// All the members of this class including [classMembers] of its
   /// superclasses. The members are sorted by [compareDeclarations].
-  final List<ClassMember> classMembers;
+  final Map<Name, ClassMember> classMemberMap;
 
   /// Similar to [classMembers] but for setters.
-  final List<ClassMember> classSetters;
+  final Map<Name, ClassMember> classSetterMap;
 
   /// All the interface members of this class including [interfaceMembers] of
   /// its supertypes. The members are sorted by [compareDeclarations].
@@ -1741,20 +2310,20 @@ class ClassHierarchyNode {
   /// from interfaces.
   ///
   /// This may be null, in which case [classMembers] is the interface members.
-  final List<ClassMember> interfaceMembers;
+  final Map<Name, ClassMember> interfaceMemberMap;
 
   /// Similar to [interfaceMembers] but for setters.
   ///
   /// This may be null, in which case [classSetters] is the interface setters.
-  final List<ClassMember> interfaceSetters;
+  final Map<Name, ClassMember> interfaceSetterMap;
 
   /// All superclasses of [classBuilder] excluding itself. The classes are
   /// sorted by depth from the root (Object) in ascending order.
-  final List<TypeBuilder> superclasses;
+  final List<Supertype> superclasses;
 
   /// The list of all classes implemented by [classBuilder] and its supertypes
   /// excluding any classes from [superclasses].
-  final List<TypeBuilder> interfaces;
+  final List<Supertype> interfaces;
 
   /// The longest inheritance path from [classBuilder] to `Object`.
   final int maxInheritancePath;
@@ -1765,10 +2334,10 @@ class ClassHierarchyNode {
 
   ClassHierarchyNode(
       this.classBuilder,
-      this.classMembers,
-      this.classSetters,
-      this.interfaceMembers,
-      this.interfaceSetters,
+      this.classMemberMap,
+      this.classSetterMap,
+      this.interfaceMemberMap,
+      this.interfaceSetterMap,
       this.superclasses,
       this.interfaces,
       this.maxInheritancePath,
@@ -1780,17 +2349,13 @@ class ClassHierarchyNode {
     List<ClassHierarchyNode> result = new List<ClassHierarchyNode>(
         1 + superclasses.length + interfaces.length);
     for (int i = 0; i < superclasses.length; i++) {
-      Builder declaration = superclasses[i].declaration;
-      if (declaration is ClassBuilder) {
-        result[i] = hierarchy.getNodeFromClass(declaration);
-      }
+      Supertype type = superclasses[i];
+      result[i] = hierarchy.getNodeFromClass(type.classNode);
     }
     for (int i = 0; i < interfaces.length; i++) {
-      Builder declaration = interfaces[i].declaration;
-      if (declaration is ClassBuilder) {
-        result[i + superclasses.length] =
-            hierarchy.getNodeFromClass(declaration);
-      }
+      Supertype type = interfaces[i];
+      result[i + superclasses.length] =
+          hierarchy.getNodeFromClass(type.classNode);
     }
     return result..last = this;
   }
@@ -1807,31 +2372,31 @@ class ClassHierarchyNode {
     }
     sb..writeln("  superclasses:");
     int depth = 0;
-    for (TypeBuilder superclass in superclasses) {
+    for (Supertype superclass in superclasses) {
       sb.write("  " * (depth + 2));
       if (depth != 0) sb.write("-> ");
-      superclass.printOn(sb);
+      sb.write(typeToText(superclass.asInterfaceType));
       sb.writeln();
       depth++;
     }
     if (interfaces != null) {
       sb.write("  interfaces:");
       bool first = true;
-      for (TypeBuilder i in interfaces) {
+      for (Supertype i in interfaces) {
         if (!first) sb.write(",");
         sb.write(" ");
-        i.printOn(sb);
+        sb.write(typeToText(i.asInterfaceType));
         first = false;
       }
       sb.writeln();
     }
-    printMembers(classMembers, sb, "classMembers");
-    printMembers(classSetters, sb, "classSetters");
-    if (interfaceMembers != null) {
-      printMembers(interfaceMembers, sb, "interfaceMembers");
+    printMemberMap(classMemberMap, sb, "classMembers");
+    printMemberMap(classSetterMap, sb, "classSetters");
+    if (interfaceMemberMap != null) {
+      printMemberMap(interfaceMemberMap, sb, "interfaceMembers");
     }
-    if (interfaceSetters != null) {
-      printMembers(interfaceSetters, sb, "interfaceSetters");
+    if (interfaceSetterMap != null) {
+      printMemberMap(interfaceSetterMap, sb, "interfaceSetters");
     }
     return "$sb";
   }
@@ -1851,12 +2416,17 @@ class ClassHierarchyNode {
     }
   }
 
+  void printMemberMap(
+      Map<Name, ClassMember> memberMap, StringBuffer sb, String heading) {
+    List<ClassMember> members = memberMap.values.toList();
+    members.sort(compareDeclarations);
+    printMembers(members, sb, heading);
+  }
+
   ClassMember getInterfaceMember(Name name, bool isSetter) {
-    return findMember(
-        name,
-        isSetter
-            ? interfaceSetters ?? classSetters
-            : interfaceMembers ?? classMembers);
+    return isSetter
+        ? (interfaceSetterMap ?? classSetterMap)[name]
+        : (interfaceMemberMap ?? classMemberMap)[name];
   }
 
   ClassMember findMember(Name name, List<ClassMember> declarations) {
@@ -1868,7 +2438,7 @@ class ClassHierarchyNode {
     while (low <= high) {
       int mid = low + ((high - low) >> 1);
       ClassMember pivot = declarations[mid];
-      int comparison = ClassHierarchy.compareNames(name, pivot.member.name);
+      int comparison = ClassHierarchy.compareNames(name, pivot.name);
       if (comparison < 0) {
         high = mid - 1;
       } else if (comparison > 0) {
@@ -1884,7 +2454,7 @@ class ClassHierarchyNode {
   }
 
   ClassMember getDispatchTarget(Name name, bool isSetter) {
-    return findMember(name, isSetter ? classSetters : classMembers);
+    return isSetter ? classSetterMap[name] : classMemberMap[name];
   }
 
   static int compareMaxInheritancePath(
@@ -1893,54 +2463,15 @@ class ClassHierarchyNode {
   }
 }
 
-class MergeResult {
-  final List<ClassMember> mergedMembers;
-
-  final List<ClassMember> mergedSetters;
-
-  MergeResult(this.mergedMembers, this.mergedSetters);
-}
-
-enum MergeKind {
-  /// Merging superclass members with the current class.
-  superclassMembers,
-
-  /// Merging superclass setters with the current class.
-  superclassSetters,
-
-  /// Merging members of two interfaces.
-  interfacesMembers,
-
-  /// Merging setters of two interfaces.
-  interfacesSetters,
-
-  /// Merging class members with interface members.
-  supertypesMembers,
-
-  /// Merging class setters with interface setters.
-  supertypesSetters,
-
-  /// Merging members with inherited setters.
-  membersWithSetters,
-
-  /// Merging setters with inherited members.
-  settersWithMembers,
-}
-
-List<LocatedMessage> inheritedConflictContext(ClassMember a, ClassMember b) {
-  return inheritedConflictContextKernel(
-      a.member, b.member, a.fullNameForErrors.length);
-}
-
-List<LocatedMessage> inheritedConflictContextKernel(
-    Member a, Member b, int length) {
+List<LocatedMessage> _inheritedConflictContext(ClassMember a, ClassMember b) {
+  int length = a.fullNameForErrors.length;
   // TODO(ahe): Delete this method when it isn't used by [InterfaceResolver].
   int compare = "${a.fileUri}".compareTo("${b.fileUri}");
   if (compare == 0) {
-    compare = a.fileOffset.compareTo(b.fileOffset);
+    compare = a.charOffset.compareTo(b.charOffset);
   }
-  Member first;
-  Member second;
+  ClassMember first;
+  ClassMember second;
   if (compare < 0) {
     first = a;
     second = b;
@@ -1950,9 +2481,9 @@ List<LocatedMessage> inheritedConflictContextKernel(
   }
   return <LocatedMessage>[
     messageInheritedMembersConflictCause1.withLocation(
-        first.fileUri, first.fileOffset, length),
+        first.fileUri, first.charOffset, length),
     messageInheritedMembersConflictCause2.withLocation(
-        second.fileUri, second.fileOffset, length),
+        second.fileUri, second.charOffset, length),
   ];
 }
 
@@ -1964,10 +2495,10 @@ class BuilderMixinInferrer extends MixinInferrer {
       : super(coreTypes, gatherer);
 
   Supertype asInstantiationOf(Supertype type, Class superclass) {
-    InterfaceType interfaceType =
-        gatherer.getTypeAsInstanceOf(type.asInterfaceType, superclass);
-    if (interfaceType == null) return null;
-    return new Supertype(interfaceType.classNode, interfaceType.typeArguments);
+    List<DartType> arguments =
+        gatherer.getTypeArgumentsAsInstanceOf(type.asInterfaceType, superclass);
+    if (arguments == null) return null;
+    return new Supertype(superclass, arguments);
   }
 
   void reportProblem(Message message, Class kernelClass) {
@@ -1985,13 +2516,13 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
       : super.subclassing(typeParameters, currentLibrary);
 
   @override
+  CoreTypes get coreTypes => hierarchy.coreTypes;
+
+  @override
   Class get objectClass => hierarchy.objectClass;
 
   @override
   Class get functionClass => hierarchy.functionClass;
-
-  @override
-  Class get futureClass => hierarchy.futureClass;
 
   @override
   Class get futureOrClass => hierarchy.futureOrClass;
@@ -2000,24 +2531,17 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   Class get nullClass => hierarchy.nullClass;
 
   @override
-  InterfaceType get nullType => hierarchy.coreTypes.nullType;
-
-  @override
-  InterfaceType get objectLegacyRawType =>
-      hierarchy.coreTypes.objectLegacyRawType;
-
-  @override
-  InterfaceType get functionLegacyRawType =>
-      hierarchy.coreTypes.functionLegacyRawType;
-
-  @override
-  void addLowerBound(TypeConstraint constraint, DartType lower) {
-    constraint.lower = getStandardUpperBound(constraint.lower, lower);
+  void addLowerBound(
+      TypeConstraint constraint, DartType lower, Library clientLibrary) {
+    constraint.lower =
+        getStandardUpperBound(constraint.lower, lower, clientLibrary);
   }
 
   @override
-  void addUpperBound(TypeConstraint constraint, DartType upper) {
-    constraint.upper = getStandardLowerBound(constraint.upper, upper);
+  void addUpperBound(
+      TypeConstraint constraint, DartType upper, Library clientLibrary) {
+    constraint.upper =
+        getStandardLowerBound(constraint.upper, upper, clientLibrary);
   }
 
   @override
@@ -2026,8 +2550,15 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
-    return hierarchy.getKernelTypeAsInstanceOf(type, superclass);
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes) {
+    return hierarchy.getKernelTypeAsInstanceOf(type, superclass, clientLibrary);
+  }
+
+  @override
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass) {
+    return hierarchy.getKernelTypeArgumentsAsInstanceOf(type, superclass);
   }
 
   @override
@@ -2043,18 +2574,25 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
+  bool areMutualSubtypes(DartType s, DartType t, SubtypeCheckMode mode) {
+    return isSubtypeOf(s, t, mode) && isSubtypeOf(t, s, mode);
+  }
+
+  @override
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2) {
-    return hierarchy.getKernelLegacyLeastUpperBound(type1, type2);
+      InterfaceType type1, InterfaceType type2, Library clientLibrary) {
+    return hierarchy.getKernelLegacyLeastUpperBound(
+        type1, type2, clientLibrary);
   }
 }
 
 class DelayedOverrideCheck {
   final ClassBuilder classBuilder;
-  final ClassMember a;
-  final ClassMember b;
+  final ClassMember declaredMember;
+  final ClassMember overriddenMember;
 
-  const DelayedOverrideCheck(this.classBuilder, this.a, this.b);
+  const DelayedOverrideCheck(
+      this.classBuilder, this.declaredMember, this.overriddenMember);
 
   void check(ClassHierarchyBuilder hierarchy) {
     void callback(
@@ -2064,102 +2602,44 @@ class DelayedOverrideCheck {
           isInterfaceCheck: !classBuilder.isMixinApplication);
     }
 
-    ClassMember a = this.a;
-    debug?.log("Delayed override check of ${fullName(a)} "
-        "${fullName(b)} wrt. ${classBuilder.fullNameForErrors}");
-    if (classBuilder == a.classBuilder) {
-      if (a is ProcedureBuilder) {
-        if (a.isGetter && !hasExplicitReturnType(a)) {
-          DartType type;
-          if (b.isGetter) {
-            Procedure bTarget = b.member;
-            type = bTarget.function.returnType;
-          } else if (b.isSetter) {
-            Procedure bTarget = b.member;
-            type = bTarget.function.positionalParameters.single.type;
-          } else if (b.isField) {
-            Field bTarget = b.member;
-            type = bTarget.type;
-          }
-          if (type != null) {
-            type = Substitution.fromInterfaceType(
-                    hierarchy.getKernelTypeAsInstanceOf(
-                        hierarchy.coreTypes.thisInterfaceType(
-                            classBuilder.cls, classBuilder.library.nonNullable),
-                        b.member.enclosingClass))
-                .substituteType(type);
-            if (!a.hadTypesInferred || !b.isSetter) {
-              inferReturnType(
-                  classBuilder, a, type, a.hadTypesInferred, hierarchy);
-            }
-          }
-        } else if (a.isSetter && !hasExplicitlyTypedFormalParameter(a, 0)) {
-          DartType type;
-          if (b.isGetter) {
-            Procedure bTarget = b.member;
-            type = bTarget.function.returnType;
-          } else if (b.isSetter) {
-            Procedure bTarget = b.member;
-            type = bTarget.function.positionalParameters.single.type;
-          } else if (b.isField) {
-            Field bTarget = b.member;
-            type = bTarget.type;
-          }
-          if (type != null) {
-            type = Substitution.fromInterfaceType(
-                    hierarchy.getKernelTypeAsInstanceOf(
-                        hierarchy.coreTypes.thisInterfaceType(
-                            classBuilder.cls, classBuilder.library.nonNullable),
-                        b.member.enclosingClass))
-                .substituteType(type);
-            if (!a.hadTypesInferred || !b.isGetter) {
-              inferParameterType(classBuilder, a, a.formals.single, type,
-                  a.hadTypesInferred, hierarchy);
-            }
-          }
-        }
-        a.hadTypesInferred = true;
-      } else if (a is FieldBuilder && a.type == null) {
-        DartType type;
-        if (b.isGetter) {
-          Procedure bTarget = b.member;
-          type = bTarget.function.returnType;
-        } else if (b.isSetter) {
-          Procedure bTarget = b.member;
-          type = bTarget.function.positionalParameters.single.type;
-        } else if (b.isField) {
-          Field bTarget = b.member;
-          type = bTarget.type;
-        }
-        if (type != null) {
-          type = Substitution.fromInterfaceType(
-                  hierarchy.getKernelTypeAsInstanceOf(
-                      hierarchy.coreTypes.thisInterfaceType(
-                          classBuilder.cls, classBuilder.library.nonNullable),
-                      b.member.enclosingClass))
-              .substituteType(type);
-          if (type != a.fieldType) {
-            if (a.hadTypesInferred) {
-              if (b.isSetter &&
-                  (!impliesSetter(a) ||
-                      hierarchy.types.isSubtypeOfKernel(type, a.fieldType,
-                          SubtypeCheckMode.ignoringNullabilities))) {
-                type = a.fieldType;
-              } else {
-                reportCantInferFieldType(classBuilder, a);
-                type = const InvalidType();
-              }
-            }
-            debug?.log("Inferred type ${type} for ${fullName(a)}");
-            a.fieldType = type;
-          }
-        }
-        a.hadTypesInferred = true;
-      }
-    }
-
-    callback(a.member, b.member, a.isSetter);
+    debug?.log("Delayed override check of ${declaredMember.fullName} "
+        "${overriddenMember.fullName} wrt. ${classBuilder.fullNameForErrors}");
+    callback(declaredMember.getMember(hierarchy),
+        overriddenMember.getMember(hierarchy), declaredMember.isSetter);
   }
+}
+
+class DelayedTypeComputation {
+  final ClassHierarchyNodeBuilder builder;
+  final ClassMember declaredMember;
+  final Set<ClassMember> overriddenMembers;
+  bool _computed = false;
+
+  DelayedTypeComputation(
+      this.builder, this.declaredMember, this.overriddenMembers)
+      : assert(declaredMember.isSourceDeclaration);
+
+  void compute(ClassHierarchyBuilder hierarchy) {
+    if (_computed) return;
+    declaredMember.inferType(hierarchy);
+    _computed = true;
+    if (declaredMember.isField) {
+      builder.inferFieldSignature(hierarchy, declaredMember, overriddenMembers);
+    } else if (declaredMember.isGetter) {
+      builder.inferGetterSignature(
+          hierarchy, declaredMember, overriddenMembers);
+    } else if (declaredMember.isSetter) {
+      builder.inferSetterSignature(
+          hierarchy, declaredMember, overriddenMembers);
+    } else {
+      builder.inferMethodSignature(
+          hierarchy, declaredMember, overriddenMembers);
+    }
+  }
+
+  @override
+  String toString() => 'DelayedTypeComputation('
+      '${builder.classBuilder.name},$declaredMember,$overriddenMembers)';
 }
 
 abstract class DelayedMember implements ClassMember {
@@ -2167,15 +2647,42 @@ abstract class DelayedMember implements ClassMember {
   @override
   final ClassBuilder classBuilder;
 
+  bool get hasDeclarations => true;
+
   /// Conflicting declarations.
   final List<ClassMember> declarations;
+
+  final bool isProperty;
 
   final bool isSetter;
 
   final bool modifyKernel;
 
-  DelayedMember(
-      this.classBuilder, this.declarations, this.isSetter, this.modifyKernel);
+  final bool isExplicitlyAbstract;
+
+  @override
+  final Name name;
+
+  DelayedMember(this.classBuilder, this.declarations, this.isProperty,
+      this.isSetter, this.modifyKernel, this.isExplicitlyAbstract, this.name);
+
+  @override
+  bool get isSourceDeclaration => false;
+
+  @override
+  bool get needsComputation => true;
+
+  @override
+  bool get isSynthesized => true;
+
+  @override
+  bool get forSetter => isSetter;
+
+  @override
+  bool get isFunction => !isProperty;
+
+  @override
+  bool get isAbstract => isExplicitlyAbstract;
 
   bool get isStatic => false;
   bool get isField => false;
@@ -2185,16 +2692,13 @@ abstract class DelayedMember implements ClassMember {
   bool get isAssignable => false;
   bool get isDuplicate => false;
 
-  void addAllDeclarationsTo(List<ClassMember> declarations) {
-    for (int i = 0; i < this.declarations.length; i++) {
-      addDeclarationIfDifferent(this.declarations[i], declarations);
-    }
-    assert(declarations.toSet().length == declarations.length);
-  }
-
-  Member check(ClassHierarchyBuilder hierarchy);
-
   DelayedMember withParent(ClassBuilder parent);
+
+  @override
+  ClassMember get abstract => this;
+
+  @override
+  ClassMember get concrete => this;
 
   @override
   Uri get fileUri => classBuilder.fileUri;
@@ -2203,12 +2707,51 @@ abstract class DelayedMember implements ClassMember {
   int get charOffset => classBuilder.charOffset;
 
   @override
-  String get fullNameForErrors => declarations.map(fullName).join("%");
+  String get fullNameForErrors =>
+      declarations.map((ClassMember m) => m.fullName).join("%");
 
   bool get isInheritableConflict => true;
 
+  String get fullName {
+    String suffix = isSetter ? "=" : "";
+    return "${fullNameForErrors}$suffix";
+  }
+
   @override
-  Member get member => declarations.first.member;
+  void inferType(ClassHierarchyBuilder hierarchy) {
+    // Do nothing; this is only for declared members.
+  }
+
+  @override
+  void registerOverrideDependency(ClassMember overriddenMember) {
+    // Do nothing; this is only for declared members.
+  }
+
+  @override
+  int get hashCode {
+    int hash = classBuilder.hashCode * 13 +
+        isSetter.hashCode * 17 +
+        isProperty.hashCode * 19 +
+        modifyKernel.hashCode * 23 +
+        name.hashCode * 29;
+    for (ClassMember declaration in declarations) {
+      hash ^= declaration.hashCode;
+    }
+    return hash;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is DelayedMember &&
+        classBuilder == other.classBuilder &&
+        isSetter == other.isSetter &&
+        isProperty == other.isProperty &&
+        modifyKernel == other.modifyKernel &&
+        name == other.name &&
+        declarations.length == other.declarations.length &&
+        _equalsList(declarations, other.declarations, declarations.length);
+  }
 }
 
 /// This represents a concrete implementation inherited from a superclass that
@@ -2220,20 +2763,43 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
   @override
   final bool isInheritableConflict;
 
-  InheritedImplementationInterfaceConflict(ClassBuilder parent,
-      List<ClassMember> declarations, bool isSetter, bool modifyKernel,
+  InheritedImplementationInterfaceConflict(
+      ClassBuilder parent,
+      List<ClassMember> declarations,
+      bool isProperty,
+      bool isSetter,
+      bool modifyKernel,
+      bool isAbstract,
+      Name name,
       {this.isInheritableConflict = true})
-      : super(parent, declarations, isSetter, modifyKernel);
+      : super(parent, declarations, isProperty, isSetter, modifyKernel,
+            isAbstract, name);
+
+  @override
+  bool isObjectMember(ClassBuilder objectClass) {
+    return declarations.first.isObjectMember(objectClass);
+  }
 
   @override
   String toString() {
     return "InheritedImplementationInterfaceConflict("
         "${classBuilder.fullNameForErrors}, "
-        "[${declarations.map(fullName).join(', ')}])";
+        "[${declarations.join(', ')}])";
   }
 
   @override
-  Member check(ClassHierarchyBuilder hierarchy) {
+  int get hashCode => super.hashCode + isInheritableConflict.hashCode * 11;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return super == other &&
+        other is InheritedImplementationInterfaceConflict &&
+        isInheritableConflict == other.isInheritableConflict;
+  }
+
+  @override
+  Member getMember(ClassHierarchyBuilder hierarchy) {
     if (combinedMemberSignatureResult != null) {
       return combinedMemberSignatureResult;
     }
@@ -2245,9 +2811,9 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
             .check(hierarchy);
       }
     }
-    return combinedMemberSignatureResult = new InterfaceConflict(
-            classBuilder, declarations, isSetter, modifyKernel)
-        .check(hierarchy);
+    return combinedMemberSignatureResult = new InterfaceConflict(classBuilder,
+            declarations, isProperty, isSetter, modifyKernel, isAbstract, name)
+        .getMember(hierarchy);
   }
 
   @override
@@ -2255,7 +2821,13 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
     return parent == this.classBuilder
         ? this
         : new InheritedImplementationInterfaceConflict(
-            parent, declarations, isSetter, modifyKernel);
+            parent,
+            declarations.toList(),
+            isProperty,
+            isSetter,
+            modifyKernel,
+            isAbstract,
+            name);
   }
 
   static ClassMember combined(
@@ -2265,14 +2837,16 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
       bool isSetter,
       bool createForwarders,
       {bool isInheritableConflict = true}) {
+    assert(concreteImplementation.isProperty == other.isProperty,
+        "Unexpected member combination: $concreteImplementation vs $other");
     List<ClassMember> declarations = <ClassMember>[];
-    if (concreteImplementation is DelayedMember) {
-      concreteImplementation.addAllDeclarationsTo(declarations);
+    if (concreteImplementation.hasDeclarations) {
+      addAllDeclarationsTo(concreteImplementation, declarations);
     } else {
       declarations.add(concreteImplementation);
     }
-    if (other is DelayedMember) {
-      other.addAllDeclarationsTo(declarations);
+    if (other.hasDeclarations) {
+      addAllDeclarationsTo(other, declarations);
     } else {
       addDeclarationIfDifferent(other, declarations);
     }
@@ -2280,23 +2854,64 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
       return declarations.single;
     } else {
       return new InheritedImplementationInterfaceConflict(
-          parent, declarations, isSetter, createForwarders,
+          parent,
+          declarations,
+          concreteImplementation.isProperty,
+          isSetter,
+          createForwarders,
+          declarations.first.isAbstract,
+          declarations.first.name,
           isInheritableConflict: isInheritableConflict);
     }
   }
 }
 
 class InterfaceConflict extends DelayedMember {
-  InterfaceConflict(ClassBuilder parent, List<ClassMember> declarations,
-      bool isSetter, bool modifyKernel)
-      : super(parent, declarations, isSetter, modifyKernel);
+  final bool isImplicitlyAbstract;
+
+  InterfaceConflict(
+      ClassBuilder parent,
+      List<ClassMember> declarations,
+      bool isProperty,
+      bool isSetter,
+      bool modifyKernel,
+      bool isAbstract,
+      Name name,
+      {this.isImplicitlyAbstract: true})
+      : super(parent, declarations, isProperty, isSetter, modifyKernel,
+            isAbstract, name);
+
+  @override
+  bool isObjectMember(ClassBuilder objectClass) =>
+      declarations.first.isObjectMember(objectClass);
+
+  @override
+  bool get isAbstract => isExplicitlyAbstract || isImplicitlyAbstract;
 
   Member combinedMemberSignatureResult;
 
   @override
   String toString() {
     return "InterfaceConflict(${classBuilder.fullNameForErrors}, "
-        "[${declarations.map(fullName).join(', ')}])";
+        "[${declarations.join(', ')}])";
+  }
+
+  @override
+  int get hashCode {
+    int hash = super.hashCode;
+    hash ^= isImplicitlyAbstract.hashCode;
+    for (ClassMember declaration in declarations) {
+      hash ^= declaration.hashCode;
+    }
+    return hash;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return super == other &&
+        other is InterfaceConflict &&
+        isImplicitlyAbstract == other.isImplicitlyAbstract;
   }
 
   DartType computeMemberType(
@@ -2308,7 +2923,8 @@ class InterfaceConflict extends DelayedMember {
       } else if (member.isSetter) {
         type = member.setterType;
       } else {
-        type = member.function.functionType;
+        type = member.function
+            .computeFunctionType(member.enclosingLibrary.nonNullable);
       }
     } else if (member is Field) {
       type = member.type;
@@ -2316,65 +2932,98 @@ class InterfaceConflict extends DelayedMember {
       unhandled("${member.runtimeType}", "$member", classBuilder.charOffset,
           classBuilder.fileUri);
     }
-    return Substitution.fromInterfaceType(hierarchy.getKernelTypeAsInstanceOf(
-            thisType, member.enclosingClass))
-        .substituteType(type);
+    InterfaceType instance = hierarchy.getKernelTypeAsInstanceOf(
+        thisType, member.enclosingClass, classBuilder.library.library);
+    assert(
+        instance != null,
+        "No instance of $thisType as ${member.enclosingClass} found for "
+        "$member.");
+    return Substitution.fromInterfaceType(instance).substituteType(type);
   }
 
   bool isMoreSpecific(ClassHierarchyBuilder hierarchy, DartType a, DartType b) {
     if (isSetter) {
       return hierarchy.types
-          .isSubtypeOfKernel(b, a, SubtypeCheckMode.ignoringNullabilities);
+          .isSubtypeOfKernel(b, a, SubtypeCheckMode.withNullabilities);
     } else {
       return hierarchy.types
-          .isSubtypeOfKernel(a, b, SubtypeCheckMode.ignoringNullabilities);
+          .isSubtypeOfKernel(a, b, SubtypeCheckMode.withNullabilities);
     }
   }
 
   @override
-  Member check(ClassHierarchyBuilder hierarchy) {
+  Member getMember(ClassHierarchyBuilder hierarchy) {
     if (combinedMemberSignatureResult != null) {
       return combinedMemberSignatureResult;
     }
     if (classBuilder.library is! SourceLibraryBuilder) {
-      return combinedMemberSignatureResult = declarations.first.member;
+      return combinedMemberSignatureResult =
+          declarations.first.getMember(hierarchy);
     }
+    bool isNonNullableByDefault = classBuilder.library.isNonNullableByDefault;
     DartType thisType = hierarchy.coreTypes
         .thisInterfaceType(classBuilder.cls, classBuilder.library.nonNullable);
+    List<DartType> candidateTypes = new List<DartType>(declarations.length);
     ClassMember bestSoFar;
+    int bestSoFarIndex;
     DartType bestTypeSoFar;
-    for (int i = declarations.length - 1; i >= 0; i--) {
-      ClassMember candidate = declarations[i];
-      Member target = candidate.member;
+    Map<DartType, int> mutualSubtypes;
+    for (int candidateIndex = declarations.length - 1;
+        candidateIndex >= 0;
+        candidateIndex--) {
+      ClassMember candidate = declarations[candidateIndex];
+      Member target = candidate.getMember(hierarchy);
+      assert(target != null,
+          "No member computed for ${candidate} (${candidate.runtimeType})");
       DartType candidateType = computeMemberType(hierarchy, thisType, target);
+      if (!isNonNullableByDefault) {
+        candidateType = legacyErasure(hierarchy.coreTypes, candidateType);
+      }
+      candidateTypes[candidateIndex] = candidateType;
       if (bestSoFar == null) {
         bestSoFar = candidate;
         bestTypeSoFar = candidateType;
+        bestSoFarIndex = candidateIndex;
       } else {
         if (isMoreSpecific(hierarchy, candidateType, bestTypeSoFar)) {
-          debug?.log("Combined Member Signature: ${fullName(candidate)} "
-              "${candidateType} <: ${fullName(bestSoFar)} ${bestTypeSoFar}");
+          debug?.log("Combined Member Signature: ${candidate.fullName} "
+              "${candidateType} <: ${bestSoFar.fullName} ${bestTypeSoFar}");
+          if (isNonNullableByDefault &&
+              isMoreSpecific(hierarchy, bestTypeSoFar, candidateType)) {
+            if (mutualSubtypes == null) {
+              mutualSubtypes = {
+                bestTypeSoFar: bestSoFarIndex,
+                candidateType: candidateIndex
+              };
+            } else {
+              mutualSubtypes[candidateType] = candidateIndex;
+            }
+          } else {
+            mutualSubtypes = null;
+          }
+          bestSoFarIndex = candidateIndex;
           bestSoFar = candidate;
           bestTypeSoFar = candidateType;
         } else {
           debug?.log("Combined Member Signature: "
-              "${fullName(candidate)} !<: ${fullName(bestSoFar)}");
+              "${candidate.fullName} !<: ${bestSoFar.fullName}");
         }
       }
     }
     if (bestSoFar != null) {
-      debug?.log("Combined Member Signature bestSoFar: ${fullName(bestSoFar)}");
-      for (int i = 0; i < declarations.length; i++) {
-        ClassMember candidate = declarations[i];
-        Member target = candidate.member;
-        DartType candidateType = computeMemberType(hierarchy, thisType, target);
+      debug?.log("Combined Member Signature bestSoFar: ${bestSoFar.fullName}");
+      for (int candidateIndex = 0;
+          candidateIndex < declarations.length;
+          candidateIndex++) {
+        ClassMember candidate = declarations[candidateIndex];
+        DartType candidateType = candidateTypes[candidateIndex];
         if (!isMoreSpecific(hierarchy, bestTypeSoFar, candidateType)) {
           debug?.log("Combined Member Signature: "
-              "${fullName(bestSoFar)} !<: ${fullName(candidate)}");
+              "${bestSoFar.fullName} !<: ${candidate.fullName}");
 
-          String uri = '${classBuilder.library.uri}';
+          String uri = '${classBuilder.library.importUri}';
           if (uri == 'dart:js' &&
-                  classBuilder.fileUri.pathSegments.last == 'js_dart2js.dart' ||
+                  classBuilder.fileUri.pathSegments.last == 'js.dart' ||
               uri == 'dart:_interceptors' &&
                   classBuilder.fileUri.pathSegments.last == 'js_number.dart') {
             // TODO(johnniwinther): Fix the dart2js libraries and remove the
@@ -2382,6 +3031,7 @@ class InterfaceConflict extends DelayedMember {
           } else {
             bestSoFar = null;
             bestTypeSoFar = null;
+            mutualSubtypes = null;
           }
           break;
         }
@@ -2391,7 +3041,7 @@ class InterfaceConflict extends DelayedMember {
       String name = classBuilder.fullNameForErrors;
       int length = classBuilder.isAnonymousMixinApplication ? 1 : name.length;
       List<LocatedMessage> context = declarations.map((ClassMember d) {
-        return messageDeclaredMemberConflictsWithInheritedMemberCause
+        return messageDeclaredMemberConflictsWithInheritedMembersCause
             .withLocation(d.fileUri, d.charOffset, d.fullNameForErrors.length);
       }).toList();
 
@@ -2402,14 +3052,17 @@ class InterfaceConflict extends DelayedMember {
           classBuilder.charOffset,
           length,
           context: context);
-      return null;
+      // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
+      // cascading errors.
+      return combinedMemberSignatureResult =
+          declarations.first.getMember(hierarchy);
     }
     debug?.log("Combined Member Signature of ${fullNameForErrors}: "
-        "${fullName(bestSoFar)}");
+        "${bestSoFar.fullName}");
 
     ProcedureKind kind = ProcedureKind.Method;
-    Member bestMemberSoFar = bestSoFar.member;
-    if (bestSoFar.isField || bestSoFar.isSetter || bestSoFar.isGetter) {
+    Member bestMemberSoFar = bestSoFar.getMember(hierarchy);
+    if (bestSoFar.isProperty) {
       kind = isSetter ? ProcedureKind.Setter : ProcedureKind.Getter;
     } else if (bestMemberSoFar is Procedure &&
         bestMemberSoFar.kind == ProcedureKind.Operator) {
@@ -2420,46 +3073,53 @@ class InterfaceConflict extends DelayedMember {
       debug?.log("Combined Member Signature of ${fullNameForErrors}: new "
           "ForwardingNode($classBuilder, $bestSoFar, $declarations, $kind)");
       Member stub = new ForwardingNode(
-              hierarchy, classBuilder, bestSoFar, declarations, kind)
+              hierarchy,
+              classBuilder,
+              bestSoFar,
+              bestSoFarIndex,
+              declarations,
+              kind,
+              mutualSubtypes?.values?.toSet())
           .finalize();
       if (classBuilder.cls == stub.enclosingClass) {
         classBuilder.cls.addMember(stub);
         SourceLibraryBuilder library = classBuilder.library;
-        if (bestSoFar.member is Procedure) {
-          library.forwardersOrigins..add(stub)..add(bestSoFar.member);
+        Member bestMemberSoFar = bestSoFar.getMember(hierarchy);
+        if (bestMemberSoFar is Procedure) {
+          library.forwardersOrigins..add(stub)..add(bestMemberSoFar);
         }
         debug?.log("Combined Member Signature of ${fullNameForErrors}: "
             "added stub $stub");
-        if (classBuilder.isMixinApplication) {
-          return combinedMemberSignatureResult = bestSoFar.member;
-        } else {
-          return combinedMemberSignatureResult = stub;
-        }
+        return combinedMemberSignatureResult = stub;
       }
     }
 
     debug?.log(
         "Combined Member Signature of ${fullNameForErrors}: picked bestSoFar");
-    return combinedMemberSignatureResult = bestSoFar.member;
+    return combinedMemberSignatureResult = bestSoFar.getMember(hierarchy);
   }
 
   @override
   DelayedMember withParent(ClassBuilder parent) {
     return parent == this.classBuilder
         ? this
-        : new InterfaceConflict(parent, declarations, isSetter, modifyKernel);
+        : new InterfaceConflict(parent, [this], isProperty, isSetter,
+            modifyKernel, isAbstract, name,
+            isImplicitlyAbstract: isImplicitlyAbstract);
   }
 
   static ClassMember combined(ClassBuilder parent, ClassMember a, ClassMember b,
       bool isSetter, bool createForwarders) {
+    assert(a.isProperty == b.isProperty,
+        "Unexpected member combination: $a vs $b");
     List<ClassMember> declarations = <ClassMember>[];
-    if (a is DelayedMember) {
-      a.addAllDeclarationsTo(declarations);
+    if (a.hasDeclarations) {
+      addAllDeclarationsTo(a, declarations);
     } else {
       declarations.add(a);
     }
-    if (b is DelayedMember) {
-      b.addAllDeclarationsTo(declarations);
+    if (b.hasDeclarations) {
+      addAllDeclarationsTo(b, declarations);
     } else {
       addDeclarationIfDifferent(b, declarations);
     }
@@ -2467,8 +3127,22 @@ class InterfaceConflict extends DelayedMember {
       return declarations.single;
     } else {
       return new InterfaceConflict(
-          parent, declarations, isSetter, createForwarders);
+          parent,
+          declarations,
+          a.isProperty,
+          isSetter,
+          createForwarders,
+          declarations.first.isAbstract,
+          declarations.first.name);
     }
+  }
+
+  @override
+  ClassMember get concrete {
+    if (isAbstract) {
+      return declarations.first.concrete;
+    }
+    return this;
   }
 }
 
@@ -2477,150 +3151,142 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
       ClassBuilder parent,
       ClassMember abstractMember,
       ClassMember concreteImplementation,
+      bool isProperty,
       bool isSetter,
-      bool modifyKernel)
+      bool modifyKernel,
+      bool isAbstract,
+      Name name)
       : super(parent, <ClassMember>[concreteImplementation, abstractMember],
-            isSetter, modifyKernel);
+            isProperty, isSetter, modifyKernel, isAbstract, name);
+
+  @override
+  bool isObjectMember(ClassBuilder objectClass) =>
+      concreteImplementation.isObjectMember(objectClass);
 
   ClassMember get concreteImplementation => declarations[0];
 
   ClassMember get abstractMember => declarations[1];
 
-  Member check(ClassHierarchyBuilder hierarchy) {
-    if (!classBuilder.isAbstract &&
-        !hierarchy.nodes[classBuilder.cls].hasNoSuchMethod) {
-      new DelayedOverrideCheck(
-              classBuilder, concreteImplementation, abstractMember)
-          .check(hierarchy);
-    }
+  bool _isChecked = false;
 
-    ProcedureKind kind = ProcedureKind.Method;
-    if (abstractMember.isSetter || abstractMember.isGetter) {
-      kind = isSetter ? ProcedureKind.Setter : ProcedureKind.Getter;
+  @override
+  Member getMember(ClassHierarchyBuilder hierarchy) {
+    if (!_isChecked) {
+      _isChecked = true;
+      if (!classBuilder.isAbstract &&
+          !hierarchy.nodes[classBuilder.cls].hasNoSuchMethod) {
+        new DelayedOverrideCheck(
+                classBuilder, concreteImplementation, abstractMember)
+            .check(hierarchy);
+      }
+
+      ProcedureKind kind = ProcedureKind.Method;
+      if (abstractMember.isProperty) {
+        kind = isSetter ? ProcedureKind.Setter : ProcedureKind.Getter;
+      }
+      if (modifyKernel) {
+        // This call will add a body to the abstract method if needed for
+        // isGenericCovariantImpl checks.
+        new ForwardingNode(hierarchy, classBuilder, abstractMember, 1,
+                declarations, kind, null)
+            .finalize();
+      }
     }
-    if (modifyKernel) {
-      // This call will add a body to the abstract method if needed for
-      // isGenericCovariantImpl checks.
-      new ForwardingNode(
-              hierarchy, classBuilder, abstractMember, declarations, kind)
-          .finalize();
-    }
-    return abstractMember.member;
+    return abstractMember.getMember(hierarchy);
   }
 
   @override
   DelayedMember withParent(ClassBuilder parent) {
     return parent == this.classBuilder
         ? this
-        : new AbstractMemberOverridingImplementation(parent, abstractMember,
-            concreteImplementation, isSetter, modifyKernel);
+        : new AbstractMemberOverridingImplementation(
+            parent,
+            abstractMember,
+            concreteImplementation,
+            isProperty,
+            isSetter,
+            modifyKernel,
+            isAbstract,
+            name);
   }
 
-  static ClassMember selectAbstract(ClassMember declaration) {
-    if (declaration is AbstractMemberOverridingImplementation) {
-      return declaration.abstractMember;
-    } else {
-      return declaration;
-    }
+  @override
+  String toString() {
+    return "AbstractMemberOverridingImplementation("
+        "${classBuilder.fullNameForErrors}, "
+        "[${declarations.join(', ')}])";
   }
 
-  static ClassMember selectConcrete(ClassMember declaration) {
-    if (declaration is AbstractMemberOverridingImplementation) {
-      return declaration.concreteImplementation;
-    } else {
-      return declaration;
-    }
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return super == other && other is AbstractMemberOverridingImplementation;
   }
+
+  @override
+  ClassMember get abstract => abstractMember;
+
+  @override
+  ClassMember get concrete => concreteImplementation;
 }
 
 void addDeclarationIfDifferent(
     ClassMember declaration, List<ClassMember> declarations) {
-  Member target = declaration.member;
-  if (target is Procedure) {
-    FunctionNode function = target.function;
-    for (int i = 0; i < declarations.length; i++) {
-      Member other = declarations[i].member;
-      if (other is Procedure) {
-        if (hasSameSignature(function, other.function)) return;
-      }
-    }
-  } else {
-    for (int i = 0; i < declarations.length; i++) {
-      if (declaration == declarations[i]) return;
-    }
+  for (int i = 0; i < declarations.length; i++) {
+    if (declaration == declarations[i]) return;
   }
   declarations.add(declaration);
 }
 
-String fullName(ClassMember declaration) {
-  String suffix = declaration.isSetter ? "=" : "";
-  if (declaration is DelayedMember) {
-    return "${declaration.fullNameForErrors}$suffix";
+void addAllDeclarationsTo(ClassMember member, List<ClassMember> declarations) {
+  assert(member.hasDeclarations);
+  for (int i = 0; i < member.declarations.length; i++) {
+    addDeclarationIfDifferent(member.declarations[i], declarations);
   }
-  String className = declaration.classBuilder?.fullNameForErrors;
-  return className == null
-      ? "${declaration.fullNameForErrors}$suffix"
-      : "${className}.${declaration.fullNameForErrors}$suffix";
+  assert(declarations.toSet().length == declarations.length);
 }
 
 int compareNamedParameters(VariableDeclaration a, VariableDeclaration b) {
   return a.name.compareTo(b.name);
 }
 
-bool isAbstract(ClassMember declaration) {
-  return declaration.member.isAbstract || declaration is InterfaceConflict;
-}
-
-bool inferParameterType(
-    ClassBuilder classBuilder,
-    ProcedureBuilder memberBuilder,
-    FormalParameterBuilder parameterBuilder,
-    DartType type,
-    bool hadTypesInferred,
-    ClassHierarchyBuilder hierarchy) {
-  debug?.log("Inferred type ${type} for ${parameterBuilder}");
-  if (type == parameterBuilder.variable.type) return true;
-  bool result = true;
-  if (hadTypesInferred) {
-    reportCantInferParameterType(
-        classBuilder, memberBuilder, parameterBuilder, hierarchy);
-    type = const InvalidType();
-    result = false;
-  }
-  parameterBuilder.variable.type = type;
-  memberBuilder.hadTypesInferred = true;
-  return result;
-}
-
-void reportCantInferParameterType(ClassBuilder cls, MemberBuilder member,
-    FormalParameterBuilder parameter, ClassHierarchyBuilder hierarchy) {
+void reportCantInferParameterType(
+    ClassBuilder cls,
+    FormalParameterBuilder parameter,
+    ClassHierarchyBuilder hierarchy,
+    Iterable<ClassMember> overriddenMembers) {
   String name = parameter.name;
+  List<LocatedMessage> context = overriddenMembers
+      .map((ClassMember overriddenMember) {
+        return messageDeclaredMemberConflictsWithInheritedMembersCause
+            .withLocation(overriddenMember.fileUri, overriddenMember.charOffset,
+                overriddenMember.fullNameForErrors.length);
+      })
+      // Call toSet to avoid duplicate context for instance of fields that are
+      // overridden both as getters and setters.
+      .toSet()
+      .toList();
   cls.addProblem(
       templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
       parameter.charOffset,
       name.length,
-      wasHandled: true);
+      wasHandled: true,
+      context: context);
 }
 
-bool inferReturnType(ClassBuilder cls, ProcedureBuilder procedureBuilder,
-    DartType type, bool hadTypesInferred, ClassHierarchyBuilder hierarchy) {
-  if (type == procedureBuilder.procedure.function.returnType) return true;
-  bool result = true;
-  if (hadTypesInferred) {
-    reportCantInferReturnType(cls, procedureBuilder, hierarchy);
-    type = const InvalidType();
-    result = false;
-  } else {
-    procedureBuilder.hadTypesInferred = true;
-  }
-  procedureBuilder.procedure.function.returnType = type;
-  return result;
-}
-
-void reportCantInferReturnType(
-    ClassBuilder cls, MemberBuilder member, ClassHierarchyBuilder hierarchy) {
+void reportCantInferReturnType(ClassBuilder cls, SourceProcedureBuilder member,
+    ClassHierarchyBuilder hierarchy, Iterable<ClassMember> overriddenMembers) {
   String name = member.fullNameForErrors;
-  List<LocatedMessage> context;
+  List<LocatedMessage> context = overriddenMembers
+      .map((ClassMember overriddenMember) {
+        return messageDeclaredMemberConflictsWithInheritedMembersCause
+            .withLocation(overriddenMember.fileUri, overriddenMember.charOffset,
+                overriddenMember.fullNameForErrors.length);
+      })
+      // Call toSet to avoid duplicate context for instance of fields that are
+      // overridden both as getters and setters.
+      .toSet()
+      .toList();
   // // TODO(ahe): The following is for debugging, but could be cleaned up and
   // // used to improve this error message in general.
   //
@@ -2676,32 +3342,63 @@ void reportCantInferReturnType(
       context: context);
 }
 
-void reportCantInferFieldType(ClassBuilder cls, FieldBuilder member) {
+void reportCantInferFieldType(ClassBuilder cls, SourceFieldBuilder member,
+    Iterable<ClassMember> overriddenMembers) {
+  List<LocatedMessage> context = overriddenMembers
+      .map((ClassMember overriddenMember) {
+        return messageDeclaredMemberConflictsWithInheritedMembersCause
+            .withLocation(overriddenMember.fileUri, overriddenMember.charOffset,
+                overriddenMember.fullNameForErrors.length);
+      })
+      // Call toSet to avoid duplicate context for instance of fields that are
+      // overridden both as getters and setters.
+      .toSet()
+      .toList();
   String name = member.fullNameForErrors;
   cls.addProblem(
       templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
       member.charOffset,
       name.length,
-      wasHandled: true);
+      wasHandled: true,
+      context: context);
 }
 
 ClassBuilder getClass(TypeBuilder type) {
   Builder declaration = type.declaration;
+  if (declaration is TypeAliasBuilder) {
+    TypeAliasBuilder aliasBuilder = declaration;
+    NamedTypeBuilder namedBuilder = type;
+    declaration = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+  }
   return declaration is ClassBuilder ? declaration : null;
 }
 
-bool hasExplicitReturnType(ClassMember declaration) {
-  assert(declaration is ProcedureBuilder || declaration is DillMemberBuilder,
-      "${declaration.runtimeType}");
-  return declaration is ProcedureBuilder
-      ? declaration.returnType != null
-      : true;
+/// Returns `true` if the first [length] elements of [a] and [b] are the same.
+bool _equalsList<T>(List<T> a, List<T> b, int length) {
+  if (a.length < length || b.length < length) return false;
+  for (int index = 0; index < length; index++) {
+    if (a[index] != b[index]) {
+      return false;
+    }
+  }
+  return true;
 }
 
-bool hasExplicitlyTypedFormalParameter(ClassMember declaration, int index) {
-  assert(declaration is ProcedureBuilder || declaration is DillMemberBuilder,
-      "${declaration.runtimeType}");
-  return declaration is ProcedureBuilder
-      ? declaration.formals[index].type != null
-      : true;
+Set<ClassMember> toSet(
+    ClassBuilder classBuilder, Iterable<ClassMember> members) {
+  Set<ClassMember> result = <ClassMember>{};
+  _toSet(classBuilder, members, result);
+  return result;
+}
+
+void _toSet(ClassBuilder classBuilder, Iterable<ClassMember> members,
+    Set<ClassMember> result) {
+  for (ClassMember member in members) {
+    if (member.hasDeclarations &&
+        (!useConsolidated || classBuilder == member.classBuilder)) {
+      _toSet(classBuilder, member.declarations, result);
+    } else {
+      result.add(member);
+    }
+  }
 }

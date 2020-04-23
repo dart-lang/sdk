@@ -14,10 +14,12 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
+import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_completion.dart'
     show CompletionDomainHandler;
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
+import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
@@ -25,6 +27,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart'
     show CompletionPerformance;
@@ -45,14 +48,12 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:watcher/watcher.dart';
 
-/**
- * Instances of the class [LspAnalysisServer] implement an LSP-based server that
- * listens on a [CommunicationChannel] for LSP messages and processes them.
- */
+/// Instances of the class [LspAnalysisServer] implement an LSP-based server
+/// that listens on a [CommunicationChannel] for LSP messages and processes
+/// them.
 class LspAnalysisServer extends AbstractAnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   ClientCapabilities _clientCapabilities;
@@ -61,61 +62,37 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// specific server functionality. Will be null prior to initialization.
   LspInitializationOptions _initializationOptions;
 
-  /**
-   * The channel from which messages are received and to which responses should
-   * be sent.
-   */
+  /// The channel from which messages are received and to which responses should
+  /// be sent.
   final LspServerCommunicationChannel channel;
 
   /// The [SearchEngine] for this server, may be `null` if indexing is disabled.
   SearchEngine searchEngine;
 
-  final NotificationManager notificationManager = new NullNotificationManager();
+  final NotificationManager notificationManager = NullNotificationManager();
 
-  /**
-   * The object used to manage the SDK's known to this server.
-   */
+  /// The object used to manage the SDK's known to this server.
   final DartSdkManager sdkManager;
 
-  /**
-   * The instrumentation service that is to be used by this analysis server.
-   */
+  /// The instrumentation service that is to be used by this analysis server.
   final InstrumentationService instrumentationService;
 
-  /**
-   * The default options used to create new analysis contexts. This object is
-   * also referenced by the ContextManager.
-   */
-  final AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
+  /// The default options used to create new analysis contexts. This object is
+  /// also referenced by the ContextManager.
+  final AnalysisOptionsImpl defaultContextOptions = AnalysisOptionsImpl();
 
-  /**
-   * The workspace for rename refactorings. Should be accessed through the
-   * refactoringWorkspace getter to be automatically created (lazily).
-   */
+  /// The workspace for rename refactorings. Should be accessed through the
+  /// refactoringWorkspace getter to be automatically created (lazily).
   RefactoringWorkspace _refactoringWorkspace;
 
-  /**
-   * The versions of each document known to the server (keyed by path), used to
-   * send back to the client for server-initiated edits so that the client can
-   * ensure they have a matching version of the document before applying them.
-   *
-   * Handlers should prefer to use the `getVersionedDocumentIdentifier` method
-   * which will return a null-versioned identifier if the document version is
-   * not known.
-   */
+  /// The versions of each document known to the server (keyed by path), used to
+  /// send back to the client for server-initiated edits so that the client can
+  /// ensure they have a matching version of the document before applying them.
+  ///
+  /// Handlers should prefer to use the `getVersionedDocumentIdentifier` method
+  /// which will return a null-versioned identifier if the document version is
+  /// not known.
   final Map<String, VersionedTextDocumentIdentifier> documentVersions = {};
-
-  /**
-   * The file resolver provider used to override the way file URI's are
-   * resolved in some contexts.
-   */
-  ResolverProvider fileResolverProvider;
-
-  /**
-   * The package resolver provider used to override the way package URI's are
-   * resolved in some contexts.
-   */
-  ResolverProvider packageResolverProvider;
 
   PerformanceLog _analysisPerformanceLogger;
 
@@ -125,53 +102,50 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   final Map<int, Completer<ResponseMessage>> completers = {};
 
-  /**
-   * Capabilities of the server. Will be null prior to initialization as
-   * the server capabilities depend on the client capabilities.
-   */
+  /// Capabilities of the server. Will be null prior to initialization as
+  /// the server capabilities depend on the client capabilities.
   ServerCapabilities capabilities;
 
-  LspPerformance performanceStats = new LspPerformance();
+  LspPerformance performanceStats = LspPerformance();
 
   /// Whether or not the server is controlling the shutdown and will exit
   /// automatically.
   bool willExit = false;
 
-  /**
-   * Initialize a newly created server to send and receive messages to the given
-   * [channel].
-   */
+  /// Initialize a newly created server to send and receive messages to the
+  /// given [channel].
   LspAnalysisServer(
     this.channel,
     ResourceProvider baseResourceProvider,
     AnalysisServerOptions options,
     this.sdkManager,
+    CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     this.instrumentationService, {
     DiagnosticServer diagnosticServer,
-    ResolverProvider packageResolverProvider = null,
-  }) : super(options, diagnosticServer, baseResourceProvider) {
-    messageHandler = new UninitializedStateMessageHandler(this);
+  }) : super(options, diagnosticServer, crashReportingAttachmentsBuilder,
+            baseResourceProvider) {
+    messageHandler = UninitializedStateMessageHandler(this);
     // TODO(dantup): This code is almost identical to AnalysisServer, consider
     // moving it the base class that already holds many of these fields.
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useFastaParser;
 
     {
-      String name = options.newAnalysisDriverLog;
-      StringSink sink = new NullStringSink();
+      var name = options.newAnalysisDriverLog;
+      StringSink sink = NullStringSink();
       if (name != null) {
         if (name == 'stdout') {
           sink = io.stdout;
         } else if (name.startsWith('file:')) {
-          String path = name.substring('file:'.length);
-          sink = new io.File(path).openWrite(mode: io.FileMode.append);
+          var path = name.substring('file:'.length);
+          sink = io.File(path).openWrite(mode: io.FileMode.append);
         }
       }
-      _analysisPerformanceLogger = new PerformanceLog(sink);
+      _analysisPerformanceLogger = PerformanceLog(sink);
     }
     byteStore = createByteStore(resourceProvider);
     analysisDriverScheduler =
-        new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
+        nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
     analysisDriverScheduler.status.listen(sendStatusNotification);
     analysisDriverScheduler.start();
 
@@ -182,17 +156,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           CompletionLibrariesWorker(declarationsTracker);
     }
 
-    contextManager = new ContextManagerImpl(
-        resourceProvider,
-        sdkManager,
-        packageResolverProvider,
-        analyzedFilesGlobs,
-        instrumentationService,
-        defaultContextOptions);
+    contextManager = ContextManagerImpl(resourceProvider, sdkManager,
+        analyzedFilesGlobs, instrumentationService, defaultContextOptions);
     final contextManagerCallbacks =
-        new LspServerContextManagerCallbacks(this, resourceProvider);
+        LspServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
-    searchEngine = new SearchEngineImpl(driverMap.values);
+    searchEngine = SearchEngineImpl(driverMap.values);
 
     channel.listen(handleMessage, onDone: done, onError: socketError);
   }
@@ -207,9 +176,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   LspInitializationOptions get initializationOptions => _initializationOptions;
 
   RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
-      new RefactoringWorkspace(driverMap.values, searchEngine);
+      RefactoringWorkspace(driverMap.values, searchEngine);
 
-  addPriorityFile(String path) {
+  void addPriorityFile(String path) {
     final didAdd = priorityFiles.add(path);
     assert(didAdd);
     if (didAdd) {
@@ -217,9 +186,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
   }
 
-  /**
-   * The socket from which messages are being read has been closed.
-   */
+  /// The socket from which messages are being read has been closed.
   void done() {}
 
   /// Return the LineInfo for the file with the given [path]. The file is
@@ -238,8 +205,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// version is not known.
   VersionedTextDocumentIdentifier getVersionedDocumentIdentifier(String path) {
     return documentVersions[path] ??
-        new VersionedTextDocumentIdentifier(
-            null, new Uri.file(path).toString());
+        VersionedTextDocumentIdentifier(null, Uri.file(path).toString());
   }
 
   void handleClientConnection(
@@ -247,7 +213,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     _clientCapabilities = capabilities;
     _initializationOptions = LspInitializationOptions(initializationOptions);
 
-    performanceAfterStartup = new ServerPerformance();
+    performanceAfterStartup = ServerPerformance();
     performance = performanceAfterStartup;
   }
 
@@ -260,8 +226,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     message.id.map(
       (id) {
         // It's possible that even if we got a numeric ID that it's not valid.
-        // If it's not in our completers list (which is a list of the outstanding
-        // requests we've sent) then show an error.
+        // If it's not in our completers list (which is a list of the
+        // outstanding requests we've sent) then show an error.
         final completer = completers[id];
         if (completer == null) {
           showErrorMessageToUser('Response with ID $id was unexpected');
@@ -276,12 +242,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     );
   }
 
-  /**
-   * Handle a [message] that was read from the communication channel.
-   */
+  /// Handle a [message] that was read from the communication channel.
   void handleMessage(Message message) {
     performance.logRequestTiming(null);
-    runZoned(() {
+    runZonedGuarded(() {
       ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() async {
         try {
           if (message is ResponseMessage) {
@@ -291,7 +255,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
             if (result.isError) {
               sendErrorResponse(message, result.error);
             } else {
-              channel.sendResponse(new ResponseMessage(
+              channel.sendResponse(ResponseMessage(
                   message.id, result.result, null, jsonRpcVersion));
             }
           } else if (message is NotificationMessage) {
@@ -312,7 +276,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
                       : 'Unknown message type';
           sendErrorResponse(
               message,
-              new ResponseError(
+              ResponseError(
                 ServerErrorCodes.UnhandledError,
                 errorMessage,
                 null,
@@ -320,14 +284,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           logException(errorMessage, error, stackTrace);
         }
       });
-    }, onError: socketError);
+    }, socketError);
   }
 
   /// Logs the error on the client using window/logMessage.
   void logErrorToClient(String message) {
-    channel.sendNotification(new NotificationMessage(
+    channel.sendNotification(NotificationMessage(
       Method.window_logMessage,
-      new LogMessageParams(MessageType.Error, message),
+      LogMessageParams(MessageType.Error, message),
       jsonRpcVersion,
     ));
   }
@@ -344,12 +308,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
     final fullError = stackTrace == null ? message : '$message\n$stackTrace';
 
-    // Log the full message since showMessage above may be truncated or formatted
-    // badly (eg. VS Code takes the newlines out).
+    // Log the full message since showMessage above may be truncated or
+    // formatted badly (eg. VS Code takes the newlines out).
     logErrorToClient(fullError);
 
     // remember the last few exceptions
-    exceptions.add(new ServerException(
+    exceptions.add(ServerException(
       message,
       exception,
       stackTrace is StackTrace ? stackTrace : null,
@@ -359,8 +323,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
     final params =
-        new PublishClosingLabelsParams(Uri.file(path).toString(), labels);
-    final message = new NotificationMessage(
+        PublishClosingLabelsParams(Uri.file(path).toString(), labels);
+    final message = NotificationMessage(
       CustomMethods.PublishClosingLabels,
       params,
       jsonRpcVersion,
@@ -369,9 +333,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   void publishDiagnostics(String path, List<Diagnostic> errors) {
-    final params =
-        new PublishDiagnosticsParams(Uri.file(path).toString(), errors);
-    final message = new NotificationMessage(
+    final params = PublishDiagnosticsParams(Uri.file(path).toString(), errors);
+    final message = NotificationMessage(
       Method.textDocument_publishDiagnostics,
       params,
       jsonRpcVersion,
@@ -379,7 +342,28 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     sendNotification(message);
   }
 
-  removePriorityFile(String path) {
+  void publishFlutterOutline(String path, FlutterOutline outline) {
+    final params =
+        PublishFlutterOutlineParams(Uri.file(path).toString(), outline);
+    final message = NotificationMessage(
+      CustomMethods.PublishFlutterOutline,
+      params,
+      jsonRpcVersion,
+    );
+    sendNotification(message);
+  }
+
+  void publishOutline(String path, Outline outline) {
+    final params = PublishOutlineParams(Uri.file(path).toString(), outline);
+    final message = NotificationMessage(
+      CustomMethods.PublishOutline,
+      params,
+      jsonRpcVersion,
+    );
+    sendNotification(message);
+  }
+
+  void removePriorityFile(String path) {
     final didRemove = priorityFiles.remove(path);
     assert(didRemove);
     if (didRemove) {
@@ -390,10 +374,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   void sendErrorResponse(Message message, ResponseError error) {
     if (message is RequestMessage) {
       channel.sendResponse(
-          new ResponseMessage(message.id, null, error, jsonRpcVersion));
+          ResponseMessage(message.id, null, error, jsonRpcVersion));
     } else if (message is ResponseMessage) {
-      // For bad response messages where we can't respond with an error, send it as
-      // show instead of log.
+      // For bad response messages where we can't respond with an error, send it
+      // as show instead of log.
       showErrorMessageToUser(error.message);
     } else {
       // For notifications where we couldn't respond with an error, send it as
@@ -405,7 +389,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // should not continue.
     if (error.code == ServerErrorCodes.ClientServerInconsistentState) {
       // Do not process any further messages.
-      messageHandler = new FailureStateMessageHandler(this);
+      messageHandler = FailureStateMessageHandler(this);
 
       final message = 'An unrecoverable error occurred.';
       logErrorToClient(
@@ -415,22 +399,18 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
   }
 
-  /**
-   * Send the given [notification] to the client.
-   */
+  /// Send the given [notification] to the client.
   void sendNotification(NotificationMessage notification) {
     channel.sendNotification(notification);
   }
 
-  /**
-   * Send the given [request] to the client and wait for a response.
-   */
+  /// Send the given [request] to the client and wait for a response.
   Future<ResponseMessage> sendRequest(Method method, Object params) {
     final requestId = nextRequestId++;
-    final completer = new Completer<ResponseMessage>();
+    final completer = Completer<ResponseMessage>();
     completers[requestId] = completer;
 
-    channel.sendRequest(new RequestMessage(
+    channel.sendRequest(RequestMessage(
       Either2<num, String>.t1(requestId),
       method,
       params,
@@ -440,9 +420,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     return completer.future;
   }
 
-  /**
-   * Send the given [response] to the client.
-   */
+  /// Send the given [response] to the client.
   void sendResponse(ResponseMessage response) {
     channel.sendResponse(response);
   }
@@ -461,9 +439,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
   void sendStatusNotification(nd.AnalysisStatus status) {
-    channel.sendNotification(new NotificationMessage(
+    channel.sendNotification(NotificationMessage(
       CustomMethods.AnalyzerStatus,
-      new AnalyzerStatusParams(status.isAnalyzing),
+      AnalyzerStatusParams(status.isAnalyzing),
       jsonRpcVersion,
     ));
   }
@@ -478,16 +456,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Returns `true` if closing labels should be sent for [file] with the given
   /// absolute path.
   bool shouldSendClosingLabelsFor(String file) {
-    // Closing labels should only be sent for open (priority) files in the workspace.
+    // Closing labels should only be sent for open (priority) files in the
+    // workspace.
     return initializationOptions.closingLabels &&
         priorityFiles.contains(file) &&
         contextManager.isInAnalysisRoot(file);
   }
 
-  /**
-   * Returns `true` if errors should be reported for [file] with the given
-   * absolute path.
-   */
+  /// Returns `true` if errors should be reported for [file] with the given
+  /// absolute path.
   bool shouldSendErrorsNotificationFor(String file) {
     // Errors should not be reported for things that are explicitly skipped
     // during normal analysis (for example dot folders are skipped over in
@@ -496,14 +473,32 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         !contextManager.isContainedInDotFolder(file);
   }
 
+  /// Returns `true` if Flutter outlines should be sent for [file] with the
+  /// given absolute path.
+  bool shouldSendFlutterOutlineFor(String file) {
+    // Outlines should only be sent for open (priority) files in the workspace.
+    return initializationOptions.flutterOutline &&
+        priorityFiles.contains(file) &&
+        contextManager.isInAnalysisRoot(file);
+  }
+
+  /// Returns `true` if outlines should be sent for [file] with the given
+  /// absolute path.
+  bool shouldSendOutlineFor(String file) {
+    // Outlines should only be sent for open (priority) files in the workspace.
+    return initializationOptions.outline &&
+        priorityFiles.contains(file) &&
+        contextManager.isInAnalysisRoot(file);
+  }
+
   void showErrorMessageToUser(String message) {
     showMessageToUser(MessageType.Error, message);
   }
 
   void showMessageToUser(MessageType type, String message) {
-    channel.sendNotification(new NotificationMessage(
+    channel.sendNotification(NotificationMessage(
       Method.window_showMessage,
-      new ShowMessageParams(type, message),
+      ShowMessageParams(type, message),
       jsonRpcVersion,
     ));
   }
@@ -511,17 +506,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   Future<void> shutdown() {
     // Defer closing the channel so that the shutdown response can be sent and
     // logged.
-    new Future(() {
+    Future(() {
       channel.close();
     });
 
-    return new Future.value();
+    return Future.value();
   }
 
-  /**
-   * There was an error related to the socket from which messages are being
-   * read.
-   */
+  /// There was an error related to the socket from which messages are being
+  /// read.
   void socketError(error, stack) {
     // Don't send to instrumentation service; not an internal error.
     sendServerErrorNotification('Socket error', error, stack);
@@ -547,9 +540,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     driverMap.values.forEach((driver) => driver.changeFile(path));
 
     notifyDeclarationsTracker(path);
+    notifyFlutterWidgetDescriptions(path);
   }
 
-  _updateDriversPriorityFiles() {
+  void _updateDriversPriorityFiles() {
     driverMap.values.forEach((driver) {
       driver.priorityFiles = priorityFiles.toList();
     });
@@ -560,6 +554,8 @@ class LspInitializationOptions {
   final bool onlyAnalyzeProjectsWithOpenFiles;
   final bool suggestFromUnimportedLibraries;
   final bool closingLabels;
+  final bool outline;
+  final bool flutterOutline;
   LspInitializationOptions(dynamic options)
       : onlyAnalyzeProjectsWithOpenFiles = options != null &&
             options['onlyAnalyzeProjectsWithOpenFiles'] == true,
@@ -567,14 +563,16 @@ class LspInitializationOptions {
         // explicitly passed as false to disable.
         suggestFromUnimportedLibraries = options == null ||
             options['suggestFromUnimportedLibraries'] != false,
-        closingLabels = options != null && options['closingLabels'] == true;
+        closingLabels = options != null && options['closingLabels'] == true,
+        outline = options != null && options['outline'] == true,
+        flutterOutline = options != null && options['flutterOutline'] == true;
 }
 
 class LspPerformance {
   /// A list of code completion performance measurements for the latest
   /// completion operation up to [performanceListMaxLength] measurements.
   final RecentBuffer<CompletionPerformance> completion =
-      new RecentBuffer<CompletionPerformance>(
+      RecentBuffer<CompletionPerformance>(
           CompletionDomainHandler.performanceListMaxLength);
 }
 
@@ -583,9 +581,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   final LspAnalysisServer analysisServer;
 
-  /**
-   * The [ResourceProvider] by which paths are converted into [Resource]s.
-   */
+  /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider resourceProvider;
 
   LspServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
@@ -597,10 +593,10 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   nd.AnalysisDriver addAnalysisDriver(
       Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
-    ContextBuilder builder = createContextBuilder(folder, options);
-    nd.AnalysisDriver analysisDriver = builder.buildDriver(contextRoot);
+    var builder = createContextBuilder(folder, options);
+    var analysisDriver = builder.buildDriver(contextRoot);
     analysisDriver.results.listen((result) {
-      String path = result.path;
+      var path = result.path;
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         final serverErrors = protocol.mapEngineErrors(
             result,
@@ -614,24 +610,29 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       if (result.unit != null) {
         if (analysisServer.shouldSendClosingLabelsFor(path)) {
           final labels =
-              new DartUnitClosingLabelsComputer(result.lineInfo, result.unit)
+              DartUnitClosingLabelsComputer(result.lineInfo, result.unit)
                   .compute()
                   .map((l) => toClosingLabel(result.lineInfo, l))
                   .toList();
 
           analysisServer.publishClosingLabels(result.path, labels);
         }
+        if (analysisServer.shouldSendOutlineFor(path)) {
+          final outline = DartUnitOutlineComputer(
+            result,
+            withBasicFlutter: true,
+          ).compute();
+          final lspOutline = toOutline(result.lineInfo, outline);
+          analysisServer.publishOutline(result.path, lspOutline);
+        }
+        if (analysisServer.shouldSendFlutterOutlineFor(path)) {
+          final outline = FlutterOutlineComputer(result).compute();
+          final lspOutline = toFlutterOutline(result.lineInfo, outline);
+          analysisServer.publishFlutterOutline(result.path, lspOutline);
+        }
       }
     });
-    analysisDriver.exceptions.listen((nd.ExceptionResult result) {
-      String message = 'Analysis failed: ${result.path}';
-      if (result.contextKey != null) {
-        message += ' context: ${result.contextKey}';
-      }
-      // TODO(39284): should this exception be silent?
-      AnalysisEngine.instance.instrumentationService.logException(
-          new SilentException.wrapInMessage(message, result.exception));
-    });
+    analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
   }
@@ -648,7 +649,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
-    nd.AnalysisDriver analysisDriver = analysisServer.driverMap[contextFolder];
+    var analysisDriver = analysisServer.driverMap[contextFolder];
     if (analysisDriver != null) {
       changeSet.addedFiles.forEach((path) {
         analysisDriver.addFile(path);
@@ -671,17 +672,18 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void broadcastWatchEvent(WatchEvent event) {
     analysisServer.notifyDeclarationsTracker(event.path);
+    analysisServer.notifyFlutterWidgetDescriptions(event.path);
     // TODO: implement plugin broadcastWatchEvent
   }
 
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
-    String defaultPackageFilePath = null;
-    String defaultPackagesDirectoryPath = null;
-    String path = (analysisServer.contextManager as ContextManagerImpl)
+    String defaultPackageFilePath;
+    String defaultPackagesDirectoryPath;
+    var path = (analysisServer.contextManager as ContextManagerImpl)
         .normalizedPackageRoots[folder.path];
     if (path != null) {
-      Resource resource = resourceProvider.getResource(path);
+      var resource = resourceProvider.getResource(path);
       if (resource.exists) {
         if (resource is File) {
           defaultPackageFilePath = path;
@@ -691,15 +693,13 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       }
     }
 
-    ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+    var builderOptions = ContextBuilderOptions();
     builderOptions.defaultOptions = options;
     builderOptions.defaultPackageFilePath = defaultPackageFilePath;
     builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
-    ContextBuilder builder = new ContextBuilder(
+    var builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
-    builder.fileResolverProvider = analysisServer.fileResolverProvider;
-    builder.packageResolverProvider = analysisServer.packageResolverProvider;
     builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
     builder.performanceLog = analysisServer._analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;
@@ -709,7 +709,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void removeContext(Folder folder, List<String> flushedFiles) {
-    nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
+    var driver = analysisServer.driverMap.remove(folder);
     // Flush any errors for these files that the client may be displaying.
     flushedFiles
         ?.forEach((path) => analysisServer.publishDiagnostics(path, const []));
@@ -719,5 +719,5 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
 class NullNotificationManager implements NotificationManager {
   @override
-  noSuchMethod(Invocation invocation) {}
+  dynamic noSuchMethod(Invocation invocation) {}
 }

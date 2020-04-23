@@ -128,6 +128,12 @@
 #define DEBUG_ONLY(code)
 #endif  // defined(DEBUG)
 
+#if defined(DEBUG)
+#define UNLESS_DEBUG(code)
+#else  // defined(DEBUG)
+#define UNLESS_DEBUG(code) code
+#endif  // defined(DEBUG)
+
 namespace dart {
 
 struct simd128_value_t {
@@ -241,6 +247,14 @@ typedef simd128_value_t fpu_register_t;
 #define DART_NOINLINE __declspec(noinline)
 #elif __GNUC__
 #define DART_NOINLINE __attribute__((noinline))
+#else
+#error Automatic compiler detection failed.
+#endif
+
+#ifdef _MSC_VER
+#define DART_FLATTEN
+#elif __GNUC__
+#define DART_FLATTEN __attribute__((flatten))
 #else
 #error Automatic compiler detection failed.
 #endif
@@ -366,19 +380,6 @@ typedef simd128_value_t fpu_register_t;
 #define TARGET_ARCH_IS_64_BIT 1
 #endif
 
-// Determine whether HOST_ARCH equals TARGET_ARCH.
-#if defined(HOST_ARCH_ARM) && defined(TARGET_ARCH_ARM)
-#define HOST_ARCH_EQUALS_TARGET_ARCH 1
-#elif defined(HOST_ARCH_ARM64) && defined(TARGET_ARCH_ARM64)
-#define HOST_ARCH_EQUALS_TARGET_ARCH 1
-#elif defined(HOST_ARCH_IA32) && defined(TARGET_ARCH_IA32)
-#define HOST_ARCH_EQUALS_TARGET_ARCH 1
-#elif defined(HOST_ARCH_X64) && defined(TARGET_ARCH_X64)
-#define HOST_ARCH_EQUALS_TARGET_ARCH 1
-#else
-// HOST_ARCH != TARGET_ARCH.
-#endif
-
 #if !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_FUCHSIA) &&              \
     !defined(TARGET_OS_MACOS_IOS) && !defined(TARGET_OS_LINUX) &&              \
     !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_WINDOWS)
@@ -407,6 +408,10 @@ typedef simd128_value_t fpu_register_t;
     (defined(TARGET_OS_LINUX) && defined(TARGET_ARCH_X64) ||                   \
      defined(TARGET_OS_FUCHSIA))
 #define DUAL_MAPPING_SUPPORTED 1
+#endif
+
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+#define SUPPORT_UNBOXED_INSTANCE_FIELDS
 #endif
 
 // Short form printf format specifiers

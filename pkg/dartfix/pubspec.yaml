@@ -1,6 +1,5 @@
 name: dartfix
 version: 0.1.6
-author: Dart Team <misc@dartlang.org>
 description:
   A tool for migrating Dart source to newer versions of the Dart SDK
   and fixing common issues.
@@ -15,7 +14,7 @@ executables:
 dependencies:
   # Pin to an exact version of analysis_server_client because the edit.dartfix
   # protocol is experimental and will continue to evolve.
-  analysis_server_client: 1.1.2
+  analysis_server_client: 1.1.3
   args: ^1.4.0
   cli_util: ^0.1.3
   path: ^1.6.0
@@ -25,7 +24,3 @@ dev_dependencies:
   analyzer: ^0.37.0
   pedantic: ^1.8.0
   test: ^1.3.0
-
-dependency_overrides:
-  analysis_server_client:
-    path: ../analysis_server_client

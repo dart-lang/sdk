@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DiagnosticTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerTest {
-  test_afterDocumentEdits() async {
+  Future<void> test_afterDocumentEdits() async {
     const initialContents = 'int a = 1;';
     newFile(mainFilePath, content: initialContents);
 
@@ -33,7 +33,7 @@ class DiagnosticTest extends AbstractLspAnalysisServerTest {
     expect(updatedDiagnostics, hasLength(1));
   }
 
-  test_contextMessage() async {
+  Future<void> test_contextMessage() async {
     newFile(mainFilePath, content: '''
 void f() {
   x = 0;
@@ -50,7 +50,7 @@ void f() {
     expect(diagnostic.relatedInformation, hasLength(1));
   }
 
-  test_correction() async {
+  Future<void> test_correction() async {
     newFile(mainFilePath, content: '''
 void f() {
   x = 0;
@@ -65,7 +65,7 @@ void f() {
     expect(diagnostic.message, contains('\nTry'));
   }
 
-  test_deletedFile() async {
+  Future<void> test_deletedFile() async {
     newFile(mainFilePath, content: 'String a = 1;');
 
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
@@ -80,14 +80,14 @@ void f() {
     expect(updatedDiagnostics, hasLength(0));
   }
 
-  test_dotFilesExcluded() async {
+  Future<void> test_dotFilesExcluded() async {
     var dotFolderFilePath =
         join(projectFolderPath, '.dart_tool', 'tool_file.dart');
     var dotFolderFileUri = Uri.file(dotFolderFilePath);
 
     newFile(dotFolderFilePath, content: 'String a = 1;');
 
-    List<Diagnostic> diagnostics = null;
+    List<Diagnostic> diagnostics;
     waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d);
 
     // Send a request for a hover.
@@ -99,7 +99,7 @@ void f() {
     expect(diagnostics, isNull);
   }
 
-  test_initialAnalysis() async {
+  Future<void> test_initialAnalysis() async {
     newFile(mainFilePath, content: 'String a = 1;');
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
@@ -114,7 +114,7 @@ void f() {
     expect(diagnostic.range.end.character, equals(12));
   }
 
-  test_todos() async {
+  Future<void> test_todos() async {
     // TODOs only show up if there's also some code in the file.
     const initialContents = '''
     // TODO: This

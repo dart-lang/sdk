@@ -238,7 +238,7 @@ class ConstantEmitter extends ModularConstantEmitter {
         .toList(growable: false);
     jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(elements);
     jsAst.Expression value = _makeConstantList(array);
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       return maybeAddListTypeArgumentsNewRti(constant, constant.type, value);
     } else {
       return maybeAddTypeArguments(constant, constant.type, value);
@@ -261,7 +261,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     ];
 
     if (_rtiNeed.classNeedsTypeArguments(classElement)) {
-      if (_options.experimentNewRti) {
+      if (_options.useNewRti) {
         arguments.add(_reifiedTypeNewRti(sourceType));
       } else {
         arguments
@@ -352,7 +352,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     }
 
     if (_rtiNeed.classNeedsTypeArguments(classElement)) {
-      if (_options.experimentNewRti) {
+      if (_options.useNewRti) {
         arguments.add(_reifiedTypeNewRti(constant.type));
       } else {
         arguments
@@ -371,9 +371,9 @@ class ConstantEmitter extends ModularConstantEmitter {
 
   @override
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
-    DartType type = constant.representedType.unaliased;
+    DartType type = constant.representedType;
 
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       assert(!type.containsTypeVariables);
 
       jsAst.Expression recipe = _rtiRecipeEncoder.encodeGroundRecipe(
@@ -392,7 +392,7 @@ class ConstantEmitter extends ModularConstantEmitter {
         throw failedAt(
             NO_LOCATION_SPANNABLE,
             "Unexpected type variable '${variable}'"
-            " in constant '${constant.toDartText()}'");
+            " in constant '${constant.toDartText(_commonElements.dartTypes)}'");
       }
 
       jsAst.Expression rti =
@@ -428,7 +428,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       }
     });
     if (_rtiNeed.classNeedsTypeArguments(constant.type.element)) {
-      if (_options.experimentNewRti) {
+      if (_options.useNewRti) {
         fields.add(_reifiedTypeNewRti(constant.type));
       } else {
         fields
@@ -446,9 +446,9 @@ class ConstantEmitter extends ModularConstantEmitter {
     List<jsAst.Expression> fields = <jsAst.Expression>[
       _constantReferenceGenerator(constant.function)
     ];
-    if (_options.experimentNewRti) {
-      fields
-          .add(_reifiedTypeNewRti(InterfaceType(cls, constant.typeArguments)));
+    if (_options.useNewRti) {
+      fields.add(_reifiedTypeNewRti(_commonElements.dartTypes
+          .interfaceType(cls, constant.typeArguments)));
     } else {
       fields.add(_reifiedTypeArguments(constant, constant.typeArguments));
     }
@@ -463,7 +463,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   jsAst.Expression maybeAddTypeArguments(
       ConstantValue constant, InterfaceType type, jsAst.Expression value) {
     if (type is InterfaceType &&
-        !type.treatAsRaw &&
+        !_commonElements.dartTypes.treatAsRawType(type) &&
         _rtiNeed.classNeedsTypeArguments(type.element)) {
       return new jsAst.Call(
           getHelperProperty(_commonElements.setRuntimeTypeInfo),
@@ -490,7 +490,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       throw failedAt(
           NO_LOCATION_SPANNABLE,
           "Unexpected type variable '${variable}'"
-          " in constant '${constant.toDartText()}'");
+          " in constant '${constant.toDartText(_commonElements.dartTypes)}'");
     }
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
@@ -502,7 +502,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   }
 
   jsAst.Expression _reifiedTypeNewRti(DartType type) {
-    assert(_options.experimentNewRti);
+    assert(_options.useNewRti);
     assert(!type.containsTypeVariables);
     return TypeReference(TypeExpressionRecipe(type))..forConstant = true;
   }

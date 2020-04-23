@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/instrumentation.dart';
-import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// The instrumentation information gathered from the migration engine.
 class InstrumentationInformation {
@@ -23,11 +23,6 @@ class InstrumentationInformation {
   /// A map associating [NodeInformation] with [NullabilityNodeInfo] objects.
   Map<NullabilityNodeInfo, NodeInformation> nodeInformation = {};
 
-  /// A list of the steps in the propagation of nullability information through
-  /// the nullability graph, to report details of the step that was performed
-  /// and why it was performed.
-  final List<PropagationInfo> propagationSteps = [];
-
   /// The instrumentation information that is specific to a single source.
   final Map<Source, SourceInformation> sourceInformation = {};
 
@@ -42,10 +37,8 @@ class InstrumentationInformation {
   /// Return the type annotation associated with the [node] or `null` if the
   /// node represents an implicit type.
   TypeAnnotation typeAnnotationForNode(NullabilityNodeInfo node) {
-    for (MapEntry<Source, SourceInformation> sourceEntry
-        in sourceInformation.entries) {
-      for (MapEntry<TypeAnnotation, NullabilityNodeInfo> typeEntry
-          in sourceEntry.value.explicitTypeNullability.entries) {
+    for (var sourceEntry in sourceInformation.entries) {
+      for (var typeEntry in sourceEntry.value.explicitTypeNullability.entries) {
         if (typeEntry.value == node) {
           return typeEntry.key;
         }
@@ -82,8 +75,9 @@ class SourceInformation {
   /// TODO(paulberry): we should probably get rid of this data structure.
   final Map<TypeAnnotation, NullabilityNodeInfo> explicitTypeNullability = {};
 
-  /// A map from the fixes that were decided on to the reasons for the fix.
-  final Map<SingleNullabilityFix, List<FixReasonInfo>> fixes = {};
+  /// A map from offsets within the source file to a list of changes to be
+  /// applied at that offset.
+  Map<int, List<AtomicEdit>> changes;
 
   /// Initialize a newly created holder of instrumentation information that is
   /// specific to a single source.

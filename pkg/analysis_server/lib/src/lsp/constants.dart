@@ -52,11 +52,14 @@ abstract class Commands {
 }
 
 abstract class CustomMethods {
-  static const DiagnosticServer = const Method('dart/diagnosticServer');
+  static const DiagnosticServer = Method('dart/diagnosticServer');
   static const PublishClosingLabels =
-      const Method('dart/textDocument/publishClosingLabels');
-  static const Super = const Method('dart/textDocument/super');
-  static const AnalyzerStatus = const Method(r'$/analyzerStatus');
+      Method('dart/textDocument/publishClosingLabels');
+  static const PublishOutline = Method('dart/textDocument/publishOutline');
+  static const PublishFlutterOutline =
+      Method('dart/textDocument/publishFlutterOutline');
+  static const Super = Method('dart/textDocument/super');
+  static const AnalyzerStatus = Method(r'$/analyzerStatus');
 }
 
 /// CodeActionKinds supported by the server that are not declared in the LSP spec.
@@ -70,23 +73,23 @@ abstract class DartCodeActionKind {
     SortMembers,
     CodeActionKind.QuickFix,
   ];
-  static const SortMembers = const CodeActionKind('source.sortMembers');
+  static const SortMembers = CodeActionKind('source.sortMembers');
 }
 
 abstract class ServerErrorCodes {
   // JSON-RPC reserves -32000 to -32099 for implementation-defined server-errors.
-  static const ServerAlreadyStarted = const ErrorCodes(-32000);
-  static const UnhandledError = const ErrorCodes(-32001);
-  static const ServerAlreadyInitialized = const ErrorCodes(-32002);
-  static const InvalidFilePath = const ErrorCodes(-32003);
-  static const InvalidFileLineCol = const ErrorCodes(-32004);
-  static const UnknownCommand = const ErrorCodes(-32005);
-  static const InvalidCommandArguments = const ErrorCodes(-32006);
-  static const FileNotAnalyzed = const ErrorCodes(-32007);
-  static const FileHasErrors = const ErrorCodes(-32008);
-  static const ClientFailedToApplyEdit = const ErrorCodes(-32009);
-  static const RenameNotValid = const ErrorCodes(-32010);
-  static const RefactorFailed = const ErrorCodes(-32011);
+  static const ServerAlreadyStarted = ErrorCodes(-32000);
+  static const UnhandledError = ErrorCodes(-32001);
+  static const ServerAlreadyInitialized = ErrorCodes(-32002);
+  static const InvalidFilePath = ErrorCodes(-32003);
+  static const InvalidFileLineCol = ErrorCodes(-32004);
+  static const UnknownCommand = ErrorCodes(-32005);
+  static const InvalidCommandArguments = ErrorCodes(-32006);
+  static const FileNotAnalyzed = ErrorCodes(-32007);
+  static const FileHasErrors = ErrorCodes(-32008);
+  static const ClientFailedToApplyEdit = ErrorCodes(-32009);
+  static const RenameNotValid = ErrorCodes(-32010);
+  static const RefactorFailed = ErrorCodes(-32011);
 
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification
@@ -100,5 +103,5 @@ abstract class ServerErrorCodes {
   ///   restart the server. However clients should be careful to not restart a
   ///   crashing server endlessly. VS Code for example doesn't restart a server
   ///   if it crashes 5 times in the last 180 seconds."
-  static const ClientServerInconsistentState = const ErrorCodes(-32010);
+  static const ClientServerInconsistentState = ErrorCodes(-32010);
 }

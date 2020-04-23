@@ -29,7 +29,7 @@ class M extends core::Object {
     : super core::Object::•()
     ;
 }
-class D extends self::C<core::String*> implements self::M {
+class D extends self::C<core::String*> implements self::M /*isEliminatedMixin*/  {
   synthetic constructor •({dynamic a = #C1, dynamic b = #C2}) → self::D*
     : super self::C::•(a: a, b: b)
     ;
@@ -39,7 +39,7 @@ class E extends self::D {
     : super self::D::•()
     ;
 }
-abstract class _F&C&M extends self::C<core::int*> implements self::M {
+abstract class _F&C&M extends self::C<core::int*> implements self::M /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •({dynamic a = #C1, dynamic b = #C3}) → self::_F&C&M*
     : super self::C::•(a: a, b: b)
     ;
@@ -59,6 +59,6 @@ static method main() → dynamic {
 
 constants  {
   #C1 = 0
-  #C2 = TypeLiteralConstant(dart.core::String*)
-  #C3 = TypeLiteralConstant(dart.core::int*)
+  #C2 = TypeLiteralConstant(core::String*)
+  #C3 = TypeLiteralConstant(core::int*)
 }

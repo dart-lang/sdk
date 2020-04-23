@@ -20,7 +20,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-main() {
+void main() {
   // Set prefix for local or bot execution.
   final pathPrefix =
       FileSystemEntity.isDirectorySync(path.join('test', 'integration'))
@@ -30,15 +30,15 @@ main() {
   /// Ensure server lint name representations correspond w/ actual lint rules.
   /// See, e.g., https://dart-review.googlesource.com/c/sdk/+/95743.
   group('lint_names', () {
-    var fixFileContents = new File(path.join(
+    var fixFileContents = File(path.join(
             pathPrefix, 'lib', 'src', 'services', 'linter', 'lint_names.dart'))
         .readAsStringSync();
-    var parser = new CompilationUnitParser();
+    var parser = CompilationUnitParser();
     var cu = parser.parse(contents: fixFileContents, name: 'lint_names.dart');
     var lintNamesClass = cu.declarations
         .firstWhere((m) => m is ClassDeclaration && m.name.name == 'LintNames');
 
-    var collector = new _FixCollector();
+    var collector = _FixCollector();
     lintNamesClass.accept(collector);
     for (var name in collector.lintNames) {
       test(name, () {
@@ -64,17 +64,20 @@ List<LintRule> get registeredLints {
 
 class CompilationUnitParser {
   CompilationUnit parse({@required String contents, @required String name}) {
-    var reader = new CharSequenceReader(contents);
-    var stringSource = new StringSource(contents, name);
-    var errorListener = new _ErrorListener();
+    var reader = CharSequenceReader(contents);
+    var stringSource = StringSource(contents, name);
+    var errorListener = _ErrorListener();
     var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
-    var scanner = new Scanner(stringSource, reader, errorListener)
+    var scanner = Scanner(stringSource, reader, errorListener)
       ..configureFeatures(featureSet);
     var startToken = scanner.tokenize();
     errorListener.throwIfErrors();
 
-    var parser =
-        new Parser(stringSource, errorListener, featureSet: featureSet);
+    var parser = Parser(
+      stringSource,
+      errorListener,
+      featureSet: featureSet,
+    );
     var cu = parser.parseCompilationUnit(startToken);
     errorListener.throwIfErrors();
 
@@ -92,7 +95,7 @@ class _ErrorListener implements AnalysisErrorListener {
 
   void throwIfErrors() {
     if (errors.isNotEmpty) {
-      throw new Exception(errors);
+      throw Exception(errors);
     }
   }
 }

@@ -4,7 +4,7 @@
 
 late int? lateTopLevelField;
 
-class Class {
+class Class<T> {
   static late int? lateStaticField1;
   static late int? lateStaticField2;
 
@@ -17,11 +17,30 @@ class Class {
 
   late int? lateInstanceField;
 
-  instanceMethod() {
+  late T? lateGenericInstanceField;
+
+  instanceMethod(T? value) {
     throws(() => lateInstanceField,
         'Read value from uninitialized Class.lateInstanceField');
     lateInstanceField = 16;
     expect(16, lateInstanceField);
+
+    throws(() => lateGenericInstanceField,
+        'Read value from uninitialized Class.lateGenericInstanceField');
+    lateGenericInstanceField = value;
+    expect(value, lateGenericInstanceField);
+  }
+}
+
+extension Extension<T> on Class<T> {
+  static late int? lateExtensionField1;
+  static late int? lateExtensionField2;
+
+  static staticMethod() {
+    throws(() => lateExtensionField2,
+        'Read value from uninitialized Class.lateExtensionField2');
+    lateExtensionField2 = 42;
+    expect(42, lateExtensionField2);
   }
 }
 
@@ -37,6 +56,18 @@ main() {
   expect(87, Class.lateStaticField1);
 
   Class.staticMethod();
+
+  throws(() => Extension.lateExtensionField1,
+      'Read value from uninitialized Extension.lateExtensionField1');
+  Extension.lateExtensionField1 = 87;
+  expect(87, Extension.lateExtensionField1);
+
+  Extension.staticMethod();
+
+  new Class<int?>().instanceMethod(null);
+  new Class<int?>().instanceMethod(0);
+  new Class<int>().instanceMethod(null);
+  new Class<int>().instanceMethod(0);
 }
 
 expect(expected, actual) {
@@ -47,7 +78,7 @@ throws(f(), String message) {
   dynamic value;
   try {
     value = f();
-  } catch (e) {
+  } on LateInitializationError catch (e) {
     print(e);
     return;
   }

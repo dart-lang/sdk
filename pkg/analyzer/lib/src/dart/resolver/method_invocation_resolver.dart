@@ -11,16 +11,16 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
-import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
+import 'package:meta/meta.dart';
 
 class MethodInvocationResolver {
-  static final _nameCall = new Name(null, 'call');
-
   /// Resolver visitor is separated from the elements resolver, which calls
   /// this method resolver. If we rewrite a [MethodInvocation] node, we put
   /// the resulting [FunctionExpressionInvocation] into the original node
@@ -51,22 +51,32 @@ class MethodInvocationResolver {
   /// Helper for extension method resolution.
   final ExtensionMemberResolver _extensionResolver;
 
+  final InvocationInferenceHelper _inferenceHelper;
+
+  final MigratableAstInfoProvider _migratableAstInfoProvider;
+
   /// The invocation being resolved.
   MethodInvocationImpl _invocation;
 
   /// The [Name] object of the invocation being resolved by [resolve].
   Name _currentName;
 
-  MethodInvocationResolver(this._resolver)
-      : _typeType = _resolver.typeProvider.typeType,
+  MethodInvocationResolver(
+    this._resolver,
+    this._migratableAstInfoProvider, {
+    @required InvocationInferenceHelper inferenceHelper,
+  })  : _typeType = _resolver.typeProvider.typeType,
         _inheritance = _resolver.inheritance,
         _definingLibrary = _resolver.definingLibrary,
         _definingLibraryUri = _resolver.definingLibrary.source.uri,
         _localVariableTypeProvider = _resolver.localVariableTypeProvider,
-        _extensionResolver = _resolver.extensionResolver;
+        _extensionResolver = _resolver.extensionResolver,
+        _inferenceHelper = inferenceHelper;
 
   /// The scope used to resolve identifiers.
   Scope get nameScope => _resolver.nameScope;
+
+  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(MethodInvocation node) {
     _invocation = node;
@@ -75,22 +85,10 @@ class MethodInvocationResolver {
     String name = nameNode.name;
     _currentName = Name(_definingLibraryUri, name);
 
-    //
-    // Synthetic identifiers have been already reported during parsing.
-    //
-    if (nameNode.isSynthetic) {
-      return;
-    }
-
     Expression receiver = node.realTarget;
 
     if (receiver == null) {
       _resolveReceiverNull(node, nameNode, name);
-      return;
-    }
-
-    if (receiver is NullLiteral) {
-      _setDynamicResolution(node);
       return;
     }
 
@@ -138,8 +136,14 @@ class MethodInvocationResolver {
     DartType receiverType = receiver.staticType;
     receiverType = _resolveTypeParameter(receiverType);
 
+    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
+        _typeSystem.isNonNullableByDefault) {
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
+    }
+
     if (receiverType is InterfaceType) {
-      _resolveReceiverInterfaceType(node, receiverType, nameNode, name);
+      _resolveReceiverInterfaceType(
+          node, receiver, receiverType, nameNode, name);
       return;
     }
 
@@ -159,59 +163,10 @@ class MethodInvocationResolver {
       return;
     }
 
-    if (receiverType == NeverTypeImpl.instance) {
-      _reportUseOfNeverType(node, receiver);
+    if (receiverType is NeverTypeImpl) {
+      _resolveReceiverNever(node, receiver, receiverType);
       return;
     }
-  }
-
-  /// Given an [argumentList] and the executable [element] that  will be invoked
-  /// using those arguments, compute the list of parameters that correspond to
-  /// the list of arguments. Return the parameters that correspond to the
-  /// arguments, or `null` if no correspondence could be computed.
-  List<ParameterElement> _computeCorrespondingParameters(
-      ArgumentList argumentList, DartType type) {
-    if (type is InterfaceType) {
-      MethodElement callMethod =
-          type.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _definingLibrary);
-      if (callMethod != null) {
-        return _resolveArgumentsToFunction(argumentList, callMethod);
-      }
-    } else if (type is FunctionType) {
-      return _resolveArgumentsToParameters(argumentList, type.parameters);
-    }
-    return null;
-  }
-
-  /// Check for a generic type, and apply type arguments.
-  FunctionType _instantiateFunctionType(
-      FunctionType invokeType, TypeArgumentList typeArguments, AstNode node) {
-    var typeFormals = invokeType.typeFormals;
-    var arguments = typeArguments?.arguments;
-    if (arguments != null && arguments.length != typeFormals.length) {
-      _resolver.errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-          node,
-          [invokeType, typeFormals.length, arguments?.length ?? 0]);
-      arguments = null;
-    }
-
-    if (typeFormals.isNotEmpty) {
-      if (arguments == null) {
-        var typeArguments =
-            _resolver.typeSystem.instantiateTypeFormalsToBounds(typeFormals);
-        _invocation.typeArgumentTypes = typeArguments;
-        return invokeType.instantiate(typeArguments);
-      } else {
-        var typeArguments = arguments.map((n) => n.type).toList();
-        _invocation.typeArgumentTypes = typeArguments;
-        return invokeType.instantiate(typeArguments);
-      }
-    } else {
-      _invocation.typeArgumentTypes = const <DartType>[];
-    }
-
-    return invokeType;
   }
 
   bool _isCoreFunction(DartType type) {
@@ -219,9 +174,35 @@ class MethodInvocationResolver {
     return type is InterfaceType && type.isDartCoreFunction;
   }
 
-  ExecutableElement _lookUpClassMember(ClassElement element, String name) {
-    // TODO(scheglov) Use class hierarchy.
-    return element.lookUpMethod(name, _definingLibrary);
+  void _reportInstanceAccessToStaticMember(
+    SimpleIdentifier nameNode,
+    ExecutableElement element,
+    bool nullReceiver,
+  ) {
+    if (_resolver.enclosingExtension != null) {
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode
+            .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
+        nameNode,
+        [element.enclosingElement.displayName],
+      );
+    } else if (nullReceiver) {
+      _resolver.errorReporter.reportErrorForNode(
+        StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+        nameNode,
+        [element.enclosingElement.displayName],
+      );
+    } else {
+      _resolver.errorReporter.reportErrorForNode(
+        StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+        nameNode,
+        [
+          nameNode.name,
+          element.kind.displayName,
+          element.enclosingElement.displayName,
+        ],
+      );
+    }
   }
 
   void _reportInvocationOfNonFunction(MethodInvocation node) {
@@ -278,14 +259,6 @@ class MethodInvocationResolver {
     );
   }
 
-  void _reportUseOfNeverType(MethodInvocation node, AstNode errorNode) {
-    _setDynamicResolution(node);
-    _resolver.errorReporter.reportErrorForNode(
-      StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
-      errorNode,
-    );
-  }
-
   void _reportUseOfVoidType(MethodInvocation node, AstNode errorNode) {
     _setDynamicResolution(node);
     _resolver.errorReporter.reportErrorForNode(
@@ -294,29 +267,35 @@ class MethodInvocationResolver {
     );
   }
 
-  /// Given an [argumentList] and the [executableElement] that will be invoked
-  /// using those argument, compute the list of parameters that correspond to
-  /// the list of arguments. An error will be reported if any of the arguments
-  /// cannot be matched to a parameter. Return the parameters that correspond to
-  /// the arguments, or `null` if no correspondence could be computed.
-  List<ParameterElement> _resolveArgumentsToFunction(
-      ArgumentList argumentList, ExecutableElement executableElement) {
-    if (executableElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = executableElement.parameters;
-    return _resolveArgumentsToParameters(argumentList, parameters);
+  /// [InvocationExpression.staticInvokeType] has been set for the [node].
+  /// Use it to set context for arguments, and resolve them.
+  void _resolveArguments(MethodInvocation node) {
+    // TODO(scheglov) This is bad, don't write raw type, carry it
+    _inferenceHelper.inferArgumentTypesForInvocation(
+      node,
+      node.methodName.staticType,
+    );
+    node.argumentList.accept(_resolver);
   }
 
-  /// Given an [argumentList] and the [parameters] related to the element that
-  /// will be invoked using those arguments, compute the list of parameters that
-  /// correspond to the list of arguments. An error will be reported if any of
-  /// the arguments cannot be matched to a parameter. Return the parameters that
-  /// correspond to the arguments.
-  List<ParameterElement> _resolveArgumentsToParameters(
-      ArgumentList argumentList, List<ParameterElement> parameters) {
-    return ResolverVisitor.resolveArgumentsToParameters(
-        argumentList, parameters, _resolver.errorReporter.reportErrorForNode);
+  void _resolveArguments_finishInference(MethodInvocation node) {
+    _resolveArguments(node);
+
+    // TODO(scheglov) This is bad, don't put / get raw FunctionType this way.
+    _inferenceHelper.inferGenericInvocationExpression(
+      node,
+      node.methodName.staticType,
+    );
+
+    // TODO(scheglov) Call this only when member lookup failed?
+    var inferred = _inferenceHelper.inferMethodInvocationObject(node);
+
+    if (!inferred) {
+      DartType staticStaticType = _inferenceHelper.computeInvokeReturnType(
+        node.staticInvokeType,
+      );
+      _inferenceHelper.recordStaticType(node, staticStaticType);
+    }
   }
 
   /// Given that we are accessing a property of the given [classElement] with the
@@ -339,48 +318,6 @@ class MethodInvocationResolver {
       return element;
     }
     return null;
-  }
-
-  /// If there is an extension matching the [receiverType] and defining a
-  /// member with the given [name], resolve to the corresponding extension
-  /// method. Return a result indicating whether the [node] was resolved and if
-  /// not why.
-  ResolutionResult _resolveExtension(
-    MethodInvocation node,
-    DartType receiverType,
-    SimpleIdentifier nameNode,
-    String name,
-  ) {
-    var result = _extensionResolver.findExtension(
-      receiverType,
-      name,
-      nameNode,
-    );
-
-    if (!result.isSingle) {
-      _setDynamicResolution(node);
-      return result;
-    }
-
-    var member = _resolver.toLegacyElement(result.getter);
-    nameNode.staticElement = member;
-
-    if (member.isStatic) {
-      _setDynamicResolution(node);
-      _resolver.errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
-          nameNode,
-          [name, member.kind.displayName, member.enclosingElement.name]);
-      return result;
-    }
-
-    if (member is PropertyAccessorElement) {
-      _rewriteAsFunctionExpressionInvocation(node, member.returnType);
-      return result;
-    }
-
-    _setResolution(node, member.type);
-    return result;
   }
 
   void _resolveExtensionMember(MethodInvocation node, Identifier receiver,
@@ -463,85 +400,84 @@ class MethodInvocationResolver {
       return;
     }
 
-    ResolutionResult result =
-        _extensionResolver.findExtension(receiverType, name, nameNode);
-    if (result.isSingle) {
-      var member = _resolver.toLegacyElement(result.getter);
-      nameNode.staticElement = member;
-      if (member is PropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(node, member.returnType);
-      }
-      return _setResolution(node, member.type);
-    } else if (result.isAmbiguous) {
-      return;
-    }
-
-    // We can invoke Object methods on Function.
-    var member = _inheritance.getMember(
-      _resolver.typeProvider.functionType,
-      new Name(null, name),
-    );
-    if (member != null) {
-      nameNode.staticElement = member;
-      return _setResolution(node, member.type);
-    }
-
-    _reportUndefinedMethod(
-      node,
-      name,
-      _resolver.typeProvider.functionType.element,
+    _resolveReceiverType(
+      node: node,
+      receiver: receiver,
+      receiverType: receiverType,
+      nameNode: nameNode,
+      name: name,
+      receiverErrorNode: nameNode,
     );
   }
 
-  void _resolveReceiverInterfaceType(MethodInvocation node,
+  void _resolveReceiverInterfaceType(MethodInvocation node, Expression receiver,
       InterfaceType receiverType, SimpleIdentifier nameNode, String name) {
     if (_isCoreFunction(receiverType) &&
         name == FunctionElement.CALL_METHOD_NAME) {
+      _resolver.nullableDereferenceVerifier.expression(
+        receiver,
+        type: receiverType,
+      );
       _setDynamicResolution(node);
       return;
     }
 
-    var target = _inheritance.getMember(receiverType, _currentName);
-    if (target != null) {
-      target = _resolver.toLegacyElement(target);
-      nameNode.staticElement = target;
-      if (target is PropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(node, target.returnType);
+    _resolveReceiverType(
+      node: node,
+      receiver: receiver,
+      receiverType: receiverType,
+      nameNode: nameNode,
+      name: name,
+      receiverErrorNode: receiver,
+    );
+  }
+
+  void _resolveReceiverNever(
+    MethodInvocation node,
+    Expression receiver,
+    DartType receiverType,
+  ) {
+    _setExplicitTypeArgumentTypes();
+
+    if (receiverType == NeverTypeImpl.instanceNullable) {
+      var methodName = node.methodName;
+      var objectElement = _resolver.typeProvider.objectElement;
+      var objectMember = objectElement.getMethod(methodName.name);
+      if (objectMember != null) {
+        objectMember = _resolver.toLegacyElement(objectMember);
+        methodName.staticElement = objectMember;
+        _setResolution(
+          node,
+          objectMember.type,
+        );
+      } else {
+        _setDynamicResolution(node);
+        _resolver.nullableDereferenceVerifier.report(receiver, receiverType);
       }
-      return _setResolution(node, target.type);
-    }
-
-    // Look for an applicable extension.
-    var result = _resolveExtension(node, receiverType, nameNode, name);
-    if (result.isSingle) {
       return;
     }
 
-    // The interface of the receiver does not have an instance member.
-    // Try to recover and find a member in the class.
-    var targetElement = _lookUpClassMember(receiverType.element, name);
-    if (targetElement != null && targetElement.isStatic) {
-      nameNode.staticElement = targetElement;
-      _setDynamicResolution(node);
+    if (receiverType == NeverTypeImpl.instance) {
+      node.methodName.staticType = _dynamicType;
+      node.staticInvokeType = _dynamicType;
+      node.staticType = NeverTypeImpl.instance;
+
+      _resolveArguments(node);
+
       _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
-        nameNode,
-        [
-          name,
-          targetElement.kind.displayName,
-          targetElement.enclosingElement.displayName,
-        ],
+        HintCode.RECEIVER_OF_TYPE_NEVER,
+        receiver,
       );
       return;
     }
 
-    _setDynamicResolution(node);
-    if (result.isNone) {
-      _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.UNDEFINED_METHOD,
-        nameNode,
-        [name, receiverType.element.displayName],
-      );
+    if (receiverType == NeverTypeImpl.instanceLegacy) {
+      node.methodName.staticType = _dynamicType;
+      node.staticInvokeType = _dynamicType;
+      node.staticType = _dynamicType;
+
+      _resolveArguments(node);
+      return;
     }
   }
 
@@ -573,67 +509,23 @@ class MethodInvocationResolver {
       return _reportInvocationOfNonFunction(node);
     }
 
-    InterfaceType receiverType;
-    ClassElement enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass == null) {
-      if (_resolver.enclosingExtension == null) {
-        return _reportUndefinedFunction(node, node.methodName);
-      }
-      var extendedType =
-          _resolveTypeParameter(_resolver.enclosingExtension.extendedType);
-      if (extendedType is InterfaceType) {
-        receiverType = extendedType;
-      } else if (extendedType is FunctionType) {
-        receiverType = _resolver.typeProvider.functionType;
-      } else {
-        return _reportUndefinedFunction(node, node.methodName);
-      }
-      enclosingClass = receiverType.element;
+    DartType receiverType;
+    if (_resolver.enclosingClass != null) {
+      receiverType = _resolver.enclosingClass.thisType;
+    } else if (_resolver.enclosingExtension != null) {
+      receiverType = _resolver.enclosingExtension.extendedType;
     } else {
-      receiverType = enclosingClass.thisType;
-    }
-    var target = _inheritance.getMember(receiverType, _currentName);
-
-    if (target != null) {
-      target = _resolver.toLegacyElement(target);
-      nameNode.staticElement = target;
-      if (target is PropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(node, target.returnType);
-      }
-      return _setResolution(node, target.type);
+      return _reportUndefinedFunction(node, node.methodName);
     }
 
-    var targetElement = _lookUpClassMember(enclosingClass, name);
-    if (targetElement != null && targetElement.isStatic) {
-      nameNode.staticElement = targetElement;
-      _setDynamicResolution(node);
-      if (_resolver.enclosingExtension != null) {
-        _resolver.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode
-                .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
-            nameNode,
-            [targetElement.enclosingElement.displayName]);
-      } else {
-        _resolver.errorReporter.reportErrorForNode(
-            StaticTypeWarningCode
-                .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-            nameNode,
-            [targetElement.enclosingElement.displayName]);
-      }
-      return;
-    }
-
-    var result = _extensionResolver.findExtension(receiverType, name, nameNode);
-    if (result.isSingle) {
-      var target = _resolver.toLegacyElement(result.getter);
-      if (target != null) {
-        nameNode.staticElement = target;
-        _setResolution(node, target.type);
-        return;
-      }
-    }
-
-    return _reportUndefinedMethod(node, name, enclosingClass);
+    _resolveReceiverType(
+      node: node,
+      receiver: null,
+      receiverType: receiverType,
+      nameNode: nameNode,
+      name: name,
+      receiverErrorNode: nameNode,
+    );
   }
 
   void _resolveReceiverPrefix(MethodInvocation node, SimpleIdentifier receiver,
@@ -644,18 +536,18 @@ class MethodInvocationResolver {
       var imports = _definingLibrary.getImportsWithPrefix(prefix);
       if (imports.length == 1 && imports[0].isDeferred) {
         var importedLibrary = imports[0].importedLibrary;
-        var loadLibraryFunction = importedLibrary?.loadLibraryFunction;
-        nameNode.staticElement = loadLibraryFunction;
-        node.staticInvokeType = loadLibraryFunction?.type;
-        node.staticType = loadLibraryFunction?.returnType;
-        _setExplicitTypeArgumentTypes();
-        return;
+        var element = importedLibrary?.loadLibraryFunction;
+        element = _resolver.toLegacyElement(element);
+        if (element is ExecutableElement) {
+          nameNode.staticElement = element;
+          return _setResolution(node, element.type);
+        }
       }
     }
 
     // TODO(scheglov) I don't like how we resolve prefixed names.
     // But maybe this is the only one solution.
-    var prefixedName = new PrefixedIdentifierImpl.temp(receiver, nameNode);
+    var prefixedName = PrefixedIdentifierImpl.temp(receiver, nameNode);
     var element = nameScope.lookup(prefixedName, _definingLibrary);
     element = _resolver.toLegacyElement(element);
     nameNode.staticElement = element;
@@ -680,6 +572,7 @@ class MethodInvocationResolver {
       SimpleIdentifier nameNode, String name) {
     var enclosingClass = _resolver.enclosingClass;
     if (SuperContext.of(receiver) != SuperContext.valid) {
+      _setDynamicResolution(node);
       return;
     }
 
@@ -722,6 +615,63 @@ class MethodInvocationResolver {
         StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
         nameNode,
         [name, enclosingClass.displayName]);
+  }
+
+  void _resolveReceiverType({
+    @required MethodInvocation node,
+    @required Expression receiver,
+    @required DartType receiverType,
+    @required SimpleIdentifier nameNode,
+    @required String name,
+    @required Expression receiverErrorNode,
+  }) {
+    var result = _resolver.typePropertyResolver.resolve(
+      receiver: receiver,
+      receiverType: receiverType,
+      name: name,
+      receiverErrorNode: receiverErrorNode,
+      nameErrorNode: nameNode,
+    );
+
+    if (result.isAmbiguous) {
+      _setDynamicResolution(node);
+      return;
+    }
+
+    var target = result.getter;
+    if (target != null) {
+      nameNode.staticElement = target;
+
+      if (target.isStatic) {
+        _reportInstanceAccessToStaticMember(
+          nameNode,
+          target,
+          receiver == null,
+        );
+      }
+
+      if (target is PropertyAccessorElement) {
+        return _rewriteAsFunctionExpressionInvocation(node, target.returnType);
+      }
+      return _setResolution(node, target.type);
+    }
+
+    _setDynamicResolution(node);
+
+    String receiverClassName = '<unknown>';
+    if (receiverType is InterfaceType) {
+      receiverClassName = receiverType.element.name;
+    } else if (receiverType is FunctionType) {
+      receiverClassName = 'Function';
+    }
+
+    if (!nameNode.isSynthetic) {
+      _resolver.errorReporter.reportErrorForNode(
+        StaticTypeWarningCode.UNDEFINED_METHOD,
+        nameNode,
+        [name, receiverClassName],
+      );
+    }
   }
 
   void _resolveReceiverTypeLiteral(MethodInvocation node, ClassElement receiver,
@@ -798,60 +748,25 @@ class MethodInvocationResolver {
     );
     NodeReplacer.replace(node, invocation);
     node.setProperty(_rewriteResultKey, invocation);
-
-    FunctionType rawFunctionType;
-    if (targetType is FunctionType) {
-      rawFunctionType = targetType;
-    } else if (targetType is InterfaceType) {
-      var call = _inheritance.getMember(targetType, _nameCall);
-      if (call == null) {
-        var result = _extensionResolver.findExtension(
-            targetType, _nameCall.name, node.methodName);
-        if (result.isSingle) {
-          call = result.getter;
-        } else if (result.isAmbiguous) {
-          return;
-        }
-      }
-      call = _resolver.toLegacyElement(call);
-      if (call != null && call.kind == ElementKind.METHOD) {
-        invocation.staticElement = call;
-        rawFunctionType = call.type;
-      }
-    }
-
-    if (rawFunctionType == null) {
-      invocation.staticInvokeType = _dynamicType;
-      invocation.staticType = _dynamicType;
-      return;
-    }
-
-    var instantiatedType = _instantiateFunctionType(
-      rawFunctionType,
-      invocation.typeArguments,
-      invocation.typeArguments,
-    );
-    instantiatedType = _toSyntheticFunctionType(instantiatedType);
-    invocation.staticInvokeType = instantiatedType;
-    invocation.staticType = instantiatedType.returnType;
-    invocation.argumentList.correspondingStaticParameters =
-        _resolveArgumentsToParameters(
-            invocation.argumentList, instantiatedType.parameters);
+    InferenceContext.setTypeFromNode(invocation, node);
   }
 
   void _setDynamicResolution(MethodInvocation node,
-      {bool setNameTypeToDynamic: true}) {
+      {bool setNameTypeToDynamic = true}) {
     if (setNameTypeToDynamic) {
       node.methodName.staticType = _dynamicType;
     }
     node.staticInvokeType = _dynamicType;
     node.staticType = _dynamicType;
     _setExplicitTypeArgumentTypes();
+    _resolveArguments_finishInference(node);
   }
 
   /// Set explicitly specified type argument types, or empty if not specified.
   /// Inference is done in type analyzer, so inferred type arguments might be
   /// set later.
+  ///
+  /// TODO(scheglov) when we do inference in this resolver, do we need this?
   void _setExplicitTypeArgumentTypes() {
     var typeArgumentList = _invocation.typeArguments;
     if (typeArgumentList != null) {
@@ -873,30 +788,12 @@ class MethodInvocationResolver {
     }
 
     if (type is FunctionType) {
-      // TODO(scheglov) Extract this when receiver is already FunctionType?
-      var instantiatedType = _instantiateFunctionType(
-        type,
-        node.typeArguments,
-        node.methodName,
-      );
-      instantiatedType = _toSyntheticFunctionType(instantiatedType);
-      node.staticInvokeType = instantiatedType;
-      node.staticType = instantiatedType.returnType;
-      // TODO(scheglov) too much magic
-      node.argumentList.correspondingStaticParameters =
-          _computeCorrespondingParameters(
-        node.argumentList,
-        instantiatedType,
-      );
+      _inferenceHelper.resolveMethodInvocation(node: node, rawType: type);
       return;
     }
 
     if (type is VoidType) {
       return _reportUseOfVoidType(node, node.methodName);
-    }
-
-    if (type == NeverTypeImpl.instance) {
-      return _reportUseOfNeverType(node, node.methodName);
     }
 
     _reportInvocationOfNonFunction(node);
@@ -921,31 +818,5 @@ class MethodInvocationResolver {
       }
     }
     return null;
-  }
-
-  /// As an experiment for using synthetic [FunctionType]s, we replace some
-  /// function types with the equivalent synthetic function type instance.
-  /// The assumption that we try to prove is that only the set of parameters,
-  /// with their names, types and kinds is important, but the element that
-  /// encloses them is not (`null` for synthetic function types).
-  static FunctionType _toSyntheticFunctionType(FunctionType type) {
-//    if (type.element is GenericFunctionTypeElement) {
-//      var synthetic = FunctionTypeImpl.synthetic(
-//        type.returnType,
-//        type.typeFormals.map((e) {
-//          return TypeParameterElementImpl.synthetic(e.name)..bound = e.bound;
-//        }).toList(),
-//        type.parameters.map((p) {
-//          return ParameterElementImpl.synthetic(
-//            p.name,
-//            p.type,
-//            // ignore: deprecated_member_use_from_same_package
-//            p.parameterKind,
-//          );
-//        }).toList(),
-//      );
-//      return synthetic;
-//    }
-    return type;
   }
 }

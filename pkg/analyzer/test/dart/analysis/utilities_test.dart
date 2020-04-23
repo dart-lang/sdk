@@ -203,6 +203,35 @@ int? f() => 1;
     expect(result.unit.toString(), equals('int? f() => 1;'));
   }
 
+  test_parseString_languageVersion() {
+    var content = '''
+// @dart = 2.7
+class A {}
+''';
+    var result = parseString(
+      content: content,
+      throwIfDiagnostics: false,
+      featureSet: FeatureSet.fromEnableFlags([]),
+    );
+
+    var languageVersion = result.unit.languageVersionToken;
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 7);
+  }
+
+  test_parseString_languageVersion_null() {
+    var content = '''
+class A {}
+''';
+    var result = parseString(
+      content: content,
+      throwIfDiagnostics: false,
+      featureSet: FeatureSet.fromEnableFlags([]),
+    );
+
+    expect(result.unit.languageVersionToken, isNull);
+  }
+
   test_parseString_lineInfo() {
     String content = '''
 main() {
@@ -226,8 +255,10 @@ void main() => print('Hello, world!');
         equals("void main() => print('Hello, world!');"));
   }
 
-  T _withMemoryFile<T>(String content,
-      T callback(MemoryResourceProvider resourceProvider, String path)) {
+  T _withMemoryFile<T>(
+      String content,
+      T Function(MemoryResourceProvider resourceProvider, String path)
+          callback) {
     var resourceProvider = MemoryResourceProvider();
     var path =
         resourceProvider.pathContext.fromUri(Uri.parse('file:///test.dart'));
@@ -235,7 +266,7 @@ void main() => print('Hello, world!');
     return callback(resourceProvider, path);
   }
 
-  T _withTemporaryFile<T>(String content, T callback(String path)) {
+  T _withTemporaryFile<T>(String content, T Function(String path) callback) {
     var tempDir = Directory.systemTemp.createTempSync();
     try {
       var file = File(p.join(tempDir.path, 'test.dart'));

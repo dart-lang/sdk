@@ -1,6 +1,7 @@
 library #lib;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class TestAssertInitializer extends core::Object {
   constructor •() → self::TestAssertInitializer*
@@ -56,16 +57,18 @@ static method testRemovalOfStatementBodies() → dynamic {
   while (self::foo())
   for (; ; ) {
   }
-  for (core::int* i in <core::int*>[1, 2]) {
+  {
+    core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[1, 2]).{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      core::int* i = :sync-for-iterator.{core::Iterator::current};
+    }
   }
-  try {
-  }
-  finally {
-  }
+  {}
   try {
   }
   on dynamic catch(final dynamic e) {
   }
+  {}
   switch(42) {
     #L1:
     case #C3:

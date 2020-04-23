@@ -6,6 +6,9 @@
 # Comments can also be inline like 'correct # this is ok'.
 # Note that at least one space before the hash is required.
 
+# Comments on a line by itself will be considered a header of the file and
+# automatic tools might move it to the top of the file.
+
 alread
 chnage
 clonable

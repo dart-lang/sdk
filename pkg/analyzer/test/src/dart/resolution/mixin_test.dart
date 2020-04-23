@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -308,38 +307,6 @@ mixin M {
 ''');
   }
 
-  test_error_finalNotInitializedConstructor() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  final int f;
-  M();
-}
-''', [
-      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 27, 1),
-    ]);
-  }
-
-  test_error_finalNotInitializedConstructor_OK() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  final int f;
-  M(this.f);
-}
-''', [
-      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
-    ]);
-
-    var element = findElement.mixin('M');
-    var constructorElement = element.constructors.single;
-
-    var fpNode = findNode.fieldFormalParameter('f);');
-    assertElement(fpNode.identifier, constructorElement.parameters[0]);
-
-    FieldFormalParameterElement fpElement = fpNode.declaredElement;
-    expect(fpElement.field, same(findElement.field('f')));
-  }
-
   test_error_implementsClause_deferredClass() async {
     await assertErrorsInCode(r'''
 import 'dart:math' deferred as math;
@@ -402,7 +369,7 @@ mixin M {
   int get M => 0;
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
     ]);
   }
 
@@ -412,7 +379,7 @@ mixin M {
   static int get M => 0;
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
     ]);
   }
 
@@ -422,7 +389,7 @@ mixin M {
   void set M(_) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 21, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 21, 1),
     ]);
   }
 
@@ -432,7 +399,7 @@ mixin M {
   static void set M(_) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 28, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 28, 1),
     ]);
   }
 
@@ -820,46 +787,16 @@ class X = C with M;
     ]);
   }
 
-  test_error_mixinDeclaresConstructor() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  M(int a) {
-    a; // read
-  }
-}
-''', [
-      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
-    ]);
-
-    // Even though it is an error for a mixin to declare a constructor,
-    // we still build elements for constructors, and resolve them.
-
-    var element = findElement.mixin('M');
-    var constructors = element.constructors;
-    expect(constructors, hasLength(1));
-    var constructorElement = constructors[0];
-
-    var constructorNode = findNode.constructor('M(int a)');
-    assertElement(constructorNode, constructorElement);
-
-    var aElement = constructorElement.parameters[0];
-    var aNode = constructorNode.parameters.parameters[0];
-    assertElement(aNode, aElement);
-
-    var aRef = findNode.simple('a; // read');
-    assertElement(aRef, aElement);
-    assertType(aRef, 'int');
-  }
-
   test_error_mixinInstantiate_default() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 mixin M {}
 
 main() {
   new M();
 }
-''');
-    assertTestErrorsWithCodes([CompileTimeErrorCode.MIXIN_INSTANTIATE]);
+''', [
+      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 27, 1),
+    ]);
 
     var creation = findNode.instanceCreation('M();');
     var m = findElement.mixin('M');
@@ -1290,7 +1227,7 @@ mixin M {}
   }
 
   test_methodCallTypeInference_mixinType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 main() {
   C<int> c = f();
 }
@@ -1300,9 +1237,11 @@ class C<T> {}
 mixin M<T> on C<T> {}
 
 M<T> f<T>() => null;
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+    ]);
     var fInvocation = findNode.methodInvocation('f()');
-    expect(fInvocation.staticInvokeType.toString(), 'M<int> Function()');
+    assertInvokeType(fInvocation, 'M<int> Function()');
   }
 
   test_onClause() async {

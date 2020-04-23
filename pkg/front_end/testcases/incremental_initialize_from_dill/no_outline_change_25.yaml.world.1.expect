@@ -1,0 +1,29 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:5:8: Error: 'bar' is already declared in this scope.
+//   void bar() {
+//        ^^^
+// org-dartlang-test:///main.dart:2:8: Context: Previous declaration of 'bar'.
+//   void bar() {
+//        ^^^
+//
+// org-dartlang-test:///main.dart:9:5: Error: Can't use 'bar' because it is declared more than once.
+//     bar();
+//     ^
+//
+
+  class Foo extends dart.core::Object {
+    synthetic constructor •() → main::Foo*
+      : super dart.core::Object::•()
+      ;
+    method bar() → void {
+      dart.core::print("bar 1");
+    }
+    method callBar() → void {
+      invalid-expression "org-dartlang-test:///main.dart:9:5: Error: Can't use 'bar' because it is declared more than once.\n    bar();\n    ^".call();
+    }
+  }
+}

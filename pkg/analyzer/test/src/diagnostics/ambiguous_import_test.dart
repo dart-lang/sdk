@@ -102,7 +102,7 @@ part 'part.dart';
     ResolvedUnitResult partResult =
         await resolveFile(convertPath('/test/lib/part.dart'));
     expect(libResult.errors, hasLength(0));
-    new GatheringErrorListener()
+    GatheringErrorListener()
       ..addAll(partResult.errors)
       ..assertErrors([
         error(StaticWarningCode.AMBIGUOUS_IMPORT, 29, 1),

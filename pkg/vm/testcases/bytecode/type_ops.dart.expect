@@ -591,11 +591,18 @@ L1:
   AssertAssignable     0, CP#5
   Drop1
 L2:
+  Push                 FP[-6]
+  PushConstant         CP#6
+  PushNull
+  PushNull
+  PushConstant         CP#7
+  AssertAssignable     1, CP#8
+  Drop1
   PushNull
   ReturnTOS
 }
-Parameter flags: [0, 0, 2]
-Default function type arguments: CP#6
+Parameter flags: [0, 1, 2]
+Default function type arguments: CP#9
 ConstantPool {
   [0] = TypeArgumentsField #lib::H
   [1] = Type #lib::H::foo8::TypeParam/0
@@ -603,7 +610,10 @@ ConstantPool {
   [3] = ObjectRef 'Q'
   [4] = ObjectRef 'c'
   [5] = SubtypeTestCache
-  [6] = ObjectRef < #lib::H::TypeParam/0 >
+  [6] = Type dart:core::int
+  [7] = ObjectRef 'b'
+  [8] = SubtypeTestCache
+  [9] = ObjectRef < #lib::H::TypeParam/0 >
 }
 
 
@@ -687,7 +697,7 @@ ConstantPool {
   class D<P extends dart.core::Object* = dynamic, Q extends dart.core::Object* = dynamic> extends #lib::C<dart.core::int*, #lib::D::Q*, #lib::D::P*> {
     generic-covariant-impl field dart.core::Map<#lib::D::P*, #lib::D::Q*>* foo;
     constructor •(dynamic tt) → #lib::D<#lib::D::P*, #lib::D::Q*>*
-      : #lib::D::foo = tt as{TypeError} dart.core::Map<#lib::D::P*, #lib::D::Q*>*, super #lib::C::•()
+      : #lib::D::foo = tt as{TypeError,ForDynamic} dart.core::Map<#lib::D::P*, #lib::D::Q*>*, super #lib::C::•()
       ;
     method foo2(dynamic y) → dynamic {
       if(y is #lib::A<#lib::D::P*>*) {
@@ -696,7 +706,7 @@ ConstantPool {
       if(y is #lib::C<dynamic, #lib::D::Q*, dart.core::List<#lib::D::P*>*>*) {
         dart.core::print("22");
       }
-      [@vm.call-site-attributes.metadata=receiverType:#lib::D<#lib::D::P*, #lib::D::Q*>*] this.{#lib::D::foo} = y as{TypeError} dart.core::Map<#lib::D::P*, #lib::D::Q*>*;
+      [@vm.call-site-attributes.metadata=receiverType:InterfaceType(D<D::P*, D::Q*>*)] this.{#lib::D::foo} = y as{TypeError,ForDynamic} dart.core::Map<#lib::D::P*, #lib::D::Q*>*;
     }
     method foo3<T1 extends dart.core::Object* = dynamic, T2 extends dart.core::Object* = dynamic>(dynamic z) → dynamic {
       if(z is #lib::A<#lib::D::foo3::T1*>*) {
@@ -708,8 +718,8 @@ ConstantPool {
       return (z as dart.core::Map<#lib::D::foo3::T2*, #lib::D::Q*>*).{dart.core::Map::values};
     }
     method foo4(dynamic w) → dart.core::Map<#lib::D::P*, #lib::D::Q*>* {
-      dart.core::List<dart.core::Map<#lib::D::P*, #lib::D::Q*>*>* list = <dart.core::Map<#lib::D::P*, #lib::D::Q*>*>[w as{TypeError} dart.core::Map<#lib::D::P*, #lib::D::Q*>*];
-      return w as{TypeError} dart.core::Map<#lib::D::P*, #lib::D::Q*>*;
+      dart.core::List<dart.core::Map<#lib::D::P*, #lib::D::Q*>*>* list = <dart.core::Map<#lib::D::P*, #lib::D::Q*>*>[w as{TypeError,ForDynamic} dart.core::Map<#lib::D::P*, #lib::D::Q*>*];
+      return w as{TypeError,ForDynamic} dart.core::Map<#lib::D::P*, #lib::D::Q*>*;
     }
   }
   class E<P extends dart.core::String* = dart.core::String*> extends dart.core::Object {
@@ -734,7 +744,7 @@ ConstantPool {
     synthetic constructor •() → #lib::H<#lib::H::T*>*
       : super #lib::G::•()
       ;
-    method foo8<generic-covariant-impl Q extends #lib::H::T* = #lib::H::T*>(#lib::H::foo8::Q* a, dart.core::int* b, generic-covariant-impl #lib::H::T* c) → void {}
+    method foo8<generic-covariant-impl Q extends #lib::H::T* = #lib::H::T*>(#lib::H::foo8::Q* a, covariant dart.core::int* b, generic-covariant-impl #lib::H::T* c) → void {}
     forwarding-stub method foo7<generic-covariant-impl Q extends #lib::H::T*>(#lib::H::foo7::Q* a, covariant dart.core::num* b, generic-covariant-impl #lib::H::T* c) → void
       return super.{#lib::G::foo7}<#lib::H::foo7::Q*>(a, b, c);
   }
@@ -749,7 +759,7 @@ ConstantPool {
     return x as #lib::A<dart.core::int*>*;
   }
   static method foo5(dynamic x) → void {
-    #lib::globalVar = x as{TypeError} dart.core::List<dart.core::Iterable<dynamic>*>*;
+    #lib::globalVar = x as{TypeError,ForDynamic} dart.core::List<dart.core::Iterable<dynamic>*>*;
   }
   static method main() → dynamic {}
 }

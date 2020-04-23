@@ -75,11 +75,6 @@ abstract class ClassEntity extends Entity {
   bool get isAbstract;
 }
 
-abstract class TypedefEntity extends Entity {
-  /// The library in which the typedef was declared.
-  LibraryEntity get library;
-}
-
 abstract class TypeVariableEntity extends Entity {
   /// The class or generic method that declared this type variable.
   Entity get typeDeclaration;
@@ -217,6 +212,10 @@ class AsyncMarker {
   /// Added to make [AsyncMarker] enum-like.
   int get index => values.indexOf(this);
 }
+
+/// Values for variance annotations.
+/// This needs to be kept in sync with values of `Variance` in `dart:_rti`.
+enum Variance { legacyCovariant, covariant, contravariant, invariant }
 
 /// Stripped down super interface for constructor like entities.
 ///

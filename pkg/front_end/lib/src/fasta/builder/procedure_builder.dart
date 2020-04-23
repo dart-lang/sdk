@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart';
 
+import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;
@@ -44,8 +45,6 @@ abstract class ProcedureBuilder implements FunctionBuilder {
 
   Procedure get actualProcedure;
 
-  bool hadTypesInferred;
-
   @override
   ProcedureBuilder get origin;
 
@@ -57,7 +56,7 @@ abstract class ProcedureBuilder implements FunctionBuilder {
   bool get isExtensionMethod;
 }
 
-class ProcedureBuilderImpl extends FunctionBuilderImpl
+abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
     implements ProcedureBuilder {
   final Procedure _procedure;
 
@@ -76,21 +75,6 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
   @override
   Procedure get actualProcedure => _procedure;
 
-  @override
-  bool hadTypesInferred = false;
-
-  /// If this is an extension instance method then [_extensionTearOff] holds
-  /// the synthetically created tear off function.
-  Procedure _extensionTearOff;
-
-  /// If this is an extension instance method then
-  /// [_extensionTearOffParameterMap] holds a map from the parameters of
-  /// the methods to the parameter of the closure returned in the tear-off.
-  ///
-  /// This map is used to set the default values on the closure parameters when
-  /// these have been built.
-  Map<VariableDeclaration, VariableDeclaration> _extensionTearOffParameterMap;
-
   ProcedureBuilderImpl(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -104,57 +88,17 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
+      Procedure referenceFrom,
       [String nativeMethodName])
-      : _procedure =
-            new Procedure(null, kind, null, fileUri: compilationUnit?.fileUri)
-              ..startFileOffset = startCharOffset
-              ..fileOffset = charOffset
-              ..fileEndOffset = charEndOffset,
+      : _procedure = new Procedure(null, kind, null,
+            fileUri: compilationUnit.fileUri,
+            reference: referenceFrom?.reference)
+          ..startFileOffset = startCharOffset
+          ..fileOffset = charOffset
+          ..fileEndOffset = charEndOffset
+          ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
-
-  @override
-  Member get readTarget {
-    switch (kind) {
-      case ProcedureKind.Method:
-        return extensionTearOff ?? procedure;
-      case ProcedureKind.Getter:
-        return procedure;
-      case ProcedureKind.Operator:
-      case ProcedureKind.Setter:
-      case ProcedureKind.Factory:
-        return null;
-    }
-    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
-  }
-
-  @override
-  Member get writeTarget {
-    switch (kind) {
-      case ProcedureKind.Setter:
-        return procedure;
-      case ProcedureKind.Method:
-      case ProcedureKind.Getter:
-      case ProcedureKind.Operator:
-      case ProcedureKind.Factory:
-        return null;
-    }
-    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
-  }
-
-  @override
-  Member get invokeTarget {
-    switch (kind) {
-      case ProcedureKind.Method:
-      case ProcedureKind.Getter:
-      case ProcedureKind.Operator:
-      case ProcedureKind.Factory:
-        return procedure;
-      case ProcedureKind.Setter:
-        return null;
-    }
-    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
-  }
 
   @override
   ProcedureBuilder get origin => actualOrigin ?? this;
@@ -202,6 +146,164 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
+  Procedure get procedure => isPatch ? origin.procedure : _procedure;
+
+  @override
+  Member get member => procedure;
+
+  @override
+  void becomeNative(Loader loader) {
+    _procedure.isExternal = true;
+    super.becomeNative(loader);
+  }
+
+  @override
+  void applyPatch(Builder patch) {
+    if (patch is ProcedureBuilderImpl) {
+      if (checkPatch(patch)) {
+        patch.actualOrigin = this;
+        dataForTesting?.patchForTesting = patch;
+      }
+    } else {
+      reportPatchMismatch(patch);
+    }
+  }
+
+  @override
+  int finishPatch() {
+    if (!isPatch) return 0;
+
+    // TODO(ahe): restore file-offset once we track both origin and patch file
+    // URIs. See https://github.com/dart-lang/sdk/issues/31579
+    origin.procedure.fileUri = fileUri;
+    origin.procedure.startFileOffset = _procedure.startFileOffset;
+    origin.procedure.fileOffset = _procedure.fileOffset;
+    origin.procedure.fileEndOffset = _procedure.fileEndOffset;
+    origin.procedure.annotations
+        .forEach((m) => m.fileOffset = _procedure.fileOffset);
+
+    origin.procedure.isAbstract = _procedure.isAbstract;
+    origin.procedure.isExternal = _procedure.isExternal;
+    origin.procedure.function = _procedure.function;
+    origin.procedure.function.parent = origin.procedure;
+    return 1;
+  }
+}
+
+class SourceProcedureBuilder extends ProcedureBuilderImpl {
+  final Procedure _tearOffReferenceFrom;
+
+  /// If this is an extension instance method then [_extensionTearOff] holds
+  /// the synthetically created tear off function.
+  Procedure _extensionTearOff;
+
+  /// If this is an extension instance method then
+  /// [_extensionTearOffParameterMap] holds a map from the parameters of
+  /// the methods to the parameter of the closure returned in the tear-off.
+  ///
+  /// This map is used to set the default values on the closure parameters when
+  /// these have been built.
+  Map<VariableDeclaration, VariableDeclaration> _extensionTearOffParameterMap;
+
+  SourceProcedureBuilder(
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      TypeBuilder returnType,
+      String name,
+      List<TypeVariableBuilder> typeVariables,
+      List<FormalParameterBuilder> formals,
+      ProcedureKind kind,
+      SourceLibraryBuilder compilationUnit,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      Procedure referenceFrom,
+      this._tearOffReferenceFrom,
+      [String nativeMethodName])
+      : super(
+            metadata,
+            modifiers,
+            returnType,
+            name,
+            typeVariables,
+            formals,
+            kind,
+            compilationUnit,
+            startCharOffset,
+            charOffset,
+            charOpenParenOffset,
+            charEndOffset,
+            referenceFrom,
+            nativeMethodName);
+
+  bool _typeEnsured = false;
+  Set<ClassMember> _overrideDependencies;
+
+  void registerOverrideDependency(ClassMember overriddenMember) {
+    _overrideDependencies ??= {};
+    _overrideDependencies.add(overriddenMember);
+  }
+
+  void _ensureTypes(ClassHierarchyBuilder hierarchy) {
+    if (_typeEnsured) return;
+    if (_overrideDependencies != null) {
+      if (isGetter) {
+        hierarchy.inferGetterType(this, _overrideDependencies);
+      } else if (isSetter) {
+        hierarchy.inferSetterType(this, _overrideDependencies);
+      } else {
+        hierarchy.inferMethodType(this, _overrideDependencies);
+      }
+      _overrideDependencies = null;
+    }
+    _typeEnsured = true;
+  }
+
+  @override
+  Member get readTarget {
+    switch (kind) {
+      case ProcedureKind.Method:
+        return extensionTearOff ?? procedure;
+      case ProcedureKind.Getter:
+        return procedure;
+      case ProcedureKind.Operator:
+      case ProcedureKind.Setter:
+      case ProcedureKind.Factory:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  Member get writeTarget {
+    switch (kind) {
+      case ProcedureKind.Setter:
+        return procedure;
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+      case ProcedureKind.Operator:
+      case ProcedureKind.Factory:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  Member get invokeTarget {
+    switch (kind) {
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+      case ProcedureKind.Operator:
+      case ProcedureKind.Factory:
+        return procedure;
+      case ProcedureKind.Setter:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     Member member = build(library);
@@ -246,29 +348,12 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
         ExtensionBuilder extensionBuilder = parent;
         _procedure.isExtensionMember = true;
         _procedure.isStatic = true;
-        String kindInfix = '';
         if (isExtensionInstanceMember) {
-          // Instance getter and setter are converted to methods so we use an
-          // infix to make their names unique.
-          switch (kind) {
-            case ProcedureKind.Getter:
-              kindInfix = 'get#';
-              break;
-            case ProcedureKind.Setter:
-              kindInfix = 'set#';
-              break;
-            case ProcedureKind.Method:
-            case ProcedureKind.Operator:
-              kindInfix = '';
-              break;
-            case ProcedureKind.Factory:
-              throw new UnsupportedError(
-                  'Unexpected extension method kind ${kind}');
-          }
           _procedure.kind = ProcedureKind.Method;
         }
         _procedure.name = new Name(
-            '${extensionBuilder.name}|${kindInfix}${name}',
+            createProcedureName(true, !isExtensionInstanceMember, kind,
+                extensionBuilder.name, name),
             libraryBuilder.library);
       } else {
         _procedure.isStatic = isStatic;
@@ -279,6 +364,35 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
       }
     }
     return _procedure;
+  }
+
+  static String createProcedureName(bool isExtensionMethod, bool isStatic,
+      ProcedureKind kind, String extensionName, String name) {
+    if (isExtensionMethod) {
+      String kindInfix = '';
+      if (!isStatic) {
+        // Instance getter and setter are converted to methods so we use an
+        // infix to make their names unique.
+        switch (kind) {
+          case ProcedureKind.Getter:
+            kindInfix = 'get#';
+            break;
+          case ProcedureKind.Setter:
+            kindInfix = 'set#';
+            break;
+          case ProcedureKind.Method:
+          case ProcedureKind.Operator:
+            kindInfix = '';
+            break;
+          case ProcedureKind.Factory:
+            throw new UnsupportedError(
+                'Unexpected extension method kind ${kind}');
+        }
+      }
+      return '${extensionName}|${kindInfix}${name}';
+    } else {
+      return name;
+    }
   }
 
   /// Creates a top level function that creates a tear off of an extension
@@ -309,6 +423,7 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
     _extensionTearOffParameterMap = {};
 
     int fileOffset = _procedure.fileOffset;
+    int fileEndOffset = _procedure.fileEndOffset;
 
     int extensionTypeParameterCount =
         extensionBuilder.typeParameters?.length ?? 0;
@@ -415,10 +530,22 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
           typeParameters: tearOffTypeParameters,
           positionalParameters: [extensionThis],
           requiredParameterCount: 1,
-          returnType: closure.function.functionType)
+          returnType: closure.function.computeFunctionType(library.nonNullable))
       ..fileUri = fileUri
-      ..fileOffset = fileOffset;
+      ..fileOffset = fileOffset
+      ..fileEndOffset = fileEndOffset;
     _extensionTearOff.function.parent = _extensionTearOff;
+  }
+
+  Procedure get extensionTearOff {
+    if (isExtensionInstanceMember && kind == ProcedureKind.Method) {
+      _extensionTearOff ??= new Procedure(null, ProcedureKind.Method, null,
+          isStatic: true,
+          isExtensionMember: true,
+          reference: _tearOffReferenceFrom?.reference)
+        ..isNonNullableByDefault = library.isNonNullableByDefault;
+    }
+    return _extensionTearOff;
   }
 
   @override
@@ -430,56 +557,51 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
-  Procedure get procedure => isPatch ? origin.procedure : _procedure;
+  List<ClassMember> get localMembers => isSetter
+      ? const <ClassMember>[]
+      : <ClassMember>[new SourceProcedureMember(this)];
 
-  Procedure get extensionTearOff {
-    if (isExtensionInstanceMember && kind == ProcedureKind.Method) {
-      _extensionTearOff ??= new Procedure(null, ProcedureKind.Method, null,
-          isStatic: true, isExtensionMember: true);
-    }
-    return _extensionTearOff;
+  @override
+  List<ClassMember> get localSetters => isSetter
+      ? <ClassMember>[new SourceProcedureMember(this)]
+      : const <ClassMember>[];
+}
+
+class SourceProcedureMember extends BuilderClassMember {
+  @override
+  final SourceProcedureBuilder memberBuilder;
+
+  SourceProcedureMember(this.memberBuilder);
+
+  @override
+  bool get isSourceDeclaration => true;
+
+  @override
+  void inferType(ClassHierarchyBuilder hierarchy) {
+    memberBuilder._ensureTypes(hierarchy);
   }
 
   @override
-  Member get member => procedure;
-
-  @override
-  int finishPatch() {
-    if (!isPatch) return 0;
-
-    // TODO(ahe): restore file-offset once we track both origin and patch file
-    // URIs. See https://github.com/dart-lang/sdk/issues/31579
-    origin.procedure.fileUri = fileUri;
-    origin.procedure.startFileOffset = _procedure.startFileOffset;
-    origin.procedure.fileOffset = _procedure.fileOffset;
-    origin.procedure.fileEndOffset = _procedure.fileEndOffset;
-    origin.procedure.annotations
-        .forEach((m) => m.fileOffset = _procedure.fileOffset);
-
-    origin.procedure.isAbstract = _procedure.isAbstract;
-    origin.procedure.isExternal = _procedure.isExternal;
-    origin.procedure.function = _procedure.function;
-    origin.procedure.function.parent = origin.procedure;
-    return 1;
+  void registerOverrideDependency(ClassMember overriddenMember) {
+    memberBuilder.registerOverrideDependency(overriddenMember);
   }
 
   @override
-  void becomeNative(Loader loader) {
-    _procedure.isExternal = true;
-    super.becomeNative(loader);
+  Member getMember(ClassHierarchyBuilder hierarchy) {
+    memberBuilder._ensureTypes(hierarchy);
+    return memberBuilder.member;
   }
 
   @override
-  void applyPatch(Builder patch) {
-    if (patch is ProcedureBuilderImpl) {
-      if (checkPatch(patch)) {
-        patch.actualOrigin = this;
-        dataForTesting?.patchForTesting = patch;
-      }
-    } else {
-      reportPatchMismatch(patch);
-    }
-  }
+  bool get forSetter => isSetter;
+
+  @override
+  bool get isProperty =>
+      memberBuilder.kind == ProcedureKind.Getter ||
+      memberBuilder.kind == ProcedureKind.Setter;
+
+  @override
+  bool get isFunction => !isProperty;
 }
 
 class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
@@ -498,6 +620,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
+      Procedure referenceFrom,
       [String nativeMethodName,
       this.redirectionTarget])
       : super(
@@ -513,7 +636,17 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
             charOffset,
             charOpenParenOffset,
             charEndOffset,
+            referenceFrom,
             nativeMethodName);
+
+  @override
+  Member get readTarget => null;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Member get invokeTarget => procedure;
 
   @override
   Statement get body => bodyInternal;
@@ -560,9 +693,20 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
   }
 
   @override
-  Procedure build(SourceLibraryBuilder library) {
-    Procedure result = super.build(library);
-    result.isRedirectingFactoryConstructor = true;
+  Procedure build(SourceLibraryBuilder libraryBuilder) {
+    // TODO(ahe): I think we may call this twice on parts. Investigate.
+    if (_procedure.name == null) {
+      _procedure.function = buildFunction(libraryBuilder);
+      _procedure.function.parent = _procedure;
+      _procedure.function.fileOffset = charOpenParenOffset;
+      _procedure.function.fileEndOffset = _procedure.fileEndOffset;
+      _procedure.isAbstract = isAbstract;
+      _procedure.isExternal = isExternal;
+      _procedure.isConst = isConst;
+      _procedure.isStatic = isStatic;
+      _procedure.name = new Name(name, libraryBuilder.library);
+    }
+    _procedure.isRedirectingFactoryConstructor = true;
     if (redirectionTarget.typeArguments != null) {
       typeArguments =
           new List<DartType>(redirectionTarget.typeArguments.length);
@@ -570,8 +714,16 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
         typeArguments[i] = redirectionTarget.typeArguments[i].build(library);
       }
     }
-    return result;
+    return _procedure;
   }
+
+  @override
+  List<ClassMember> get localMembers =>
+      throw new UnsupportedError('${runtimeType}.localMembers');
+
+  @override
+  List<ClassMember> get localSetters =>
+      throw new UnsupportedError('${runtimeType}.localSetters');
 
   @override
   int finishPatch() {

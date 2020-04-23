@@ -122,6 +122,20 @@ var a = [1, '2', 3];
     assertType(findNode.listLiteral('['), 'List<Object>');
   }
 
+  test_noContext_noTypeArgs_expressions_unresolved() async {
+    await resolveTestCode('''
+var a = [x];
+''');
+    assertType(findNode.listLiteral('['), 'List<dynamic>');
+  }
+
+  test_noContext_noTypeArgs_expressions_unresolved_multiple() async {
+    await resolveTestCode('''
+var a = [0, x, 2];
+''');
+    assertType(findNode.listLiteral('['), 'List<dynamic>');
+  }
+
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
     await resolveTestCode('''
 List<int> c;
@@ -239,17 +253,23 @@ var a = [if (0 < 1) ...c else ...d];
 
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull() async {
     await resolveTestCode('''
-f() {
+f() async {
   var futureNull = Future.value(null);
   var a = [1, ...?await futureNull, 2];
 }
 ''');
-    assertType(findNode.listLiteral('['), 'List<dynamic>');
+    assertType(
+      findNode.listLiteral('['),
+      typeStringByNullability(
+        nullable: 'List<int?>',
+        legacy: 'List<int>',
+      ),
+    );
   }
 
   test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
     await resolveTestCode('''
-f() {
+f() async {
   var futureNull = Future.value(null);
   var a = [...?await futureNull];
 }
@@ -288,14 +308,32 @@ var a = <num>[];
 }
 
 @reflectiveTest
-class ListLiteralWithNnbdTest extends DriverResolutionTest {
+class ListLiteralWithNnbdTest extends ListLiteralTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
   bool get typeToStringWithNullability => true;
+
+  test_context_spread_nullAware() async {
+    await assertNoErrorsInCode('''
+T f<T>(T t) => t;
+
+main() {
+  <int>[...?f(null)];
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('f(null)'),
+      element: findElement.topFunction('f'),
+      typeArgumentTypes: ['Iterable<int>?'],
+      invokeType: 'Iterable<int>? Function(Iterable<int>?)',
+      type: 'Iterable<int>?',
+    );
+  }
 
   test_nested_hasNull_1() async {
     await assertNoErrorsInCode('''

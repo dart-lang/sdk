@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FormatTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class FormatTest extends AbstractLspAnalysisServerTest {
-  test_alreadyFormatted() async {
+  Future<void> test_alreadyFormatted() async {
     const contents = '''main() {
   print('test');
 }
@@ -29,7 +29,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     expect(formatEdits, isNull);
   }
 
-  test_formatOnType_simple() async {
+  Future<void> test_formatOnType_simple() async {
     const contents = '''
     main  ()
     {
@@ -51,7 +51,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     expect(formattedContents, equals(expected));
   }
 
-  test_invalidSyntax() async {
+  Future<void> test_invalidSyntax() async {
     const contents = '''main(((( {
   print('test');
 }
@@ -63,7 +63,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     expect(formatEdits, isNull);
   }
 
-  test_nonDartFile() async {
+  Future<void> test_nonDartFile() async {
     await initialize();
     await openFile(pubspecFileUri, simplePubspecContent);
 
@@ -72,17 +72,17 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     expect(formatEdits, isNull);
   }
 
-  test_path_doesNotExist() async {
+  Future<void> test_path_doesNotExist() async {
     await initialize();
 
     await expectLater(
       formatDocument(
-          new Uri.file(join(projectFolderPath, 'missing.dart')).toString()),
+          Uri.file(join(projectFolderPath, 'missing.dart')).toString()),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)),
     );
   }
 
-  test_path_invalidFormat() async {
+  Future<void> test_path_invalidFormat() async {
     await initialize();
 
     await expectLater(
@@ -92,7 +92,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_path_notFileScheme() async {
+  Future<void> test_path_notFileScheme() async {
     await initialize();
 
     await expectLater(
@@ -101,7 +101,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_simple() async {
+  Future<void> test_simple() async {
     const contents = '''
     main  ()
     {
@@ -122,7 +122,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     expect(formattedContents, equals(expected));
   }
 
-  test_unopenFile() async {
+  Future<void> test_unopenFile() async {
     const contents = '''
     main  ()
     {

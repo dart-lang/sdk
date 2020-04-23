@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Complex extends core::Object {
+class Complex extends core::Object /*hasConstConstructor*/  {
   final field core::double* real;
   final field core::double* imaginary;
   const constructor •(core::double* real, core::double* imaginary) → self::Complex*

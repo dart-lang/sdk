@@ -54,7 +54,7 @@ Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
     process.stdin.close();
 
     Timer timer;
-    bool timedOut = false;
+    var timedOut = false;
     if (timeout != null) {
       timer = Timer(timeout, () {
         timedOut = true;
@@ -70,7 +70,7 @@ Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
     ]);
     if (timer != null) timer.cancel();
 
-    String command = "$executable ${args.join(' ')}";
+    var command = "$executable ${args.join(' ')}";
     return AdbCommandResult(command, results[0] as String, results[1] as String,
         results[2] as int, timedOut);
   });
@@ -190,7 +190,7 @@ class AdbDevice {
   Future<Null> waitForBootCompleted() async {
     while (true) {
       try {
-        AdbCommandResult result =
+        var result =
             await _adbCommand(['shell', 'getprop', 'sys.boot_completed']);
         if (result.stdout.trim() == '1') return;
       } catch (_) {}
@@ -295,7 +295,7 @@ class AdbDevice {
         .where((line) => line.trim().isNotEmpty)
         .toList();
     if (lines.isNotEmpty) {
-      int index = lines.last.indexOf(marker);
+      var index = lines.last.indexOf(marker);
       if (index >= 0) {
         exitCode =
             int.parse(lines.last.substring(index + marker.length).trim());

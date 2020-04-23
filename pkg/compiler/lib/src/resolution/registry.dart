@@ -5,8 +5,9 @@
 library dart2js.resolution.registry;
 
 import '../common/resolution.dart' show ResolutionImpact;
-import '../constants/expressions.dart';
+import '../constants/values.dart';
 import '../elements/entities.dart' show ClassEntity, MemberEntity;
+import '../elements/types.dart';
 import '../universe/feature.dart';
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import '../util/enumset.dart' show EnumSet;
@@ -14,6 +15,7 @@ import '../util/util.dart' show Setlet;
 
 class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
     implements ResolutionImpact {
+  final DartTypes _dartTypes;
   @override
   final MemberEntity member;
   EnumSet<Feature> _features;
@@ -21,13 +23,13 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
   Setlet<SetLiteralUse> _setLiterals;
   Setlet<ListLiteralUse> _listLiterals;
   Setlet<String> _constSymbolNames;
-  Setlet<ConstantExpression> _constantLiterals;
+  Setlet<ConstantValue> _constantLiterals;
   Setlet<dynamic> _nativeData;
   Setlet<ClassEntity> _seenClasses;
   Set<RuntimeTypeUse> _runtimeTypeUses;
   Set<GenericInstantiation> _genericInstantiations;
 
-  ResolutionWorldImpactBuilder(this.member);
+  ResolutionWorldImpactBuilder(this._dartTypes, this.member);
 
   @override
   bool get isEmpty => false;
@@ -99,16 +101,16 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
         : const <Feature>[];
   }
 
-  void registerConstantLiteral(ConstantExpression constant) {
-    _constantLiterals ??= new Setlet<ConstantExpression>();
+  void registerConstantLiteral(ConstantValue constant) {
+    _constantLiterals ??= new Setlet<ConstantValue>();
     _constantLiterals.add(constant);
   }
 
   @override
-  Iterable<ConstantExpression> get constantLiterals {
+  Iterable<ConstantValue> get constantLiterals {
     return _constantLiterals != null
         ? _constantLiterals
-        : const <ConstantExpression>[];
+        : const <ConstantValue>[];
   }
 
   void registerNativeData(dynamic nativeData) {
@@ -173,8 +175,8 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
     }
     if (_constantLiterals != null) {
       sb.write('\n const-literals:');
-      for (ConstantExpression constant in _constantLiterals) {
-        sb.write('\n  ${constant.toDartText()}');
+      for (ConstantValue constant in _constantLiterals) {
+        sb.write('\n  ${constant.toDartText(_dartTypes)}');
       }
     }
     if (_constSymbolNames != null) {

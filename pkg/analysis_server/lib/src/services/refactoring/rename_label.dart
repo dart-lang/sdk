@@ -10,9 +10,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/**
- * A [Refactoring] for renaming [LabelElement]s.
- */
+/// A [Refactoring] for renaming [LabelElement]s.
 class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
   RenameLabelRefactoringImpl(
       RefactoringWorkspace workspace, LabelElement element)
@@ -22,24 +20,24 @@ class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
   LabelElement get element => super.element as LabelElement;
 
   @override
-  String get refactoringName => "Rename Label";
+  String get refactoringName => 'Rename Label';
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = new RefactoringStatus();
-    return new Future.value(result);
+    var result = RefactoringStatus();
+    return Future.value(result);
   }
 
   @override
   RefactoringStatus checkNewName() {
-    RefactoringStatus result = super.checkNewName();
+    var result = super.checkNewName();
     result.addStatus(validateLabelName(newName));
     return result;
   }
 
   @override
   Future<void> fillChange() {
-    var processor = new RenameProcessor(workspace, change, newName);
+    var processor = RenameProcessor(workspace, change, newName);
     return processor.renameElement(element);
   }
 }

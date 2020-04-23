@@ -6,17 +6,32 @@ library fasta.named_type_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show DartType, Supertype, TypedefType;
+import 'package:kernel/ast.dart'
+    show
+        Class,
+        DartType,
+        Extension,
+        InterfaceType,
+        InvalidType,
+        Supertype,
+        TreeNode,
+        TypeParameter,
+        TypedefType;
 
 import '../fasta_codes.dart'
     show
-        Message,
-        Template,
-        noLength,
-        templateMissingExplicitTypeArguments,
-        messageNotATypeContext,
         LocatedMessage,
+        Message,
+        Severity,
+        Template,
+        messageNotATypeContext,
+        messageTypeVariableInStaticContext,
+        noLength,
+        templateExtendingRestricted,
+        templateMissingExplicitTypeArguments,
         templateNotAType,
+        templateSupertypeIsIllegal,
+        templateSupertypeIsTypeVariable,
         templateTypeArgumentMismatch,
         templateTypeArgumentsOnTypeVariable,
         templateTypeNotFound;
@@ -37,6 +52,7 @@ import 'invalid_type_declaration_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'prefix_builder.dart';
+import 'type_alias_builder.dart';
 import 'type_builder.dart';
 import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
@@ -48,19 +64,43 @@ class NamedTypeBuilder extends TypeBuilder {
 
   final NullabilityBuilder nullabilityBuilder;
 
+  final Uri fileUri;
+  final int charOffset;
+
   @override
   TypeDeclarationBuilder declaration;
 
-  NamedTypeBuilder(this.name, this.nullabilityBuilder, this.arguments);
+  NamedTypeBuilder(this.name, this.nullabilityBuilder, this.arguments,
+      [this.fileUri, this.charOffset]);
 
   NamedTypeBuilder.fromTypeDeclarationBuilder(
       this.declaration, this.nullabilityBuilder,
-      [this.arguments])
+      [this.arguments, this.fileUri, this.charOffset])
       : this.name = declaration.name;
 
   @override
   void bind(TypeDeclarationBuilder declaration) {
     this.declaration = declaration?.origin;
+  }
+
+  int get nameOffset {
+    if (name is Identifier) {
+      Identifier identifier = name;
+      return identifier.charOffset;
+    }
+    return -1; // TODO(eernst): make it possible to get offset.
+  }
+
+  int get nameLength {
+    if (name is Identifier) {
+      Identifier identifier = name;
+      return identifier.name.length;
+    } else if (name is String) {
+      String nameString = name;
+      return nameString.length;
+    } else {
+      return noLength;
+    }
   }
 
   @override
@@ -154,15 +194,6 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
-  @override
-  void normalize(int charOffset, Uri fileUri) {
-    if (arguments != null &&
-        arguments.length != declaration.typeVariablesCount) {
-      // [arguments] will be normalized later if they are null.
-      arguments = null;
-    }
-  }
-
   String get debugName => "NamedTypeBuilder";
 
   StringBuffer printOn(StringBuffer buffer) {
@@ -205,16 +236,45 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   // TODO(johnniwinther): Store [origin] on the built type.
-  DartType build(LibraryBuilder library, [TypedefType origin]) {
+  DartType build(LibraryBuilder library,
+      [TypedefType origin, bool notInstanceContext]) {
     assert(declaration != null, "Declaration has not been resolved on $this.");
-    return declaration.buildType(library, nullabilityBuilder, arguments);
+    if (notInstanceContext == true && declaration.isTypeVariable) {
+      TypeVariableBuilder typeParameterBuilder = declaration;
+      TypeParameter typeParameter = typeParameterBuilder.parameter;
+      if (typeParameter.parent is Class || typeParameter.parent is Extension) {
+        messageTypeVariableInStaticContext;
+        library.addProblem(
+            messageTypeVariableInStaticContext,
+            charOffset ?? TreeNode.noOffset,
+            noLength,
+            fileUri ?? library.fileUri);
+        return const InvalidType();
+      }
+    }
+
+    return declaration.buildType(
+        library, nullabilityBuilder, arguments, notInstanceContext);
   }
 
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is ClassBuilder) {
+      if (declaration.isNullClass && !library.mayImplementRestrictedTypes) {
+        library.addProblem(
+            templateExtendingRestricted.withArguments(declaration.name),
+            charOffset,
+            noLength,
+            fileUri);
+      }
       return declaration.buildSupertype(library, arguments);
+    } else if (declaration is TypeAliasBuilder) {
+      DartType type =
+          declaration.buildType(library, library.nonNullableBuilder, arguments);
+      if (type is InterfaceType) {
+        return new Supertype(type.classNode, type.typeArguments);
+      }
     } else if (declaration is InvalidTypeDeclarationBuilder) {
       library.addProblem(
           declaration.message.messageObject,
@@ -223,9 +283,8 @@ class NamedTypeBuilder extends TypeBuilder {
           declaration.message.uri,
           severity: Severity.error);
       return null;
-    } else {
-      return handleInvalidSupertype(library, charOffset, fileUri);
     }
+    return handleInvalidSupertype(library, charOffset, fileUri);
   }
 
   Supertype buildMixedInType(
@@ -233,6 +292,12 @@ class NamedTypeBuilder extends TypeBuilder {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is ClassBuilder) {
       return declaration.buildMixedInType(library, arguments);
+    } else if (declaration is TypeAliasBuilder) {
+      DartType type =
+          declaration.buildType(library, library.nonNullableBuilder, arguments);
+      if (type is InterfaceType) {
+        return new Supertype(type.classNode, type.typeArguments);
+      }
     } else if (declaration is InvalidTypeDeclarationBuilder) {
       library.addProblem(
           declaration.message.messageObject,
@@ -241,9 +306,8 @@ class NamedTypeBuilder extends TypeBuilder {
           declaration.message.uri,
           severity: Severity.error);
       return null;
-    } else {
-      return handleInvalidSupertype(library, charOffset, fileUri);
     }
+    return handleInvalidSupertype(library, charOffset, fileUri);
   }
 
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {

@@ -7,7 +7,7 @@ library field_test;
 import 'dart:mirrors';
 import "package:expect/expect.dart";
 
-String toplevelVariable;
+String toplevelVariable = "";
 
 class C {
   final int i;
@@ -15,10 +15,10 @@ class C {
 }
 
 class A<T> {
-  static int staticField;
+  static int staticField = 0;
   @C(42)
   @C(44)
-  String field;
+  String field = "";
   var dynamicTypeField;
   T typeVariableField;
   H<int> parameterizedTypeField;
@@ -28,12 +28,14 @@ class H<T> {}
 
 testOriginalDeclaration() {
   ClassMirror a = reflectClass(A);
-  VariableMirror staticField = a.declarations[#staticField];
-  VariableMirror field = a.declarations[#field];
-  VariableMirror dynamicTypeField = a.declarations[#dynamicTypeField];
-  VariableMirror typeVariableField = a.declarations[#typeVariableField];
+  VariableMirror staticField = a.declarations[#staticField] as VariableMirror;
+  VariableMirror field = a.declarations[#field] as VariableMirror;
+  VariableMirror dynamicTypeField =
+      a.declarations[#dynamicTypeField] as VariableMirror;
+  VariableMirror typeVariableField =
+      a.declarations[#typeVariableField] as VariableMirror;
   VariableMirror parameterizedTypeField =
-      a.declarations[#parameterizedTypeField];
+      a.declarations[#parameterizedTypeField] as VariableMirror;
 
   Expect.equals(reflectType(int), staticField.type);
   Expect.equals(reflectClass(String), field.type);
@@ -48,12 +50,15 @@ testOriginalDeclaration() {
 
 testInstance() {
   ClassMirror aOfString = reflect(new A<String>()).type;
-  VariableMirror staticField = aOfString.declarations[#staticField];
-  VariableMirror field = aOfString.declarations[#field];
-  VariableMirror dynamicTypeField = aOfString.declarations[#dynamicTypeField];
-  VariableMirror typeVariableField = aOfString.declarations[#typeVariableField];
+  VariableMirror staticField =
+      aOfString.declarations[#staticField] as VariableMirror;
+  VariableMirror field = aOfString.declarations[#field] as VariableMirror;
+  VariableMirror dynamicTypeField =
+      aOfString.declarations[#dynamicTypeField] as VariableMirror;
+  VariableMirror typeVariableField =
+      aOfString.declarations[#typeVariableField] as VariableMirror;
   VariableMirror parameterizedTypeField =
-      aOfString.declarations[#parameterizedTypeField];
+      aOfString.declarations[#parameterizedTypeField] as VariableMirror;
 
   Expect.equals(reflectType(int), staticField.type);
   Expect.equals(reflectClass(String), field.type);
@@ -68,7 +73,8 @@ testInstance() {
 
 testTopLevel() {
   LibraryMirror currentLibrary = currentMirrorSystem().findLibrary(#field_test);
-  VariableMirror topLevel = currentLibrary.declarations[#toplevelVariable];
+  VariableMirror topLevel =
+      currentLibrary.declarations[#toplevelVariable] as VariableMirror;
   Expect.equals(reflectClass(String), topLevel.type);
 }
 

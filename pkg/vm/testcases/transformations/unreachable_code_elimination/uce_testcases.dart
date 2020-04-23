@@ -96,6 +96,12 @@ testRemovalOfStatementBodies() {
   } catch (e) {
     assert(foo());
   }
+  try {
+    assert(foo());
+  } catch (e) {
+    assert(foo());
+    rethrow;
+  }
   switch (42) {
     case 10:
       assert(foo());

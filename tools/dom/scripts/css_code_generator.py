@@ -125,8 +125,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   ///
   /// Please note the property name uses camelCase, not-hyphens.
   String getPropertyValue(String propertyName) {
-    var propValue = _getPropertyValueHelper(propertyName);
-    return propValue ?? '';
+    return _getPropertyValueHelper(propertyName);
   }
 
   String _getPropertyValueHelper(String propertyName) {
@@ -151,13 +150,14 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   }
 
 
-  void setProperty(String propertyName, String value, [String priority]) {
+  void setProperty(String propertyName, String$NULLABLE value,
+      [String$NULLABLE priority]) {
     return _setPropertyHelper(_browserPropertyName(propertyName),
       value, priority);
   }
 
   String _browserPropertyName(String propertyName) {
-    String name = _readCache(propertyName);
+    String$NULLABLE name = _readCache(propertyName);
     if (name is String) return name;
     name = _supportedBrowserPropertyName(propertyName);
     _writeCache(propertyName, name);
@@ -177,7 +177,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   }
 
   static final _propertyCache = JS('', '{}');
-  static String _readCache(String key) =>
+  static String$NULLABLE _readCache(String key) =>
     JS('String|Null', '#[#]', _propertyCache, key);
   static void _writeCache(String key, String value) {
     JS('void', '#[#] = #', _propertyCache, key, value);
@@ -192,7 +192,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
         replacedMs);
   }
 
-  void _setPropertyHelper(String propertyName, String value, [String priority]) {
+  void _setPropertyHelper(String propertyName, String$NULLABLE value,
+                          [String$NULLABLE priority]) {
     if (value == null) value = '';
     if (priority == null) priority = '';
     JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
@@ -202,7 +203,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
    * Checks to see if CSS Transitions are supported.
    */
   static bool get supportsTransitions {
-    return document.body.style.supportsProperty('transition');
+    return document.body$NULLASSERT.style.supportsProperty('transition');
   }
 $!MEMBERS
 """)
@@ -214,21 +215,24 @@ $!MEMBERS
   String get %s => this._%s;
 
   /** Sets the value of "%s" */
-  set %s(String value) {
+  set %s(String$NULLABLE value) {
     _%s = value == null ? '' : value;
   }
   @Returns('String')
   @JSName('%s')
-  String _%s;
+  String get _%s native;
+
+  @JSName('%s')
+  set _%s(String value) native;
     """ % (property, camelName, camelName, property, camelName, camelName,
-           camelName, camelName))
+           camelName, camelName, camelName, camelName))
 
     class_file.write("""
 }
 
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   final Iterable<Element> _elementIterable;
-  Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
+  Iterable<CssStyleDeclaration>$NULLABLE _elementCssStyleDeclarationSetIterable;
 
   _CssStyleDeclarationSet(this._elementIterable) {
     _elementCssStyleDeclarationSetIterable = new List.from(
@@ -236,18 +240,19 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   }
 
   String getPropertyValue(String propertyName) =>
-      _elementCssStyleDeclarationSetIterable.first.getPropertyValue(
+      _elementCssStyleDeclarationSetIterable$NULLASSERT.first.getPropertyValue(
           propertyName);
 
-  void setProperty(String propertyName, String value, [String priority]) {
-    _elementCssStyleDeclarationSetIterable.forEach((e) =>
+  void setProperty(String propertyName, String$NULLABLE value,
+      [String$NULLABLE priority]) {
+    _elementCssStyleDeclarationSetIterable$NULLASSERT.forEach((e) =>
         e.setProperty(propertyName, value, priority));
   }
 
 """)
 
     class_file.write("""
-  void _setAll(String propertyName, String value) {
+  void _setAll(String propertyName, String$NULLABLE value) {
     value = value == null ? '' : value;
     for (Element element in _elementIterable) {
       JS('void', '#.style[#] = #', element, propertyName, value);
@@ -275,7 +280,8 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 
 abstract class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
-  void setProperty(String propertyName, String value, [String priority]);
+  void setProperty(String propertyName, String$NULLABLE value,
+      [String$NULLABLE priority]);
 """)
 
     class_lines = []

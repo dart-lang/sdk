@@ -1,0 +1,19 @@
+class X {
+var x1;
+static var x2;
+covariant var x3;
+var x4 = 0;
+static var x5 = 0;
+covariant var x6 = 0;
+}
+
+
+class[KeywordToken] X[StringToken] {[BeginToken]
+var[KeywordToken] x1[StringToken];[SimpleToken]
+static[KeywordToken] var[KeywordToken] x2[StringToken];[SimpleToken]
+covariant[KeywordToken] var[KeywordToken] x3[StringToken];[SimpleToken]
+var[KeywordToken] x4[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+static[KeywordToken] var[KeywordToken] x5[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+covariant[KeywordToken] var[KeywordToken] x6[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

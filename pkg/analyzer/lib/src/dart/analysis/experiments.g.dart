@@ -6,6 +6,10 @@
 
 part of 'experiments.dart';
 
+/// The current version of the Dart language (or, for non-stable releases, the
+/// version of the language currently in the process of being developed).
+const _currentVersion = '2.8.0';
+
 /// A map containing information about all known experimental flags.
 const _knownFeatures = <String, ExperimentalFeature>{
   EnableString.constant_update_2018: ExperimentalFeatures.constant_update_2018,
@@ -80,7 +84,7 @@ class EnableString {
 }
 
 class ExperimentalFeatures {
-  static const constant_update_2018 = const ExperimentalFeature(
+  static const constant_update_2018 = ExperimentalFeature(
       0,
       EnableString.constant_update_2018,
       IsEnabledByDefault.constant_update_2018,
@@ -88,7 +92,7 @@ class ExperimentalFeatures {
       'Enhanced constant expressions',
       firstSupportedVersion: '2.4.1');
 
-  static const control_flow_collections = const ExperimentalFeature(
+  static const control_flow_collections = ExperimentalFeature(
       1,
       EnableString.control_flow_collections,
       IsEnabledByDefault.control_flow_collections,
@@ -96,7 +100,7 @@ class ExperimentalFeatures {
       'Control Flow Collections',
       firstSupportedVersion: '2.2.2');
 
-  static const extension_methods = const ExperimentalFeature(
+  static const extension_methods = ExperimentalFeature(
       2,
       EnableString.extension_methods,
       IsEnabledByDefault.extension_methods,
@@ -104,29 +108,25 @@ class ExperimentalFeatures {
       'Extension Methods',
       firstSupportedVersion: '2.6.0');
 
-  static const non_nullable = const ExperimentalFeature(
+  static const non_nullable = ExperimentalFeature(
       3,
       EnableString.non_nullable,
       IsEnabledByDefault.non_nullable,
       IsExpired.non_nullable,
       'Non Nullable by default');
 
-  static const nonfunction_type_aliases = const ExperimentalFeature(
+  static const nonfunction_type_aliases = ExperimentalFeature(
       4,
       EnableString.nonfunction_type_aliases,
       IsEnabledByDefault.nonfunction_type_aliases,
       IsExpired.nonfunction_type_aliases,
       'Type aliases define a <type>, not just a <functionType>.');
 
-  static const set_literals = const ExperimentalFeature(
-      5,
-      EnableString.set_literals,
-      IsEnabledByDefault.set_literals,
-      IsExpired.set_literals,
-      'Set Literals',
+  static const set_literals = ExperimentalFeature(5, EnableString.set_literals,
+      IsEnabledByDefault.set_literals, IsExpired.set_literals, 'Set Literals',
       firstSupportedVersion: '2.2.0');
 
-  static const spread_collections = const ExperimentalFeature(
+  static const spread_collections = ExperimentalFeature(
       6,
       EnableString.spread_collections,
       IsEnabledByDefault.spread_collections,
@@ -134,18 +134,18 @@ class ExperimentalFeatures {
       'Spread Collections',
       firstSupportedVersion: '2.2.2');
 
-  static const triple_shift = const ExperimentalFeature(
+  static const triple_shift = ExperimentalFeature(
       7,
       EnableString.triple_shift,
       IsEnabledByDefault.triple_shift,
       IsExpired.triple_shift,
       'Triple-shift operator');
 
-  static const variance = const ExperimentalFeature(8, EnableString.variance,
+  static const variance = ExperimentalFeature(8, EnableString.variance,
       IsEnabledByDefault.variance, IsExpired.variance, 'Sound variance.');
 
   @deprecated
-  static const bogus_disabled = const ExperimentalFeature(
+  static const bogus_disabled = ExperimentalFeature(
       9,
       // ignore: deprecated_member_use_from_same_package
       EnableString.bogus_disabled,
@@ -154,7 +154,7 @@ class ExperimentalFeatures {
       null);
 
   @deprecated
-  static const bogus_enabled = const ExperimentalFeature(
+  static const bogus_enabled = ExperimentalFeature(
       10,
       // ignore: deprecated_member_use_from_same_package
       EnableString.bogus_enabled,

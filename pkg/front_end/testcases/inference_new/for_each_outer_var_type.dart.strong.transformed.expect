@@ -54,8 +54,14 @@ static method test() → dynamic /* originally async */ {
         self::A* a;
         self::B* b;
         core::int* i;
-        for (final self::A* #t1 in iterable) {
-          a = #t1;
+        {
+          core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(iterable).{core::Iterable::iterator};
+          for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+            final self::A* #t1 = :sync-for-iterator.{core::Iterator::current};
+            {
+              a = #t1;
+            }
+          }
         }
         {
           dynamic :stream = stream;
@@ -81,8 +87,14 @@ static method test() → dynamic /* originally async */ {
               :result;
             }
         }
-        for (final self::A* #t6 in iterable) {
-          b = #t6 as{TypeError} self::B*;
+        {
+          core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(iterable).{core::Iterable::iterator};
+          for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+            final self::A* #t6 = :sync-for-iterator.{core::Iterator::current};
+            {
+              b = #t6 as{TypeError} self::B*;
+            }
+          }
         }
         {
           dynamic :stream = stream;
@@ -108,12 +120,18 @@ static method test() → dynamic /* originally async */ {
               :result;
             }
         }
-        for (final self::A* #t11 in iterable) {
-          i = let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:10: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
+        {
+          core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(iterable).{core::Iterable::iterator};
+          for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+            final self::A* #t11 = :sync-for-iterator.{core::Iterator::current};
+            {
+              i = let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:10: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
  - 'A' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 Try changing the type of the variable.
   for (i in iterable) {}
          ^" in #t11 as{TypeError} core::int*;
+            }
+          }
         }
         {
           dynamic :stream = stream;
@@ -143,8 +161,14 @@ Try changing the type of the variable.
               :result;
             }
         }
-        for (final self::A* #t18 in self::f<core::Iterable<self::A*>*>()) {
-          a = #t18;
+        {
+          core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+          for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+            final self::A* #t18 = :sync-for-iterator.{core::Iterator::current};
+            {
+              a = #t18;
+            }
+          }
         }
         {
           dynamic :stream = self::f<asy::Stream<self::A*>*>();

@@ -5,6 +5,7 @@
 import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 import '../fasta_codes.dart' show templateInternalProblemNotFoundIn;
 import '../scope.dart';
@@ -26,7 +27,7 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   /// Return the [Extension] built by this builder.
   Extension get extension;
 
-  void buildOutlineExpressions(LibraryBuilder library);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
 
   /// Looks up extension member by [name] taking privacy into account.
   ///
@@ -73,7 +74,8 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
     throw new UnsupportedError("ExtensionBuilder.buildType is not supported.");
   }
 
@@ -120,10 +122,10 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   String get debugName => "ExtensionBuilder";
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
     void build(String ignore, Builder declaration) {
       MemberBuilder member = declaration;
-      member.buildOutlineExpressions(library);
+      member.buildOutlineExpressions(library, coreTypes);
     }
 
     // TODO(johnniwinther): Handle annotations on the extension declaration.

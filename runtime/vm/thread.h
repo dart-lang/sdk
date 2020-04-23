@@ -36,6 +36,7 @@ class Bytecode;
 class Error;
 class ExceptionHandlers;
 class Field;
+class FieldTable;
 class Function;
 class GrowableObjectArray;
 class HandleScope;
@@ -111,6 +112,14 @@ class Thread;
     StubCode::NullErrorSharedWithoutFPURegs().raw(), NULL)                     \
   V(RawCode*, null_error_shared_with_fpu_regs_stub_,                           \
     StubCode::NullErrorSharedWithFPURegs().raw(), NULL)                        \
+  V(RawCode*, null_arg_error_shared_without_fpu_regs_stub_,                    \
+    StubCode::NullArgErrorSharedWithoutFPURegs().raw(), nullptr)               \
+  V(RawCode*, null_arg_error_shared_with_fpu_regs_stub_,                       \
+    StubCode::NullArgErrorSharedWithFPURegs().raw(), nullptr)                  \
+  V(RawCode*, allocate_mint_with_fpu_regs_stub_,                               \
+    StubCode::AllocateMintWithFPURegs().raw(), NULL)                           \
+  V(RawCode*, allocate_mint_without_fpu_regs_stub_,                            \
+    StubCode::AllocateMintWithoutFPURegs().raw(), NULL)                        \
   V(RawCode*, stack_overflow_shared_without_fpu_regs_stub_,                    \
     StubCode::StackOverflowSharedWithoutFPURegs().raw(), NULL)                 \
   V(RawCode*, stack_overflow_shared_with_fpu_regs_stub_,                       \
@@ -158,6 +167,14 @@ class Thread;
     StubCode::NullErrorSharedWithoutFPURegs().EntryPoint(), 0)                 \
   V(uword, null_error_shared_with_fpu_regs_entry_point_,                       \
     StubCode::NullErrorSharedWithFPURegs().EntryPoint(), 0)                    \
+  V(uword, null_arg_error_shared_without_fpu_regs_entry_point_,                \
+    StubCode::NullArgErrorSharedWithoutFPURegs().EntryPoint(), 0)              \
+  V(uword, null_arg_error_shared_with_fpu_regs_entry_point_,                   \
+    StubCode::NullArgErrorSharedWithFPURegs().EntryPoint(), 0)                 \
+  V(uword, allocate_mint_with_fpu_regs_entry_point_,                           \
+    StubCode::AllocateMintWithFPURegs().EntryPoint(), 0)                       \
+  V(uword, allocate_mint_without_fpu_regs_entry_point_,                        \
+    StubCode::AllocateMintWithoutFPURegs().EntryPoint(), 0)                    \
   V(uword, stack_overflow_shared_without_fpu_regs_entry_point_,                \
     StubCode::StackOverflowSharedWithoutFPURegs().EntryPoint(), 0)             \
   V(uword, stack_overflow_shared_with_fpu_regs_entry_point_,                   \
@@ -253,6 +270,11 @@ class Thread : public ThreadState {
                                    TaskKind kind,
                                    bool bypass_safepoint = false);
   static void ExitIsolateAsHelper(bool bypass_safepoint = false);
+
+  static bool EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
+                                        TaskKind kind,
+                                        bool bypass_safepoint);
+  static void ExitIsolateGroupAsHelper(bool bypass_safepoint);
 
   // Empties the store buffer block into the isolate.
   void ReleaseStoreBuffer();
@@ -368,6 +390,10 @@ class Thread : public ThreadState {
   // The isolate group that this thread is operating on, or nullptr if none.
   IsolateGroup* isolate_group() const { return isolate_group_; }
 
+  static intptr_t field_table_values_offset() {
+    return OFFSET_OF(Thread, field_table_values_);
+  }
+
   bool IsMutatorThread() const;
   bool CanCollectGarbage() const;
 
@@ -472,9 +498,6 @@ class Thread : public ThreadState {
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
 
-  bool bump_allocate() const { return bump_allocate_; }
-  void set_bump_allocate(bool b) { bump_allocate_ = b; }
-
   int32_t no_safepoint_scope_depth() const {
 #if defined(DEBUG)
     return no_safepoint_scope_depth_;
@@ -551,6 +574,11 @@ class Thread : public ThreadState {
     global_object_pool_ = raw_value;
   }
 
+  const uword* dispatch_table_array() const { return dispatch_table_array_; }
+  void set_dispatch_table_array(const uword* array) {
+    dispatch_table_array_ = array;
+  }
+
   static bool CanLoadFromThread(const Object& object);
   static intptr_t OffsetFromThread(const Object& object);
   static bool ObjectAtOffset(intptr_t offset, Object* object);
@@ -582,6 +610,10 @@ class Thread : public ThreadState {
 
   static intptr_t global_object_pool_offset() {
     return OFFSET_OF(Thread, global_object_pool_);
+  }
+
+  static intptr_t dispatch_table_array_offset() {
+    return OFFSET_OF(Thread, dispatch_table_array_);
   }
 
   RawObject* active_exception() const { return active_exception_; }
@@ -682,11 +714,13 @@ class Thread : public ThreadState {
   uword SetSafepointRequested(bool value) {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
     if (value) {
+      // acquire pulls from the release in TryEnterSafepoint.
       return safepoint_state_.fetch_or(SafepointRequestedField::encode(true),
-                                       std::memory_order_relaxed);
+                                       std::memory_order_acquire);
     } else {
+      // release pushes to the acquire in TryExitSafepoint.
       return safepoint_state_.fetch_and(~SafepointRequestedField::encode(true),
-                                        std::memory_order_relaxed);
+                                        std::memory_order_release);
     }
   }
   static bool IsBlockedForSafepoint(uword state) {
@@ -717,6 +751,11 @@ class Thread : public ThreadState {
   ExecutionState execution_state() const {
     return static_cast<ExecutionState>(execution_state_);
   }
+  // Normally execution state is only accessed for the current thread.
+  NO_SANITIZE_THREAD
+  ExecutionState execution_state_cross_thread_for_testing() const {
+    return static_cast<ExecutionState>(execution_state_);
+  }
   void set_execution_state(ExecutionState state) {
     execution_state_ = static_cast<uword>(state);
   }
@@ -736,7 +775,7 @@ class Thread : public ThreadState {
     uword old_state = 0;
     uword new_state = SetAtSafepoint(true, 0);
     return safepoint_state_.compare_exchange_strong(old_state, new_state,
-                                                    std::memory_order_acq_rel);
+                                                    std::memory_order_release);
   }
 
   void EnterSafepoint() {
@@ -754,7 +793,7 @@ class Thread : public ThreadState {
     uword old_state = SetAtSafepoint(true, 0);
     uword new_state = 0;
     return safepoint_state_.compare_exchange_strong(old_state, new_state,
-                                                    std::memory_order_acq_rel);
+                                                    std::memory_order_acquire);
   }
 
   void ExitSafepoint() {
@@ -794,6 +833,8 @@ class Thread : public ThreadState {
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
+  void RememberLiveTemporaries();
+  void DeferredMarkLiveTemporaries();
 
   bool IsValidHandle(Dart_Handle object) const;
   bool IsValidLocalHandle(Dart_Handle object) const;
@@ -824,6 +865,13 @@ class Thread : public ThreadState {
   template <class T>
   T* AllocateReusableHandle();
 
+  enum class RestoreWriteBarrierInvariantOp {
+    kAddToRememberedSet,
+    kAddToDeferredMarkingStack
+  };
+  friend class RestoreWriteBarrierInvariantVisitor;
+  void RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op);
+
   // Set the current compiler state and return the previous compiler state.
   CompilerState* SetCompilerState(CompilerState* state) {
     CompilerState* previous = compiler_state_;
@@ -837,14 +885,19 @@ class Thread : public ThreadState {
   // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
-  uword stack_limit_;
-  uword saved_stack_limit_;
-  uword stack_overflow_flags_;
+  RelaxedAtomic<uword> stack_limit_;
   uword write_barrier_mask_;
   Isolate* isolate_;
-  Heap* heap_;
+  const uword* dispatch_table_array_;
   uword top_;
   uword end_;
+  // Offsets up to this point can all fit in a byte on X64. All of the above
+  // fields are very abundantly accessed from code. Thus, keeping them first
+  // is important for code size (although code size on X64 is not a priority).
+  uword saved_stack_limit_;
+  uword stack_overflow_flags_;
+  RawInstance** field_table_values_;
+  Heap* heap_;
   uword volatile top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
   MarkingStackBlock* marking_stack_block_;
@@ -908,7 +961,6 @@ class Thread : public ThreadState {
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;
-  bool bump_allocate_;
 
   // Compiler state:
   CompilerState* compiler_state_ = nullptr;
@@ -922,6 +974,8 @@ class Thread : public ThreadState {
 
   intptr_t ffi_marshalled_arguments_size_ = 0;
   uint64_t* ffi_marshalled_arguments_;
+
+  RawInstance** field_table_values() const { return field_table_values_; }
 
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;
@@ -950,6 +1004,7 @@ class Thread : public ThreadState {
 #endif
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
+  bool is_mutator_thread_ = false;
 
   explicit Thread(bool is_vm_isolate);
 
@@ -966,6 +1021,9 @@ class Thread : public ThreadState {
   void EnterSafepointUsingLock();
   void ExitSafepointUsingLock();
   void BlockForSafepoint();
+
+  void FinishEntering(TaskKind kind);
+  void PrepareLeaving();
 
   static void SetCurrent(Thread* current) { OSThread::SetCurrentTLS(current); }
 
@@ -987,8 +1045,13 @@ class Thread : public ThreadState {
   friend class Simulator;
   friend class StackZone;
   friend class ThreadRegistry;
+  friend class NoActiveIsolateScope;
   friend class CompilerState;
   friend class compiler::target::Thread;
+  friend class FieldTable;
+  friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup*,
+                                                   const char*,
+                                                   char**);
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 

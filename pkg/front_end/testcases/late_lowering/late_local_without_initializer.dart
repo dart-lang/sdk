@@ -7,6 +7,18 @@ main() {
   throws(() => lateLocal, 'Read value from uninitialized lateLocal');
   expect(123, lateLocal = 123);
   expect(123, lateLocal);
+
+  local<T>(T value) {
+    late T lateGenericLocal;
+    throws(() => lateGenericLocal,
+        'Read value from uninitialized lateGenericLocal');
+    expect(value, lateGenericLocal = value);
+    expect(value, lateGenericLocal);
+  }
+
+  local<int?>(null);
+  local<int?>(0);
+  local<int>(0);
 }
 
 expect(expected, actual) {
@@ -17,7 +29,7 @@ throws(f(), String message) {
   dynamic value;
   try {
     value = f();
-  } catch (e) {
+  } on LateInitializationError catch (e) {
     print(e);
     return;
   }

@@ -7,9 +7,7 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:meta/meta.dart';
 
 /// An implementation of [AnalysisContextCollection].
@@ -18,13 +16,12 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   final ResourceProvider resourceProvider;
 
   /// The list of analysis contexts.
+  @override
   final List<AnalysisContext> contexts = [];
 
   /// Initialize a newly created analysis context manager.
   AnalysisContextCollectionImpl(
-      {bool enableIndex: false,
-      @deprecated ByteStore byteStore,
-      @deprecated FileContentOverlay fileContentOverlay,
+      {bool enableIndex = false,
       @required List<String> includedPaths,
       List<String> excludedPaths,
       ResourceProvider resourceProvider,
@@ -36,7 +33,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       _throwIfNotAbsoluteNormalizedPath(sdkPath);
     }
 
-    var contextLocator = new ContextLocator(
+    var contextLocator = ContextLocator(
       resourceProvider: this.resourceProvider,
     );
     var roots = contextLocator.locateRoots(
@@ -44,14 +41,12 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       excludedPaths: excludedPaths,
     );
     for (var root in roots) {
-      var contextBuilder = new ContextBuilderImpl(
+      var contextBuilder = ContextBuilderImpl(
         resourceProvider: this.resourceProvider,
       );
       var context = contextBuilder.createContext(
-        byteStore: byteStore,
         contextRoot: root,
         enableIndex: enableIndex,
-        fileContentOverlay: fileContentOverlay,
         sdkPath: sdkPath,
       );
       contexts.add(context);
@@ -68,7 +63,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       }
     }
 
-    throw new StateError('Unable to find the context to $path');
+    throw StateError('Unable to find the context to $path');
   }
 
   /// Check every element with [_throwIfNotAbsoluteNormalizedPath].
@@ -83,7 +78,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   void _throwIfNotAbsoluteNormalizedPath(String path) {
     var pathContext = resourceProvider.pathContext;
     if (!pathContext.isAbsolute(path) || pathContext.normalize(path) != path) {
-      throw new ArgumentError(
+      throw ArgumentError(
           'Only absolute normalized paths are supported: $path');
     }
   }

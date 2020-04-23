@@ -6,13 +6,12 @@ import 'dart:async';
 
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HighlightsComputerTest);
   });
@@ -24,12 +23,13 @@ class HighlightsComputerTest extends AbstractContextTest {
   String content;
   List<HighlightRegion> highlights;
 
-  setUp() {
+  @override
+  void setUp() {
     super.setUp();
     sourcePath = convertPath('/home/test/lib/test.dart');
   }
 
-  test_extension() async {
+  Future<void> test_extension() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     await _computeHighlights('''
 extension E on String {}
@@ -38,7 +38,7 @@ extension E on String {}
     _check(HighlightRegionType.BUILT_IN, 'on');
   }
 
-  test_methodInvocation_ofExtensionOverride_unresolved() async {
+  Future<void> test_methodInvocation_ofExtensionOverride_unresolved() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     await _computeHighlights('''
 extension E on int {}
@@ -53,9 +53,9 @@ main() {
   void _check(HighlightRegionType expectedType, String expectedText) {
     for (var region in highlights) {
       if (region.type == expectedType) {
-        int startIndex = region.offset;
-        int endIndex = startIndex + region.length;
-        String highlightedText = content.substring(startIndex, endIndex);
+        var startIndex = region.offset;
+        var endIndex = startIndex + region.length;
+        var highlightedText = content.substring(startIndex, endIndex);
         if (highlightedText == expectedText) {
           return;
         }
@@ -70,7 +70,7 @@ main() {
   }) async {
     this.content = content;
     newFile(sourcePath, content: content);
-    ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
+    var result = await session.getResolvedUnit(sourcePath);
 
     if (hasErrors) {
       expect(result.errors, isNotEmpty);
@@ -78,8 +78,7 @@ main() {
       expect(result.errors, isEmpty);
     }
 
-    DartUnitHighlightsComputer computer =
-        new DartUnitHighlightsComputer(result.unit);
+    var computer = DartUnitHighlightsComputer(result.unit);
     highlights = computer.compute();
   }
 }

@@ -1,8 +1,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 library html_common;
 
 import 'dart:async';
@@ -10,7 +8,6 @@ import 'dart:collection';
 import 'dart:html';
 import 'dart:js' as js;
 import 'dart:_internal' show WhereIterable;
-import 'dart:mirrors';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
 import 'dart:web_gl' as gl;

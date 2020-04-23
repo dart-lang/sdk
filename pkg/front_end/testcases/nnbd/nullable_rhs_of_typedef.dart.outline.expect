@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/nullable_rhs_of_typedef.dart:5:11: Error: Can't create typedef from nullable type.
+// typedef F = void Function()?;
+//           ^
+//
+import self as self;
+
+typedef F = invalid-type;
+static method foo(() → void x) → void
+  ;
+static method bar(invalid-type x) → void
+  ;
+static method baz(invalid-type x) → void
+  ;
+static method main() → dynamic
+  ;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /// This part contains helpers for supporting runtime type information.
 ///
 /// The helper use a mixture of Dart and JavaScript objects. To indicate which
@@ -49,9 +47,9 @@ Type createRuntimeType(rti) {
 
 class TypeImpl implements Type {
   final dynamic _rti;
-  String __typeName;
-  String _unmangledName;
-  int _hashCode;
+  String? __typeName;
+  String? _unmangledName;
+  int? _hashCode;
 
   TypeImpl(this._rti);
 
@@ -81,7 +79,7 @@ class TypeVariable {
 }
 
 getMangledTypeName(Type t) {
-  TypeImpl type = t;
+  TypeImpl type = t as TypeImpl;
   return type._typeName;
 }
 
@@ -98,12 +96,15 @@ getMangledTypeName(Type t) {
 Object setRuntimeTypeInfo(Object target, var rti) {
   if (JS_GET_FLAG('USE_NEW_RTI')) {
     assert(rti != null);
+    var rtiProperty = JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY);
+    JS('var', r'#[#] = #', target, rtiProperty, rti);
+    return target;
   } else {
     assert(rti == null || isJsArray(rti));
+    String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
+    JS('var', r'#[#] = #', target, rtiName, rti);
+    return target;
   }
-  String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
-  JS('var', r'#[#] = #', target, rtiName, rti);
-  return target;
 }
 
 /// Returns the runtime type information of [target]. The returned value is a
@@ -166,7 +167,7 @@ String getClassName(var object) {
   return rawRtiToJsConstructorName(getRawRuntimeType(getInterceptor(object)));
 }
 
-String _getRuntimeTypeAsString(var rti, List<String> genericContext) {
+String _getRuntimeTypeAsString(var rti, List<String>? genericContext) {
   assert(isJsArray(rti));
   String className = unminifyOrTag(rawRtiToJsConstructorName(getIndex(rti, 0)));
   return '$className${_joinArguments(rti, 1, genericContext)}';
@@ -180,7 +181,7 @@ String runtimeTypeToString(var rti) {
   return _runtimeTypeToString(rti, null);
 }
 
-String _runtimeTypeToString(var rti, List<String> genericContext) {
+String _runtimeTypeToString(var rti, List<String>? genericContext) {
   if (isDartDynamicTypeRti(rti)) {
     return 'dynamic';
   }
@@ -228,9 +229,9 @@ String _runtimeTypeToString(var rti, List<String> genericContext) {
 // the inner scope index `0` is R, `3` is P, and `4` is Q.
 //
 // [genericContext] is initially `null`.
-String _functionRtiToString(var rti, List<String> genericContext) {
+String _functionRtiToString(var rti, List<String>? genericContext) {
   String typeParameters = '';
-  int outerContextLength;
+  int? outerContextLength;
 
   String boundsTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_GENERIC_BOUNDS_TAG);
   if (hasField(rti, boundsTag)) {
@@ -335,7 +336,7 @@ String joinArguments(var types, int startIndex) {
   return _joinArguments(types, startIndex, null);
 }
 
-String _joinArguments(var types, int startIndex, List<String> genericContext) {
+String _joinArguments(var types, int startIndex, List<String>? genericContext) {
   if (types == null) return '';
   assert(isJsArray(types));
   var separator = '';

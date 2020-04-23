@@ -5,15 +5,29 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
 mixin ElementsTypesMixin {
+  InterfaceType get boolNone {
+    var element = typeProvider.boolElement;
+    return interfaceTypeNone(element);
+  }
+
+  InterfaceType get boolQuestion {
+    var element = typeProvider.boolElement;
+    return interfaceTypeQuestion(element);
+  }
+
+  InterfaceType get boolStar {
+    var element = typeProvider.boolElement;
+    return interfaceTypeStar(element);
+  }
+
   InterfaceType get doubleNone {
     var element = typeProvider.doubleType.element;
     return interfaceTypeNone(element);
@@ -69,17 +83,17 @@ mixin ElementsTypesMixin {
 
   NeverTypeImpl get neverStar => NeverTypeImpl.instanceLegacy;
 
-  InterfaceType get nullNone {
+  InterfaceTypeImpl get nullNone {
     var element = typeProvider.nullType.element;
     return interfaceTypeNone(element);
   }
 
-  InterfaceType get nullQuestion {
+  InterfaceTypeImpl get nullQuestion {
     var element = typeProvider.nullType.element;
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get nullStar {
+  InterfaceTypeImpl get nullStar {
     var element = typeProvider.nullType.element;
     return interfaceTypeStar(element);
   }
@@ -131,7 +145,7 @@ mixin ElementsTypesMixin {
 
   TypeProvider get typeProvider;
 
-  VoidType get voidNone => typeProvider.voidType;
+  VoidTypeImpl get voidNone => VoidTypeImpl.instance;
 
   ClassElementImpl class_({
     @required String name,
@@ -425,42 +439,93 @@ mixin ElementsTypesMixin {
   ParameterElement namedParameter({
     @required String name,
     @required DartType type,
+    bool isCovariant = false,
   }) {
     var parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED;
     parameter.type = type;
+    parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
   }
 
   ParameterElement namedRequiredParameter({
     @required String name,
     @required DartType type,
+    bool isCovariant = false,
   }) {
     var parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED_REQUIRED;
     parameter.type = type;
+    parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
   }
 
-  ParameterElement positionalParameter({String name, @required DartType type}) {
+  ParameterElement positionalParameter({
+    String name,
+    @required DartType type,
+    bool isCovariant = false,
+  }) {
     var parameter = ParameterElementImpl(name ?? '', 0);
     parameter.parameterKind = ParameterKind.POSITIONAL;
     parameter.type = type;
+    parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
   }
 
-  TypeParameterMember promoteTypeParameter(
-    TypeParameterElement element,
-    DartType bound,
-  ) {
-    assert(element is! TypeParameterMember);
-    return TypeParameterMember(element, null, bound);
+  TypeParameterTypeImpl promotedTypeParameterType({
+    @required TypeParameterElement element,
+    @required NullabilitySuffix nullabilitySuffix,
+    @required DartType promotedBound,
+  }) {
+    return TypeParameterTypeImpl(
+      element: element,
+      nullabilitySuffix: nullabilitySuffix,
+      promotedBound: promotedBound,
+    );
   }
 
-  ParameterElement requiredParameter({String name, @required DartType type}) {
+  TypeParameterTypeImpl promotedTypeParameterTypeNone(
+    TypeParameterElement element,
+    DartType promotedBound,
+  ) {
+    return promotedTypeParameterType(
+      element: element,
+      nullabilitySuffix: NullabilitySuffix.none,
+      promotedBound: promotedBound,
+    );
+  }
+
+  TypeParameterTypeImpl promotedTypeParameterTypeQuestion(
+    TypeParameterElement element,
+    DartType promotedBound,
+  ) {
+    return promotedTypeParameterType(
+      element: element,
+      nullabilitySuffix: NullabilitySuffix.question,
+      promotedBound: promotedBound,
+    );
+  }
+
+  TypeParameterTypeImpl promotedTypeParameterTypeStar(
+    TypeParameterElement element,
+    DartType promotedBound,
+  ) {
+    return promotedTypeParameterType(
+      element: element,
+      nullabilitySuffix: NullabilitySuffix.star,
+      promotedBound: promotedBound,
+    );
+  }
+
+  ParameterElement requiredParameter({
+    String name,
+    @required DartType type,
+    bool isCovariant = false,
+  }) {
     var parameter = ParameterElementImpl(name ?? '', 0);
     parameter.parameterKind = ParameterKind.REQUIRED;
     parameter.type = type;
+    parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
   }
 
@@ -477,7 +542,7 @@ mixin ElementsTypesMixin {
     NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
   }) {
     return TypeParameterTypeImpl(
-      element,
+      element: element,
       nullabilitySuffix: nullabilitySuffix,
     );
   }

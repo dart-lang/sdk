@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//build/toolchain/goma.gni")
+
 declare_args() {
   # Minimum supported version of the Mac SDK.
   mac_sdk_min = "10.8"
@@ -10,12 +12,23 @@ declare_args() {
   # the end. If empty, the path to the lowest version greater than or equal to
   # mac_sdk_min is used.
   mac_sdk_path = ""
+
+  mac_enable_relative_sdk_path = mac_use_goma_rbe
 }
 
 find_sdk_args = [
   "--print_sdk_path",
   mac_sdk_min,
 ]
+
+if (mac_use_goma_rbe) {
+  find_sdk_args += [
+    "--create_symlink_at",
+
+    # $root_build_dir starts with "//", which is removed by rebase_path().
+    rebase_path("$root_build_dir/sdk/xcode_links", "//"),
+  ]
+}
 
 # The tool will print the SDK path on the first line, and the version on the
 # second line.

@@ -13,7 +13,7 @@ class MockPackages {
   static final MockPackages instance = MockPackages._();
 
   /// The mapping from relative Posix paths of files to the file contents.
-  Map<String, String> _cachedFiles = {};
+  final Map<String, String> _cachedFiles = {};
 
   MockPackages._() {
     _cacheFiles();

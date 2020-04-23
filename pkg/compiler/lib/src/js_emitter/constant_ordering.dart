@@ -5,8 +5,7 @@
 library dart2js.js_emitter.constant_ordering;
 
 import '../constants/values.dart';
-import '../elements/entities.dart'
-    show ClassEntity, FieldEntity, MemberEntity, TypedefEntity;
+import '../elements/entities.dart' show ClassEntity, FieldEntity, MemberEntity;
 import '../elements/types.dart';
 import 'sorter.dart' show Sorter;
 
@@ -36,13 +35,6 @@ class _ConstantOrdering
     return a.accept(this, b);
   }
 
-  static int compareNullable<T>(int compare(T a, T b), T a, T b) {
-    if (a == null && b == null) return 0;
-    if (a == null) return -1;
-    if (b == null) return 1;
-    return compare(a, b);
-  }
-
   static int compareLists<S, T>(int compare(S a, T b), List<S> a, List<T> b) {
     int r = a.length.compareTo(b.length);
     if (r != 0) return r;
@@ -63,12 +55,6 @@ class _ConstantOrdering
     int r = a.name.compareTo(b.name);
     if (r != 0) return r;
     return _sorter.compareMembersByLocation(a, b);
-  }
-
-  int compareTypedefs(TypedefEntity a, TypedefEntity b) {
-    int r = a.name.compareTo(b.name);
-    if (r != 0) return r;
-    return _sorter.compareTypedefsByLocation(a, b);
   }
 
   int compareDartTypes(DartType a, DartType b) {
@@ -204,42 +190,46 @@ class _ConstantOrdering
 }
 
 /// Visitor for distinguishing types by kind.
-class _DartTypeKindVisitor extends DartTypeVisitor<int, Null> {
+class _DartTypeKindVisitor implements DartTypeVisitor<int, Null> {
   const _DartTypeKindVisitor();
 
   static int kind(DartType type) {
-    return type.accept(const _DartTypeKindVisitor(), null);
+    return const _DartTypeKindVisitor().visit(type);
   }
 
   @override
-  int visitFunctionType(covariant FunctionType type, _) => 0;
+  int visit(DartType type, [_]) => type.accept(this, null);
   @override
-  int visitInterfaceType(covariant InterfaceType type, _) => 1;
+  int visitFunctionType(FunctionType type, _) => 0;
   @override
-  int visitTypedefType(covariant TypedefType type, _) => 2;
+  int visitInterfaceType(InterfaceType type, _) => 1;
   @override
-  int visitTypeVariableType(covariant TypeVariableType type, _) => 3;
+  int visitFunctionTypeVariable(FunctionTypeVariable type, _) => 2;
   @override
-  int visitNeverType(covariant NeverType type, _) => 4;
+  int visitTypeVariableType(TypeVariableType type, _) => 3;
   @override
-  int visitDynamicType(covariant DynamicType type, _) => 5;
+  int visitNeverType(NeverType type, _) => 4;
   @override
-  int visitVoidType(covariant VoidType type, _) => 6;
+  int visitDynamicType(DynamicType type, _) => 5;
   @override
-  int visitAnyType(covariant AnyType type, _) => 7;
+  int visitVoidType(VoidType type, _) => 6;
   @override
-  int visitErasedType(covariant ErasedType type, _) => 8;
+  int visitAnyType(AnyType type, _) => 7;
   @override
-  int visitLegacyType(covariant LegacyType type, _) => 9;
+  int visitErasedType(ErasedType type, _) => 8;
   @override
-  int visitNullableType(covariant NullableType type, _) => 10;
+  int visitFutureOrType(FutureOrType type, _) => 9;
   @override
-  int visitFutureOrType(covariant FutureOrType type, _) => 11;
+  int visitLegacyType(LegacyType type, _) => 10;
+  @override
+  int visitNullableType(NullableType type, _) => 11;
 }
 
 class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
   final _ConstantOrdering _constantOrdering;
   DartType _root;
+  List<FunctionTypeVariable> _leftFunctionTypeVariables = [];
+  List<FunctionTypeVariable> _rightFunctionTypeVariables = [];
   _DartTypeOrdering(this._constantOrdering);
 
   int compare(DartType a, DartType b) {
@@ -260,12 +250,12 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
   @override
   int visitNullableType(
           covariant NullableType type, covariant NullableType other) =>
-      visit(type.baseType, other.baseType);
+      compare(type.baseType, other.baseType);
 
   @override
   int visitFutureOrType(
           covariant FutureOrType type, covariant FutureOrType other) =>
-      visit(type.typeArgument, other.typeArgument);
+      compare(type.typeArgument, other.typeArgument);
 
   @override
   int visitNeverType(covariant NeverType type, covariant NeverType other) {
@@ -285,34 +275,49 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
   }
 
   @override
+  int visitFunctionTypeVariable(covariant FunctionTypeVariable type,
+      covariant FunctionTypeVariable other) {
+    int leftIndex = _leftFunctionTypeVariables.indexOf(type);
+    int rightIndex = _rightFunctionTypeVariables.indexOf(other);
+    assert(leftIndex != -1);
+    assert(rightIndex != -1);
+    int r = leftIndex.compareTo(rightIndex);
+    if (r != 0) return r;
+    return compare(type.bound, other.bound);
+  }
+
+  @override
   int visitFunctionType(
       covariant FunctionType type, covariant FunctionType other) {
-    int r = _compareTypeArguments(type.parameterTypes, other.parameterTypes);
-    if (r != 0) return r;
-    r = _compareTypeArguments(
-        type.optionalParameterTypes, other.optionalParameterTypes);
-    if (r != 0) return r;
-    r = _ConstantOrdering.compareLists((String a, String b) => a.compareTo(b),
-        type.namedParameters, other.namedParameters);
-    if (r != 0) return r;
-    r = _compareTypeArguments(
-        type.namedParameterTypes, other.namedParameterTypes);
-    if (r != 0) return r;
-    return compare(type.returnType, other.returnType);
+    int oldLeftLength = _leftFunctionTypeVariables.length;
+    int oldRightLength = _rightFunctionTypeVariables.length;
+    _leftFunctionTypeVariables.addAll(type.typeVariables);
+    _rightFunctionTypeVariables.addAll(other.typeVariables);
+    try {
+      int r = _compareTypeArguments(type.parameterTypes, other.parameterTypes);
+      if (r != 0) return r;
+      r = _compareTypeArguments(
+          type.optionalParameterTypes, other.optionalParameterTypes);
+      if (r != 0) return r;
+      r = _ConstantOrdering.compareLists((String a, String b) => a.compareTo(b),
+          type.namedParameters, other.namedParameters);
+      if (r != 0) return r;
+      r = _compareTypeArguments(
+          type.namedParameterTypes, other.namedParameterTypes);
+      if (r != 0) return r;
+      return compare(type.returnType, other.returnType);
+    } finally {
+      _leftFunctionTypeVariables.removeRange(
+          oldLeftLength, _leftFunctionTypeVariables.length);
+      _rightFunctionTypeVariables.removeRange(
+          oldRightLength, _rightFunctionTypeVariables.length);
+    }
   }
 
   @override
   int visitInterfaceType(
       covariant InterfaceType type, covariant InterfaceType other) {
     int r = _constantOrdering.compareClasses(type.element, other.element);
-    if (r != 0) return r;
-    return _compareTypeArguments(type.typeArguments, other.typeArguments);
-  }
-
-  @override
-  int visitTypedefType(
-      covariant TypedefType type, covariant TypedefType other) {
-    int r = _constantOrdering.compareTypedefs(type.element, other.element);
     if (r != 0) return r;
     return _compareTypeArguments(type.typeArguments, other.typeArguments);
   }

@@ -7,6 +7,7 @@ Here's a brief guide to what's in here:
 bin/             Binaries/scripts to compile, run, and manage Dart applications.
   dart           Dart virtual machine
   dart2js        Dart-to-JavaScript compiler
+  dart2native    Dart-to-native AOT compiler
   dartanalyzer   Dart static analyzer
   dartdoc        Dart documentation generator
   pub            Pub, the Dart package manager

@@ -31,7 +31,7 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
     newFolder('/workspace/bazel-genfiles');
     workspace =
         BazelWorkspace.find(resourceProvider, convertPath('/workspace'));
-    resolver = new BazelFileUriResolver(workspace);
+    resolver = BazelFileUriResolver(workspace);
     newFile('/workspace/test.dart');
     newFile('/workspace/bazel-bin/gen1.dart');
     newFile('/workspace/bazel-genfiles/gen2.dart');
@@ -72,13 +72,13 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
   }
 
   void test_resolveAbsolute_notFile_dartUri() {
-    Uri uri = new Uri(scheme: 'dart', path: 'core');
+    Uri uri = Uri(scheme: 'dart', path: 'core');
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
 
   void test_resolveAbsolute_notFile_httpsUri() {
-    Uri uri = new Uri(scheme: 'https', path: '127.0.0.1/test.dart');
+    Uri uri = Uri(scheme: 'https', path: '127.0.0.1/test.dart');
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
@@ -90,8 +90,8 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
     expect(source, isNotNull);
     expect(resolver.restoreAbsolute(source), uri);
     expect(
-        resolver.restoreAbsolute(
-            new NonExistingSource(source.fullName, null, null)),
+        resolver
+            .restoreAbsolute(NonExistingSource(source.fullName, null, null)),
         uri);
   }
 
@@ -451,7 +451,8 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
         'package:third_party.something/foo.dart');
   }
 
-  void _addResources(List<String> paths, {String workspacePath: '/workspace'}) {
+  void _addResources(List<String> paths,
+      {String workspacePath = '/workspace'}) {
     for (String path in paths) {
       if (path.endsWith('/')) {
         newFolder(path.substring(0, path.length - 1));
@@ -461,11 +462,11 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
     }
     workspace =
         BazelWorkspace.find(resourceProvider, convertPath(workspacePath));
-    resolver = new BazelPackageUriResolver(workspace);
+    resolver = BazelPackageUriResolver(workspace);
   }
 
   void _assertResolve(String uriStr, String posixPath,
-      {bool exists: true, bool restore: true}) {
+      {bool exists = true, bool restore = true}) {
     Uri uri = Uri.parse(uriStr);
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
@@ -481,7 +482,7 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
 
   void _assertRestore(String posixPath, String expectedUri) {
     String path = convertPath(posixPath);
-    _MockSource source = new _MockSource(path);
+    _MockSource source = _MockSource(path);
     Uri uri = resolver.restoreAbsolute(source);
     expect(uri?.toString(), expectedUri);
   }
@@ -493,68 +494,73 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
   BazelWorkspacePackage package;
 
   void test_contains_differentPackage_summarySource() {
-    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
-    var source = InSummarySource(
-        Uri.parse('package:some.other.code/file.dart'), '' /* summaryPath */);
+    _setUpPackage();
+    var source = _inSummarySource('package:some.other.code/file.dart');
     expect(package.contains(source), isFalse);
   }
 
   void test_contains_differentPackageInWorkspace() {
-    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
+    _setUpPackage();
 
     // A file that is _not_ in this package is not required to have a BUILD
     // file above it, for simplicity and reduced I/O.
     expect(
-        package
-            .contains(TestSource(convertPath('/ws/some/other/code/file.dart'))),
-        isFalse);
+      package.contains(
+        _testSource('/ws/some/other/code/file.dart'),
+      ),
+      isFalse,
+    );
   }
 
   void test_contains_differentWorkspace() {
-    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
-    expect(package.contains(TestSource(convertPath('/ws2/some/file.dart'))),
-        isFalse);
+    _setUpPackage();
+    expect(
+      package.contains(
+        _testSource('/ws2/some/file.dart'),
+      ),
+      isFalse,
+    );
   }
 
   void test_contains_samePackage() {
-    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
+    _setUpPackage();
     final targetFile = newFile('/ws/some/code/lib/code2.dart');
     final targetFile2 = newFile('/ws/some/code/lib/src/code3.dart');
     final targetBinFile = newFile('/ws/some/code/bin/code.dart');
     final targetTestFile = newFile('/ws/some/code/test/code_test.dart');
 
-    expect(package.contains(TestSource(targetFile.path)), isTrue);
-    expect(package.contains(TestSource(targetFile2.path)), isTrue);
-    expect(package.contains(TestSource(targetBinFile.path)), isTrue);
-    expect(package.contains(TestSource(targetTestFile.path)), isTrue);
+    expect(package.contains(_testSource(targetFile.path)), isTrue);
+    expect(package.contains(_testSource(targetFile2.path)), isTrue);
+    expect(package.contains(_testSource(targetBinFile.path)), isTrue);
+    expect(package.contains(_testSource(targetTestFile.path)), isTrue);
   }
 
   void test_contains_samePackage_summarySource() {
-    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
+    _setUpPackage();
     newFile('/ws/some/code/lib/code2.dart');
     newFile('/ws/some/code/lib/src/code3.dart');
-    final file2Source = InSummarySource(
-        Uri.parse('package:some.code/code2.dart'), '' /* summaryPath */);
-    final file3Source = InSummarySource(
-        Uri.parse('package:some.code/src/code2.dart'), '' /* summaryPath */);
+    final file2Source = _inSummarySource('package:some.code/code2.dart');
+    final file3Source = _inSummarySource('package:some.code/src/code2.dart');
 
     expect(package.contains(file2Source), isTrue);
     expect(package.contains(file3Source), isTrue);
   }
 
   void test_contains_subPackage() {
-    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
+    _setUpPackage();
     newFile('/ws/some/code/testing/BUILD');
     newFile('/ws/some/code/testing/lib/testing.dart');
 
     expect(
-        package.contains(
-            TestSource(convertPath('/ws/some/code/testing/lib/testing.dart'))),
-        isFalse);
+      package.contains(
+        _testSource('/ws/some/code/testing/lib/testing.dart'),
+      ),
+      isFalse,
+    );
   }
 
   void test_findPackageFor_buildFileExists() {
-    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
+    _setUpPackage();
 
     expect(package, isNotNull);
     expect(package.root, convertPath('/ws/some/code'));
@@ -566,8 +572,10 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       '/ws/WORKSPACE',
       '/ws/bazel-genfiles',
     ]);
-    workspace =
-        BazelWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
+    workspace = BazelWorkspace.find(
+      resourceProvider,
+      convertPath('/ws/some/code'),
+    );
     final targetFile = newFile('/ws/some/code/lib/code.dart');
 
     package = workspace.findPackageFor(targetFile.path);
@@ -580,10 +588,14 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/k8-opt/bin/some/code/',
       '/ws/some/code/lib/code.dart',
     ]);
-    workspace =
-        BazelWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
+    workspace = BazelWorkspace.find(
+      resourceProvider,
+      convertPath('/ws/some/code'),
+    );
 
-    package = workspace.findPackageFor('/ws/some/code/lib/code.dart');
+    package = workspace.findPackageFor(
+      convertPath('/ws/some/code/lib/code.dart'),
+    );
     expect(package, isNotNull);
     expect(package.root, convertPath('/ws/some/code'));
     expect(package.workspace, equals(workspace));
@@ -594,10 +606,14 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/host/bin/some/code/code.packages',
       '/ws/some/code/lib/code.dart',
     ]);
-    workspace =
-        BazelWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
+    workspace = BazelWorkspace.find(
+      resourceProvider,
+      convertPath('/ws/some/code'),
+    );
 
-    package = workspace.findPackageFor('/ws/some/code/lib/code.dart');
+    package = workspace.findPackageFor(
+      convertPath('/ws/some/code/lib/code.dart'),
+    );
     expect(package, isNotNull);
     expect(package.root, convertPath('/ws/some/code'));
     expect(package.workspace, equals(workspace));
@@ -611,10 +627,13 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       '/ws/some/code/testing/lib/testing.dart',
     ]);
     workspace = BazelWorkspace.find(
-        resourceProvider, convertPath('/ws/some/code/testing'));
+      resourceProvider,
+      convertPath('/ws/some/code/testing'),
+    );
 
-    package =
-        workspace.findPackageFor('/ws/some/code/testing/lib/testing.dart');
+    package = workspace.findPackageFor(
+      convertPath('/ws/some/code/testing/lib/testing.dart'),
+    );
     expect(package, isNotNull);
     expect(package.root, convertPath('/ws/some/code/testing'));
     expect(package.workspace, equals(workspace));
@@ -631,18 +650,31 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
     }
   }
 
-  /// Set up files for [package] rooted at [root] and [workspace] rooted at
-  /// [workspaceRoot].
-  void _setUpPackage(String root, {@required String workspaceRoot}) {
+  Source _inSummarySource(String uriStr) {
+    var uri = Uri.parse(uriStr);
+    return InSummarySource(uri, '');
+  }
+
+  void _setUpPackage() {
     _addResources([
-      '$workspaceRoot/WORKSPACE',
-      '$workspaceRoot/bazel-genfiles/',
-      '$root/BUILD',
-      '$root/lib/code.dart',
+      '/ws/WORKSPACE',
+      '/ws/bazel-genfiles/',
+      '/ws/some/code/BUILD',
+      '/ws/some/code/lib/code.dart',
     ]);
-    workspace =
-        BazelWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
-    package = workspace.findPackageFor('$root/lib/code.dart');
+
+    workspace = BazelWorkspace.find(
+      resourceProvider,
+      convertPath('/ws/some/code'),
+    );
+    package = workspace.findPackageFor(
+      convertPath('/ws/some/code/lib/code.dart'),
+    );
+  }
+
+  Source _testSource(String path) {
+    path = convertPath(path);
+    return TestSource(path);
   }
 }
 
@@ -906,6 +938,6 @@ class _MockSource implements Source {
 
   @override
   noSuchMethod(Invocation invocation) {
-    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+    throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
 }

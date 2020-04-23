@@ -603,8 +603,10 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     for (int i = _buckets.length - 1; i >= 0; i--) {
       var entry = _buckets[i];
       if (entry != null) {
-        while (entry.next != null) {
-          entry = entry.next;
+        var nextEntry = entry.next;
+        while (nextEntry != null) {
+          entry = nextEntry;
+          nextEntry = nextEntry.next;
         }
         return entry.key;
       }

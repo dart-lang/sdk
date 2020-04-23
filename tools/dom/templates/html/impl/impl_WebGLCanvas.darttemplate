@@ -8,9 +8,9 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS {
 $!MEMBERS
 
   @JSName('canvas')
-  final CanvasElement canvas;
+  CanvasElement get canvas native;
 
   @JSName('canvas')
-  final OffscreenCanvas offscreenCanvas;
+  OffscreenCanvas get offscreenCanvas native;
 }
 

@@ -43,6 +43,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
 
 import '../identifiers.dart' show QualifiedName;
 
@@ -96,6 +97,7 @@ class DietListener extends StackListenerImpl {
 
   DeclarationBuilder _currentDeclaration;
   ClassBuilder _currentClass;
+  bool _inRedirectingFactory = false;
 
   bool currentClassIsParserRecovery = false;
 
@@ -115,13 +117,13 @@ class DietListener extends StackListenerImpl {
         uri = library.fileUri,
         memberScope = library.scope,
         enableNative =
-            library.loader.target.backendTarget.enableNative(library.uri),
+            library.loader.target.backendTarget.enableNative(library.importUri),
         stringExpectedAfterNative =
             library.loader.target.backendTarget.nativeExtensionExpectsString;
 
   DeclarationBuilder get currentDeclaration => _currentDeclaration;
 
-  void set currentDeclaration(DeclarationBuilder builder) {
+  void set currentDeclaration(TypeDeclarationBuilder builder) {
     if (builder == null) {
       _currentClass = _currentDeclaration = null;
     } else {
@@ -372,6 +374,11 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void handleVoidKeywordWithTypeArguments(Token token) {
+    debugEvent("VoidKeywordWithTypeArguments");
+  }
+
+  @override
   void handleNoInitializers() {
     debugEvent("NoInitializers");
   }
@@ -438,7 +445,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void handleStringJuxtaposition(int literalCount) {
+  void handleStringJuxtaposition(Token startToken, int literalCount) {
     debugEvent("StringJuxtaposition");
   }
 
@@ -586,7 +593,7 @@ class DietListener extends StackListenerImpl {
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
 
     FunctionBuilder builder = lookupConstructor(beginToken, name);
-    if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
+    if (_inRedirectingFactory) {
       buildRedirectingFactoryMethod(
           bodyToken, builder, MemberKind.Factory, metadata);
     } else {
@@ -621,6 +628,7 @@ class DietListener extends StackListenerImpl {
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
     debugEvent("RedirectingFactoryBody");
     discard(1); // ConstructorReference.
+    _inRedirectingFactory = true;
   }
 
   @override
@@ -789,6 +797,7 @@ class DietListener extends StackListenerImpl {
   void endMember() {
     debugEvent("Member");
     checkEmpty(-1);
+    _inRedirectingFactory = false;
   }
 
   @override
@@ -929,6 +938,11 @@ class DietListener extends StackListenerImpl {
       token = parser.parseInitializersOpt(token);
       token = parser.parseAsyncModifierOpt(token);
       AsyncMarker asyncModifier = getAsyncMarker(listener) ?? AsyncMarker.Sync;
+      if (kind == MemberKind.Factory && asyncModifier != AsyncMarker.Sync) {
+        // Factories has to be sync. The parser issued an error.
+        // Recover to sync.
+        asyncModifier = AsyncMarker.Sync;
+      }
       bool isExpression = false;
       bool allowAbstract = asyncModifier == AsyncMarker.Sync;
       parser.parseFunctionBody(token, isExpression, allowAbstract);

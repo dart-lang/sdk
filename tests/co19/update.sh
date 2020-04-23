@@ -26,8 +26,7 @@ BUILD_ID=$(bb add \
               -commit https://dart.googlesource.com/co19/+/$NEW \
               -json \
               dart/ci/co19-roller \
-             | jq '.id' \
-             | tr -d '"')
+             | jq -r '.id')
 bb collect -interval 10s $BUILD_ID
 
 # Update DEPS:
@@ -50,7 +49,7 @@ BUILDERS=$(jq '.builder_configurations|
                 map(select(.steps|
                            any(.arguments|
                                select(.!=null)|
-                               any(.=="co19"))))|
+                               any(test("co19($|(/.*))")))))|
                 map(.builders)|
                 flatten|
                 sort' \
@@ -64,8 +63,5 @@ git cl web
 set +x
 cat << EOF
 
-Wait for the builders to finish. If any failed, pre-approve them:
-
-  tools/sdks/dart-sdk/bin/dart tools/approve_results.dart \
-    -p https://dart-review.googlesource.com/c/sdk/+/$ISSUE
+Wait for the builders to finish. If any failed, pre-approve them.
 EOF

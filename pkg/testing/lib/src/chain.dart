@@ -147,7 +147,7 @@ abstract class ChainContext {
         continue;
       }
       final Set<Expectation> expectedOutcomes = processExpectedOutcomes(
-          expectations.expectations(description.shortName));
+          expectations.expectations(description.shortName), description);
       final StringBuffer sb = new StringBuffer();
       final Step lastStep = steps.isNotEmpty ? steps.last : null;
       final Iterator<Step> iterator = steps.iterator;
@@ -248,6 +248,7 @@ abstract class ChainContext {
         print("${suite.name}/${description.shortName}: ${result.outcome}");
       });
     }
+    postRun();
   }
 
   Stream<TestDescription> list(Chain suite) async* {
@@ -268,7 +269,8 @@ abstract class ChainContext {
     }
   }
 
-  Set<Expectation> processExpectedOutcomes(Set<Expectation> outcomes) {
+  Set<Expectation> processExpectedOutcomes(
+      Set<Expectation> outcomes, TestDescription description) {
     return outcomes;
   }
 
@@ -311,6 +313,8 @@ abstract class ChainContext {
   }
 
   Future<void> cleanUp(TestDescription description, Result result) => null;
+
+  Future<void> postRun() => null;
 }
 
 abstract class Step<I, O, C extends ChainContext> {

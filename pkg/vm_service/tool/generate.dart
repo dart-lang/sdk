@@ -37,7 +37,7 @@ main(List<String> args) async {
 }
 
 _generateDart(String appDirPath, List<Node> nodes) async {
-  var outDirPath = normalize(join(appDirPath, '..', 'lib'));
+  var outDirPath = normalize(join(appDirPath, '..', 'lib/src'));
   var outDir = new Directory(outDirPath);
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
   var outputFile = new File(join(outDirPath, 'vm_service.dart'));

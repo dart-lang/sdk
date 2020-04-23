@@ -6,21 +6,10 @@ library tests.html.events_test;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
-import 'package:unittest/src/expected_function.dart' show ExpectedFunction;
-
-T Function() expectAsync0<T>(T Function() callback,
-        {int count: 1, int max: 0}) =>
-    new ExpectedFunction<T>(callback, count, max).max0;
-
-T Function(A) expectAsync1<T, A>(T Function(A) callback,
-        {int count: 1, int max: 0}) =>
-    new ExpectedFunction<T>(callback, count, max).max1;
+import 'package:async_helper/async_minitest.dart';
+import 'package:expect/expect.dart';
 
 main() {
-  useHtmlConfiguration();
-
   test('TimeStamp', () {
     var event = new Event('test');
 
@@ -58,7 +47,7 @@ main() {
 
     invocationCounter = 0;
     element.dispatchEvent(event);
-    expect(invocationCounter, isZero);
+    expect(invocationCounter, 0);
 
     var provider = new EventStreamProvider<Event>('test');
 
@@ -70,7 +59,7 @@ main() {
     sub.cancel();
     invocationCounter = 0;
     element.dispatchEvent(event);
-    expect(invocationCounter, isZero);
+    expect(invocationCounter, 0);
 
     provider.forTarget(element).listen(handler);
     invocationCounter = 0;
@@ -108,7 +97,7 @@ main() {
     // rely on this. We therefore wrap it into an expectAsync.
     runZoned(expectAsync0(() {
       var zone = Zone.current;
-      expect(zone, isNot(equals(Zone.root)));
+      Expect.notEquals(zone, Zone.root);
 
       StreamSubscription<Event> sub;
 

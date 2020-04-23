@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -23,7 +24,7 @@ class EqualKeysInConstMapTest extends DriverResolutionTest {
 var c = const {1: null, 2: null, 1: null};
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 33, 1,
-          expectedMessages: [message('/test/lib/test.dart', 15, 1)]),
+          contextMessages: [message('/test/lib/test.dart', 15, 1)]),
     ]);
   }
 
@@ -35,7 +36,7 @@ var c = const {1: null, if (1 < 0) 2: null else 1: null};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 48, 1,
-                    expectedMessages: [message('/test/lib/test.dart', 15, 1)]),
+                    contextMessages: [message('/test/lib/test.dart', 15, 1)]),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 24, 31),
@@ -98,7 +99,7 @@ var c = const {1: null, if (0 < 1) 1: null};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 35, 1,
-                    expectedMessages: [message('/test/lib/test.dart', 15, 1)]),
+                    contextMessages: [message('/test/lib/test.dart', 15, 1)]),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 24, 18),
@@ -114,7 +115,7 @@ class A<T> {
 var c = const {const A<int>(): null, const A<int>(): null};
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 66, 14,
-          expectedMessages: [message('/test/lib/test.dart', 44, 14)]),
+          contextMessages: [message('/test/lib/test.dart', 44, 14)]),
     ]);
   }
 
@@ -149,7 +150,7 @@ var c = const {1: null, ...{1: null}};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 27, 9,
-                    expectedMessages: [message('/test/lib/test.dart', 15, 1)]),
+                    contextMessages: [message('/test/lib/test.dart', 15, 1)]),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 24, 12),
@@ -157,9 +158,12 @@ var c = const {1: null, ...{1: null}};
   }
 
   test_nonConst_entry() async {
-    await assertNoErrorsInCode('''
+    // No error, but there is a hint.
+    await assertErrorsInCode('''
 var c = {1: null, 2: null, 1: null};
-''');
+''', [
+      error(HintCode.EQUAL_KEYS_IN_MAP, 27, 1),
+    ]);
   }
 }
 
@@ -167,5 +171,7 @@ var c = {1: null, 2: null, 1: null};
 class EqualKeysInConstMapWithConstantsTest extends EqualKeysInConstMapTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.constant_update_2018];
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.constant_update_2018],
+    );
 }

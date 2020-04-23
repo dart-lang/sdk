@@ -43,6 +43,7 @@ class CommonMasks implements AbstractValueDomain {
   CommonMasks(this._closedWorld);
 
   CommonElements get commonElements => _closedWorld.commonElements;
+  DartTypes get dartTypes => _closedWorld.dartTypes;
 
   TypeMask _dynamicType;
   TypeMask _nonNullType;
@@ -272,6 +273,13 @@ class CommonMasks implements AbstractValueDomain {
           nullable ? value : value.nonNullable(), isPrecise);
     }
 
+    if (type is NullableType) {
+      return createFromStaticType(type.baseType,
+          classRelation: classRelation, nullable: true);
+    }
+
+    // TODO(sra): Handle LegacyType more precisely.
+
     bool isPrecise = true;
     while (type is TypeVariableType) {
       TypeVariableType typeVariable = type;
@@ -320,7 +328,7 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool containsType(TypeMask typeMask, ClassEntity cls) {
-    return AbstractBool.trueOrMaybe(_containsType(typeMask, cls));
+    return AbstractBool.trueOrFalse(_containsType(typeMask, cls));
   }
 
   bool _containsType(TypeMask typeMask, ClassEntity cls) {
@@ -704,13 +712,6 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
-  AbstractBool contains(
-      covariant TypeMask superset, covariant TypeMask subset) {
-    return AbstractBool.maybeOrFalse(
-        superset.containsMask(subset, _closedWorld));
-  }
-
-  @override
   AbstractBool isIn(covariant TypeMask subset, covariant TypeMask superset) {
     return AbstractBool.trueOrMaybe(subset.isInMask(superset, _closedWorld));
   }
@@ -890,7 +891,7 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   String getCompactText(AbstractValue value) {
-    return formatType(value);
+    return formatType(dartTypes, value);
   }
 
   @override
@@ -910,7 +911,7 @@ class CommonMasks implements AbstractValueDomain {
 ///
 /// The default format is too verbose for the graph format since long strings
 /// create oblong nodes that obstruct the graph layout.
-String formatType(TypeMask type) {
+String formatType(DartTypes dartTypes, TypeMask type) {
   if (type is FlatTypeMask) {
     // TODO(asgerf): Disambiguate classes whose name is not unique. Using the
     //     library name for all classes is not a good idea, since library names
@@ -923,22 +924,22 @@ String formatType(TypeMask type) {
     return '${type.base.name}$nullFlag$subFlag';
   }
   if (type is UnionTypeMask) {
-    return type.disjointMasks.map(formatType).join(' | ');
+    return type.disjointMasks.map((m) => formatType(dartTypes, m)).join(' | ');
   }
   if (type is ContainerTypeMask) {
-    String container = formatType(type.forwardTo);
-    String member = formatType(type.elementType);
+    String container = formatType(dartTypes, type.forwardTo);
+    String member = formatType(dartTypes, type.elementType);
     return '$container<$member>';
   }
   if (type is MapTypeMask) {
-    String container = formatType(type.forwardTo);
-    String key = formatType(type.keyType);
-    String value = formatType(type.valueType);
+    String container = formatType(dartTypes, type.forwardTo);
+    String key = formatType(dartTypes, type.keyType);
+    String value = formatType(dartTypes, type.valueType);
     return '$container<$key,$value>';
   }
   if (type is ValueTypeMask) {
-    String baseType = formatType(type.forwardTo);
-    String value = type.value.toStructuredText();
+    String baseType = formatType(dartTypes, type.forwardTo);
+    String value = type.value.toStructuredText(dartTypes);
     return '$baseType=$value';
   }
   return '$type'; // Fall back on toString if not supported here.

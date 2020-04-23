@@ -260,10 +260,12 @@ class HeapSnapshotGraph {
 
     final completer = Completer<HeapSnapshotGraph>();
     final chunks = <ByteData>[];
-    service.onHeapSnapshotEvent.listen((e) async {
+    StreamSubscription streamSubscription;
+    streamSubscription = service.onHeapSnapshotEvent.listen((e) async {
       chunks.add(e.data);
       if (e.last) {
         await service.streamCancel(EventStreams.kHeapSnapshot);
+        await streamSubscription.cancel();
         completer.complete(HeapSnapshotGraph.fromChunks(chunks));
       }
     });

@@ -1,0 +1,27 @@
+class Xlate {
+int get g => 1;
+}
+
+class Xrequired {
+int get g => 2;
+}
+
+class C {
+Xlate l = Xlate();
+Xrequired r = Xrequired();
+}
+
+
+class[KeywordToken] Xlate[StringToken] {[BeginToken]
+int[StringToken] get[KeywordToken] g[StringToken] =>[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] Xrequired[StringToken] {[BeginToken]
+int[StringToken] get[KeywordToken] g[StringToken] =>[SimpleToken] 2[StringToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+Xlate[StringToken] l[StringToken] =[SimpleToken] Xlate[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+Xrequired[StringToken] r[StringToken] =[SimpleToken] Xrequired[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

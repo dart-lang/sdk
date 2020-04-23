@@ -191,7 +191,7 @@ Future<Null> resetSafariSettings() async {
     home = "$home/";
   }
   var homeDirectory = Uri.base.resolve(home);
-  for (String setting in safariSettings) {
+  for (var setting in safariSettings) {
     await deleteIfExists(homeDirectory.resolve(setting));
   }
   var result = await Process.run(

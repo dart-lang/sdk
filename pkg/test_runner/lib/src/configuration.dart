@@ -63,7 +63,6 @@ class TestConfiguration {
       this.keepGeneratedFiles,
       this.sharedOptions,
       String packages,
-      this.packageRoot,
       this.suiteDirectory,
       this.outputDirectory,
       this.reproducingArguments,
@@ -104,6 +103,7 @@ class TestConfiguration {
   Runtime get runtime => configuration.runtime;
   System get system => configuration.system;
   NnbdMode get nnbdMode => configuration.nnbdMode;
+  Sanitizer get sanitizer => configuration.sanitizer;
 
   // Boolean getters
   bool get hotReload => configuration.useHotReload;
@@ -114,10 +114,10 @@ class TestConfiguration {
   bool get isMinified => configuration.isMinified;
   bool get useAnalyzerCfe => configuration.useAnalyzerCfe;
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
-  bool get useBlobs => configuration.useBlobs;
   bool get useElf => configuration.useElf;
   bool get useSdk => configuration.useSdk;
   bool get enableAsserts => configuration.enableAsserts;
+  bool get useQemu => configuration.useQemu;
 
   // Various file paths.
 
@@ -169,15 +169,12 @@ class TestConfiguration {
 
   String get packages {
     // If the .packages file path wasn't given, find it.
-    if (packageRoot == null && _packages == null) {
-      _packages = Repository.uri.resolve('.packages').toFilePath();
-    }
+    _packages ??= Repository.uri.resolve('.packages').toFilePath();
 
     return _packages;
   }
 
   final String outputDirectory;
-  final String packageRoot;
   final String suiteDirectory;
   String get babel => configuration.babel;
   String get builderTag => configuration.builderTag;
@@ -430,8 +427,7 @@ class TestConfiguration {
   /// server for cross-domain tests can be found by calling
   /// `getCrossOriginPortNumber()`.
   Future startServers() {
-    _servers = TestingServers(
-        buildDirectory, isCsp, runtime, null, packageRoot, packages);
+    _servers = TestingServers(buildDirectory, isCsp, runtime, null, packages);
     var future = servers.startServers(localIP,
         port: testServerPort, crossOriginPort: testServerCrossOriginPort);
 
@@ -461,6 +457,10 @@ class TestConfiguration {
         mode.name.substring(0, 1).toUpperCase() + mode.name.substring(1);
 
     if (system == System.android) result += "Android";
+
+    if (sanitizer != Sanitizer.none) {
+      result += sanitizer.name.toUpperCase();
+    }
 
     var arch = architecture.name.toUpperCase();
     var normal = '$result$arch';

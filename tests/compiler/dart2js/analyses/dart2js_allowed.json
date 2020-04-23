@@ -102,11 +102,11 @@
     "Dynamic access of 'forwardTo'.": 1
   },
   "pkg/compiler/lib/src/inferrer/typemasks/union_type_mask.dart": {
-    "Dynamic access of 'isUnion'.": 5,
-    "Dynamic access of 'disjointMasks'.": 4,
-    "Dynamic invocation of 'contains'.": 1,
-    "Dynamic invocation of 'nonNullable'.": 1,
-    "Dynamic invocation of 'every'.": 1
+    "Dynamic invocation of 'nonNullable'.": 2,
+    "Dynamic access of 'isNullable'.": 3,
+    "Dynamic access of 'isUnion'.": 2,
+    "Dynamic access of 'disjointMasks'.": 3,
+    "Dynamic invocation of 'contains'.": 1
   },
   "pkg/compiler/lib/src/helpers/expensive_map.dart": {
     "Dynamic access of 'length'.": 1,
@@ -149,9 +149,6 @@
   "pkg/compiler/lib/src/serialization/binary_sink.dart": {
     "Dynamic access of 'index'.": 1
   },
-  "pkg/compiler/lib/src/native/behavior.dart": {
-    "Dynamic invocation of 'add'.": 1
-  },
   "pkg/compiler/lib/src/util/enumset.dart": {
     "Dynamic access of 'index'.": 4
   },
@@ -190,14 +187,11 @@
     "Dynamic access of 'universe.side_effects::_flags'.": 1
   },
   "pkg/compiler/lib/src/ssa/builder_kernel.dart": {
-    "Dynamic update to 'instantiatedTypes'.": 1,
-    "Dynamic update to 'sideEffects'.": 1,
     "Dynamic access of 'name'.": 1,
     "Dynamic access of 'id'.": 1,
     "Dynamic invocation of 'addSuccessor'.": 1
   },
   "pkg/compiler/lib/src/ssa/types.dart": {
-    "Dynamic access of 'treatAsDynamic'.": 1,
     "Dynamic access of 'element'.": 1
   },
   "pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart": {
@@ -239,10 +233,6 @@
     "Dynamic access of 'length'.": 2,
     "Dynamic access of 'named'.": 2,
     "Dynamic invocation of '[]'.": 2
-  },
-  "pkg/compiler/lib/src/universe/function_set.dart": {
-    "Dynamic access of 'selector'.": 1,
-    "Dynamic access of 'receiver'.": 1
   },
   "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_emitter.dart": {
     "Dynamic access of 'superclass'.": 1,

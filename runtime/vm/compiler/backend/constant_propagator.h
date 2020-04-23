@@ -37,13 +37,20 @@ class ConstantPropagator : public FlowGraphVisitor {
  private:
   void Analyze();
   void Transform();
+  // Tries to replace uses of [defn] with a constant, returns true if
+  // successfull. The [value] is used as a temporary handle.
+  bool TransformDefinition(Definition* defn);
   void EliminateRedundantBranches();
 
   void SetReachable(BlockEntryInstr* block);
   bool SetValue(Definition* definition, const Object& value);
 
+  // Phi might be viewed as redundant based on current reachability of
+  // predecessor blocks (i.e. the same definition is flowing from all
+  // reachable predecessors). We can use this information to constant
+  // fold phi(x) == x and phi(x) != x comparisons.
   Definition* UnwrapPhi(Definition* defn);
-  void MarkPhi(Definition* defn);
+  void MarkUnwrappedPhi(Definition* defn);
 
   // Assign the join (least upper bound) of a pair of abstract values to the
   // first one.
@@ -74,11 +81,18 @@ class ConstantPropagator : public FlowGraphVisitor {
   const Object& unknown_;
   const Object& non_constant_;
 
+  // Temporary handle used in [TransformDefinition].
+  Object& constant_value_;
+
   // Analysis results. For each block, a reachability bit.  Indexed by
   // preorder number.
   BitVector* reachable_;
 
-  BitVector* marked_phis_;
+  // Bitvector of phis that were "unwrapped" into one of their inputs
+  // when visiting one of their uses. These uses of these phis
+  // should be revisited if reachability of the predecessor blocks
+  // changes even if that does not change constant value of the phi.
+  BitVector* unwrapped_phis_;
 
   // Worklists of blocks and definitions.
   GrowableArray<BlockEntryInstr*> block_worklist_;

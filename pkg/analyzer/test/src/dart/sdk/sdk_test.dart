@@ -21,7 +21,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EmbedderSdkTest);
     defineReflectiveTests(FolderBasedDartSdkTest);
-    defineReflectiveTests(SdkExtensionFinderTest);
     defineReflectiveTests(SdkLibrariesReaderTest);
   });
 }
@@ -29,19 +28,19 @@ main() {
 @reflectiveTest
 class EmbedderSdkTest extends EmbedderRelatedTest {
   void test_creation() {
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+    EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
 
     expect(sdk.urlMappings, hasLength(5));
   }
 
   void test_fromFileUri() {
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+    EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
 
     expectSource(String posixPath, String dartUri) {
       Uri uri = Uri.parse(posixToOSFileUri(posixPath));
@@ -57,30 +56,30 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
   }
 
   void test_getLinkedBundle_noBundle() {
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+    EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
     expect(sdk.getLinkedBundle(), isNull);
   }
 
   void test_getLinkedBundle_strong() {
-    pathTranslator.newFileWithBytes('$foxPath/strong.sum',
-        new PackageBundleAssembler().assemble().toBuffer());
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+    pathTranslator.newFileWithBytes(
+        '$foxPath/strong.sum', PackageBundleAssembler().assemble().toBuffer());
+    EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
-    sdk.analysisOptions = new AnalysisOptionsImpl();
+    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
+    sdk.analysisOptions = AnalysisOptionsImpl();
     sdk.useSummary = true;
     expect(sdk.getLinkedBundle(), isNotNull);
   }
 
   void test_getSdkLibrary() {
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+    EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
 
     SdkLibrary lib = sdk.getSdkLibrary('dart:fox');
     expect(lib, isNotNull);
@@ -89,10 +88,10 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
   }
 
   void test_mapDartUri() {
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+    EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
 
     void expectSource(String dartUri, String posixPath) {
       Source source = sdk.mapDartUri(dartUri);
@@ -125,17 +124,17 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     FolderBasedDartSdk sdk = _createDartSdk();
     sdk.context;
     expect(() {
-      sdk.analysisOptions = new AnalysisOptionsImpl();
+      sdk.analysisOptions = AnalysisOptionsImpl();
     }, throwsStateError);
   }
 
   void test_analysisOptions_beforeContextCreation() {
     FolderBasedDartSdk sdk = _createDartSdk();
-    sdk.analysisOptions = new AnalysisOptionsImpl();
+    sdk.analysisOptions = AnalysisOptionsImpl();
     sdk.context;
     // cannot change "analysisOptions" in the context
     expect(() {
-      sdk.context.analysisOptions = new AnalysisOptionsImpl();
+      sdk.context.analysisOptions = AnalysisOptionsImpl();
     }, throwsStateError);
   }
 
@@ -270,11 +269,11 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     _createFile(sdkDirectory, ['lib', 'html', 'dart2js', 'html_dart2js.dart']);
     _createFile(
         sdkDirectory, ['bin', (OSUtilities.isWindows() ? 'pub.bat' : 'pub')]);
-    return new FolderBasedDartSdk(resourceProvider, sdkDirectory);
+    return FolderBasedDartSdk(resourceProvider, sdkDirectory);
   }
 
   void _createFile(Folder directory, List<String> segments,
-      {String content: ''}) {
+      {String content = ''}) {
     Folder parent = directory;
     int last = segments.length - 1;
     for (int i = 0; i < last; i++) {
@@ -315,58 +314,17 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
 }
 
 @reflectiveTest
-class SdkExtensionFinderTest with ResourceProviderMixin {
-  void setUp() {
-    newFile('/tmp/_sdkext', content: r'''
-{
-  "dart:fox": "slippy.dart",
-  "dart:bear": "grizzly.dart",
-  "dart:relative": "../relative.dart",
-  "dart:deep": "deep/directory/file.dart",
-  "fart:loudly": "nomatter.dart"
-}''');
-  }
-
-  test_create_noSdkExtPackageMap() {
-    var resolver = new SdkExtensionFinder({
-      'fox': <Folder>[getFolder('/empty')]
-    });
-    expect(resolver.urlMappings.length, equals(0));
-  }
-
-  test_create_nullPackageMap() {
-    var resolver = new SdkExtensionFinder(null);
-    expect(resolver.urlMappings.length, equals(0));
-  }
-
-  test_create_sdkExtPackageMap() {
-    var resolver = new SdkExtensionFinder({
-      'fox': <Folder>[getFolder('/tmp')]
-    });
-    // We have four mappings.
-    Map<String, String> urlMappings = resolver.urlMappings;
-    expect(urlMappings.length, equals(4));
-    // Check that they map to the correct paths.
-    expect(urlMappings['dart:fox'], equals(convertPath("/tmp/slippy.dart")));
-    expect(urlMappings['dart:bear'], equals(convertPath("/tmp/grizzly.dart")));
-    expect(urlMappings['dart:relative'], equals(convertPath("/relative.dart")));
-    expect(urlMappings['dart:deep'],
-        equals(convertPath("/tmp/deep/directory/file.dart")));
-  }
-}
-
-@reflectiveTest
 class SdkLibrariesReaderTest with ResourceProviderMixin {
   void test_readFrom_empty() {
     LibraryMap libraryMap =
-        new SdkLibrariesReader().readFromFile(getFile("/libs.dart"), "");
+        SdkLibrariesReader().readFromFile(getFile("/libs.dart"), "");
     expect(libraryMap, isNotNull);
     expect(libraryMap.size(), 0);
   }
 
   void test_readFrom_normal() {
     LibraryMap libraryMap =
-        new SdkLibrariesReader().readFromFile(getFile("/libs.dart"), r'''
+        SdkLibrariesReader().readFromFile(getFile("/libs.dart"), r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',

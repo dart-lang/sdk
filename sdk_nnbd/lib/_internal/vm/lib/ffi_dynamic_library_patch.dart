@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
 import "dart:_internal" show patch;
@@ -32,23 +30,15 @@ class DynamicLibrary {
   Pointer<T> lookup<T extends NativeType>(String symbolName)
       native "Ffi_dl_lookup";
 
-  // The real implementation of this function lives in FfiUseSiteTransformer
-  // for interface calls. Only dynamic calls (which are illegal) reach this
-  // implementation.
-  @patch
-  F lookupFunction<T extends Function, F extends Function>(String symbolName) {
-    throw UnsupportedError(
-        "Dynamic invocation of lookupFunction is not supported.");
-  }
-
   // TODO(dacoharkes): Expose this to users, or extend Pointer?
   // https://github.com/dart-lang/sdk/issues/35881
   int getHandle() native "Ffi_dl_getHandle";
 
   @patch
-  bool operator ==(other) {
-    if (other == null) return false;
-    return getHandle() == other.getHandle();
+  bool operator ==(Object other) {
+    if (other is! DynamicLibrary) return false;
+    DynamicLibrary otherLib = other;
+    return getHandle() == otherLib.getHandle();
   }
 
   @patch
@@ -58,4 +48,11 @@ class DynamicLibrary {
 
   @patch
   Pointer<Void> get handle => Pointer.fromAddress(getHandle());
+}
+
+extension DynamicLibraryExtension on DynamicLibrary {
+  @patch
+  DS lookupFunction<NS extends Function, DS extends Function>(
+          String symbolName) =>
+      throw UnsupportedError("The body is inlined in the frontend.");
 }

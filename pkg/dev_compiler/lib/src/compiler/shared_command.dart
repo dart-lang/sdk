@@ -4,17 +4,19 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
+
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/ddc.dart'
     show InitializedCompilerState, parseExperimentalArguments;
 import 'package:path/path.dart' as p;
-import 'module_builder.dart';
-import '../analyzer/command.dart' as analyzer_compiler;
-import '../analyzer/driver.dart' show CompilerAnalysisDriver;
-import '../kernel/command.dart' as kernel_compiler;
 
-/// Shared code between Analyzer and Kernel CLI interfaces.
+import '../kernel/command.dart' as kernel_compiler;
+import 'module_builder.dart';
+
+// TODO(nshahan) Merge all of this file the locations where they are used in
+// the kernel (only) version of DDC.
+
+/// Previously was shared code between Analyzer and Kernel CLI interfaces.
 ///
 /// This file should only implement functionality that does not depend on
 /// Analyzer/Kernel imports.
@@ -47,7 +49,7 @@ Map<String, String> sdkLibraryVariables = {
   'dart.library.web_sql': 'true',
 };
 
-/// Shared compiler options between `dartdevc` kernel and analyzer backends.
+/// Compiler options for the `dartdevc` backend.
 class SharedCompilerOptions {
   /// Whether to emit the source mapping file.
   ///
@@ -64,9 +66,6 @@ class SharedCompilerOptions {
   /// This is required for a modular build process.
   final bool summarizeApi;
 
-  /// Whether to preserve metdata only accessible via mirrors.
-  final bool emitMetadata;
-
   // Whether to enable assertions.
   final bool enableAsserts;
 
@@ -75,10 +74,6 @@ class SharedCompilerOptions {
   ///
   /// This should only set `true` by our REPL compiler.
   bool replCompile;
-
-  /// Mapping from absolute file paths to bazel short path to substitute in
-  /// source maps.
-  final Map<String, String> bazelMapping;
 
   final Map<String, String> summaryModules;
 
@@ -100,10 +95,8 @@ class SharedCompilerOptions {
       {this.sourceMap = true,
       this.inlineSourceMap = false,
       this.summarizeApi = true,
-      this.emitMetadata = false,
       this.enableAsserts = true,
       this.replCompile = false,
-      this.bazelMapping = const {},
       this.summaryModules = const {},
       this.moduleFormats = const [],
       this.experiments = const {},
@@ -115,12 +108,9 @@ class SharedCompilerOptions {
             sourceMap: args['source-map'] as bool,
             inlineSourceMap: args['inline-source-map'] as bool,
             summarizeApi: args['summarize'] as bool,
-            emitMetadata: args['emit-metadata'] as bool,
             enableAsserts: args['enable-asserts'] as bool,
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
-            bazelMapping:
-                _parseBazelMappings(args['bazel-mapping'] as List<String>),
             summaryModules: _parseCustomSummaryModules(
                 args['summary'] as List<String>, moduleRoot, summaryExtension),
             moduleFormats: parseModuleFormatOption(args),
@@ -144,23 +134,11 @@ class SharedCompilerOptions {
           help: 'emit source mapping', defaultsTo: true, hide: hide)
       ..addFlag('inline-source-map',
           help: 'emit source mapping inline', defaultsTo: false, hide: hide)
-      ..addFlag('emit-metadata',
-          help: 'emit metadata annotations queriable via mirrors', hide: hide)
       ..addFlag('enable-asserts',
           help: 'enable assertions', defaultsTo: true, hide: hide)
       ..addOption('module-name',
           help: 'The output module name, used in some JS module formats.\n'
               'Defaults to the output file name (without .js).')
-      // TODO(jmesserly): rename this, it has nothing to do with bazel.
-      ..addMultiOption('bazel-mapping',
-          help: '--bazel-mapping=gen/to/library.dart,to/library.dart\n'
-              'adjusts the path in source maps.',
-          splitCommas: false,
-          hide: hide)
-      ..addOption('library-root',
-          help: '(deprecated) used to name libraries inside the module, '
-              'ignored with -k.',
-          hide: hide)
       ..addFlag('repl-compile',
           help: 'compile in a more permissive REPL mode, allowing access'
               ' to private members across library boundaries. This should'
@@ -198,7 +176,7 @@ class SharedCompilerOptions {
   }
 
   // TODO(nshahan) Cleanup when NNBD graduates experimental status.
-  bool get nonNullableEnabled => experiments['non-nullable'] ?? false;
+  bool get enableNullSafety => experiments['non-nullable'] ?? false;
 }
 
 /// Finds explicit module names of the form `path=name` in [summaryPaths],
@@ -212,7 +190,7 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
   var pathToModule = <String, String>{};
   if (summaryPaths == null) return pathToModule;
   for (var summaryPath in summaryPaths) {
-    var equalSign = summaryPath.indexOf("=");
+    var equalSign = summaryPath.indexOf('=');
     String modulePath;
     var summaryPathWithoutExt = summaryExt != null
         ? summaryPath.substring(
@@ -235,17 +213,6 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
   return pathToModule;
 }
 
-Map<String, String> _parseBazelMappings(List<String> argument) {
-  var mappings = <String, String>{};
-  for (var mapping in argument) {
-    var splitMapping = mapping.split(',');
-    if (splitMapping.length >= 2) {
-      mappings[p.absolute(splitMapping[0])] = splitMapping[1];
-    }
-  }
-  return mappings;
-}
-
 /// Taken from analyzer to implement `--ignore-unrecognized-flags`
 List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   if (!args.contains('--ignore-unrecognized-flags')) return args;
@@ -264,7 +231,7 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   });
 
   String optionName(int prefixLength, String arg) {
-    int equalsOffset = arg.lastIndexOf('=');
+    var equalsOffset = arg.lastIndexOf('=');
     if (equalsOffset < 0) {
       return arg.substring(prefixLength);
     }
@@ -306,10 +273,10 @@ Uri sourcePathToUri(String source, {bool windows}) {
     }
   }
   if (windows) {
-    source = source.replaceAll("\\", "/");
+    source = source.replaceAll('\\', '/');
   }
 
-  Uri result = Uri.base.resolve(source);
+  var result = Uri.base.resolve(source);
   if (windows && result.scheme.length == 1) {
     // Assume c: or similar --- interpret as file path.
     return Uri.file(source, windows: true);
@@ -329,19 +296,31 @@ Uri sourcePathToRelativeUri(String source, {bool windows}) {
   return uri;
 }
 
-/// Adjusts the source paths in [sourceMap] to be relative to [sourceMapPath],
-/// and returns the new map.  Relative paths are in terms of URIs ('/'), not
-/// local OS paths (e.g., windows '\'). Sources with a multi-root scheme
-/// matching [multiRootScheme] are adjusted to be relative to
-/// [multiRootOutputPath].
-// TODO(jmesserly): find a new home for this.
-Map placeSourceMap(Map sourceMap, String sourceMapPath,
-    Map<String, String> bazelMappings, String multiRootScheme,
-    {String multiRootOutputPath}) {
+/// Adjusts the source uris in [sourceMap] to be relative uris, and returns
+/// the new map.
+///
+/// Source uris show up in two forms, absolute `file:` uris and custom
+/// [multiRootScheme] uris (also "absolute" uris, but always relative to some
+/// multi-root).
+///
+/// - `file:` uris are converted to be relative to [sourceMapBase], which
+///   defaults to the dirname of [sourceMapPath] if not provided.
+///
+/// - [multiRootScheme] uris are prefixed by [multiRootOutputPath]. If the
+///   path starts with `/lib`, then we strip that before making it relative
+///   to the [multiRootOutputPath], and assert that [multiRootOutputPath]
+///   starts with `/packages` (more explanation inline).
+///
+// TODO(#40251): Remove this logic from dev_compiler itself, push it to the
+// invokers of dev_compiler which have more knowledge about how they want
+// source paths to look.
+Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
+    {String multiRootOutputPath, String sourceMapBase}) {
   var map = Map.from(sourceMap);
   // Convert to a local file path if it's not.
   sourceMapPath = sourcePathToUri(p.absolute(p.fromUri(sourceMapPath))).path;
   var sourceMapDir = p.url.dirname(sourceMapPath);
+  sourceMapBase ??= sourceMapDir;
   var list = (map['sources'] as List).toList();
 
   String makeRelative(String sourcePath) {
@@ -353,31 +332,28 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
         // custom logic is BUILD specific and could be shared with other tools
         // like dart2js.
         var shortPath = uri.path
-            .replaceAll("/sdk/", "/dart-sdk/")
-            .replaceAll("/sdk_nnbd/", "/dart-sdk/");
+            .replaceAll('/sdk/', '/dart-sdk/')
+            .replaceAll('/sdk_nnbd/', '/dart-sdk/');
         var multiRootPath = "${multiRootOutputPath ?? ''}$shortPath";
-        multiRootPath = multiRootPath;
         multiRootPath = p.url.relative(multiRootPath, from: sourceMapDir);
         return multiRootPath;
       }
       return sourcePath;
     }
 
+    if (uri.scheme == 'http') return sourcePath;
+
     // Convert to a local file path if it's not.
     sourcePath = sourcePathToUri(p.absolute(p.fromUri(uri))).path;
 
-    // Allow bazel mappings to override.
-    var match = bazelMappings != null ? bazelMappings[sourcePath] : null;
-    if (match != null) return match;
-
     // Fall back to a relative path against the source map itself.
-    sourcePath = p.url.relative(sourcePath, from: sourceMapDir);
+    sourcePath = p.url.relative(sourcePath, from: sourceMapBase);
 
     // Convert from relative local path to relative URI.
     return p.toUri(sourcePath).path;
   }
 
-  for (int i = 0; i < list.length; i++) {
+  for (var i = 0; i < list.length; i++) {
     list[i] = makeRelative(list[i] as String);
   }
   map['sources'] = list;
@@ -400,61 +376,41 @@ Future<CompilerResult> compile(ParsedArguments args,
     throw ArgumentError(
         'previousResult requires --batch or --bazel_worker mode/');
   }
-  if (args.isKernel) {
-    return kernel_compiler.compile(args.rest,
-        compilerState: previousResult?.kernelState,
-        isWorker: args.isWorker,
-        useIncrementalCompiler: args.useIncrementalCompiler,
-        inputDigests: inputDigests);
-  } else {
-    var result = analyzer_compiler.compile(args.rest,
-        compilerState: previousResult?.analyzerState);
-    if (args.isBatchOrWorker) {
-      AnalysisEngine.instance.clearCaches();
-    }
-    return Future.value(result);
-  }
+
+  return kernel_compiler.compile(args.rest,
+      compilerState: previousResult?.kernelState,
+      isWorker: args.isWorker,
+      useIncrementalCompiler: args.useIncrementalCompiler,
+      inputDigests: inputDigests);
 }
 
 /// The result of a single `dartdevc` compilation.
 ///
-/// Typically used for exiting the proceess with [exitCode] or checking the
+/// Typically used for exiting the process with [exitCode] or checking the
 /// [success] of the compilation.
 ///
-/// For batch/worker compilations, the [compilerState] provides an opprotunity
+/// For batch/worker compilations, the [compilerState] provides an opportunity
 /// to reuse state from the previous run, if the options/input summaries are
-/// equiavlent. Otherwise it will be discarded.
+/// equivalent. Otherwise it will be discarded.
 class CompilerResult {
   /// Optionally provides the front_end state from the previous compilation,
-  /// which can be passed to [compile] to potentially speeed up the next
+  /// which can be passed to [compile] to potentially speed up the next
   /// compilation.
-  ///
-  /// This field is unused when using the Analyzer-backend for DDC.
   final InitializedCompilerState kernelState;
-
-  /// Optionally provides the analyzer state from the previous compilation,
-  /// which can be passed to [compile] to potentially speeed up the next
-  /// compilation.
-  ///
-  /// This field is unused when using the Kernel-backend for DDC.
-  final CompilerAnalysisDriver analyzerState;
 
   /// The process exit code of the compiler.
   final int exitCode;
 
-  CompilerResult(this.exitCode, {this.kernelState, this.analyzerState}) {
-    assert(kernelState == null || analyzerState == null,
-        'kernel and analyzer state should not both be supplied');
-  }
+  CompilerResult(this.exitCode, {this.kernelState});
 
-  /// Gets the kernel or analyzer compiler state, if any.
-  Object get compilerState => kernelState ?? analyzerState;
+  /// Gets the kernel compiler state, if any.
+  Object get compilerState => kernelState;
 
   /// Whether the program compiled without any fatal errors (equivalent to
   /// [exitCode] == 0).
   bool get success => exitCode == 0;
 
-  /// Whether the compiler crashed (i.e. threw an unhandled exeception,
+  /// Whether the compiler crashed (i.e. threw an unhandled exception,
   /// typically indicating an internal error in DDC itself or its front end).
   bool get crashed => exitCode == 70;
 }
@@ -467,9 +423,6 @@ class CompilerResult {
 ///
 /// [isBatch]/[isWorker] mode are preprocessed because they can combine
 /// argument lists from the initial invocation and from batch/worker jobs.
-///
-/// [isKernel] is also preprocessed because the Kernel backend supports
-/// different options compared to the Analyzer backend.
 class ParsedArguments {
   /// The user's arguments to the compiler for this compialtion.
   final List<String> rest;
@@ -486,12 +439,6 @@ class ParsedArguments {
   /// See also [isBatchOrWorker].
   final bool isWorker;
 
-  /// Whether to use the Kernel-based back end for dartdevc.
-  ///
-  /// This is similar to the Analyzer-based back end, but uses Kernel trees
-  /// instead of Analyzer trees for representing the Dart code.
-  final bool isKernel;
-
   /// Whether to re-use the last compiler result when in a worker.
   ///
   /// This is useful if we are repeatedly compiling things in the same context,
@@ -506,7 +453,6 @@ class ParsedArguments {
   ParsedArguments._(this.rest,
       {this.isBatch = false,
       this.isWorker = false,
-      this.isKernel = false,
       this.reuseResult = false,
       this.useIncrementalCompiler = false});
 
@@ -523,11 +469,10 @@ class ParsedArguments {
     if (args.isEmpty) return ParsedArguments._(args);
 
     var newArgs = <String>[];
-    bool isWorker = false;
-    bool isBatch = false;
-    bool isKernel = false;
-    bool reuseResult = false;
-    bool useIncrementalCompiler = false;
+    var isWorker = false;
+    var isBatch = false;
+    var reuseResult = false;
+    var useIncrementalCompiler = false;
 
     Iterable<String> argsToParse = args;
 
@@ -542,8 +487,6 @@ class ParsedArguments {
         isWorker = true;
       } else if (arg == '--batch') {
         isBatch = true;
-      } else if (arg == '--kernel' || arg == '-k') {
-        isKernel = true;
       } else if (arg == '--reuse-compiler-result') {
         reuseResult = true;
       } else if (arg == '--use-incremental-compiler') {
@@ -555,7 +498,6 @@ class ParsedArguments {
     return ParsedArguments._(newArgs,
         isWorker: isWorker,
         isBatch: isBatch,
-        isKernel: isKernel,
         reuseResult: reuseResult,
         useIncrementalCompiler: useIncrementalCompiler);
   }
@@ -582,7 +524,6 @@ class ParsedArguments {
     return ParsedArguments._(rest.toList()..addAll(newArgs.rest),
         isWorker: isWorker,
         isBatch: isBatch,
-        isKernel: isKernel || newArgs.isKernel,
         reuseResult: reuseResult || newArgs.reuseResult,
         useIncrementalCompiler:
             useIncrementalCompiler || newArgs.useIncrementalCompiler);

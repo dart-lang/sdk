@@ -7,10 +7,10 @@
 
 main() {
   /*Null*/ null;
-  /*cfe|dart2js.bool*/ /*cfe:nnbd.bool!*/ true;
-  /*cfe|dart2js.bool*/ /*cfe:nnbd.bool!*/ false;
-  /*cfe|dart2js.String*/ /*cfe:nnbd.String!*/ 'foo';
-  /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 42;
-  /*cfe|dart2js.double*/ /*cfe:nnbd.double!*/ 0.5;
-  /*cfe|dart2js.Symbol*/ /*cfe:nnbd.Symbol!*/ #main;
+  /*cfe.bool*/ /*cfe:nnbd.bool!*/ true;
+  /*cfe.bool*/ /*cfe:nnbd.bool!*/ false;
+  /*cfe.String*/ /*cfe:nnbd.String!*/ 'foo';
+  /*cfe.int*/ /*cfe:nnbd.int!*/ 42;
+  /*cfe.double*/ /*cfe:nnbd.double!*/ 0.5;
+  /*cfe.Symbol*/ /*cfe:nnbd.Symbol!*/ #main;
 }

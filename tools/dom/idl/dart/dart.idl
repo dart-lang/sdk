@@ -557,6 +557,17 @@ interface HTMLCollection {
 
 };
 
+// Make sure HTMLFormControlsCollection matches HTMLCollection.
+[DartSupplemental]
+interface HTMLFormControlsCollection : HTMLCollection  {
+
+    // FIXME: The index argument should not be optional.
+    getter Node? item([Default=Undefined] optional unsigned long index);
+
+    [DartSuppress, ImplementedAs=item] getter Node (unsigned long index);
+
+};
+
 [DartSupplemental]
 interface Performance {
     [DartSuppress] void webkitClearResourceTimings();
@@ -590,6 +601,21 @@ interface CSSCharsetRule : CSSRule {
 [DartSupplemental]
 interface Event {
   [DartSuppress] readonly attribute object path;
+};
+
+[DartSupplemental]
+interface UIEvent : Event {
+
+    // None of these are optional anymore.
+    [DartSuppress] void initUIEvent([Default=Undefined] optional DOMString type,
+                                    [Default=Undefined] optional boolean bubbles,
+                                    [Default=Undefined] optional boolean cancelable,
+                                    [Default=Undefined] optional Window? view,
+                                    [Default=Undefined] optional long detail);
+
+    void initUIEvent(DOMString type, boolean bubbles, boolean cancelable,
+                     Window? view, long detail);
+
 };
 
 [DartSupplemental]

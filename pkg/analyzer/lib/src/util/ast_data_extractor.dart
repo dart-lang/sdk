@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart'
-    show ActualData, DataRegistry, Id, IdKind, MemberId, NodeId;
+import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -30,6 +29,18 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
     registerValue(uri, node.offset, id, value, node);
   }
 
+  void computeForLibrary(LibraryElement library, Id id) {
+    if (id == null) return;
+    T value = computeElementValue(id, library);
+    registerValue(uri, 0, id, value, library);
+  }
+
+  void computeForClass(Declaration node, Id id) {
+    if (id == null) return;
+    T value = computeNodeValue(id, node);
+    registerValue(uri, node.offset, id, value, node);
+  }
+
   void computeForMember(Declaration node, Id id) {
     if (id == null) return;
     T value = computeNodeValue(id, node);
@@ -46,6 +57,22 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   ///
   /// If `null` is returned, [node] has no associated data.
   T computeNodeValue(Id id, AstNode node);
+
+  T computeElementValue(Id id, Element element) => null;
+
+  Id createLibraryId(LibraryElement node) {
+    Uri uri = node.source.uri;
+    if (uri.path.startsWith(r'/C:')) {
+      // The `MemoryResourceProvider.convertPath` inserts '/C:' on Windows.
+      uri = Uri(scheme: uri.scheme, path: uri.path.substring(3));
+    }
+    return LibraryId(uri);
+  }
+
+  Id createClassId(Declaration node) {
+    var element = node.declaredElement;
+    return ClassId(element.name);
+  }
 
   Id createMemberId(Declaration node) {
     var element = node.declaredElement;
@@ -80,6 +107,19 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
 
   void run(CompilationUnit unit) {
     unit.accept(this);
+  }
+
+  @override
+  visitCompilationUnit(CompilationUnit node) {
+    var library = node.declaredElement.library;
+    computeForLibrary(library, createLibraryId(library));
+    return super.visitCompilationUnit(node);
+  }
+
+  @override
+  visitClassDeclaration(ClassDeclaration node) {
+    computeForClass(node, createClassId(node));
+    return super.visitClassDeclaration(node);
   }
 
   @override
@@ -141,6 +181,7 @@ class _Failure implements Exception {
 
   _Failure([this.message]);
 
+  @override
   String toString() {
     if (message == null) return "Exception";
     return "Exception: $message";

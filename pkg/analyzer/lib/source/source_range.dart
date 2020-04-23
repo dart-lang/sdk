@@ -11,7 +11,7 @@ class SourceRange {
   /**
    * An empty source range (a range with offset `0` and length `0`).
    */
-  static const SourceRange EMPTY = const SourceRange(0, 0);
+  static const SourceRange EMPTY = SourceRange(0, 0);
 
   /**
    * The 0-based index of the first character of the source range.
@@ -79,20 +79,19 @@ class SourceRange {
    * source range and [delta] characters after the end of this source range.
    */
   SourceRange getExpanded(int delta) =>
-      new SourceRange(offset - delta, delta + length + delta);
+      SourceRange(offset - delta, delta + length + delta);
 
   /**
    * Return a source range with the same offset as this source range but whose
    * length is [delta] characters longer than this source range.
    */
-  SourceRange getMoveEnd(int delta) => new SourceRange(offset, length + delta);
+  SourceRange getMoveEnd(int delta) => SourceRange(offset, length + delta);
 
   /**
    * Return a source range with the same length as this source range but whose
    * offset is [delta] characters after the offset of this source range.
    */
-  SourceRange getTranslated(int delta) =>
-      new SourceRange(offset + delta, length);
+  SourceRange getTranslated(int delta) => SourceRange(offset + delta, length);
 
   /**
    * Return the minimal source range that covers both this and the [otherRange].
@@ -101,7 +100,7 @@ class SourceRange {
     int newOffset = math.min(offset, otherRange.offset);
     int newEnd =
         math.max(offset + length, otherRange.offset + otherRange.length);
-    return new SourceRange(newOffset, newEnd - newOffset);
+    return SourceRange(newOffset, newEnd - newOffset);
   }
 
   /**

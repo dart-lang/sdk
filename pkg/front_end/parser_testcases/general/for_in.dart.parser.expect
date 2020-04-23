@@ -1,3 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
 main() {
 for (var i in []) {}
 }

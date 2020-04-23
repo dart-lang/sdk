@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/dart_api_impl.h"
@@ -203,8 +204,12 @@ KernelLoader::KernelLoader(Program* program,
               program_->kernel_data(),
               program_->kernel_data_size(),
               0),
-      type_translator_(&helper_, &active_class_, /* finalize= */ false),
-      inferred_type_metadata_helper_(&helper_),
+      constant_reader_(&helper_, &active_class_),
+      type_translator_(&helper_,
+                       &constant_reader_,
+                       &active_class_,
+                       /* finalize= */ false),
+      inferred_type_metadata_helper_(&helper_, &constant_reader_),
       bytecode_metadata_helper_(&helper_, &active_class_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
@@ -418,6 +423,8 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
   kernel_program_info_ = KernelProgramInfo::New(
       offsets, data, names, metadata_payloads, metadata_mappings,
       constants_table, scripts, libraries_cache, classes_cache,
+      program_->typed_data() == nullptr ? Object::null_object()
+                                        : *program_->typed_data(),
       program_->binary_version());
 
   H.InitFromKernelProgramInfo(kernel_program_info_);
@@ -449,8 +456,12 @@ KernelLoader::KernelLoader(const Script& script,
           KernelProgramInfo::ZoneHandle(zone_, script.kernel_program_info())),
       translation_helper_(this, thread_, Heap::kOld),
       helper_(zone_, &translation_helper_, script, kernel_data, 0),
-      type_translator_(&helper_, &active_class_, /* finalize= */ false),
-      inferred_type_metadata_helper_(&helper_),
+      constant_reader_(&helper_, &active_class_),
+      type_translator_(&helper_,
+                       &constant_reader_,
+                       &active_class_,
+                       /* finalize= */ false),
+      inferred_type_metadata_helper_(&helper_, &constant_reader_),
       bytecode_metadata_helper_(&helper_, &active_class_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
@@ -937,17 +948,32 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
 void KernelLoader::ReadInferredType(const Field& field,
                                     intptr_t kernel_offset) {
   const InferredTypeMetadata type =
-      inferred_type_metadata_helper_.GetInferredType(kernel_offset);
+      inferred_type_metadata_helper_.GetInferredType(kernel_offset,
+                                                     /*read_constant=*/false);
   if (type.IsTrivial()) {
     return;
   }
   field.set_guarded_cid(type.cid);
   field.set_is_nullable(type.IsNullable());
   field.set_guarded_list_length(Field::kNoFixedLength);
+  if (FLAG_precompiled_mode) {
+    field.set_is_unboxing_candidate(
+        !field.is_late() && !field.is_static() &&
+        ((field.guarded_cid() == kDoubleCid &&
+          FlowGraphCompiler::SupportsUnboxedDoubles()) ||
+         (field.guarded_cid() == kFloat32x4Cid &&
+          FlowGraphCompiler::SupportsUnboxedSimd128()) ||
+         (field.guarded_cid() == kFloat64x2Cid &&
+          FlowGraphCompiler::SupportsUnboxedSimd128()) ||
+         type.IsInt()) &&
+        !field.is_nullable());
+    field.set_is_non_nullable_integer(!field.is_nullable() && type.IsInt());
+  }
 }
 
 void KernelLoader::CheckForInitializer(const Field& field) {
   if (helper_.PeekTag() == kSomething) {
+    field.set_has_initializer(true);
     SimpleExpressionConverter converter(&H, &helper_);
     const bool has_simple_initializer =
         converter.IsSimple(helper_.ReaderOffset() + 1);
@@ -956,6 +982,7 @@ void KernelLoader::CheckForInitializer(const Field& field) {
       return;
     }
   }
+  field.set_has_initializer(false);
   field.set_has_nontrivial_initializer(false);
 }
 
@@ -1001,6 +1028,22 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   if (library.Loaded()) return library.raw();
 
   library.set_is_nnbd(library_helper.IsNonNullableByDefault());
+  const NNBDCompiledMode mode =
+      library_helper.GetNonNullableByDefaultCompiledMode();
+  if (!I->null_safety() && mode == NNBDCompiledMode::kStrong) {
+    H.ReportError(
+        "Library '%s' was compiled with null safety (in strong mode) and it "
+        "requires --null-safety option at runtime",
+        String::Handle(library.url()).ToCString());
+  }
+  if (I->null_safety() && (mode == NNBDCompiledMode::kWeak ||
+                           mode == NNBDCompiledMode::kDisabled)) {
+    H.ReportError(
+        "Library '%s' was compiled without null safety (in weak mode) and it "
+        "cannot be used with --null-safety at runtime",
+        String::Handle(library.url()).ToCString());
+  }
+  library.set_nnbd_compiled_mode(mode);
 
   library_kernel_data_ = helper_.reader_.ExternalDataFromTo(
       library_kernel_offset_, library_kernel_offset_ + library_size);
@@ -1092,13 +1135,13 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   if (register_class) {
     helper_.SetOffset(library_index.SourceReferencesOffset());
     intptr_t count = helper_.ReadUInt();
-    const GrowableObjectArray& owned_scripts =
-        GrowableObjectArray::Handle(library.owned_scripts());
+    const GrowableObjectArray& used_scripts =
+        GrowableObjectArray::Handle(library.used_scripts());
     Script& script = Script::Handle(Z);
     for (intptr_t i = 0; i < count; i++) {
       intptr_t uri_index = helper_.ReadUInt();
       script = ScriptAt(uri_index);
-      owned_scripts.Add(script);
+      used_scripts.Add(script);
     }
   }
   if (!library.Loaded()) library.SetLoaded();
@@ -1181,17 +1224,21 @@ void KernelLoader::FinishTopLevelClassLoading(
     const bool is_late = field_helper.IsLate();
     const bool is_extension_member = field_helper.IsExtensionMember();
     const Field& field = Field::Handle(
-        Z,
-        Field::NewTopLevel(name, is_final, field_helper.IsConst(), script_class,
-                           field_helper.position_, field_helper.end_position_));
+        Z, Field::NewTopLevel(name, is_final, field_helper.IsConst(), is_late,
+                              script_class, field_helper.position_,
+                              field_helper.end_position_));
     field.set_kernel_offset(field_offset);
     field.set_has_pragma(has_pragma_annotation);
-    field.set_is_late(is_late);
     field.set_is_extension_member(is_extension_member);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
     CheckForInitializer(field);
+    // In NNBD libraries, static fields with initializers are
+    // implicitly late.
+    if (field.has_initializer() && library.is_nnbd()) {
+      field.set_is_late(true);
+    }
     field_helper.SetJustRead(FieldHelper::kType);
     field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
     intptr_t field_initializer_offset = helper_.ReaderOffset();
@@ -1393,6 +1440,9 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   if (class_helper->is_transformed_mixin_application()) {
     klass->set_is_transformed_mixin_application();
   }
+  if (class_helper->has_const_constructor()) {
+    klass->set_is_const();
+  }
 }
 
 void KernelLoader::LoadClass(const Library& library,
@@ -1535,19 +1585,24 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       const bool is_late = field_helper.IsLate();
       const bool is_extension_member = field_helper.IsExtensionMember();
       Field& field = Field::Handle(
-          Z,
-          Field::New(name, field_helper.IsStatic(), is_final,
-                     field_helper.IsConst(), is_reflectable, script_class, type,
-                     field_helper.position_, field_helper.end_position_));
+          Z, Field::New(name, field_helper.IsStatic(), is_final,
+                        field_helper.IsConst(), is_reflectable, is_late,
+                        script_class, type, field_helper.position_,
+                        field_helper.end_position_));
       field.set_kernel_offset(field_offset);
       field.set_has_pragma(has_pragma_annotation);
       field.set_is_covariant(field_helper.IsCovariant());
       field.set_is_generic_covariant_impl(
           field_helper.IsGenericCovariantImpl());
-      field.set_is_late(is_late);
       field.set_is_extension_member(is_extension_member);
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
+      // In NNBD libraries, static fields with initializers are
+      // implicitly late.
+      if (field_helper.IsStatic() && field.has_initializer() &&
+          library.is_nnbd()) {
+        field.set_is_late(true);
+      }
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       intptr_t field_initializer_offset = helper_.ReaderOffset();
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
@@ -1569,13 +1624,14 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       // Add static field 'const _deleted_enum_sentinel'.
       // This field does not need to be of type E.
       Field& deleted_enum_sentinel = Field::ZoneHandle(Z);
-      deleted_enum_sentinel = Field::New(
-          Symbols::_DeletedEnumSentinel(),
-          /* is_static = */ true,
-          /* is_final = */ true,
-          /* is_const = */ true,
-          /* is_reflectable = */ false, klass, Object::dynamic_type(),
-          TokenPosition::kNoSource, TokenPosition::kNoSource);
+      deleted_enum_sentinel =
+          Field::New(Symbols::_DeletedEnumSentinel(),
+                     /* is_static = */ true,
+                     /* is_final = */ true,
+                     /* is_const = */ true,
+                     /* is_reflectable = */ false,
+                     /* is_late = */ false, klass, Object::dynamic_type(),
+                     TokenPosition::kNoSource, TokenPosition::kNoSource);
       fields_.Add(&deleted_enum_sentinel);
     }
 
@@ -1639,6 +1695,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                               true,   // is_method
                               false,  // is_closure
                               &function_node_helper);
+    T.SetupUnboxingInfoMetadata(function, library_kernel_offset_);
 
     if (library.is_dart_scheme() &&
         H.IsPrivate(constructor_helper.canonical_name_)) {
@@ -1898,8 +1955,8 @@ void KernelLoader::LoadProcedure(const Library& library,
                        script_class, procedure_helper.start_position_));
   function.set_has_pragma(has_pragma_annotation);
   function.set_end_token_pos(procedure_helper.end_position_);
-  function.set_is_no_such_method_forwarder(
-      procedure_helper.IsNoSuchMethodForwarder());
+  function.set_is_synthetic(procedure_helper.IsNoSuchMethodForwarder() ||
+                            procedure_helper.IsMemberSignature());
   if (register_function) {
     functions_.Add(&function);
   } else {
@@ -1912,6 +1969,9 @@ void KernelLoader::LoadProcedure(const Library& library,
       (function.is_static() && (library.raw() == Library::InternalLibrary()))) {
     function.set_is_reflectable(false);
   }
+  if (procedure_helper.IsMemberSignature()) {
+    function.set_is_reflectable(false);
+  }
 
   ActiveMemberScope active_member(&active_class_, &function);
 
@@ -1921,27 +1981,48 @@ void KernelLoader::LoadProcedure(const Library& library,
   ASSERT(function_node_tag == kSomething);
   FunctionNodeHelper function_node_helper(&helper_);
   function_node_helper.ReadUntilIncluding(FunctionNodeHelper::kDartAsyncMarker);
+
+  const bool is_async_await_completer_owner =
+      Symbols::_AsyncAwaitCompleter().Equals(
+          String::Handle(Z, owner.ScrubbedName()));
+
   // _AsyncAwaitCompleter.future should be made non-debuggable, otherwise
   // stepping out of async methods will keep hitting breakpoint resulting in
   // infinite loop.
-  bool isAsyncAwaitCompleterFuture =
-      Symbols::_AsyncAwaitCompleter().Equals(
-          String::Handle(owner.ScrubbedName())) &&
-      Symbols::CompleterGetFuture().Equals(String::Handle(function.name()));
+  const bool is_async_await_completer_future =
+      is_async_await_completer_owner &&
+      Symbols::CompleterGetFuture().Equals(name);
   function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
                                  FunctionNodeHelper::kSync &&
-                             !isAsyncAwaitCompleterFuture);
+                             !is_async_await_completer_future);
+
+  // _AsyncAwaitCompleter.start should be made non-visible in stack traces,
+  // since it is an implementation detail of our await/async desugaring.
+  if (is_async_await_completer_owner &&
+      Symbols::_AsyncAwaitStart().Equals(name)) {
+    function.set_is_visible(!FLAG_causal_async_stacks &&
+                            !FLAG_lazy_async_stacks);
+  }
+
   switch (function_node_helper.dart_async_marker_) {
     case FunctionNodeHelper::kSyncStar:
       function.set_modifier(RawFunction::kSyncGen);
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
       break;
     case FunctionNodeHelper::kAsync:
       function.set_modifier(RawFunction::kAsync);
-      function.set_is_inlinable(!FLAG_causal_async_stacks);
+      function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                !FLAG_lazy_async_stacks);
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
       break;
     case FunctionNodeHelper::kAsyncStar:
       function.set_modifier(RawFunction::kAsyncGen);
-      function.set_is_inlinable(!FLAG_causal_async_stacks);
+      function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                !FLAG_lazy_async_stacks);
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
       break;
     default:
       // no special modifier
@@ -1962,6 +2043,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   T.SetupFunctionParameters(owner, function, is_method,
                             false,  // is_closure
                             &function_node_helper);
+  T.SetupUnboxingInfoMetadata(function, library_kernel_offset_);
 
   // Everything else is skipped implicitly, and procedure_helper and
   // function_node_helper are no longer used.
@@ -2063,8 +2145,9 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index,
 void KernelLoader::GenerateFieldAccessors(const Class& klass,
                                           const Field& field,
                                           FieldHelper* field_helper) {
-  Tag tag = helper_.PeekTag();
-  if (tag == kSomething) {
+  const Tag tag = helper_.PeekTag();
+  const bool has_initializer = (tag == kSomething);
+  if (has_initializer) {
     SimpleExpressionConverter converter(&H, &helper_);
     const bool has_simple_initializer =
         converter.IsSimple(helper_.ReaderOffset() + 1);  // ignore the tag.
@@ -2087,9 +2170,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   }
 
   if (field_helper->IsStatic()) {
-    bool has_initializer = (tag == kSomething);
-
-    if (!has_initializer) {
+    if (!has_initializer && !field_helper->IsLate()) {
       // Static fields without an initializer are implicitly initialized to
       // null. We do not need a getter.
       field.SetStaticValue(Instance::null_instance(), true);
@@ -2098,6 +2179,14 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
 
     // We do need a getter that evaluates the initializer if necessary.
     field.SetStaticValue(Object::sentinel(), true);
+  }
+  ASSERT(field.NeedsGetter());
+
+  if (field.is_late() && field.has_nontrivial_initializer()) {
+    // Late fields are initialized to Object::sentinel, which is a flavor of
+    // null. So we need to record that store so that the field guard doesn't
+    // prematurely optimise out the late field's sentinel checking logic.
+    field.RecordStore(Object::null_object());
   }
 
   const String& getter_name = H.DartGetterName(field_helper->canonical_name_);
@@ -2112,8 +2201,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
           field_helper->IsStatic(),
           // The functions created by the parser have is_const for static fields
           // that are const (not just final) and they have is_const for
-          // non-static
-          // fields that are final.
+          // non-static fields that are final.
           field_helper->IsStatic() ? field_helper->IsConst()
                                    : field_helper->IsFinal(),
           false,  // is_abstract
@@ -2130,13 +2218,13 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   getter.set_is_extension_member(field.is_extension_member());
   H.SetupFieldAccessorFunction(klass, getter, field_type);
 
-  if (!field_helper->IsStatic() && !field_helper->IsFinal()) {
+  if (field.NeedsSetter()) {
     // Only static fields can be const.
     ASSERT(!field_helper->IsConst());
     const String& setter_name = H.DartSetterName(field_helper->canonical_name_);
     Function& setter = Function::ZoneHandle(
         Z, Function::New(setter_name, RawFunction::kImplicitSetter,
-                         false,  // is_static
+                         field_helper->IsStatic(),
                          false,  // is_const
                          false,  // is_abstract
                          false,  // is_external
@@ -2318,15 +2406,6 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
   initializer_fun.set_is_extension_member(field.is_extension_member());
   field.SetInitializerFunction(initializer_fun);
   return initializer_fun.raw();
-}
-
-ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field) {
-  Thread* thread = Thread::Current();
-
-  const Function& initializer_fun = Function::ZoneHandle(
-      zone, CreateFieldInitializerFunction(thread, zone, field));
-
-  return new (zone) ParsedFunction(thread, initializer_fun);
 }
 
 }  // namespace kernel

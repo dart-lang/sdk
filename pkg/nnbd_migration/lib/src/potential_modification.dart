@@ -37,6 +37,15 @@ class ConditionalModification extends PotentialModification {
           _KeepNode(node.condition),
           _KeepNode(node.thenStatement),
           node.elseStatement == null ? null : _KeepNode(node.elseStatement));
+    } else if (node is IfElement) {
+      return ConditionalModification._(
+          node.offset,
+          node.end,
+          node is Statement,
+          discard,
+          _KeepNode(node.condition),
+          _KeepNode(node.thenElement),
+          node.elseElement == null ? null : _KeepNode(node.elseElement));
     } else {
       throw new UnimplementedError('TODO(paulberry)');
     }
@@ -106,7 +115,8 @@ class PotentiallyAddQuestionSuffix extends PotentialModification {
 
   @override
   NullabilityFixDescription get description =>
-      NullabilityFixDescription.makeTypeNullable(type.toString());
+      NullabilityFixDescription.makeTypeNullable(
+          type.getDisplayString(withNullability: false));
 
   @override
   bool get isEmpty => !node.isNullable;

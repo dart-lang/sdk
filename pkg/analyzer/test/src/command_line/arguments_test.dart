@@ -25,7 +25,7 @@ class ArgumentsTest with ResourceProviderMixin {
     String defaultAnalysisOptionsFilePath = 'b';
     String defaultPackageFilePath = 'c';
     String defaultPackagesDirectoryPath = 'd';
-    ArgParser parser = new ArgParser();
+    ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [
       '--dart-sdk-summary=$dartSdkSummaryPath',
@@ -57,7 +57,7 @@ class ArgumentsTest with ResourceProviderMixin {
   }
 
   void test_createContextBuilderOptions_none() {
-    ArgParser parser = new ArgParser();
+    ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [];
     ArgResults result = parse(resourceProvider, parser, args);
@@ -76,7 +76,7 @@ class ArgumentsTest with ResourceProviderMixin {
   }
 
   void test_createDartSdkManager_noPath_noSummaries() {
-    ArgParser parser = new ArgParser();
+    ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [];
     ArgResults result = parse(resourceProvider, parser, args);
@@ -89,7 +89,7 @@ class ArgumentsTest with ResourceProviderMixin {
   }
 
   void test_createDartSdkManager_noPath_summaries() {
-    ArgParser parser = new ArgParser();
+    ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [];
     ArgResults result = parse(resourceProvider, parser, args);
@@ -103,7 +103,7 @@ class ArgumentsTest with ResourceProviderMixin {
   }
 
   void test_createDartSdkManager_path_noSummaries() {
-    ArgParser parser = new ArgParser();
+    ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = ['--dart-sdk=x'];
     ArgResults result = parse(resourceProvider, parser, args);
@@ -115,7 +115,7 @@ class ArgumentsTest with ResourceProviderMixin {
   }
 
   void test_createDartSdkManager_path_summaries() {
-    ArgParser parser = new ArgParser();
+    ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = ['--dart-sdk=y'];
     ArgResults result = parse(resourceProvider, parser, args);
@@ -127,7 +127,7 @@ class ArgumentsTest with ResourceProviderMixin {
   }
 
   void test_defineAnalysisArguments() {
-    ArgParser parser = new ArgParser();
+    ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     expect(parser.options, hasLength(12));
   }
@@ -149,7 +149,7 @@ class ArgumentsTest with ResourceProviderMixin {
 
   void test_filterUnknownArguments() {
     List<String> args = ['--a', '--b', '--c=0', '--d=1', '-e=2', '-f', 'bar'];
-    ArgParser parser = new ArgParser();
+    ArgParser parser = ArgParser();
     parser.addFlag('a');
     parser.addOption('c');
     parser.addOption('ee', abbr: 'e');
@@ -159,7 +159,7 @@ class ArgumentsTest with ResourceProviderMixin {
   }
 
   void test_implicitCast() {
-    ArgParser parser = new ArgParser();
+    ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [
       '--implicit-casts',
@@ -173,7 +173,7 @@ class ArgumentsTest with ResourceProviderMixin {
   }
 
   void test_noImplicitCast() {
-    ArgParser parser = new ArgParser();
+    ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [
       '--no-implicit-casts',
@@ -187,7 +187,7 @@ class ArgumentsTest with ResourceProviderMixin {
   }
 
   void test_parse_noReplacement_noIgnored() {
-    ArgParser parser = new ArgParser();
+    ArgParser parser = ArgParser();
     parser.addFlag('xx');
     parser.addOption('yy');
     List<String> args = ['--xx', '--yy=abc', 'foo', 'bar'];

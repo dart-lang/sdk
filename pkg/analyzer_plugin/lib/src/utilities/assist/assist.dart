@@ -7,13 +7,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 
-/**
- * A concrete implementation of [AssistCollector].
- */
+/// A concrete implementation of [AssistCollector].
 class AssistCollectorImpl implements AssistCollector {
-  /**
-   * The list of assists that have been collected.
-   */
+  /// The list of assists that have been collected.
   final List<PrioritizedSourceChange> assists = <PrioritizedSourceChange>[];
 
   @override
@@ -22,9 +18,7 @@ class AssistCollectorImpl implements AssistCollector {
   }
 }
 
-/**
- * A concrete implementation of [DartAssistRequest].
- */
+/// A concrete implementation of [DartAssistRequest].
 class DartAssistRequestImpl implements DartAssistRequest {
   @override
   final ResourceProvider resourceProvider;
@@ -38,9 +32,7 @@ class DartAssistRequestImpl implements DartAssistRequest {
   @override
   final ResolvedUnitResult result;
 
-  /**
-   * Initialize a newly create request with the given data.
-   */
+  /// Initialize a newly create request with the given data.
   DartAssistRequestImpl(
       this.resourceProvider, this.offset, this.length, this.result);
 }

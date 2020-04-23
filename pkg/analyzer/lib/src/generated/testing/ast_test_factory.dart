@@ -138,11 +138,13 @@ class AstTestFactory {
           identifier3(label), TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static IndexExpression cascadedIndexExpression(Expression index) =>
-      astFactory.indexExpressionForCascade(
-          TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
-          TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
-          index,
-          TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+      astFactory.indexExpressionForCascade2(
+          period: TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
+          leftBracket:
+              TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
+          index: index,
+          rightBracket:
+              TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static MethodInvocation cascadedMethodInvocation(String methodName,
           [List<Expression> arguments]) =>
@@ -160,8 +162,11 @@ class AstTestFactory {
           identifier3(propertyName));
 
   static CascadeExpression cascadeExpression(Expression target,
-          [List<Expression> cascadeSections]) =>
-      astFactory.cascadeExpression(target, cascadeSections);
+      [List<Expression> cascadeSections]) {
+    var cascade = astFactory.cascadeExpression(target, cascadeSections);
+    cascade.target.endToken.next = cascadeSections.first.beginToken;
+    return cascade;
+  }
 
   static CatchClause catchClause(String exceptionParameter,
           [List<Statement> statements]) =>
@@ -284,10 +289,8 @@ class AstTestFactory {
           beginToken: TokenFactory.tokenFromType(TokenType.EOF),
           scriptTag:
               scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
-          directives: directives == null ? new List<Directive>() : directives,
-          declarations: declarations == null
-              ? new List<CompilationUnitMember>()
-              : declarations,
+          directives: directives ?? <Directive>[],
+          declarations: declarations ?? <CompilationUnitMember>[],
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
           featureSet: null);
 
@@ -300,10 +303,8 @@ class AstTestFactory {
           beginToken: TokenFactory.tokenFromType(TokenType.EOF),
           scriptTag:
               scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
-          directives: directives == null ? new List<Directive>() : directives,
-          declarations: declarations == null
-              ? new List<CompilationUnitMember>()
-              : declarations,
+          directives: directives ?? <Directive>[],
+          declarations: declarations ?? <CompilationUnitMember>[],
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
           featureSet: featureSet);
 
@@ -334,9 +335,7 @@ class AstTestFactory {
           initializers == null || initializers.isEmpty
               ? null
               : TokenFactory.tokenFromType(TokenType.PERIOD),
-          initializers == null
-              ? new List<ConstructorInitializer>()
-              : initializers,
+          initializers ?? <ConstructorInitializer>[],
           null,
           emptyFunctionBody());
 
@@ -365,9 +364,7 @@ class AstTestFactory {
           initializers == null || initializers.isEmpty
               ? null
               : TokenFactory.tokenFromType(TokenType.PERIOD),
-          initializers == null
-              ? new List<ConstructorInitializer>()
-              : initializers,
+          initializers ?? <ConstructorInitializer>[],
           null,
           body);
 
@@ -453,7 +450,7 @@ class AstTestFactory {
       String name, List<String> constantNames) {
     int count = constantNames.length;
     List<EnumConstantDeclaration> constants =
-        new List<EnumConstantDeclaration>(count);
+        List<EnumConstantDeclaration>(count);
     for (int i = 0; i < count; i++) {
       constants[i] = astFactory.enumConstantDeclaration(
           null, null, identifier3(constantNames[i]));
@@ -560,7 +557,7 @@ class AstTestFactory {
 
   static ForElement forElement(
           ForLoopParts forLoopParts, CollectionElement body,
-          {bool hasAwait: false}) =>
+          {bool hasAwait = false}) =>
       astFactory.forElement(
           awaitKeyword:
               hasAwait ? TokenFactory.tokenFromKeyword(Keyword.AWAIT) : null,
@@ -666,7 +663,7 @@ class AstTestFactory {
 
   static GenericFunctionType genericFunctionType(TypeAnnotation returnType,
           TypeParameterList typeParameters, FormalParameterList parameters,
-          {bool question: false}) =>
+          {bool question = false}) =>
       astFactory.genericFunctionType(returnType,
           TokenFactory.tokenFromString("Function"), typeParameters, parameters,
           question:
@@ -782,19 +779,21 @@ class AstTestFactory {
 
   static IndexExpression indexExpression(Expression array, Expression index,
           [TokenType leftBracket = TokenType.OPEN_SQUARE_BRACKET]) =>
-      astFactory.indexExpressionForTarget(
-          array,
-          TokenFactory.tokenFromType(leftBracket),
-          index,
-          TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+      astFactory.indexExpressionForTarget2(
+          target: array,
+          leftBracket: TokenFactory.tokenFromType(leftBracket),
+          index: index,
+          rightBracket:
+              TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static IndexExpression indexExpressionForCascade(Expression array,
           Expression index, TokenType period, TokenType leftBracket) =>
-      astFactory.indexExpressionForCascade(
-          TokenFactory.tokenFromType(period),
-          TokenFactory.tokenFromType(leftBracket),
-          index,
-          TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+      astFactory.indexExpressionForCascade2(
+          period: TokenFactory.tokenFromType(period),
+          leftBracket: TokenFactory.tokenFromType(leftBracket),
+          index: index,
+          rightBracket:
+              TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static InstanceCreationExpression instanceCreationExpression(
           Keyword keyword, ConstructorName name,
@@ -871,8 +870,7 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static LibraryDirective libraryDirective2(String libraryName) =>
-      libraryDirective(
-          new List<Annotation>(), libraryIdentifier2([libraryName]));
+      libraryDirective(<Annotation>[], libraryIdentifier2([libraryName]));
 
   static LibraryIdentifier libraryIdentifier(
           List<SimpleIdentifier> components) =>
@@ -975,11 +973,11 @@ class AstTestFactory {
           body);
 
   static MethodDeclaration methodDeclaration4(
-          {bool external: false,
+          {bool external = false,
           Keyword modifier,
           TypeAnnotation returnType,
           Keyword property,
-          bool operator: false,
+          bool operator = false,
           String name,
           FormalParameterList parameters,
           FunctionBody body}) =>
@@ -1067,10 +1065,10 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static PartDirective partDirective2(String url) =>
-      partDirective(new List<Annotation>(), url);
+      partDirective(<Annotation>[], url);
 
   static PartOfDirective partOfDirective(LibraryIdentifier libraryName) =>
-      partOfDirective2(new List<Annotation>(), libraryName);
+      partOfDirective2(<Annotation>[], libraryName);
 
   static PartOfDirective partOfDirective2(
           List<Annotation> metadata, LibraryIdentifier libraryName) =>
@@ -1204,7 +1202,7 @@ class AstTestFactory {
 
   static SwitchCase switchCase(
           Expression expression, List<Statement> statements) =>
-      switchCase2(new List<Label>(), expression, statements);
+      switchCase2(<Label>[], expression, statements);
 
   static SwitchCase switchCase2(List<Label> labels, Expression expression,
           List<Statement> statements) =>
@@ -1220,7 +1218,7 @@ class AstTestFactory {
           statements);
 
   static SwitchDefault switchDefault2(List<Statement> statements) =>
-      switchDefault(new List<Label>(), statements);
+      switchDefault(<Label>[], statements);
 
   static SwitchStatement switchStatement(
           Expression expression, List<SwitchMember> members) =>
@@ -1234,7 +1232,7 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
   static SymbolLiteral symbolLiteral(List<String> components) {
-    List<Token> identifierList = new List<Token>();
+    List<Token> identifierList = <Token>[];
     for (String component in components) {
       identifierList.add(
           TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, component));
@@ -1285,7 +1283,7 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static TryStatement tryStatement(Block body, Block finallyClause) =>
-      tryStatement3(body, new List<CatchClause>(), finallyClause);
+      tryStatement3(body, <CatchClause>[], finallyClause);
 
   static TryStatement tryStatement2(
           Block body, List<CatchClause> catchClauses) =>
@@ -1375,7 +1373,7 @@ class AstTestFactory {
   static TypeParameterList typeParameterList([List<String> typeNames]) {
     List<TypeParameter> typeParameters;
     if (typeNames != null && typeNames.isNotEmpty) {
-      typeParameters = new List<TypeParameter>();
+      typeParameters = <TypeParameter>[];
       for (String typeName in typeNames) {
         typeParameters.add(typeParameter(typeName));
       }

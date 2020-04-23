@@ -6,14 +6,14 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
-import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/variables.dart';
 
 /// [TypeOperations] that works with [DecoratedType]s.
 class DecoratedTypeOperations
     implements TypeOperations<PromotableElement, DecoratedType> {
   final TypeSystem _typeSystem;
-  final VariableRepository _variableRepository;
+  final Variables _variableRepository;
   final NullabilityGraph _graph;
 
   DecoratedTypeOperations(
@@ -50,6 +50,12 @@ class DecoratedTypeOperations
     // TODO(paulberry): implement appropriate logic for type variable promotion.
     if (isSubtypeOf(to, from)) {
       return to;
+    }
+
+    // Allow promotion from non-null types to other types, preserving non-null.
+    var keepNonNull = promoteToNonNull(to);
+    if (isSubtypeOf(keepNonNull, from)) {
+      return keepNonNull;
     } else {
       return null;
     }

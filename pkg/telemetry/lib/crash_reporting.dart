@@ -4,8 +4,10 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'src/utils.dart';
@@ -42,9 +44,11 @@ class CrashReportSender {
   final String crashProductId;
   final EnablementCallback shouldSend;
   final http.Client _httpClient;
+  final Stopwatch _processStopwatch = new Stopwatch()..start();
 
   final ThrottlingBucket _throttle = ThrottlingBucket(10, Duration(minutes: 1));
-  int _reportsSend = 0;
+  int _reportsSent = 0;
+  int _skippedReports = 0;
 
   /// Create a new [CrashReportSender].
   CrashReportSender(
@@ -56,20 +60,36 @@ class CrashReportSender {
   /// Sends one crash report.
   ///
   /// The report is populated from data in [error] and [stackTrace].
-  Future sendReport(dynamic error, {StackTrace stackTrace}) async {
+  ///
+  /// Additional context about the crash can optionally be passed in via
+  /// [comment]. Note that this field should not include PII.
+  Future sendReport(
+    dynamic error,
+    StackTrace stackTrace, {
+    List<CrashReportAttachment> attachments = const [],
+    String comment,
+  }) async {
     if (!shouldSend()) {
       return;
     }
 
     // Check if we've sent too many reports recently.
     if (!_throttle.removeDrop()) {
+      _skippedReports++;
       return;
     }
 
     // Don't send too many total reports to crash reporting.
-    if (_reportsSend >= _maxReportsToSend) {
+    if (_reportsSent >= _maxReportsToSend) {
       return;
     }
+
+    _reportsSent++;
+
+    // Calculate the 'weight' of the this report; we increase the weight of a
+    // report if we had throttled previous reports.
+    int weight = math.min(_skippedReports + 1, 10000);
+    _skippedReports = 0;
 
     try {
       final String dartVersion = Platform.version.split(' ').first;
@@ -82,18 +102,47 @@ class CrashReportSender {
       );
 
       final http.MultipartRequest req = new http.MultipartRequest('POST', uri);
-      req.fields['product'] = crashProductId;
-      req.fields['version'] = dartVersion;
-      req.fields['osName'] = Platform.operatingSystem;
-      req.fields['osVersion'] = Platform.operatingSystemVersion;
-      req.fields['type'] = _dartTypeId;
-      req.fields['error_runtime_type'] = '${error.runtimeType}';
-      req.fields['error_message'] = '$error';
+
+      Map<String, String> fields = req.fields;
+      fields['product'] = crashProductId;
+      fields['version'] = dartVersion;
+      fields['osName'] = Platform.operatingSystem;
+      fields['osVersion'] = Platform.operatingSystemVersion;
+      fields['type'] = _dartTypeId;
+      fields['error_runtime_type'] = '${error.runtimeType}';
+      fields['error_message'] = '$error';
+
+      // Optional comments.
+      if (comment != null) {
+        fields['comments'] = comment;
+      }
+
+      // The uptime of the process before it crashed (in milliseconds).
+      fields['ptime'] = _processStopwatch.elapsedMilliseconds.toString();
+
+      // Send the amount to weight this report.
+      if (weight > 1) {
+        fields['weight'] = weight.toString();
+      }
 
       final Chain chain = new Chain.forTrace(stackTrace);
-      req.files.add(new http.MultipartFile.fromString(
-          _stackTraceFileField, chain.terse.toString(),
-          filename: _stackTraceFilename));
+      req.files.add(
+        new http.MultipartFile.fromString(
+          _stackTraceFileField,
+          chain.terse.toString(),
+          filename: _stackTraceFilename,
+        ),
+      );
+
+      for (var attachment in attachments) {
+        req.files.add(
+          new http.MultipartFile.fromString(
+            attachment._field,
+            attachment._value,
+            filename: attachment._field,
+          ),
+        );
+      }
 
       final http.StreamedResponse resp = await _httpClient.send(req);
 
@@ -108,11 +157,26 @@ class CrashReportSender {
     }
   }
 
+  @visibleForTesting
+  int get reportsSent => _reportsSent;
+
   /// Closes the client and cleans up any resources associated with it. This
   /// will close the associated [http.Client].
   void dispose() {
     _httpClient.close();
   }
+}
+
+/// The additional attachment to be added to a crash report.
+class CrashReportAttachment {
+  final String _field;
+  final String _value;
+
+  CrashReportAttachment.string({
+    @required String field,
+    @required String value,
+  })  : _field = field,
+        _value = value;
 }
 
 /// A typedef to allow crash reporting to query as to whether it should send a

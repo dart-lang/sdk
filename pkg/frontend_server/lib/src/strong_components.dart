@@ -2,12 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/util/graph.dart';
 
-import 'package:vm/kernel_front_end.dart';
 import 'package:front_end/src/api_unstable/vm.dart' show FileSystem;
 
 /// Compute the strongly connected components for JavaScript compilation.
@@ -31,7 +28,6 @@ class StrongComponents {
     this.component,
     this.loadedLibraries,
     this.mainUri, [
-    this.packagesUri,
     this.fileSystem,
   ]);
 
@@ -46,9 +42,6 @@ class StrongComponents {
 
   /// The main URI for thiis application.
   final Uri mainUri;
-
-  /// The URI of the .packages file.
-  final Uri packagesUri;
 
   /// The filesystem instance for resolving files.
   final FileSystem fileSystem;
@@ -72,83 +65,30 @@ class StrongComponents {
     if (component.libraries.isEmpty) {
       return;
     }
-    Uri entrypointFileUri = mainUri;
-    if (!entrypointFileUri.isScheme('file')) {
-      entrypointFileUri = await asFileUri(fileSystem,
-          await _convertToFileUri(fileSystem, entrypointFileUri, packagesUri));
-    }
-    if (entrypointFileUri == null || !entrypointFileUri.isScheme('file')) {
-      throw Exception(
-          'Unable to map ${entrypointFileUri} back to file scheme.');
-    }
-
     // If we don't have a file uri, just use the first library in the
     // component.
     Library entrypoint = component.libraries.firstWhere(
-        (Library library) => library.fileUri == entrypointFileUri,
+        (Library library) =>
+            library.fileUri == mainUri || library.importUri == mainUri,
         orElse: () => null);
 
     if (entrypoint == null) {
-      throw Exception(
-          'Could not find entrypoint ${entrypointFileUri} in Component.');
+      throw Exception('Could not find entrypoint ${mainUri} in Component.');
     }
 
     final List<List<Library>> results =
         computeStrongComponents(_LibraryGraph(entrypoint, loadedLibraries));
     for (List<Library> component in results) {
       assert(component.length > 0);
-      final Uri moduleUri = component.first.fileUri;
+      final Uri moduleUri = component
+          .firstWhere((lib) => lib.importUri == mainUri,
+              orElse: () => component.first)
+          .importUri;
       modules[moduleUri] = component;
       for (Library componentLibrary in component) {
-        moduleAssignment[componentLibrary.fileUri] = moduleUri;
+        moduleAssignment[componentLibrary.importUri] = moduleUri;
       }
     }
-  }
-
-  // Convert package URI to file URI if it is inside one of the packages.
-  Future<Uri> _convertToFileUri(
-      FileSystem fileSystem, Uri uri, Uri packagesUri) async {
-    if (uri == null || uri.scheme != 'package') {
-      return uri;
-    }
-    // Convert virtual URI to a real file URI.
-    // String uriString = (await asFileUri(fileSystem, uri)).toString();
-    List<String> packages;
-    try {
-      packages =
-          await File((await asFileUri(fileSystem, packagesUri)).toFilePath())
-              .readAsLines();
-    } on IOException {
-      // Can't read packages file - silently give up.
-      return uri;
-    }
-    // package:x.y/main.dart -> file:///a/b/x/y/main.dart
-    for (var line in packages) {
-      if (line.isEmpty || line.startsWith("#")) {
-        continue;
-      }
-
-      final colon = line.indexOf(':');
-      if (colon == -1) {
-        continue;
-      }
-      final packageName = line.substring(0, colon);
-      if (!uri.path.startsWith('$packageName/')) {
-        continue;
-      }
-      String packagePath;
-      try {
-        packagePath = (await asFileUri(
-                fileSystem, packagesUri.resolve(line.substring(colon + 1))))
-            .toString();
-      } on FileSystemException {
-        // Can't resolve package path.
-        continue;
-      }
-      return Uri.parse(
-          '$packagePath${uri.path.substring(packageName.length + 1)}');
-    }
-    return uri;
   }
 }
 

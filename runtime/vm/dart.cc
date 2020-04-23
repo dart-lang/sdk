@@ -113,8 +113,15 @@ static void CheckOffsets() {
                Class##_elements_start_offset)                                  \
   CHECK_OFFSET(Class::ArrayLayout::kElementSize, Class##_element_size)
 #define CHECK_ARRAY_STRUCTFIELD(Class, Name, ElementOffsetName, FieldOffset)
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+#define CHECK_SIZEOF(Class, Name, What)                                        \
+  CHECK_OFFSET(sizeof(What), AOT_##Class##_##Name)
+#else
 #define CHECK_SIZEOF(Class, Name, What)                                        \
   CHECK_OFFSET(sizeof(What), Class##_##Name)
+#endif
+
 #define CHECK_RANGE(Class, Name, Type, First, Last, Filter)
 #define CHECK_CONSTANT(Class, Name) CHECK_OFFSET(Class::Name, Class##_##Name)
 
@@ -158,6 +165,11 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     return strdup("VM already initialized or flags not initialized.");
   }
 
+  if (FLAG_causal_async_stacks && FLAG_lazy_async_stacks) {
+    return strdup(
+        "To use --lazy-async-stacks, please disable --causal-async-stacks!");
+  }
+
   const Snapshot* snapshot = nullptr;
   if (vm_isolate_snapshot != nullptr) {
     snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
@@ -194,10 +206,10 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   Zone::Init();
 #if defined(SUPPORT_TIMELINE)
   Timeline::Init();
-  TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init");
+  TimelineBeginEndScope tbes(Timeline::GetVMStream(), "Dart::Init");
 #endif
-  Isolate::InitVM();
   IsolateGroup::Init();
+  Isolate::InitVM();
   PortMap::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
@@ -233,12 +245,15 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // We make a fake [IsolateGroupSource] here, since the "vm-isolate" is not
     // really an isolate itself - it acts more as a container for VM-global
     // objects.
-    std::unique_ptr<IsolateGroupSource> source(new IsolateGroupSource(
-        nullptr, "vm-isolate", nullptr, nullptr, nullptr, -1, api_flags));
+    std::unique_ptr<IsolateGroupSource> source(
+        new IsolateGroupSource(nullptr, kVmIsolateName, vm_isolate_snapshot,
+                               instructions_snapshot, nullptr, -1, api_flags));
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr);
+    group->CreateHeap(/*is_vm_isolate=*/true,
+                      /*is_service_or_kernel_isolate=*/false);
     IsolateGroup::RegisterIsolateGroup(group);
     vm_isolate_ =
-        Isolate::InitIsolate("vm-isolate", group, api_flags, is_vm_isolate);
+        Isolate::InitIsolate(kVmIsolateName, group, api_flags, is_vm_isolate);
     group->set_initial_spawn_successful();
 
     // Verify assumptions about executing in the VM isolate.
@@ -258,16 +273,14 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     SubtypeTestCache::Init();
     if (vm_isolate_snapshot != NULL) {
 #if defined(SUPPORT_TIMELINE)
-      TimelineDurationScope tds(Timeline::GetVMStream(), "ReadVMSnapshot");
+      TimelineBeginEndScope tbes(Timeline::GetVMStream(), "ReadVMSnapshot");
 #endif
       ASSERT(snapshot != nullptr);
       vm_snapshot_kind_ = snapshot->kind();
 
       if (Snapshot::IncludesCode(vm_snapshot_kind_)) {
         if (vm_snapshot_kind_ == Snapshot::kFullAOT) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-          vm_isolate_->set_compilation_allowed(false);
-#else
+#if !defined(DART_PRECOMPILED_RUNTIME)
           return strdup("JIT runtime cannot run a precompiled snapshot");
 #endif
         }
@@ -302,10 +315,10 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 
       Object::FinishInit(vm_isolate_);
 #if defined(SUPPORT_TIMELINE)
-      if (tds.enabled()) {
-        tds.SetNumArguments(2);
-        tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
-        tds.FormatArgument(
+      if (tbes.enabled()) {
+        tbes.SetNumArguments(2);
+        tbes.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
+        tbes.FormatArgument(
             1, "heapSize", "%" Pd64,
             vm_isolate_->heap()->UsedInWords(Heap::kOld) * kWordSize);
       }
@@ -324,8 +337,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     } else {
 #if defined(DART_PRECOMPILED_RUNTIME)
       return strdup("Precompiled runtime requires a precompiled snapshot");
-#elif !defined(DART_NO_SNAPSHOT)
-      return strdup("Missing vm isolate snapshot");
 #else
       vm_snapshot_kind_ = Snapshot::kNone;
       StubCode::Init();
@@ -351,7 +362,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 #endif
     {
 #if defined(SUPPORT_TIMELINE)
-      TimelineDurationScope tds(Timeline::GetVMStream(), "FinalizeVMIsolate");
+      TimelineBeginEndScope tbes(Timeline::GetVMStream(), "FinalizeVMIsolate");
 #endif
       Object::FinalizeVMIsolate(vm_isolate_);
     }
@@ -370,15 +381,18 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   Isolate::SetCleanupCallback(cleanup);
   Isolate::SetGroupCleanupCallback(cleanup_group);
 
-  if (FLAG_support_service) {
-    Service::SetGetServiceAssetsCallback(get_service_assets);
-  }
+#ifndef PRODUCT
+  const bool support_service = true;
+  Service::SetGetServiceAssetsCallback(get_service_assets);
+#else
+  const bool support_service = false;
+#endif
 
   const bool is_dart2_aot_precompiler =
       FLAG_precompiled_mode && !kDartPrecompiledRuntime;
 
   if (!is_dart2_aot_precompiler &&
-      (FLAG_support_service || !kDartPrecompiledRuntime)) {
+      (support_service || !kDartPrecompiledRuntime)) {
     ServiceIsolate::Run();
   }
 
@@ -391,31 +405,43 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   return NULL;
 }
 
-bool Dart::HasApplicationIsolateLocked() {
-  for (Isolate* isolate = Isolate::isolates_list_head_; isolate != NULL;
-       isolate = isolate->next_) {
-    if (!Isolate::IsVMInternalIsolate(isolate)) return true;
-  }
-  return false;
+static void DumpAliveIsolates(intptr_t num_attempts,
+                              bool only_aplication_isolates) {
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->ForEachIsolate([&](Isolate* isolate) {
+      if (!only_aplication_isolates || !Isolate::IsVMInternalIsolate(isolate)) {
+        OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
+                     num_attempts, isolate->name());
+      }
+    });
+  });
+}
+
+static bool OnlyVmIsolateLeft() {
+  intptr_t count = 0;
+  bool found_vm_isolate = false;
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->ForEachIsolate([&](Isolate* isolate) {
+      count++;
+      if (isolate == Dart::vm_isolate()) {
+        found_vm_isolate = true;
+      }
+    });
+  });
+  return count == 1 && found_vm_isolate;
 }
 
 // This waits until only the VM, service and kernel isolates are in the list.
 void Dart::WaitForApplicationIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
-  MonitorLocker ml(Isolate::isolates_list_monitor_);
+  MonitorLocker ml(Isolate::isolate_creation_monitor_);
   intptr_t num_attempts = 0;
-  while (HasApplicationIsolateLocked()) {
+  while (Isolate::application_isolates_count_ > 0) {
     Monitor::WaitResult retval = ml.Wait(1000);
     if (retval == Monitor::kTimedOut) {
       num_attempts += 1;
       if (num_attempts > 10) {
-        for (Isolate* isolate = Isolate::isolates_list_head_; isolate != NULL;
-             isolate = isolate->next_) {
-          if (!Isolate::IsVMInternalIsolate(isolate)) {
-            OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
-                         num_attempts, isolate->name_);
-          }
-        }
+        DumpAliveIsolates(num_attempts, /*only_application_isolates=*/true);
       }
     }
   }
@@ -424,22 +450,19 @@ void Dart::WaitForApplicationIsolateShutdown() {
 // This waits until only the VM isolate remains in the list.
 void Dart::WaitForIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
-  MonitorLocker ml(Isolate::isolates_list_monitor_);
+  MonitorLocker ml(Isolate::isolate_creation_monitor_);
   intptr_t num_attempts = 0;
-  while ((Isolate::isolates_list_head_ != NULL) &&
-         (Isolate::isolates_list_head_->next_ != NULL)) {
+  while (Isolate::total_isolates_count_ > 1) {
     Monitor::WaitResult retval = ml.Wait(1000);
     if (retval == Monitor::kTimedOut) {
       num_attempts += 1;
       if (num_attempts > 10) {
-        for (Isolate* isolate = Isolate::isolates_list_head_; isolate != NULL;
-             isolate = isolate->next_)
-          OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
-                       num_attempts, isolate->name_);
+        DumpAliveIsolates(num_attempts, /*only_application_isolates=*/false);
       }
     }
   }
-  ASSERT(Isolate::isolates_list_head_ == Dart::vm_isolate());
+
+  ASSERT(OnlyVmIsolateLeft());
 }
 
 char* Dart::Cleanup() {
@@ -639,10 +662,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
 #if defined(SUPPORT_TIMELINE)
-  TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
-                            "InitializeIsolate");
-  tds.SetNumArguments(1);
-  tds.CopyArgument(0, "isolateName", I->name());
+  TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
+                             "InitializeIsolate");
+  tbes.SetNumArguments(1);
+  tbes.CopyArgument(0, "isolateName", I->name());
 #endif
   ASSERT(I != NULL);
   StackZone zone(T);
@@ -657,8 +680,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   if ((snapshot_data != NULL) && kernel_buffer == NULL) {
     // Read the snapshot and setup the initial state.
 #if defined(SUPPORT_TIMELINE)
-    TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
-                              "ReadIsolateSnapshot");
+    TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
+                               "ReadIsolateSnapshot");
 #endif
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
@@ -685,11 +708,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
     ReversePcLookupCache::BuildAndAttachToIsolate(I);
 
 #if defined(SUPPORT_TIMELINE)
-    if (tds.enabled()) {
-      tds.SetNumArguments(2);
-      tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
-      tds.FormatArgument(1, "heapSize", "%" Pd64,
-                         I->heap()->UsedInWords(Heap::kOld) * kWordSize);
+    if (tbes.enabled()) {
+      tbes.SetNumArguments(2);
+      tbes.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
+      tbes.FormatArgument(1, "heapSize", "%" Pd64,
+                          I->heap()->UsedInWords(Heap::kOld) * kWordSize);
     }
 #endif  // !defined(PRODUCT)
     if (FLAG_trace_isolates) {
@@ -781,13 +804,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
 
   I->heap()->InitGrowthControl();
   I->set_init_callback_data(isolate_data);
-  Api::SetupAcquiredError(I);
   if (FLAG_print_class_table) {
     I->class_table()->Print();
   }
-  ServiceIsolate::MaybeMakeServiceIsolate(I);
-
 #if !defined(PRODUCT)
+  ServiceIsolate::MaybeMakeServiceIsolate(I);
   if (!ServiceIsolate::IsServiceIsolate(I) &&
       !KernelIsolate::IsKernelIsolate(I)) {
     I->message_handler()->set_should_pause_on_start(
@@ -832,6 +853,10 @@ const char* Dart::FeaturesString(Isolate* isolate,
   do {                                                                         \
     buffer.AddString(value ? (" " #name) : (" no-" #name));                    \
   } while (0);
+#define ADD_P(name, T, DV, C) ADD_FLAG(name, FLAG_##name)
+#define ADD_R(name, PV, T, DV, C) ADD_FLAG(name, FLAG_##name)
+#define ADD_C(name, PCV, PV, T, DV, C) ADD_FLAG(name, FLAG_##name)
+#define ADD_D(name, T, DV, C) ADD_FLAG(name, FLAG_##name)
 
 #define ADD_ISOLATE_FLAG(name, isolate_flag, flag)                             \
   do {                                                                         \
@@ -839,8 +864,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
     ADD_FLAG(#name, value);                                                    \
   } while (0);
 
-  VM_GLOBAL_FLAG_LIST(ADD_FLAG);
   if (Snapshot::IncludesCode(kind)) {
+    VM_GLOBAL_FLAG_LIST(ADD_P, ADD_R, ADD_C, ADD_D);
+
     // enabling assertions affects deopt ids.
     ADD_ISOLATE_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
     if (kind == Snapshot::kFullJIT) {
@@ -848,9 +874,6 @@ const char* Dart::FeaturesString(Isolate* isolate,
                        FLAG_use_field_guards);
       ADD_ISOLATE_FLAG(use_osr, use_osr, FLAG_use_osr);
     }
-    buffer.AddString(FLAG_causal_async_stacks ? " causal_async_stacks"
-                                              : " no-causal_async_stacks");
-
 #if !defined(PRODUCT)
     buffer.AddString(FLAG_code_comments ? " code-comments"
                                         : " no-code-comments");
@@ -884,12 +907,18 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #else
 #error What architecture?
 #endif
+
+    ADD_ISOLATE_FLAG(null_safety, null_safety, FLAG_null_safety);
   }
 
-  if (FLAG_precompiled_mode && FLAG_dwarf_stack_traces) {
-    buffer.AddString(" dwarf-stack-traces");
+  if (Dart::non_nullable_flag()) {
+    buffer.AddString(" nnbd-experiment");
   }
 #undef ADD_ISOLATE_FLAG
+#undef ADD_D
+#undef ADD_C
+#undef ADD_R
+#undef ADD_P
 #undef ADD_FLAG
 
   return buffer.Steal();
@@ -920,12 +949,12 @@ void Dart::ShutdownIsolate(Isolate* isolate) {
 }
 
 void Dart::ShutdownIsolate() {
-  Isolate* isolate = Isolate::Current();
-  isolate->Shutdown();
-  if (KernelIsolate::IsKernelIsolate(isolate)) {
-    KernelIsolate::SetKernelIsolate(NULL);
-  }
-  delete isolate;
+  Isolate::Current()->Shutdown();
+}
+
+bool Dart::VmIsolateNameEquals(const char* name) {
+  ASSERT(name != NULL);
+  return (strcmp(name, kVmIsolateName) == 0);
 }
 
 int64_t Dart::UptimeMicros() {

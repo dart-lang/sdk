@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 main() {
   void check(Map<Node, String> expectations, int bulletCount) {
-    TypeLabeler labeler = new TypeLabeler();
+    TypeLabeler labeler = new TypeLabeler(false);
     Map<Node, List<Object>> conversions = {};
     expectations.forEach((Node node, String expected) {
       if (node is DartType) {

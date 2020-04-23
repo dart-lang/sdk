@@ -1,0 +1,9 @@
+f() {
+var a;
+return a != null ? [a] : const [];
+}
+
+f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] a[StringToken];[SimpleToken]
+return[KeywordToken] a[StringToken] !=[SimpleToken] null[KeywordToken] ?[SimpleToken] [[BeginToken]a[StringToken]][SimpleToken] :[SimpleToken] const[KeywordToken] [][SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

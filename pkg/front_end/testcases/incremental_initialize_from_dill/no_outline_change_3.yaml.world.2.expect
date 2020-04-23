@@ -36,7 +36,7 @@ library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///libA.dart";
 
-  class Foo extends dart.core::Object {
+  class Foo extends dart.core::Object /*hasConstConstructor*/  {
     const constructor •() → main::Foo*
       : super dart.core::Object::•()
       ;

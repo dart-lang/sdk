@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 library dart2js.test.memory_compiler;
 
 import 'dart:async';
@@ -71,7 +73,6 @@ Future<CompilationResult> runCompiler(
     List<String> options: const <String>[],
     bool showDiagnostics: true,
     Uri librariesSpecificationUri,
-    Uri packageRoot,
     Uri packageConfig,
     void beforeRun(CompilerImpl compiler)}) async {
   if (entryPoint == null) {
@@ -85,7 +86,6 @@ Future<CompilationResult> runCompiler(
       options: options,
       showDiagnostics: showDiagnostics,
       librariesSpecificationUri: librariesSpecificationUri,
-      packageRoot: packageRoot,
       packageConfig: packageConfig);
   if (beforeRun != null) {
     beforeRun(compiler);
@@ -105,12 +105,11 @@ CompilerImpl compilerFor(
     List<String> options: const <String>[],
     bool showDiagnostics: true,
     Uri librariesSpecificationUri,
-    Uri packageRoot,
     Uri packageConfig}) {
   retainDataForTesting = true;
   librariesSpecificationUri ??= Uri.base.resolve('sdk/lib/libraries.json');
 
-  if (packageRoot == null && packageConfig == null) {
+  if (packageConfig == null) {
     if (Platform.packageConfig != null) {
       packageConfig = Uri.base.resolve(Platform.packageConfig);
     } else {
@@ -133,7 +132,6 @@ CompilerImpl compilerFor(
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       librariesSpecificationUri: librariesSpecificationUri)
     ..entryPoint = entryPoint
-    ..packageRoot = packageRoot
     ..environment = {}
     ..packageConfig = packageConfig;
   compilerOptions.kernelInitializedCompilerState =

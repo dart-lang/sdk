@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:smith/smith.dart';
+import 'package:test_runner/src/test_configurations.dart';
+import 'package:path/path.dart' as path;
 
 import 'configuration.dart';
 import 'path.dart';
@@ -25,7 +27,7 @@ const _defaultTestSelectors = [
   'service',
   'kernel',
   'observatory_ui',
-  'ffi'
+  'ffi_2'
 ];
 
 /// Specifies a single command line option.
@@ -91,23 +93,27 @@ enum _OptionValueType { bool, int, string }
 class OptionsParser {
   static final List<_Option> _options = [
     _Option('mode', 'Mode in which to run the tests.',
-        abbr: 'm', values: ['all']..addAll(Mode.names)),
+        abbr: 'm', values: ['all', ...Mode.names]),
     _Option(
         'compiler',
         '''How the Dart code should be compiled or statically processed.
+none:                 Do not compile the Dart code.
+dart2js:              Compile to JavaScript using dart2js.
+dart2analyzer:        Perform static analysis on Dart code using the analyzer.
+compare_analyzer_cfe: Compare analyzer and common front end representations.
+dartdevc:             Compile to JavaScript using dart2js.
+dartdevk:             Compile to JavaScript using dartdevk.
+app_jitk:             Compile the Dart code into Kernel and then into an app
+                      snapshot.
+dartk:                Compile the Dart code into Kernel before running test.
+dartkb:               Compile the Dart code into Kernel with bytecode before
+                      running test.
+dartkp:               Compile the Dart code into Kernel and then Kernel into
+                      AOT snapshot before running the test.
+spec_parser:          Parse Dart code using the specification parser.
 
-none:          Do not compile the Dart code.
-precompiler:   Compile into AOT snapshot before running the test.
-dart2js:       Compile to JavaScript using dart2js.
-dart2analyzer: Perform static analysis on Dart code using the analyzer.
-compareAnalyzerCfe: Compare analyzer and common front end representations.
-app_jit:       Compile the Dart code into an app snapshot.
-app_jitk:      Compile the Dart code into Kernel and then into an app snapshot.
-dartk:         Compile the Dart code into Kernel before running test.
-dartkb:        Compile the Dart code into Kernel with bytecode before running test.
-dartkp:        Compile the Dart code into Kernel and then Kernel into AOT
-               snapshot before running the test.
-spec_parser:   Parse Dart code using the specification parser.''',
+fasta:                Compile using CFE for errors, but do not run.
+''',
         abbr: 'c',
         values: Compiler.names),
     _Option(
@@ -144,7 +150,7 @@ ia32, x64
 arm, armv6, arm64,
 simarm, simarmv6, simarm64, arm_x64''',
         abbr: 'a',
-        values: ['all']..addAll(Architecture.names),
+        values: ['all', ...Architecture.names],
         defaultsTo: Architecture.x64.name,
         hide: true),
     _Option('system', 'The operating system to run tests on.',
@@ -152,6 +158,8 @@ simarm, simarmv6, simarm64, arm_x64''',
         values: System.names,
         defaultsTo: Platform.operatingSystem,
         hide: true),
+    _Option('sanitizer', 'Sanitizer in which to run the tests.',
+        defaultsTo: Sanitizer.none.name, values: ['all', ...Sanitizer.names]),
     _Option(
         'named_configuration',
         '''The named test configuration that supplies the values for all
@@ -183,6 +191,8 @@ test options, specifying how tests should be run.''',
         hide: true),
     _Option.bool('use_elf',
         'Directly generate an ELF shared libraries for precompilation.',
+        hide: true),
+    _Option.bool('use_qemu', 'Use qemu to test arm32 on x64 host machines.',
         hide: true),
     _Option.bool('keep_generated_files', 'Keep any generated files.',
         abbr: 'k'),
@@ -446,6 +456,21 @@ compiler.''',
         // The argument does not start with "-" or "--" and is therefore not an
         // option. Use it as a test selector pattern.
         var patterns = configuration.putIfAbsent("selectors", () => <String>[]);
+
+        // Allow passing in the full relative path to a test or directory and
+        // infer the selector from it. This lets users use tab completion on
+        // the command line.
+        for (var suiteDirectory in testSuiteDirectories) {
+          var path = suiteDirectory.toString();
+          if (arg.startsWith("$path/") || arg.startsWith("$path\\")) {
+            arg = arg.substring(path.lastIndexOf("/") + 1);
+            break;
+          }
+        }
+
+        // If they tab complete to a single test, ignore the ".dart".
+        if (arg.endsWith(".dart")) arg = arg.substring(0, arg.length - 5);
+
         patterns.add(arg);
         continue;
       }
@@ -606,9 +631,11 @@ compiler.''',
             .resolve('runtime/observatory/.packages')
             .toFilePath();
 
-        return _expandConfigurations(configuration, selectors)
-          ..addAll(_expandConfigurations(
-              observatoryConfiguration, observatorySelectors));
+        return [
+          ..._expandConfigurations(configuration, selectors),
+          ..._expandConfigurations(
+              observatoryConfiguration, observatorySelectors)
+        ];
       }
     }
 
@@ -635,7 +662,11 @@ compiler.''',
     var dart2jsOptions = listOption("dart2js_options");
     var vmOptions = listOption("vm_options");
     var sharedOptions = listOption("shared_options");
-    var experiments = listOption("enable-experiment");
+
+    var experimentNames = data["enable-experiment"] as String;
+    var experiments = [
+      if (experimentNames != null) ...experimentNames.split(",")
+    ];
 
     // JSON reporting implies listing and reporting.
     if (data['report_in_json'] as bool) {
@@ -651,16 +682,14 @@ compiler.''',
     }
 
     var runtimeNames = data["runtime"] as String;
-    var runtimes = <Runtime>[];
-    if (runtimeNames != null) {
-      runtimes.addAll(runtimeNames.split(",").map(Runtime.find));
-    }
+    var runtimes = [
+      if (runtimeNames != null) ...runtimeNames.split(",").map(Runtime.find)
+    ];
 
     var compilerNames = data["compiler"] as String;
-    var compilers = <Compiler>[];
-    if (compilerNames != null) {
-      compilers.addAll(compilerNames.split(",").map(Compiler.find));
-    }
+    var compilers = [
+      if (compilerNames != null) ...compilerNames.split(",").map(Compiler.find)
+    ];
 
     // Pick default compilers or runtimes if only one or the other is provided.
     if (runtimes.isEmpty) {
@@ -722,7 +751,6 @@ compiler.''',
           localIP: data["local_ip"] as String,
           sharedOptions: sharedOptions,
           packages: data["packages"] as String,
-          packageRoot: data["package_root"] as String,
           suiteDirectory: data["suite_dir"] as String,
           outputDirectory: data["output_directory"] as String,
           reproducingArguments:
@@ -735,12 +763,12 @@ compiler.''',
       }
     }
 
-    String namedConfigurationOption = data["named_configuration"] as String;
+    var namedConfigurationOption = data["named_configuration"] as String;
     if (namedConfigurationOption != null) {
-      List<String> namedConfigurations = namedConfigurationOption.split(',');
+      var namedConfigurations = namedConfigurationOption.split(',');
       var testMatrixFile = "tools/bots/test_matrix.json";
       var testMatrix = TestMatrix.fromPath(testMatrixFile);
-      for (String namedConfiguration in namedConfigurations) {
+      for (var namedConfiguration in namedConfigurations) {
         var configuration = testMatrix.configurations.singleWhere(
             (c) => c.name == namedConfiguration,
             orElse: () => null);
@@ -772,33 +800,42 @@ compiler.''',
         // Expand compilers.
         for (var compiler in compilers) {
           // Expand modes.
-          String modes = (data["mode"] as String) ?? compiler.defaultMode.name;
+          var modes = (data["mode"] as String) ?? compiler.defaultMode.name;
           if (modes == "all") modes = "debug,release,product";
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);
-            var system = System.find(data["system"] as String);
-            var configuration = Configuration("custom configuration",
-                architecture, compiler, mode, runtime, system,
-                nnbdMode: nnbdMode,
-                timeout: data["timeout"] as int,
-                enableAsserts: data["enable_asserts"] as bool,
-                useAnalyzerCfe: data["use_cfe"] as bool,
-                useAnalyzerFastaParser:
-                    data["analyzer_use_fasta_parser"] as bool,
-                useBlobs: data["use_blobs"] as bool,
-                useElf: data["use_elf"] as bool,
-                useSdk: data["use_sdk"] as bool,
-                useHotReload: data["hot_reload"] as bool,
-                useHotReloadRollback: data["hot_reload_rollback"] as bool,
-                isHostChecked: data["host_checked"] as bool,
-                isCsp: data["csp"] as bool,
-                isMinified: data["minified"] as bool,
-                vmOptions: vmOptions,
-                dart2jsOptions: dart2jsOptions,
-                experiments: experiments,
-                babel: data['babel'] as String,
-                builderTag: data["builder_tag"] as String);
-            addConfiguration(configuration);
+            // Expand sanitizers.
+            var sanitizers = (data["sanitizer"] as String) ?? "none";
+            if (sanitizers == "all") {
+              sanitizers = "none,asan,lsan,msan,tsan,ubsan";
+            }
+            for (var sanitizerName in sanitizers.split(",")) {
+              var sanitizer = Sanitizer.find(sanitizerName);
+              var system = System.find(data["system"] as String);
+              var configuration = Configuration("custom configuration",
+                  architecture, compiler, mode, runtime, system,
+                  nnbdMode: nnbdMode,
+                  sanitizer: sanitizer,
+                  timeout: data["timeout"] as int,
+                  enableAsserts: data["enable_asserts"] as bool,
+                  useAnalyzerCfe: data["use_cfe"] as bool,
+                  useAnalyzerFastaParser:
+                      data["analyzer_use_fasta_parser"] as bool,
+                  useElf: data["use_elf"] as bool,
+                  useSdk: data["use_sdk"] as bool,
+                  useHotReload: data["hot_reload"] as bool,
+                  useHotReloadRollback: data["hot_reload_rollback"] as bool,
+                  isHostChecked: data["host_checked"] as bool,
+                  isCsp: data["csp"] as bool,
+                  isMinified: data["minified"] as bool,
+                  vmOptions: vmOptions,
+                  dart2jsOptions: dart2jsOptions,
+                  experiments: experiments,
+                  babel: data['babel'] as String,
+                  builderTag: data["builder_tag"] as String,
+                  useQemu: data["use_qemu"] as bool);
+              addConfiguration(configuration);
+            }
           }
         }
       }
@@ -961,3 +998,23 @@ class OptionParseException implements Exception {
 void _fail(String message) {
   throw OptionParseException(message);
 }
+
+// Returns a map of environment variables to be used with sanitizers.
+final Map<String, String> sanitizerEnvironmentVariables = (() {
+  final environment = <String, String>{};
+  final testMatrixFile = "tools/bots/test_matrix.json";
+  final config = json.decode(File(testMatrixFile).readAsStringSync());
+  config['sanitizer_options'].forEach((String key, dynamic value) {
+    environment[key] = value as String;
+  });
+  var symbolizerPath =
+      config['sanitizer_symbolizer'][Platform.operatingSystem] as String;
+  if (symbolizerPath != null) {
+    symbolizerPath = path.join(Directory.current.path, symbolizerPath);
+    environment['ASAN_SYMBOLIZER_PATH'] = symbolizerPath;
+    environment['MSAN_SYMBOLIZER_PATH'] = symbolizerPath;
+    environment['TSAN_SYMBOLIZER_PATH'] = symbolizerPath;
+  }
+
+  return environment;
+})();

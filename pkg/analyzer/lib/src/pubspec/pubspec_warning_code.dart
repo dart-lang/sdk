@@ -17,10 +17,9 @@ class PubspecWarningCode extends ErrorCode {
    * Parameters:
    * 0: the path to the asset as given in the file.
    */
-  static const PubspecWarningCode ASSET_DOES_NOT_EXIST =
-      const PubspecWarningCode(
-          'ASSET_DOES_NOT_EXIST', "The asset {0} does not exist.",
-          correction: "Try creating the file or fixing the path to the file.");
+  static const PubspecWarningCode ASSET_DOES_NOT_EXIST = PubspecWarningCode(
+      'ASSET_DOES_NOT_EXIST', "The asset {0} does not exist.",
+      correction: "Try creating the file or fixing the path to the file.");
 
   /**
    * A code indicating that a specified asset directory does not exist.
@@ -29,7 +28,7 @@ class PubspecWarningCode extends ErrorCode {
    * 0: the path to the asset directory as given in the file.
    */
   static const PubspecWarningCode ASSET_DIRECTORY_DOES_NOT_EXIST =
-      const PubspecWarningCode('ASSET_DIRECTORY_DOES_NOT_EXIST',
+      PubspecWarningCode('ASSET_DIRECTORY_DOES_NOT_EXIST',
           "The asset directory {0} does not exist.",
           correction: "Try creating the directory or fixing the path to the "
               "directory.");
@@ -37,7 +36,7 @@ class PubspecWarningCode extends ErrorCode {
   /**
    * A code indicating that the value of the asset field is not a list.
    */
-  static const PubspecWarningCode ASSET_FIELD_NOT_LIST = const PubspecWarningCode(
+  static const PubspecWarningCode ASSET_FIELD_NOT_LIST = PubspecWarningCode(
       'ASSET_FIELD_NOT_LIST',
       "The value of the 'asset' field is expected to be a list of relative file paths.",
       correction:
@@ -46,7 +45,7 @@ class PubspecWarningCode extends ErrorCode {
   /**
    * A code indicating that an element in the asset list is not a string.
    */
-  static const PubspecWarningCode ASSET_NOT_STRING = const PubspecWarningCode(
+  static const PubspecWarningCode ASSET_NOT_STRING = PubspecWarningCode(
       'ASSET_NOT_STRING', "Assets are expected to be a file paths (strings).",
       correction: "Try converting the value to be a string.");
 
@@ -54,29 +53,29 @@ class PubspecWarningCode extends ErrorCode {
    * A code indicating that the value of a dependencies field is not a map.
    */
   static const PubspecWarningCode DEPENDENCIES_FIELD_NOT_MAP =
-      const PubspecWarningCode('DEPENDENCIES_FIELD_NOT_MAP',
+      PubspecWarningCode('DEPENDENCIES_FIELD_NOT_MAP',
           "The value of the '{0}' field is expected to be a map.",
           correction: "Try converting the value to be a map.");
 
   /**
    * A code indicating that the value of the flutter field is not a map.
    */
-  static const PubspecWarningCode FLUTTER_FIELD_NOT_MAP =
-      const PubspecWarningCode('FLUTTER_FIELD_NOT_MAP',
-          "The value of the 'flutter' field is expected to be a map.",
-          correction: "Try converting the value to be a map.");
+  static const PubspecWarningCode FLUTTER_FIELD_NOT_MAP = PubspecWarningCode(
+      'FLUTTER_FIELD_NOT_MAP',
+      "The value of the 'flutter' field is expected to be a map.",
+      correction: "Try converting the value to be a map.");
 
   /**
    * A code indicating that the name field is missing.
    */
-  static const PubspecWarningCode MISSING_NAME = const PubspecWarningCode(
+  static const PubspecWarningCode MISSING_NAME = PubspecWarningCode(
       'MISSING_NAME', "The name field is required but missing.",
       correction: "Try adding a field named 'name'.");
 
   /**
    * A code indicating that the name field is not a string.
    */
-  static const PubspecWarningCode NAME_NOT_STRING = const PubspecWarningCode(
+  static const PubspecWarningCode NAME_NOT_STRING = PubspecWarningCode(
       'NAME_NOT_STRING',
       "The value of the name field is expected to be a string.",
       correction: "Try converting the value to be a string.");
@@ -89,10 +88,10 @@ class PubspecWarningCode extends ErrorCode {
    * 0: the name of the package in the dev_dependency list.
    */
   static const PubspecWarningCode UNNECESSARY_DEV_DEPENDENCY =
-      const PubspecWarningCode(
+      PubspecWarningCode(
           'UNNECESSARY_DEV_DEPENDENCY',
           "The dev dependency on {0} is unnecessary because there is also a "
-          "normal dependency on that package.",
+              "normal dependency on that package.",
           correction: "Try removing the dev dependency.");
 
   /**

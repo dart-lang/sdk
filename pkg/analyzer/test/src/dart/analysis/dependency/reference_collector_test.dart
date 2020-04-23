@@ -2252,10 +2252,10 @@ class _Base extends BaseDependencyTest {
   void _assertApi(Library library, String name, NodeKind kind,
       {String memberOf,
       String typeParameterOf,
-      List<String> unprefixed: const [],
-      Map<String, List<String>> prefixed: const {},
-      List<String> superPrefixed: const [],
-      List<_ExpectedClassMember> expectedMembers: const []}) {
+      List<String> unprefixed = const [],
+      Map<String, List<String>> prefixed = const {},
+      List<String> superPrefixed = const [],
+      List<_ExpectedClassMember> expectedMembers = const []}) {
     var node = getNode(
       library,
       name: name,
@@ -2273,10 +2273,10 @@ class _Base extends BaseDependencyTest {
   }
 
   void _assertDependencies(Dependencies dependencies,
-      {List<String> unprefixed: const [],
-      Map<String, List<String>> prefixed: const {},
-      List<String> superPrefixed: const [],
-      List<_ExpectedClassMember> expectedMembers: const []}) {
+      {List<String> unprefixed = const [],
+      Map<String, List<String>> prefixed = const {},
+      List<String> superPrefixed = const [],
+      List<_ExpectedClassMember> expectedMembers = const []}) {
     expect(dependencies.unprefixedReferencedNames, unprefixed);
     expect(dependencies.importPrefixes, prefixed.keys);
     expect(dependencies.importPrefixedReferencedNames, prefixed.values);
@@ -2301,10 +2301,10 @@ class _Base extends BaseDependencyTest {
   void _assertImpl(Library library, String name, NodeKind kind,
       {String memberOf,
       String typeParameterOf,
-      List<String> unprefixed: const [],
-      Map<String, List<String>> prefixed: const {},
-      List<String> superPrefixed: const [],
-      List<_ExpectedClassMember> expectedMembers: const []}) {
+      List<String> unprefixed = const [],
+      Map<String, List<String>> prefixed = const {},
+      List<String> superPrefixed = const [],
+      List<_ExpectedClassMember> expectedMembers = const []}) {
     var node = getNode(
       library,
       name: name,

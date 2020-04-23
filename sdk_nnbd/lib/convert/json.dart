@@ -473,6 +473,13 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
 }
 
 /// This class parses JSON strings and builds the corresponding objects.
+///
+/// A JSON input must be the JSON encoding of a single JSON value,
+/// which can be a list or map containing other values.
+///
+/// When used as a [StreamTransformer], the input stream may emit
+/// multiple strings. The concatenation of all of these strings must
+/// be a valid JSON encoding of a single JSON value.
 class JsonDecoder extends Converter<String, Object?> {
   final Object? Function(Object? key, Object? value)? _reviver;
 
@@ -507,7 +514,7 @@ class JsonDecoder extends Converter<String, Object?> {
 }
 
 // Internal optimized JSON parsing implementation.
-external _parseJson(String source, reviver(key, value)?);
+external dynamic _parseJson(String source, reviver(key, value)?);
 
 // Implementation of encoder/stringifier.
 
@@ -712,7 +719,7 @@ abstract class _JsonStringifier {
       writeString("{}");
       return true;
     }
-    var keyValueList = List<Object?>(map.length * 2);
+    var keyValueList = List<Object?>.filled(map.length * 2, null);
     var i = 0;
     var allStringKeys = true;
     map.forEach((key, value) {
@@ -772,7 +779,7 @@ abstract class _JsonPrettyPrintMixin implements _JsonStringifier {
       writeString("{}");
       return true;
     }
-    var keyValueList = List<Object?>(map.length * 2);
+    var keyValueList = List<Object?>.filled(map.length * 2, null);
     var i = 0;
     var allStringKeys = true;
     map.forEach((key, value) {

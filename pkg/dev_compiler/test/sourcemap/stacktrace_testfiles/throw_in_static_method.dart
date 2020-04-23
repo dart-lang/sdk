@@ -7,7 +7,7 @@ void main() {
 }
 
 class Class {
-  static test() {
+  static void test() {
     /*2:Function.test*/ throw '>ExceptionMarker<';
   }
 }

@@ -2,7 +2,7 @@ name: analysis_server
 publish_to: none
 
 environment:
-  sdk: '>=2.2.2 <3.0.0'
+  sdk: '>=2.6.0 <3.0.0'
 
 dependencies:
   analyzer: any
@@ -15,9 +15,9 @@ dependencies:
   linter: any
   logging: any
   meta: any
-  mustache: any
   nnbd_migration: any
   source_span: any
+  stream_channel: any
   package_config: any
   path: any
   tflite_native: any

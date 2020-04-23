@@ -9,6 +9,7 @@ import 'analysis/test_all.dart' as analysis;
 import 'analysis_server_test.dart' as analysis_server;
 import 'benchmarks_test.dart' as benchmarks;
 import 'channel/test_all.dart' as channel;
+import 'client/test_all.dart' as client;
 import 'completion_test.dart' as completion;
 import 'context_manager_test.dart' as context_manager;
 import 'domain_analysis_test.dart' as domain_analysis;
@@ -27,14 +28,16 @@ import 'services/test_all.dart' as services;
 import 'socket_server_test.dart' as socket_server;
 import 'src/test_all.dart' as src;
 import 'tool/test_all.dart' as tool;
+import 'verify_sorted_test.dart' as verify_sorted;
 import 'verify_tests_test.dart' as verify_tests;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     analysis.main();
     analysis_server.main();
     benchmarks.main();
     channel.main();
+    client.main();
     completion.main();
     context_manager.main();
     domain_analysis.main();
@@ -53,6 +56,7 @@ main() {
     socket_server.main();
     src.main();
     tool.main();
+    verify_sorted.main();
     verify_tests.main();
     defineReflectiveSuite(() {
       defineReflectiveTests(SpecTest);
@@ -62,7 +66,7 @@ main() {
 
 @reflectiveTest
 class SpecTest {
-  test_specHasBeenGenerated() {
+  void test_specHasBeenGenerated() {
     check_spec.main();
   }
 }

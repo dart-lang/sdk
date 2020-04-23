@@ -50,7 +50,7 @@ class TypePromotionManager {
   }
 
   void visitBinaryExpression_and_rhs(
-      Expression leftOperand, Expression rightOperand, void f()) {
+      Expression leftOperand, Expression rightOperand, void Function() f) {
     if (rightOperand != null) {
       _enterScope();
       try {
@@ -69,7 +69,7 @@ class TypePromotionManager {
   }
 
   void visitConditionalExpression_then(
-      Expression condition, Expression thenExpression, void f()) {
+      Expression condition, Expression thenExpression, void Function() f) {
     if (thenExpression != null) {
       _enterScope();
       try {
@@ -88,7 +88,7 @@ class TypePromotionManager {
   }
 
   void visitIfElement_thenElement(
-      Expression condition, CollectionElement thenElement, void f()) {
+      Expression condition, CollectionElement thenElement, void Function() f) {
     if (thenElement != null) {
       _enterScope();
       try {
@@ -106,7 +106,7 @@ class TypePromotionManager {
   }
 
   void visitIfStatement_thenStatement(
-      Expression condition, Statement thenStatement, void f()) {
+      Expression condition, Statement thenStatement, void Function() f) {
     if (thenStatement != null) {
       _enterScope();
       try {
@@ -155,13 +155,13 @@ class TypePromotionManager {
 
   /// Enter a new promotions scope.
   void _enterScope() {
-    _currentScope = new _TypePromoteScope(_currentScope);
+    _currentScope = _TypePromoteScope(_currentScope);
   }
 
   /// Exit the current promotion scope.
   void _exitScope() {
     if (_currentScope == null) {
-      throw new StateError("No scope to exit");
+      throw StateError("No scope to exit");
     }
     _currentScope = _currentScope._outerScope;
   }
@@ -207,7 +207,7 @@ class TypePromotionManager {
   ///         given ASTNode
   bool _isVariableAccessedInClosure(Element variable, AstNode target) {
     _ResolverVisitor_isVariableAccessedInClosure visitor =
-        new _ResolverVisitor_isVariableAccessedInClosure(variable);
+        _ResolverVisitor_isVariableAccessedInClosure(variable);
     target.accept(visitor);
     return visitor.result;
   }
@@ -222,7 +222,7 @@ class TypePromotionManager {
   ///         given ASTNode
   bool _isVariablePotentiallyMutatedIn(Element variable, AstNode target) {
     _ResolverVisitor_isVariablePotentiallyMutatedIn visitor =
-        new _ResolverVisitor_isVariablePotentiallyMutatedIn(variable);
+        _ResolverVisitor_isVariablePotentiallyMutatedIn(variable);
     target.accept(visitor);
     return visitor.result;
   }
@@ -283,7 +283,7 @@ class TypePromotionManager {
   /// @param type the promoted type of the given element
   void _setType(Element element, DartType type) {
     if (_currentScope == null) {
-      throw new StateError("Cannot promote without a scope");
+      throw StateError("Cannot promote without a scope");
     }
     _currentScope.setType(element, type);
   }
@@ -361,7 +361,7 @@ class _TypePromoteScope {
   final _TypePromoteScope _outerScope;
 
   /// A table mapping elements to the promoted type of that element.
-  Map<Element, DartType> _promotedTypes = {};
+  final Map<Element, DartType> _promotedTypes = {};
 
   /// Initialize a newly created scope to be an empty child of the given scope.
   ///

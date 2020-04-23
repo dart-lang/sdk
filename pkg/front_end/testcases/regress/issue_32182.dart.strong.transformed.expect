@@ -16,7 +16,7 @@ class M extends core::Object {
   method m() → dynamic
     return 42;
 }
-abstract class _C&A&M extends self::A<self::A<dynamic>*> implements self::M {
+abstract class _C&A&M extends self::A<self::A<dynamic>*> implements self::M /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_C&A&M*
     : super self::A::•()
     ;

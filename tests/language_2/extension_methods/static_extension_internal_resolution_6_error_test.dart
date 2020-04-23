@@ -119,6 +119,6 @@ void main() {
   var a = new AGlobal();
   a.instanceTest();
 
-  Expect.throwsCastError(() => 3.castToShadowedTypeParam<String>());
-  Expect.throwsCastError(() => 3.castToShadowedTypeList<String>());
+  Expect.throwsTypeError(() => 3.castToShadowedTypeParam<String>());
+  Expect.throwsTypeError(() => 3.castToShadowedTypeList<String>());
 }

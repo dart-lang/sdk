@@ -5,11 +5,14 @@
 library allocations_test;
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 class Foo {}
 
+// Prevent TFA from removing this static field to ensure the objects are kept
+// alive, so the allocation stats will report them via the service api.
+@pragma('vm:entry-point')
 List<Foo> foos;
 
 void script() {

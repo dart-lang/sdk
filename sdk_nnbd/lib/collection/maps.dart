@@ -126,7 +126,7 @@ abstract class MapMixin<K, V> implements Map<K, V> {
 
   void addAll(Map<K, V> other) {
     for (K key in other.keys) {
-      this[key] = other[key];
+      this[key] = other[key] as V;
     }
   }
 
@@ -229,9 +229,9 @@ class _MapBaseValueIterable<K, V> extends EfficientLengthIterable<V> {
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
-  V get first => _map[_map.keys.first];
-  V get single => _map[_map.keys.single];
-  V get last => _map[_map.keys.last];
+  V get first => _map[_map.keys.first] as V;
+  V get single => _map[_map.keys.single] as V;
+  V get last => _map[_map.keys.last] as V;
 
   Iterator<V> get iterator => _MapBaseValueIterator<K, V>(_map);
 }
@@ -258,7 +258,10 @@ class _MapBaseValueIterator<K, V> implements Iterator<V> {
     return false;
   }
 
-  V get current => _current as V;
+  V get current {
+    final cur = _current;
+    return (cur != null) ? cur : cur as V;
+  }
 }
 
 /// Mixin that overrides mutating map operations with implementations that
@@ -322,7 +325,7 @@ class MapView<K, V> implements Map<K, V> {
   const MapView(Map<K, V> map) : _map = map;
 
   Map<RK, RV> cast<RK, RV>() => _map.cast<RK, RV>();
-  V operator [](Object key) => _map[key];
+  V? operator [](Object? key) => _map[key];
   void operator []=(K key, V value) {
     _map[key] = value;
   }
@@ -336,8 +339,8 @@ class MapView<K, V> implements Map<K, V> {
   }
 
   V putIfAbsent(K key, V ifAbsent()) => _map.putIfAbsent(key, ifAbsent);
-  bool containsKey(Object key) => _map.containsKey(key);
-  bool containsValue(Object value) => _map.containsValue(value);
+  bool containsKey(Object? key) => _map.containsKey(key);
+  bool containsValue(Object? value) => _map.containsValue(value);
   void forEach(void action(K key, V value)) {
     _map.forEach(action);
   }
@@ -346,7 +349,7 @@ class MapView<K, V> implements Map<K, V> {
   bool get isNotEmpty => _map.isNotEmpty;
   int get length => _map.length;
   Iterable<K> get keys => _map.keys;
-  V remove(Object key) => _map.remove(key);
+  V? remove(Object? key) => _map.remove(key);
   String toString() => _map.toString();
   Iterable<V> get values => _map.values;
 

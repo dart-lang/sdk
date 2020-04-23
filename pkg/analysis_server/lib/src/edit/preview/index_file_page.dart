@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/edit/nnbd_migration/index_renderer.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
 import 'package:analysis_server/src/edit/preview/preview_page.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 
@@ -13,13 +13,17 @@ class IndexFilePage extends PreviewPage {
       : super(site, site.migrationInfo.includedRoot);
 
   @override
+  bool get requiresAuth => true;
+
+  @override
   void generateBody(Map<String, String> params) {
     throw UnsupportedError('generateBody');
   }
 
   @override
   Future<void> generatePage(Map<String, String> params) async {
-    IndexRenderer renderer = IndexRenderer(site.migrationInfo);
+    var renderer = InstrumentationRenderer(site.migrationInfo, site.pathMapper,
+        site.migrationState.hasBeenApplied);
     buf.write(renderer.render());
   }
 }

@@ -47,7 +47,7 @@ abstract class JsToElementMap {
   FunctionType getFunctionType(ir.FunctionNode node);
 
   /// Return the [InterfaceType] corresponding to the [cls] with the given
-  /// [typeArguments].
+  /// [typeArguments] and [nullability].
   InterfaceType createInterfaceType(
       ir.Class cls, List<ir.DartType> typeArguments);
 
@@ -74,9 +74,6 @@ abstract class JsToElementMap {
   /// Returns the [ClassEntity] corresponding to the class [node].
   ClassEntity getClass(ir.Class node);
 
-  /// Returns the [TypedefType] corresponding to raw type of the typedef [node].
-  TypedefType getTypedefType(ir.Typedef node);
-
   /// Returns the super [MemberEntity] for a super invocation, get or set of
   /// [name] from the member [context].
   MemberEntity getSuperMember(MemberEntity context, ir.Name name,
@@ -102,9 +99,11 @@ abstract class JsToElementMap {
       ir.StaticInvocation node);
 
   /// Computes the [ConstantValue] for the constant [expression].
-  // TODO(johnniwinther): Move to [KernelToElementMapForBuilding]. This is only
-  // used in impact builder for symbol constants.
-  ConstantValue getConstantValue(ir.Expression expression,
+  // TODO(johnniwinther,sigmund): Remove the need for [memberContext]. This is
+  //  only needed because effectively constant expressions are not replaced by
+  //  constant expressions during resolution.
+  ConstantValue getConstantValue(
+      ir.Member memberContext, ir.Expression expression,
       {bool requireConstant: true, bool implicitNull: false});
 
   /// Return the [ImportEntity] corresponding to [node].

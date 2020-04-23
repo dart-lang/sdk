@@ -4,6 +4,7 @@
 
 typed_data_sdk_sources = [
   "typed_data.dart",
+
   # The above file needs to be first if additional parts are added to the lib.
   "unmodifiable_typed_data.dart",
 ]

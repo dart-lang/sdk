@@ -6,8 +6,83 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:nnbd_migration/nnbd_migration.dart';
-import 'package:nnbd_migration/nullability_state.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
+
+/// Data structure used by the nullability migration engine to refer to a
+/// specific location in source code.
+class CodeReference {
+  final String path;
+
+  final int line;
+
+  final int column;
+
+  /// Name of the enclosing function, or `null` if not known.
+  String function;
+
+  CodeReference(this.path, this.line, this.column, this.function);
+
+  /// Creates a [CodeReference] pointing to the given [node].
+  factory CodeReference.fromAstNode(AstNode node) {
+    var compilationUnit = node.thisOrAncestorOfType<CompilationUnit>();
+    var source = compilationUnit.declaredElement.source;
+    var location = compilationUnit.lineInfo.getLocation(node.offset);
+    return CodeReference(source.fullName, location.lineNumber,
+        location.columnNumber, _computeEnclosingName(node));
+  }
+
+  CodeReference.fromJson(dynamic json)
+      : path = json['path'] as String,
+        line = json['line'] as int,
+        column = json['col'] as int,
+        function = json['function'] as String;
+
+  /// Gets a short description of this code reference (using the last component
+  /// of the path rather than the full path)
+  String get shortName => '$shortPath:$line:$column';
+
+  /// Gets the last component of the path part of this code reference.
+  String get shortPath {
+    var pathAsUri = Uri.file(path);
+    return pathAsUri.pathSegments.last;
+  }
+
+  Map<String, Object> toJson() {
+    return {
+      'path': path,
+      'line': line,
+      'col': column,
+      if (function != null) 'function': function
+    };
+  }
+
+  @override
+  String toString() {
+    var pathAsUri = Uri.file(path);
+    return '${function ?? 'unknown'} ($pathAsUri:$line:$column)';
+  }
+
+  static String _computeEnclosingName(AstNode node) {
+    List<String> parts = [];
+    while (node != null) {
+      var nodeName = _computeNodeDeclarationName(node);
+      if (nodeName != null) {
+        parts.add(nodeName);
+      }
+      node = node.parent;
+    }
+    if (parts.isEmpty) return null;
+    return parts.reversed.join('.');
+  }
+
+  static String _computeNodeDeclarationName(AstNode node) {
+    if (node is Declaration) {
+      return node.declaredElement?.name;
+    } else {
+      return null;
+    }
+  }
+}
 
 /// Information exposed to the migration client about the set of nullability
 /// nodes decorating a type in the program being migrated.
@@ -37,6 +112,20 @@ abstract class DecoratedTypeInfo {
   DecoratedTypeInfo typeArgument(int i);
 }
 
+/// Information about a propagation step that occurred during downstream
+/// propagation.
+abstract class DownstreamPropagationStepInfo implements PropagationStepInfo {
+  DownstreamPropagationStepInfo get principalCause;
+
+  /// The node whose nullability was changed.
+  ///
+  /// Any propagation step that took effect should have a non-null value here.
+  /// Propagation steps that are pending but have not taken effect yet, or that
+  /// never had an effect (e.g. because an edge was not triggered) will have a
+  /// `null` value for this field.
+  NullabilityNodeInfo get targetNode;
+}
+
 /// Information exposed to the migration client about an edge in the nullability
 /// graph.
 ///
@@ -44,6 +133,9 @@ abstract class DecoratedTypeInfo {
 /// migrated, suggesting that if one type (the source) is made nullable, it may
 /// be desirable to make the other type (the destination) nullable as well.
 abstract class EdgeInfo implements FixReasonInfo {
+  /// User-friendly description of the edge, or `null` if not known.
+  String get description;
+
   /// Information about the graph node that this edge "points to".
   NullabilityNodeInfo get destinationNode;
 
@@ -127,8 +219,8 @@ enum EdgeOriginKind {
   alreadyMigratedType,
   alwaysNullableType,
   compoundAssignment,
-  defaultValue,
   dynamicAssignment,
+  enumValue,
   expressionChecks,
   fieldFormalParameter,
   fieldNotInitialized,
@@ -136,12 +228,15 @@ enum EdgeOriginKind {
   greatestLowerBound,
   ifNull,
   implicitMixinSuperCall,
-  initializerInference,
+  implicitNullInitializer,
+  implicitNullReturn,
+  inferredTypeParameterInstantiation,
   instanceCreation,
   instantiateToBounds,
   isCheckComponentType,
   isCheckMainType,
   literal,
+  listLengthConstructor,
   namedParameterNotSupplied,
   nonNullableBoolType,
   nonNullableObjectSuperclass,
@@ -154,6 +249,8 @@ enum EdgeOriginKind {
   stackTraceTypeOrigin,
   thisOrSuper,
   throw_,
+  typedefReference,
+  typeParameterInstantiation,
   uninitializedRead,
 }
 
@@ -165,6 +262,12 @@ abstract class FixReasonInfo {}
 /// about the decisions made during migration, and how those decisions relate to
 /// the input source code.
 abstract class NullabilityMigrationInstrumentation {
+  /// Called whenever changes are decided upon for a given [source] file.
+  ///
+  /// The format of the changes is a map from source file offset to a list of
+  /// changes to be applied at that offset.
+  void changes(Source source, Map<int, List<AtomicEdit>> changes);
+
   /// Called whenever an explicit [typeAnnotation] is found in the source code,
   /// to report the nullability [node] that was associated with this type.  If
   /// the migration engine determines that the [node] should be nullable, a `?`
@@ -182,9 +285,6 @@ abstract class NullabilityMigrationInstrumentation {
   /// bound of the type parameter.
   void externalDecoratedTypeParameterBound(
       TypeParameterElement typeParameter, DecoratedTypeInfo decoratedType);
-
-  /// Called whenever a fix is decided upon, to report the reasons for the fix.
-  void fix(SingleNullabilityFix fix, Iterable<FixReasonInfo> reasons);
 
   /// Called whenever the migration engine creates a graph edge between
   /// nullability nodes, to report information about the edge that was created,
@@ -228,10 +328,9 @@ abstract class NullabilityMigrationInstrumentation {
   void implicitTypeArguments(
       Source source, AstNode node, Iterable<DecoratedTypeInfo> types);
 
-  /// Called whenever the migration engine performs a step in the propagation of
-  /// nullability information through the nullability graph, to report details
-  /// of the step that was performed and why.
-  void propagationStep(PropagationInfo info);
+  /// Clear any data from the propagation step in preparation for that step
+  /// being re-run.
+  void prepareForUpdate();
 }
 
 /// Information exposed to the migration client about a single node in the
@@ -239,6 +338,10 @@ abstract class NullabilityMigrationInstrumentation {
 abstract class NullabilityNodeInfo implements FixReasonInfo {
   /// List of compound nodes wrapping this node.
   final List<NullabilityNodeInfo> outerCompoundNodes = <NullabilityNodeInfo>[];
+
+  /// Source code location corresponding to this nullability node, or `null` if
+  /// not known.
+  CodeReference get codeReference;
 
   /// Some nodes get nullability from downstream, so the downstream edges are
   /// available to query as well.
@@ -259,65 +362,32 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
 
   /// The edges that caused this node to have the nullability that it has.
   Iterable<EdgeInfo> get upstreamEdges;
+
+  /// If [isNullable] is false, the propagation step that caused this node to
+  /// become non-nullable (if any).
+  UpstreamPropagationStepInfo get whyNotNullable;
+
+  /// If [isNullable] is true, the propagation step that caused this node to
+  /// become nullable.
+  DownstreamPropagationStepInfo get whyNullable;
 }
 
-/// Information exposed to the migration client about a single step in the
-/// nullability propagation algorithm, in which the nullability state of a
-/// single node was changed.
-abstract class PropagationInfo {
-  /// The edge that caused the nullability state of [node] to be set to
-  /// [newState], or `null` if the nullability state was changed for reasons
-  /// not associated with an edge.  Will be `null` when [reason] is
-  /// [StateChangeReason.substituteInner] or
-  /// [StateChangeReason.substituteOuter], non-null otherwise.
+abstract class PropagationStepInfo {
+  CodeReference get codeReference;
+
+  /// The nullability edge associated with this propagation step, if any.
+  /// Otherwise `null`.
   EdgeInfo get edge;
-
-  /// The new state that [node] was placed into.
-  NullabilityState get newState;
-
-  /// The nullability node whose state was changed.
-  NullabilityNodeInfo get node;
-
-  /// The reason the nullability node's state was changed.
-  StateChangeReason get reason;
-
-  /// The substitution node that caused the nullability state of [node] to be
-  /// set to [newState], or `null` if the nullability state was changed for
-  /// reasons not associated with a substitution node.  Will be non-null when
-  /// [reason] is [StateChangeReason.substituteInner] or
-  /// [StateChangeReason.substituteOuter], `null` otherwise.
-  SubstitutionNodeInfo get substitutionNode;
 }
 
-/// Enum representing the various reasons why a nullability node might change
-/// state during nullability propagation.
-enum StateChangeReason {
-  /// A union edge exists between this node and a node that is known a priori to
-  /// be nullable, so this node is being made nullable as well.
-  union,
+/// Reason information for a simple fix that isn't associated with any edges or
+/// nodes.
+abstract class SimpleFixReasonInfo implements FixReasonInfo {
+  /// Code location of the fix.
+  CodeReference get codeReference;
 
-  /// A hard or union edge exists whose source is this node, and whose
-  /// destination is non-nullable, so this node is being made non-nullable as
-  /// well.
-  upstream,
-
-  /// An edge exists whose destination is this node, and whose source is
-  /// nullable, so this node is being made nullable as well.
-  downstream,
-
-  /// An edge exists whose source is this node, and whose destination is exact
-  /// nullable, so this node is being made exact nullable as well.
-  exactUpstream,
-
-  /// A substitution node exists whose inner node points to this node, and the
-  /// substitution node is nullable, so this node is being made nullable as
-  /// well.
-  substituteInner,
-
-  /// A substitution node exists whose outer node points to this node, and the
-  /// substitution node is nullable, so this node is being made nullable as
-  /// well.
-  substituteOuter,
+  /// Description of the fix.
+  String get description;
 }
 
 /// Information exposed to the migration client about a node in the nullability
@@ -336,4 +406,18 @@ abstract class SubstitutionNodeInfo extends NullabilityNodeInfo {
   /// `T` in the type `T*`, [innerNode] is the nullability corresponding to the
   /// `*` in `T*`.
   NullabilityNodeInfo get outerNode;
+}
+
+/// Information about a propagation step that occurred during upstream
+/// propagation.
+abstract class UpstreamPropagationStepInfo implements PropagationStepInfo {
+  /// The node whose nullability was changed.
+  ///
+  /// Any propagation step that took effect should have a non-null value here.
+  /// Propagation steps that are pending but have not taken effect yet, or that
+  /// never had an effect (e.g. because an edge was not triggered) will have a
+  /// `null` value for this field.
+  NullabilityNodeInfo get node;
+
+  UpstreamPropagationStepInfo get principalCause;
 }

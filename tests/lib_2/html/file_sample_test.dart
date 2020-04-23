@@ -3,9 +3,8 @@ library file_sample;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:expect/minitest.dart';
 
 // Expected output from all functions, asynchronous, and event routines.
 const String log_results = 'test-first\n' +
@@ -100,46 +99,47 @@ Future<List<Entry>> readEntries(DirectoryEntry directory) async {
   return entries;
 }
 
+Future testFileSystemRequest() async {
+  testLog.log('test-first');
+  var fs = await fileSystem;
+  testLog.log('first START');
+  expect(fs != null, true);
+  expect(fs.root != null, true);
+  expect(fs.runtimeType, FileSystem);
+  expect(fs.root.runtimeType, DirectoryEntry);
+  testLog.log('first END');
+}
+
+Future testFileSystemRequestCreateRW() async {
+  testLog.log('test-second');
+  var fs = await fileSystem;
+  testLog.log('second START');
+  expect(fs != null, true);
+  expect(fs.root != null, true);
+  expect(fs.runtimeType, FileSystem);
+  expect(fs.root.runtimeType, DirectoryEntry);
+  testLog.log('second END');
+
+  FileEntry fileEntry = await createFile();
+  expect(fileEntry.name, 'log.txt');
+
+  List<Entry> entries = await readEntries(fs.root);
+  expect(entries.length > 0, true);
+  expect(entries[0].isDirectory, true);
+  expect(entries[0].name, 'my_directory');
+
+  List<Entry> myEntries = await readEntries(_myDirectory);
+  expect(myEntries.length, 1);
+  expect(myEntries[0].isFile, true);
+  expect(myEntries[0].name, 'log.txt');
+
+  // Validate every function, async and event mechanism successfully ran.
+  expect(testLog.contents, log_results);
+}
+
 main() {
-  useHtmlConfiguration();
-
-  group('test FileSystem', () {
-    test('FileSystem request #1', () async {
-      testLog.log('test-first');
-      var fs = await fileSystem;
-      testLog.log('first START');
-      expect(fs != null, true);
-      expect(fs.root != null, true);
-      expect(fs.runtimeType, FileSystem);
-      expect(fs.root.runtimeType, DirectoryEntry);
-      testLog.log('first END');
-    });
-
-    test('FileSystem request, create, R/W', () async {
-      testLog.log('test-second');
-      var fs = await fileSystem;
-      testLog.log('second START');
-      expect(fs != null, true);
-      expect(fs.root != null, true);
-      expect(fs.runtimeType, FileSystem);
-      expect(fs.root.runtimeType, DirectoryEntry);
-      testLog.log('second END');
-
-      FileEntry fileEntry = await createFile();
-      expect(fileEntry.name, 'log.txt');
-
-      List<Entry> entries = await readEntries(fs.root);
-      expect(entries.length > 0, true);
-      expect(entries[0].isDirectory, true);
-      expect(entries[0].name, 'my_directory');
-
-      List<Entry> myEntries = await readEntries(_myDirectory);
-      expect(myEntries.length, 1);
-      expect(myEntries[0].isFile, true);
-      expect(myEntries[0].name, 'log.txt');
-
-      // Validate every function, async and event mechanism successfully ran.
-      expect(testLog.contents, log_results);
-    });
+  asyncTest(() async {
+    await testFileSystemRequest();
+    await testFileSystemRequestCreateRW();
   });
 }

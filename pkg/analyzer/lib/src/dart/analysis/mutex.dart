@@ -24,18 +24,14 @@ class Mutex {
   ///
   /// Returns a [Future] that will be completed when the lock has been acquired.
   Future<void> acquire() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     while (_lock != null) {
       await _lock.future;
     }
-    _lock = new Completer<void>();
+    _lock = Completer<void>();
   }
 
   /// Run the given [criticalSection] with acquired mutex.
-  Future<T> guard<T>(Future<T> criticalSection()) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  Future<T> guard<T>(Future<T> Function() criticalSection) async {
     await acquire();
     try {
       return await criticalSection();
@@ -49,7 +45,7 @@ class Mutex {
   /// Release a lock that has been acquired.
   void release() {
     if (_lock == null) {
-      throw new StateError('No lock to release.');
+      throw StateError('No lock to release.');
     }
     _lock.complete();
     _lock = null;

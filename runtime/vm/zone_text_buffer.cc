@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "platform/utils.h"
+#include "vm/object.h"
 #include "vm/os.h"
 #include "vm/zone.h"
 
@@ -43,8 +44,27 @@ intptr_t ZoneTextBuffer::Printf(const char* format, ...) {
   return len;
 }
 
+void ZoneTextBuffer::AddChar(char ch) {
+  EnsureCapacity(sizeof(ch));
+  buffer_[length_] = ch;
+  length_++;
+  buffer_[length_] = '\0';
+}
+
 void ZoneTextBuffer::AddString(const char* s) {
   Printf("%s", s);
+}
+
+void ZoneTextBuffer::AddString(const String& s) {
+  Printf("%s", s.ToCString());
+}
+
+void ZoneTextBuffer::Clear() {
+  const intptr_t initial_capacity = 64;
+  buffer_ = reinterpret_cast<char*>(zone_->Alloc<char>(initial_capacity));
+  capacity_ = initial_capacity;
+  length_ = 0;
+  buffer_[length_] = '\0';
 }
 
 void ZoneTextBuffer::EnsureCapacity(intptr_t len) {

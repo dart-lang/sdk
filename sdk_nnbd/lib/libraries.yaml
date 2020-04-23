@@ -17,351 +17,354 @@ none:
 vm:
   libraries:
     _builtin:
-      uri: "../../sdk/lib/_internal/vm/bin/builtin.dart"
+      uri: "_internal/vm/bin/builtin.dart"
 
     _internal:
-      uri: "../../sdk/lib/internal/internal.dart"
+      uri: "internal/internal.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/internal_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/class_id_fasta.dart"
-        - "../../sdk/lib/_internal/vm/lib/print_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/symbol_patch.dart"
-        - "../../sdk/lib/internal/patch.dart"
+        - "_internal/vm/lib/internal_patch.dart"
+        - "_internal/vm/lib/class_id_fasta.dart"
+        - "_internal/vm/lib/print_patch.dart"
+        - "_internal/vm/lib/symbol_patch.dart"
+        - "internal/patch.dart"
 
     async:
-      uri: "../../sdk/lib/async/async.dart"
+      uri: "async/async.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/async_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/deferred_load_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/schedule_microtask_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/timer_patch.dart"
+        - "_internal/vm/lib/async_patch.dart"
+        - "_internal/vm/lib/deferred_load_patch.dart"
+        - "_internal/vm/lib/schedule_microtask_patch.dart"
+        - "_internal/vm/lib/timer_patch.dart"
 
     collection:
-      uri: "../../sdk/lib/collection/collection.dart"
+      uri: "collection/collection.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/collection_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/compact_hash.dart"
+        - "_internal/vm/lib/collection_patch.dart"
+        - "_internal/vm/lib/compact_hash.dart"
 
     convert:
-      uri: "../../sdk/lib/convert/convert.dart"
-      patches: "../../sdk/lib/_internal/vm/lib/convert_patch.dart"
+      uri: "convert/convert.dart"
+      patches: "_internal/vm/lib/convert_patch.dart"
 
     core:
-      uri: "../../sdk/lib/core/core.dart"
+      uri: "core/core.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/core_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/array.dart"
-        - "../../sdk/lib/_internal/vm/lib/array_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/bigint_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/bool_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/date_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/double.dart"
-        - "../../sdk/lib/_internal/vm/lib/double_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/errors_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/expando_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/function.dart"
-        - "../../sdk/lib/_internal/vm/lib/function_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/growable_array.dart"
-        - "../../sdk/lib/_internal/vm/lib/identical_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/immutable_map.dart"
-        - "../../sdk/lib/_internal/vm/lib/integers.dart"
-        - "../../sdk/lib/_internal/vm/lib/integers_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/invocation_mirror_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/lib_prefix.dart"
-        - "../../sdk/lib/_internal/vm/lib/map_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/null_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/object_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/regexp_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/stacktrace.dart"
-        - "../../sdk/lib/_internal/vm/lib/stopwatch_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/string_buffer_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/string_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/type_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/uri_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/weak_property.dart"
+        - "_internal/vm/lib/core_patch.dart"
+        - "_internal/vm/lib/array.dart"
+        - "_internal/vm/lib/array_patch.dart"
+        - "_internal/vm/lib/bigint_patch.dart"
+        - "_internal/vm/lib/bool_patch.dart"
+        - "_internal/vm/lib/date_patch.dart"
+        - "_internal/vm/lib/double.dart"
+        - "_internal/vm/lib/double_patch.dart"
+        - "_internal/vm/lib/errors_patch.dart"
+        - "_internal/vm/lib/expando_patch.dart"
+        - "_internal/vm/lib/function.dart"
+        - "_internal/vm/lib/function_patch.dart"
+        - "_internal/vm/lib/growable_array.dart"
+        - "_internal/vm/lib/identical_patch.dart"
+        - "_internal/vm/lib/immutable_map.dart"
+        - "_internal/vm/lib/integers.dart"
+        - "_internal/vm/lib/integers_patch.dart"
+        - "_internal/vm/lib/invocation_mirror_patch.dart"
+        - "_internal/vm/lib/lib_prefix.dart"
+        - "_internal/vm/lib/map_patch.dart"
+        - "_internal/vm/lib/null_patch.dart"
+        - "_internal/vm/lib/object_patch.dart"
+        - "_internal/vm/lib/regexp_patch.dart"
+        - "_internal/vm/lib/stacktrace.dart"
+        - "_internal/vm/lib/stopwatch_patch.dart"
+        - "_internal/vm/lib/string_buffer_patch.dart"
+        - "_internal/vm/lib/string_patch.dart"
+        - "_internal/vm/lib/type_patch.dart"
+        - "_internal/vm/lib/uri_patch.dart"
+        - "_internal/vm/lib/weak_property.dart"
 
     developer:
-      uri: "../../sdk/lib/developer/developer.dart"
+      uri: "developer/developer.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/developer.dart"
-        - "../../sdk/lib/_internal/vm/lib/profiler.dart"
-        - "../../sdk/lib/_internal/vm/lib/timeline.dart"
+        - "_internal/vm/lib/developer.dart"
+        - "_internal/vm/lib/profiler.dart"
+        - "_internal/vm/lib/timeline.dart"
 
     ffi:
-      uri: "../../sdk/lib/ffi/ffi.dart"
+      uri: "ffi/ffi.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/ffi_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/ffi_dynamic_library_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/ffi_native_type_patch.dart"
+        - "_internal/vm/lib/ffi_patch.dart"
+        - "_internal/vm/lib/ffi_dynamic_library_patch.dart"
+        - "_internal/vm/lib/ffi_native_type_patch.dart"
+        - "_internal/vm/lib/ffi_struct_patch.dart"
 
     wasm:
-      uri: "../../sdk/lib/wasm/wasm.dart"
+      uri: "wasm/wasm.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/wasm_patch.dart"
+        - "_internal/vm/lib/wasm_patch.dart"
 
     _http:
-      uri: "../../sdk/lib/_http/http.dart"
+      uri: "_http/http.dart"
 
     io:
-      uri: "../../sdk/lib/io/io.dart"
+      uri: "io/io.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/bin/common_patch.dart"
-        - "../../sdk/lib/_internal/vm/bin/directory_patch.dart"
-        - "../../sdk/lib/_internal/vm/bin/eventhandler_patch.dart"
-        - "../../sdk/lib/_internal/vm/bin/file_patch.dart"
-        - "../../sdk/lib/_internal/vm/bin/file_system_entity_patch.dart"
-        - "../../sdk/lib/_internal/vm/bin/filter_patch.dart"
-        - "../../sdk/lib/_internal/vm/bin/io_service_patch.dart"
-        - "../../sdk/lib/_internal/vm/bin/namespace_patch.dart"
-        - "../../sdk/lib/_internal/vm/bin/platform_patch.dart"
-        - "../../sdk/lib/_internal/vm/bin/process_patch.dart"
-        - "../../sdk/lib/_internal/vm/bin/socket_patch.dart"
-        - "../../sdk/lib/_internal/vm/bin/stdio_patch.dart"
-        - "../../sdk/lib/_internal/vm/bin/secure_socket_patch.dart"
-        - "../../sdk/lib/_internal/vm/bin/sync_socket_patch.dart"
+        - "_internal/vm/bin/common_patch.dart"
+        - "_internal/vm/bin/directory_patch.dart"
+        - "_internal/vm/bin/eventhandler_patch.dart"
+        - "_internal/vm/bin/file_patch.dart"
+        - "_internal/vm/bin/file_system_entity_patch.dart"
+        - "_internal/vm/bin/filter_patch.dart"
+        - "_internal/vm/bin/io_service_patch.dart"
+        - "_internal/vm/bin/namespace_patch.dart"
+        - "_internal/vm/bin/platform_patch.dart"
+        - "_internal/vm/bin/process_patch.dart"
+        - "_internal/vm/bin/socket_patch.dart"
+        - "_internal/vm/bin/stdio_patch.dart"
+        - "_internal/vm/bin/secure_socket_patch.dart"
+        - "_internal/vm/bin/sync_socket_patch.dart"
 
     isolate:
-      uri: "../../sdk/lib/isolate/isolate.dart"
+      uri: "isolate/isolate.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/isolate_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/timer_impl.dart"
+        - "_internal/vm/lib/isolate_patch.dart"
+        - "_internal/vm/lib/timer_impl.dart"
 
     math:
-      uri: "../../sdk/lib/math/math.dart"
-      patches: "../../sdk/lib/_internal/vm/lib/math_patch.dart"
+      uri: "math/math.dart"
+      patches: "_internal/vm/lib/math_patch.dart"
 
     mirrors:
-      uri: "../../sdk/lib/mirrors/mirrors.dart"
+      uri: "mirrors/mirrors.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/mirrors_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/mirrors_impl.dart"
-        - "../../sdk/lib/_internal/vm/lib/mirror_reference.dart"
+        - "_internal/vm/lib/mirrors_patch.dart"
+        - "_internal/vm/lib/mirrors_impl.dart"
+        - "_internal/vm/lib/mirror_reference.dart"
 
     nativewrappers:
-      uri: "../../sdk/lib/html/dartium/nativewrappers.dart"
+      uri: "html/dartium/nativewrappers.dart"
 
     cli:
-      uri: "../../sdk/lib/cli/cli.dart"
+      uri: "cli/cli.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/bin/cli_patch.dart"
+        - "_internal/vm/bin/cli_patch.dart"
 
     typed_data:
-      uri: "../../sdk/lib/typed_data/typed_data.dart"
-      patches: "../../sdk/lib/_internal/vm/lib/typed_data_patch.dart"
+      uri: "typed_data/typed_data.dart"
+      patches: "_internal/vm/lib/typed_data_patch.dart"
 
     _vmservice:
-      uri: "../../sdk/lib/vmservice/vmservice.dart"
+      uri: "vmservice/vmservice.dart"
 
     vmservice_io:
-      uri: "../../runtime/bin/vmservice/vmservice_io.dart"
+      uri: "_internal/vm/bin/vmservice_io.dart"
 
 dart2js:
   libraries:
     async:
-      uri: "../../sdk/lib/async/async.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/async_patch.dart"
+      uri: "async/async.dart"
+      patches: "_internal/js_runtime/lib/async_patch.dart"
 
     collection:
-      uri: "../../sdk/lib/collection/collection.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/collection_patch.dart"
+      uri: "collection/collection.dart"
+      patches: "_internal/js_runtime/lib/collection_patch.dart"
 
     convert:
-      uri: "../../sdk/lib/convert/convert.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/convert_patch.dart"
+      uri: "convert/convert.dart"
+      patches: "_internal/js_runtime/lib/convert_patch.dart"
 
     core:
-      uri: "../../sdk/lib/core/core.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/core_patch.dart"
+      uri: "core/core.dart"
+      patches: "_internal/js_runtime/lib/core_patch.dart"
 
     developer:
-      uri: "../../sdk/lib/developer/developer.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/developer_patch.dart"
+      uri: "developer/developer.dart"
+      patches: "_internal/js_runtime/lib/developer_patch.dart"
 
     html:
-      uri: "../../sdk/lib/html/dart2js/html_dart2js.dart"
+      uri: "html/dart2js/html_dart2js.dart"
 
     html_common:
-      uri: "../../sdk/lib/html/html_common/html_common_dart2js.dart"
+      uri: "html/html_common/html_common_dart2js.dart"
 
     indexed_db:
-      uri: "../../sdk/lib/indexed_db/dart2js/indexed_db_dart2js.dart"
+      uri: "indexed_db/dart2js/indexed_db_dart2js.dart"
 
     _http:
-      uri: "../../sdk/lib/_http/http.dart"
+      uri: "_http/http.dart"
 
     io:
-      uri: "../../sdk/lib/io/io.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/io_patch.dart"
+      uri: "io/io.dart"
+      patches: "_internal/js_runtime/lib/io_patch.dart"
       supported: false
 
     isolate:
-      uri: "../../sdk/lib/isolate/isolate.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/isolate_patch.dart"
+      uri: "isolate/isolate.dart"
+      patches: "_internal/js_runtime/lib/isolate_patch.dart"
       supported: false
 
     js:
-      uri: "../../sdk/lib/js/dart2js/js_dart2js.dart"
+      uri: "js/js.dart"
+      patches: "_internal/js_runtime/lib/js_patch.dart"
 
     _js:
-      uri: "../../sdk/lib/js/_js.dart"
-      patches: "../../sdk/lib/js/_js_client.dart"
+      uri: "js/_js.dart"
+      patches: "js/_js_client.dart"
 
     js_util:
-      uri: "../../sdk/lib/js_util/dart2js/js_util_dart2js.dart"
+      uri: "js_util/js_util.dart"
 
     math:
-      uri: "../../sdk/lib/math/math.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/math_patch.dart"
+      uri: "math/math.dart"
+      patches: "_internal/js_runtime/lib/math_patch.dart"
 
     mirrors:
-      uri: "../../sdk/lib/mirrors/mirrors.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/mirrors_patch_cfe.dart"
+      uri: "mirrors/mirrors.dart"
+      patches: "_internal/js_runtime/lib/mirrors_patch_cfe.dart"
       supported: false
 
     typed_data:
-      uri: "../../sdk/lib/typed_data/typed_data.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/typed_data_patch.dart"
+      uri: "typed_data/typed_data.dart"
+      patches: "_internal/js_runtime/lib/typed_data_patch.dart"
 
     _native_typed_data:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/native_typed_data.dart"
+      uri: "_internal/js_runtime/lib/native_typed_data.dart"
 
     svg:
-      uri: "../../sdk/lib/svg/dart2js/svg_dart2js.dart"
+      uri: "svg/dart2js/svg_dart2js.dart"
 
     web_audio:
-      uri: "../../sdk/lib/web_audio/dart2js/web_audio_dart2js.dart"
+      uri: "web_audio/dart2js/web_audio_dart2js.dart"
 
     web_gl:
-      uri: "../../sdk/lib/web_gl/dart2js/web_gl_dart2js.dart"
+      uri: "web_gl/dart2js/web_gl_dart2js.dart"
 
     web_sql:
-      uri: "../../sdk/lib/web_sql/dart2js/web_sql_dart2js.dart"
+      uri: "web_sql/dart2js/web_sql_dart2js.dart"
 
     _internal:
-      uri: "../../sdk/lib/internal/internal.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/internal_patch.dart"
+      uri: "internal/internal.dart"
+      patches: "_internal/js_runtime/lib/internal_patch.dart"
 
     _js_helper:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/js_helper.dart"
+      uri: "_internal/js_runtime/lib/js_helper.dart"
 
     _rti:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/rti.dart"
+      uri: "_internal/js_runtime/lib/rti.dart"
 
     _interceptors:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/interceptors.dart"
+      uri: "_internal/js_runtime/lib/interceptors.dart"
 
     _foreign_helper:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/foreign_helper.dart"
+      uri: "_internal/js_runtime/lib/foreign_helper.dart"
 
     _js_names:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/js_names.dart"
+      uri: "_internal/js_runtime/lib/js_names.dart"
 
     _js_primitives:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/js_primitives.dart"
+      uri: "_internal/js_runtime/lib/js_primitives.dart"
 
     _js_embedded_names:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/shared/embedded_names.dart"
+      uri: "_internal/js_runtime/lib/shared/embedded_names.dart"
 
     _async_await_error_codes:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/shared/async_await_error_codes.dart"
+      uri: "_internal/js_runtime/lib/shared/async_await_error_codes.dart"
 
     _recipe_syntax:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/shared/recipe_syntax.dart"
+      uri: "_internal/js_runtime/lib/shared/recipe_syntax.dart"
 
     _metadata:
-      uri: "../../sdk/lib/html/html_common/metadata.dart"
+      uri: "html/html_common/metadata.dart"
 
 dart2js_server:
   libraries:
     async:
-      uri: "../../sdk/lib/async/async.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/async_patch.dart"
+      uri: "async/async.dart"
+      patches: "_internal/js_runtime/lib/async_patch.dart"
 
     collection:
-      uri: "../../sdk/lib/collection/collection.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/collection_patch.dart"
+      uri: "collection/collection.dart"
+      patches: "_internal/js_runtime/lib/collection_patch.dart"
 
     convert:
-      uri: "../../sdk/lib/convert/convert.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/convert_patch.dart"
+      uri: "convert/convert.dart"
+      patches: "_internal/js_runtime/lib/convert_patch.dart"
 
     core:
-      uri: "../../sdk/lib/core/core.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/core_patch.dart"
+      uri: "core/core.dart"
+      patches: "_internal/js_runtime/lib/core_patch.dart"
 
     developer:
-      uri: "../../sdk/lib/developer/developer.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/developer_patch.dart"
+      uri: "developer/developer.dart"
+      patches: "_internal/js_runtime/lib/developer_patch.dart"
 
     _http:
-      uri: "../../sdk/lib/_http/http.dart"
+      uri: "_http/http.dart"
 
     io:
-      uri: "../../sdk/lib/io/io.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/io_patch.dart"
+      uri: "io/io.dart"
+      patches: "_internal/js_runtime/lib/io_patch.dart"
       supported: false
 
     isolate:
-      uri: "../../sdk/lib/isolate/isolate.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/isolate_patch.dart"
+      uri: "isolate/isolate.dart"
+      patches: "_internal/js_runtime/lib/isolate_patch.dart"
       supported: false
 
     js:
-      uri: "../../sdk/lib/js/dart2js/js_dart2js.dart"
+      uri: "js/js.dart"
+      patches: "_internal/js_runtime/lib/js_patch.dart"
 
     _js:
-      uri: "../../sdk/lib/js/_js.dart"
-      patches: "../../sdk/lib/js/_js_server.dart"
+      uri: "js/_js.dart"
+      patches: "js/_js_server.dart"
 
     js_util:
-      uri: "../../sdk/lib/js_util/dart2js/js_util_dart2js.dart"
+      uri: "js_util/js_util.dart"
 
     math:
-      uri: "../../sdk/lib/math/math.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/math_patch.dart"
+      uri: "math/math.dart"
+      patches: "_internal/js_runtime/lib/math_patch.dart"
 
     mirrors:
-      uri: "../../sdk/lib/mirrors/mirrors.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/mirrors_patch_cfe.dart"
+      uri: "mirrors/mirrors.dart"
+      patches: "_internal/js_runtime/lib/mirrors_patch_cfe.dart"
       supported: false
 
     typed_data:
-      uri: "../../sdk/lib/typed_data/typed_data.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/typed_data_patch.dart"
+      uri: "typed_data/typed_data.dart"
+      patches: "_internal/js_runtime/lib/typed_data_patch.dart"
 
     _native_typed_data:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/native_typed_data.dart"
+      uri: "_internal/js_runtime/lib/native_typed_data.dart"
 
     _internal:
-      uri: "../../sdk/lib/internal/internal.dart"
-      patches: "../../sdk/lib/_internal/js_runtime/lib/internal_patch.dart"
+      uri: "internal/internal.dart"
+      patches: "_internal/js_runtime/lib/internal_patch.dart"
 
     _js_helper:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/js_helper.dart"
+      uri: "_internal/js_runtime/lib/js_helper.dart"
 
     _rti:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/rti.dart"
+      uri: "_internal/js_runtime/lib/rti.dart"
 
     _interceptors:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/interceptors.dart"
+      uri: "_internal/js_runtime/lib/interceptors.dart"
 
     _foreign_helper:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/foreign_helper.dart"
+      uri: "_internal/js_runtime/lib/foreign_helper.dart"
 
     _js_names:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/js_names.dart"
+      uri: "_internal/js_runtime/lib/js_names.dart"
 
     _js_primitives:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/js_primitives.dart"
+      uri: "_internal/js_runtime/lib/js_primitives.dart"
 
     _js_embedded_names:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/shared/embedded_names.dart"
+      uri: "_internal/js_runtime/lib/shared/embedded_names.dart"
 
     _async_await_error_codes:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/shared/async_await_error_codes.dart"
+      uri: "_internal/js_runtime/lib/shared/async_await_error_codes.dart"
 
     _recipe_syntax:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/shared/recipe_syntax.dart"
+      uri: "_internal/js_runtime/lib/shared/recipe_syntax.dart"
 
 dartdevc:
     libraries:
@@ -369,105 +372,103 @@ dartdevc:
         uri: "_internal/js_dev_runtime/private/ddc_runtime/runtime.dart"
 
       _debugger:
-        uri: "../../sdk/lib/_internal/js_dev_runtime/private/debugger.dart"
+        uri: "_internal/js_dev_runtime/private/debugger.dart"
 
       _foreign_helper:
-        uri: "../../sdk/lib/_internal/js_dev_runtime/private/foreign_helper.dart"
+        uri: "_internal/js_dev_runtime/private/foreign_helper.dart"
 
       _http:
-        uri: "../../sdk/lib/_http/http.dart"
+        uri: "_http/http.dart"
 
       _interceptors:
-        uri: "../../sdk/lib/_internal/js_dev_runtime/private/interceptors.dart"
+        uri: "_internal/js_dev_runtime/private/interceptors.dart"
 
       _internal:
-        uri: "../../sdk/lib/internal/internal.dart"
-        patches: "../../sdk/lib/_internal/js_dev_runtime/patch/internal_patch.dart"
+        uri: "internal/internal.dart"
+        patches: "_internal/js_dev_runtime/patch/internal_patch.dart"
 
       _isolate_helper:
-        uri: "../../sdk/lib/_internal/js_dev_runtime/private/isolate_helper.dart"
+        uri: "_internal/js_dev_runtime/private/isolate_helper.dart"
 
       _js_helper:
-        uri: "../../sdk/lib/_internal/js_dev_runtime/private/js_helper.dart"
-
-      _js_mirrors:
-        uri: "../../sdk/lib/_internal/js_dev_runtime/private/js_mirrors.dart"
+        uri: "_internal/js_dev_runtime/private/js_helper.dart"
 
       _js_primitives:
-        uri: "../../sdk/lib/_internal/js_dev_runtime/private/js_primitives.dart"
+        uri: "_internal/js_dev_runtime/private/js_primitives.dart"
 
       _metadata:
-        uri: "../../sdk/lib/html/html_common/metadata.dart"
+        uri: "html/html_common/metadata.dart"
 
       _native_typed_data:
-        uri: "../../sdk/lib/_internal/js_dev_runtime/private/native_typed_data.dart"
+        uri: "_internal/js_dev_runtime/private/native_typed_data.dart"
 
       async:
-        uri: "../../sdk/lib/async/async.dart"
-        patches: "../../sdk/lib/_internal/js_dev_runtime/patch/async_patch.dart"
+        uri: "async/async.dart"
+        patches: "_internal/js_dev_runtime/patch/async_patch.dart"
 
       collection:
-        uri: "../../sdk/lib/collection/collection.dart"
-        patches: "../../sdk/lib/_internal/js_dev_runtime/patch/collection_patch.dart"
+        uri: "collection/collection.dart"
+        patches: "_internal/js_dev_runtime/patch/collection_patch.dart"
 
       convert:
-        uri: "../../sdk/lib/convert/convert.dart"
-        patches: "../../sdk/lib/_internal/js_dev_runtime/patch/convert_patch.dart"
+        uri: "convert/convert.dart"
+        patches: "_internal/js_dev_runtime/patch/convert_patch.dart"
 
       core:
-        uri: "../../sdk/lib/core/core.dart"
-        patches: "../../sdk/lib/_internal/js_dev_runtime/patch/core_patch.dart"
+        uri: "core/core.dart"
+        patches: "_internal/js_dev_runtime/patch/core_patch.dart"
 
       developer:
-        uri: "../../sdk/lib/developer/developer.dart"
-        patches: "../../sdk/lib/_internal/js_dev_runtime/patch/developer_patch.dart"
+        uri: "developer/developer.dart"
+        patches: "_internal/js_dev_runtime/patch/developer_patch.dart"
 
       io:
-        uri: "../../sdk/lib/io/io.dart"
-        patches: "../../sdk/lib/_internal/js_dev_runtime/patch/io_patch.dart"
+        uri: "io/io.dart"
+        patches: "_internal/js_dev_runtime/patch/io_patch.dart"
         supported: false
 
       isolate:
-        uri: "../../sdk/lib/isolate/isolate.dart"
-        patches: "../../sdk/lib/_internal/js_dev_runtime/patch/isolate_patch.dart"
+        uri: "isolate/isolate.dart"
+        patches: "_internal/js_dev_runtime/patch/isolate_patch.dart"
         supported: false
 
       mirrors:
-        uri: "../../sdk/lib/mirrors/mirrors.dart"
-        patches: "../../sdk/lib/_internal/js_dev_runtime/patch/mirrors_patch.dart"
+        uri: "mirrors/mirrors.dart"
+        patches: "_internal/js_runtime/lib/mirrors_patch_cfe.dart"
         supported: false
 
       math:
-        uri: "../../sdk/lib/math/math.dart"
-        patches: "../../sdk/lib/_internal/js_dev_runtime/patch/math_patch.dart"
+        uri: "math/math.dart"
+        patches: "_internal/js_dev_runtime/patch/math_patch.dart"
 
       typed_data:
-        uri: "../../sdk/lib/typed_data/typed_data.dart"
-        patches: "../../sdk/lib/_internal/js_dev_runtime/patch/typed_data_patch.dart"
+        uri: "typed_data/typed_data.dart"
+        patches: "_internal/js_dev_runtime/patch/typed_data_patch.dart"
 
       html:
-        uri: "../../sdk/lib/html/dart2js/html_dart2js.dart"
+        uri: "html/dart2js/html_dart2js.dart"
 
       html_common:
-        uri: "../../sdk/lib/html/html_common/html_common_dart2js.dart"
+        uri: "html/html_common/html_common_dart2js.dart"
 
       indexed_db:
-        uri: "../../sdk/lib/indexed_db/dart2js/indexed_db_dart2js.dart"
+        uri: "indexed_db/dart2js/indexed_db_dart2js.dart"
 
       js:
-        uri: "../../sdk/lib/_internal/js_dev_runtime/lib/js/dart2js/js_dart2js.dart"
+        uri: "js/js.dart"
+        patches: "_internal/js_dev_runtime/patch/js_patch.dart"
 
       js_util:
-        uri: "../../sdk/lib/_internal/js_dev_runtime/lib/js_util/dart2js/js_util_dart2js.dart"
+        uri: "js_util/js_util.dart"
 
       svg:
-        uri: "../../sdk/lib/svg/dart2js/svg_dart2js.dart"
+        uri: "svg/dart2js/svg_dart2js.dart"
 
       web_audio:
-        uri: "../../sdk/lib/web_audio/dart2js/web_audio_dart2js.dart"
+        uri: "web_audio/dart2js/web_audio_dart2js.dart"
 
       web_gl:
-        uri: "../../sdk/lib/web_gl/dart2js/web_gl_dart2js.dart"
+        uri: "web_gl/dart2js/web_gl_dart2js.dart"
 
       web_sql:
-        uri: "../../sdk/lib/web_sql/dart2js/web_sql_dart2js.dart"
+        uri: "web_sql/dart2js/web_sql_dart2js.dart"

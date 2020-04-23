@@ -512,6 +512,76 @@ ASSEMBLER_TEST_RUN(LoadStorePairOffset, test) {
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(PushRegisterPair, assembler) {
+  __ SetupDartSP();
+  __ LoadImmediate(R2, 12);
+  __ LoadImmediate(R3, 21);
+  __ PushRegisterPair(R2, R3);
+  __ Pop(R0);
+  __ Pop(R1);
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PushRegisterPair, test) {
+  EXPECT(test != NULL);
+  typedef int (*PushRegisterPair)() DART_UNUSED;
+  EXPECT_EQ(12, EXECUTE_TEST_CODE_INT64(PushRegisterPair, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(PushRegisterPairReversed, assembler) {
+  __ SetupDartSP();
+  __ LoadImmediate(R3, 12);
+  __ LoadImmediate(R2, 21);
+  __ PushRegisterPair(R3, R2);
+  __ Pop(R0);
+  __ Pop(R1);
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PushRegisterPairReversed, test) {
+  EXPECT(test != NULL);
+  typedef int (*PushRegisterPairReversed)() DART_UNUSED;
+  EXPECT_EQ(12,
+            EXECUTE_TEST_CODE_INT64(PushRegisterPairReversed, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(PopRegisterPair, assembler) {
+  __ SetupDartSP();
+  __ LoadImmediate(R2, 12);
+  __ LoadImmediate(R3, 21);
+  __ Push(R3);
+  __ Push(R2);
+  __ PopRegisterPair(R0, R1);
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PopRegisterPair, test) {
+  EXPECT(test != NULL);
+  typedef int (*PopRegisterPair)() DART_UNUSED;
+  EXPECT_EQ(12, EXECUTE_TEST_CODE_INT64(PopRegisterPair, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(PopRegisterPairReversed, assembler) {
+  __ SetupDartSP();
+  __ LoadImmediate(R3, 12);
+  __ LoadImmediate(R2, 21);
+  __ Push(R3);
+  __ Push(R2);
+  __ PopRegisterPair(R1, R0);
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PopRegisterPairReversed, test) {
+  EXPECT(test != NULL);
+  typedef int (*PopRegisterPairReversed)() DART_UNUSED;
+  EXPECT_EQ(12,
+            EXECUTE_TEST_CODE_INT64(PopRegisterPairReversed, test->entry()));
+}
+
 ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
   __ SetupDartSP();
   __ movz(R0, Immediate(40), 0);

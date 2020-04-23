@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: AppView.:[subclass=AppView]*/
 abstract class AppView<T> {
-  /*member: AppView.ctx:Union([exact=CardComponent2], [null|exact=CardComponent])*/
+  /*member: AppView.ctx:Union(null, [exact=CardComponent2], [exact=CardComponent])*/
   T ctx;
 }
 

@@ -5,12 +5,10 @@
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
@@ -58,7 +56,7 @@ class Linker {
     );
   }
 
-  InternalAnalysisContext get analysisContext {
+  AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
   }
 
@@ -67,10 +65,6 @@ class Linker {
   }
 
   Reference get rootReference => elementFactory.rootReference;
-
-  TypeProvider get typeProvider => analysisContext.typeProvider;
-
-  TypeSystemImpl get typeSystem => analysisContext.typeSystem;
 
   void link(List<LinkInputLibrary> inputLibraries) {
     for (var inputLibrary in inputLibraries) {
@@ -97,7 +91,6 @@ class Linker {
     _createTypeSystem();
     _resolveTypes();
     TypeAliasSelfReferenceFinder().perform(this);
-    _createLoadLibraryFunctions();
     _performTopLevelInference();
     _resolveConstructors();
     _resolveConstantInitializers();
@@ -121,8 +114,8 @@ class Linker {
       library.buildInitialExportScope();
     }
 
-    var exporters = new Set<LibraryBuilder>();
-    var exportees = new Set<LibraryBuilder>();
+    var exporters = <LibraryBuilder>{};
+    var exportees = <LibraryBuilder>{};
 
     for (var library in builders.values) {
       library.addExporters();
@@ -137,7 +130,7 @@ class Linker {
       }
     }
 
-    var both = new Set<LibraryBuilder>();
+    var both = <LibraryBuilder>{};
     for (var exported in exportees) {
       if (exporters.contains(exported)) {
         both.add(exported);
@@ -197,18 +190,7 @@ class Linker {
     );
   }
 
-  void _createLoadLibraryFunctions() {
-    for (var library in builders.values) {
-      library.element.createLoadLibraryFunction(typeProvider);
-    }
-  }
-
   void _createTypeSystem() {
-    if (typeProvider != null) {
-      inheritance = InheritanceManager3();
-      return;
-    }
-
     var coreLib = elementFactory.libraryOfUri('dart:core');
     var asyncLib = elementFactory.libraryOfUri('dart:async');
     elementFactory.createTypeProviders(coreLib, asyncLib);
@@ -248,7 +230,7 @@ class Linker {
       library.resolveTypes(nodesToBuildType);
     }
     computeSimplyBounded(bundleContext, builders.values);
-    TypesBuilder(typeSystem).build(nodesToBuildType);
+    TypesBuilder().build(nodesToBuildType);
   }
 
   void _resolveUriDirectives() {

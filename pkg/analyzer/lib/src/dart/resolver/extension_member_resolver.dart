@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -152,7 +153,7 @@ class ExtensionMemberResolver {
     if (receiverType.isVoid) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.USE_OF_VOID_RESULT, receiverExpression);
-    } else if (!_typeSystem.isAssignableTo(receiverType, node.extendedType)) {
+    } else if (!_typeSystem.isAssignableTo2(receiverType, node.extendedType)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
         receiverExpression,
@@ -211,8 +212,8 @@ class ExtensionMemberResolver {
         var boundType = typeParameters[i].bound;
         if (boundType != null) {
           boundType = substitution.substituteType(boundType);
-          if (!_typeSystem.isSubtypeOf(argType, boundType)) {
-            _errorReporter.reportTypeErrorForNode(
+          if (!_typeSystem.isSubtypeOf2(argType, boundType)) {
+            _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList.arguments[i],
               [argType, boundType],
@@ -254,11 +255,7 @@ class ExtensionMemberResolver {
     var instantiatedExtensions = <_InstantiatedExtension>[];
     for (var candidate in candidates) {
       var typeParameters = candidate.extension.typeParameters;
-      var inferrer = GenericInferrer(
-        _typeProvider,
-        _typeSystem,
-        typeParameters,
-      );
+      var inferrer = GenericInferrer(_typeSystem, typeParameters);
       inferrer.constrainArgument(
         type,
         candidate.extension.extendedType,
@@ -368,11 +365,7 @@ class ExtensionMemberResolver {
         return _listOfDynamic(typeParameters);
       }
     } else {
-      var inferrer = GenericInferrer(
-        _typeProvider,
-        _typeSystem,
-        typeParameters,
-      );
+      var inferrer = GenericInferrer(_typeSystem, typeParameters);
       inferrer.constrainArgument(
         receiverType,
         element.extendedType,
@@ -436,7 +429,7 @@ class ExtensionMemberResolver {
 
   /// Ask the type system for a subtype check.
   bool _isSubtypeOf(DartType type1, DartType type2) =>
-      _typeSystem.isSubtypeOf(type1, type2);
+      _typeSystem.isSubtypeOf2(type1, type2);
 
   List<DartType> _listOfDynamic(List<TypeParameterElement> parameters) {
     return List<DartType>.filled(parameters.length, _dynamicType);

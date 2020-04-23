@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertIntoBlockBodyTest);
   });
@@ -19,7 +19,7 @@ class ConvertIntoBlockBodyTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_INTO_BLOCK_BODY;
 
-  test_async() async {
+  Future<void> test_async() async {
     await resolveTestUnit('''
 class A {
   mmm() async => 123;
@@ -34,7 +34,7 @@ class A {
 ''');
   }
 
-  test_closure() async {
+  Future<void> test_closure() async {
     await resolveTestUnit('''
 setup(x) {}
 main() {
@@ -52,7 +52,7 @@ main() {
     assertExitPosition(after: '42;');
   }
 
-  test_closure_voidExpression() async {
+  Future<void> test_closure_voidExpression() async {
     await resolveTestUnit('''
 setup(x) {}
 main() {
@@ -70,29 +70,33 @@ main() {
     assertExitPosition(after: "');");
   }
 
-  test_constructor() async {
+  Future<void> test_constructor() async {
     await resolveTestUnit('''
 class A {
-  factory A() => null;
+  A.named();
+
+  factory A() => A.named();
 }
 ''');
     await assertHasAssistAt('A()', '''
 class A {
+  A.named();
+
   factory A() {
-    return null;
+    return A.named();
   }
 }
 ''');
   }
 
-  test_inExpression() async {
+  Future<void> test_inExpression() async {
     await resolveTestUnit('''
 main() => 123;
 ''');
     await assertNoAssistAt('123;');
   }
 
-  test_method() async {
+  Future<void> test_method() async {
     await resolveTestUnit('''
 class A {
   mmm() => 123;
@@ -107,14 +111,14 @@ class A {
 ''');
   }
 
-  test_noEnclosingFunction() async {
+  Future<void> test_noEnclosingFunction() async {
     await resolveTestUnit('''
 var v = 123;
 ''');
     await assertNoAssistAt('v =');
   }
 
-  test_notExpressionBlock() async {
+  Future<void> test_notExpressionBlock() async {
     await resolveTestUnit('''
 fff() {
   return 123;
@@ -123,7 +127,7 @@ fff() {
     await assertNoAssistAt('fff() {');
   }
 
-  test_onArrow() async {
+  Future<void> test_onArrow() async {
     await resolveTestUnit('''
 fff() => 123;
 ''');
@@ -134,7 +138,7 @@ fff() {
 ''');
   }
 
-  test_onName() async {
+  Future<void> test_onName() async {
     await resolveTestUnit('''
 fff() => 123;
 ''');
@@ -145,7 +149,7 @@ fff() {
 ''');
   }
 
-  test_throw() async {
+  Future<void> test_throw() async {
     await resolveTestUnit('''
 class A {
   mmm() => throw 'error';

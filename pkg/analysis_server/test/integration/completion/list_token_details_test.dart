@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListTokenDetailsTest);
   });
@@ -19,6 +19,7 @@ main() {
 class ListTokenDetailsTest extends AbstractAnalysisServerIntegrationTest {
   String testPackagePath;
 
+  @override
   Future setUp() async {
     await super.setUp();
     testPackagePath = path.join(sourceDirectory.path, 'test_package');
@@ -26,7 +27,7 @@ class ListTokenDetailsTest extends AbstractAnalysisServerIntegrationTest {
 
   @override
   Future standardAnalysisSetup({bool subscribeStatus = true}) {
-    List<Future> futures = <Future>[];
+    var futures = <Future>[];
     if (subscribeStatus) {
       futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
     }
@@ -34,17 +35,17 @@ class ListTokenDetailsTest extends AbstractAnalysisServerIntegrationTest {
     return Future.wait(futures);
   }
 
-  test_getSuggestions() async {
-    String aPath = path.join(sourceDirectory.path, 'a');
-    String aLibPath = path.join(aPath, 'lib');
+  Future<void> test_getSuggestions() async {
+    var aPath = path.join(sourceDirectory.path, 'a');
+    var aLibPath = path.join(aPath, 'lib');
     writeFile(path.join(aLibPath, 'a.dart'), '''
 class A {}
 ''');
     writeFile(path.join(testPackagePath, '.packages'), '''
-a:file://$aLibPath
+a:file://${path.toUri(aLibPath)}
 test_package:lib/
 ''');
-    String testFilePath = path.join(testPackagePath, 'lib', 'test.dart');
+    var testFilePath = path.join(testPackagePath, 'lib', 'test.dart');
     writeFile(testFilePath, '''
 import 'package:a/a.dart';
 class B {}
@@ -53,8 +54,7 @@ String f(A a, B b) => a.toString() + b.toString();
     await standardAnalysisSetup();
     await analysisFinished;
 
-    CompletionListTokenDetailsResult result =
-        await sendCompletionListTokenDetails(testFilePath);
+    var result = await sendCompletionListTokenDetails(testFilePath);
     expect(result, isNotNull);
   }
 }

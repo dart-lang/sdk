@@ -25,7 +25,10 @@ for arg in "$@"; do
     --packages=*)
     PACKAGES="$arg"
     ;;
-    --enable-asserts)
+    --enable-asserts | \
+    --null-safety | \
+    --no-null-safety | \
+    --enable-experiment=*)
     GEN_KERNEL_OPTIONS+=("$arg")
     OPTIONS+=("$arg")
     ;;
@@ -38,6 +41,9 @@ for arg in "$@"; do
     ;;
     --build-assembly)
     BUILD_ASM=1
+    ;;
+    -v*)
+    set -x
     ;;
     --*)
     OPTIONS+=("$arg")
@@ -90,8 +96,13 @@ fi
 export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
+DART="tools/sdks/dart-sdk/bin/dart"
+if [ ! -f "$DART" ]; then
+  DART="$BIN_DIR/dart"
+fi
+
 # Step 1: Generate Kernel binary from the input Dart source.
-"$BIN_DIR"/dart                                                                \
+$DART                                                                          \
      ${DART_VM_FLAGS}                                                          \
      "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart"                                   \
      --platform "${BIN_DIR}/vm_platform_strong.dill"                           \

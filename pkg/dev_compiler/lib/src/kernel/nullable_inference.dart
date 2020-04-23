@@ -59,58 +59,59 @@ class NullableInference extends ExpressionVisitor<bool> {
   bool isNullable(Expression expr) => expr != null ? expr.accept(this) : false;
 
   @override
-  defaultExpression(Expression node) => true;
+  bool defaultExpression(Expression node) => true;
 
   @override
-  defaultBasicLiteral(BasicLiteral node) => false;
+  bool defaultBasicLiteral(BasicLiteral node) => false;
 
   @override
-  visitNullLiteral(NullLiteral node) => true;
+  bool visitNullLiteral(NullLiteral node) => true;
 
   @override
-  visitVariableGet(VariableGet node) {
+  bool visitVariableGet(VariableGet node) {
     return _variableInference.variableIsNullable(node.variable);
   }
 
   @override
-  visitVariableSet(VariableSet node) => isNullable(node.value);
+  bool visitVariableSet(VariableSet node) => isNullable(node.value);
 
   @override
-  visitPropertyGet(PropertyGet node) => _getterIsNullable(node.interfaceTarget);
-
-  @override
-  visitPropertySet(PropertySet node) => isNullable(node.value);
-
-  @override
-  visitDirectPropertyGet(DirectPropertyGet node) =>
-      _getterIsNullable(node.target);
-
-  @override
-  visitDirectPropertySet(DirectPropertySet node) => isNullable(node.value);
-
-  @override
-  visitSuperPropertyGet(SuperPropertyGet node) =>
+  bool visitPropertyGet(PropertyGet node) =>
       _getterIsNullable(node.interfaceTarget);
 
   @override
-  visitSuperPropertySet(SuperPropertySet node) => isNullable(node.value);
+  bool visitPropertySet(PropertySet node) => isNullable(node.value);
 
   @override
-  visitStaticGet(StaticGet node) => _getterIsNullable(node.target);
+  bool visitDirectPropertyGet(DirectPropertyGet node) =>
+      _getterIsNullable(node.target);
 
   @override
-  visitStaticSet(StaticSet node) => isNullable(node.value);
+  bool visitDirectPropertySet(DirectPropertySet node) => isNullable(node.value);
 
   @override
-  visitMethodInvocation(MethodInvocation node) => _invocationIsNullable(
+  bool visitSuperPropertyGet(SuperPropertyGet node) =>
+      _getterIsNullable(node.interfaceTarget);
+
+  @override
+  bool visitSuperPropertySet(SuperPropertySet node) => isNullable(node.value);
+
+  @override
+  bool visitStaticGet(StaticGet node) => _getterIsNullable(node.target);
+
+  @override
+  bool visitStaticSet(StaticSet node) => isNullable(node.value);
+
+  @override
+  bool visitMethodInvocation(MethodInvocation node) => _invocationIsNullable(
       node.interfaceTarget, node.name.name, node.receiver);
 
   @override
-  visitDirectMethodInvocation(DirectMethodInvocation node) =>
+  bool visitDirectMethodInvocation(DirectMethodInvocation node) =>
       _invocationIsNullable(node.target, node.name.name, node.receiver);
 
   @override
-  visitSuperMethodInvocation(SuperMethodInvocation node) =>
+  bool visitSuperMethodInvocation(SuperMethodInvocation node) =>
       _invocationIsNullable(node.interfaceTarget, node.name.name);
 
   bool _invocationIsNullable(Member target, String name,
@@ -166,7 +167,7 @@ class NullableInference extends ExpressionVisitor<bool> {
   }
 
   @override
-  visitStaticInvocation(StaticInvocation node) {
+  bool visitStaticInvocation(StaticInvocation node) {
     var target = node.target;
     if (target == coreTypes.identicalProcedure) {
       return false;
@@ -185,56 +186,56 @@ class NullableInference extends ExpressionVisitor<bool> {
   }
 
   @override
-  visitConstructorInvocation(ConstructorInvocation node) => false;
+  bool visitConstructorInvocation(ConstructorInvocation node) => false;
 
   @override
-  visitNot(Not node) => false;
+  bool visitNot(Not node) => false;
 
   @override
-  visitLogicalExpression(LogicalExpression node) => false;
+  bool visitLogicalExpression(LogicalExpression node) => false;
 
   @override
-  visitConditionalExpression(ConditionalExpression node) =>
+  bool visitConditionalExpression(ConditionalExpression node) =>
       isNullable(node.then) || isNullable(node.otherwise);
 
   @override
-  visitStringConcatenation(StringConcatenation node) => false;
+  bool visitStringConcatenation(StringConcatenation node) => false;
 
   @override
-  visitIsExpression(IsExpression node) => false;
+  bool visitIsExpression(IsExpression node) => false;
 
   @override
-  visitAsExpression(AsExpression node) => isNullable(node.operand);
+  bool visitAsExpression(AsExpression node) => isNullable(node.operand);
 
   @override
-  visitSymbolLiteral(SymbolLiteral node) => false;
+  bool visitSymbolLiteral(SymbolLiteral node) => false;
 
   @override
-  visitTypeLiteral(TypeLiteral node) => false;
+  bool visitTypeLiteral(TypeLiteral node) => false;
 
   @override
-  visitThisExpression(ThisExpression node) => false;
+  bool visitThisExpression(ThisExpression node) => false;
 
   @override
-  visitRethrow(Rethrow node) => false;
+  bool visitRethrow(Rethrow node) => false;
 
   @override
-  visitThrow(Throw node) => false;
+  bool visitThrow(Throw node) => false;
 
   @override
-  visitListLiteral(ListLiteral node) => false;
+  bool visitListLiteral(ListLiteral node) => false;
 
   @override
-  visitMapLiteral(MapLiteral node) => false;
+  bool visitMapLiteral(MapLiteral node) => false;
 
   @override
-  visitAwaitExpression(AwaitExpression node) => true;
+  bool visitAwaitExpression(AwaitExpression node) => true;
 
   @override
-  visitFunctionExpression(FunctionExpression node) => false;
+  bool visitFunctionExpression(FunctionExpression node) => false;
 
   @override
-  visitConstantExpression(ConstantExpression node) {
+  bool visitConstantExpression(ConstantExpression node) {
     var c = node.constant;
     if (c is UnevaluatedConstant) return c.expression.accept(this);
     if (c is PrimitiveConstant) return c.value == null;
@@ -242,10 +243,10 @@ class NullableInference extends ExpressionVisitor<bool> {
   }
 
   @override
-  visitLet(Let node) => isNullable(node.body);
+  bool visitLet(Let node) => isNullable(node.body);
 
   @override
-  visitInstantiation(Instantiation node) => false;
+  bool visitInstantiation(Instantiation node) => false;
 
   bool isNotNullAnnotation(Expression value) =>
       _isInternalAnnotationField(value, 'notNull', '_NotNull');
@@ -327,13 +328,13 @@ class _NullableVariableInference extends RecursiveVisitor<void> {
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     _notNullLocals.add(node.variable);
     node.function?.accept(this);
   }
 
   @override
-  visitFunctionNode(FunctionNode node) {
+  void visitFunctionNode(FunctionNode node) {
     _functions.add(node);
     if (_nullInference.allowNotNullDeclarations) {
       visitList(node.positionalParameters, this);
@@ -343,7 +344,7 @@ class _NullableVariableInference extends RecursiveVisitor<void> {
   }
 
   @override
-  visitCatch(Catch node) {
+  void visitCatch(Catch node) {
     // The stack trace variable is not nullable, but the exception can be.
     var stackTrace = node.stackTrace;
     if (stackTrace != null) _notNullLocals.add(stackTrace);
@@ -351,7 +352,7 @@ class _NullableVariableInference extends RecursiveVisitor<void> {
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     if (_nullInference.allowNotNullDeclarations) {
       var annotations = node.annotations;
       if (annotations.isNotEmpty &&
@@ -377,10 +378,10 @@ class _NullableVariableInference extends RecursiveVisitor<void> {
   }
 
   @override
-  visitVariableGet(VariableGet node) {}
+  void visitVariableGet(VariableGet node) {}
 
   @override
-  visitVariableSet(VariableSet node) {
+  void visitVariableSet(VariableSet node) {
     var variable = node.variable;
     var value = node.value;
     if (_notNullLocals.contains(variable)) {
@@ -388,7 +389,7 @@ class _NullableVariableInference extends RecursiveVisitor<void> {
       _variableAssignedTo = variable;
 
       if (_nullInference.isNullable(node.value)) {
-        markNullable(VariableDeclaration v) {
+        void markNullable(VariableDeclaration v) {
           _notNullLocals.remove(v);
           _assignedTo.remove(v)?.forEach(markNullable);
         }

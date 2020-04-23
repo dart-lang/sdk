@@ -23,8 +23,6 @@ import 'declaration_kind.dart' show DeclarationKind;
 
 import 'member_kind.dart' show MemberKind;
 
-import 'util.dart' show optional;
-
 abstract class UnescapeErrorListener {
   void handleUnescapeError(
       Message message, covariant location, int offset, int length);
@@ -68,6 +66,11 @@ class Listener implements UnescapeErrorListener {
   void endInvalidAwaitExpression(
       Token beginToken, Token endToken, MessageCode errorCode) {
     logEvent("InvalidAwaitExpression");
+  }
+
+  void endInvalidYieldStatement(Token beginToken, Token starToken,
+      Token endToken, MessageCode errorCode) {
+    logEvent("InvalidYieldStatement");
   }
 
   void beginBlock(Token token, BlockKind blockKind) {}
@@ -803,7 +806,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralString");
   }
 
-  void handleStringJuxtaposition(int literalCount) {
+  void handleStringJuxtaposition(Token startToken, int literalCount) {
     logEvent("StringJuxtaposition");
   }
 
@@ -1145,36 +1148,6 @@ class Listener implements UnescapeErrorListener {
     logEvent("NonNullAssertExpression");
   }
 
-  // TODO(danrubel): Remove this once all listeners have been updated
-  // to properly handle nullable types
-  void reportErrorIfNullableType(Token questionMark) {
-    if (questionMark != null) {
-      assert(optional('?', questionMark));
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments('non-nullable'),
-          questionMark,
-          questionMark);
-    }
-  }
-
-  // TODO(danrubel): Remove this once all listeners have been updated
-  // to properly handle nullable types
-  void reportNonNullableModifierError(Token modifierToken) {
-    if (modifierToken != null) {
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments('non-nullable'),
-          modifierToken,
-          modifierToken);
-    }
-  }
-
-  // TODO(danrubel): Remove this once all listeners have been updated
-  // to properly handle non-null assert expressions
-  void reportNonNullAssertExpressionNotEnabled(Token bang) {
-    handleRecoverableError(
-        templateExperimentNotEnabled.withArguments('non-nullable'), bang, bang);
-  }
-
   void handleNoName(Token token) {
     logEvent("NoName");
   }
@@ -1381,7 +1354,7 @@ class Listener implements UnescapeErrorListener {
   }
 
   void handleIndexedExpression(
-      Token openSquareBracket, Token closeSquareBracket) {
+      Token question, Token openSquareBracket, Token closeSquareBracket) {
     logEvent("IndexedExpression");
   }
 
@@ -1576,6 +1549,12 @@ class Listener implements UnescapeErrorListener {
 
   void handleVoidKeyword(Token token) {
     logEvent("VoidKeyword");
+  }
+
+  /// The parser saw a void with type arguments (e.g. void<int>).
+  /// This is not valid - an error has already been emitted.
+  void handleVoidKeywordWithTypeArguments(Token token) {
+    logEvent("handleVoidKeywordWithTypeArguments");
   }
 
   void beginYieldStatement(Token token) {}

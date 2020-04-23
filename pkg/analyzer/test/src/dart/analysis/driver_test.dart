@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -19,7 +20,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -46,21 +46,21 @@ main() {
  * any code to run, as long as it's not waiting on some external event.
  */
 Future pumpEventQueue([int times = 5000]) {
-  if (times == 0) return new Future.value();
+  if (times == 0) return Future.value();
   // We use a delayed future to allow microtask events to finish. The
   // Future.value or Future() constructors use scheduleMicrotask themselves and
   // would therefore not wait for microtask callbacks that are scheduled after
   // invoking this method.
-  return new Future.delayed(Duration.zero, () => pumpEventQueue(times - 1));
+  return Future.delayed(Duration.zero, () => pumpEventQueue(times - 1));
 }
 
 @reflectiveTest
 class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   DartSdk sdk;
-  final ByteStore byteStore = new MemoryByteStore();
-  final FileContentOverlay contentOverlay = new FileContentOverlay();
+  final ByteStore byteStore = MemoryByteStore();
+  final FileContentOverlay contentOverlay = FileContentOverlay();
 
-  final StringBuffer logBuffer = new StringBuffer();
+  final StringBuffer logBuffer = StringBuffer();
   PerformanceLog logger;
 
   AnalysisDriverScheduler scheduler;
@@ -68,27 +68,27 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   List<ResolvedUnitResult> allResults = [];
 
   AnalysisDriver newDriver() {
-    sdk = new MockSdk(resourceProvider: resourceProvider);
-    AnalysisDriver driver = new AnalysisDriver(
+    sdk = MockSdk(resourceProvider: resourceProvider);
+    AnalysisDriver driver = AnalysisDriver(
         scheduler,
         logger,
         resourceProvider,
         byteStore,
         contentOverlay,
         null,
-        new SourceFactory([
-          new DartUriResolver(sdk),
-          new ResourceUriResolver(resourceProvider)
-        ], null, resourceProvider),
-        new AnalysisOptionsImpl());
+        SourceFactory(
+          [DartUriResolver(sdk), ResourceUriResolver(resourceProvider)],
+        ),
+        AnalysisOptionsImpl(),
+        packages: Packages.empty);
     driver.results.forEach(allResults.add);
     return driver;
   }
 
   void setUp() {
-    sdk = new MockSdk(resourceProvider: resourceProvider);
-    logger = new PerformanceLog(logBuffer);
-    scheduler = new AnalysisDriverScheduler(logger);
+    sdk = MockSdk(resourceProvider: resourceProvider);
+    logger = PerformanceLog(logBuffer);
+    scheduler = AnalysisDriverScheduler(logger);
     scheduler.start();
   }
 
@@ -287,7 +287,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
     driver2.addFile(b);
     driver2.addFile(c);
 
-    Monitor idleStatusMonitor = new Monitor();
+    Monitor idleStatusMonitor = Monitor();
     List<AnalysisStatus> allStatuses = [];
     // awaiting times out.
     // ignore: unawaited_futures
@@ -318,7 +318,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
     driver1.addFile(a);
     driver2.addFile(b);
 
-    Monitor idleStatusMonitor = new Monitor();
+    Monitor idleStatusMonitor = Monitor();
     List<AnalysisStatus> allStatuses = [];
     // awaiting times out.
     // ignore: unawaited_futures
@@ -344,6 +344,11 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
 @reflectiveTest
 class AnalysisDriverTest extends BaseAnalysisDriverTest {
+  void assertType(DartType type, String expected) {
+    var typeStr = type.getDisplayString(withNullability: false);
+    expect(typeStr, expected);
+  }
+
   test_addedFiles() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
@@ -358,10 +363,9 @@ class AnalysisDriverTest extends BaseAnalysisDriverTest {
   }
 
   test_addFile_notAbsolutePath() async {
-    try {
+    expect(() {
       driver.addFile('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_addFile_shouldRefresh() async {
@@ -493,7 +497,7 @@ part of lib;
     ResolvedUnitResult libResult = await driver.getResult(lib);
     List<AnalysisError> errors = libResult.errors;
     expect(errors, hasLength(1));
-    expect(errors[0].errorCode, ResolverErrorCode.PART_OF_UNNAMED_LIBRARY);
+    expect(errors[0].errorCode, CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY);
   }
 
   test_analyze_resolveDirectives_error_partOfDifferentLibrary_byName() async {
@@ -674,7 +678,7 @@ var A = B;
     expect(allResults, hasLength(1));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      expect(_getTopLevelVarType(ar.unit, 'A'), 'int');
+      _assertTopLevelVarType(ar.unit, 'A', 'int');
     }
     allResults.clear();
 
@@ -691,15 +695,14 @@ var A = B;
     expect(allResults, hasLength(1));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      expect(_getTopLevelVarType(ar.unit, 'A'), 'double');
+      _assertTopLevelVarType(ar.unit, 'A', 'double');
     }
   }
 
   test_changeFile_notAbsolutePath() async {
-    try {
+    expect(() {
       driver.changeFile('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_changeFile_notUsed() async {
@@ -746,12 +749,12 @@ var B1 = A1;
     expect(allResults, hasLength(2));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      expect(_getTopLevelVarType(ar.unit, 'A1'), 'int');
-      expect(_getTopLevelVarType(ar.unit, 'A2'), 'int');
+      _assertTopLevelVarType(ar.unit, 'A1', 'int');
+      _assertTopLevelVarType(ar.unit, 'A2', 'int');
     }
     {
       ResolvedUnitResult br = allResults.firstWhere((r) => r.path == b);
-      expect(_getTopLevelVarType(br.unit, 'B1'), 'int');
+      _assertTopLevelVarType(br.unit, 'B1', 'int');
     }
 
     // Clear the results and update "a".
@@ -769,12 +772,12 @@ var A2 = B1;
     expect(allResults, hasLength(2));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      expect(_getTopLevelVarType(ar.unit, 'A1'), 'double');
-      expect(_getTopLevelVarType(ar.unit, 'A2'), 'double');
+      _assertTopLevelVarType(ar.unit, 'A1', 'double');
+      _assertTopLevelVarType(ar.unit, 'A2', 'double');
     }
     {
       ResolvedUnitResult br = allResults.firstWhere((r) => r.path == b);
-      expect(_getTopLevelVarType(br.unit, 'B1'), 'double');
+      _assertTopLevelVarType(br.unit, 'B1', 'double');
     }
   }
 
@@ -787,7 +790,7 @@ var A2 = B1;
       expect(allResults, hasLength(1));
       ResolvedUnitResult result = allResults[0];
       expect(result.path, testFile);
-      expect(_getTopLevelVarType(result.unit, 'V'), 'int');
+      _assertTopLevelVarType(result.unit, 'V', 'int');
     }
 
     // Update the file, but don't notify the driver.
@@ -810,7 +813,7 @@ var A2 = B1;
       expect(allResults, hasLength(1));
       ResolvedUnitResult result = allResults[0];
       expect(result.path, testFile);
-      expect(_getTopLevelVarType(result.unit, 'V'), 'double');
+      _assertTopLevelVarType(result.unit, 'V', 'double');
     }
   }
 
@@ -847,7 +850,7 @@ class D {
     var value = atDI.evaluationResult.value;
     expect(value, isNotNull);
     expect(value.type, isNotNull);
-    expect(value.type.name, 'D');
+    assertType(value.type, 'D');
     expect(value.fields.keys, ['value']);
     expect(value.getField('value').toIntValue(), 1);
     expect(atDI.evaluationResult.errors, isEmpty);
@@ -1106,7 +1109,7 @@ aaa() {}
 bbb() {}
 ''');
 
-    Source generatedSource = new _SourceMock(generatedPath, uri);
+    Source generatedSource = _SourceMock(generatedPath, uri);
 
     generatedUriResolver.resolveAbsoluteFunction =
         (uri, actualUri) => generatedSource;
@@ -1167,10 +1170,9 @@ bbb() {}
   }
 
   test_getErrors_notAbsolutePath() async {
-    try {
+    expect(() async {
       await driver.getErrors('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_getFilesDefiningClassMemberName_class() async {
@@ -1286,10 +1288,9 @@ bbb() {}
   }
 
   test_getFileSync_notAbsolutePath() async {
-    try {
+    expect(() {
       driver.getFileSync('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_getFileSync_part() async {
@@ -1319,10 +1320,9 @@ main() {
   }
 
   test_getIndex_notAbsolutePath() async {
-    try {
+    expect(() async {
       await driver.getIndex('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_getLibraryByUri() async {
@@ -1373,8 +1373,8 @@ class B {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    expect(f.declaredElement.type.toString(), 'int Function()');
-    expect(f.returnType.type.toString(), 'int');
+    assertType(f.declaredElement.type, 'int Function()');
+    assertType(f.returnType.type, 'int');
 
     // The same result is also received through the stream.
     await waitForIdleWithoutExceptions();
@@ -1505,7 +1505,7 @@ class C {
     await waitForIdleWithoutExceptions();
 
     ResolvedUnitResult result = await driver.getResult(testFile);
-    expect(_getClassFieldType(result.unit, 'C', 'f'), 'int');
+    _assertClassFieldType(result.unit, 'C', 'f', 'int');
   }
 
   test_getResult_inferTypes_instanceMethod() async {
@@ -1520,8 +1520,8 @@ class B extends A {
     await waitForIdleWithoutExceptions();
 
     ResolvedUnitResult result = await driver.getResult(testFile);
-    expect(_getClassMethodReturnType(result.unit, 'A', 'm'), 'int');
-    expect(_getClassMethodReturnType(result.unit, 'B', 'm'), 'int');
+    _assertClassMethodReturnType(result.unit, 'A', 'm', 'int');
+    _assertClassMethodReturnType(result.unit, 'B', 'm', 'int');
   }
 
   test_getResult_invalid_annotation_functionAsConstructor() async {
@@ -1612,6 +1612,19 @@ part '';
     await driver.getResult(testFile);
   }
 
+  test_getResult_languageVersion() async {
+    var path = convertPath('/test/lib/test.dart');
+    newFile(path, content: r'''
+// @dart = 2.7
+class A{}
+''');
+
+    var result = await driver.getResult(path);
+    var languageVersion = result.unit.languageVersionToken;
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 7);
+  }
+
   test_getResult_mix_fileAndPackageUris() async {
     var a = convertPath('/test/bin/a.dart');
     var b = convertPath('/test/bin/b.dart');
@@ -1685,10 +1698,9 @@ main() {
   }
 
   test_getResult_notAbsolutePath() async {
-    try {
+    expect(() async {
       await driver.getResult('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_getResult_notDartFile() async {
@@ -1732,7 +1744,7 @@ var VC = new A<double>();
       ResolvedUnitResult result = await driver.getResult(b);
       expect(_getImportSource(result.unit, 0).uri.toString(),
           'package:test/a.dart');
-      expect(_getTopLevelVarType(result.unit, 'VB'), 'A<int>');
+      _assertTopLevelVarType(result.unit, 'VB', 'A<int>');
     }
 
     {
@@ -1741,7 +1753,7 @@ var VC = new A<double>();
         _getImportSource(result.unit, 0).uri,
         toUri('/test/lib/a.dart'),
       );
-      expect(_getTopLevelVarType(result.unit, 'VC'), 'A<double>');
+      _assertTopLevelVarType(result.unit, 'VC', 'A<double>');
     }
   }
 
@@ -1764,8 +1776,8 @@ var B1 = A1;
 
     {
       ResolvedUnitResult result = await driver.getResult(a);
-      expect(_getTopLevelVarType(result.unit, 'A1'), 'int');
-      expect(_getTopLevelVarType(result.unit, 'A2'), 'int');
+      _assertTopLevelVarType(result.unit, 'A1', 'int');
+      _assertTopLevelVarType(result.unit, 'A2', 'int');
     }
 
     // Update "a" so that "A1" is now "double".
@@ -1784,8 +1796,8 @@ var A2 = B1;
 
     {
       ResolvedUnitResult result = await driver.getResult(a);
-      expect(_getTopLevelVarType(result.unit, 'A1'), 'double');
-      expect(_getTopLevelVarType(result.unit, 'A2'), 'double');
+      _assertTopLevelVarType(result.unit, 'A1', 'double');
+      _assertTopLevelVarType(result.unit, 'A2', 'double');
     }
   }
 
@@ -1816,6 +1828,24 @@ var A2 = B1;
     expect(result1.unit, isNotNull);
   }
 
+  test_getSourceKind_changeFile() async {
+    var path = convertPath('/test/lib/test.dart');
+    expect(await driver.getSourceKind(path), SourceKind.LIBRARY);
+
+    newFile(path, content: 'part of foo;');
+    driver.changeFile(path);
+    expect(await driver.getSourceKind(path), SourceKind.PART);
+
+    newFile(path, content: '');
+    driver.changeFile(path);
+    expect(await driver.getSourceKind(path), SourceKind.LIBRARY);
+  }
+
+  test_getSourceKind_doesNotExist() async {
+    var path = convertPath('/test/lib/test.dart');
+    expect(await driver.getSourceKind(path), SourceKind.LIBRARY);
+  }
+
   test_getSourceKind_library() async {
     var path = convertPath('/test/lib/test.dart');
     newFile(path, content: 'class A {}');
@@ -1823,10 +1853,9 @@ var A2 = B1;
   }
 
   test_getSourceKind_notAbsolutePath() async {
-    try {
+    expect(() async {
       await driver.getSourceKind('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_getSourceKind_notDartFile() async {
@@ -1871,10 +1900,9 @@ import 'package:test/b.dart';
   }
 
   test_getUnitElement_notAbsolutePath() async {
-    try {
+    expect(() async {
       await driver.getUnitElement('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_getUnitElement_notDart() async {
@@ -1991,7 +2019,7 @@ var b = new B();
 
     ResolvedUnitResult result = await driver.getResult(a);
     expect(result.errors, isEmpty);
-    expect(_getTopLevelVarType(result.unit, 'b'), 'B');
+    _assertTopLevelVarType(result.unit, 'b', 'B');
   }
 
   test_importOfNonLibrary_part_afterLibrary() async {
@@ -2140,10 +2168,9 @@ import 'b.dart';
   }
 
   test_parseFile_notAbsolutePath() async {
-    try {
+    expect(() async {
       await driver.parseFile('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_parseFile_notDart() async {
@@ -2172,11 +2199,35 @@ import 'b.dart';
     expect(clazz.name.name, 'A2');
   }
 
+  test_parseFileSync_languageVersion() async {
+    var path = convertPath('/test/lib/test.dart');
+
+    newFile(path, content: r'''
+// @dart = 2.7
+class A {}
+''');
+
+    var parseResult = driver.parseFileSync(path);
+    var languageVersion = parseResult.unit.languageVersionToken;
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 7);
+  }
+
+  test_parseFileSync_languageVersion_null() async {
+    var path = convertPath('/test/lib/test.dart');
+
+    newFile(path, content: r'''
+class A {}
+''');
+
+    var parseResult = driver.parseFileSync(path);
+    expect(parseResult.unit.languageVersionToken, isNull);
+  }
+
   test_parseFileSync_notAbsolutePath() async {
-    try {
+    expect(() {
       driver.parseFileSync('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_parseFileSync_notDart() {
@@ -2298,15 +2349,15 @@ var b = new B();
     {
       ResolvedUnitResult result = await driver.getResult(a);
       expect(result.errors, isEmpty);
-      expect(_getTopLevelVarType(result.unit, 'c'), 'C');
+      _assertTopLevelVarType(result.unit, 'c', 'C');
     }
 
     // Now c.dart can be resolved without errors in the context of a.dart
     {
       ResolvedUnitResult result = await driver.getResult(c);
       expect(result.errors, isEmpty);
-      expect(_getTopLevelVarType(result.unit, 'a'), 'A');
-      expect(_getTopLevelVarType(result.unit, 'b'), 'B');
+      _assertTopLevelVarType(result.unit, 'a', 'A');
+      _assertTopLevelVarType(result.unit, 'b', 'B');
     }
   }
 
@@ -2337,8 +2388,8 @@ var b = new B();
     // So, A and B references are resolved.
     ResolvedUnitResult result = await driver.getResult(c);
     expect(result.errors, isEmpty);
-    expect(_getTopLevelVarType(result.unit, 'a'), 'A');
-    expect(_getTopLevelVarType(result.unit, 'b'), 'B');
+    _assertTopLevelVarType(result.unit, 'a', 'A');
+    _assertTopLevelVarType(result.unit, 'b', 'B');
   }
 
   test_part_getResult_changePart_invalidatesLibraryCycle() async {
@@ -2416,11 +2467,11 @@ var b = new B();
       UnitElementResult result = await driver.getUnitElement(c);
       var partUnit = result.element;
 
-      expect(partUnit.topLevelVariables[0].type.name, 'A');
-      expect(partUnit.topLevelVariables[1].type.name, 'B');
+      assertType(partUnit.topLevelVariables[0].type, 'A');
+      assertType(partUnit.topLevelVariables[1].type, 'B');
 
       var libraryUnit = partUnit.library.definingCompilationUnit;
-      expect(libraryUnit.topLevelVariables[0].type.name, 'C');
+      assertType(libraryUnit.topLevelVariables[0].type, 'C');
     }
   }
 
@@ -2452,11 +2503,11 @@ var b = new B();
       UnitElementResult result = await driver.getUnitElement(c);
       var partUnit = result.element;
 
-      expect(partUnit.topLevelVariables[0].type.name, 'A');
-      expect(partUnit.topLevelVariables[1].type.name, 'B');
+      assertType(partUnit.topLevelVariables[0].type, 'A');
+      assertType(partUnit.topLevelVariables[1].type, 'B');
 
       var libraryUnit = partUnit.library.definingCompilationUnit;
-      expect(libraryUnit.topLevelVariables[0].type.name, 'C');
+      assertType(libraryUnit.topLevelVariables[0].type, 'C');
     }
   }
 
@@ -2477,10 +2528,10 @@ var b = new B();
       var partUnit = result.element;
 
       expect(partUnit.topLevelVariables[0].name, 'a');
-      expect(partUnit.topLevelVariables[0].type.name, 'dynamic');
+      assertType(partUnit.topLevelVariables[0].type, 'dynamic');
 
       expect(partUnit.topLevelVariables[1].name, 'b');
-      expect(partUnit.topLevelVariables[1].type.name, 'dynamic');
+      assertType(partUnit.topLevelVariables[1].type, 'dynamic');
     }
   }
 
@@ -2675,11 +2726,11 @@ var A = B;
     expect(allResults, hasLength(2));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      expect(_getTopLevelVarType(ar.unit, 'A'), 'int');
+      _assertTopLevelVarType(ar.unit, 'A', 'int');
     }
     {
       ResolvedUnitResult br = allResults.firstWhere((r) => r.path == b);
-      expect(_getTopLevelVarType(br.unit, 'B'), 'int');
+      _assertTopLevelVarType(br.unit, 'B', 'int');
     }
     allResults.clear();
 
@@ -2695,7 +2746,7 @@ var A = B;
     expect(allResults, hasLength(1));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      expect(_getTopLevelVarType(ar.unit, 'A'), 'double');
+      _assertTopLevelVarType(ar.unit, 'A', 'double');
     }
   }
 
@@ -2742,10 +2793,9 @@ var A = B;
   }
 
   test_removeFile_notAbsolutePath() async {
-    try {
+    expect(() {
       driver.removeFile('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_resetUriResolution() async {
@@ -2909,8 +2959,8 @@ class F extends X {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    expect(f.declaredElement.type.toString(), 'int Function()');
-    expect(f.returnType.type.toString(), 'int');
+    assertType(f.declaredElement.type, 'int Function()');
+    assertType(f.returnType.type, 'int');
   }
 
   test_results_priorityFirst() async {
@@ -3021,13 +3071,33 @@ var v = 0
     await scheduler.waitForIdle();
 
     if (allExceptions.isNotEmpty) {
-      var buffer = new StringBuffer();
+      var buffer = StringBuffer();
       for (var exception in allExceptions) {
-        buffer.writeln('Path: ${exception.path}');
+        buffer.writeln('Path: ${exception.filePath}');
         buffer.writeln('Exception: ${exception.exception}');
       }
       fail('Unexpected exceptions:\n$buffer');
     }
+  }
+
+  void _assertClassFieldType(CompilationUnit unit, String className,
+      String fieldName, String expected) {
+    var node = _getClassField(unit, className, fieldName);
+    var type = node.declaredElement.type;
+    assertType(type, expected);
+  }
+
+  void _assertClassMethodReturnType(CompilationUnit unit, String className,
+      String fieldName, String expected) {
+    var node = _getClassMethod(unit, className, fieldName);
+    var type = node.declaredElement.returnType;
+    assertType(type, expected);
+  }
+
+  void _assertTopLevelVarType(
+      CompilationUnit unit, String name, String expected) {
+    VariableDeclaration variable = _getTopLevelVar(unit, name);
+    assertType(variable.declaredElement.type, expected);
   }
 
   void _expectCircularityError(EvaluationResultImpl evaluationResult) {
@@ -3064,14 +3134,6 @@ var v = 0
     fail('Cannot find the field $fieldName in the class $className in\n$unit');
   }
 
-  String _getClassFieldType(
-      CompilationUnit unit, String className, String fieldName) {
-    return _getClassField(unit, className, fieldName)
-        .declaredElement
-        .type
-        .toString();
-  }
-
   MethodDeclaration _getClassMethod(
       CompilationUnit unit, String className, String methodName) {
     ClassDeclaration classDeclaration = _getClass(unit, className);
@@ -3083,15 +3145,6 @@ var v = 0
     }
     fail('Cannot find the method $methodName in the class $className in\n'
         '$unit');
-  }
-
-  String _getClassMethodReturnType(
-      CompilationUnit unit, String className, String fieldName) {
-    return _getClassMethod(unit, className, fieldName)
-        .declaredElement
-        .type
-        .returnType
-        .toString();
   }
 
   ImportElement _getImportElement(CompilationUnit unit, int directiveIndex) {
@@ -3115,15 +3168,11 @@ var v = 0
     }
     fail('Cannot find the top-level variable $name in\n$unit');
   }
-
-  String _getTopLevelVarType(CompilationUnit unit, String name) {
-    VariableDeclaration variable = _getTopLevelVar(unit, name);
-    return variable.declaredElement.type.toString();
-  }
 }
 
 @reflectiveTest
 class CacheAllAnalysisDriverTest extends BaseAnalysisDriverTest {
+  @override
   bool get disableChangesAndCacheAllResults => true;
 
   test_addFile() async {
@@ -3222,6 +3271,6 @@ class _SourceMock implements Source {
 
   @override
   noSuchMethod(Invocation invocation) {
-    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+    throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
 }

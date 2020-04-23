@@ -13,6 +13,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/compiler/assembler/assembler_base.h"
 #include "vm/constants.h"
 #include "vm/constants_x86.h"
 #include "vm/hash_map.h"
@@ -191,6 +192,7 @@ class Address : public Operand {
 
   Address(Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != RSP);  // Illegal addressing mode.
+    ASSERT(scale != TIMES_16);  // Unsupported scale factor.
     SetModRM(0, RSP);
     SetSIB(scale, index, RBP);
     SetDisp32(disp);
@@ -201,6 +203,7 @@ class Address : public Operand {
 
   Address(Register base, Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != RSP);  // Illegal addressing mode.
+    ASSERT(scale != TIMES_16);  // Unsupported scale factor.
     if ((disp == 0) && ((base & 7) != RBP)) {
       SetModRM(0, RSP);
       SetSIB(scale, index, base);
@@ -678,6 +681,15 @@ class Assembler : public AssemblerBase {
   void PushRegister(Register r);
   void PopRegister(Register r);
 
+  void PushRegisterPair(Register r0, Register r1) {
+    PushRegister(r1);
+    PushRegister(r0);
+  }
+  void PopRegisterPair(Register r0, Register r1) {
+    PopRegister(r0);
+    PopRegister(r1);
+  }
+
   // Methods for adding/subtracting an immediate value that may be loaded from
   // the constant pool.
   // TODO(koda): Assert that these are not used for heap objects.
@@ -699,6 +711,7 @@ class Assembler : public AssemblerBase {
   void LoadImmediate(Register reg, const Immediate& imm);
 
   void LoadIsolate(Register dst);
+  void LoadDispatchTable(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);
   void LoadNativeEntry(Register dst,
@@ -713,6 +726,8 @@ class Assembler : public AssemblerBase {
   void CallToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers);
+
+  void CallNullArgErrorShared(bool save_fpu_registers);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
@@ -839,9 +854,17 @@ class Assembler : public AssemblerBase {
   void Jump(Label* label) { jmp(label); }
 
   void LoadField(Register dst, FieldAddress address) { movq(dst, address); }
+  void LoadMemoryValue(Register dst, Register base, int32_t offset) {
+    movq(dst, Address(base, offset));
+  }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
     cmpq(value, address);
+  }
+
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
+    cmpb(FieldAddress(type, compiler::target::Type::nullability_offset()),
+         Immediate(value));
   }
 
   void RestoreCodePointer();
@@ -935,9 +958,6 @@ class Assembler : public AssemblerBase {
 
   // Debugging and bringup support.
   void Breakpoint() override { int3(); }
-  void Stop(const char* message) override;
-
-  static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
   static Address ElementAddressForIntIndex(bool is_external,
                                            intptr_t cid,
@@ -947,6 +967,7 @@ class Assembler : public AssemblerBase {
   static Address ElementAddressForRegIndex(bool is_external,
                                            intptr_t cid,
                                            intptr_t index_scale,
+                                           bool index_unboxed,
                                            Register array,
                                            Register index);
 

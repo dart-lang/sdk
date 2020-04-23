@@ -5,22 +5,20 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/summary2/link.dart' as summary2;
 import 'package:analyzer/src/summary2/linked_element_factory.dart' as summary2;
 import 'package:analyzer/src/summary2/reference.dart' as summary2;
+import 'package:meta/meta.dart';
 
 class SummaryBuilder {
   final Iterable<Source> librarySources;
@@ -39,10 +37,10 @@ class SummaryBuilder {
     // Prepare SDK.
     //
     ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-    FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+    FolderBasedDartSdk sdk = FolderBasedDartSdk(
         resourceProvider, resourceProvider.getFolder(sdkPath));
     sdk.useSummary = false;
-    sdk.analysisOptions = new AnalysisOptionsImpl();
+    sdk.analysisOptions = AnalysisOptionsImpl();
 
     //
     // Prepare 'dart:' URIs to serialize.
@@ -51,30 +49,35 @@ class SummaryBuilder {
         sdk.sdkLibraries.map((SdkLibrary library) => library.shortName).toSet();
     uriSet.add('dart:html_common/html_common_dart2js.dart');
 
-    Set<Source> librarySources = new HashSet<Source>();
+    Set<Source> librarySources = HashSet<Source>();
     for (String uri in uriSet) {
       librarySources.add(sdk.mapDartUri(uri));
     }
 
-    return new SummaryBuilder(librarySources, sdk.context);
+    return SummaryBuilder(librarySources, sdk.context);
   }
 
   /**
    * Build the linked bundle and return its bytes.
    */
-  List<int> build() => new _Builder(context, librarySources).build();
+  List<int> build({
+    @required FeatureSet featureSet,
+  }) {
+    return _Builder(context, featureSet, librarySources).build();
+  }
 }
 
 class _Builder {
   final AnalysisContext context;
+  final FeatureSet featureSet;
   final Iterable<Source> librarySources;
 
-  final Set<String> libraryUris = new Set<String>();
+  final Set<String> libraryUris = <String>{};
   final List<summary2.LinkInputLibrary> inputLibraries = [];
 
-  final PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
+  final PackageBundleAssembler bundleAssembler = PackageBundleAssembler();
 
-  _Builder(this.context, this.librarySources);
+  _Builder(this.context, this.featureSet, this.librarySources);
 
   /**
    * Build the linked bundle and return its bytes.
@@ -84,7 +87,7 @@ class _Builder {
 
     var elementFactory = summary2.LinkedElementFactory(
       context,
-      null,
+      AnalysisSessionImpl(null),
       summary2.Reference.root(),
     );
 
@@ -128,21 +131,10 @@ class _Builder {
   }
 
   CompilationUnit _parse(Source source) {
-    AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
-    String code = source.contents.data;
-    CharSequenceReader reader = new CharSequenceReader(code);
-    // TODO(paulberry): figure out the appropriate featureSet to use here
-    var featureSet = FeatureSet.fromEnableFlags([]);
-    Scanner scanner = new Scanner(source, reader, errorListener)
-      ..configureFeatures(featureSet);
-    Token token = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-    Parser parser = new Parser(source, errorListener,
-        featureSet: featureSet,
-        useFasta: context.analysisOptions.useFastaParser);
-    parser.enableOptionalNewAndConst = true;
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
-    return unit;
+    return parseString(
+      content: source.contents.data,
+      featureSet: featureSet,
+      throwIfDiagnostics: false,
+    ).unit;
   }
 }

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InlineInvocationTest);
   });
@@ -24,9 +24,9 @@ class InlineInvocationTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_inlined_adds;
 
   /// More coverage in the `inline_invocation_test.dart` assist test.
-  test_add_emptyTarget() async {
+  Future<void> test_add_emptyTarget() async {
     await resolveTestUnit('''
-var l = []../*LINT*/add('a')..add('b');
+var l = []..add('a')..add('b');
 ''');
     await assertHasFix('''
 var l = ['a']..add('b');

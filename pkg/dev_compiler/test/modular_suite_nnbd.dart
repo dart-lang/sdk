@@ -12,16 +12,17 @@ import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/runner.dart';
 
-Uri sdkRoot = Platform.script.resolve("../../../");
+Uri sdkRoot = Platform.script.resolve('../../../');
 Options _options;
 String _dartdevcScript;
 String _kernelWorkerScript;
-main(List<String> args) async {
+
+void main(List<String> args) async {
   _options = Options.parse(args);
   await _resolveScripts();
   await runSuite(
       sdkRoot.resolve('tests/compiler/dartdevc/modular/'),
-      'tests/compiler/dartdevc/modular/',
+      'tests/compiler/dartdevc/modular',
       _options,
       IOPipeline([
         SourceToSummaryDillStep(),
@@ -30,9 +31,9 @@ main(List<String> args) async {
       ], cacheSharedModules: true));
 }
 
-const dillId = DataId("dill");
-const jsId = DataId("js");
-const txtId = DataId("txt");
+const dillId = DataId('dill');
+const jsId = DataId('js');
+const txtId = DataId('txt');
 
 class SourceToSummaryDillStep implements IOModularStep {
   @override
@@ -53,7 +54,7 @@ class SourceToSummaryDillStep implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print("\nstep: source-to-dill on $module");
+    if (_options.verbose) print('\nstep: source-to-dill on $module');
 
     // We use non file-URI schemes for representing source locations in a
     // root-agnostic way. This allows us to refer to file across modules and
@@ -63,11 +64,11 @@ class SourceToSummaryDillStep implements IOModularStep {
     //
     // Files in packages are defined in terms of `package:` URIs, while
     // non-package URIs are defined using the `dart-dev-app` scheme.
-    String rootScheme = module.isSdk ? 'dev-dart-sdk' : 'dev-dart-app';
+    var rootScheme = module.isSdk ? 'dev-dart-sdk' : 'dev-dart-app';
     String sourceToImportUri(Uri relativeUri) =>
         _sourceToImportUri(module, rootScheme, relativeUri);
 
-    Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
+    var transitiveDependencies = computeTransitiveDependencies(module);
     await _createPackagesFile(module, root, transitiveDependencies);
 
     List<String> sources;
@@ -84,10 +85,10 @@ class SourceToSummaryDillStep implements IOModularStep {
       extraArgs = ['--packages-file', '$rootScheme:/.packages'];
     }
 
-    Module sdkModule =
+    var sdkModule =
         module.isSdk ? module : module.dependencies.firstWhere((m) => m.isSdk);
 
-    List<String> args = [
+    var args = [
       _kernelWorkerScript,
       '--summary-only',
       '--target',
@@ -118,7 +119,7 @@ class SourceToSummaryDillStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose) print("\ncached step: source-to-dill on $module");
+    if (_options.verbose) print('\ncached step: source-to-dill on $module');
   }
 }
 
@@ -141,12 +142,12 @@ class DDKStep implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print("\nstep: ddk on $module");
+    if (_options.verbose) print('\nstep: ddk on $module');
 
-    Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
+    var transitiveDependencies = computeTransitiveDependencies(module);
     await _createPackagesFile(module, root, transitiveDependencies);
 
-    String rootScheme = module.isSdk ? 'dev-dart-sdk' : 'dev-dart-app';
+    var rootScheme = module.isSdk ? 'dev-dart-sdk' : 'dev-dart-app';
     List<String> sources;
     List<String> extraArgs;
     if (module.isSdk) {
@@ -159,7 +160,7 @@ class DDKStep implements IOModularStep {
       ];
       assert(transitiveDependencies.isEmpty);
     } else {
-      Module sdkModule = module.dependencies.firstWhere((m) => m.isSdk);
+      var sdkModule = module.dependencies.firstWhere((m) => m.isSdk);
       sources = module.sources
           .map((relativeUri) =>
               _sourceToImportUri(module, rootScheme, relativeUri))
@@ -172,9 +173,9 @@ class DDKStep implements IOModularStep {
       ];
     }
 
-    Uri output = toUri(module, jsId);
+    var output = toUri(module, jsId);
 
-    List<String> args = [
+    var args = [
       '--packages=${sdkRoot.toFilePath()}/.packages',
       _dartdevcScript,
       '--kernel',
@@ -200,7 +201,7 @@ class DDKStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose) print("\ncached step: ddk on $module");
+    if (_options.verbose) print('\ncached step: ddk on $module');
   }
 }
 
@@ -223,7 +224,7 @@ class RunD8 implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print("\nstep: d8 on $module");
+    if (_options.verbose) print('\nstep: d8 on $module');
 
     // Rename sdk.js to dart_sdk.js (the alternative, but more hermetic solution
     // would be to rename the import on all other .js files, but seems
@@ -242,9 +243,9 @@ class RunD8 implements IOModularStep {
     ''';
 
     var wrapper =
-        root.resolveUri(toUri(module, jsId)).toFilePath() + ".wrapper.js";
+        root.resolveUri(toUri(module, jsId)).toFilePath() + '.wrapper.js';
     await File(wrapper).writeAsString(runjs);
-    List<String> d8Args = ['--module', wrapper];
+    var d8Args = ['--module', wrapper];
     var result = await _runProcess(
         sdkRoot.resolve(_d8executable).toFilePath(), d8Args, root.toFilePath());
 
@@ -256,7 +257,7 @@ class RunD8 implements IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose) print("\ncached step: d8 on $module");
+    if (_options.verbose) print('\ncached step: d8 on $module');
   }
 }
 
@@ -266,9 +267,9 @@ void _checkExitCode(ProcessResult result, IOModularStep step, Module module) {
     stderr.write(result.stderr);
   }
   if (result.exitCode != 0) {
-    throw "${step.runtimeType} failed on $module:\n\n"
-        "stdout:\n${result.stdout}\n\n"
-        "stderr:\n${result.stderr}";
+    throw '${step.runtimeType} failed on $module:\n\n'
+        'stdout:\n${result.stdout}\n\n'
+        'stderr:\n${result.stderr}';
   }
 }
 
@@ -309,7 +310,7 @@ Future<void> _createPackagesFile(
   if (module.isPackage) {
     packagesContents.write('${module.name}:${module.packageBase}\n');
   }
-  for (Module dependency in transitiveDependencies) {
+  for (var dependency in transitiveDependencies) {
     if (dependency.isPackage) {
       packagesContents.write('${dependency.name}:unused\n');
     }
@@ -322,7 +323,7 @@ Future<void> _createPackagesFile(
 String _sourceToImportUri(Module module, String rootScheme, Uri relativeUri) {
   if (module.isPackage) {
     var basePath = module.packageBase.path;
-    var packageRelativePath = basePath == "./"
+    var packageRelativePath = basePath == './'
         ? relativeUri.path
         : relativeUri.path.substring(basePath.length);
     return 'package:${module.name}/$packageRelativePath';
@@ -334,9 +335,9 @@ String _sourceToImportUri(Module module, String rootScheme, Uri relativeUri) {
 Future<void> _resolveScripts() async {
   Future<String> resolve(
       String sdkSourcePath, String relativeSnapshotPath) async {
-    String result = sdkRoot.resolve(sdkSourcePath).toFilePath();
+    var result = sdkRoot.resolve(sdkSourcePath).toFilePath();
     if (_options.useSdk) {
-      String snapshot = Uri.file(Platform.resolvedExecutable)
+      var snapshot = Uri.file(Platform.resolvedExecutable)
           .resolve(relativeSnapshotPath)
           .toFilePath();
       if (await File(snapshot).exists()) {

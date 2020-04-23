@@ -35,7 +35,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart' as fastaCodes;
 /// from this set.
 final whitelistMessageCode = new Set<fastaCodes.Code>.from(<fastaCodes.Code>[
   // Code names in this list should match the key used in messages.yaml
-  fastaCodes.codeInvalidAssignment,
+  fastaCodes.codeInvalidAssignmentError,
   fastaCodes.codeOverrideTypeMismatchParameter,
   fastaCodes.codeOverriddenMethodCause,
 

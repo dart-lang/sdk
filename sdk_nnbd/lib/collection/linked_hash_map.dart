@@ -67,9 +67,9 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// If you supply one of [equals] and [hashCode],
   /// you should generally also to supply the other.
   external factory LinkedHashMap(
-      {bool Function(K key1, K key2)? equals,
-      int Function(K key)? hashCode,
-      bool Function(dynamic potentialKey)? isValidKey});
+      {bool Function(K, K)? equals,
+      int Function(K)? hashCode,
+      bool Function(dynamic)? isValidKey});
 
   /// Creates an insertion-ordered identity-based map.
   ///

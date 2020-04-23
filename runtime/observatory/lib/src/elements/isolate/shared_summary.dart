@@ -91,7 +91,8 @@ class IsolateSharedSummaryElement extends CustomElement implements Renderable {
           new DivElement()
             ..children = <Element>[
               new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.debugger(_isolate))..text = 'debug'
+              new AnchorElement(href: Uris.debugger(_isolate))
+                ..text = 'debugger'
             ],
           new DivElement()
             ..children = <Element>[

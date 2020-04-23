@@ -4,9 +4,9 @@
 
 // Requirements=nnbd-strong
 
-import 'dart:async';
+import 'dart:async' show Future;
 
-import 'runtime_utils.dart';
+import 'runtime_utils.dart' show futureOrOf, voidType;
 import 'runtime_utils_nnbd.dart';
 
 class A {}
@@ -22,9 +22,6 @@ class E<T, S> {}
 class F extends E<B, B> {}
 
 void main() {
-  // Run tests with strict subtype checks.
-  strictSubtypeChecks(true);
-
   // Top type symmetry.
   // Object? <: dynamic
   checkSubtype(nullable(Object), dynamic);
@@ -41,29 +38,29 @@ void main() {
 
   // Bottom is subtype of top.
   // never <: dynamic
-  checkProperSubtype(neverType, dynamic);
+  checkProperSubtype(Never, dynamic);
   // never <: void
-  checkProperSubtype(neverType, voidType);
+  checkProperSubtype(Never, voidType);
   // never <: Object?
-  checkProperSubtype(neverType, nullable(Object));
+  checkProperSubtype(Never, nullable(Object));
 
   // Object is between top and bottom.
   // Object <: Object?
   checkProperSubtype(Object, nullable(Object));
   // never <: Object
-  checkProperSubtype(neverType, Object);
+  checkProperSubtype(Never, Object);
 
   // Null is between top and bottom.
   // Null <: Object?
   checkProperSubtype(Null, nullable(Object));
   // never <: Null
-  checkProperSubtype(neverType, Null);
+  checkProperSubtype(Never, Null);
 
   // Class is between Object and bottom.
   // A <: Object
   checkProperSubtype(A, dynamic);
   // never <: A
-  checkProperSubtype(neverType, A);
+  checkProperSubtype(Never, A);
 
   // Nullable types are a union of T and Null.
   // A <: A?
@@ -86,7 +83,7 @@ void main() {
   // Null <: Object*
   checkSubtype(Null, legacy(Object));
   // never <: Object*
-  checkSubtype(neverType, legacy(Object));
+  checkSubtype(Never, legacy(Object));
   // A* <: A
   checkSubtype(legacy(A), A);
   // A <: A*
@@ -102,35 +99,34 @@ void main() {
   // Null <: A*
   checkProperSubtype(Null, legacy(A));
   // never <: A*
-  checkProperSubtype(neverType, legacy(A));
+  checkProperSubtype(Never, legacy(A));
 
   // Futures.
   // Null <: FutureOr<Object?>
-  checkProperSubtype(Null, generic1(FutureOr, nullable(Object)));
+  checkProperSubtype(Null, futureOrOf(nullable(Object)));
   // Object <: FutureOr<Object?>
-  checkProperSubtype(Object, generic1(FutureOr, nullable(Object)));
+  checkProperSubtype(Object, futureOrOf(nullable(Object)));
   // Object? <: FutureOr<Object?>
-  checkSubtype(nullable(Object), generic1(FutureOr, nullable(Object)));
+  checkSubtype(nullable(Object), futureOrOf(nullable(Object)));
   // Object <: FutureOr<Object>
-  checkSubtype(Object, generic1(FutureOr, Object));
+  checkSubtype(Object, futureOrOf(Object));
   // FutureOr<Object> <: Object
-  checkSubtype(generic1(FutureOr, Object), Object);
+  checkSubtype(futureOrOf(Object), Object);
   // Object <: FutureOr<dynamic>
-  checkProperSubtype(Object, generic1(FutureOr, dynamic));
+  checkProperSubtype(Object, futureOrOf(dynamic));
   // Object <: FutureOr<void>
-  checkProperSubtype(Object, generic1(FutureOr, voidType));
+  checkProperSubtype(Object, futureOrOf(voidType));
   // Future<Object> <: FutureOr<Object?>
-  checkProperSubtype(
-      generic1(Future, Object), generic1(FutureOr, nullable(Object)));
+  checkProperSubtype(generic1(Future, Object), futureOrOf(nullable(Object)));
   // Future<Object?> <: FutureOr<Object?>
   checkProperSubtype(
-      generic1(Future, nullable(Object)), generic1(FutureOr, nullable(Object)));
+      generic1(Future, nullable(Object)), futureOrOf(nullable(Object)));
   // FutureOr<Never> <: Future<Never>
-  checkSubtype(generic1(FutureOr, neverType), generic1(Future, neverType));
+  checkSubtype(futureOrOf(Never), generic1(Future, Never));
   // Future<B> <: FutureOr<A>
-  checkProperSubtype(generic1(Future, B), generic1(FutureOr, A));
+  checkProperSubtype(generic1(Future, B), futureOrOf(A));
   // B <: <: FutureOr<A>
-  checkProperSubtype(B, generic1(FutureOr, A));
+  checkProperSubtype(B, futureOrOf(A));
   // Future<B> <: Future<A>
   checkProperSubtype(generic1(Future, B), generic1(Future, A));
 
@@ -210,16 +206,15 @@ void main() {
   // Bound is a FutureOr.
   // <T extends FutureOr<B>> void -> void <:
   //    <T extends FutureOr<B>> void -> void
-  checkSubtype(genericFunction(generic1(FutureOr, B)),
-      genericFunction(generic1(FutureOr, B)));
+  checkSubtype(genericFunction(futureOrOf(B)), genericFunction(futureOrOf(B)));
 
   // <T extends FutureOr<B>> A -> T <: <T extends FutureOr<B>> B -> T
-  checkProperSubtype(functionGenericReturn(generic1(FutureOr, B), A),
-      functionGenericReturn(generic1(FutureOr, B), B));
+  checkProperSubtype(functionGenericReturn(futureOrOf(B), A),
+      functionGenericReturn(futureOrOf(B), B));
 
   // <T extends FutureOr<B>> T -> B <: <T extends FutureOr<B>> T -> A
-  checkProperSubtype(functionGenericArg(generic1(FutureOr, B), B),
-      functionGenericArg(generic1(FutureOr, B), A));
+  checkProperSubtype(functionGenericArg(futureOrOf(B), B),
+      functionGenericArg(futureOrOf(B), A));
 
   // Generics.
   // D <: D<B>
@@ -276,23 +271,23 @@ void main() {
   // A? <\: A
   checkSubtypeFailure(nullable(A), A);
   // Null <\: never
-  checkSubtypeFailure(Null, neverType);
+  checkSubtypeFailure(Null, Never);
   // Null <\: Object
   checkSubtypeFailure(Null, Object);
   // Null <\: A
   checkSubtypeFailure(Null, A);
   // Null <\: FutureOr<A>
-  checkSubtypeFailure(Null, generic1(FutureOr, A));
+  checkSubtypeFailure(Null, futureOrOf(A));
   // Null <\: Future<A>
   checkSubtypeFailure(Null, generic1(Future, A));
   // FutureOr<Null> <\: Future<Null>
-  checkSubtypeFailure(generic1(FutureOr, Null), generic1(Future, Null));
+  checkSubtypeFailure(futureOrOf(Null), generic1(Future, Null));
   // Null <\: Future<A?>
   checkSubtypeFailure(Null, generic1(Future, nullable(A)));
   // FutureOr<Object?> <\: Object
-  checkSubtypeFailure(generic1(FutureOr, nullable(Object)), Object);
+  checkSubtypeFailure(futureOrOf(nullable(Object)), Object);
   // FutureOr<dynamic> <\: Object
-  checkSubtypeFailure(generic1(FutureOr, dynamic), Object);
+  checkSubtypeFailure(futureOrOf(dynamic), Object);
   // FutureOr<void> <\: Object
-  checkSubtypeFailure(generic1(FutureOr, voidType), Object);
+  checkSubtypeFailure(futureOrOf(voidType), Object);
 }

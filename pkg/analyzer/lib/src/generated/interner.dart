@@ -14,10 +14,8 @@ export 'package:_fe_analyzer_shared/src/scanner/interner.dart'
  * the strings that have been interned.
  */
 class MappedInterner implements Interner {
-  /**
-   * A table mapping strings to themselves.
-   */
-  Map<String, String> _table = new HashMap<String, String>();
+  /// A table mapping strings to themselves.
+  final Map<String, String> _table = HashMap<String, String>();
 
   @override
   String intern(String string) {

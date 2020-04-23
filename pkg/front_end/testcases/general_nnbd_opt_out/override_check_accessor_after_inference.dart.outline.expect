@@ -1,0 +1,69 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/override_check_accessor_after_inference.dart:28:9: Error: The return type of the method 'F.y' is 'A', which does not match the return type, 'B', of the overridden method, 'D.y'.
+//  - 'A' is from 'pkg/front_end/testcases/general_nnbd_opt_out/override_check_accessor_after_inference.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/general_nnbd_opt_out/override_check_accessor_after_inference.dart'.
+// Change to a subtype of 'B'.
+//   A get y => null;
+//         ^
+// pkg/front_end/testcases/general_nnbd_opt_out/override_check_accessor_after_inference.dart:18:7: Context: This is the overridden method ('y').
+//   get y => null; // Inferred type: B
+//       ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/override_check_accessor_after_inference.dart:27:16: Error: The parameter 'value' of the method 'F.x' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'D.x'.
+//  - 'B' is from 'pkg/front_end/testcases/general_nnbd_opt_out/override_check_accessor_after_inference.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general_nnbd_opt_out/override_check_accessor_after_inference.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   void set x(B value) {}
+//                ^
+// pkg/front_end/testcases/general_nnbd_opt_out/override_check_accessor_after_inference.dart:17:12: Context: This is the overridden method ('x').
+//   void set x(value) {} // Inferred type: A
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    ;
+  set x(self::A* value) → void
+    ;
+  get y() → self::B*
+    ;
+}
+class D extends self::C {
+  synthetic constructor •() → self::D*
+    ;
+  set x(self::A* value) → void
+    ;
+  get y() → self::B*
+    ;
+}
+class E extends self::D {
+  synthetic constructor •() → self::E*
+    ;
+  set x(self::A* value) → void
+    ;
+  get y() → self::B*
+    ;
+}
+class F extends self::D {
+  synthetic constructor •() → self::F*
+    ;
+  set x(self::B* value) → void
+    ;
+  get y() → self::A*
+    ;
+}
+static method main() → dynamic
+  ;

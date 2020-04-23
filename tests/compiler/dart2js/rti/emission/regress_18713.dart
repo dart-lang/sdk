@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "package:expect/expect.dart";
 
 /*class: T:checks=[],indirectInstance*/
@@ -16,7 +18,7 @@ class S<Y> {
   Type get getSType => Y;
 }
 
-/*class: TS:checks=[$asS0,$asT],instance*/
+/*class: TS:checks=[],instance*/
 class TS<A, B> = T<A> with S<B>;
 
 @pragma('dart2js:noInline')

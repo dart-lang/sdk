@@ -1,0 +1,52 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/nnbd/from_agnostic/from_agnostic.dart:8:12: Error: Constant evaluation error:
+// const c2 = {a: 0, b: 1};
+//            ^
+// pkg/front_end/testcases/nnbd/from_agnostic/from_agnostic.dart:8:19: Context: The key '<int>[]' conflicts with another existing key in the map.
+// const c2 = {a: 0, b: 1};
+//                   ^
+// pkg/front_end/testcases/nnbd/from_agnostic/from_agnostic.dart:8:7: Context: While analyzing:
+// const c2 = {a: 0, b: 1};
+//       ^
+//
+// pkg/front_end/testcases/nnbd/from_agnostic/from_agnostic.dart:9:12: Error: Constant evaluation error:
+// const c3 = {a, b};
+//            ^
+// pkg/front_end/testcases/nnbd/from_agnostic/from_agnostic.dart:9:16: Context: The element '<int>[]' conflicts with another existing element in the set.
+// const c3 = {a, b};
+//                ^
+// pkg/front_end/testcases/nnbd/from_agnostic/from_agnostic.dart:9:7: Context: While analyzing:
+// const c3 = {a, b};
+//       ^
+//
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///from_agnostic_lib.dart";
+
+static const field core::bool c1 = #C1;
+static const field core::Map<core::List<core::int?>, core::int> c2 = invalid-expression "The key '<int>[]' conflicts with another existing key in the map.";
+static const field core::Set<core::List<core::int?>> c3 = invalid-expression "The element '<int>[]' conflicts with another existing element in the set.";
+static const field core::List<core::int> c4 = #C2;
+static const field core::List<core::int?> c5 = #C2;
+static method main() → dynamic {
+  #C2;
+  #C2;
+}
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+static const field core::List<core::int> a = #C3;
+static const field core::List<core::int?> b = #C4;
+
+constants  {
+  #C1 = true
+  #C2 = <core::int*>[]
+  #C3 = <core::int>[]
+  #C4 = <core::int?>[]
+}

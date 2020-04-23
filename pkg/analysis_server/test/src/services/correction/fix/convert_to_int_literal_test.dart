@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToIntLiteralTest);
   });
@@ -24,12 +24,12 @@ class ConvertToIntLiteralTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_int_literals;
 
   /// More coverage in the `convert_to_int_literal_test.dart` assist test.
-  test_decimal() async {
+  Future<void> test_decimal() async {
     await resolveTestUnit('''
-const double myDouble = /*LINT*/42.0;
+const double myDouble = 42.0;
 ''');
     await assertHasFix('''
-const double myDouble = /*LINT*/42;
+const double myDouble = 42;
 ''');
   }
 }

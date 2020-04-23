@@ -22,10 +22,14 @@ class D {
 
 test() {
   var /*@ type=int* */ callA = new A() /*@target=A::call*/ ();
-  var /*@ type=int* */ callFieldA = new D(). /*@target=D::fieldA*/ fieldA();
-  var /*@ type=int* */ callGetA = new D(). /*@target=D::getA*/ getA();
-  var /*@ type=dynamic */ callFieldB = new D(). /*@target=D::fieldB*/ fieldB();
-  var /*@ type=dynamic */ callGetB = new D(). /*@target=D::getB*/ getB();
+  var /*@ type=int* */ callFieldA =
+      new D(). /*@target=D::fieldA*/ fieldA /*@target=A::call*/ ();
+  var /*@ type=int* */ callGetA =
+      new D(). /*@target=D::getA*/ getA /*@target=A::call*/ ();
+  var /*@type=int**/ callFieldB = new D()
+      . /*@target=D::fieldB*/ fieldB /*@target=B::call*/ /*@target=A::call*/ ();
+  var /*@type=int**/ callGetB = new D()
+      . /*@target=D::getB*/ getB /*@target=B::call*/ /*@target=A::call*/ ();
 }
 
 main() {}

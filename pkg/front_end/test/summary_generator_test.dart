@@ -34,47 +34,13 @@ main() {
     expect(fooMethod.function.body is EmptyStatement, isTrue);
   });
 
-  test('summarized libraries are not marked external', () async {
-    var summary = await summarize(['a.dart'], allSources);
-    var component = loadComponentFromBytes(summary);
-    var aLib = findLibrary(component, 'a.dart');
-    expect(aLib.importUri.path, '/a/b/c/a.dart');
-    // ignore: DEPRECATED_MEMBER_USE
-    expect(aLib.isExternal, isFalse);
-  });
-
-  test('sdk dependencies are marked external', () async {
-    // Note: by default this test is loading the SDK from summaries.
-    var summary = await summarize(['a.dart'], allSources);
-    var component = loadComponentFromBytes(summary);
-    var coreLib = findLibrary(component, 'core');
-    // ignore: DEPRECATED_MEMBER_USE
-    expect(coreLib.isExternal, isTrue);
-  });
-
-  test('non-sdk dependencies are marked external', () async {
-    var summaryA = await summarize(['a.dart'], allSources);
-    var sourcesWithA = new Map<String, dynamic>.from(allSources);
-    sourcesWithA['a.dill'] = summaryA;
-    var summaryB =
-        await summarize(['b.dart'], sourcesWithA, inputSummaries: ['a.dill']);
-
-    var component = loadComponentFromBytes(summaryB);
-    var aLib = findLibrary(component, 'a.dart');
-    var bLib = findLibrary(component, 'b.dart');
-    // ignore: DEPRECATED_MEMBER_USE
-    expect(aLib.isExternal, isTrue);
-    // ignore: DEPRECATED_MEMBER_USE
-    expect(bLib.isExternal, isFalse);
-  });
-
   test('dependencies can be combined without conflict', () async {
     var summaryA = await summarize(['a.dart'], allSources);
     var sourcesWithA = new Map<String, dynamic>.from(allSources);
     sourcesWithA['a.dill'] = summaryA;
 
     var summaryBC = await summarize(['b.dart', 'c.dart'], sourcesWithA,
-        inputSummaries: ['a.dill']);
+        additionalDills: ['a.dill']);
 
     var sourcesWithABC = new Map<String, dynamic>.from(sourcesWithA);
     sourcesWithABC['bc.dill'] = summaryBC;
@@ -82,7 +48,7 @@ main() {
     // Note: a is loaded first, bc.dill have a.dart as an external reference so
     // we want to ensure loading them here will not create a problem.
     var summaryD = await summarize(['d.dart'], sourcesWithABC,
-        inputSummaries: ['a.dill', 'bc.dill']);
+        additionalDills: ['a.dill', 'bc.dill']);
 
     checkDSummary(summaryD);
   });
@@ -93,7 +59,7 @@ main() {
     sourcesWithA['a.dill'] = summaryA;
 
     var summaryBC = await summarize(['b.dart', 'c.dart'], sourcesWithA,
-        inputSummaries: ['a.dill']);
+        additionalDills: ['a.dill']);
 
     var sourcesWithABC = new Map<String, dynamic>.from(sourcesWithA);
     sourcesWithABC['bc.dill'] = summaryBC;
@@ -103,7 +69,7 @@ main() {
     // because we share a CanonicalName root to resolve names across multiple
     // dill files and because of how the kernel loader merges definitions.
     var summaryD = await summarize(['d.dart'], sourcesWithABC,
-        inputSummaries: ['bc.dill', 'a.dill']);
+        additionalDills: ['bc.dill', 'a.dill']);
     checkDSummary(summaryD);
   });
 
@@ -118,7 +84,7 @@ main() {
     var sourcesWithA = new Map<String, dynamic>.from(allSources);
     sourcesWithA['a.dill'] = summaryA;
     var summaryB = await summarize(['b.dart'], sourcesWithA,
-        inputSummaries: ['a.dill'], truncate: true);
+        additionalDills: ['a.dill'], truncate: true);
     component = loadComponentFromBytes(summaryB);
     expect(component.libraries.length, 1);
     expect(
@@ -151,18 +117,7 @@ checkDSummary(List<int> summary) {
   var component = loadComponentFromBytes(summary);
   var aLib = findLibrary(component, 'a.dart');
   var bLib = findLibrary(component, 'b.dart');
-  var cLib = findLibrary(component, 'c.dart');
   var dLib = findLibrary(component, 'd.dart');
-
-  // All libraries but `d.dart` are marked external.
-  // ignore: DEPRECATED_MEMBER_USE
-  expect(aLib.isExternal, isTrue);
-  // ignore: DEPRECATED_MEMBER_USE
-  expect(bLib.isExternal, isTrue);
-  // ignore: DEPRECATED_MEMBER_USE
-  expect(cLib.isExternal, isTrue);
-  // ignore: DEPRECATED_MEMBER_USE
-  expect(dLib.isExternal, isFalse);
 
   // The type-hierarchy for A, B, D is visible and correct
   var aClass = aLib.classes.firstWhere((c) => c.name == 'A');

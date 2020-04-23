@@ -6,7 +6,7 @@ import 'dart:async';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 const int LINE_A = 28, LINE_B = 33;
 

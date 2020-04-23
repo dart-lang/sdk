@@ -83,7 +83,7 @@ class ConflictingGenericInterfacesWithNnbdTest
     extends ConflictingGenericInterfacesTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
 
   test_class_extends_implements_nullability() async {
@@ -120,6 +120,38 @@ class B extends A<int> {}
     await assertNoErrorsInCode(r'''
 // @dart = 2.5
 import 'a.dart';
+
+class C extends B implements A<int> {}
+''');
+  }
+
+  test_class_topMerge() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+class A<T> {}
+
+class B extends A<FutureOr<Object>> {}
+
+class C extends B implements A<Object> {}
+''');
+  }
+
+  test_class_topMerge_optIn_optOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A<T> {}
+''');
+
+    newFile('/test/lib/b.dart', content: r'''
+// @dart = 2.5
+import 'a.dart';
+
+class B extends A<int> {}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+import 'b.dart';
 
 class C extends B implements A<int> {}
 ''');

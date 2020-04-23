@@ -6,25 +6,17 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/highlight_css.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/highlight_js.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/index_renderer.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/migration_state.dart';
 import 'package:analysis_server/src/edit/preview/http_preview_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
-import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -43,20 +35,20 @@ class NonNullableFix extends FixCodeTask {
   /// The included paths may contain absolute and relative paths, non-canonical
   /// paths, and directory and file paths. The "root" is the deepest directory
   /// which all included paths share.
-  ///
-  /// If instrumentation files are written to [outputDir], they will be written
-  /// as if in a directory structure rooted at [includedRoot].
   final String includedRoot;
 
-  /// The absolute path of the directory to which preview pages are to be
-  /// written, or `null` if no preview pages should be written to disk.
-  final String outputDir;
+  /// The HTTP server that serves the preview tool.
+  HttpPreviewServer server;
 
   /// The port on which preview pages should be served, or `null` if no preview
   /// server should be started.
-  final int port;
+  int port;
+
+  String authToken;
 
   InstrumentationListener instrumentationListener;
+
+  NullabilityMigrationAdapter adapter;
 
   NullabilityMigration migration;
 
@@ -65,48 +57,38 @@ class NonNullableFix extends FixCodeTask {
   /// If this occurs, then don't update any code.
   bool _packageIsNNBD = true;
 
-  NonNullableFix(this.listener, this.outputDir, this.port,
-      {List<String> included = const []})
-      : this.includedRoot =
+  Future<void> Function([List<String>]) rerunFunction;
+
+  NonNullableFix(this.listener, {List<String> included = const []})
+      : includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
-    instrumentationListener =
-        outputDir == null && port == null ? null : InstrumentationListener();
-    migration = new NullabilityMigration(
-        new NullabilityMigrationAdapter(listener),
-        permissive: _usePermissiveMode,
-        instrumentation: instrumentationListener);
+    reset();
   }
 
   @override
-  int get numPhases => 2;
+  int get numPhases => 3;
+
+  /// Return a list of the URLs corresponding to the included roots.
+  List<String> get previewUrls => [
+        Uri(
+            scheme: 'http',
+            host: 'localhost',
+            port: port,
+            path: includedRoot,
+            queryParameters: {'authToken': authToken}).toString()
+      ];
 
   @override
   Future<void> finish() async {
-    migration.finish();
-    if (outputDir != null) {
-      OverlayResourceProvider provider = listener.server.resourceProvider;
-      Folder outputFolder = provider.getFolder(outputDir);
-      if (!outputFolder.exists) {
-        outputFolder.create();
-      }
-      await _generateOutput(provider, outputFolder);
-    }
-    if (port != null) {
-      OverlayResourceProvider provider = listener.server.resourceProvider;
-      InfoBuilder infoBuilder = InfoBuilder(
-          provider, includedRoot, instrumentationListener.data, listener);
-      Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
-      var pathContext = provider.pathContext;
-      MigrationInfo migrationInfo = MigrationInfo(
-          unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
-      PathMapper pathMapper = PathMapper(provider, outputDir, includedRoot);
+    final state = MigrationState(
+        migration, includedRoot, listener, instrumentationListener, adapter);
+    await state.refresh();
 
-      print(Uri(
-          scheme: 'http', host: 'localhost', port: port, path: includedRoot));
-
-      // TODO(brianwilkerson) Capture the server so that it can be closed
-      //  cleanly.
-      HttpPreviewServer(migrationInfo, pathMapper).serveHttp(port);
+    if (server == null) {
+      server = HttpPreviewServer(state, rerun);
+      server.serveHttp();
+      port = await server.boundPort;
+      authToken = await server.authToken;
     }
   }
 
@@ -121,7 +103,7 @@ class NonNullableFix extends FixCodeTask {
 
     // TODO(danrubel): Update pubspec.yaml to enable NNBD
 
-    File optionsFile = pkgFolder.getChildAssumingFile('analysis_options.yaml');
+    var optionsFile = pkgFolder.getChildAssumingFile('analysis_options.yaml');
     String optionsContent;
     YamlNode optionsMap;
     if (optionsFile.exists) {
@@ -146,8 +128,8 @@ class NonNullableFix extends FixCodeTask {
       analyzerOptions = optionsMap.nodes[AnalyzerOptions.analyzer];
     }
     if (analyzerOptions == null) {
-      var start = new SourceLocation(0, line: 0, column: 0);
-      parentSpan = new SourceSpan(start, start, '');
+      var start = SourceLocation(0, line: 0, column: 0);
+      parentSpan = SourceSpan(start, start, '');
       content = '''
 analyzer:
   enable-experiment:
@@ -155,8 +137,7 @@ analyzer:
 
 ''';
     } else if (analyzerOptions is YamlMap) {
-      YamlNode experiments =
-          analyzerOptions.nodes[AnalyzerOptions.enableExperiment];
+      var experiments = analyzerOptions.nodes[AnalyzerOptions.enableExperiment];
       if (experiments == null) {
         parentSpan = analyzerOptions.span;
         content = '''
@@ -182,10 +163,10 @@ analyzer:
       final cr = '\r'.codeUnitAt(0);
       final lf = '\n'.codeUnitAt(0);
 
-      int line = parentSpan.end.line;
-      int offset = parentSpan.end.offset;
+      var line = parentSpan.end.line;
+      var offset = parentSpan.end.offset;
       while (offset > 0) {
-        int ch = optionsContent.codeUnitAt(offset - 1);
+        var ch = optionsContent.codeUnitAt(offset - 1);
         if (ch == space || ch == cr) {
           --offset;
         } else if (ch == lf) {
@@ -197,15 +178,15 @@ analyzer:
       }
       listener.addSourceFileEdit(
           'enable non-nullable analysis',
-          new Location(
+          Location(
             optionsFile.path,
             offset,
             content.length,
             line,
             0,
           ),
-          new SourceFileEdit(optionsFile.path, 0,
-              edits: [new SourceEdit(offset, 0, content)]));
+          SourceFileEdit(optionsFile.path, 0,
+              edits: [SourceEdit(offset, 0, content)]));
     }
   }
 
@@ -221,8 +202,11 @@ analyzer:
       case 1:
         migration.processInput(result);
         break;
+      case 2:
+        migration.finalizeInput(result);
+        break;
       default:
-        throw new ArgumentError('Unsupported phase $phase');
+        throw ArgumentError('Unsupported phase $phase');
     }
   }
 
@@ -240,92 +224,46 @@ analyzer:
     _packageIsNNBD = false;
   }
 
-  /// Generate output into the given [folder].
-  void _generateOutput(OverlayResourceProvider provider, Folder folder) async {
-    // Remove any previously generated output.
-    folder.getChildren().forEach((resource) => resource.delete());
-    // Gather the data needed in order to produce the output.
-    InfoBuilder infoBuilder = InfoBuilder(
-        provider, includedRoot, instrumentationListener.data, listener);
-    Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
-    var pathContext = provider.pathContext;
-    MigrationInfo migrationInfo = MigrationInfo(
-        unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
-    PathMapper pathMapper = PathMapper(provider, folder.path, includedRoot);
+  Future<MigrationState> rerun([List<String> changedPaths]) async {
+    reset();
+    await rerunFunction(changedPaths);
+    final state = MigrationState(
+        migration, includedRoot, listener, instrumentationListener, adapter);
+    await state.refresh();
+    return state;
+  }
 
-    /// Produce output for the compilation unit represented by the [unitInfo].
-    void render(UnitInfo unitInfo) {
-      File output = provider.getFile(pathMapper.map(unitInfo.path));
-      output.parent.create();
-      String rendered =
-          InstrumentationRenderer(unitInfo, migrationInfo, pathMapper).render();
-      output.writeAsStringSync(rendered);
-    }
-
-    //
-    // Generate the index file.
-    //
-    String indexPath = pathContext.join(folder.path, 'index.html');
-    File output = provider.getFile(indexPath);
-    output.parent.create();
-    String rendered = IndexRenderer(migrationInfo, writeToDisk: true).render();
-    output.writeAsStringSync(rendered);
-    //
-    // Generate the files in the package being migrated.
-    //
-    for (UnitInfo unitInfo in unitInfos) {
-      render(unitInfo);
-    }
-    //
-    // Generate other dart files.
-    //
-    for (UnitInfo unitInfo in infoBuilder.unitMap.values) {
-      if (!unitInfos.contains(unitInfo)) {
-        if (unitInfo.content == null) {
-          try {
-            unitInfo.content =
-                provider.getFile(unitInfo.path).readAsStringSync();
-          } catch (_) {
-            // If we can't read the content of the file, then skip it.
-            continue;
-          }
-        }
-        render(unitInfo);
-      }
-    }
-    // Generate resource files.
-    File highlightJsOutput =
-        provider.getFile(pathContext.join(folder.path, 'highlight.pack.js'));
-    highlightJsOutput.writeAsStringSync(decodeHighlightJs());
-    File highlightCssOutput =
-        provider.getFile(pathContext.join(folder.path, 'androidstudio.css'));
-    highlightCssOutput.writeAsStringSync(decodeHighlightCss());
+  void reset() {
+    instrumentationListener = InstrumentationListener();
+    adapter = NullabilityMigrationAdapter(listener);
+    migration = NullabilityMigration(adapter,
+        permissive: _usePermissiveMode,
+        instrumentation: instrumentationListener);
   }
 
   static void task(DartFixRegistrar registrar, DartFixListener listener,
       EditDartfixParams params) {
-    registrar.registerCodeTask(new NonNullableFix(
-        listener, params.outputDir, params.port,
-        included: params.included));
+    registrar
+        .registerCodeTask(NonNullableFix(listener, included: params.included));
   }
 
   /// Get the "root" of all [included] paths. See [includedRoot] for its
   /// definition.
   static String _getIncludedRoot(
-      List<String> included, OverlayResourceProvider provider) {
-    path.Context context = provider.pathContext;
+      List<String> included, ResourceProvider provider) {
+    var context = provider.pathContext;
     // This step looks like it may be expensive (`getResource`, splitting up
     // all of the paths, comparing parts, joining one path back together). In
     // practice, this should be cheap because typically only one path is given
     // to dartfix.
-    List<String> rootParts = included
-        .map((p) => context.absolute(context.canonicalize(p)))
+    var rootParts = included
+        .map((p) => context.normalize(context.absolute(p)))
         .map((p) => provider.getResource(p) is File ? context.dirname(p) : p)
         .map((p) => context.split(p))
         .reduce((value, parts) {
-      List<String> shorterPath = value.length < parts.length ? value : parts;
-      int length = shorterPath.length;
-      for (int i = 0; i < length; i++) {
+      var shorterPath = value.length < parts.length ? value : parts;
+      var length = shorterPath.length;
+      for (var i = 0; i < length; i++) {
         if (value[i] != parts[i]) {
           // [value] and [parts] are the same, only up to part [i].
           return value.sublist(0, i);
@@ -345,15 +283,13 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   NullabilityMigrationAdapter(this.listener);
 
   @override
-  void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
-    listener.addEditWithoutSuggestion(fix.source, edit);
+  void addEdit(Source source, SourceEdit edit) {
+    listener.addEditWithoutSuggestion(source, edit);
   }
 
   @override
-  void addFix(SingleNullabilityFix fix) {
-    for (Location location in fix.locations) {
-      listener.addSuggestion(fix.description.appliedMessage, location);
-    }
+  void addSuggestion(String descriptions, Location location) {
+    listener.addSuggestion(descriptions, location);
   }
 
   @override

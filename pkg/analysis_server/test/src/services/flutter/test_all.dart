@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'container_properties_test.dart' as container_properties;
 import 'widget_descriptions_test.dart' as widget_descriptions;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     container_properties.main();
     widget_descriptions.main();

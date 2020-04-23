@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 
 /// A visitor to assert that legacy libraries deal with legacy types.
 ///
@@ -22,7 +21,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 /// nodes, have legacy types, and asserts that the legacy types are deep legacy
 /// types.
 class LegacyTypeAsserter extends GeneralizingAstVisitor {
-  Set<DartType> _visitedTypes = {};
+  final Set<DartType> _visitedTypes = {};
 
   LegacyTypeAsserter({bool requireIsDebug = true}) {
     if (requireIsDebug) {
@@ -139,17 +138,17 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor {
       type.typeFormals.map((param) => param.bound).forEach(_assertLegacyType);
     }
 
-    if ((type as TypeImpl).nullabilitySuffix == NullabilitySuffix.star) {
+    if (type.nullabilitySuffix == NullabilitySuffix.star) {
       return;
     }
 
     throw StateError('Expected all legacy types, but got '
-        '${(type as TypeImpl).toString(withNullability: true)} '
+        '${type.getDisplayString(withNullability: true)} '
         '(${type.runtimeType})');
   }
 
   static bool assertLegacyTypes(CompilationUnit compilationUnit) {
-    new LegacyTypeAsserter().visitCompilationUnit(compilationUnit);
+    LegacyTypeAsserter().visitCompilationUnit(compilationUnit);
     return true;
   }
 }

@@ -57,6 +57,10 @@ class ThreadInterrupterMacOS : public AllStatic {
     if (thread == NULL) {
       return;
     }
+    ThreadInterrupter::SampleBufferWriterScope scope;
+    if (!scope.CanSample()) {
+      return;
+    }
     // Extract thread state.
     ucontext_t* context = reinterpret_cast<ucontext_t*>(context_);
     mcontext_t mcontext = context->uc_mcontext;

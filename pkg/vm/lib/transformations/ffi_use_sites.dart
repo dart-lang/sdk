@@ -20,6 +20,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart';
 
@@ -33,7 +34,8 @@ void transformLibraries(
     ClassHierarchy hierarchy,
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter,
-    ReplacedMembers replacedFields) {
+    ReplacedMembers replacedFields,
+    ReferenceFromIndex referenceFromIndex) {
   final index = new LibraryIndex(component, ["dart:ffi"]);
   if (!index.containsLibrary("dart:ffi")) {
     // If dart:ffi is not loaded, do not do the transformation.
@@ -44,6 +46,7 @@ void transformLibraries(
       coreTypes,
       hierarchy,
       diagnosticReporter,
+      referenceFromIndex,
       replacedFields.replacedGetters,
       replacedFields.replacedSetters);
   libraries.forEach(transformer.visitLibrary);
@@ -57,6 +60,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   Library currentLibrary;
   bool get isFfiLibrary => currentLibrary == ffiLibrary;
+  IndexedLibrary currentLibraryIndex;
 
   // Used to create private top-level fields with unique names for each
   // callback.
@@ -67,13 +71,16 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       DiagnosticReporter diagnosticReporter,
+      ReferenceFromIndex referenceFromIndex,
       this.replacedGetters,
       this.replacedSetters)
-      : super(index, coreTypes, hierarchy, diagnosticReporter) {}
+      : super(index, coreTypes, hierarchy, diagnosticReporter,
+            referenceFromIndex) {}
 
   @override
   TreeNode visitLibrary(Library node) {
     currentLibrary = node;
+    currentLibraryIndex = referenceFromIndex?.lookupLibrary(node);
     callbackCount = 0;
     return super.visitLibrary(node);
   }
@@ -146,7 +153,30 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
     final Member target = node.target;
     try {
-      if (target == fromFunctionMethod) {
+      if (target == lookupFunctionMethod && !isFfiLibrary) {
+        final DartType nativeType = InterfaceType(
+            nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
+        final DartType dartType = node.arguments.types[1];
+
+        _ensureNativeTypeValid(nativeType, node);
+        _ensureNativeTypeToDartType(nativeType, dartType, node);
+        return _replaceLookupFunction(node);
+      } else if (target == asFunctionMethod && !isFfiLibrary) {
+        final DartType dartType = node.arguments.types[1];
+        final DartType nativeType = InterfaceType(
+            nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
+
+        _ensureNativeTypeValid(nativeType, node);
+        _ensureNativeTypeToDartType(nativeType, dartType, node);
+
+        final DartType nativeSignature =
+            (nativeType as InterfaceType).typeArguments[0];
+        // Inline function body to make all type arguments instatiated.
+        return StaticInvocation(
+            asFunctionInternal,
+            Arguments([node.arguments.positional[0]],
+                types: [dartType, nativeSignature]));
+      } else if (target == fromFunctionMethod) {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final Expression func = node.arguments.positional[0];
@@ -169,8 +199,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             expectedReturn == NativeType.kPointer) {
           if (node.arguments.positional.length > 1) {
             diagnosticReporter.report(
-                templateFfiExpectedNoExceptionalReturn
-                    .withArguments(funcType.returnType),
+                templateFfiExpectedNoExceptionalReturn.withArguments(
+                    funcType.returnType, currentLibrary.isNonNullableByDefault),
                 node.fileOffset,
                 1,
                 node.location.file);
@@ -182,8 +212,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           // types.
           if (node.arguments.positional.length < 2) {
             diagnosticReporter.report(
-                templateFfiExpectedExceptionalReturn
-                    .withArguments(funcType.returnType),
+                templateFfiExpectedExceptionalReturn.withArguments(
+                    funcType.returnType, currentLibrary.isNonNullableByDefault),
                 node.fileOffset,
                 1,
                 node.location.file);
@@ -217,8 +247,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           if (!env.isSubtypeOf(returnType, funcType.returnType,
               SubtypeCheckMode.ignoringNullabilities)) {
             diagnosticReporter.report(
-                templateFfiDartTypeMismatch.withArguments(
-                    returnType, funcType.returnType),
+                templateFfiDartTypeMismatch.withArguments(returnType,
+                    funcType.returnType, currentLibrary.isNonNullableByDefault),
                 exceptionalReturn.fileOffset,
                 1,
                 exceptionalReturn.location.file);
@@ -239,15 +269,10 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   // We need to replace calls to 'DynamicLibrary.lookupFunction' with explicit
   // Kernel, because we cannot have a generic call to 'asFunction' in its body.
   //
-  // Below, in 'visitMethodInvocation', we ensure that the type arguments to
+  // Above, in 'visitStaticInvocation', we ensure that the type arguments to
   // 'lookupFunction' are constants, so by inlining the call to 'asFunction' at
   // the call-site, we ensure that there are no generic calls to 'asFunction'.
-  //
-  // We will not detect dynamic invocations of 'asFunction' and
-  // 'lookupFunction': these are handled by the stubs in 'ffi_patch.dart' and
-  // 'dynamic_library_patch.dart'. Dynamic invocations of 'lookupFunction' (and
-  // 'asFunction') are not legal and throw a runtime exception.
-  Expression _replaceLookupFunction(MethodInvocation node) {
+  Expression _replaceLookupFunction(StaticInvocation node) {
     // The generated code looks like:
     //
     // _asFunctionInternal<DS, NS>(lookup<NativeFunction<NS>>(symbolName))
@@ -256,13 +281,16 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final DartType dartSignature = node.arguments.types[1];
 
     final Arguments args = Arguments([
-      node.arguments.positional.single
+      node.arguments.positional[1]
     ], types: [
       InterfaceType(nativeFunctionClass, Nullability.legacy, [nativeSignature])
     ]);
 
     final Expression lookupResult = MethodInvocation(
-        node.receiver, Name("lookup"), args, libraryLookupMethod);
+        node.arguments.positional[0],
+        Name("lookup"),
+        args,
+        libraryLookupMethod);
 
     return StaticInvocation(asFunctionInternal,
         Arguments([lookupResult], types: [dartSignature, nativeSignature]));
@@ -285,8 +313,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   Expression _replaceFromFunction(StaticInvocation node) {
     final nativeFunctionType = InterfaceType(
         nativeFunctionClass, Nullability.legacy, node.arguments.types);
-    final Field field = Field(
-        Name("_#ffiCallback${callbackCount++}", currentLibrary),
+    var name = Name("_#ffiCallback${callbackCount++}", currentLibrary);
+    final Field field = Field(name,
         type: InterfaceType(
             pointerClass, Nullability.legacy, [nativeFunctionType]),
         initializer: StaticInvocation(
@@ -298,7 +326,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             ])),
         isStatic: true,
         isFinal: true,
-        fileUri: currentLibrary.fileUri)
+        fileUri: currentLibrary.fileUri,
+        reference: currentLibraryIndex?.lookupField(name.name)?.reference)
       ..fileOffset = node.fileOffset;
     currentLibrary.addMember(field);
     return StaticGet(field);
@@ -310,35 +339,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
     final Member target = node.interfaceTarget;
     try {
-      // We will not detect dynamic invocations of 'asFunction' and
-      // 'lookupFunction' -- these are handled by the 'asFunctionInternal' stub
-      // in 'dynamic_library_patch.dart'. Dynamic invocations of 'asFunction'
-      // and 'lookupFunction' are not legal and throw a runtime exception.
-      if (target == lookupFunctionMethod) {
-        final DartType nativeType = InterfaceType(
-            nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
-        final DartType dartType = node.arguments.types[1];
-
-        _ensureNativeTypeValid(nativeType, node);
-        _ensureNativeTypeToDartType(nativeType, dartType, node);
-        return _replaceLookupFunction(node);
-      } else if (target == asFunctionMethod) {
-        final DartType dartType = node.arguments.types[0];
-        final DartType pointerType =
-            node.receiver.getStaticType(_staticTypeContext);
-        final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
-
-        _ensureNativeTypeValid(pointerType, node);
-        _ensureNativeTypeValid(nativeType, node);
-        _ensureNativeTypeToDartType(nativeType, dartType, node);
-
-        final DartType nativeSignature =
-            (nativeType as InterfaceType).typeArguments[0];
-        return StaticInvocation(asFunctionInternal,
-            Arguments([node.receiver], types: [dartType, nativeSignature]));
-      } else if (target == elementAtMethod) {
-        // TODO(37773): When moving to extension methods we can get rid of
-        // this rewiring.
+      if (target == elementAtMethod) {
         final DartType pointerType =
             node.receiver.getStaticType(_staticTypeContext);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
@@ -382,8 +383,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       return;
     }
     diagnosticReporter.report(
-        templateFfiTypeMismatch.withArguments(
-            dartType, correspondingDartType, nativeType),
+        templateFfiTypeMismatch.withArguments(dartType, correspondingDartType,
+            nativeType, currentLibrary.isNonNullableByDefault),
         node.fileOffset,
         1,
         node.location.file);
@@ -394,7 +395,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       {bool allowStructs: false}) {
     if (!_nativeTypeValid(nativeType, allowStructs: allowStructs)) {
       diagnosticReporter.report(
-          templateFfiTypeInvalid.withArguments(nativeType),
+          templateFfiTypeInvalid.withArguments(
+              nativeType, currentLibrary.isNonNullableByDefault),
           node.fileOffset,
           1,
           node.location.file);

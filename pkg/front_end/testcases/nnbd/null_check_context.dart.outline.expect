@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  abstract method bar<T extends core::Object? = dynamic>() → self::A::bar::T%;
+  method foo() → core::String
+    ;
+}
+static method main() → dynamic
+  ;

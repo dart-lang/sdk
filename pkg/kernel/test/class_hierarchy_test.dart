@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/matchers_lite.dart";
+import "package:expect/minitest.dart";
 
 import "package:kernel/ast.dart";
 import "package:kernel/class_hierarchy.dart";
 import "package:kernel/core_types.dart";
 import "package:kernel/testing/mock_sdk_component.dart";
 import "package:kernel/text/ast_to_text.dart";
+import "package:kernel/src/text_util.dart";
 
 main() {
   new ClosedWorldClassHierarchyTest().test_applyTreeChanges();
@@ -93,7 +94,7 @@ class ClosedWorldClassHierarchyTest {
   }
 
   ClassHierarchy createClassHierarchy(Component component) {
-    return new ClassHierarchy(component);
+    return new ClassHierarchy(component, coreTypes);
   }
 
   void test_applyTreeChanges() {
@@ -744,8 +745,8 @@ abstract class B extends self::A {}
         ]));
     expect(hierarchy.getDeclaredMembers(a, setters: true),
         unorderedEquals([setter, abstractSetter, nonFinalField]));
-    expect(hierarchy.getDeclaredMembers(b), isEmpty);
-    expect(hierarchy.getDeclaredMembers(b, setters: true), isEmpty);
+    expect(hierarchy.getDeclaredMembers(b).isEmpty, isTrue);
+    expect(hierarchy.getDeclaredMembers(b, setters: true).isEmpty, isTrue);
   }
 
   void test_getDispatchTarget() {
@@ -1214,9 +1215,10 @@ class B<T*> extends self::A<self::B::T*, core::bool*> {}
 ''');
 
     var b_int = new InterfaceType(b, Nullability.legacy, [int]);
-    expect(hierarchy.getTypeAsInstanceOf(b_int, a),
+    expect(hierarchy.getTypeAsInstanceOf(b_int, a, library, coreTypes),
         new InterfaceType(a, Nullability.legacy, [int, bool]));
-    expect(hierarchy.getTypeAsInstanceOf(b_int, objectClass),
+    expect(
+        hierarchy.getTypeAsInstanceOf(b_int, objectClass, library, coreTypes),
         new InterfaceType(objectClass, Nullability.legacy));
   }
 
@@ -1225,8 +1227,12 @@ class B<T*> extends self::A<self::B::T*, core::bool*> {}
     void callback(
         Member declaredMember, Member interfaceMember, bool isSetter) {
       var suffix = isSetter ? '=' : '';
-      String declaredName = '$declaredMember$suffix';
-      String interfaceName = '$interfaceMember$suffix';
+      String declaredName =
+          '${qualifiedMemberNameToString(declaredMember, includeLibraryName: true)}'
+          '$suffix';
+      String interfaceName =
+          '${qualifiedMemberNameToString(interfaceMember, includeLibraryName: true)}'
+          '$suffix';
       var desc = '$declaredName overrides $interfaceName';
       overrideDescriptions.add(desc);
     }

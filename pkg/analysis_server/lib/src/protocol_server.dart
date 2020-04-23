@@ -29,31 +29,25 @@ export 'package:analysis_server/protocol/protocol.dart';
 export 'package:analysis_server/protocol/protocol_generated.dart';
 export 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-/**
- * Returns a list of AnalysisErrors corresponding to the given list of Engine
- * errors.
- */
+/// Returns a list of AnalysisErrors corresponding to the given list of Engine
+/// errors.
 List<AnalysisError> doAnalysisError_listFromEngine(
     engine.ResolvedUnitResult result) {
   return mapEngineErrors(result, result.errors, newAnalysisError_fromEngine);
 }
 
-/**
- * Adds [edit] to the file containing the given [element].
- */
+/// Adds [edit] to the file containing the given [element].
 void doSourceChange_addElementEdit(
     SourceChange change, engine.Element element, SourceEdit edit) {
-  engine.Source source = element.source;
+  var source = element.source;
   doSourceChange_addSourceEdit(change, source, edit);
 }
 
-/**
- * Adds [edit] for the given [source] to the [change].
- */
+/// Adds [edit] for the given [source] to the [change].
 void doSourceChange_addSourceEdit(
     SourceChange change, engine.Source source, SourceEdit edit,
     {bool isNewFile = false}) {
-  String file = source.fullName;
+  var file = source.fullName;
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
 
@@ -62,35 +56,34 @@ String getReturnTypeString(engine.Element element) {
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
     } else {
-      return element.returnType?.toString();
+      return element.returnType?.getDisplayString(withNullability: false);
     }
   } else if (element is engine.VariableElement) {
-    engine.DartType type = element.type;
-    return type != null ? type.displayName : 'dynamic';
+    var type = element.type;
+    return type != null
+        ? type.getDisplayString(withNullability: false)
+        : 'dynamic';
   } else if (element is engine.FunctionTypeAliasElement) {
-    return element.function.returnType.toString();
+    var returnType = element.function.returnType;
+    return returnType.getDisplayString(withNullability: false);
   } else {
     return null;
   }
 }
 
-/**
- * Translates engine errors through the ErrorProcessor.
- */
+/// Translates engine errors through the ErrorProcessor.
 List<T> mapEngineErrors<T>(
     engine.ResolvedUnitResult result,
     List<engine.AnalysisError> errors,
     T Function(engine.ResolvedUnitResult result, engine.AnalysisError error,
             [engine.ErrorSeverity errorSeverity])
         constructor) {
-  engine.AnalysisOptions analysisOptions =
-      result.session.analysisContext.analysisOptions;
-  List<T> serverErrors = <T>[];
-  for (engine.AnalysisError error in errors) {
-    ErrorProcessor processor =
-        ErrorProcessor.getProcessor(analysisOptions, error);
+  var analysisOptions = result.session.analysisContext.analysisOptions;
+  var serverErrors = <T>[];
+  for (var error in errors) {
+    var processor = ErrorProcessor.getProcessor(analysisOptions, error);
     if (processor != null) {
-      engine.ErrorSeverity severity = processor.severity;
+      var severity = processor.severity;
       // Errors with null severity are filtered out.
       if (severity != null) {
         // Specified severities override.
@@ -103,24 +96,22 @@ List<T> mapEngineErrors<T>(
   return serverErrors;
 }
 
-/**
- * Construct based on error information from the analyzer engine.
- *
- * If an [errorSeverity] is specified, it will override the one in [error].
- */
+/// Construct based on error information from the analyzer engine.
+///
+/// If an [errorSeverity] is specified, it will override the one in [error].
 AnalysisError newAnalysisError_fromEngine(
     engine.ResolvedUnitResult result, engine.AnalysisError error,
     [engine.ErrorSeverity errorSeverity]) {
-  engine.ErrorCode errorCode = error.errorCode;
+  var errorCode = error.errorCode;
   // prepare location
   Location location;
   {
-    String file = error.source.fullName;
-    int offset = error.offset;
-    int length = error.length;
-    int startLine = -1;
-    int startColumn = -1;
-    engine.LineInfo lineInfo = result.lineInfo;
+    var file = error.source.fullName;
+    var offset = error.offset;
+    var length = error.length;
+    var startLine = -1;
+    var startColumn = -1;
+    var lineInfo = result.lineInfo;
     if (lineInfo != null) {
       CharacterLocation lineLocation = lineInfo.getLocation(offset);
       if (lineLocation != null) {
@@ -128,44 +119,42 @@ AnalysisError newAnalysisError_fromEngine(
         startColumn = lineLocation.columnNumber;
       }
     }
-    location = new Location(file, offset, length, startLine, startColumn);
+    location = Location(file, offset, length, startLine, startColumn);
   }
 
   // Default to the error's severity if none is specified.
   errorSeverity ??= errorCode.errorSeverity;
 
   // done
-  var severity = new AnalysisErrorSeverity(errorSeverity.name);
-  var type = new AnalysisErrorType(errorCode.type.name);
-  String message = error.message;
-  String code = errorCode.name.toLowerCase();
+  var severity = AnalysisErrorSeverity(errorSeverity.name);
+  var type = AnalysisErrorType(errorCode.type.name);
+  var message = error.message;
+  var code = errorCode.name.toLowerCase();
   List<DiagnosticMessage> contextMessages;
   if (error.contextMessages.isNotEmpty) {
     contextMessages = error.contextMessages
         .map((message) => newDiagnosticMessage(result, message))
         .toList();
   }
-  String correction = error.correction;
-  bool fix = hasFix(error.errorCode);
-  String url = errorCode.url;
-  return new AnalysisError(severity, type, location, message, code,
+  var correction = error.correction;
+  var fix = hasFix(error.errorCode);
+  var url = errorCode.url;
+  return AnalysisError(severity, type, location, message, code,
       contextMessages: contextMessages,
       correction: correction,
       hasFix: fix,
       url: url);
 }
 
-/**
- * Create a DiagnosticMessage based on an [engine.DiagnosticMessage].
- */
+/// Create a DiagnosticMessage based on an [engine.DiagnosticMessage].
 DiagnosticMessage newDiagnosticMessage(
     engine.ResolvedUnitResult result, engine.DiagnosticMessage message) {
-  String file = message.filePath;
-  int offset = message.offset;
-  int length = message.length;
-  int startLine = -1;
-  int startColumn = -1;
-  engine.LineInfo lineInfo = result.session.getFile(file).lineInfo;
+  var file = message.filePath;
+  var offset = message.offset;
+  var length = message.length;
+  var startLine = -1;
+  var startColumn = -1;
+  var lineInfo = result.session.getFile(file).lineInfo;
   if (lineInfo != null) {
     CharacterLocation lineLocation = lineInfo.getLocation(offset);
     if (lineLocation != null) {
@@ -177,74 +166,59 @@ DiagnosticMessage newDiagnosticMessage(
       message.message, Location(file, offset, length, startLine, startColumn));
 }
 
-/**
- * Create a Location based on an [engine.Element].
- */
+/// Create a Location based on an [engine.Element].
 Location newLocation_fromElement(engine.Element element) {
   if (element == null || element.source == null) {
     return null;
   }
-  int offset = element.nameOffset;
-  int length = element.nameLength;
+  var offset = element.nameOffset;
+  var length = element.nameLength;
   if (element is engine.CompilationUnitElement ||
       (element is engine.LibraryElement && offset < 0)) {
     offset = 0;
     length = 0;
   }
-  engine.CompilationUnitElement unitElement = _getUnitElement(element);
-  engine.SourceRange range = new engine.SourceRange(offset, length);
+  var unitElement = _getUnitElement(element);
+  var range = engine.SourceRange(offset, length);
   return _locationForArgs(unitElement, range);
 }
 
-/**
- * Create a Location based on an [engine.SearchMatch].
- */
+/// Create a Location based on an [engine.SearchMatch].
 Location newLocation_fromMatch(engine.SearchMatch match) {
-  engine.CompilationUnitElement unitElement = _getUnitElement(match.element);
+  var unitElement = _getUnitElement(match.element);
   return _locationForArgs(unitElement, match.sourceRange);
 }
 
-/**
- * Create a Location based on an [engine.AstNode].
- */
+/// Create a Location based on an [engine.AstNode].
 Location newLocation_fromNode(engine.AstNode node) {
-  engine.CompilationUnit unit =
-      node.thisOrAncestorOfType<engine.CompilationUnit>();
-  engine.CompilationUnitElement unitElement = unit.declaredElement;
-  engine.SourceRange range = new engine.SourceRange(node.offset, node.length);
+  var unit = node.thisOrAncestorOfType<engine.CompilationUnit>();
+  var unitElement = unit.declaredElement;
+  var range = engine.SourceRange(node.offset, node.length);
   return _locationForArgs(unitElement, range);
 }
 
-/**
- * Create a Location based on an [engine.CompilationUnit].
- */
+/// Create a Location based on an [engine.CompilationUnit].
 Location newLocation_fromUnit(
     engine.CompilationUnit unit, engine.SourceRange range) {
   return _locationForArgs(unit.declaredElement, range);
 }
 
-/**
- * Construct based on an element from the analyzer engine.
- */
+/// Construct based on an element from the analyzer engine.
 OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
-  Element element = convertElement(member);
-  String className = member.enclosingElement.displayName;
-  return new OverriddenMember(element, className);
+  var element = convertElement(member);
+  var className = member.enclosingElement.displayName;
+  return OverriddenMember(element, className);
 }
 
-/**
- * Construct based on a value from the search engine.
- */
+/// Construct based on a value from the search engine.
 SearchResult newSearchResult_fromMatch(engine.SearchMatch match) {
-  SearchResultKind kind = newSearchResultKind_fromEngine(match.kind);
-  Location location = newLocation_fromMatch(match);
-  List<Element> path = _computePath(match.element);
-  return new SearchResult(location, kind, !match.isResolved, path);
+  var kind = newSearchResultKind_fromEngine(match.kind);
+  var location = newLocation_fromMatch(match);
+  var path = _computePath(match.element);
+  return SearchResult(location, kind, !match.isResolved, path);
 }
 
-/**
- * Construct based on a value from the search engine.
- */
+/// Construct based on a value from the search engine.
 SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
   if (kind == engine.MatchKind.DECLARATION) {
     return SearchResultKind.DECLARATION;
@@ -267,16 +241,14 @@ SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
   return SearchResultKind.UNKNOWN;
 }
 
-/**
- * Construct based on a SourceRange.
- */
+/// Construct based on a SourceRange.
 SourceEdit newSourceEdit_range(engine.SourceRange range, String replacement,
     {String id}) {
-  return new SourceEdit(range.offset, range.length, replacement, id: id);
+  return SourceEdit(range.offset, range.length, replacement, id: id);
 }
 
 List<Element> _computePath(engine.Element element) {
-  List<Element> path = <Element>[];
+  var path = <Element>[];
   while (element != null) {
     path.add(convertElement(element));
     // go up
@@ -309,21 +281,22 @@ engine.CompilationUnitElement _getUnitElement(engine.Element element) {
   return null;
 }
 
-/**
- * Creates a new [Location].
- */
+/// Creates a new [Location].
 Location _locationForArgs(
     engine.CompilationUnitElement unitElement, engine.SourceRange range) {
-  int startLine = 0;
-  int startColumn = 0;
+  var startLine = 0;
+  var startColumn = 0;
   try {
-    engine.LineInfo lineInfo = unitElement.lineInfo;
+    var lineInfo = unitElement.lineInfo;
     if (lineInfo != null) {
       CharacterLocation offsetLocation = lineInfo.getLocation(range.offset);
       startLine = offsetLocation.lineNumber;
       startColumn = offsetLocation.columnNumber;
     }
-  } on AnalysisException {}
-  return new Location(unitElement.source.fullName, range.offset, range.length,
+  } on AnalysisException {
+    // TODO(brianwilkerson) It doesn't look like the code in the try block
+    //  should be able to throw an exception. Try removing the try statement.
+  }
+  return Location(unitElement.source.fullName, range.offset, range.length,
       startLine, startColumn);
 }

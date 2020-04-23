@@ -35,6 +35,7 @@ import 'modifier_builder.dart';
 import 'name_iterator.dart';
 import 'nullability_builder.dart';
 import 'prefix_builder.dart';
+import 'type_alias_builder.dart';
 import 'type_builder.dart';
 
 abstract class LibraryBuilder implements ModifierBuilder {
@@ -79,7 +80,7 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// Returns the import uri for the library.
   ///
   /// This is the canonical uri for the library, for instance 'dart:core'.
-  Uri get uri;
+  Uri get importUri;
 
   Iterator<Builder> get iterator;
 
@@ -147,8 +148,8 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// where they were omitted by the programmer and not provided by the type
   /// inference.  The method returns the number of distinct type variables
   /// that were instantiated in this library.
-  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
-      ClassBuilder objectClass);
+  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
+      TypeBuilder bottomType, ClassBuilder objectClass);
 
   void becomeCoreLibrary();
 
@@ -253,7 +254,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   int get modifiers => 0;
 
   @override
-  Uri get uri;
+  Uri get importUri;
 
   @override
   Iterator<Builder> get iterator {
@@ -295,15 +296,17 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
         exportScope.lookupLocalMember(name, setter: member.isSetter);
     if (existing == member) {
       return false;
-    } else if (existing != null) {
-      Builder result = computeAmbiguousDeclaration(
-          name, existing, member, charOffset,
-          isExport: true);
-      exportScope.addLocalMember(name, result, setter: member.isSetter);
-      return result != existing;
     } else {
-      exportScope.addLocalMember(name, member, setter: member.isSetter);
-      return true;
+      if (existing != null) {
+        Builder result = computeAmbiguousDeclaration(
+            name, existing, member, charOffset,
+            isExport: true);
+        exportScope.addLocalMember(name, result, setter: member.isSetter);
+        return result != existing;
+      } else {
+        exportScope.addLocalMember(name, member, setter: member.isSetter);
+        return true;
+      }
     }
   }
 
@@ -332,6 +335,13 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     }
     Builder cls = (bypassLibraryPrivacy ? scope : exportScope)
         .lookup(className, -1, null);
+    if (cls is TypeAliasBuilder) {
+      TypeAliasBuilder aliasBuilder = cls;
+      // No type arguments are available, but this method is only called in
+      // order to find constructors of specific non-generic classes (errors),
+      // so we can pass the empty list.
+      cls = aliasBuilder.unaliasDeclaration(const <TypeBuilder>[]);
+    }
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
@@ -349,7 +359,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     }
     throw internalProblem(
         templateInternalProblemConstructorNotFound.withArguments(
-            "$className.$constructorName", uri),
+            "$className.$constructorName", importUri),
         -1,
         null);
   }
@@ -361,8 +371,8 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   int computeVariances() => 0;
 
   @override
-  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
-      ClassBuilder objectClass) {
+  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
+      TypeBuilder bottomType, ClassBuilder objectClass) {
     return 0;
   }
 

@@ -3917,7 +3917,7 @@ UnicodeRangeSplitter::UnicodeRangeSplitter(
   table_.ForEach(this);
 }
 
-void UnicodeRangeSplitter::Call(uint32_t from, DispatchTable::Entry entry) {
+void UnicodeRangeSplitter::Call(uint32_t from, ChoiceTable::Entry entry) {
   OutSet* outset = entry.out_set();
   if (!outset->Get(kBase)) return;
   ZoneGrowableArray<CharacterRange>** target = nullptr;
@@ -4965,11 +4965,11 @@ bool OutSet::Get(unsigned value) const {
   }
 }
 
-const int32_t DispatchTable::Config::kNoKey = Utf::kInvalidChar;
+const int32_t ChoiceTable::Config::kNoKey = Utf::kInvalidChar;
 
-void DispatchTable::AddRange(CharacterRange full_range,
-                             int32_t value,
-                             Zone* zone) {
+void ChoiceTable::AddRange(CharacterRange full_range,
+                           int32_t value,
+                           Zone* zone) {
   CharacterRange current = full_range;
   if (tree()->is_empty()) {
     // If this is the first range we just insert into the table.
@@ -5057,7 +5057,7 @@ void DispatchTable::AddRange(CharacterRange full_range,
   }
 }
 
-OutSet* DispatchTable::Get(int32_t value) {
+OutSet* ChoiceTable::Get(int32_t value) {
   ZoneSplayTree<Config>::Locator loc;
   if (!tree()->FindGreatestLessThan(value, &loc)) return empty();
   Entry* entry = &loc.value();

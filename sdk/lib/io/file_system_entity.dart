@@ -59,7 +59,9 @@ class FileStat {
   static const _mode = 4;
   static const _size = 5;
 
-  static const _notFound = const FileStat._internalNotFound();
+  static final _epoch = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  static final _notFound = new FileStat._internal(
+      _epoch, _epoch, _epoch, FileSystemEntityType.notFound, 0, -1);
 
   /**
    * The time of the last change to the data or metadata of the file system
@@ -104,14 +106,6 @@ class FileStat {
 
   FileStat._internal(this.changed, this.modified, this.accessed, this.type,
       this.mode, this.size);
-
-  const FileStat._internalNotFound()
-      : changed = null,
-        modified = null,
-        accessed = null,
-        type = FileSystemEntityType.notFound,
-        mode = 0,
-        size = -1;
 
   external static _statSync(_Namespace namespace, String path);
 
@@ -664,7 +658,8 @@ abstract class FileSystemEntity {
     }
     Uint8List nonNullTerminated = l;
     if (l.last == 0) {
-      nonNullTerminated = new Uint8List.view(l.buffer, 0, l.length - 1);
+      nonNullTerminated =
+          new Uint8List.view(l.buffer, l.offsetInBytes, l.length - 1);
     }
     return utf8.decode(nonNullTerminated, allowMalformed: true);
   }

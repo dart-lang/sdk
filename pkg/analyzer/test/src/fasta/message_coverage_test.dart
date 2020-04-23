@@ -29,10 +29,10 @@ class AbstractRecoveryTest extends FastaParserTestCase {
    * file.
    */
   Set<String> getGeneratedNames(String parserPath) {
-    String content = new io.File(parserPath).readAsStringSync();
+    String content = io.File(parserPath).readAsStringSync();
     CompilationUnit unit = parseCompilationUnit(content);
     expect(unit, isNotNull);
-    GeneratedCodesVisitor visitor = new GeneratedCodesVisitor();
+    GeneratedCodesVisitor visitor = GeneratedCodesVisitor();
     unit.accept(visitor);
     return visitor.generatedNames;
   }
@@ -42,10 +42,10 @@ class AbstractRecoveryTest extends FastaParserTestCase {
    * keys defined in that file that define an 'analyzerCode'.
    */
   List<String> getMappedCodes(String messagesPath) {
-    String content = new io.File(messagesPath).readAsStringSync();
+    String content = io.File(messagesPath).readAsStringSync();
     YamlDocument document = loadYamlDocument(content);
     expect(document, isNotNull);
-    Set<String> codes = new Set<String>();
+    Set<String> codes = <String>{};
     YamlNode contents = document.contents;
     if (contents is YamlMap) {
       for (String name in contents.keys) {
@@ -65,10 +65,10 @@ class AbstractRecoveryTest extends FastaParserTestCase {
    * codes defined in that file.
    */
   List<String> getReferencedCodes(String messagesPath) {
-    String content = new io.File(messagesPath).readAsStringSync();
+    String content = io.File(messagesPath).readAsStringSync();
     YamlDocument document = loadYamlDocument(content);
     expect(document, isNotNull);
-    Set<String> codes = new Set<String>();
+    Set<String> codes = <String>{};
     YamlNode contents = document.contents;
     if (contents is YamlMap) {
       for (String name in contents.keys) {
@@ -89,7 +89,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
    * return a list of the analyzer codes that are translated by the builder.
    */
   List<String> getTranslatedCodes(String astBuilderPath) {
-    String content = new io.File(astBuilderPath).readAsStringSync();
+    String content = io.File(astBuilderPath).readAsStringSync();
     CompilationUnit unit = parseCompilationUnit(content);
     ClassDeclaration astBuilder = unit.declarations[0];
     expect(astBuilder, isNotNull);
@@ -126,7 +126,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
       return;
     }
     List<String> sortedNames = generatedNames.toList()..sort();
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.writeln('Generated parser errors without analyzer codes:');
     for (String name in sortedNames) {
       buffer.write('  ');
@@ -152,7 +152,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
         untranslated.add(referencedCode);
       }
     }
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     if (untranslated.isNotEmpty) {
       buffer
           .writeln('Analyzer codes used in messages.yaml but not translated:');
@@ -199,7 +199,7 @@ class GeneratedCodesVisitor extends RecursiveAstVisitor {
   /**
    * The names of the message codes that are generated in the visited AST.
    */
-  Set<String> generatedNames = new Set<String>();
+  Set<String> generatedNames = <String>{};
 
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {

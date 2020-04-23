@@ -6,5 +6,6 @@ import("../application_snapshot.gni")
 
 application_snapshot("pub") {
   main_dart = "../../third_party/pkg/pub/bin/pub.dart"
+
   training_args = [ "--help" ]
 }

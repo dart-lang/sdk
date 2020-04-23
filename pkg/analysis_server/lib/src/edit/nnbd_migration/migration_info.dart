@@ -3,7 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/unit_link.dart';
+import 'package:analysis_server/src/edit/preview/preview_site.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 
 /// A description of an edit that can be applied before rerunning the migration
 /// in order to improve the migration results.
@@ -24,14 +28,51 @@ class EditDetail {
   EditDetail(this.description, this.offset, this.length, this.replacement);
 }
 
-/// The migration information associated with a single library.
-class LibraryInfo {
-  /// The information about the units in the library. The information about the
-  /// defining compilation unit is always first.
+/// A class storing rendering information for an entire migration report.
+///
+/// This generally provides one [InstrumentationRenderer] (for one library)
+/// with information about the rest of the libraries represented in the
+/// instrumentation output.
+class MigrationInfo {
+  /// The information about the compilation units that are are migrated.
   final Set<UnitInfo> units;
 
-  /// Initialize a newly created library.
-  LibraryInfo(this.units);
+  /// A map from file paths to the unit infos created for those files. The units
+  /// in this map is a strict superset of the [units] that were migrated.
+  final Map<String, UnitInfo> unitMap;
+
+  /// The resource provider's path context.
+  final path.Context pathContext;
+
+  /// The filesystem root used to create relative paths for each unit.
+  final String includedRoot;
+
+  MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot);
+
+  /// The path to the highlight.pack.js script, relative to [unitInfo].
+  String get highlightJsPath => PreviewSite.highlightJsPath;
+
+  /// The path to the highlight.pack.js stylesheet, relative to [unitInfo].
+  String get highlightStylePath => PreviewSite.highlightCssPath;
+
+  /// Return the path to [unit] from [includedRoot], to be used as a display
+  /// name for a library.
+  String computeName(UnitInfo unit) =>
+      pathContext.relative(unit.path, from: includedRoot);
+
+  List<UnitLink> unitLinks() {
+    var links = <UnitLink>[];
+    for (var unit in units) {
+      var count = unit.fixRegions.length;
+      links.add(UnitLink(
+          _pathTo(target: unit), pathContext.split(computeName(unit)), count));
+    }
+    return links;
+  }
+
+  /// The path to [target], as an HTTP URI path, using forward slash separators.
+  String _pathTo({@required UnitInfo target}) =>
+      '/' + pathContext.split(target.path).skip(1).join('/');
 }
 
 /// A location from or to which a user might want to navigate.
@@ -39,11 +80,16 @@ abstract class NavigationRegion {
   /// The offset of the region.
   final int offset;
 
+  /// The line number of the region.
+  final int line;
+
   /// The length of the region.
   final int length;
 
   /// Initialize a newly created link.
-  NavigationRegion(this.offset, this.length);
+  NavigationRegion(int offset, this.line, this.length)
+      : assert(offset >= 0),
+        offset = offset < 0 ? 0 : offset;
 }
 
 /// A location from which a user might want to navigate.
@@ -52,7 +98,8 @@ class NavigationSource extends NavigationRegion {
   final NavigationTarget target;
 
   /// Initialize a newly created link.
-  NavigationSource(int offset, int length, this.target) : super(offset, length);
+  NavigationSource(int offset, int line, int length, this.target)
+      : super(offset, line, length);
 }
 
 /// A location to which a user might want to navigate.
@@ -61,8 +108,8 @@ class NavigationTarget extends NavigationRegion {
   final String filePath;
 
   /// Initialize a newly created anchor.
-  NavigationTarget(this.filePath, int offset, int length)
-      : super(offset, length);
+  NavigationTarget(this.filePath, int offset, int line, int length)
+      : super(offset, line, length);
 
   @override
   int get hashCode => JenkinsSmiHash.hash3(filePath.hashCode, offset, length);
@@ -76,7 +123,7 @@ class NavigationTarget extends NavigationRegion {
   }
 
   @override
-  String toString() => 'NavigationTarget["$filePath", $offset, $length]';
+  String toString() => 'NavigationTarget["$filePath", $line, $offset, $length]';
 }
 
 /// An additional detail related to a region.
@@ -104,6 +151,9 @@ class RegionInfo {
   /// The length of the region.
   final int length;
 
+  /// The line number of the beginning of the region.
+  final int lineNumber;
+
   /// The explanation to be displayed for the region.
   final String explanation;
 
@@ -113,22 +163,53 @@ class RegionInfo {
   /// A list of the edits that are related to this range.
   List<EditDetail> edits;
 
+  /// A list of the nullability propagation traces that are related to this
+  /// range.
+  List<TraceInfo> traces;
+
   /// Initialize a newly created region.
-  RegionInfo(
-      this.regionType, this.offset, this.length, this.explanation, this.details,
-      {this.edits = const []});
+  RegionInfo(this.regionType, this.offset, this.length, this.lineNumber,
+      this.explanation, this.details,
+      {this.edits = const [], this.traces = const []});
 }
 
 /// Different types of regions that are called out.
 enum RegionType {
-  // TODO(brianwilkerson) 'fix' indicates whether the code was modified, while
-  //  'nonNullableType' indicates why the code wasn't modified. It would be good
-  //  to be consistent between the "whether" and "why" descriptions.
-  /// This is a region of code that was fixed (changed) in migration.
-  fix,
+  /// This is a region of code that was added in migration.
+  add,
 
-  /// This is a type that was declared non-nullable in migration.
-  nonNullableType,
+  /// This is a region of code that was removed in migration.
+  remove,
+
+  /// This is a region of code that wasn't changed by migration, but is being
+  /// shown to give the user more information about the migration.
+  informative,
+}
+
+/// Information about a single entry in a nullability trace.
+class TraceEntryInfo {
+  /// Text description of the entry.
+  final String description;
+
+  /// Name of the enclosing function, or `null` if not known.
+  String function;
+
+  /// Source code location associated with the entry, or `null` if no source
+  /// code location is known.
+  final NavigationTarget target;
+
+  TraceEntryInfo(this.description, this.function, this.target);
+}
+
+/// Information about a nullability trace.
+class TraceInfo {
+  /// Text description of the trace.
+  final String description;
+
+  /// List of trace entries.
+  final List<TraceEntryInfo> entries;
+
+  TraceInfo(this.description, this.entries);
 }
 
 /// The migration information associated with a single compilation unit.
@@ -159,11 +240,18 @@ class UnitInfo {
   UnitInfo(this.path);
 
   /// Returns the [regions] that represent a fixed (changed) region of code.
-  List<RegionInfo> get fixRegions =>
-      List.of(regions.where((region) => region.regionType == RegionType.fix));
+  List<RegionInfo> get fixRegions => regions
+      .where((region) => region.regionType != RegionType.informative)
+      .toList();
 
-  /// Returns the [regions] that represent an unchanged type which was
-  /// determined to be non-null.
-  List<RegionInfo> get nonNullableTypeRegions => List.of(regions
-      .where((region) => region.regionType == RegionType.nonNullableType));
+  /// Returns the [regions] that are informative.
+  List<RegionInfo> get informativeRegions => regions
+      .where((region) => region.regionType == RegionType.informative)
+      .toList();
+
+  /// Returns the [RegionInfo] at offset [offset].
+  // TODO(srawlins): This is O(n), used each time the user clicks on a region.
+  //  Consider changing the type of [regions] to facilitate O(1) searching.
+  RegionInfo regionAt(int offset) =>
+      regions.firstWhere((region) => region.offset == offset);
 }

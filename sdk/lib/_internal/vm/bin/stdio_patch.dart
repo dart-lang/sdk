@@ -10,31 +10,30 @@
 class _StdIOUtils {
   @patch
   static Stdin _getStdioInputStream(int fd) {
-    switch (_getStdioHandleType(fd)) {
+    final type = _getStdioHandleType(fd);
+    if (type is OSError) {
+      throw FileSystemException(
+          "Failed to get type of stdio handle (fd $fd)", "", type);
+    }
+    switch (type) {
       case _stdioHandleTypeTerminal:
       case _stdioHandleTypePipe:
       case _stdioHandleTypeSocket:
+      case _stdioHandleTypeOther:
         return new Stdin._(new _Socket._readPipe(fd), fd);
       case _stdioHandleTypeFile:
         return new Stdin._(new _FileStream.forStdin(), fd);
-      default:
-        throw new FileSystemException(
-            "Couldn't determine file type of stdin (fd $fd)");
     }
   }
 
   @patch
   static _getStdioOutputStream(int fd) {
-    switch (_getStdioHandleType(fd)) {
-      case _stdioHandleTypeTerminal:
-      case _stdioHandleTypePipe:
-      case _stdioHandleTypeSocket:
-      case _stdioHandleTypeFile:
-        return new Stdout._(new IOSink(new _StdConsumer(fd)), fd);
-      default:
-        throw new FileSystemException(
-            "Couldn't determine file type of stdio handle (fd $fd)");
+    final type = _getStdioHandleType(fd);
+    if (type is OSError) {
+      throw FileSystemException(
+          "Failed to get type of stdio handle (fd $fd)", "", type);
     }
+    return new Stdout._(new IOSink(new _StdConsumer(fd)), fd);
   }
 
   @patch
@@ -164,5 +163,6 @@ class Stdout {
   static _getAnsiSupported(int fd) native "Stdout_AnsiSupported";
 }
 
-_getStdioHandle(_NativeSocket socket, int num) native "Socket_GetStdioHandle";
+bool _getStdioHandle(_NativeSocket socket, int num)
+    native "Socket_GetStdioHandle";
 _getSocketType(_NativeSocket nativeSocket) native "Socket_GetType";

@@ -17,7 +17,7 @@ abstract class ProcessProfiler {
   /// cpu information for the current platform.
   static ProcessProfiler getProfilerForPlatform() {
     if (Platform.isLinux || Platform.isMacOS) {
-      return new _PosixProcessProfiler();
+      return _PosixProcessProfiler();
     }
 
     // Not a supported platform.
@@ -37,11 +37,12 @@ class UsageInfo {
 
   double get memoryMB => memoryKB / 1024;
 
+  @override
   String toString() => '$cpuPercentage% ${memoryMB.toStringAsFixed(1)}MB';
 }
 
 class _PosixProcessProfiler extends ProcessProfiler {
-  static final RegExp stringSplitRegExp = new RegExp(r'\s+');
+  static final RegExp stringSplitRegExp = RegExp(r'\s+');
 
   _PosixProcessProfiler() : super._();
 
@@ -49,26 +50,26 @@ class _PosixProcessProfiler extends ProcessProfiler {
   Future<UsageInfo> getProcessUsage(int processId) {
     try {
       // Execution time is typically 2-4ms.
-      Future<ProcessResult> future =
+      var future =
           Process.run('ps', ['-o', '%cpu=,rss=', processId.toString()]);
       return future.then((ProcessResult result) {
         if (result.exitCode != 0) {
-          return new Future.value(null);
+          return Future.value(null);
         }
 
-        return new Future.value(_parse(result.stdout));
+        return Future.value(_parse(result.stdout));
       });
     } catch (e) {
-      return new Future.error(e);
+      return Future.error(e);
     }
   }
 
   UsageInfo _parse(String psResults) {
     try {
       // "  0.0 378940"
-      String line = psResults.split('\n').first.trim();
-      List<String> values = line.split(stringSplitRegExp);
-      return new UsageInfo(double.parse(values[0]), int.parse(values[1]));
+      var line = psResults.split('\n').first.trim();
+      var values = line.split(stringSplitRegExp);
+      return UsageInfo(double.parse(values[0]), int.parse(values[1]));
     } catch (e) {
       return null;
     }

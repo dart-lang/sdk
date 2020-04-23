@@ -1,18 +1,20 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--no-causal-async-stacks --lazy-async-stacks
+// VMOptions=--causal-async-stacks --no-lazy-async-stacks
 
 import 'dart:developer';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const LINE_A = 18;
-const LINE_B = 19;
-const LINE_C = 24;
-const LINE_D = 26;
-const LINE_E = 29;
-const LINE_F = 32;
-const LINE_G = 34;
+const LINE_A = 20;
+const LINE_B = 21;
+const LINE_C = 26;
+const LINE_D = 28;
+const LINE_E = 31;
+const LINE_F = 34;
+const LINE_G = 36;
 
 helper() async {
   print('helper'); // LINE_A.
@@ -43,6 +45,12 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_D), // await helper
   stepInto,
 
+  ...ifLazyAsyncStacks(<IsolateTest>[
+    hasStoppedAtBreakpoint,
+    stoppedAtLine(19), // helper() async { ... }
+    stepInto,
+  ]),
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A), // print helper
   smartNext,
@@ -52,7 +60,7 @@ var tests = <IsolateTest>[
   smartNext,
 
   hasStoppedAtBreakpoint,
-  stoppedAtLine(20), // } (weird dispatching)
+  stoppedAtLine(22), // } (weird dispatching)
   smartNext,
 
   hasStoppedAtBreakpoint,
@@ -76,5 +84,5 @@ var tests = <IsolateTest>[
   resumeIsolate
 ];
 
-main([args = const <String>[]]) =>
-    runIsolateTests(args, tests, testeeConcurrent: testMain);
+main([args = const <String>[]]) => runIsolateTests(args, tests,
+    testeeConcurrent: testMain, extraArgs: extraDebuggingArgs);

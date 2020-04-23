@@ -101,6 +101,17 @@ outlineEntryPoint(List<String> arguments) async {
   }
 }
 
+depsEntryPoint(List<String> arguments) async {
+  installAdditionalTargets();
+
+  for (int i = 0; i < iterations; i++) {
+    if (i > 1) {
+      print("\n");
+    }
+    await deps(arguments);
+  }
+}
+
 compilePlatformEntryPoint(List<String> arguments) async {
   installAdditionalTargets();
   for (int i = 0; i < iterations; i++) {
@@ -228,6 +239,20 @@ Future<Uri> compile(List<String> arguments) async {
   });
 }
 
+Future<Uri> deps(List<String> arguments) async {
+  return await runProtectedFromAbort<Uri>(() async {
+    return await withGlobalOptions("deps", arguments, true,
+        (CompilerContext c, _) async {
+      if (c.options.verbose) {
+        print("Computing deps: ${arguments.join(' ')}");
+      }
+      CompileTask task =
+          new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
+      return await task.buildDeps(c.options.output);
+    });
+  });
+}
+
 class CompileTask {
   final CompilerContext c;
   final Ticker ticker;
@@ -241,6 +266,30 @@ class CompileTask {
   KernelTarget createKernelTarget(
       DillTarget dillTarget, UriTranslator uriTranslator) {
     return new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator);
+  }
+
+  Future<Uri> buildDeps([Uri output]) async {
+    UriTranslator uriTranslator = await c.options.getUriTranslator();
+    ticker.logMs("Read packages file");
+    DillTarget dillTarget = createDillTarget(uriTranslator);
+    KernelTarget kernelTarget = createKernelTarget(dillTarget, uriTranslator);
+    Uri platform = c.options.sdkSummary;
+    if (platform != null) {
+      // TODO(CFE-Team): Probably this should be read through the filesystem as
+      // well and the recording would be automatic.
+      _appendDillForUri(dillTarget, platform);
+      CompilerContext.recordDependency(platform);
+    }
+    kernelTarget.setEntryPoints(c.options.inputs);
+    await dillTarget.buildOutlines();
+    await kernelTarget.loader.buildOutlines();
+
+    Uri dFile;
+    if (output != null) {
+      dFile = new File(new File.fromUri(output).path + ".d").uri;
+      await writeDepsFile(output, dFile, c.dependencies);
+    }
+    return dFile;
   }
 
   Future<KernelTarget> buildOutline([Uri output]) async {
@@ -343,9 +392,7 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
     component = createFreshComponentWithBytecode(component);
   }
 
-  await writeComponentToFile(component, fullOutput,
-      // ignore: DEPRECATED_MEMBER_USE
-      filter: (lib) => !lib.isExternal);
+  await writeComponentToFile(component, fullOutput);
 
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
 

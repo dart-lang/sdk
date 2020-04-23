@@ -3,21 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
-import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
@@ -38,7 +33,7 @@ abstract class AbstractDartSdk implements DartSdk {
   /**
    * A mapping from Dart library URI's to the library represented by that URI.
    */
-  LibraryMap libraryMap = new LibraryMap();
+  LibraryMap libraryMap = LibraryMap();
 
   /**
    * The [AnalysisOptions] to use to create the [context].
@@ -54,12 +49,12 @@ abstract class AbstractDartSdk implements DartSdk {
   /**
    * The [AnalysisContext] which is used for all of the sources in this SDK.
    */
-  InternalAnalysisContext _analysisContext;
+  SdkAnalysisContext _analysisContext;
 
   /**
    * The mapping from Dart URI's to the corresponding sources.
    */
-  Map<String, Source> _uriToSourceMap = new HashMap<String, Source>();
+  final Map<String, Source> _uriToSourceMap = HashMap<String, Source>();
 
   PackageBundle _sdkBundle;
 
@@ -72,9 +67,9 @@ abstract class AbstractDartSdk implements DartSdk {
    * Set the [options] for this SDK analysis context.  Throw [StateError] if the
    * context has been already created.
    */
-  void set analysisOptions(AnalysisOptions options) {
+  set analysisOptions(AnalysisOptions options) {
     if (_analysisContext != null) {
-      throw new StateError(
+      throw StateError(
           'Analysis options cannot be changed after context creation.');
     }
     _analysisOptions = options;
@@ -108,9 +103,9 @@ abstract class AbstractDartSdk implements DartSdk {
   /**
    * Specify whether SDK summary should be used.
    */
-  void set useSummary(bool use) {
+  set useSummary(bool use) {
     if (_analysisContext != null) {
-      throw new StateError(
+      throw StateError(
           'The "useSummary" flag cannot be changed after context creation.');
     }
     _useSummary = use;
@@ -123,7 +118,7 @@ abstract class AbstractDartSdk implements DartSdk {
    */
   void addExtensions(Map<String, String> extensions) {
     extensions.forEach((String uri, String path) {
-      SdkLibraryImpl library = new SdkLibraryImpl(uri);
+      SdkLibraryImpl library = SdkLibraryImpl(uri);
       library.path = path;
       libraryMap.setLibrary(uri, library);
     });
@@ -152,7 +147,7 @@ abstract class AbstractDartSdk implements DartSdk {
     } on FormatException catch (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logInfo(
           "Failed to create URI: $path",
-          new CaughtException(exception, stackTrace));
+          CaughtException(exception, stackTrace));
     }
     return null;
   }
@@ -232,7 +227,7 @@ abstract class AbstractDartSdk implements DartSdk {
   String _getPath(File file) {
     List<SdkLibrary> libraries = libraryMap.sdkLibraries;
     int length = libraries.length;
-    List<String> paths = new List(length);
+    List<String> paths = List(length);
     String filePath = getRelativePathFromFile(file);
     if (filePath == null) {
       return null;
@@ -269,7 +264,7 @@ class EmbedderSdk extends AbstractDartSdk {
   static const String _DART_COLON_PREFIX = 'dart:';
 
   static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
-  final Map<String, String> _urlMappings = new HashMap<String, String>();
+  final Map<String, String> _urlMappings = HashMap<String, String>();
 
   Folder _embedderYamlLibFolder;
 
@@ -301,11 +296,11 @@ class EmbedderSdk extends AbstractDartSdk {
     try {
       if (file.exists) {
         List<int> bytes = file.readAsBytesSync();
-        return new PackageBundle.fromBuffer(bytes);
+        return PackageBundle.fromBuffer(bytes);
       }
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logException(
-          new CaughtException.withMessage(
+          CaughtException.withMessage(
               'Failed to load SDK analysis summary from $file',
               exception,
               stackTrace));
@@ -363,7 +358,7 @@ class EmbedderSdk extends AbstractDartSdk {
     }
     String libPath = libDir.canonicalizePath(file);
     _urlMappings[name] = libPath;
-    SdkLibraryImpl library = new SdkLibraryImpl(name);
+    SdkLibraryImpl library = SdkLibraryImpl(name);
     library.path = libPath;
     libraryMap.setLibrary(name, library);
   }
@@ -405,71 +400,47 @@ class EmbedderSdk extends AbstractDartSdk {
  *     Chromium/   <-- Dartium typically exists in a sibling directory
  */
 class FolderBasedDartSdk extends AbstractDartSdk {
-  /**
-   * The name of the directory within the SDK directory that contains
-   * executables.
-   */
-  static String _BIN_DIRECTORY_NAME = "bin";
+  /// The name of the directory within the SDK directory that contains
+  /// executables.
+  static const String _BIN_DIRECTORY_NAME = "bin";
 
-  /**
-   * The name of the directory within the SDK directory that contains
-   * documentation for the libraries.
-   */
-  static String _DOCS_DIRECTORY_NAME = "docs";
+  /// The name of the directory within the SDK directory that contains
+  /// documentation for the libraries.
+  static const String _DOCS_DIRECTORY_NAME = "docs";
 
-  /**
-   * The name of the directory within the SDK directory that contains the
-   * sdk_library_metadata directory.
-   */
-  static String _INTERNAL_DIR = "_internal";
+  /// The name of the directory within the SDK directory that contains the
+  /// sdk_library_metadata directory.
+  static const String _INTERNAL_DIR = "_internal";
 
-  /**
-   * The name of the sdk_library_metadata directory that contains the package
-   * holding the libraries.dart file.
-   */
-  static String _SDK_LIBRARY_METADATA_DIR = "sdk_library_metadata";
+  /// The name of the sdk_library_metadata directory that contains the package
+  /// holding the libraries.dart file.
+  static const String _SDK_LIBRARY_METADATA_DIR = "sdk_library_metadata";
 
-  /**
-   * The name of the directory within the sdk_library_metadata that contains
-   * libraries.dart.
-   */
-  static String _SDK_LIBRARY_METADATA_LIB_DIR = "lib";
+  /// The name of the directory within the sdk_library_metadata that contains
+  /// libraries.dart.
+  static const String _SDK_LIBRARY_METADATA_LIB_DIR = "lib";
 
-  /**
-   * The name of the directory within the SDK directory that contains the
-   * libraries.
-   */
-  static String _LIB_DIRECTORY_NAME = "lib";
+  /// The name of the directory within the SDK directory that contains the
+  /// libraries.
+  static const String _LIB_DIRECTORY_NAME = "lib";
 
-  /**
-   * The name of the libraries file.
-   */
-  static String _LIBRARIES_FILE = "libraries.dart";
+  /// The name of the libraries file.
+  static const String _LIBRARIES_FILE = "libraries.dart";
 
-  /**
-   * The name of the pub executable on windows.
-   */
-  static String _PUB_EXECUTABLE_NAME_WIN = "pub.bat";
+  /// The name of the pub executable on windows.
+  static const String _PUB_EXECUTABLE_NAME_WIN = "pub.bat";
 
-  /**
-   * The name of the pub executable on non-windows operating systems.
-   */
-  static String _PUB_EXECUTABLE_NAME = "pub";
+  /// The name of the pub executable on non-windows operating systems.
+  static const String _PUB_EXECUTABLE_NAME = "pub";
 
-  /**
-   * The name of the file within the SDK directory that contains the version
-   * number of the SDK.
-   */
-  static String _VERSION_FILE_NAME = "version";
+  /// The name of the file within the SDK directory that contains the version
+  /// number of the SDK.
+  static const String _VERSION_FILE_NAME = "version";
 
-  /**
-   * The directory containing the SDK.
-   */
-  Folder _sdkDirectory;
+  /// The directory containing the SDK.
+  final Folder _sdkDirectory;
 
-  /**
-   * The directory within the SDK directory that contains the libraries.
-   */
+  /// The directory within the SDK directory that contains the libraries.
   Folder _libraryDirectory;
 
   /**
@@ -590,6 +561,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
    * This method should not be used outside of `analyzer` and `analyzer_cli`
    * packages.
    */
+  @override
   PackageBundle getSummarySdkBundle() {
     String rootPath = directory.path;
     String name = 'strong.sum';
@@ -599,11 +571,11 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       File file = resourceProvider.getFile(path);
       if (file.exists) {
         List<int> bytes = file.readAsBytesSync();
-        return new PackageBundle.fromBuffer(bytes);
+        return PackageBundle.fromBuffer(bytes);
       }
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logException(
-          new CaughtException.withMessage(
+          CaughtException.withMessage(
               'Failed to load SDK analysis summary from $path',
               exception,
               stackTrace));
@@ -629,15 +601,15 @@ class FolderBasedDartSdk extends AbstractDartSdk {
         lastStackTrace = stackTrace;
       }
     }
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.writeln('Could not initialize the library map from $searchedPaths');
     if (resourceProvider is MemoryResourceProvider) {
       (resourceProvider as MemoryResourceProvider).writeOn(buffer);
     }
     // TODO(39284): should this exception be silent?
     AnalysisEngine.instance.instrumentationService.logException(
-        new SilentException(buffer.toString(), lastException, lastStackTrace));
-    return new LibraryMap();
+        SilentException(buffer.toString(), lastException, lastStackTrace));
+    return LibraryMap();
   }
 
   @override
@@ -701,7 +673,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     pathos.Context pathContext = resourceProvider.pathContext;
     if (pathContext.style != pathos.context.style) {
       // This will only happen when running tests.
-      if (exec.startsWith(new RegExp('[a-zA-Z]:'))) {
+      if (exec.startsWith(RegExp('[a-zA-Z]:'))) {
         exec = exec.substring(2);
       } else if (resourceProvider is MemoryResourceProvider) {
         exec = resourceProvider.convertPath(exec);
@@ -725,128 +697,6 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     }
     // probably be "dart-sdk/bin/dart"
     return pathContext.dirname(pathContext.dirname(exec));
-  }
-}
-
-/**
- * An object used to locate SDK extensions.
- *
- * Given a package map, it will check in each package's `lib` directory for the
- * existence of a `_sdkext` file. This file must contain a JSON encoded map.
- * Each key in the map is a `dart:` library name. Each value is a path (relative
- * to the directory containing `_sdkext`) to a dart script for the given
- * library. For example:
- * ```
- * {
- *   "dart:sky": "../sdk_ext/dart_sky.dart"
- * }
- * ```
- * If a key doesn't begin with `dart:` it is ignored.
- */
-class SdkExtensionFinder {
-  /**
-   * The name of the extension file.
-   */
-  static const String SDK_EXT_NAME = '_sdkext';
-
-  /**
-   * The prefix required for all keys in an extension file that will not be
-   * ignored.
-   */
-  static const String DART_COLON_PREFIX = 'dart:';
-
-  /**
-   * A table mapping the names of extensions to the paths where those extensions
-   * can be found.
-   */
-  final Map<String, String> _urlMappings = <String, String>{};
-
-  /**
-   * The absolute paths of the extension files that contributed to the
-   * [_urlMappings].
-   */
-  final List<String> extensionFilePaths = <String>[];
-
-  /**
-   * Initialize a newly created finder to look in the packages in the given
-   * [packageMap] for SDK extension files.
-   */
-  SdkExtensionFinder(Map<String, List<Folder>> packageMap) {
-    if (packageMap == null) {
-      return;
-    }
-    packageMap.forEach(_processPackage);
-  }
-
-  /**
-   * Return a table mapping the names of extensions to the paths where those
-   * extensions can be found.
-   */
-  Map<String, String> get urlMappings =>
-      new Map<String, String>.from(_urlMappings);
-
-  /**
-   * Given a package [name] and a list of folders ([libDirs]), add any found sdk
-   * extensions.
-   */
-  void _processPackage(String name, List<Folder> libDirs) {
-    for (var libDir in libDirs) {
-      var sdkExt = _readDotSdkExt(libDir);
-      if (sdkExt != null) {
-        _processSdkExt(sdkExt, libDir);
-      }
-    }
-  }
-
-  /**
-   * Given the JSON for an SDK extension ([sdkExtJSON]) and a folder ([libDir]),
-   * setup the uri mapping.
-   */
-  void _processSdkExt(String sdkExtJSON, Folder libDir) {
-    var sdkExt;
-    try {
-      sdkExt = json.decode(sdkExtJSON);
-    } catch (e) {
-      return;
-    }
-    if ((sdkExt == null) || (sdkExt is! Map)) {
-      return;
-    }
-    bool contributed = false;
-    sdkExt.forEach((k, v) {
-      if (k is String && v is String && _processSdkExtension(libDir, k, v)) {
-        contributed = true;
-      }
-    });
-    if (contributed) {
-      extensionFilePaths.add(libDir.getChild(SDK_EXT_NAME).path);
-    }
-  }
-
-  /**
-   * Install the mapping from [name] to [libDir]/[file].
-   */
-  bool _processSdkExtension(Folder libDir, String name, String file) {
-    if (!name.startsWith(DART_COLON_PREFIX)) {
-      // SDK extensions must begin with 'dart:'.
-      return false;
-    }
-    _urlMappings[name] = libDir.canonicalizePath(file);
-    return true;
-  }
-
-  /**
-   * Read the contents of [libDir]/[SDK_EXT_NAME] as a string, or `null` if the
-   * file doesn't exist.
-   */
-  String _readDotSdkExt(Folder libDir) {
-    File file = libDir.getChild(SDK_EXT_NAME);
-    try {
-      return file.readAsStringSync();
-    } on FileSystemException {
-      // File can't be read.
-      return null;
-    }
   }
 }
 
@@ -886,20 +736,19 @@ class SdkLibrariesReader {
    * of the file is already known to be [libraryFileContents].
    */
   LibraryMap readFromSource(Source source, String libraryFileContents) {
-    BooleanErrorListener errorListener = new BooleanErrorListener();
     // TODO(paulberry): initialize the feature set appropriately based on the
     // version of the SDK we are reading, and enable flags.
     var featureSet = FeatureSet.fromEnableFlags([]);
-    Scanner scanner = new Scanner(
-        source, new CharSequenceReader(libraryFileContents), errorListener)
-      ..configureFeatures(featureSet);
-    Parser parser = new Parser(source, errorListener, featureSet: featureSet);
-    CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
-    SdkLibrariesReader_LibraryBuilder libraryBuilder =
-        new SdkLibrariesReader_LibraryBuilder();
-    // If any syntactic errors were found then don't try to visit the AST
-    // structure.
-    if (!errorListener.errorReported) {
+
+    var parseResult = parseString(
+      content: libraryFileContents,
+      featureSet: featureSet,
+      throwIfDiagnostics: false,
+    );
+    var unit = parseResult.unit;
+
+    var libraryBuilder = SdkLibrariesReader_LibraryBuilder();
+    if (parseResult.errors.isEmpty) {
       unit.accept(libraryBuilder);
     }
     return libraryBuilder.librariesMap;

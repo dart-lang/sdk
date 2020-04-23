@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MakeFinalTest);
   });
@@ -23,86 +23,33 @@ class MakeFinalTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_final_fields;
 
-  test_field_type() async {
+  Future<void> test_field_type() async {
     await resolveTestUnit('''
 class C {
-  int /*LINT*/f = 2;
-}
-''');
-    await assertHasFix('''
-class C {
-  final int /*LINT*/f = 2;
-}
-''');
-  }
-
-  test_field_var() async {
-    await resolveTestUnit('''
-class C {
-  var /*LINT*/f = 2;
+  int _f = 2;
+  int get g => _f;
 }
 ''');
     await assertHasFix('''
 class C {
-  final /*LINT*/f = 2;
+  final int _f = 2;
+  int get g => _f;
 }
 ''');
   }
 
-  test_local_type() async {
-    await resolveTestUnit('''
-bad() {
-  int /*LINT*/x = 2;
-}
-''');
-    await assertHasFix('''
-bad() {
-  final int /*LINT*/x = 2;
-}
-''');
-  }
-
-  test_local_var() async {
-    await resolveTestUnit('''
-bad() {
-  var /*LINT*/x = 2;
-}
-''');
-    await assertHasFix('''
-bad() {
-  final /*LINT*/x = 2;
-}
-''');
-  }
-
-  test_noKeyword() async {
+  Future<void> test_field_var() async {
     await resolveTestUnit('''
 class C {
-  /*LINT*/f = 2;
+  var _f = 2;
+  int get g => _f;
 }
 ''');
     await assertHasFix('''
 class C {
-  /*LINT*/final f = 2;
+  final _f = 2;
+  int get g => _f;
 }
-''');
-  }
-
-  test_topLevel_type() async {
-    await resolveTestUnit('''
-int /*LINT*/x = 2;
-''');
-    await assertHasFix('''
-final int /*LINT*/x = 2;
-''');
-  }
-
-  test_topLevel_var() async {
-    await resolveTestUnit('''
-var /*LINT*/x = 2;
-''');
-    await assertHasFix('''
-final /*LINT*/x = 2;
 ''');
   }
 }

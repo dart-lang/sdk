@@ -72,7 +72,7 @@ def main():
 
         # Make sure options.channel is a valid
         if not options.channel:
-            die('Specify --channel=be/dev/stable')
+            die('Specify --channel=beta/dev/stable')
         if options.channel not in bot_utils.Channel.ALL_CHANNELS:
             die('You must supply a valid channel to --channel to promote')
     else:

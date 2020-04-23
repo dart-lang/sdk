@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithTearOffTest);
   });
@@ -23,22 +23,22 @@ class ReplaceWithTearOffTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_lambdas;
 
-  test_function_oneParameter() async {
+  Future<void> test_function_oneParameter() async {
     await resolveTestUnit('''
-final x = /*LINT*/(name) {
+Function f() => (name) {
   print(name);
 };
 ''');
     await assertHasFix('''
-final x = /*LINT*/print;
+Function f() => print;
 ''');
   }
 
-  test_function_zeroParameters() async {
+  Future<void> test_function_zeroParameters() async {
     await resolveTestUnit('''
 void foo(){}
 Function finalVar() {
-  return /*LINT*/() {
+  return () {
     foo();
   };
 }
@@ -46,17 +46,17 @@ Function finalVar() {
     await assertHasFix('''
 void foo(){}
 Function finalVar() {
-  return /*LINT*/foo;
+  return foo;
 }
 ''');
   }
 
-  test_lambda_asArgument() async {
+  Future<void> test_lambda_asArgument() async {
     await resolveTestUnit('''
 void foo() {
   bool isPair(int a) => a % 2 == 0;
   final finalList = <int>[];
-  finalList.where(/*LINT*/(number) =>
+  finalList.where((number) =>
     isPair(number));
 }
 ''');
@@ -64,33 +64,35 @@ void foo() {
 void foo() {
   bool isPair(int a) => a % 2 == 0;
   final finalList = <int>[];
-  finalList.where(/*LINT*/isPair);
+  finalList.where(isPair);
 }
 ''');
   }
 
-  test_method_oneParameter() async {
+  Future<void> test_method_oneParameter() async {
     await resolveTestUnit('''
-var a = /*LINT*/(x) => finalList.remove(x);
+final l = <int>[];
+var a = (x) => l.indexOf(x);
 ''');
     await assertHasFix('''
-var a = /*LINT*/finalList.remove;
+final l = <int>[];
+var a = l.indexOf;
 ''');
   }
 
-  test_method_zeroParameter() async {
+  Future<void> test_method_zeroParameter() async {
     await resolveTestUnit('''
-final Object a;
+final Object a = '';
 Function finalVar() {
-  return /*LINT*/() {
+  return () {
     return a.toString();
   };
 }
 ''');
     await assertHasFix('''
-final Object a;
+final Object a = '';
 Function finalVar() {
-  return /*LINT*/a.toString;
+  return a.toString;
 }
 ''');
   }

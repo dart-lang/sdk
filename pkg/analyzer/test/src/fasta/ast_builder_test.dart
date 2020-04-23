@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +20,7 @@ class AstBuilderTest extends FastaParserTestCase {
   void test_constructor_factory_misnamed() {
     CompilationUnit unit = parseCompilationUnit('''
 class A {
-  factory B() => null;
+  factory B() => throw 0;
 }
 ''');
     expect(unit, isNotNull);
@@ -39,7 +40,9 @@ class A {
 class A {
   B() : super();
 }
-''');
+''', errors: [
+      expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1),
+    ]);
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(1));
     ClassDeclaration declaration = unit.declarations[0];
@@ -55,7 +58,9 @@ class A {
 class A {
   get A => 0;
 }
-''');
+''', errors: [
+      expectedError(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
+    ]);
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(1));
     ClassDeclaration declaration = unit.declarations[0];

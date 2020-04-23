@@ -98,12 +98,15 @@ getMangledTypeName(Type t) {
 Object setRuntimeTypeInfo(Object target, var rti) {
   if (JS_GET_FLAG('USE_NEW_RTI')) {
     assert(rti != null);
+    var rtiProperty = JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY);
+    JS('var', r'#[#] = #', target, rtiProperty, rti);
+    return target;
   } else {
     assert(rti == null || isJsArray(rti));
+    String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
+    JS('var', r'#[#] = #', target, rtiName, rti);
+    return target;
   }
-  String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
-  JS('var', r'#[#] = #', target, rtiName, rti);
-  return target;
 }
 
 /// Returns the runtime type information of [target]. The returned value is a

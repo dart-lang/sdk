@@ -146,12 +146,16 @@ abstract class String implements Comparable<String>, Pattern {
    * [defaultValue].
    *
    * Example of getting a value:
-   *
-   *     const String.fromEnvironment("defaultFloo", defaultValue: "no floo")
-   *
-   * Example of checking whether a declaration is there at all:
-   *
-   *     var isDeclared = const String.fromEnvironment("maybeDeclared") != null;
+   * ```
+   * const String.fromEnvironment("defaultFloo", defaultValue: "no floo")
+   * ```
+   * In order to check whether a declaration is there at all, use
+   * [bool.hasEnvironment]. Example:
+   * ```
+   * const maybeDeclared = bool.hasEnvironment("maybeDeclared")
+   *     ? String.fromEnvironment("maybeDeclared")
+   *     : null;
+   * ```
    */
   // The .fromEnvironment() constructors are special in that we do not want
   // users to call them using "new". We prohibit that by giving them bodies
@@ -160,7 +164,7 @@ abstract class String implements Comparable<String>, Pattern {
   //ignore: const_constructor_with_body
   //ignore: const_factory
   external const factory String.fromEnvironment(String name,
-      {String defaultValue});
+      {String defaultValue = ""});
 
   /**
    * Gets the character (as a single-code-unit [String]) at the given [index].
@@ -670,9 +674,10 @@ int _combineSurrogatePair(int start, int end) {
   return 0x10000 + ((start & 0x3FF) << 10) + (end & 0x3FF);
 }
 
-/** [Iterator] for reading runes (integer Unicode code points) out of a Dart
-  * string.
-  */
+/**
+ * [Iterator] for reading runes (integer Unicode code points) out of a Dart
+ * string.
+ */
 class RuneIterator implements BidirectionalIterator<int> {
   /** String being iterated. */
   final String string;
@@ -683,10 +688,10 @@ class RuneIterator implements BidirectionalIterator<int> {
   /**
    * Current code point.
    *
-   * If the iterator has hit either end, the [_currentCodePoint] is null
+   * If the iterator has hit either end, the [_currentCodePoint] is -1
    * and [: _position == _nextPosition :].
    */
-  int _currentCodePoint;
+  int _currentCodePoint = -1;
 
   /** Create an iterator positioned at the beginning of the string. */
   RuneIterator(String string)
@@ -725,9 +730,9 @@ class RuneIterator implements BidirectionalIterator<int> {
   /**
    * Returns the starting position of the current rune in the string.
    *
-   * Returns null if the [current] rune is null.
+   * Returns -1 if there is no current rune ([current] is -1).
    */
-  int get rawIndex => (_position != _nextPosition) ? _position : null;
+  int get rawIndex => (_position != _nextPosition) ? _position : -1;
 
   /**
    * Resets the iterator to the rune at the specified index of the string.
@@ -758,18 +763,21 @@ class RuneIterator implements BidirectionalIterator<int> {
     RangeError.checkValueInInterval(rawIndex, 0, string.length, "rawIndex");
     _checkSplitSurrogate(rawIndex);
     _position = _nextPosition = rawIndex;
-    _currentCodePoint = null;
+    _currentCodePoint = -1;
   }
 
-  /** The rune (integer Unicode code point) starting at the current position in
-   *  the string.
+  /**
+   * The rune (integer Unicode code point) starting at the current position in
+   * the string.
+   *
+   * If there is no current rune, the value -1 is used instead.
    */
   int get current => _currentCodePoint;
 
   /**
    * The number of code units comprising the current rune.
    *
-   * Returns zero if there is no current rune ([current] is null).
+   * Returns zero if there is no current rune ([current] is -1).
    */
   int get currentSize => _nextPosition - _position;
 
@@ -777,12 +785,12 @@ class RuneIterator implements BidirectionalIterator<int> {
    * A string containing the current rune.
    *
    * For runes outside the basic multilingual plane, this will be
-   * a String of length 2, containing two code units.
+   * a [String] of length 2, containing two code units.
    *
-   * Returns null if [current] is null.
+   * Returns an empty string if there is no current rune ([current] is -1).
    */
   String get currentAsString {
-    if (_position == _nextPosition) return null;
+    if (_position == _nextPosition) return "";
     if (_position + 1 == _nextPosition) return string[_position];
     return string.substring(_position, _nextPosition);
   }
@@ -790,7 +798,7 @@ class RuneIterator implements BidirectionalIterator<int> {
   bool moveNext() {
     _position = _nextPosition;
     if (_position == string.length) {
-      _currentCodePoint = null;
+      _currentCodePoint = -1;
       return false;
     }
     int codeUnit = string.codeUnitAt(_position);
@@ -811,7 +819,7 @@ class RuneIterator implements BidirectionalIterator<int> {
   bool movePrevious() {
     _nextPosition = _position;
     if (_position == 0) {
-      _currentCodePoint = null;
+      _currentCodePoint = -1;
       return false;
     }
     int position = _position - 1;

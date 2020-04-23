@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Code generation for the file "AnalysisServer.java".
- */
+/// Code generation for the file "AnalysisServer.java".
 import 'package:analysis_tool/tools.dart';
 
 import 'api.dart';
@@ -12,7 +10,7 @@ import 'codegen_java.dart';
 
 final GeneratedFile target = javaGeneratedFile(
     'tool/spec/generated/java/AnalysisServer.java',
-    (Api api) => new CodegenAnalysisServer(api));
+    (Api api) => CodegenAnalysisServer(api));
 
 class CodegenAnalysisServer extends CodegenJavaVisitor {
   CodegenAnalysisServer(Api api) : super(api);
@@ -155,7 +153,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
 
   @override
   void visitRequest(Request request) {
-    String methodName = '${request.domainName}_${request.method}';
+    var methodName = '${request.domainName}_${request.method}';
     publicMethod(methodName, () {
       docComment(toHtmlVisitor.collectHtml(() {
         toHtmlVisitor.write('{@code ${request.longMethod}}');
@@ -166,9 +164,9 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         }
       }));
       write('public void $methodName(');
-      List<String> arguments = [];
+      var arguments = <String>[];
       if (request.params != null) {
-        for (TypeObjectField field in request.params.fields) {
+        for (var field in request.params.fields) {
           arguments.add('${javaType(field.type)} ${javaName(field.name)}');
         }
       }

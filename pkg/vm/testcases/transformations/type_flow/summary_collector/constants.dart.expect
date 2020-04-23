@@ -1,25 +1,26 @@
------------- #lib::smiLiteral ------------
+------------ smiLiteral ------------
 
-RESULT: _T (dart.core::_Smi)
------------- #lib::intLiteral ------------
+RESULT: _T (dart.core::_Smi, 42)
+------------ intLiteral ------------
 
 RESULT: _T (dart.core::int)+
------------- #lib::strLiteral ------------
+------------ strLiteral ------------
 
-RESULT: _T (dart.core::_OneByteString)
------------- #lib::indexingIntoConstantList1 ------------
+RESULT: _T (dart.core::_OneByteString, abc)
+------------ indexingIntoConstantList1 ------------
 %i = _Parameter #0 [_T (dart.core::int)+?]
-RESULT: _T (dart.core::_Smi)
------------- #lib::indexingIntoConstantList2 ------------
-%i = _Parameter #0 [_T (dart.core::int)+?]
-t1 = _Join [dart.core::Object*] (_T (dart.core::_OneByteString), _T (dart.core::_Smi), _T {}?)
+t1 = _Join [InterfaceType(int*)] (_T (dart.core::_Smi, 1), _T (dart.core::_Smi, 2), _T (dart.core::_Smi, 3))
 RESULT: t1
------------- #lib::main ------------
+------------ indexingIntoConstantList2 ------------
+%i = _Parameter #0 [_T (dart.core::int)+?]
+t1 = _Join [InterfaceType(Object*)] (_T (dart.core::_OneByteString, hi), _T (dart.core::_Smi, 33), _T {}?, _T (dart.core::_Smi, -5))
+RESULT: t1
+------------ main ------------
 
 RESULT: _T {}?
------------- #lib::_constList1 ------------
+------------ _constList1 ------------
 
-RESULT: _T (dart.core::_ImmutableList)
------------- #lib::_constList2 ------------
+RESULT: _T (dart.core::_ImmutableList, ListConstant<int*>([1, 2, 3]))
+------------ _constList2 ------------
 
-RESULT: _T (dart.core::_ImmutableList)
+RESULT: _T (dart.core::_ImmutableList, ListConstant<Object*>([hi, 33, null, -5]))

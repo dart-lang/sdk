@@ -4,13 +4,13 @@
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 
@@ -128,10 +128,14 @@ class ConstantEvaluator {
         _typeProvider = typeProvider;
 
   EvaluationResult evaluate(Expression expression) {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
-    DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(_typeProvider, new DeclaredVariables(),
+    RecordingErrorListener errorListener = RecordingErrorListener();
+    ErrorReporter errorReporter = ErrorReporter(
+      errorListener,
+      _source,
+      isNonNullableByDefault: _typeSystem.isNonNullableByDefault,
+    );
+    DartObjectImpl result = expression.accept(ConstantVisitor(
+        ConstantEvaluationEngine(_typeProvider, DeclaredVariables(),
             typeSystem: _typeSystem),
         errorReporter));
     List<AnalysisError> errors = errorListener.errors;

@@ -302,7 +302,7 @@ abstract class NonGrowableListError {
  * Converts a growable list to a fixed length list with the same elements.
  *
  * For internal use only.
- * Only works on growable lists as created by `[]` or `new List()`.
+ * Only works on growable lists like the one created by `[]`.
  * May throw on any other list.
  *
  * The operation is efficient. It doesn't copy the elements, but converts

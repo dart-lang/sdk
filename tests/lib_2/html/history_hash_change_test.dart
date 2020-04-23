@@ -1,13 +1,10 @@
 library HistoryTest;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'dart:html';
 import 'dart:async';
 
 main() {
-  useHtmlIndividualConfiguration();
-
   test('supported', () {
     expect(HashChangeEvent.supported, true);
   });

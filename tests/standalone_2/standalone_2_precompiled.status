@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $builder_tag == obfuscated ]
-dwarf_stack_trace_test: Pass, RuntimeError # Issue 35563
-
 [ $runtime == dart_precompiled ]
 http_launch_test: Skip
 io/addlatexhash_test: Skip
@@ -57,9 +54,6 @@ package/scenarios/packages_option_only/packages_option_only_test: Skip
 [ $arch == arm && $mode == release && $runtime == dart_precompiled && $system == android ]
 io/socket_cancel_connect_test: RuntimeError # Issue 34142
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426
-
-[ $mode == product && $runtime == dart_precompiled ]
-dwarf_stack_trace_test: Pass, RuntimeError # Results will flake due to identical code folding
 
 [ $runtime == dart_precompiled && $checked ]
 io/namespace_test: RuntimeError

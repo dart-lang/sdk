@@ -4,7 +4,6 @@
 library kernel.type_algebra;
 
 import 'ast.dart';
-import 'clone.dart';
 
 /// Returns a type where all occurrences of the given type parameters have been
 /// replaced with the corresponding types.
@@ -117,7 +116,6 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
     map[typeParameters[i]] = new TypeParameterType.forAlphaRenaming(
         typeParameters[i], freshParameters[i]);
   }
-  CloneVisitor cloner;
   for (int i = 0; i < typeParameters.length; ++i) {
     TypeParameter typeParameter = typeParameters[i];
     TypeParameter freshTypeParameter = freshParameters[i];
@@ -128,16 +126,9 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
         : null;
     freshTypeParameter.variance =
         typeParameter.isLegacyCovariant ? null : typeParameter.variance;
-    if (typeParameter.annotations.isNotEmpty) {
-      // Annotations can't refer to type parameters, so the cloner shouldn't
-      // perform the substitution.
-      // TODO(dmitryas): Consider rewriting getFreshTypeParameters using cloner
-      // for copying typeParameters as well.
-      cloner ??= new CloneVisitor();
-      for (Expression annotation in typeParameter.annotations) {
-        freshTypeParameter.addAnnotation(cloner.clone(annotation));
-      }
-    }
+    // Annotations on a type parameter are specific to the declaration of the
+    // type parameter, rather than the type parameter as such, and therefore
+    // should not be copied here.
   }
   return new FreshTypeParameters(freshParameters, Substitution.fromMap(map));
 }
@@ -688,7 +679,10 @@ class _TypeUnification {
     if (type1 is InvalidType && type2 is InvalidType) return true;
     if (type1 is BottomType && type2 is BottomType) return true;
     if (type1 is InterfaceType && type2 is InterfaceType) {
-      if (type1.classNode != type2.classNode) return _fail();
+      if (type1.classNode != type2.classNode ||
+          type1.nullability != type2.nullability) {
+        return _fail();
+      }
       assert(type1.typeArguments.length == type2.typeArguments.length);
       for (int i = 0; i < type1.typeArguments.length; ++i) {
         if (!_unify(type1.typeArguments[i], type2.typeArguments[i])) {
@@ -702,7 +696,8 @@ class _TypeUnification {
           type1.positionalParameters.length !=
               type2.positionalParameters.length ||
           type1.namedParameters.length != type2.namedParameters.length ||
-          type1.requiredParameterCount != type2.requiredParameterCount) {
+          type1.requiredParameterCount != type2.requiredParameterCount ||
+          type1.nullability != type2.nullability) {
         return _fail();
       }
       // When unifying two generic functions, transform the equation like this:
@@ -750,7 +745,9 @@ class _TypeUnification {
     }
     if (type1 is TypeParameterType &&
         type2 is TypeParameterType &&
-        type1.parameter == type2.parameter) {
+        type1.parameter == type2.parameter &&
+        type1.typeParameterTypeNullability ==
+            type2.typeParameterTypeNullability) {
       return true;
     }
     if (type1 is TypeParameterType &&

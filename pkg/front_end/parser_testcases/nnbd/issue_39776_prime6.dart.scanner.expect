@@ -1,0 +1,7 @@
+foo() => 42;
+bar<T>() => 42;
+
+
+foo[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 42[StringToken];[SimpleToken]
+bar[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] =>[SimpleToken] 42[StringToken];[SimpleToken]
+[SimpleToken]

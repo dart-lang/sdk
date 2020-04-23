@@ -13,8 +13,6 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show SourceChange;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:yaml/yaml.dart';
@@ -40,7 +38,7 @@ class PubspecFixGenerator {
   PubspecFixGenerator(this.error, this.content, this.options)
       : errorOffset = error.offset,
         errorLength = error.length,
-        lineInfo = new LineInfo.fromContent(content);
+        lineInfo = LineInfo.fromContent(content);
 
   /// Return the absolute, normalized path to the file in which the error was
   /// reported.
@@ -48,14 +46,14 @@ class PubspecFixGenerator {
 
   /// Return the list of fixes that apply to the error being fixed.
   Future<List<Fix>> computeFixes() async {
-    YamlNodeLocator locator = new YamlNodeLocator(
-        start: errorOffset, end: errorOffset + errorLength - 1);
+    var locator =
+        YamlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
     coveringNodePath = locator.searchWithin(options);
     if (coveringNodePath.isEmpty) {
       return fixes;
     }
 
-    ErrorCode errorCode = error.errorCode;
+    var errorCode = error.errorCode;
     if (errorCode == PubspecWarningCode.ASSET_DOES_NOT_EXIST) {
     } else if (errorCode == PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST) {
     } else if (errorCode == PubspecWarningCode.ASSET_FIELD_NOT_LIST) {
@@ -72,14 +70,13 @@ class PubspecFixGenerator {
   /// [kind]. If [args] are provided, they will be used to fill in the message
   /// for the fix.
   // ignore: unused_element
-  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List args = null}) {
-    SourceChange change = builder.sourceChange;
+  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind, {List args}) {
+    var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
     }
     change.message = formatList(kind.message, args);
-    fixes.add(new Fix(kind, change));
+    fixes.add(Fix(kind, change));
   }
 
   // ignore: unused_element
@@ -93,10 +90,10 @@ class PubspecFixGenerator {
   // ignore: unused_element
   SourceRange _lines(int start, int end) {
     CharacterLocation startLocation = lineInfo.getLocation(start);
-    int startOffset = lineInfo.getOffsetOfLine(startLocation.lineNumber - 1);
+    var startOffset = lineInfo.getOffsetOfLine(startLocation.lineNumber - 1);
     CharacterLocation endLocation = lineInfo.getLocation(end);
-    int endOffset = lineInfo.getOffsetOfLine(
+    var endOffset = lineInfo.getOffsetOfLine(
         math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
-    return new SourceRange(startOffset, endOffset - startOffset);
+    return SourceRange(startOffset, endOffset - startOffset);
   }
 }

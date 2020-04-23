@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddTypeAnnotationLintTest);
     defineReflectiveTests(AddTypeAnnotationTest);
@@ -25,15 +25,16 @@ class AddTypeAnnotationLintTest extends FixProcessorLintTest {
   String get lintCode => LintNames.always_specify_types;
 
   // More coverage in the `add_type_annotation_test.dart` assist test.
-  test_do_block() async {
+
+  Future<void> test_do_block() async {
     await resolveTestUnit('''
 class A {
-  /*LINT*/final f = 0;
+  final f = 0;
 }
 ''');
     await assertHasFix('''
 class A {
-  /*LINT*/final int f = 0;
+  final int f = 0;
 }
 ''');
   }
@@ -44,7 +45,7 @@ class AddTypeAnnotationTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
 
-  test_missingFieldType() async {
+  Future<void> test_missingFieldType() async {
     // MISSING_CONST_FINAL_VAR_OR_TYPE
     await resolveTestUnit('''
 class A {
@@ -58,7 +59,7 @@ class A {
 ''');
   }
 
-  test_missingStaticFieldType() async {
+  Future<void> test_missingStaticFieldType() async {
     // MISSING_CONST_FINAL_VAR_OR_TYPE
     await resolveTestUnit('''
 class A {

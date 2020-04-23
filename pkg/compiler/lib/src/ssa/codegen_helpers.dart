@@ -79,6 +79,97 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
   }
 
   @override
+  HInstruction visitNullCheck(HNullCheck node) {
+    // If we remove this NullCheck, does the program behave the same?
+    HInstruction faultingInstruction = _followingSameFaultInstruction(node);
+    if (faultingInstruction != null) {
+      // Force [faultingInstruction] to appear in same source location as
+      // [node]. This avoids the source-mapped stack trace containing an
+      // impossible location inside an inlined instance method called on `null`.
+      // TODO(36841): Implement for instance method calls.
+      if (faultingInstruction is HFieldGet ||
+          faultingInstruction is HFieldSet ||
+          faultingInstruction is HGetLength) {
+        faultingInstruction.sourceInformation = node.sourceInformation;
+      }
+      return node.checkedInput;
+    }
+    return node;
+  }
+
+  /// Searches the instructions following [nullCheck] to see if the first
+  /// instruction with an effect or exception will fault on a `null` input just
+  /// like the [nullCheck].
+  HInstruction _followingSameFaultInstruction(HNullCheck nullCheck) {
+    HInstruction current = nullCheck.next;
+    do {
+      // The instructionType of [nullCheck] is not nullable (since it is the
+      // (not) null check!) This means that if we do need to check the type, we
+      // should test against nullCheck.checkedInput, not the direct input.
+      if (current.getDartReceiver(_closedWorld) == nullCheck) {
+        if (current is HFieldGet) return current;
+        if (current is HFieldSet) return current;
+        if (current is HGetLength) return current;
+        if (current is HIndex) return current;
+        if (current is HIndexAssign) return current;
+        if (current is HInvokeDynamic) {
+          HInstruction receiver = current.receiver;
+          // Either no interceptor or self-interceptor:
+          if (receiver == nullCheck) return current;
+          return null;
+        }
+      }
+
+      if (current is HInvokeExternal) {
+        if (current.isNullGuardFor(nullCheck)) return current;
+      }
+      if (current is HForeignCode) {
+        if (current.isNullGuardFor(nullCheck)) return current;
+      }
+
+      // TODO(sra): Recognize other usable faulting patterns:
+      //
+      //  - HInstanceEnvironment when the generated code is `receiver.$ti`.
+      //
+      //  - super-calls using aliases.
+      //
+      //  - one-shot interceptor receiver for selector not defined on
+      //    null. The fault will appear to happen in the one-shot
+      //    interceptor.
+      //
+      //  - a constant interceptor can be replaced with a conditional
+      //    HInterceptor (e.g. (a && JSArray_methods).get$first(a)).
+
+      if (current.canThrow(_abstractValueDomain) ||
+          current.sideEffects.hasSideEffects()) {
+        return null;
+      }
+
+      HInstruction next = current.next;
+      if (next == null) {
+        // We do not merge blocks in our SSA graph, so if this block just jumps
+        // to a single successor, visit the successor, avoiding back-edges.
+        HBasicBlock successor;
+        if (current is HGoto) {
+          successor = current.block.successors.single;
+        } else if (current is HIf) {
+          // We also leave HIf nodes in place when one branch is dead.
+          HInstruction condition = current.inputs.first;
+          if (condition is HConstant) {
+            bool isTrue = condition.constant.isTrue;
+            successor = isTrue ? current.thenBlock : current.elseBlock;
+          }
+        }
+        if (successor != null && successor.id > current.block.id) {
+          next = successor.first;
+        }
+      }
+      current = next;
+    } while (current != null);
+    return null;
+  }
+
+  @override
   HInstruction visitIs(HIs node) {
     if (node.kind == HIs.RAW_CHECK) {
       HInstruction interceptor = node.interceptor;
@@ -514,7 +605,7 @@ class SsaAssignmentChaining extends HBaseVisitor with CodegenPhase {
           continue;
         }
       } else if (current is HReturn) {
-        if (current.inputs.single == value) {
+        if (current.inputs.isNotEmpty && current.inputs.single == value) {
           current.changeUse(value, chain);
           return current.next;
         }
@@ -784,6 +875,19 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
 
   @override
   void visitPrimitiveCheck(HPrimitiveCheck instruction) {}
+
+  @override
+  void visitNullCheck(HNullCheck instruction) {
+    // If the checked value is used, the input might still have one use
+    // (i.e. this HNullCheck), but it cannot be generated at use, since we will
+    // rely on non-generate-at-use to assign the value to a variable.
+    //
+    // However, if the checked value is unused then the input may be generated
+    // at use in the check.
+    if (instruction.usedBy.isEmpty) {
+      visitInstruction(instruction);
+    }
+  }
 
   @override
   void visitTypeKnown(HTypeKnown instruction) {
@@ -1211,10 +1315,8 @@ class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
 
       if (instruction is HInvoke) return true;
       if (instruction is HCreate) return true;
+      if (instruction is HReturn) return true;
       if (instruction is HPhi) return true;
-
-      // We return `null` by removing the return expression or statement.
-      if (instruction is HReturn) return false;
 
       // JavaScript `x == null` is more efficient than `x == _null`.
       if (instruction is HIdentity) return false;

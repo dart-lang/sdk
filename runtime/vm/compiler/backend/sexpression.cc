@@ -484,22 +484,25 @@ SExpression* SExpParser::TokenToSExpression(Token* token) {
             buf[new_pos] = '\t';
             break;
           case 'u': {
-            if (old_pos + 4 >= token->length()) {
+            const intptr_t first = old_pos + 1;
+            const intptr_t last = old_pos + 4;
+            if (last >= token->length()) {
               PARSE_ERROR(escape_pos, ErrorStrings::kBadUnicodeEscape);
             }
             intptr_t val = 0;
-            for (intptr_t i = old_pos + 4; i > old_pos; old_pos--) {
+            for (const char *cursor = cstr + first, *end = cstr + last + 1;
+                 cursor < end; cursor++) {
               val *= 16;
-              if (!Utils::IsHexDigit(i)) {
+              if (!Utils::IsHexDigit(*cursor)) {
                 PARSE_ERROR(escape_pos, ErrorStrings::kBadUnicodeEscape);
               }
-              val += Utils::HexDigitToInt(i);
+              val += Utils::HexDigitToInt(*cursor);
             }
             // Currently, just handle encoded ASCII instead of doing
             // handling Unicode characters.
             // (TextBuffer::AddEscapedString uses this for characters < 0x20.)
             ASSERT(val <= 0x7F);
-            old_pos += 5;
+            old_pos = last;
             buf[new_pos] = val;
             break;
           }

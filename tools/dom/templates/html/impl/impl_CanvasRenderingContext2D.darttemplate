@@ -101,7 +101,7 @@ $!MEMBERS
    * from the WHATWG.
    */
   void drawImageToRect(CanvasImageSource source, Rectangle destRect,
-      {Rectangle sourceRect}) {
+      {Rectangle$NULLABLE sourceRect}) {
     if (sourceRect == null) {
       drawImageScaled(source,
           destRect.left,
@@ -249,7 +249,8 @@ $!MEMBERS
       return JS('List<num>', '#.getLineDash()', this);
     } else if (JS('bool', '!!#.webkitLineDash', this)) {
       return JS('List<num>', '#.webkitLineDash', this);
-    } 
+    }
+    return [];
   }
 
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -281,7 +282,7 @@ $!MEMBERS
    * [CanvasRenderingContext2D.textBaseLine] properties are also applied to the
    * drawn text.
    */
-  void fillText(String text, num x, num y, [num maxWidth]) {
+  void fillText(String text, num x, num y, [num$NULLABLE maxWidth]) {
     if (maxWidth != null) {
       JS('void', '#.fillText(#, #, #, #)', this, text, x, y, maxWidth);
     } else {

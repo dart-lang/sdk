@@ -37,22 +37,23 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
   }
 
   // TODO(nweiz): update this when maps support lazy iteration
-  bool containsValue(Object value) => values.any((e) => e == value);
+  bool containsValue(Object$NULLABLE value) => values.any((e) => e == value);
 
-  bool containsKey(Object key) => _getItem(key) != null;
+  bool containsKey(Object$NULLABLE key) =>
+    _getItem(key $#NULLSAFECAST(as String)) != null;
 
-  String operator [](Object key) => _getItem(key);
+  String$NULLABLE operator [](Object$NULLABLE key) => _getItem(key $#NULLSAFECAST(as String));
 
   void operator []=(String key, String value) { _setItem(key, value); }
 
   String putIfAbsent(String key, String ifAbsent()) {
     if (!containsKey(key)) this[key] = ifAbsent();
-    return this[key];
+    return this[key] $#NULLSAFECAST(as String);
   }
 
-  String remove(Object key) {
+  String$NULLABLE remove(Object$NULLABLE key) {
     final value = this[key];
-    _removeItem(key);
+    _removeItem(key $#NULLSAFECAST(as String));
     return value;
   }
 
@@ -63,7 +64,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
       final key = _key(i);
       if (key == null) return;
 
-      f(key, this[key]);
+      f(key, this[key]$NULLASSERT);
     }
   }
 

@@ -29,6 +29,9 @@ List<bool> getExperimentalFlags_forTesting(ExperimentStatus status) =>
 /// A representation of the set of experiments that are active and whether they
 /// are enabled.
 class ExperimentStatus with _CurrentState implements FeatureSet {
+  /// The current language version.
+  static final Version currentVersion = Version.parse(_currentVersion);
+
   /// A map containing information about all known experimental flags.
   static const knownFeatures = _knownFeatures;
 
@@ -45,7 +48,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   /// enabled features is used as the starting point.
   @visibleForTesting
   ExperimentStatus.forTesting(
-      {String sdkVersion, List<Feature> additionalFeatures: const []})
+      {String sdkVersion, List<Feature> additionalFeatures = const []})
       : this._(enableFlagsForTesting(
             sdkVersion: sdkVersion, additionalFeatures: additionalFeatures));
 

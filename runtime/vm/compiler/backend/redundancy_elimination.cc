@@ -1045,8 +1045,7 @@ class AliasedSet : public ZoneAllocated {
     for (Value* use = defn->input_use_list(); use != NULL;
          use = use->next_use()) {
       Instruction* instr = use->instruction();
-      if (instr->IsPushArgument() || instr->IsCheckedSmiOp() ||
-          instr->IsCheckedSmiComparison() ||
+      if (instr->HasUnknownSideEffects() || instr->IsLoadUntagged() ||
           (instr->IsStoreIndexed() &&
            (use->use_index() == StoreIndexedInstr::kValuePos)) ||
           instr->IsStoreStaticField() || instr->IsPhi()) {
@@ -1328,10 +1327,10 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   } else if (current->IsCheckEitherNonSmi()) {
     current->AsCheckEitherNonSmi()->set_licm_hoisted(true);
   } else if (current->IsCheckArrayBound()) {
-    ASSERT(!FLAG_precompiled_mode);  // speculative in JIT only
+    ASSERT(!CompilerState::Current().is_aot());  // speculative in JIT only
     current->AsCheckArrayBound()->set_licm_hoisted(true);
   } else if (current->IsGenericCheckBound()) {
-    ASSERT(FLAG_precompiled_mode);  // non-speculative in AOT only
+    ASSERT(CompilerState::Current().is_aot());  // non-speculative in AOT only
     // Does not deopt, so no need for licm_hoisted flag.
   } else if (current->IsTestCids()) {
     current->AsTestCids()->set_licm_hoisted(true);
@@ -1406,7 +1405,7 @@ void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
 
 void LICM::OptimisticallySpecializeSmiPhis() {
   if (flow_graph()->function().ProhibitsHoistingCheckClass() ||
-      FLAG_precompiled_mode) {
+      CompilerState::Current().is_aot()) {
     // Do not hoist any: Either deoptimized on a hoisted check,
     // or compiling precompiled code where we can't do optimistic
     // hoisting of checks.
@@ -1435,6 +1434,7 @@ static bool MayHaveVisibleEffect(Instruction* instr) {
     case Instruction::kStoreStaticField:
     case Instruction::kStoreIndexed:
     case Instruction::kStoreIndexedUnsafe:
+    case Instruction::kStoreUntagged:
       return true;
     default:
       return instr->HasUnknownSideEffects() || instr->MayThrow();
@@ -1770,12 +1770,11 @@ class LoadOptimizer : public ValueObject {
               }
 
               Definition* forward_def = graph_->constant_null();
-              if (alloc->ArgumentCount() > 0) {
-                ASSERT(alloc->ArgumentCount() == 1);
+              if (alloc->type_arguments() != nullptr) {
                 const Slot& type_args_slot = Slot::GetTypeArgumentsSlotFor(
                     graph_->thread(), alloc->cls());
                 if (slot->IsIdentical(type_args_slot)) {
-                  forward_def = alloc->PushArgumentAt(0)->value()->definition();
+                  forward_def = alloc->type_arguments()->definition();
                 }
               }
               gen->Add(place_id);
@@ -2831,9 +2830,7 @@ void AllocationSinking::EliminateAllocation(Definition* alloc) {
   alloc->RemoveFromGraph();
   if (alloc->ArgumentCount() > 0) {
     ASSERT(alloc->ArgumentCount() == 1);
-    for (intptr_t i = 0; i < alloc->ArgumentCount(); ++i) {
-      alloc->PushArgumentAt(i)->RemoveFromGraph();
-    }
+    ASSERT(!alloc->HasPushArguments());
   }
 }
 
@@ -3192,7 +3189,7 @@ void AllocationSinking::CreateMaterializationAt(
 // present there.
 template <typename T>
 void AddInstruction(GrowableArray<T*>* list, T* value) {
-  ASSERT(!value->IsGraphEntry());
+  ASSERT(!value->IsGraphEntry() && !value->IsFunctionEntry());
   for (intptr_t i = 0; i < list->length(); i++) {
     if ((*list)[i] == value) {
       return;
@@ -3257,11 +3254,11 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
     }
   }
 
-  if (alloc->ArgumentCount() > 0) {
-    AllocateObjectInstr* alloc_object = alloc->AsAllocateObject();
-    ASSERT(alloc_object->ArgumentCount() == 1);
-    AddSlot(slots, Slot::GetTypeArgumentsSlotFor(flow_graph_->thread(),
-                                                 alloc_object->cls()));
+  if (auto alloc_object = alloc->AsAllocateObject()) {
+    if (alloc_object->type_arguments() != nullptr) {
+      AddSlot(slots, Slot::GetTypeArgumentsSlotFor(flow_graph_->thread(),
+                                                   alloc_object->cls()));
+    }
   }
 
   // Collect all instructions that mention this object in the environment.
@@ -3313,7 +3310,7 @@ class TryCatchAnalyzer : public ValueObject {
     ASSERT(is_aot_);
 
     NumberCatchEntryParameters();
-    ComputeIncommingValues();
+    ComputeIncomingValues();
     CollectAliveParametersOrPhis();
     PropagateLivenessToInputs();
     EliminateDeadParameters();
@@ -3340,10 +3337,13 @@ class TryCatchAnalyzer : public ValueObject {
   // Compute potential incoming values for each Parameter in each catch block
   // by looking into environments assigned to MayThrow instructions within
   // blocks covered by the corresponding catch.
-  void ComputeIncommingValues() {
+  void ComputeIncomingValues() {
     for (auto block : flow_graph_->reverse_postorder()) {
-      if (block->try_index() == -1) continue;
+      if (block->try_index() == kInvalidTryIndex) {
+        continue;
+      }
 
+      ASSERT(block->try_index() < catch_by_index_.length());
       auto catch_entry = catch_by_index_[block->try_index()];
       const auto& idefs = *catch_entry->initial_definitions();
 
@@ -3586,6 +3586,9 @@ void TryCatchAnalyzer::Optimize() {
         ConstantInstr* copy =
             new (flow_graph_->zone()) ConstantInstr(orig->value());
         copy->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+        if (FlowGraph::NeedsPairLocation(copy->representation())) {
+          flow_graph_->alloc_ssa_temp_index();
+        }
         old->ReplaceUsesWith(copy);
         copy->set_previous(old->previous());  // partial link
         (*idefs)[j] = copy;
@@ -3658,8 +3661,8 @@ void DeadCodeElimination::RemoveDeadAndRedundantPhisFromTheGraph(
             if (FLAG_trace_optimization) {
               THR_Print("Removing dead phi v%" Pd "\n", phi->ssa_temp_index());
             }
-          } else if (phi->IsRedundant()) {
-            phi->ReplaceUsesWith(phi->InputAt(0)->definition());
+          } else if (auto* replacement = phi->GetReplacementForRedundantPhi()) {
+            phi->ReplaceUsesWith(replacement);
             phi->UnuseAllInputs();
             (*join->phis_)[i] = nullptr;
             if (FLAG_trace_optimization) {
@@ -3676,6 +3679,106 @@ void DeadCodeElimination::RemoveDeadAndRedundantPhisFromTheGraph(
       } else {
         join->phis_->TruncateTo(to_index);
       }
+    }
+  }
+}
+
+// Returns true if [current] instruction can be possibly eliminated
+// (if its result is not used).
+static bool CanEliminateInstruction(Instruction* current,
+                                    BlockEntryInstr* block) {
+  ASSERT(current->GetBlock() == block);
+  if (MayHaveVisibleEffect(current) || current->CanDeoptimize() ||
+      current == block->last_instruction() || current->IsMaterializeObject() ||
+      current->IsCheckStackOverflow() || current->IsReachabilityFence()) {
+    return false;
+  }
+  return true;
+}
+
+void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
+  GrowableArray<Instruction*> worklist;
+  BitVector live(flow_graph->zone(), flow_graph->current_ssa_temp_index());
+
+  // Mark all instructions with side-effects as live.
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      ASSERT(!current->IsPushArgument());
+      // TODO(alexmarkov): take control dependencies into account and
+      // eliminate dead branches/conditions.
+      if (!CanEliminateInstruction(current, block)) {
+        worklist.Add(current);
+        if (Definition* def = current->AsDefinition()) {
+          if (def->HasSSATemp()) {
+            live.Add(def->ssa_temp_index());
+          }
+        }
+      }
+    }
+  }
+
+  // Iteratively follow inputs of instructions in the work list.
+  while (!worklist.is_empty()) {
+    Instruction* current = worklist.RemoveLast();
+    for (intptr_t i = 0, n = current->InputCount(); i < n; ++i) {
+      Definition* input = current->InputAt(i)->definition();
+      ASSERT(input->HasSSATemp());
+      if (!live.Contains(input->ssa_temp_index())) {
+        worklist.Add(input);
+        live.Add(input->ssa_temp_index());
+      }
+    }
+    for (intptr_t i = 0, n = current->ArgumentCount(); i < n; ++i) {
+      Definition* input = current->ArgumentAt(i);
+      ASSERT(input->HasSSATemp());
+      if (!live.Contains(input->ssa_temp_index())) {
+        worklist.Add(input);
+        live.Add(input->ssa_temp_index());
+      }
+    }
+    if (current->env() != nullptr) {
+      for (Environment::DeepIterator it(current->env()); !it.Done();
+           it.Advance()) {
+        Definition* input = it.CurrentValue()->definition();
+        ASSERT(!input->IsPushArgument());
+        if (input->HasSSATemp() && !live.Contains(input->ssa_temp_index())) {
+          worklist.Add(input);
+          live.Add(input->ssa_temp_index());
+        }
+      }
+    }
+  }
+
+  // Remove all instructions which are not marked as live.
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    if (JoinEntryInstr* join = block->AsJoinEntry()) {
+      for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        PhiInstr* current = it.Current();
+        if (!live.Contains(current->ssa_temp_index())) {
+          current->UnuseAllInputs();
+          it.RemoveCurrentFromGraph();
+        }
+      }
+    }
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      if (!CanEliminateInstruction(current, block)) {
+        continue;
+      }
+      ASSERT(!current->IsPushArgument());
+      ASSERT((current->ArgumentCount() == 0) || !current->HasPushArguments());
+      if (Definition* def = current->AsDefinition()) {
+        if (def->HasSSATemp() && live.Contains(def->ssa_temp_index())) {
+          continue;
+        }
+      }
+      current->UnuseAllInputs();
+      it.RemoveCurrentFromGraph();
     }
   }
 }

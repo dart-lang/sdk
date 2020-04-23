@@ -33,7 +33,7 @@ rules:
 //        - param1
 //        - param2
 
-  var config = new LintConfig.parse(src);
+  var config = LintConfig.parse(src);
 
   group('lint config', () {
     group('file', () {
@@ -51,7 +51,7 @@ rules:
       });
 
       test('config', () {
-        config = new LintConfig.parse('''
+        config = LintConfig.parse('''
 rules:
   style_guide:
     unnecessary_getters: false''');

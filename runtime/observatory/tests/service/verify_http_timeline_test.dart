@@ -4,11 +4,11 @@
 // VMOptions=--timeline_streams=Dart
 
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
 import 'dart:math';
+import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
@@ -44,7 +44,7 @@ Future<void> executeWithRandomDelay(Function f) =>
         .then((_) async {
       try {
         await f();
-      } on HttpException catch (_) {} on SocketException catch (_) {} on StateError catch (_) {}
+      } on HttpException catch (_) {} on SocketException catch (_) {} on StateError catch (_) {} on OSError catch (_) {}
     });
 
 Uri randomlyAddRequestParams(Uri uri) {
@@ -80,8 +80,8 @@ Future<HttpServer> startServer() async {
 
 Future<void> testMain() async {
   // Ensure there's a chance some requests will be interrupted.
-  expect(maxRequestDelayMs > serverShutdownDelayMs, isTrue);
-  expect(maxResponseDelayMs < serverShutdownDelayMs, isTrue);
+  Expect.isTrue(maxRequestDelayMs > serverShutdownDelayMs);
+  Expect.isTrue(maxResponseDelayMs < serverShutdownDelayMs);
 
   final server = await startServer();
   HttpClient.enableTimelineLogging = true;
@@ -201,6 +201,7 @@ void validateHttpStartEvent(Map event, String method) {
   final args = event['args'];
   expect(args.containsKey('method'), isTrue);
   expect(args['method'], method);
+  expect(args['filterKey'], 'HTTP/client');
   if (!args.containsKey('error')) {
     expect(args.containsKey('requestHeaders'), isTrue);
     expect(args['requestHeaders'] != null, isTrue);
@@ -226,6 +227,7 @@ void validateHttpStartEvent(Map event, String method) {
 void validateHttpFinishEvent(Map event) {
   expect(event.containsKey('args'), isTrue);
   final args = event['args'];
+  expect(args['filterKey'], 'HTTP/client');
   expect(args.containsKey('compressionState'), isTrue);
   expect(args.containsKey('connectionInfo'), isTrue);
   expect(args.containsKey('contentLength'), isTrue);

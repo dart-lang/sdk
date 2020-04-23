@@ -13,8 +13,12 @@ part of dart.core;
  * and if the call returns `true`,
  * the iterator has now moved to the next element,
  * which is then available as [Iterator.current].
- * If the call returns `false`, there are no more elements,
- * and `iterator.current` returns `null`.
+ * If the call returns `false`, there are no more elements.
+ * The [Iterator.current] value must only be used when the most
+ * recent call to [Iterator.moveNext] has returned `true`.
+ * If it is used before calling [Iterator.moveNext] the first time
+ * on an iterator, or after a call has returned false or has thrown an error,
+ * reading [Iterator.current] may throw or may return an arbitrary value.
  *
  * You can create more than one iterator from the same `Iterable`.
  * Each time `iterator` is read, it returns a new iterator,
@@ -637,7 +641,7 @@ abstract class Iterable<E> {
    *
    * May iterate through the elements in iteration order, ignoring the
    * first [index] elements and then returning the next.
-   * Some iterables may have more a efficient way to find the element.
+   * Some iterables may have a more efficient way to find the element.
    */
   E elementAt(int index) {
     RangeError.checkNotNegative(index, "index");

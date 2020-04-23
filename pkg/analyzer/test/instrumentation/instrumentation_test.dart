@@ -22,30 +22,30 @@ class InstrumentationServiceTest {
   }
 
   void test_logError_withColon() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     service.logError('Error:message');
     assertNormal(logger, InstrumentationLogAdapter.TAG_ERROR, 'Error::message');
   }
 
   void test_logError_withLeadingColon() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     service.logError(':a:bb');
     assertNormal(logger, InstrumentationLogAdapter.TAG_ERROR, '::a::bb');
   }
 
   void test_logError_withoutColon() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String message = 'Error message';
     service.logError(message);
     assertNormal(logger, InstrumentationLogAdapter.TAG_ERROR, message);
   }
 
   void test_logException_noTrace() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String message = 'exceptionMessage';
     service.logException(message);
     assertNormal(
@@ -53,31 +53,31 @@ class InstrumentationServiceTest {
   }
 
   void test_logLogEntry() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String level = 'level';
-    DateTime time = new DateTime(2001);
+    DateTime time = DateTime(2001);
     String message = 'message';
     String exception = 'exception';
     String stackTraceText = 'stackTrace';
-    StackTrace stackTrace = new StackTrace.fromString(stackTraceText);
+    StackTrace stackTrace = StackTrace.fromString(stackTraceText);
     service.logLogEntry(level, time, message, exception, stackTrace);
     assertNormal(logger, InstrumentationLogAdapter.TAG_LOG_ENTRY,
         '$level:${time.millisecondsSinceEpoch}:$message:$exception:$stackTraceText');
   }
 
   void test_logNotification() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String message = 'notificationText';
     service.logNotification(message);
     assertNormal(logger, InstrumentationLogAdapter.TAG_NOTIFICATION, message);
   }
 
   void test_logPluginError() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
-    PluginData plugin = new PluginData('path', 'name', 'version');
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
+    PluginData plugin = PluginData('path', 'name', 'version');
     String code = 'code';
     String message = 'exceptionMessage';
     String stackTraceText = 'stackTrace';
@@ -87,9 +87,9 @@ class InstrumentationServiceTest {
   }
 
   void test_logPluginException_noTrace() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
-    PluginData plugin = new PluginData('path', 'name', 'version');
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
+    PluginData plugin = PluginData('path', 'name', 'version');
     String message = 'exceptionMessage';
     service.logPluginException(plugin, message, null);
     assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_EXCEPTION,
@@ -97,20 +97,20 @@ class InstrumentationServiceTest {
   }
 
   void test_logPluginException_withTrace() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
-    PluginData plugin = new PluginData('path', 'name', 'version');
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
+    PluginData plugin = PluginData('path', 'name', 'version');
     String message = 'exceptionMessage';
     String stackTraceText = 'stackTrace';
-    StackTrace stackTrace = new StackTrace.fromString(stackTraceText);
+    StackTrace stackTrace = StackTrace.fromString(stackTraceText);
     service.logPluginException(plugin, message, stackTrace);
     assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_EXCEPTION,
         '$message:$stackTraceText:path:name:version');
   }
 
   void test_logPluginNotification() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String notification = 'notification';
     service.logPluginNotification('path', notification);
     assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_NOTIFICATION,
@@ -118,8 +118,8 @@ class InstrumentationServiceTest {
   }
 
   void test_logPluginRequest() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String request = 'request';
     service.logPluginRequest('path', request);
     assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_REQUEST,
@@ -127,8 +127,8 @@ class InstrumentationServiceTest {
   }
 
   void test_logPluginResponse() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String response = 'response';
     service.logPluginResponse('path', response);
     assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_RESPONSE,
@@ -136,9 +136,9 @@ class InstrumentationServiceTest {
   }
 
   void test_logPluginTimeout() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
-    PluginData plugin = new PluginData('path', 'name', 'version');
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
+    PluginData plugin = PluginData('path', 'name', 'version');
     String request = 'request';
     service.logPluginTimeout(plugin, request);
     assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_TIMEOUT,
@@ -146,24 +146,24 @@ class InstrumentationServiceTest {
   }
 
   void test_logRequest() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String message = 'requestText';
     service.logRequest(message);
     assertNormal(logger, InstrumentationLogAdapter.TAG_REQUEST, message);
   }
 
   void test_logResponse() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     String message = 'responseText';
     service.logResponse(message);
     assertNormal(logger, InstrumentationLogAdapter.TAG_RESPONSE, message);
   }
 
   void test_logVersion() {
-    TestInstrumentationLogger logger = new TestInstrumentationLogger();
-    InstrumentationService service = new InstrumentationLogAdapter(logger);
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
     service.logVersion('myUuid', 'someClientId', 'someClientVersion',
         'aServerVersion', 'anSdkVersion');
     expect(
@@ -175,12 +175,12 @@ class InstrumentationServiceTest {
 
 @reflectiveTest
 class MulticastInstrumentationServerTest {
-  TestInstrumentationLogger loggerA = new TestInstrumentationLogger();
-  TestInstrumentationLogger loggerB = new TestInstrumentationLogger();
+  TestInstrumentationLogger loggerA = TestInstrumentationLogger();
+  TestInstrumentationLogger loggerB = TestInstrumentationLogger();
   MulticastInstrumentationService logger;
 
   void setUp() {
-    logger = new MulticastInstrumentationService([
+    logger = MulticastInstrumentationService([
       InstrumentationLogAdapter(loggerA),
       InstrumentationLogAdapter(loggerB)
     ]);
@@ -201,12 +201,13 @@ class MulticastInstrumentationServerTest {
 }
 
 class TestInstrumentationLogger implements InstrumentationLogger {
-  StringBuffer logged = new StringBuffer();
+  StringBuffer logged = StringBuffer();
 
   @override
   void log(String message) {
     logged.writeln(message);
   }
 
+  @override
   Future<void> shutdown() async {}
 }

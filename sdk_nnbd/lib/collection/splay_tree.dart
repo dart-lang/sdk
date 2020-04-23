@@ -6,36 +6,38 @@ part of dart.collection;
 
 typedef _Predicate<T> = bool Function(T value);
 
-class _SplayTreeNodeBase<K> {
-  _SplayTreeNode<K>? left;
-  _SplayTreeNode<K>? right;
-}
-
 /// A node in a splay tree. It holds the sorting key and the left
 /// and right children in the tree.
-class _SplayTreeNode<K> extends _SplayTreeNodeBase<K> {
-  final K key;
+class _SplayTreeNode<K> {
+  // The key is nullable to be able to create a dummy node.
+  final K? _key;
 
-  _SplayTreeNode(this.key);
-}
+  _SplayTreeNode<K>? left;
+  _SplayTreeNode<K>? right;
 
-class _DummySplayTreeNode<K> extends _SplayTreeNodeBase<K>
-    implements _SplayTreeNode<K> {
-  K get key => throw UnsupportedError("");
+  _SplayTreeNode(this._key);
+
+  K get key {
+    // TODO(dartbug.com/40892): replace with '_key as K'
+    K? localKey = _key;
+    return (localKey != null) ? localKey : localKey as K;
+  }
 }
 
 /// A node in a splay tree based map.
 ///
 /// A [_SplayTreeNode] that also contains a value
 class _SplayTreeMapNode<K, V> extends _SplayTreeNode<K> {
-  V value;
-  _SplayTreeMapNode(K key, this.value) : super(key);
-}
+  // The value is nullable to be able to create a dummy node.
+  V? _value;
 
-class _DummySplayTreeMapNode<K, V> extends _DummySplayTreeNode<K>
-    implements _SplayTreeMapNode<K, V> {
-  V get value => throw UnsupportedError("");
-  set value(V v) => throw UnsupportedError("");
+  _SplayTreeMapNode(K? key, this._value) : super(key);
+
+  V get value {
+    // TODO(dartbug.com/40892): replace with '_value as V'
+    V? localValue = _value;
+    return (localValue != null) ? localValue : localValue as V;
+  }
 }
 
 /// A splay tree is a self-balancing binary search tree.
@@ -166,9 +168,9 @@ abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
     _count--;
     // assert(_count >= 0);
     if (_root!.left == null) {
-      _root = _root!.right as Node;
+      _root = _root!.right as Node?;
     } else {
-      Node right = _root!.right as Node;
+      Node? right = _root!.right as Node?;
       // Splay to make sure that the new root has an empty right child.
       _root = _splayMax(_root!.left as Node);
       // Insert the original right child as the right child of the new
@@ -222,6 +224,10 @@ abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
   }
 }
 
+class _TypeTest<T> {
+  bool test(v) => v is T;
+}
+
 int _dynamicCompare(dynamic a, dynamic b) =>
     Comparable.compare(a as Comparable, b as Comparable);
 
@@ -260,7 +266,7 @@ Comparator<K> _defaultCompare<K>() {
 class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
     with MapMixin<K, V> {
   _SplayTreeMapNode<K, V>? _root;
-  final _SplayTreeMapNode<K, V> _dummy = _DummySplayTreeMapNode<K, V>();
+  final _SplayTreeMapNode<K, V> _dummy = _SplayTreeMapNode<K, V>(null, null);
 
   Comparator<K> _comparator;
   _Predicate _validKey;
@@ -355,7 +361,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
     // the key to the root of the tree.
     int comp = _splay(key);
     if (comp == 0) {
-      _root!.value = value;
+      _root!._value = value;
       return;
     }
     _addNewRoot(_SplayTreeMapNode(key, value), comp);
@@ -425,7 +431,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
         if (node.right != null && visit(node.right as _SplayTreeMapNode)) {
           return true;
         }
-        node = node.left as _SplayTreeMapNode;
+        node = node.left as _SplayTreeMapNode?;
       }
       return false;
     }
@@ -528,12 +534,12 @@ abstract class _SplayTreeIterator<K, T> implements Iterator<T> {
       // Don't include the root, start at the next element after the root.
       _findLeftMostDescendent(tree._root!.right);
     } else {
-      _workList.add(tree._root);
+      _workList.add(tree._root!);
     }
   }
 
-  T? get current {
-    if (_currentNode == null) return null;
+  T get current {
+    if (_currentNode == null) return null as T;
     return _getValue(_currentNode!);
   }
 
@@ -648,7 +654,7 @@ class _SplayTreeNodeIterator<K>
 class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
     with IterableMixin<E>, SetMixin<E> {
   _SplayTreeNode<E>? _root;
-  final _SplayTreeNode<E> _dummy = _DummySplayTreeNode<E>();
+  final _SplayTreeNode<E> _dummy = _SplayTreeNode<E>(null);
 
   Comparator<E> _comparator;
   _Predicate _validKey;

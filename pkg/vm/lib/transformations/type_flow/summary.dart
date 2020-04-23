@@ -7,7 +7,7 @@ library vm.transformations.type_flow.summary;
 
 import 'dart:core' hide Type;
 
-import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
+import 'package:kernel/ast.dart' hide Statement, StatementVisitor, MapEntry;
 
 import 'calls.dart';
 import 'types.dart';
@@ -74,6 +74,9 @@ class Parameter extends Statement {
   Type defaultValue;
   Type _argumentType = const EmptyType();
 
+  // Whether this parameter is passed at all call-sites.
+  bool isAlwaysPassed = true;
+
   Parameter(this.name, this.staticTypeForNarrowing);
 
   @override
@@ -102,6 +105,13 @@ class Parameter extends Statement {
     assertx(argType.isSpecialized);
     _argumentType = _argumentType.union(argType, typeHierarchy);
     assertx(_argumentType.isSpecialized);
+  }
+
+  Type _observeNotPassed(TypeHierarchy typeHierarchy) {
+    isAlwaysPassed = false;
+    final Type argType = defaultValue.specialize(typeHierarchy);
+    _observeArgumentType(argType, typeHierarchy);
+    return argType;
   }
 }
 
@@ -176,8 +186,9 @@ class Use extends Statement {
 class Call extends Statement {
   final Selector selector;
   final Args<TypeExpr> args;
+  final Type staticResultType;
 
-  Call(this.selector, this.args) {
+  Call(this.selector, this.args, this.staticResultType) {
     // TODO(sjindel/tfa): Support inferring unchecked entry-points for dynamic
     // and direct calls as well.
     if (selector is DynamicSelector || selector is DirectSelector) {
@@ -205,12 +216,15 @@ class Call extends Statement {
     }
     setReachable();
     if (selector is! DirectSelector) {
-      _observeReceiverType(argTypes[0]);
+      _observeReceiverType(argTypes[0], typeHierarchy);
     }
     Type result = callHandler.applyCall(
         this, selector, new Args<Type>(argTypes, names: args.names),
         isResultUsed: isResultUsed);
     if (isResultUsed) {
+      if (staticResultType != null) {
+        result = result.intersection(staticResultType, typeHierarchy);
+      }
       result = result.specialize(typeHierarchy);
       _observeResultType(result, typeHierarchy);
     }
@@ -228,6 +242,7 @@ class Call extends Statement {
   static const int kResultUsed = (1 << 3);
   static const int kReachable = (1 << 4);
   static const int kUseCheckedEntry = (1 << 5);
+  static const int kReceiverMayBeInt = (1 << 6);
 
   Member _monomorphicTarget;
 
@@ -242,6 +257,8 @@ class Call extends Statement {
   bool get isResultUsed => (_flags & kResultUsed) != 0;
 
   bool get isReachable => (_flags & kReachable) != 0;
+
+  bool get receiverMayBeInt => (_flags & kReceiverMayBeInt) != 0;
 
   bool get useCheckedEntry => (_flags & kUseCheckedEntry) != 0;
 
@@ -277,9 +294,15 @@ class Call extends Statement {
     }
   }
 
-  void _observeReceiverType(Type receiver) {
+  void _observeReceiverType(Type receiver, TypeHierarchy typeHierarchy) {
     if (receiver is NullableType) {
       _flags |= kNullableReceiver;
+    }
+    final receiverIntIntersect =
+        receiver.intersection(typeHierarchy.intType, typeHierarchy);
+    if (receiverIntIntersect != EmptyType() &&
+        receiverIntIntersect != NullableType(EmptyType())) {
+      _flags |= kReceiverMayBeInt;
     }
   }
 
@@ -297,14 +320,16 @@ class Extract extends Statement {
 
   final Class referenceClass;
   final int paramIndex;
+  final Nullability nullability;
 
-  Extract(this.arg, this.referenceClass, this.paramIndex);
+  Extract(this.arg, this.referenceClass, this.paramIndex, this.nullability);
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitExtract(this);
 
   @override
-  String dump() => "$label = _Extract ($arg[$referenceClass/$paramIndex])";
+  String dump() =>
+      "$label = _Extract ($arg[$referenceClass/$paramIndex]${nullability.suffix})";
 
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
@@ -318,10 +343,31 @@ class Extract extends Statement {
       } else {
         final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
             c.cls.classNode, referenceClass);
-        final extract = c.typeArgs[interfaceOffset + paramIndex];
-        assertx(extract is AnyType || extract is RuntimeType);
-        if (extractedType == null || extract == extractedType) {
-          extractedType = extract;
+        final typeArg = c.typeArgs[interfaceOffset + paramIndex];
+        Type extracted = typeArg;
+        if (typeArg is RuntimeType) {
+          final argNullability = typeArg.nullability;
+          if (argNullability != nullability) {
+            // Apply nullability of type parameter type.
+            Nullability result;
+            if (argNullability == Nullability.nullable ||
+                nullability == Nullability.nullable) {
+              result = Nullability.nullable;
+            } else if (argNullability == Nullability.legacy ||
+                nullability == Nullability.legacy) {
+              result = Nullability.legacy;
+            } else {
+              result = Nullability.nonNullable;
+            }
+            if (argNullability != result) {
+              extracted = typeArg.withNullability(result);
+            }
+          }
+        } else {
+          assertx(typeArg is AnyType);
+        }
+        if (extractedType == null || extracted == extractedType) {
+          extractedType = extracted;
         } else {
           extractedType = const AnyType();
         }
@@ -381,16 +427,18 @@ class CreateConcreteType extends Statement {
 // missing ("AnyType").
 class CreateRuntimeType extends Statement {
   final Class klass;
+  final Nullability nullability;
   final List<TypeExpr> flattenedTypeArgs;
 
-  CreateRuntimeType(this.klass, this.flattenedTypeArgs);
+  CreateRuntimeType(this.klass, this.nullability, this.flattenedTypeArgs);
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitCreateRuntimeType(this);
 
   @override
   String dump() => "$label = _CreateRuntimeType ($klass @ "
-      "${flattenedTypeArgs.take(klass.typeParameters.length)})";
+      "${flattenedTypeArgs.take(klass.typeParameters.length)}"
+      "${nullability.suffix})";
 
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
@@ -402,7 +450,7 @@ class CreateRuntimeType extends Statement {
       if (computed is AnyType) return const AnyType();
       types[i] = computed;
     }
-    return new RuntimeType(new InterfaceType(klass, Nullability.legacy), types);
+    return new RuntimeType(new InterfaceType(klass, nullability), types);
   }
 }
 
@@ -498,6 +546,7 @@ class Summary {
 
   List<Statement> _statements = <Statement>[];
   TypeExpr result = null;
+  Type resultType = EmptyType();
 
   Summary(
       {this.parameterCount: 0,
@@ -544,6 +593,12 @@ class Summary {
 
     List<Type> types = new List<Type>(_statements.length);
 
+    if (arguments.unknownArity) {
+      for (int i = 0; i < parameterCount; ++i) {
+        (_statements[i] as Parameter).isAlwaysPassed = false;
+      }
+    }
+
     for (int i = 0; i < positionalArgCount; i++) {
       final Parameter param = _statements[i] as Parameter;
       if (args[i] is RuntimeType) {
@@ -562,10 +617,7 @@ class Summary {
     }
 
     for (int i = positionalArgCount; i < positionalParameterCount; i++) {
-      final Parameter param = _statements[i] as Parameter;
-      final argType = param.defaultValue.specialize(typeHierarchy);
-      param._observeArgumentType(argType, typeHierarchy);
-      types[i] = argType;
+      types[i] = (_statements[i] as Parameter)._observeNotPassed(typeHierarchy);
     }
 
     final argNames = arguments.names;
@@ -587,9 +639,7 @@ class Summary {
       } else {
         assertx((argIndex == namedArgCount) ||
             (param.name.compareTo(argNames[argIndex]) < 0));
-        final argType = param.defaultValue.specialize(typeHierarchy);
-        param._observeArgumentType(argType, typeHierarchy);
-        types[i] = argType;
+        types[i] = param._observeNotPassed(typeHierarchy);
       }
     }
     assertx(argIndex == namedArgCount);
@@ -607,7 +657,9 @@ class Summary {
 
     Statistics.summariesAnalyzed++;
 
-    return result.getComputedType(types);
+    Type computedType = result.getComputedType(types);
+    resultType = resultType.union(computedType, typeHierarchy);
+    return computedType;
   }
 
   Args<Type> get argumentTypes {
@@ -631,6 +683,17 @@ class Summary {
           statement.canAlwaysSkip &&
           statement.parameter != null) {
         params.add(statement.parameter);
+      }
+    }
+    return params;
+  }
+
+  Set<String> alwaysPassedOptionalParameters() {
+    final params = Set<String>();
+    for (int i = requiredParameterCount; i < parameterCount; ++i) {
+      final Parameter p = _statements[i] as Parameter;
+      if (p.isAlwaysPassed) {
+        params.add(p.name);
       }
     }
     return params;

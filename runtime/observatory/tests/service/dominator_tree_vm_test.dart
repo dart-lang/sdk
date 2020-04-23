@@ -5,10 +5,9 @@
 // VMOptions=--use_compactor
 // VMOptions=--use_compactor --force_evacuation
 
-import 'package:observatory/heap_snapshot.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 // small example from [Lenguaer & Tarjan 1979]
@@ -114,13 +113,10 @@ buildGraph() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    final raw = await isolate.fetchHeapSnapshot().last;
-    final snapshot = new HeapSnapshot();
-    await snapshot.loadProgress(isolate, raw).last;
+    final graph = await isolate.fetchHeapSnapshot().done;
 
     node(String className) {
-      return snapshot.graph.objects
-          .singleWhere((v) => v.klass.name == className);
+      return graph.objects.singleWhere((v) => v.klass.name == className);
     }
 
     expect(node('I').parent, equals(node('R')));

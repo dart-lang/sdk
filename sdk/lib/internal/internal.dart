@@ -23,6 +23,7 @@ import 'dart:math' show Random;
 
 part 'async_cast.dart';
 part 'cast.dart';
+part 'errors.dart';
 part 'iterable.dart';
 part 'list.dart';
 part 'print.dart';
