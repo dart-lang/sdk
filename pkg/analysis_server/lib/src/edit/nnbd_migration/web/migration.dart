@@ -156,18 +156,31 @@ Future<HttpRequest> doGet(String path,
     HttpRequest.request(pathWithQueryParameters(path, queryParameters),
         requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'});
 
-Future<HttpRequest> doPost(String path) => HttpRequest.request(
-      pathWithQueryParameters(path, {}),
-      method: 'POST',
-      requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
-    ).then((HttpRequest xhr) {
-      if (xhr.status == 200) {
-        // Request OK.
-        return xhr;
-      } else {
-        throw 'Request failed; status of ${xhr.status}';
-      }
-    });
+Future<Map<String, Object>> doPost(String path) async {
+  var completer = new Completer<HttpRequest>();
+
+  var xhr = HttpRequest()
+    ..open('POST', pathWithQueryParameters(path, {}), async: true)
+    ..setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+  xhr.onLoad.listen((e) {
+    completer.complete(xhr);
+  });
+
+  xhr.onError.listen(completer.completeError);
+
+  xhr.send();
+
+  await completer.future;
+
+  final json = jsonDecode(xhr.responseText);
+  if (xhr.status == 200) {
+    // Request OK.
+    return json;
+  } else {
+    throw json;
+  }
+}
 
 int getLine(String location) {
   var str = Uri.parse(location).queryParameters['line'];
