@@ -73,7 +73,8 @@ export 'visitor.dart';
 import 'canonical_name.dart' show CanonicalName;
 export 'canonical_name.dart' show CanonicalName;
 
-import 'default_language_version.dart';
+import 'default_language_version.dart' show defaultLanguageVersion;
+export 'default_language_version.dart' show defaultLanguageVersion;
 
 import 'transformations/flags.dart';
 import 'text/ast_to_text.dart' as astToText;
@@ -353,18 +354,14 @@ class Library extends NamedNode
   /// The URI of the source file this library was loaded from.
   Uri fileUri;
 
-  int _languageVersionMajor;
-  int _languageVersionMinor;
-  int get languageVersionMajor =>
-      _languageVersionMajor ?? defaultLanguageVersionMajor;
-  int get languageVersionMinor =>
-      _languageVersionMinor ?? defaultLanguageVersionMinor;
-  void setLanguageVersion(int languageVersionMajor, int languageVersionMinor) {
-    if (languageVersionMajor == null || languageVersionMinor == null) {
+  Version _languageVersion;
+  Version get languageVersion => _languageVersion ?? defaultLanguageVersion;
+
+  void setLanguageVersion(Version languageVersion) {
+    if (languageVersion == null) {
       throw new StateError("Trying to set language version 'null'");
     }
-    _languageVersionMajor = languageVersionMajor;
-    _languageVersionMinor = languageVersionMinor;
+    _languageVersion = languageVersion;
   }
 
   static const int SyntheticFlag = 1 << 1;
@@ -9108,4 +9105,66 @@ List<DartType> getAsTypeArguments(
         typeParameters[i], library);
   }
   return result;
+}
+
+class Version extends Object {
+  final int major;
+  final int minor;
+
+  const Version(this.major, this.minor)
+      : assert(major != null),
+        assert(minor != null);
+
+  bool operator <(Version other) {
+    if (major < other.major) return true;
+    if (major > other.major) return false;
+
+    // Major is the same.
+    if (minor < other.minor) return true;
+    return false;
+  }
+
+  bool operator <=(Version other) {
+    if (major < other.major) return true;
+    if (major > other.major) return false;
+
+    // Major is the same.
+    if (minor <= other.minor) return true;
+    return false;
+  }
+
+  bool operator >(Version other) {
+    if (major > other.major) return true;
+    if (major < other.major) return false;
+
+    // Major is the same.
+    if (minor > other.minor) return true;
+    return false;
+  }
+
+  bool operator >=(Version other) {
+    if (major > other.major) return true;
+    if (major < other.major) return false;
+
+    // Major is the same.
+    if (minor >= other.minor) return true;
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return major.hashCode * 13 + minor.hashCode * 17;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! Version) return false;
+    return major == other.major && minor == other.minor;
+  }
+
+  @override
+  String toString() {
+    return "Version(major=$major, minor=$minor)";
+  }
 }

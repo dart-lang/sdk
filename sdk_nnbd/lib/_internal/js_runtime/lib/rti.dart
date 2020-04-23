@@ -2898,7 +2898,7 @@ bool _isInterfaceSubtype(
     if (JS_GET_FLAG("VARIANCE")) {
       sVariances = _Universe.findTypeParameterVariances(universe, sName);
       hasVariances = sVariances != null;
-      assert(!hasVariances! || length == _Utils.arrayLength(sVariances));
+      assert(!hasVariances || length == _Utils.arrayLength(sVariances));
     }
 
     for (int i = 0; i < length; i++) {

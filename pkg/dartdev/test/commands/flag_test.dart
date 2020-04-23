@@ -47,7 +47,8 @@ void help() {
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains(DartdevRunner.dartdevDescription));
-    expect(result.stdout, contains('Usage: dart <command> [arguments]'));
+    expect(result.stdout,
+        contains('Usage: dart [<vm-flags>] <command|dart-file> [<arguments>]'));
     expect(result.stdout, contains('Global options:'));
     expect(result.stdout, contains('Available commands:'));
     expect(result.stdout, contains('analyze '));

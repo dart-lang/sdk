@@ -102,8 +102,17 @@ abstract class TypeBuilder {
     return checkInstruction;
   }
 
-  HInstruction trustTypeOfParameter(HInstruction original, DartType type) {
+  HInstruction trustTypeOfParameter(
+      MemberEntity memberContext, HInstruction original, DartType type) {
     if (type == null) return original;
+
+    /// Dart semantics check against null outside the method definition,
+    /// however dart2js moves the null check to the callee for performance
+    /// reasons. As a result the body cannot trust or check that the type is not
+    /// nullable.
+    if (builder.options.useNullSafety && memberContext.name == '==') {
+      type = _closedWorld.dartTypes.nullableType(type);
+    }
     HInstruction trusted = _trustType(original, type);
     if (trusted == original) return original;
     if (trusted is HTypeKnown && trusted.isRedundant(builder.closedWorld)) {
@@ -119,6 +128,14 @@ abstract class TypeBuilder {
     HInstruction checkedOrTrusted = original;
     CheckPolicy parameterCheckPolicy = builder.closedWorld.annotationsData
         .getParameterCheckPolicy(memberContext);
+
+    /// Dart semantics check against null outside the method definition,
+    /// however dart2js moves the null check to the callee for performance
+    /// reasons. As a result the body cannot trust or check that the type is not
+    /// nullable.
+    if (builder.options.useNullSafety && memberContext.name == '==') {
+      type = _closedWorld.dartTypes.nullableType(type);
+    }
     if (parameterCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, type);
     } else if (parameterCheckPolicy.isEmitted) {

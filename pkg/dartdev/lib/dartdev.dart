@@ -24,6 +24,8 @@ class DartdevRunner<int> extends CommandRunner {
 
     argParser.addFlag('verbose',
         abbr: 'v', negatable: false, help: 'Show verbose output.');
+    argParser.addFlag('version',
+        negatable: false, help: 'Print the Dart SDK version.');
 
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CreateCommand(verbose: verbose));
@@ -33,6 +35,10 @@ class DartdevRunner<int> extends CommandRunner {
     addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand(verbose: verbose));
   }
+
+  @override
+  String get invocation =>
+      'dart [<vm-flags>] <command|dart-file> [<arguments>]';
 
   @override
   Future<int> runCommand(ArgResults results) async {

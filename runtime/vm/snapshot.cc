@@ -42,10 +42,9 @@ static bool IsBootstrapedClassId(intptr_t class_id) {
   return (class_id == kObjectCid ||
           (class_id >= kInstanceCid && class_id <= kUserTagCid) ||
           class_id == kArrayCid || class_id == kImmutableArrayCid ||
-          RawObject::IsStringClassId(class_id) ||
-          RawObject::IsTypedDataClassId(class_id) ||
-          RawObject::IsExternalTypedDataClassId(class_id) ||
-          RawObject::IsTypedDataViewClassId(class_id) || class_id == kNullCid ||
+          IsStringClassId(class_id) || IsTypedDataClassId(class_id) ||
+          IsExternalTypedDataClassId(class_id) ||
+          IsTypedDataViewClassId(class_id) || class_id == kNullCid ||
           class_id == kTransferableTypedDataCid);
 }
 
@@ -62,7 +61,7 @@ static bool IsSplitClassId(intptr_t class_id) {
   // later inline with complete contents.
   return class_id >= kNumPredefinedCids || class_id == kArrayCid ||
          class_id == kImmutableArrayCid || class_id == kObjectPoolCid ||
-         RawObject::IsImplicitFieldClassId(class_id);
+         IsImplicitFieldClassId(class_id);
 }
 
 static intptr_t ClassIdFromObjectId(intptr_t object_id) {
@@ -1187,8 +1186,7 @@ void SnapshotWriter::WriteMarkedObjectImpl(RawObject* raw,
   RawClass* cls = class_table_->At(RawObject::ClassIdTag::decode(tags));
   intptr_t class_id = cls->ptr()->id_;
   ASSERT(class_id == RawObject::ClassIdTag::decode(tags));
-  if (class_id >= kNumPredefinedCids ||
-      RawObject::IsImplicitFieldClassId(class_id)) {
+  if (class_id >= kNumPredefinedCids || IsImplicitFieldClassId(class_id)) {
     WriteInstance(raw, cls, tags, object_id, as_reference);
     return;
   }

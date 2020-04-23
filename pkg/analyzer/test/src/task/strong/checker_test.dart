@@ -2649,7 +2649,6 @@ class T1 implements I {
 ''');
   }
 
-  @failingTest
   test_invalidOverrides_doubleOverride() async {
     await checkFile('''
 class A {}
@@ -2669,7 +2668,6 @@ class Test extends Parent {
 ''');
   }
 
-  @failingTest
   test_invalidOverrides_doubleOverride2() async {
     await checkFile('''
 class A {}
@@ -3632,7 +3630,6 @@ class /*error:INCONSISTENT_INHERITANCE*/U2
 ''');
   }
 
-  @failingTest
   test_noDuplicateReports_typeOverridesSomeMethodInMultipleInterfaces() async {
     await checkFile('''
 class A {}
@@ -4315,12 +4312,7 @@ abstract class Base implements I1 {
 }
 
 class T1 extends Base {
-    // we consider the base class incomplete because it is
-    // abstract, so we report the error here too.
-    // TODO(sigmund): consider tracking overrides in a fine-grain
-    // manner, then this and the double-overrides would not be
-    // reported.
-    /*error:INVALID_OVERRIDE*/m(B a) {}
+    m(B a) {}
 }
 ''');
   }
@@ -4339,7 +4331,7 @@ class Base implements I1 {
 }
 
 class T1 extends Base {
-    /*error:INVALID_OVERRIDE*/m(B a) {}
+    m(B a) {}
 }
 ''');
   }

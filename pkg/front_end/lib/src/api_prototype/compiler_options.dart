@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
 
 import 'package:kernel/default_language_version.dart' as kernel
-    show defaultLanguageVersionMajor, defaultLanguageVersionMinor;
+    show defaultLanguageVersion;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -229,9 +229,9 @@ class CompilerOptions {
   /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".
   /// For instance used for language versioning (specifying the maximum
   /// version).
-  String currentSdkVersion = "${kernel.defaultLanguageVersionMajor}"
+  String currentSdkVersion = "${kernel.defaultLanguageVersion.major}"
       "."
-      "${kernel.defaultLanguageVersionMinor}";
+      "${kernel.defaultLanguageVersion.minor}";
 
   bool equivalent(CompilerOptions other,
       {bool ignoreOnDiagnostic: true,

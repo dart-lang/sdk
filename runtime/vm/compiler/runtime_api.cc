@@ -311,8 +311,8 @@ const word RawAbstractType::kTypeStateFinalizedInstantiated =
 const word RawObject::kBarrierOverlapShift =
     dart::RawObject::kBarrierOverlapShift;
 
-bool RawObject::IsTypedDataClassId(intptr_t cid) {
-  return dart::RawObject::IsTypedDataClassId(cid);
+bool IsTypedDataClassId(intptr_t cid) {
+  return dart::IsTypedDataClassId(cid);
 }
 
 const word Class::kNoTypeArguments = dart::Class::kNoTypeArguments;
@@ -402,12 +402,12 @@ word Instance::first_field_offset() {
 }
 
 word Instance::DataOffsetFor(intptr_t cid) {
-  if (dart::RawObject::IsExternalTypedDataClassId(cid) ||
-      dart::RawObject::IsExternalStringClassId(cid)) {
+  if (dart::IsExternalTypedDataClassId(cid) ||
+      dart::IsExternalStringClassId(cid)) {
     // Elements start at offset 0 of the external data.
     return 0;
   }
-  if (dart::RawObject::IsTypedDataClassId(cid)) {
+  if (dart::IsTypedDataClassId(cid)) {
     return TypedData::data_offset();
   }
   switch (cid) {
@@ -425,9 +425,8 @@ word Instance::DataOffsetFor(intptr_t cid) {
 }
 
 word Instance::ElementSizeFor(intptr_t cid) {
-  if (dart::RawObject::IsExternalTypedDataClassId(cid) ||
-      dart::RawObject::IsTypedDataClassId(cid) ||
-      dart::RawObject::IsTypedDataViewClassId(cid)) {
+  if (dart::IsExternalTypedDataClassId(cid) || dart::IsTypedDataClassId(cid) ||
+      dart::IsTypedDataViewClassId(cid)) {
     return dart::TypedDataBase::ElementSizeInBytes(cid);
   }
   switch (cid) {

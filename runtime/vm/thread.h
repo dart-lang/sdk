@@ -19,6 +19,7 @@
 #include "vm/globals.h"
 #include "vm/handles.h"
 #include "vm/heap/pointer_block.h"
+#include "vm/heap/tlab.h"
 #include "vm/os_thread.h"
 #include "vm/random.h"
 #include "vm/runtime_entry_list.h"
@@ -502,13 +503,12 @@ class Thread : public ThreadState {
   Heap* heap() const { return heap_; }
   static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
 
-  void set_top(uword value) { top_ = value; }
-  void set_end(uword value) { end_ = value; }
+  void set_tlab(TLAB tlab) {
+    top_ = tlab.top;
+    end_ = tlab.end;
+  }
 
-  uword top() { return top_; }
-  uword end() { return end_; }
-
-  bool HasActiveTLAB() { return end_ > 0; }
+  TLAB tlab() { return TLAB(top_, end_); }
 
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
@@ -904,8 +904,8 @@ class Thread : public ThreadState {
   uword write_barrier_mask_;
   Isolate* isolate_;
   const uword* dispatch_table_array_;
-  uword top_;
-  uword end_;
+  uword top_ = 0;
+  uword end_ = 0;
   // Offsets up to this point can all fit in a byte on X64. All of the above
   // fields are very abundantly accessed from code. Thus, keeping them first
   // is important for code size (although code size on X64 is not a priority).

@@ -1056,6 +1056,7 @@ class CallSiteAttributesMetadataHelper : public MetadataHelper {
 struct TableSelectorInfo {
   int call_count = 0;
   bool called_on_null = true;
+  bool torn_off = true;
 };
 
 // Collection of table selector information for all selectors in the program.
@@ -1081,8 +1082,8 @@ class TableSelectorMetadataHelper : public MetadataHelper {
   TableSelectorMetadata* GetTableSelectorMetadata(Zone* zone);
 
  private:
-  static const int32_t kCalledOnNullBit = 1 << 0;
-  static const int32_t kCallCountShift = 1;
+  static const uint8_t kCalledOnNullBit = 1 << 0;
+  static const uint8_t kTornOffBit = 1 << 1;
 
   void ReadTableSelectorInfo(TableSelectorInfo* info);
 

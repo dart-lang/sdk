@@ -212,12 +212,12 @@ bool Heap::DataContains(uword addr) const {
   return old_space_.DataContains(addr);
 }
 
-void Heap::VisitObjects(ObjectVisitor* visitor) const {
+void Heap::VisitObjects(ObjectVisitor* visitor) {
   new_space_.VisitObjects(visitor);
   old_space_.VisitObjects(visitor);
 }
 
-void Heap::VisitObjectsNoImagePages(ObjectVisitor* visitor) const {
+void Heap::VisitObjectsNoImagePages(ObjectVisitor* visitor) {
   new_space_.VisitObjects(visitor);
   old_space_.VisitObjectsNoImagePages(visitor);
 }
@@ -318,7 +318,7 @@ void HeapIterationScope::IterateStackPointers(
   isolate_group()->VisitStackPointers(visitor, validate_frames);
 }
 
-void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
+void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   new_space_.VisitObjectPointers(visitor);
   old_space_.VisitObjectPointers(visitor);
 }
@@ -335,11 +335,11 @@ RawObject* Heap::FindOldObject(FindObjectVisitor* visitor) const {
   return old_space_.FindObject(visitor, HeapPage::kData);
 }
 
-RawObject* Heap::FindNewObject(FindObjectVisitor* visitor) const {
+RawObject* Heap::FindNewObject(FindObjectVisitor* visitor) {
   return new_space_.FindObject(visitor);
 }
 
-RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
+RawObject* Heap::FindObject(FindObjectVisitor* visitor) {
   // The visitor must not allocate from the heap.
   NoSafepointScope no_safepoint_scope;
   RawObject* raw_obj = FindNewObject(visitor);
@@ -702,7 +702,7 @@ void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
 
 void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
   // Prevent generated code from using the TLAB fast path on next allocation.
-  new_space_.AbandonRemainingTLAB(Thread::Current());
+  new_space_.AbandonRemainingTLABForDebugging(Thread::Current());
   gc_on_nth_allocation_ = num_allocations;
 }
 
@@ -735,13 +735,12 @@ void Heap::CollectForDebugging() {
     gc_on_nth_allocation_ = kNoForcedGarbageCollection;
   } else {
     // Prevent generated code from using the TLAB fast path on next allocation.
-    new_space_.AbandonRemainingTLAB(Thread::Current());
+    new_space_.AbandonRemainingTLABForDebugging(Thread::Current());
   }
 }
 
-ObjectSet* Heap::CreateAllocatedObjectSet(
-    Zone* zone,
-    MarkExpectation mark_expectation) const {
+ObjectSet* Heap::CreateAllocatedObjectSet(Zone* zone,
+                                          MarkExpectation mark_expectation) {
   ObjectSet* allocated_set = new (zone) ObjectSet(zone);
 
   this->AddRegionsToObjectSet(allocated_set);
@@ -768,13 +767,14 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
   return allocated_set;
 }
 
-bool Heap::Verify(MarkExpectation mark_expectation) const {
+bool Heap::Verify(MarkExpectation mark_expectation) {
   HeapIterationScope heap_iteration_scope(Thread::Current());
   return VerifyGC(mark_expectation);
 }
 
-bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
-  StackZone stack_zone(Thread::Current());
+bool Heap::VerifyGC(MarkExpectation mark_expectation) {
+  auto thread = Thread::Current();
+  StackZone stack_zone(thread);
 
   // Change the new space's top_ with the more up-to-date thread's view of top_
   new_space_.MakeNewSpaceIterable();

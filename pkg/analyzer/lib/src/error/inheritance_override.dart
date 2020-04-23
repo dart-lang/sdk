@@ -18,6 +18,7 @@ import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:meta/meta.dart';
 
 class InheritanceOverrideVerifier {
   static const _missingOverridesKey = 'missingOverrides';
@@ -103,12 +104,7 @@ class _ClassVerifier {
   final TypeName superclass;
   final WithClause withClause;
 
-  /// The set of unique supertypes of the current class.
-  /// It is used to decide when to add a new element to [allSuperinterfaces].
-  final Set<InterfaceType> allSupertypes = <InterfaceType>{};
-
-  /// The list of all superinterfaces, collected so far.
-  final List<Interface> allSuperinterfaces = [];
+  final List<InterfaceType> directSuperInterfaces = [];
 
   _ClassVerifier({
     this.typeSystem,
@@ -126,6 +122,8 @@ class _ClassVerifier {
   })  : libraryUri = library.source.uri,
         classElement = classNameNode.staticElement;
 
+  bool get _isNonNullableByDefault => typeSystem.isNonNullableByDefault;
+
   void verify() {
     if (_checkDirectSuperTypes()) {
       return;
@@ -137,9 +135,16 @@ class _ClassVerifier {
 
     InterfaceTypeImpl type = classElement.thisType;
 
-    // Add all superinterfaces of the direct supertype.
-    if (type.superclass != null) {
-      _addSuperinterfaces(type.superclass);
+    // Compute the interface of the class.
+    var interface = inheritance.getInterface(type);
+
+    // Report conflicts between direct superinterfaces of the class.
+    for (var conflict in interface.conflicts) {
+      _reportInconsistentInheritance(classNameNode, conflict);
+    }
+
+    if (classElement.supertype != null) {
+      directSuperInterfaces.add(classElement.supertype);
     }
 
     // Each mixin in `class C extends S with M0, M1, M2 {}` is equivalent to:
@@ -153,14 +158,11 @@ class _ClassVerifier {
     var mixinTypes = type.mixins;
     for (var i = 0; i < mixinTypes.length; i++) {
       var mixinType = mixinTypes[i];
-      _checkDeclaredMembers(mixinNodes[i], mixinType);
-      _addSuperinterfaces(mixinType);
+      _checkDeclaredMembers(mixinNodes[i], mixinType, mixinIndex: i);
+      directSuperInterfaces.add(mixinType);
     }
 
-    // Add all superinterfaces of the direct class interfaces.
-    for (var interface in type.interfaces) {
-      _addSuperinterfaces(interface);
-    }
+    directSuperInterfaces.addAll(classElement.interfaces);
 
     // Check the members if the class itself, against all the previously
     // collected superinterfaces of the supertype, mixins, and interfaces.
@@ -176,14 +178,6 @@ class _ClassVerifier {
         _checkDeclaredMember(member.name, libraryUri, member.declaredElement,
             methodParameterNodes: member.parameters?.parameters);
       }
-    }
-
-    // Compute the interface of the class.
-    var interface = inheritance.getInterface(type);
-
-    // Report conflicts between direct superinterfaces of the class.
-    for (var conflict in interface.conflicts) {
-      _reportInconsistentInheritance(classNameNode, conflict);
     }
 
     GetterSetterTypesVerifier(
@@ -246,26 +240,15 @@ class _ClassVerifier {
     }
   }
 
-  void _addSuperinterfaces(InterfaceType startingType) {
-    var supertypes = <InterfaceType>[];
-    ClassElementImpl.collectAllSupertypes(supertypes, startingType, null);
-    for (int i = 0; i < supertypes.length; i++) {
-      var supertype = supertypes[i];
-      if (allSupertypes.add(supertype)) {
-        var interface = inheritance.getInterface(supertype);
-        allSuperinterfaces.add(interface);
-      }
-    }
-  }
-
   /// Check that the given [member] is a valid override of the corresponding
-  /// instance members in each of [allSuperinterfaces].  The [libraryUri] is
+  /// instance members in each of [directSuperInterfaces].  The [libraryUri] is
   /// the URI of the library containing the [member].
   void _checkDeclaredMember(
     AstNode node,
     Uri libraryUri,
     ExecutableElement member, {
     List<FormalParameter> methodParameterNodes,
+    int mixinIndex = -1,
   }) {
     if (member == null) return;
     if (member.isStatic) return;
@@ -276,8 +259,12 @@ class _ClassVerifier {
       thisMember: member,
     );
 
-    for (var superInterface in allSuperinterfaces) {
-      var superMember = superInterface.declared[name];
+    for (var superType in directSuperInterfaces) {
+      var superMember = inheritance.getMember(
+        superType,
+        name,
+        forMixinIndex: mixinIndex,
+      );
       if (superMember == null) {
         continue;
       }
@@ -304,17 +291,25 @@ class _ClassVerifier {
         );
       }
     }
+
+    if (mixinIndex == -1) {
+      CovariantParametersVerifier(thisMember: member).verify(
+        errorReporter: reporter,
+        errorNode: node,
+      );
+    }
   }
 
   /// Check that instance members of [type] are valid overrides of the
   /// corresponding instance members in each of [allSuperinterfaces].
-  void _checkDeclaredMembers(AstNode node, InterfaceTypeImpl type) {
+  void _checkDeclaredMembers(AstNode node, InterfaceTypeImpl type,
+      {@required int mixinIndex}) {
     var libraryUri = type.element.library.source.uri;
     for (var method in type.methods) {
-      _checkDeclaredMember(node, libraryUri, method);
+      _checkDeclaredMember(node, libraryUri, method, mixinIndex: mixinIndex);
     }
     for (var accessor in type.accessors) {
-      _checkDeclaredMember(node, libraryUri, accessor);
+      _checkDeclaredMember(node, libraryUri, accessor, mixinIndex: mixinIndex);
     }
   }
 
@@ -629,8 +624,6 @@ class _ClassVerifier {
       );
     }
   }
-
-  bool get _isNonNullableByDefault => typeSystem.isNonNullableByDefault;
 
   void _reportInheritedAbstractMembers(List<ExecutableElement> elements) {
     if (elements == null) {

@@ -3854,7 +3854,8 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
                         const Array& argument_names,
                         const ICData* ic_data,
                         intptr_t deopt_id,
-                        const Function& interface_target)
+                        const Function& interface_target,
+                        const Function& tearoff_interface_target)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
@@ -3864,10 +3865,12 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
         function_name_(function_name),
         token_kind_(token_kind),
         interface_target_(interface_target),
+        tearoff_interface_target_(tearoff_interface_target),
         result_type_(nullptr),
         has_unique_selector_(false) {
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(interface_target.IsNotTemporaryScopedHandle());
+    ASSERT(tearoff_interface_target.IsNotTemporaryScopedHandle());
     ASSERT(!arguments->is_empty());
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsEqualityOperator(token_kind) ||
@@ -3890,6 +3893,9 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
   const Function& interface_target() const { return interface_target_; }
+  const Function& tearoff_interface_target() const {
+    return tearoff_interface_target_;
+  }
 
   bool has_unique_selector() const { return has_unique_selector_; }
   void set_has_unique_selector(bool b) { has_unique_selector_ = b; }
@@ -3968,6 +3974,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   const String& function_name_;
   const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
   const Function& interface_target_;
+  const Function& tearoff_interface_target_;
   CompileType* result_type_;  // Inferred result type.
   bool has_unique_selector_;
   Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
@@ -3988,7 +3995,8 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
       intptr_t checked_argument_count,
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t deopt_id,
-      const Function& interface_target = Function::null_function())
+      const Function& interface_target = Function::null_function(),
+      const Function& tearoff_interface_target = Function::null_function())
       : InstanceCallBaseInstr(
             token_pos,
             function_name,
@@ -3998,7 +4006,8 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
             argument_names,
             GetICData(ic_data_array, deopt_id, /*is_static_call=*/false),
             deopt_id,
-            interface_target),
+            interface_target,
+            tearoff_interface_target),
         checked_argument_count_(checked_argument_count) {}
 
   InstanceCallInstr(
@@ -4010,7 +4019,8 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
       const Array& argument_names,
       intptr_t checked_argument_count,
       intptr_t deopt_id,
-      const Function& interface_target = Function::null_function())
+      const Function& interface_target = Function::null_function(),
+      const Function& tearoff_interface_target = Function::null_function())
       : InstanceCallBaseInstr(token_pos,
                               function_name,
                               token_kind,
@@ -4019,7 +4029,8 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
                               argument_names,
                               /*ic_data=*/nullptr,
                               deopt_id,
-                              interface_target),
+                              interface_target,
+                              tearoff_interface_target),
         checked_argument_count_(checked_argument_count) {}
 
   DECLARE_INSTRUCTION(InstanceCall)
@@ -4074,7 +4085,8 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
     auto new_call = new (zone) PolymorphicInstanceCallInstr(
         call->token_pos(), call->function_name(), call->token_kind(), args,
         call->type_args_len(), call->argument_names(), call->ic_data(),
-        call->deopt_id(), call->interface_target(), targets, complete);
+        call->deopt_id(), call->interface_target(),
+        call->tearoff_interface_target(), targets, complete);
     if (call->has_inlining_id()) {
       new_call->set_inlining_id(call->inlining_id());
     }
@@ -4127,6 +4139,7 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
                                const ICData* ic_data,
                                intptr_t deopt_id,
                                const Function& interface_target,
+                               const Function& tearoff_interface_target,
                                const CallTargets& targets,
                                bool complete)
       : InstanceCallBaseInstr(token_pos,
@@ -4137,7 +4150,8 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
                               argument_names,
                               ic_data,
                               deopt_id,
-                              interface_target),
+                              interface_target,
+                              tearoff_interface_target),
         targets_(targets),
         complete_(complete) {
     ASSERT(targets.length() != 0);
@@ -4180,6 +4194,7 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
       Zone* zone,
       const InstanceCallBaseInstr* call,
       Value* cid,
+      const Function& interface_target,
       const compiler::TableSelector* selector);
 
   DECLARE_INSTRUCTION(DispatchTableCall)
@@ -5424,7 +5439,7 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
         element_count_(element_count),
         representation_(kTagged) {
     ASSERT(element_count == 1 || element_count == 2 || element_count == 4);
-    ASSERT(RawObject::IsStringClassId(class_id));
+    ASSERT(IsStringClassId(class_id));
     SetInputAt(0, str);
     SetInputAt(1, index);
   }

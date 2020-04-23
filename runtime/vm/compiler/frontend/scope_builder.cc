@@ -315,11 +315,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
                 LocalVariable::kTypeCheckedByCaller);
           }
         }
-      } else {
-        if (field.is_late()) {
-          // LoadLateField uses expression_temp_var.
-          needs_expr_temp_ = true;
-        }
       }
       break;
     }

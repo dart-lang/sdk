@@ -68,8 +68,6 @@ Thread::Thread(bool is_vm_isolate)
       write_barrier_mask_(RawObject::kGenerationalBarrierMask),
       isolate_(NULL),
       dispatch_table_array_(NULL),
-      top_(0),
-      end_(0),
       saved_stack_limit_(0),
       stack_overflow_flags_(0),
       heap_(NULL),

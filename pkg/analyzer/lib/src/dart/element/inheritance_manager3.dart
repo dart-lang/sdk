@@ -150,7 +150,15 @@ class InheritanceManager3 {
             isNonNullableByDefault: isNonNullableByDefault,
           );
 
-          implemented = superInterface.implemented;
+          if (isNonNullableByDefault) {
+            implemented = superInterface.implemented;
+          } else {
+            implemented = {};
+            for (var entry in superInterface.implemented.entries) {
+              implemented[entry.key] = Member.legacy(entry.value);
+            }
+          }
+
           superImplemented.add(implemented);
         } else {
           implemented = {};
@@ -182,13 +190,17 @@ class InheritanceManager3 {
 
             var currentList = namedCandidates[name];
             if (currentList == null) {
-              namedCandidates[name] = [candidate];
+              namedCandidates[name] = [
+                isNonNullableByDefault ? candidate : Member.legacy(candidate),
+              ];
               continue;
             }
 
             var current = currentList.single;
             if (candidate.enclosingElement == mixinElement) {
-              namedCandidates[name] = [candidate];
+              namedCandidates[name] = [
+                isNonNullableByDefault ? candidate : Member.legacy(candidate),
+              ];
               if (current.kind != candidate.kind) {
                 var currentIsGetter = current.kind == ElementKind.GETTER;
                 mixinConflicts.add(
@@ -215,23 +227,19 @@ class InheritanceManager3 {
               doTopMerge: true,
             );
             for (var entry in map.entries) {
-              namedCandidates[entry.key] = [entry.value];
+              namedCandidates[entry.key] = [
+                isNonNullableByDefault
+                    ? entry.value
+                    : Member.legacy(entry.value),
+              ];
             }
           }
 
           mixinsConflicts.add(mixinConflicts);
 
           implemented = <Name, ExecutableElement>{}..addAll(implemented);
-          implemented.addEntries(
-            interfaceObj.implemented.entries.where((entry) {
-              var executable = entry.value;
-              if (executable.isAbstract) {
-                return false;
-              }
-              var class_ = executable.enclosingElement;
-              return class_ is ClassElement && !class_.isDartCoreObject;
-            }),
-          );
+          _addMixinMembers(implemented, interfaceObj,
+              isNonNullableByDefault: isNonNullableByDefault);
 
           superImplemented.add(implemented);
         }
@@ -305,6 +313,30 @@ class InheritanceManager3 {
     );
     _interfaces[type] = interface;
     return interface;
+  }
+
+  void _addMixinMembers(
+    Map<Name, ExecutableElement> implemented,
+    Interface mixin, {
+    @required bool isNonNullableByDefault,
+  }) {
+    for (var entry in mixin.implemented.entries) {
+      var executable = entry.value;
+      if (executable.isAbstract) {
+        continue;
+      }
+
+      var class_ = executable.enclosingElement;
+      if (class_ is ClassElement && class_.isDartCoreObject) {
+        continue;
+      }
+
+      if (!isNonNullableByDefault) {
+        executable = Member.legacy(executable);
+      }
+
+      implemented[entry.key] = executable;
+    }
   }
 
   /// Return the member with the given [name].

@@ -12,6 +12,17 @@
 namespace dart {
 namespace bin {
 
+static bool StartsWithPathSeparator(const char* path,
+                                    const char* sep,
+                                    intptr_t sep_length) {
+  return (strncmp(path, sep, sep_length) == 0
+#if defined(HOST_OS_WINDOWS)
+          // TODO(aam): GetExecutableName doesn't work reliably on Windows,
+          || *path == '/'
+#endif
+  );
+}
+
 // Returns the directory portion of a given path.
 //
 // If dir is NULL, the result must be freed by the caller. Otherwise, the
@@ -23,12 +34,7 @@ static char* GetDirectoryFromPath(const char* path, char* dir) {
 
   for (intptr_t i = path_len - 1; i >= 0; --i) {
     const char* str = path + i;
-    if (strncmp(str, sep, sep_length) == 0
-#if defined(HOST_OS_WINDOWS)
-        // TODO(aam): GetExecutableName doesn't work reliably on Windows,
-        || *str == '/'
-#endif
-    ) {
+    if (StartsWithPathSeparator(str, sep, sep_length)) {
       if (dir != nullptr) {
         strncpy(dir, path, i);
         dir[i] = '\0';
@@ -39,6 +45,24 @@ static char* GetDirectoryFromPath(const char* path, char* dir) {
     }
   }
   return nullptr;
+}
+
+// Returns the file portion of a given path. Returned string is either
+// `path` if no path separators are found or `path + separator_loc + sep_length`
+// if a separator is found.
+static const char* GetFileNameFromPath(const char* path) {
+  const char* sep = File::PathSeparator();
+  const intptr_t sep_length = strlen(sep);
+  intptr_t path_len = strlen(path);
+
+  for (intptr_t i = path_len - 1; i >= 0; --i) {
+    const char* str = path + i;
+    if (StartsWithPathSeparator(str, sep, sep_length)) {
+      return str + sep_length;
+    }
+  }
+  // No path separators, assume that path is a file name.
+  return path;
 }
 
 Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
@@ -70,7 +94,8 @@ Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
     do {
       Directory::SetCurrent(namespc, GetDirectoryFromPath(name, dir_path));
       // Resolve the link without creating Dart scope String.
-      name = File::LinkTarget(namespc, name, target, kTargetSize);
+      name = File::LinkTarget(namespc, GetFileNameFromPath(name), target,
+                              kTargetSize);
       if (name == nullptr) {
         return Utils::CreateCStringUniquePtr(strdup(""));
       }

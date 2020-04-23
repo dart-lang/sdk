@@ -101,6 +101,10 @@ class FixBuilder {
   /// that type should be.
   final Map<ParameterElement, DartType> _addedParameterTypes = {};
 
+  final bool warnOnWeakCode;
+
+  final NullabilityGraph _graph;
+
   factory FixBuilder(
       Source source,
       DecoratedClassHierarchy decoratedClassHierarchy,
@@ -109,7 +113,9 @@ class FixBuilder {
       Variables variables,
       LibraryElement definingLibrary,
       NullabilityMigrationListener listener,
-      CompilationUnit unit) {
+      CompilationUnit unit,
+      bool warnOnWeakCode,
+      NullabilityGraph graph) {
     var migrationResolutionHooks = MigrationResolutionHooksImpl();
     return FixBuilder._(
         decoratedClassHierarchy,
@@ -122,7 +128,9 @@ class FixBuilder {
         definingLibrary,
         listener,
         unit,
-        migrationResolutionHooks);
+        migrationResolutionHooks,
+        warnOnWeakCode,
+        graph);
   }
 
   FixBuilder._(
@@ -133,7 +141,9 @@ class FixBuilder {
       LibraryElement definingLibrary,
       this.listener,
       this.unit,
-      this.migrationResolutionHooks)
+      this.migrationResolutionHooks,
+      this.warnOnWeakCode,
+      this._graph)
       : typeProvider = _typeSystem.typeProvider {
     migrationResolutionHooks._fixBuilder = this;
     // TODO(paulberry): make use of decoratedClassHierarchy
@@ -304,13 +314,27 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
           (_fixBuilder._getChange(node) as NodeChangeForConditional)
             ..conditionValue = conditionValue
             ..conditionReason = conditionalDiscard.reason;
-          return conditionValue;
+          // If we're just issuing warnings, instruct the resolver to go ahead
+          // and visit both branches of the conditional.
+          return _fixBuilder.warnOnWeakCode ? null : conditionValue;
         }
       });
 
   @override
-  List<ParameterElement> getExecutableParameters(ExecutableElement element) =>
-      getExecutableType(element as ElementImplWithFunctionType).parameters;
+  List<ParameterElement> getExecutableParameters(
+      ExecutableElementImpl element) {
+    if (_fixBuilder._graph.isBeingMigrated(element.library.source)) {
+      // The element is part of a library that's being migrated, so its
+      // parameters all have been visited (and thus have their own final
+      // types).  So we don't need to do anything.
+      return const ElementTypeProvider().getExecutableParameters(element);
+    } else {
+      // The element is not part of a library that's being migrated, so its
+      // parameters probably haven't been visited; we need to get the parameters
+      // from the final function type.
+      return getExecutableType(element).parameters;
+    }
+  }
 
   @override
   DartType getExecutableReturnType(Element element) =>

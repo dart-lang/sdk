@@ -6,6 +6,7 @@ src/api_prototype/compiler_options/Exports: Fail
 src/api_prototype/constant_evaluator/Exports: Fail
 src/api_prototype/front_end/Exports: Fail
 src/api_prototype/incremental_kernel_generator/Exports: Fail
+src/api_prototype/language_version/Exports: Fail
 src/api_unstable/bazel_worker/ImportsTwice: Fail
 src/fasta/fasta_codes/Exports: Fail
 src/fasta/incremental_compiler/ImportsTwice: Fail

@@ -2066,6 +2066,19 @@ int f(bool b, int i, int j) {
     assertNullCheck(check_b, assertEdge(nullable_b, never, hard: true));
   }
 
+  Future<void> test_conditionalExpression_false_guard() async {
+    await analyze('int f(int x, int y, int z) => x != null ? null : y = z;');
+    var guard = decoratedTypeAnnotation('int x').node;
+    assertEdge(decoratedTypeAnnotation('int z').node,
+        decoratedTypeAnnotation('int y').node,
+        hard: false, guards: [guard]);
+    var conditionalDiscard =
+        variables.conditionalDiscard(findNode.conditionalExpression('!='));
+    expect(conditionalDiscard, isNotNull);
+    expect(conditionalDiscard.trueGuard, isNull);
+    expect(conditionalDiscard.falseGuard, same(guard));
+  }
+
   Future<void> test_conditionalExpression_functionTyped_namedParameter() async {
     await analyze('''
 void f(bool b, void Function({int p}) x, void Function({int p}) y) {
@@ -2455,6 +2468,19 @@ T f<T>(bool b, T t) {
     assertLUB(nullable_conditional, nullable_t, inSet(alwaysPlus));
   }
 
+  Future<void> test_conditionalExpression_true_guard() async {
+    await analyze('int f(int x, int y, int z) => x == null ? y = z : null;');
+    var guard = decoratedTypeAnnotation('int x').node;
+    assertEdge(decoratedTypeAnnotation('int z').node,
+        decoratedTypeAnnotation('int y').node,
+        hard: false, guards: [guard]);
+    var conditionalDiscard =
+        variables.conditionalDiscard(findNode.conditionalExpression('=='));
+    expect(conditionalDiscard, isNotNull);
+    expect(conditionalDiscard.trueGuard, same(guard));
+    expect(conditionalDiscard.falseGuard, isNull);
+  }
+
   Future<void> test_conditionalExpression_typeParameter_bound() async {
     await analyze('''
 num f<T extends num>(bool b, num x, T y) {
@@ -2725,6 +2751,64 @@ double f() {
 }
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('double').node);
+  }
+
+  Future<void> test_dummyNode_fromEqualityComparison_left() async {
+    await analyze('''
+f() {
+  int i;
+  if (i == 7) {}
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    assertDummyEdge(nullable_i);
+  }
+
+  Future<void> test_dummyNode_fromEqualityComparison_right() async {
+    await analyze('''
+f() {
+  int i;
+  if (7 == i) {}
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    assertDummyEdge(nullable_i);
+  }
+
+  Future<void> test_dummyNode_fromExpressionStatement() async {
+    await analyze('''
+f() {
+  int i;
+  i;
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    assertDummyEdge(nullable_i);
+  }
+
+  Future<void> test_dummyNode_fromForLoopUpdaters() async {
+    await analyze('''
+f() {
+  int i;
+  int j;
+  for (;; i, j) {}
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    var nullable_j = decoratedTypeAnnotation('int j').node;
+    assertDummyEdge(nullable_i);
+    assertDummyEdge(nullable_j);
+  }
+
+  Future<void> test_dummyNode_fromForLoopVariables() async {
+    await analyze('''
+f() {
+  int i;
+  for (i;;) {}
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    assertDummyEdge(nullable_i);
   }
 
   Future<void> test_edgeOrigin_call_from_function() async {

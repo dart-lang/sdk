@@ -41,7 +41,8 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
   Future<void> _checkMultipleFileChanges(
       Map<String, String> input, Map<String, String> expectedOutput,
       {Map<String, String> migratedInput = const {},
-      bool removeViaComments = false}) async {
+      bool removeViaComments = false,
+      bool warnOnWeakCode = false}) async {
     for (var path in migratedInput.keys) {
       driver.getFileSync(newFile(path, content: migratedInput[path]).path);
     }
@@ -52,7 +53,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     var migration = NullabilityMigration(listener,
         permissive: _usePermissiveMode,
         removeViaComments: removeViaComments,
-        warnOnWeakCode: false);
+        warnOnWeakCode: warnOnWeakCode);
     for (var path in input.keys) {
       if (!(await session.getFile(path)).isPart) {
         for (var unit in (await session.getResolvedLibrary(path)).units) {
@@ -98,11 +99,14 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
   /// be removed in its entirety (the default) or removed by commenting it out.
   Future<void> _checkSingleFileChanges(String content, String expected,
       {Map<String, String> migratedInput = const {},
-      bool removeViaComments = false}) async {
+      bool removeViaComments = false,
+      bool warnOnWeakCode = false}) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     await _checkMultipleFileChanges(
         {sourcePath: content}, {sourcePath: expected},
-        migratedInput: migratedInput, removeViaComments: removeViaComments);
+        migratedInput: migratedInput,
+        removeViaComments: removeViaComments,
+        warnOnWeakCode: warnOnWeakCode);
   }
 }
 
@@ -438,6 +442,53 @@ class Foo {}
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_code_inside_switch_does_not_imply_non_null_intent() async {
+    var content = '''
+int f(int i, int j) {
+  switch (i) {
+    case 0:
+      return j + 1;
+    default:
+      return 0;
+  }
+}
+int g(int i, int j) {
+  if (i == 0) {
+    return f(i, j);
+  } else {
+    return 0;
+  }
+}
+main() {
+  g(0, null);
+}
+''';
+    var expected = '''
+int f(int i, int? j) {
+  switch (i) {
+    case 0:
+      return j! + 1;
+    default:
+      return 0;
+  }
+}
+int g(int i, int? j) {
+  if (i == 0) {
+    return f(i, j);
+  } else {
+    return 0;
+  }
+}
+main() {
+  g(0, null);
+}
+''';
+    // Note: prior to the fix for https://github.com/dart-lang/sdk/issues/41407,
+    // we would consider the use of `j` in `f` to establish non-null intent, so
+    // the null check would be erroneously placed in `g`'s call to `f`.
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
+  }
+
   Future<void> test_comment_bang_implies_non_null_intent() async {
     var content = '''
 void f(int/*!*/ i) {}
@@ -530,7 +581,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41551')
   Future<void> test_conditional_expression_guard_subexpression() async {
     var content = '''
 void f(String s, int x) {
@@ -542,14 +592,19 @@ void f(String s, int x) {
   s == null ? (x = null!) : (x = s.length);
 }
 ''';
-    await _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41551')
-  Future<void> test_conditional_expression_guard_value() async {
+  Future<void> test_conditional_expression_guard_value_ifFalse() async {
+    var content = 'int f(String s) => s != null ? s.length : null;';
+    var expected = 'int f(String s) => s != null ? s.length : null!;';
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
+  }
+
+  Future<void> test_conditional_expression_guard_value_ifTrue() async {
     var content = 'int f(String s) => s == null ? null : s.length;';
     var expected = 'int f(String s) => s == null ? null! : s.length;';
-    await _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
   Future<void>
@@ -1914,6 +1969,54 @@ class C {
 }
 main() {
   C(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_field_formal_parameters_do_not_promote() async {
+    var content = '''
+class A {}
+
+class B extends A {}
+
+class C extends A {}
+
+abstract class D {
+  final A x;
+  D(this.x) {
+    if (x is B) {
+      visitB(x);
+    } else {
+      visitC(x as C);
+    }
+  }
+
+  void visitB(B b);
+
+  void visitC(C c);
+}
+''';
+    var expected = '''
+class A {}
+
+class B extends A {}
+
+class C extends A {}
+
+abstract class D {
+  final A x;
+  D(this.x) {
+    if (x is B) {
+      visitB(x as B);
+    } else {
+      visitC(x as C);
+    }
+  }
+
+  void visitB(B b);
+
+  void visitC(C c);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -5583,6 +5686,28 @@ _f(Object x) {
 }
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_weak_if_visit_weak_subexpression() async {
+    var content = '''
+int f(int x, int/*?*/ y) {
+  if (x == null) {
+    print(y.toDouble());
+  } else {
+    print(y.toDouble());
+  }
+}
+''';
+    var expected = '''
+int f(int x, int? y) {
+  if (x == null) {
+    print(y!.toDouble());
+  } else {
+    print(y!.toDouble());
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 }
 

@@ -3435,9 +3435,6 @@ const MessageCode messageFastaUsageLong =
     Location of the SDK sources for use when compiling additional platform
     libraries.
 
-  --supermixin
-    Ignored for now.
-
   --single-root-scheme=String
   --single-root-base=<dir>
     Specify a custom URI scheme and a location on disk where such URIs are

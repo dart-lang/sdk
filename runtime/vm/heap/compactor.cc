@@ -279,10 +279,10 @@ void GCCompactor::Compact(HeapPage* pages,
       // If we have external typed data we can simply return, since the backing
       // store lives in C-heap and will not move. Otherwise we have to update
       // the inner pointer.
-      if (RawObject::IsTypedDataClassId(cid)) {
+      if (IsTypedDataClassId(cid)) {
         raw_view->RecomputeDataFieldForInternalTypedData();
       } else {
-        ASSERT(RawObject::IsExternalTypedDataClassId(cid));
+        ASSERT(IsExternalTypedDataClassId(cid));
       }
     }
   }
@@ -530,7 +530,7 @@ uword CompactorTask::SlideBlock(uword first_object,
         memmove(reinterpret_cast<void*>(new_addr),
                 reinterpret_cast<void*>(old_addr), size);
 
-        if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
+        if (IsTypedDataClassId(new_obj->GetClassId())) {
           reinterpret_cast<RawTypedData*>(new_obj)->RecomputeDataField();
         }
       }

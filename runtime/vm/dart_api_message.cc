@@ -324,7 +324,7 @@ intptr_t ApiMessageReader::NextAvailableObjectId() const {
 }
 
 Dart_CObject* ApiMessageReader::CreateDartCObjectString(RawObject* raw) {
-  ASSERT(RawObject::IsOneByteStringClassId(raw->GetClassId()));
+  ASSERT(IsOneByteStringClassId(raw->GetClassId()));
   RawOneByteString* raw_str = reinterpret_cast<RawOneByteString*>(raw);
   intptr_t len = Smi::Value(raw_str->ptr()->length_);
   Dart_CObject* object = AllocateDartCObjectString(len);

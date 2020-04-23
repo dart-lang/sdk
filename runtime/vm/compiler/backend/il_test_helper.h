@@ -253,7 +253,7 @@ class FlowGraphBuilderHelper {
     return flow_graph_.GetConstant(Double::Handle(Double::NewCanonical(value)));
   }
 
-  static constexpr Definition* kPhiSelfReference = nullptr;
+  static Definition* const kPhiSelfReference;
 
   PhiInstr* Phi(JoinEntryInstr* join,
                 std::initializer_list<std::pair<BlockEntryInstr*, Definition*>>

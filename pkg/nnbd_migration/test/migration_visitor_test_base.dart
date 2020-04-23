@@ -193,6 +193,9 @@ mixin EdgeTester {
     return {for (var edge in getEdges(anyNode, graph.never)) edge.sourceNode};
   }
 
+  NullabilityEdge assertDummyEdge(Object source) =>
+      assertEdge(source, graph.always, hard: false, checkable: false);
+
   /// Asserts that an edge exists with a node matching [source] and a node
   /// matching [destination], and with the given [hard]ness and [guards].
   ///

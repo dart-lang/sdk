@@ -183,7 +183,7 @@ class LinkDependenciesOptions {
   final Set<Uri> content;
   final bool nnbdAgnosticMode;
   Component component;
-  String errors;
+  List<Iterable<String>> errors;
 
   LinkDependenciesOptions(this.content, {this.nnbdAgnosticMode})
       : assert(content != null),
@@ -201,8 +201,8 @@ class FastaContext extends ChainContext with MatchContext {
   final bool weak;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
-  final Map<Component, StringBuffer> componentToDiagnostics =
-      <Component, StringBuffer>{};
+  final Map<Component, List<Iterable<String>>> componentToDiagnostics =
+      <Component, List<Iterable<String>>>{};
   final Uri platformBinaries;
   final Map<Uri, UriTranslator> _uriTranslators = {};
   final Map<Uri, TestOptions> _testOptions = {};
@@ -251,11 +251,13 @@ class FastaContext extends ChainContext with MatchContext {
     if (!ignoreExpectations) {
       steps.add(new MatchExpectation(
           fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
-          serializeFirst: false));
+          serializeFirst: false,
+          isLastMatchStep: updateExpectations));
       if (!updateExpectations) {
         steps.add(new MatchExpectation(
             fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
-            serializeFirst: true));
+            serializeFirst: true,
+            isLastMatchStep: true));
       }
     }
     steps.add(const TypeCheck());
@@ -270,13 +272,15 @@ class FastaContext extends ChainContext with MatchContext {
             fullCompile
                 ? "$fullPrefix.transformed.expect"
                 : "$outlinePrefix.transformed.expect",
-            serializeFirst: false));
+            serializeFirst: false,
+            isLastMatchStep: updateExpectations));
         if (!updateExpectations) {
           steps.add(new MatchExpectation(
               fullCompile
                   ? "$fullPrefix.transformed.expect"
                   : "$outlinePrefix.transformed.expect",
-              serializeFirst: true));
+              serializeFirst: true,
+              isLastMatchStep: true));
         }
       }
       steps.add(const EnsureNoErrors());
@@ -589,7 +593,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
 
   Future<Result<ComponentResult>> run(
       TestDescription description, FastaContext context) async {
-    StringBuffer errors = new StringBuffer();
+    List<Iterable<String>> errors = <Iterable<String>>[];
 
     Uri librariesSpecificationUri =
         context.computeLibrariesSpecificationUri(description);
@@ -606,10 +610,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
     ProcessedOptions createProcessedOptions(NnbdMode nnbdMode) {
       CompilerOptions compilerOptions = new CompilerOptions()
         ..onDiagnostic = (DiagnosticMessage message) {
-          if (errors.isNotEmpty) {
-            errors.write("\n\n");
-          }
-          errors.writeAll(message.plainTextFormatted, "\n");
+          errors.add(message.plainTextFormatted);
         }
         ..environmentDefines = {}
         ..experimentalFlags = experimentalFlags
@@ -639,7 +640,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         KernelTarget sourceTarget = await outlineInitialization(context,
             description, testOptions, linkDependenciesOptions.content.toList());
         if (linkDependenciesOptions.errors != null) {
-          errors.write(linkDependenciesOptions.errors);
+          errors.addAll(linkDependenciesOptions.errors);
         }
         Component p = await sourceTarget.buildOutlines();
         if (fullCompile) {
@@ -654,7 +655,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         }
         p.libraries.clear();
         p.libraries.addAll(keepLibraries);
-        linkDependenciesOptions.errors = errors.toString();
+        linkDependenciesOptions.errors = errors.toList();
         errors.clear();
       });
     }
@@ -844,10 +845,14 @@ class EnsureNoErrors
 
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
-    StringBuffer buffer = context.componentToDiagnostics[result.component];
-    return buffer.isEmpty
+    List<Iterable<String>> errors =
+        context.componentToDiagnostics[result.component];
+    return errors.isEmpty
         ? pass(result)
-        : fail(result, """Unexpected errors:\n$buffer""");
+        : fail(
+            result,
+            "Unexpected errors:\n"
+            "${errors.map((error) => error.join('\n')).join('\n\n')}");
   }
 }
 

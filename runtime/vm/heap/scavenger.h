@@ -7,10 +7,12 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+
 #include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/heap/spaces.h"
+#include "vm/heap/tlab.h"
 #include "vm/lockers.h"
 #include "vm/raw_object.h"
 #include "vm/ring_buffer.h"
@@ -128,7 +130,7 @@ class Scavenger {
   // be part of the surviving objects.
   bool Contains(uword addr) const { return to_->Contains(addr); }
 
-  RawObject* FindObject(FindObjectVisitor* visitor) const;
+  RawObject* FindObject(FindObjectVisitor* visitor);
 
   uword TryAllocate(Thread* thread, intptr_t size) {
     uword addr = TryAllocateFromTLAB(thread, size);
@@ -138,10 +140,25 @@ class Scavenger {
     TryAllocateNewTLAB(thread);
     return TryAllocateFromTLAB(thread, size);
   }
-  void MakeTLABIterable(Thread* thread);
-  void AbandonRemainingTLAB(Thread* thread);
+  void MakeTLABIterable(const TLAB& tlab);
+  void AbandonRemainingTLABForDebugging(Thread* thread);
   template <bool parallel>
   bool TryAllocateNewTLAB(ScavengerVisitorBase<parallel>* visitor);
+
+  // When a thread gets scheduled it will try to acquire a TLAB.
+  void TryAcquireCachedTLAB(Thread* thread) {
+    MutexLocker ml(&space_lock_);
+    thread->set_tlab(TryAcquireCachedTLABLocked());
+  }
+  TLAB TryAcquireCachedTLABLocked();
+
+  // When a thread gets unscheduled it will release it's TLAB.
+  void ReleaseAndCacheTLAB(Thread* thread) {
+    MutexLocker ml(&space_lock_);
+    CacheTLABLocked(thread->tlab());
+    thread->set_tlab(TLAB());
+  }
+  void CacheTLABLocked(TLAB tlab);
 
   // Collect the garbage in this scavenger.
   void Scavenge();
@@ -175,8 +192,8 @@ class Scavenger {
     return usage;
   }
 
-  void VisitObjects(ObjectVisitor* visitor) const;
-  void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
+  void VisitObjects(ObjectVisitor* visitor);
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   void AddRegionsToObjectSet(ObjectSet* set) const;
 
@@ -199,7 +216,7 @@ class Scavenger {
   void AllocateExternal(intptr_t cid, intptr_t size);
   void FreeExternal(intptr_t size);
 
-  void MakeNewSpaceIterable() const;
+  void MakeNewSpaceIterable();
   int64_t FreeSpaceInWords(Isolate* isolate) const;
 
   void InitGrowthControl() {
@@ -236,23 +253,22 @@ class Scavenger {
   uword TryAllocateFromTLAB(Thread* thread, intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
     ASSERT(heap_ != Dart::vm_isolate()->heap());
-    uword top = thread->top();
-    uword end = thread->end();
-    uword result = top;
-    intptr_t remaining = end - top;
+    TLAB tlab = thread->tlab();
+    const intptr_t remaining = tlab.RemainingSize();
     if (UNLIKELY(remaining < size)) {
       return 0;
     }
+
+    const uword result = tlab.top;
     ASSERT(to_->Contains(result));
     ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
-    top += size;
-    ASSERT((to_->Contains(top)) || (top == to_->end()));
-    thread->set_top(top);
+    const uword new_top = tlab.top + size;
+    ASSERT(to_->Contains(new_top) || new_top == to_->end());
+    thread->set_tlab(tlab.BumpAllocate(size));
     return result;
   }
   void TryAllocateNewTLAB(Thread* thread);
   void AddAbandonedInBytesLocked(intptr_t value) { abandoned_ += value; }
-  void AbandonRemainingTLABLocked(Thread* thread);
   void AbandonTLABsLocked();
 
   uword FirstObjectStart() const {
@@ -285,6 +301,9 @@ class Scavenger {
 
   uword top_;
   uword end_;
+
+  MallocGrowableArray<TLAB> abandoned_tlabs_;
+  MallocGrowableArray<TLAB> free_tlabs_;
 
   SemiSpace* to_;
 

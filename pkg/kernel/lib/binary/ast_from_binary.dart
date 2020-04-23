@@ -926,7 +926,8 @@ class BinaryBuilder {
     List<String> problemsAsJson = readListOfStrings();
 
     library.flags = flags;
-    library.setLanguageVersion(languageVersionMajor, languageVersionMinor);
+    library.setLanguageVersion(
+        new Version(languageVersionMajor, languageVersionMinor));
     library.name = name;
     library.fileUri = fileUri;
     library.problemsAsJson = problemsAsJson;

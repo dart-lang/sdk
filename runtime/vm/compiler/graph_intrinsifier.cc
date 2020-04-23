@@ -187,7 +187,7 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
   index = PrepareIndexedOp(flow_graph, &builder, array, index,
                            Slot::GetLengthFieldForArrayCid(array_cid));
 
-  if (RawObject::IsExternalTypedDataClassId(array_cid)) {
+  if (IsExternalTypedDataClassId(array_cid)) {
     array = builder.AddDefinition(new LoadUntaggedInstr(
         new Value(array), target::TypedDataBase::data_field_offset()));
   }
@@ -367,13 +367,13 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
       UNREACHABLE();
   }
 
-  if (RawObject::IsExternalTypedDataClassId(array_cid)) {
+  if (IsExternalTypedDataClassId(array_cid)) {
     array = builder.AddDefinition(new LoadUntaggedInstr(
         new Value(array), target::TypedDataBase::data_field_offset()));
   }
   // No store barrier.
-  ASSERT(RawObject::IsExternalTypedDataClassId(array_cid) ||
-         RawObject::IsTypedDataClassId(array_cid));
+  ASSERT(IsExternalTypedDataClassId(array_cid) ||
+         IsTypedDataClassId(array_cid));
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(array), new Value(index), new Value(value), kNoStoreBarrier,
       /*index_unboxed=*/false,

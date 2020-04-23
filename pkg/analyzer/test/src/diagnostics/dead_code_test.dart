@@ -6,11 +6,13 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadCodeTest);
+    defineReflectiveTests(DeadCodeWithNullSafetyTest);
   });
 }
 
@@ -18,11 +20,12 @@ main() {
 class DeadCodeTest extends DriverResolutionTest with PackageMixin {
   test_afterForEachWithBreakLabel() async {
     await assertNoErrorsInCode(r'''
-f() {
+f(List<Object> values) {
   named: {
-    for (var x in [1]) {
-      if (x == null)
+    for (var x in values) {
+      if (x == 42) {
         break named;
+      }
     }
     return;
   }
@@ -36,7 +39,7 @@ f() {
 f() {
   named: {
     for (int i = 0; i < 7; i++) {
-      if (i == null)
+      if (i == 42)
         break named;
     }
     return;
@@ -428,6 +431,13 @@ f() {
     ]);
   }
 
+  test_documentationComment() async {
+    await assertNoErrorsInCode(r'''
+/// text
+int f() => 0;
+''');
+  }
+
   test_statementAfterAlwaysThrowsFunction() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
@@ -639,6 +649,33 @@ f() {
     ]);
   }
 
+  test_statementAfterReturn_function_local() async {
+    await assertErrorsInCode(r'''
+f() {
+  void g() {
+    print(1);
+    return;
+    print(2);
+  }
+  g();
+}''', [
+      error(HintCode.DEAD_CODE, 49, 9),
+    ]);
+  }
+
+  test_statementAfterReturn_functionExpression() async {
+    await assertErrorsInCode(r'''
+f() {
+  () {
+    print(1);
+    return;
+    print(2);
+  };
+}''', [
+      error(HintCode.DEAD_CODE, 43, 9),
+    ]);
+  }
+
   test_statementAfterReturn_ifStatement() async {
     await assertErrorsInCode(r'''
 f(bool b) {
@@ -697,6 +734,37 @@ f() {
   print(2);
 }''', [
       error(HintCode.DEAD_CODE, 41, 9),
+    ]);
+  }
+}
+
+@reflectiveTest
+class DeadCodeWithNullSafetyTest extends DeadCodeTest with WithNullSafetyMixin {
+  @FailingTest(reason: '@alwaysThrows is not supported in flow analysis')
+  @override
+  test_statementAfterAlwaysThrowsFunction() async {
+    return super.test_statementAfterAlwaysThrowsFunction();
+  }
+
+  @FailingTest(reason: '@alwaysThrows is not supported in flow analysis')
+  @override
+  test_statementAfterAlwaysThrowsMethod() async {
+    return super.test_statementAfterAlwaysThrowsMethod();
+  }
+
+  test_switchStatement_exhaustive() async {
+    await assertErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo foo) {
+  switch (foo) {
+    case Foo.a: return 0;
+    case Foo.b: return 1;
+  }
+  return -1;
+}
+''', [
+      error(HintCode.DEAD_CODE, 111, 10),
     ]);
   }
 }

@@ -1,4 +1,25 @@
-## 2.8.0
+## 2.9.0
+
+### Language
+
+### Core libraries
+
+#### `dart:html`
+
+*   **Breaking Change**: `CssClassSet.add()` previously returned `null` if the
+    `CssClassSet` corresponded to multiple elements. In order to align with the
+    null-safe changes in the `Set` interface, it will now return `false`
+    instead. The same applies for `CssClassSet.toggle`.
+
+#### `dart:io`
+
+*   Class `OSError` now implements `Exception`. This change means `OSError` will
+    now be caught in catch clauses catching `Exception`s.
+
+### Dart VM
+
+
+## 2.8.0 - 2020-04-29
 
 Much of the changes in this release are in preparation for non-nullable types,
 which will arrive in a future version. In anticipation of that, we have made a
@@ -109,17 +130,9 @@ minor breaking changes:
     of `Node`, even though it was not returning anything. This has been
     corrected to `void`.
 
-*   **Breaking Change**: `CssClassSet.add()` previously returned `null` if the
-    `CssClassSet` corresponded to multiple elements. In order to align with the
-    null-safe changes in the `Set` interface, it will now return `false`
-    instead. The same applies for `CssClassSet.toggle`.
-
 [#39627]: https://github.com/dart-lang/sdk/issues/39627
 
 #### `dart:io`
-
-*   Class `OSError` now implements `Exception`. This change means `OSError` will
-    now be caught in catch clauses catching `Exception`s.
 
 *   Class `HttpParser` will no longer throw an exception when a HTTP response
     status code is within [0, 999]. Customized status codes in this range are
@@ -2885,7 +2898,7 @@ Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
 
 * `dart:web_audio`
 
-  * new method on `AudioContext` – `createIirFilter` returns a new class
+  * new method on `AudioContext` - `createIirFilter` returns a new class
     `IirFilterNode`.
 
 * `dart:web_gl`
@@ -4037,8 +4050,8 @@ Then your library will work without any additional changes.
 ### Tool changes
 
 * Dartium and content shell
-  * The Chrome-based tools that ship as part of the Dart SDK – Dartium and
-    content shell – are now based on Chrome version 45 (instead of Chrome 39).
+  * The Chrome-based tools that ship as part of the Dart SDK - Dartium and
+    content shell - are now based on Chrome version 45 (instead of Chrome 39).
   * Dart browser libraries (`dart:html`, `dart:svg`, etc) *have not* been
     updated.
     * These are still based on Chrome 39.
@@ -4582,7 +4595,7 @@ Patch release, resolves three issues:
   dart2dart (aka `dart2js --output-type=dart`) utility as part
   of dart2js
 
-## 1.10.0 – 2015-04-29
+## 1.10.0 - 2015-04-29
 
 ### Core library changes
 
@@ -4621,7 +4634,7 @@ Patch release, resolves three issues:
   * On Mac and Linux, signals sent to `pub run` and forwarded to the child
     command.
 
-## 1.9.3 – 2015-04-14
+## 1.9.3 - 2015-04-14
 
 This is a bug fix release which merges a number of commits from `bleeding_edge`.
 
@@ -4646,7 +4659,7 @@ This is a bug fix release which merges a number of commits from `bleeding_edge`.
   Pub can fail to load transformers necessary for local development -
   [r44876](https://code.google.com/p/dart/source/detail?r=44876)
 
-## 1.9.1 – 2015-03-25
+## 1.9.1 - 2015-03-25
 
 ### Language changes
 
@@ -4760,7 +4773,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
   * Isolates spawned via `Isolate.spawn` now allow most objects, including
     top-level and static functions, to be sent between them.
 
-## 1.8.5 – 2015-01-21
+## 1.8.5 - 2015-01-21
 
 * Code generation for SIMD on ARM and ARM64 is fixed.
 
@@ -4770,7 +4783,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
 
 [issue 21795]: https://code.google.com/p/dart/issues/detail?id=21795
 
-## 1.8.3 – 2014-12-10
+## 1.8.3 - 2014-12-10
 
 * Breakpoints can be set in the Editor using file suffixes ([issue 21280][]).
 
@@ -4787,7 +4800,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
 [issue 21280]: https://code.google.com/p/dart/issues/detail?id=21280
 [issue 21698]: https://code.google.com/p/dart/issues/detail?id=21698
 
-## 1.8.0 – 2014-11-28
+## 1.8.0 - 2014-11-28
 
 * `dart:collection`: `SplayTree` added the `toSet` function.
 
@@ -4828,7 +4841,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
 
 [alpn]: https://tools.ietf.org/html/rfc7301
 
-## 1.7.0 – 2014-10-15
+## 1.7.0 - 2014-10-15
 
 ### Tool changes
 

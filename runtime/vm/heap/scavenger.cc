@@ -133,7 +133,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     const uword view_header =
         *reinterpret_cast<uword*>(RawObject::ToAddr(view));
     ASSERT(!IsForwarding(view_header) || view->IsOldObject());
-    ASSERT(RawObject::IsTypedDataViewClassId(view->GetClassIdMayBeSmi()));
+    ASSERT(IsTypedDataViewClassId(view->GetClassIdMayBeSmi()));
 
     // Validate that the backing store is not a forwarding word.
     RawTypedDataBase* td = view->ptr()->typed_data_;
@@ -146,12 +146,12 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
 
     // If we have external typed data we can simply return since the backing
     // store lives in C-heap and will not move.
-    if (RawObject::IsExternalTypedDataClassId(cid)) {
+    if (IsExternalTypedDataClassId(cid)) {
       return;
     }
 
     // Now we update the inner pointer.
-    ASSERT(RawObject::IsTypedDataClassId(cid));
+    ASSERT(IsTypedDataClassId(cid));
     view->RecomputeDataFieldForInternalTypedData();
   }
 
@@ -237,8 +237,15 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     thread_ = nullptr;
   }
 
-  uword last_top() { return labs_[producer_index_].top; }
-  uword last_end() { return labs_[producer_index_].end; }
+  void DonateTLABs() {
+    MutexLocker ml(&scavenger_->space_lock_);
+    // NOTE: We could make all [labs_] re-usable after a scavenge if we remember
+    // the promotion pointer of each TLAB.
+    const auto& lab = labs_[producer_index_];
+    if (lab.end == scavenger_->top_) {
+      scavenger_->top_ = lab.top;
+    }
+  }
 
  private:
   void UpdateStoreBuffer(RawObject** p, RawObject* obj) {
@@ -324,7 +331,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       }
 
       intptr_t cid = RawObject::ClassIdTag::decode(header);
-      if (RawObject::IsTypedDataClassId(cid)) {
+      if (IsTypedDataClassId(cid)) {
         reinterpret_cast<RawTypedData*>(new_obj)->RecomputeDataField();
       }
 
@@ -856,7 +863,8 @@ void Scavenger::Epilogue(SemiSpace* from) {
   heap_->isolate_group()->ForEachIsolate(
       [&](Isolate* isolate) {
         Thread* mutator_thread = isolate->mutator_thread();
-        ASSERT((mutator_thread == NULL) || (!mutator_thread->HasActiveTLAB()));
+        ASSERT(mutator_thread == nullptr ||
+               mutator_thread->tlab().IsAbandoned());
       },
       /*at_safepoint=*/true);
 
@@ -1301,49 +1309,72 @@ void ScavengerVisitorBase<parallel>::MournWeakProperties() {
   }
 }
 
-void Scavenger::MakeNewSpaceIterable() const {
+void Scavenger::MakeNewSpaceIterable() {
   ASSERT(Thread::Current()->IsAtSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
          (Thread::Current()->task_kind() == Thread::kCompactorTask));
   auto isolate_group = heap_->isolate_group();
   MonitorLocker ml(isolate_group->threads_lock(), false);
+
+  // Make all scheduled thread's TLABs iterable.
   Thread* current = heap_->isolate_group()->thread_registry()->active_list();
   while (current != NULL) {
-    if (current->HasActiveTLAB()) {
-      heap_->new_space()->MakeTLABIterable(current);
+    const TLAB tlab = current->tlab();
+    if (!tlab.IsAbandoned()) {
+      MakeTLABIterable(tlab);
     }
     current = current->next();
   }
+
+  // All unscheduled mutator threads should have already abnadoned their TLABs.
   isolate_group->ForEachIsolate(
       [&](Isolate* isolate) {
         Thread* mutator_thread = isolate->mutator_thread();
         if (mutator_thread != NULL) {
-          heap_->new_space()->MakeTLABIterable(mutator_thread);
+          if (isolate->scheduled_mutator_thread_ == nullptr) {
+            RELEASE_ASSERT(mutator_thread->tlab().IsAbandoned());
+          }
         }
       },
       /*at_safepoint=*/true);
+
+  for (intptr_t i = 0; i < free_tlabs_.length(); ++i) {
+    MakeTLABIterable(free_tlabs_[i]);
+  }
 }
 
 void Scavenger::AbandonTLABsLocked() {
   ASSERT(Thread::Current()->IsAtSafepoint());
   IsolateGroup* isolate_group = heap_->isolate_group();
   MonitorLocker ml(isolate_group->threads_lock(), false);
+
+  // Abandon TLABs of all scheduled threads.
   Thread* current = isolate_group->thread_registry()->active_list();
   while (current != NULL) {
-    AbandonRemainingTLABLocked(current);
+    const TLAB tlab = current->tlab();
+    AddAbandonedInBytesLocked(tlab.RemainingSize());
+    current->set_tlab(TLAB());
     current = current->next();
   }
+  // All unscheduled mutator threads should have already abandoned their TLAB.
   isolate_group->ForEachIsolate(
       [&](Isolate* isolate) {
         Thread* mutator_thread = isolate->mutator_thread();
         if (mutator_thread != NULL) {
-          AbandonRemainingTLABLocked(mutator_thread);
+          if (isolate->scheduled_mutator_thread_ == nullptr) {
+            RELEASE_ASSERT(mutator_thread->tlab().IsAbandoned());
+          }
         }
       },
       /*at_safepoint=*/true);
+
+  while (free_tlabs_.length() > 0) {
+    const TLAB tlab = free_tlabs_.RemoveLast();
+    AddAbandonedInBytesLocked(tlab.RemainingSize());
+  }
 }
 
-void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
+void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(Thread::Current()->IsAtSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
          (Thread::Current()->task_kind() == Thread::kCompactorTask));
@@ -1355,7 +1386,7 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   }
 }
 
-void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
+void Scavenger::VisitObjects(ObjectVisitor* visitor) {
   ASSERT(Thread::Current()->IsAtSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask));
   MakeNewSpaceIterable();
@@ -1371,7 +1402,7 @@ void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
   set->AddRegion(to_->start(), to_->end());
 }
 
-RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
+RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) {
   ASSERT(!scavenging_);
   MakeNewSpaceIterable();
   uword cur = FirstObjectStart();
@@ -1393,7 +1424,13 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread) {
   ASSERT(heap_ != Dart::vm_isolate()->heap());
   ASSERT(!scavenging_);
   MutexLocker ml(&space_lock_);
-  AbandonRemainingTLABLocked(thread);
+
+  // We might need a new TLAB not because the current TLAB is empty but because
+  // we failed to allocate alarge object in new space.  So in case the remaining
+  // TLAB is still big enough to be useful we cache it.
+  CacheTLABLocked(thread->tlab());
+  thread->set_tlab(TLAB());
+
   uword result = top_;
   intptr_t remaining = end_ - top_;
   intptr_t size = kTLABSize;
@@ -1403,6 +1440,7 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread) {
   }
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   if (size == 0) {
+    thread->set_tlab(TryAcquireCachedTLABLocked());
     return;
   }
   ASSERT(to_->Contains(result));
@@ -1410,35 +1448,26 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread) {
   top_ += size;
   ASSERT(to_->Contains(top_) || (top_ == to_->end()));
   ASSERT(result < top_);
-  thread->set_top(result);
-  thread->set_end(top_);
+  thread->set_tlab(TLAB(result, top_));
 }
 
-void Scavenger::MakeTLABIterable(Thread* thread) {
-  uword start = thread->top();
-  uword end = thread->end();
-  ASSERT(end >= start);
-  intptr_t size = end - start;
+void Scavenger::MakeTLABIterable(const TLAB& tlab) {
+  ASSERT(tlab.end >= tlab.top);
+  const intptr_t size = tlab.RemainingSize();
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   if (size >= kObjectAlignment) {
     // ForwardingCorpse(forwarding to default null) will work as filler.
-    ForwardingCorpse::AsForwarder(start, size);
-    ASSERT(RawObject::FromAddr(start)->HeapSize() == size);
+    ForwardingCorpse::AsForwarder(tlab.top, size);
+    ASSERT(RawObject::FromAddr(tlab.top)->HeapSize() == size);
   }
 }
 
-void Scavenger::AbandonRemainingTLAB(Thread* thread) {
-  MakeTLABIterable(thread);
-  AddAbandonedInBytes(thread->end() - thread->top());
-  thread->set_top(0);
-  thread->set_end(0);
-}
-
-void Scavenger::AbandonRemainingTLABLocked(Thread* thread) {
-  MakeTLABIterable(thread);
-  AddAbandonedInBytesLocked(thread->end() - thread->top());
-  thread->set_top(0);
-  thread->set_end(0);
+void Scavenger::AbandonRemainingTLABForDebugging(Thread* thread) {
+  MutexLocker ml(&space_lock_);
+  const TLAB tlab = thread->tlab();
+  MakeTLABIterable(tlab);
+  AddAbandonedInBytesLocked(tlab.RemainingSize());
+  thread->set_tlab(TLAB());
 }
 
 template <bool parallel>
@@ -1482,6 +1511,35 @@ bool Scavenger::TryAllocateNewTLAB(ScavengerVisitorBase<parallel>* visitor) {
   ASSERT(result < top_);
   visitor->AddNewTLAB(result, top_);
   return true;
+}
+
+TLAB Scavenger::TryAcquireCachedTLABLocked() {
+  if (free_tlabs_.length() == 0) {
+    return TLAB();
+  }
+  return free_tlabs_.RemoveLast();
+}
+
+void Scavenger::CacheTLABLocked(TLAB tlab) {
+  // If the memory following this TLAB is the unused new space, we'll merge the
+  // bytes into there.
+  if (tlab.end == top_) {
+    top_ = tlab.top;
+    return;
+  }
+
+  MakeTLABIterable(tlab);
+
+  // If this TLAB is lare enough to be useful in the future, we'll make it
+  // reusable, otherwise we abandon it.
+  const uword size = tlab.RemainingSize();
+  if (size > (50 * KB)) {
+    free_tlabs_.Add(tlab);
+    return;
+  }
+
+  // Else we discard the memory.
+  AddAbandonedInBytesLocked(size);
 }
 
 void Scavenger::Scavenge() {
@@ -1560,13 +1618,8 @@ intptr_t Scavenger::SerialScavenge(SemiSpace* from) {
     visitor.ProcessAll();
   }
   visitor.Finalize();
+  visitor.DonateTLABs();
 
-  // Donate last bit of TLAB.
-  uword top = visitor.last_top();
-  uword end = visitor.last_end();
-  if (end == top_) {
-    top_ = top;
-  }
   return visitor.bytes_promoted();
 }
 
@@ -1600,12 +1653,7 @@ intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
 
   for (intptr_t i = 0; i < num_tasks; i++) {
     bytes_promoted += visitors[i]->bytes_promoted();
-    // Donate last bit of TLAB.
-    uword top = visitors[i]->last_top();
-    uword end = visitors[i]->last_end();
-    if (end == top_) {
-      top_ = top;
-    }
+    visitors[i]->DonateTLABs();
     delete visitors[i];
   }
 

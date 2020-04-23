@@ -34,7 +34,7 @@ class ForResolver {
   }
 
   void resolveStatement(ForStatementImpl node) {
-    _flowAnalysis?.checkUnreachableNode(node);
+    _resolver.checkUnreachableNode(node);
 
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
@@ -63,7 +63,9 @@ class ForResolver {
         : null;
 
     if (iteratedType != null) {
-      return iteratedType.typeArguments.single;
+      var elementType = iteratedType.typeArguments.single;
+      elementType = _resolver.toLegacyTypeIfOptOut(elementType);
+      return elementType;
     } else {
       return null;
     }

@@ -299,7 +299,7 @@ void main() {
 // [cfe] unspecified
 
     DiBqOq0().a,
-//  ^^^^^^^^^^
+//  ^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
@@ -309,7 +309,7 @@ void main() {
 // [cfe] unspecified
 
     DiBqOq1().a,
-//  ^^^^^^^^^^
+//  ^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
@@ -319,7 +319,7 @@ void main() {
 // [cfe] unspecified
 
     DiBqOq2().a,
-//  ^^^^^^^^^^
+//  ^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
@@ -329,7 +329,7 @@ void main() {
 // [cfe] unspecified
 
     DiBqOq3().a,
-//  ^^^^^^^^^^
+//  ^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
@@ -339,7 +339,7 @@ void main() {
 // [cfe] unspecified
 
     DiBqOq4().a,
-//  ^^^^^^^^^^
+//  ^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
@@ -349,7 +349,7 @@ void main() {
 // [cfe] unspecified
 
     DiBqOq5().a,
-//  ^^^^^^^^^^
+//  ^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
   ];

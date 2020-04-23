@@ -856,6 +856,41 @@ main() {
       });
     });
 
+    test('labeledBlock without break', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      var block = _Statement();
+      h.run((flow) {
+        h.declare(x, initialized: true);
+
+        h.ifIsNotType(x, 'int', () {
+          h.labeledBlock(block, () {
+            flow.handleExit();
+          });
+        });
+        expect(flow.promotedType(x).type, 'int');
+      });
+    });
+
+    test('labeledBlock with break joins', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      var block = _Statement();
+      h.run((flow) {
+        h.declare(x, initialized: true);
+
+        h.ifIsNotType(x, 'int', () {
+          h.labeledBlock(block, () {
+            h.if_(h.expr, () {
+              flow.handleBreak(block);
+            });
+            flow.handleExit();
+          });
+        });
+        expect(flow.promotedType(x), isNull);
+      });
+    });
+
     test('logicalBinaryOp_rightBegin(isAnd: true) promotes in RHS', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');
@@ -1931,6 +1966,42 @@ main() {
       });
 
       group('Promotes to NonNull of a type of interest', () {
+        test('when declared type', () {
+          var h = _Harness();
+          var x = _Var('x', _Type('int?'));
+
+          var s1 = FlowModel<_Var, _Type>(true).declare(x, true);
+          expect(s1.variableInfo, {
+            x: _matchVariableModel(chain: null),
+          });
+
+          var s2 = s1.write(x, _Type('int'), h);
+          expect(s2.variableInfo, {
+            x: _matchVariableModel(chain: ['int']),
+          });
+        });
+
+        test('when declared type, if write-captured', () {
+          var h = _Harness();
+          var x = h.addVar('x', 'int?');
+
+          var s1 = FlowModel<_Var, _Type>(true).declare(x, true);
+          expect(s1.variableInfo, {
+            x: _matchVariableModel(chain: null),
+          });
+
+          var s2 = s1.removePromotedAll([], [x]);
+          expect(s2.variableInfo, {
+            x: _matchVariableModel(chain: null, writeCaptured: true),
+          });
+
+          // 'x' is write-captured, so not promoted
+          var s3 = s2.write(x, _Type('int'), h);
+          expect(s3.variableInfo, {
+            x: _matchVariableModel(chain: null, writeCaptured: true),
+          });
+        });
+
         test('when promoted', () {
           var h = _Harness();
           var s1 = FlowModel<_Var, _Type>(true)
@@ -2018,19 +2089,27 @@ main() {
             // class A {}
             // class B extends A {}
             // class C extends B {}
+            h.addSubtype(_Type('Object'), _Type('A'), false);
+            h.addSubtype(_Type('Object'), _Type('A?'), false);
+            h.addSubtype(_Type('Object'), _Type('B?'), false);
+            h.addSubtype(_Type('A'), _Type('Object'), true);
             h.addSubtype(_Type('A'), _Type('Object?'), true);
             h.addSubtype(_Type('A'), _Type('A?'), true);
             h.addSubtype(_Type('A'), _Type('B?'), false);
+            h.addSubtype(_Type('A?'), _Type('Object'), false);
             h.addSubtype(_Type('A?'), _Type('Object?'), true);
             h.addSubtype(_Type('A?'), _Type('A'), false);
             h.addSubtype(_Type('A?'), _Type('B?'), false);
+            h.addSubtype(_Type('B'), _Type('Object'), true);
             h.addSubtype(_Type('B'), _Type('A'), true);
             h.addSubtype(_Type('B'), _Type('A?'), true);
             h.addSubtype(_Type('B'), _Type('B?'), true);
+            h.addSubtype(_Type('B?'), _Type('Object'), false);
             h.addSubtype(_Type('B?'), _Type('Object?'), true);
             h.addSubtype(_Type('B?'), _Type('A'), false);
             h.addSubtype(_Type('B?'), _Type('A?'), true);
             h.addSubtype(_Type('B?'), _Type('B'), false);
+            h.addSubtype(_Type('C'), _Type('Object'), true);
             h.addSubtype(_Type('C'), _Type('A'), true);
             h.addSubtype(_Type('C'), _Type('A?'), true);
             h.addSubtype(_Type('C'), _Type('B'), true);
@@ -2856,7 +2935,7 @@ main() {
       test('assigned', () {
         var h = _Harness();
         var intQModel = model([intQType]);
-        var writtenModel = intQModel.write(_Type('Object?'), h);
+        var writtenModel = intQModel.write(intQType, _Type('Object?'), h);
         var p1 = {x: writtenModel, y: writtenModel, z: intQModel, w: intQModel};
         var p2 = {x: writtenModel, y: intQModel, z: writtenModel, w: intQModel};
         var joined = FlowModel.joinVariableInfo(h, p1, p2);
@@ -3017,6 +3096,7 @@ class _Harness implements TypeOperations<_Var, _Type> {
     'int? <: int': false,
     'int? <: num': false,
     'int? <: num?': true,
+    'int? <: Object': false,
     'int? <: Object?': true,
     'num <: int': false,
     'num <: Iterable': false,
@@ -3028,9 +3108,11 @@ class _Harness implements TypeOperations<_Var, _Type> {
     'num? <: int?': false,
     'num? <: num': false,
     'num? <: num*': true,
+    'num? <: Object': false,
     'num? <: Object?': true,
     'num* <: num': true,
     'num* <: num?': true,
+    'num* <: Object': true,
     'num* <: Object?': true,
     'Iterable <: int': false,
     'Iterable <: num': false,
@@ -3040,9 +3122,12 @@ class _Harness implements TypeOperations<_Var, _Type> {
     'List <: Iterable': true,
     'List <: Object': true,
     'Object <: int': false,
+    'Object <: int?': false,
     'Object <: List': false,
     'Object <: num': false,
+    'Object <: num?': false,
     'Object <: Object?': true,
+    'Object? <: Object': false,
     'Object? <: int': false,
     'Object? <: int?': false,
     'String <: int': false,
@@ -3150,6 +3235,11 @@ class _Harness implements TypeOperations<_Var, _Type> {
     _flow.ifStatement_end(true);
   }
 
+  /// Equivalent for `if (variable is! type) { ifTrue; }`
+  void ifIsNotType(_Var variable, String type, void ifTrue()) {
+    if_(isNotType(variableRead(variable), type), ifTrue);
+  }
+
   /// Creates a [LazyExpression] representing an `is!` check, checking whether
   /// [subExpression] has the given [type].
   LazyExpression isNotType(LazyExpression subExpression, String type) {
@@ -3180,6 +3270,13 @@ class _Harness implements TypeOperations<_Var, _Type> {
       _flow.isExpression_end(expr, subExpression(), false, _Type(type));
       return expr;
     };
+  }
+
+  /// Invokes flow analysis of a labeled block.
+  void labeledBlock(_Statement node, void body()) {
+    _flow.labeledStatement_begin(node);
+    body();
+    _flow.labeledStatement_end();
   }
 
   /// Creates a [LazyExpression] representing an equality check between two
@@ -3230,7 +3327,7 @@ class _Harness implements TypeOperations<_Var, _Type> {
 
   /// Causes [variable] to be promoted to [type].
   void promote(_Var variable, String type) {
-    if_(isNotType(variableRead(variable), type), _flow.handleExit);
+    ifIsNotType(variable, type, _flow.handleExit);
   }
 
   @override

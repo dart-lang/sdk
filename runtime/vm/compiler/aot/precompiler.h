@@ -199,8 +199,6 @@ class Precompiler : public ValueObject {
                                    Zone* zone,
                                    const Function& function);
 
-  static RawFunction* CompileStaticInitializer(const Field& field);
-
   // Returns true if get:runtimeType is not overloaded by any class.
   bool get_runtime_type_is_unique() const {
     return get_runtime_type_is_unique_;

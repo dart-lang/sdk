@@ -10,12 +10,21 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
+
+typedef _CatchClausesVerifierReporter = void Function(
+  CatchClause first,
+  CatchClause last,
+  ErrorCode,
+  List<Object> arguments,
+);
 
 /// A visitor that finds dead code and unused labels.
 class DeadCodeVerifier extends RecursiveAstVisitor<void> {
@@ -265,67 +274,27 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   void visitTryStatement(TryStatement node) {
     node.body?.accept(this);
     node.finallyBlock?.accept(this);
-    NodeList<CatchClause> catchClauses = node.catchClauses;
-    int numOfCatchClauses = catchClauses.length;
-    List<DartType> visitedTypes = <DartType>[];
-    for (int i = 0; i < numOfCatchClauses; i++) {
-      CatchClause catchClause = catchClauses[i];
-      if (catchClause.onKeyword != null) {
-        // An on-catch clause was found; verify that the exception type is not a
-        // subtype of a previous on-catch exception type.
-        DartType currentType = catchClause.exceptionType?.type;
-        if (currentType != null) {
-          if (currentType.isObject) {
-            // Found catch clause clause that has Object as an exception type,
-            // this is equivalent to having a catch clause that doesn't have an
-            // exception type, visit the block, but generate an error on any
-            // following catch clauses (and don't visit them).
-            catchClause?.accept(this);
-            if (i + 1 != numOfCatchClauses) {
-              // This catch clause is not the last in the try statement.
-              CatchClause nextCatchClause = catchClauses[i + 1];
-              CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
-              int offset = nextCatchClause.offset;
-              int length = lastCatchClause.end - offset;
-              _errorReporter.reportErrorForOffset(
-                  HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
-              return;
-            }
-          }
-          int length = visitedTypes.length;
-          for (int j = 0; j < length; j++) {
-            DartType type = visitedTypes[j];
-            if (_typeSystem.isSubtypeOf2(currentType, type)) {
-              CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
-              int offset = catchClause.offset;
-              int length = lastCatchClause.end - offset;
-              _errorReporter.reportErrorForOffset(
-                  HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
-                  offset,
-                  length,
-                  [currentType, type]);
-              return;
-            }
-          }
-          visitedTypes.add(currentType);
-        }
-        catchClause?.accept(this);
-      } else {
-        // Found catch clause clause that doesn't have an exception type,
-        // visit the block, but generate an error on any following catch clauses
-        // (and don't visit them).
-        catchClause?.accept(this);
-        if (i + 1 != numOfCatchClauses) {
-          // This catch clause is not the last in the try statement.
-          CatchClause nextCatchClause = catchClauses[i + 1];
-          CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
-          int offset = nextCatchClause.offset;
-          int length = lastCatchClause.end - offset;
-          _errorReporter.reportErrorForOffset(
-              HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
-          return;
-        }
+
+    var verifier = _CatchClausesVerifier(
+      _typeSystem,
+      (first, last, errorCode, arguments) {
+        var offset = first.offset;
+        var length = last.end - offset;
+        _errorReporter.reportErrorForOffset(
+          errorCode,
+          offset,
+          length,
+          arguments,
+        );
+      },
+      node.catchClauses,
+    );
+    for (var catchClause in node.catchClauses) {
+      verifier.nextCatchClause(catchClause);
+      if (verifier._done) {
+        break;
       }
+      catchClause.accept(this);
     }
   }
 
@@ -469,6 +438,195 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Enter a new label scope in which the given [labels] are defined.
   void _pushLabels(List<Label> labels) {
     labelTracker = _LabelTracker(labelTracker, labels);
+  }
+}
+
+/// Helper for tracking dead code - [CatchClause]s and unreachable code.
+///
+/// [CatchClause]s are checked separately, as we visit AST we may make some
+/// of them as dead, and record [_deadCatchClauseRanges].
+///
+/// When an unreachable node is found, and [_firstDeadNode] is `null`, we
+/// set [_firstDeadNode], so start a new dead nodes interval. The dead code
+/// interval ends when [flowEnd] is invoked with a node that is the start
+/// node, or contains it. So, we end the the end of the covering control flow.
+class NullSafetyDeadCodeVerifier {
+  final TypeSystemImpl _typeSystem;
+  final ErrorReporter _errorReporter;
+  final FlowAnalysisHelper _flowAnalysis;
+
+  /// The stack of verifiers of (potentially nested) try statements.
+  final List<_CatchClausesVerifier> _catchClausesVerifiers = [];
+
+  /// When a sequence [CatchClause]s is found to be dead, we don't want to
+  /// report additional dead code inside of already dead code.
+  final List<SourceRange> _deadCatchClauseRanges = [];
+
+  /// When this field is `null`, we are in reachable code.
+  /// Once we find the first unreachable node, we store it here.
+  ///
+  /// When this field is not `null`, and we see an unreachable node, this new
+  /// node is ignored, because it continues the same dead code range.
+  AstNode _firstDeadNode;
+
+  NullSafetyDeadCodeVerifier(
+    this._typeSystem,
+    this._errorReporter,
+    this._flowAnalysis,
+  );
+
+  /// The [node] ends a basic block in the control flow. If [_firstDeadNode] is
+  /// not `null`, and is covered by the [node], then we reached the end of
+  /// the current dead code interval.
+  void flowEnd(AstNode node) {
+    if (_firstDeadNode != null) {
+      if (!_containsFirstDeadNode(node)) {
+        return;
+      }
+
+      // We know that [node] is the first dead node, or contains it.
+      // So, technically the code code interval ends at the end of [node].
+      // But we trim it to the last statement for presentation purposes.
+      if (node != _firstDeadNode) {
+        if (node is FunctionDeclaration) {
+          node = (node as FunctionDeclaration).functionExpression.body;
+        }
+        if (node is FunctionExpression) {
+          node = (node as FunctionExpression).body;
+        }
+        if (node is MethodDeclaration) {
+          node = (node as MethodDeclaration).body;
+        }
+        if (node is BlockFunctionBody) {
+          node = (node as BlockFunctionBody).block;
+        }
+        if (node is Block && node.statements.isNotEmpty) {
+          node = (node as Block).statements.last;
+        }
+        if (node is SwitchMember && node.statements.isNotEmpty) {
+          node = (node as SwitchMember).statements.last;
+        }
+      }
+
+      var offset = _firstDeadNode.offset;
+      var length = node.end - offset;
+      _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
+
+      _firstDeadNode = null;
+    }
+  }
+
+  void tryStatementEnter(TryStatement node) {
+    var verifier = _CatchClausesVerifier(
+      _typeSystem,
+      (first, last, errorCode, arguments) {
+        var offset = first.offset;
+        var length = last.end - offset;
+        _errorReporter.reportErrorForOffset(
+          errorCode,
+          offset,
+          length,
+          arguments,
+        );
+        _deadCatchClauseRanges.add(SourceRange(offset, length));
+      },
+      node.catchClauses,
+    );
+    _catchClausesVerifiers.add(verifier);
+  }
+
+  void tryStatementExit(TryStatement node) {
+    _catchClausesVerifiers.removeLast();
+  }
+
+  void verifyCatchClause(CatchClause node) {
+    var verifier = _catchClausesVerifiers.last;
+    if (verifier._done) return;
+
+    verifier.nextCatchClause(node);
+  }
+
+  void visitNode(AstNode node) {
+    // Comments are visited after bodies of functions.
+    // So, they look unreachable, but this does not make sense.
+    if (node is Comment) return;
+
+    if (_flowAnalysis == null) return;
+    _flowAnalysis.checkUnreachableNode(node);
+
+    var flow = _flowAnalysis.flow;
+    if (flow == null) return;
+
+    if (flow.isReachable) return;
+
+    // If in a dead `CatchClause`, no need to report dead code.
+    for (var range in _deadCatchClauseRanges) {
+      if (range.contains(node.offset)) {
+        return;
+      }
+    }
+
+    if (_firstDeadNode != null) return;
+    _firstDeadNode = node;
+  }
+
+  bool _containsFirstDeadNode(AstNode parent) {
+    for (var node = _firstDeadNode; node != null; node = node.parent) {
+      if (node == parent) return true;
+    }
+    return false;
+  }
+}
+
+class _CatchClausesVerifier {
+  final TypeSystemImpl _typeSystem;
+  final _CatchClausesVerifierReporter _errorReporter;
+  final List<CatchClause> catchClauses;
+
+  bool _done = false;
+  List<DartType> _visitedTypes = <DartType>[];
+
+  _CatchClausesVerifier(
+    this._typeSystem,
+    this._errorReporter,
+    this.catchClauses,
+  );
+
+  void nextCatchClause(CatchClause catchClause) {
+    var currentType = catchClause.exceptionType?.type;
+
+    // Found catch clause that doesn't have an exception type.
+    // Generate an error on any following catch clauses.
+    if (currentType == null || currentType.isDartCoreObject) {
+      if (catchClause != catchClauses.last) {
+        var index = catchClauses.indexOf(catchClause);
+        _errorReporter(
+          catchClauses[index + 1],
+          catchClauses.last,
+          HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
+          const [],
+        );
+        _done = true;
+      }
+      return;
+    }
+
+    // An on-catch clause was found; verify that the exception type is not a
+    // subtype of a previous on-catch exception type.
+    for (var type in _visitedTypes) {
+      if (_typeSystem.isSubtypeOf2(currentType, type)) {
+        _errorReporter(
+          catchClause,
+          catchClauses.last,
+          HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
+          [currentType, type],
+        );
+        _done = true;
+        return;
+      }
+    }
+
+    _visitedTypes.add(currentType);
   }
 }
 

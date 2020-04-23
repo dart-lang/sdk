@@ -3289,7 +3289,7 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
   }
   RawObject* result = interpreter->Call(function, argdesc, argc, argv, thread);
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
-  if (RawObject::IsErrorClassId(result->GetClassIdMayBeSmi())) {
+  if (IsErrorClassId(result->GetClassIdMayBeSmi())) {
     // Must not leak handles in the caller's zone.
     HANDLESCOPE(thread);
     // Protect the result in a handle before transitioning, which may trigger

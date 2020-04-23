@@ -49,10 +49,8 @@ import 'package:kernel/ast.dart'
         TypeParameterType,
         Typedef,
         VariableDeclaration,
+        Version,
         VoidType;
-
-import 'package:kernel/default_language_version.dart' as kernel
-    show defaultLanguageVersionMajor, defaultLanguageVersionMinor;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -169,7 +167,7 @@ import 'source_extension_builder.dart' show SourceExtensionBuilder;
 import 'source_loader.dart' show SourceLoader;
 
 import '../../api_prototype/experimental_flags.dart'
-    show enableNonNullableMajorVersion, enableNonNullableMinorVersion;
+    show enableNonNullableVersion;
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
@@ -272,7 +270,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   List<FieldBuilder> _implicitlyTypedFields;
 
-  LanguageVersion _languageVersion = const ImplicitLanguageVersion();
+  LanguageVersion _languageVersion;
 
   bool postponedProblemsIssued = false;
   List<PostponedProblem> postponedProblems;
@@ -312,7 +310,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this.library,
       this._nameOrigin,
       this.referencesFrom)
-      : currentTypeParameterScopeBuilder = libraryDeclaration,
+      : _languageVersion = new ImplicitLanguageVersion(library.languageVersion),
+        currentTypeParameterScopeBuilder = libraryDeclaration,
         referencesFromIndexed =
             referencesFrom == null ? null : new IndexedLibrary(referencesFrom),
         super(
@@ -362,8 +361,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                         reference: referenceIsPartOwner == true
                             ? null
                             : referencesFrom?.reference)
-                  ..setLanguageVersion(loader.target.currentSdkVersionMajor,
-                      loader.target.currentSdkVersionMinor)),
+                  ..setLanguageVersion(loader.target.currentSdkVersion)),
             nameOrigin,
             referencesFrom,
             referenceIsPartOwner);
@@ -385,8 +383,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   bool get isNonNullableByDefault =>
       loader.target.enableNonNullable &&
-      languageVersion.major >= enableNonNullableMajorVersion &&
-      languageVersion.minor >= enableNonNullableMinorVersion &&
+      languageVersion.version >= enableNonNullableVersion &&
       !isOptOutTest(library.importUri);
 
   bool isOptOutTest(Uri uri) {
@@ -416,56 +413,42 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   LanguageVersion get languageVersion => _languageVersion;
 
   @override
-  void setLanguageVersion(int major, int minor,
+  void setLanguageVersion(Version version,
       {int offset: 0, int length: noLength, bool explicit: false}) {
     if (languageVersion.isExplicit) return;
 
-    if (major == null || minor == null) {
+    if (version == null) {
       addPostponedProblem(
           messageLanguageVersionInvalidInDotPackages, offset, length, fileUri);
       if (_languageVersion is ImplicitLanguageVersion) {
         _languageVersion = new InvalidLanguageVersion(
-            fileUri,
-            offset,
-            length,
-            explicit,
-            loader.target.currentSdkVersionMajor,
-            loader.target.currentSdkVersionMinor);
-        library.setLanguageVersion(
-            _languageVersion.major, _languageVersion.minor);
+            fileUri, offset, length, explicit, loader.target.currentSdkVersion);
+        library.setLanguageVersion(_languageVersion.version);
       }
       return;
     }
 
     // If trying to set a language version that is higher than the current sdk
     // version it's an error.
-    if (major > loader.target.currentSdkVersionMajor ||
-        (major == loader.target.currentSdkVersionMajor &&
-            minor > loader.target.currentSdkVersionMinor)) {
+    if (version > loader.target.currentSdkVersion) {
       addPostponedProblem(
           templateLanguageVersionTooHigh.withArguments(
-              loader.target.currentSdkVersionMajor,
-              loader.target.currentSdkVersionMinor),
+              loader.target.currentSdkVersion.major,
+              loader.target.currentSdkVersion.minor),
           offset,
           length,
           fileUri);
       if (_languageVersion is ImplicitLanguageVersion) {
         _languageVersion = new InvalidLanguageVersion(
-            fileUri,
-            offset,
-            length,
-            explicit,
-            loader.target.currentSdkVersionMajor,
-            loader.target.currentSdkVersionMinor);
-        library.setLanguageVersion(
-            _languageVersion.major, _languageVersion.minor);
+            fileUri, offset, length, explicit, loader.target.currentSdkVersion);
+        library.setLanguageVersion(_languageVersion.version);
       }
       return;
     }
 
     _languageVersion =
-        new LanguageVersion(major, minor, fileUri, offset, length, explicit);
-    library.setLanguageVersion(major, minor);
+        new LanguageVersion(version, fileUri, offset, length, explicit);
+    library.setLanguageVersion(version);
   }
 
   ConstructorReferenceBuilder addConstructorReference(Object name,
@@ -3743,31 +3726,28 @@ class PostponedProblem {
 }
 
 class LanguageVersion {
-  final int major;
-  final int minor;
+  final Version version;
   final Uri fileUri;
   final int charOffset;
   final int charCount;
   final bool isExplicit;
 
-  LanguageVersion(this.major, this.minor, this.fileUri, this.charOffset,
-      this.charCount, this.isExplicit);
+  LanguageVersion(this.version, this.fileUri, this.charOffset, this.charCount,
+      this.isExplicit);
 
   bool get valid => true;
 
-  int get hashCode =>
-      major.hashCode * 13 + minor.hashCode * 17 + isExplicit.hashCode * 19;
+  int get hashCode => version.hashCode * 13 + isExplicit.hashCode * 19;
 
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is LanguageVersion &&
-        major == other.major &&
-        minor == other.minor &&
+        version == other.version &&
         isExplicit == other.isExplicit;
   }
 
   String toString() {
-    return 'LanguageVersion(major=$major,minor=$minor,isExplicit=$isExplicit,'
+    return 'LanguageVersion(version=$version,isExplicit=$isExplicit,'
         'fileUri=$fileUri,charOffset=$charOffset,charCount=$charCount)';
   }
 }
@@ -3777,11 +3757,10 @@ class InvalidLanguageVersion implements LanguageVersion {
   final int charOffset;
   final int charCount;
   final bool isExplicit;
-  final int major;
-  final int minor;
+  final Version version;
 
   InvalidLanguageVersion(this.fileUri, this.charOffset, this.charCount,
-      this.isExplicit, this.major, this.minor);
+      this.isExplicit, this.version);
 
   @override
   bool get valid => false;
@@ -3800,13 +3779,10 @@ class InvalidLanguageVersion implements LanguageVersion {
 }
 
 class ImplicitLanguageVersion implements LanguageVersion {
-  const ImplicitLanguageVersion();
-
   @override
-  int get major => kernel.defaultLanguageVersionMajor;
+  final Version version;
 
-  @override
-  int get minor => kernel.defaultLanguageVersionMinor;
+  ImplicitLanguageVersion(this.version);
 
   @override
   bool get valid => true;
@@ -3823,6 +3799,13 @@ class ImplicitLanguageVersion implements LanguageVersion {
   @override
   bool get isExplicit => false;
 
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ImplicitLanguageVersion && version == other.version;
+  }
+
   @override
-  String toString() => 'ImplicitLanguageVersion()';
+  String toString() {
+    return 'ImplicitLanguageVersion(version=$version)';
+  }
 }

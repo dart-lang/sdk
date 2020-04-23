@@ -388,29 +388,13 @@ class FieldMember extends VariableMember implements FieldElement {
 }
 
 class FunctionMember extends ExecutableMember implements FunctionElement {
-  factory FunctionMember(
-    FunctionElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-  ) {
-    var freshTypeParameters = _SubstitutedTypeParameters(
-      declaration.typeParameters,
-      substitution,
-    );
-    return FunctionMember._(
-      declaration,
-      freshTypeParameters.substitution,
-      isLegacy,
-      freshTypeParameters.elements,
-    );
-  }
-
-  FunctionMember._(
-    FunctionElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-    List<TypeParameterElement> typeParameters,
-  ) : super(declaration, substitution, isLegacy, typeParameters);
+  FunctionMember(FunctionElement declaration, bool isLegacy)
+      : super(
+          declaration,
+          Substitution.empty,
+          isLegacy,
+          declaration.typeParameters,
+        );
 
   @override
   FunctionElement get declaration => super.declaration;
@@ -658,15 +642,8 @@ abstract class Member implements Element {
     } else if (element is FunctionElement) {
       if (!element.library.isNonNullableByDefault) {
         return element;
-      } else if (element is Member) {
-        var member = element as Member;
-        return FunctionMember(
-          member._declaration,
-          member._substitution,
-          true,
-        );
       } else {
-        return FunctionMember(element, Substitution.empty, true);
+        return FunctionMember(element.declaration, true);
       }
     } else if (element is MethodElement) {
       if (!element.library.isNonNullableByDefault) {

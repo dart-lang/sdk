@@ -1494,7 +1494,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         newParameter = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
             targetElement, newParameter, type);
       } else {
-        newParameter = _typeBuilder.trustTypeOfParameter(newParameter, type);
+        newParameter = _typeBuilder.trustTypeOfParameter(
+            targetElement, newParameter, type);
       }
 
       localsHandler.directLocals[local] = newParameter;
@@ -6335,7 +6336,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       DartType type = localsMap.getLocalType(_elementMap, parameter);
       HInstruction checkedOrTrusted;
       if (trusted) {
-        checkedOrTrusted = _typeBuilder.trustTypeOfParameter(argument, type);
+        checkedOrTrusted =
+            _typeBuilder.trustTypeOfParameter(function, argument, type);
       } else {
         checkedOrTrusted = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
             function, argument, type);

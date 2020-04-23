@@ -168,7 +168,7 @@ String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
   var requiredNamed = type.requiredNamed;
   if (namedActuals != null) {
     names = getOwnPropertyNames(namedActuals);
-    for (var name in names!) {
+    for (var name in names) {
       if (!JS<bool>('!', '(#.hasOwnProperty(#) || #.hasOwnProperty(#))', named,
           name, requiredNamed, name)) {
         return "Dynamic call with unexpected named argument '$name'.";

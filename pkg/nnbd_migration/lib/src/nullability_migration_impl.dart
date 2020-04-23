@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
@@ -105,7 +105,9 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         _variables,
         library,
         _permissive ? listener : null,
-        unit);
+        unit,
+        warnOnWeakCode,
+        _graph);
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
       fixBuilder.visitAll();

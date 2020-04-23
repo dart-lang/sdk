@@ -517,6 +517,13 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   /// state.
   bool isUnassigned(Variable variable);
 
+  /// Call this method before visiting a labeled statement.
+  /// Call [labeledStatement_end] after visiting the statement.
+  void labeledStatement_begin(Node node);
+
+  /// Call this method after visiting a labeled statement.
+  void labeledStatement_end();
+
   /// Call this method after visiting the RHS of a logical binary operation
   /// ("||" or "&&").
   /// [wholeExpression] should be the whole logical binary expression.
@@ -935,6 +942,18 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   bool isUnassigned(Variable variable) {
     return _wrap('isUnassigned($variable)', () => _wrapped.isAssigned(variable),
         isQuery: true);
+  }
+
+  @override
+  void labeledStatement_begin(Node node) {
+    return _wrap('labeledStatement_begin($node)',
+        () => _wrapped.labeledStatement_begin(node));
+  }
+
+  @override
+  void labeledStatement_end() {
+    return _wrap(
+        'labeledStatement_end()', () => _wrapped.labeledStatement_end());
   }
 
   @override
@@ -1404,8 +1423,9 @@ class FlowModel<Variable, Type> {
     VariableModel<Type> infoForVar = variableInfo[variable];
     if (infoForVar == null) return this;
 
+    Type declaredType = typeOperations.variableType(variable);
     VariableModel<Type> newInfoForVar =
-        infoForVar.write(writtenType, typeOperations);
+        infoForVar.write(declaredType, writtenType, typeOperations);
     if (identical(newInfoForVar, infoForVar)) return this;
 
     return _updateVariableInfo(variable, newInfoForVar);
@@ -1737,8 +1757,8 @@ class VariableModel<Type> {
 
   /// Returns a new [VariableModel] reflecting the fact that the variable was
   /// just written to.
-  VariableModel<Type> write(
-      Type writtenType, TypeOperations<Object, Type> typeOperations) {
+  VariableModel<Type> write(Type declaredType, Type writtenType,
+      TypeOperations<Object, Type> typeOperations) {
     List<Type> newPromotedTypes;
     if (promotedTypes == null) {
       newPromotedTypes = null;
@@ -1760,7 +1780,7 @@ class VariableModel<Type> {
       }
     }
     newPromotedTypes = _tryPromoteToTypeOfInterest(
-        typeOperations, newPromotedTypes, writtenType);
+        typeOperations, declaredType, newPromotedTypes, writtenType);
     if (identical(promotedTypes, newPromotedTypes) && assigned) return this;
     List<Type> newTested;
     if (newPromotedTypes == null && promotedTypes != null) {
@@ -1787,8 +1807,14 @@ class VariableModel<Type> {
   /// is required, a new promotion chain will be created and returned.
   List<Type> _tryPromoteToTypeOfInterest(
       TypeOperations<Object, Type> typeOperations,
+      Type declaredType,
       List<Type> promotedTypes,
       Type writtenType) {
+    if (writeCaptured) {
+      assert(promotedTypes == null);
+      return promotedTypes;
+    }
+
     // Figure out if we have any promotion candidates (types that are a
     // supertype of writtenType and a proper subtype of the currently-promoted
     // type).  If at any point we find an exact match, we take it immediately.
@@ -1830,6 +1856,16 @@ class VariableModel<Type> {
       }
     }
 
+    // The declared type is always a type of interest, but we never promote
+    // to the declared type. So, try NonNull of it.
+    Type declaredTypeNonNull = typeOperations.promoteToNonNull(declaredType);
+    if (!typeOperations.isSameType(declaredTypeNonNull, declaredType)) {
+      handleTypeOfInterest(declaredTypeNonNull);
+      if (result != null) {
+        return result;
+      }
+    }
+
     for (int i = 0; i < tested.length; i++) {
       Type type = tested[i];
 
@@ -1838,7 +1874,7 @@ class VariableModel<Type> {
         return result;
       }
 
-      var typeNonNull = typeOperations.promoteToNonNull(type);
+      Type typeNonNull = typeOperations.promoteToNonNull(type);
       if (!typeOperations.isSameType(typeNonNull, type)) {
         handleTypeOfInterest(typeNonNull);
         if (result != null) {
@@ -2440,6 +2476,21 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   bool isUnassigned(Variable variable) {
     return _current.infoFor(variable).unassigned;
+  }
+
+  @override
+  void labeledStatement_begin(Node node) {
+    _BranchTargetContext<Variable, Type> context =
+        new _BranchTargetContext<Variable, Type>();
+    _stack.add(context);
+    _statementToContext[node] = context;
+  }
+
+  @override
+  void labeledStatement_end() {
+    _BranchTargetContext<Variable, Type> context =
+        _stack.removeLast() as _BranchTargetContext<Variable, Type>;
+    _current = _join(_current, context._breakModel);
   }
 
   @override

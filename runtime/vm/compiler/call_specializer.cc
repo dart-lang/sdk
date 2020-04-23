@@ -1533,9 +1533,8 @@ bool TypedDataSpecializer::HasThirdPartyImplementor(
     // instances of the [implementor_].
     if (implementor_.is_finalized()) {
       const classid_t cid = implementor_.id();
-      if (!RawObject::IsTypedDataClassId(cid) &&
-          !RawObject::IsTypedDataViewClassId(cid) &&
-          !RawObject::IsExternalTypedDataClassId(cid)) {
+      if (!IsTypedDataClassId(cid) && !IsTypedDataViewClassId(cid) &&
+          !IsExternalTypedDataClassId(cid)) {
         return true;
       }
     }

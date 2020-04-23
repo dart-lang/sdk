@@ -363,8 +363,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var rightOperand = node.rightOperand;
     if (operatorType == TokenType.EQ_EQ || operatorType == TokenType.BANG_EQ) {
       var leftType = _dispatch(leftOperand);
+      _graph.connectDummy(leftType.node, DummyOrigin(source, node));
       _flowAnalysis.equalityOp_rightBegin(leftOperand);
       var rightType = _dispatch(rightOperand);
+      _graph.connectDummy(rightType.node, DummyOrigin(source, node));
       bool notEqual = operatorType == TokenType.BANG_EQ;
       _flowAnalysis.equalityOp_end(node, rightOperand, notEqual: notEqual);
 
@@ -567,21 +569,52 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitConditionalExpression(ConditionalExpression node) {
     _checkExpressionNotNull(node.condition);
+    NullabilityNode trueGuard;
+    NullabilityNode falseGuard;
+    if (identical(_conditionInfo?.condition, node.condition)) {
+      trueGuard = _conditionInfo.trueGuard;
+      falseGuard = _conditionInfo.falseGuard;
+      _variables.recordConditionalDiscard(source, node,
+          ConditionalDiscard(trueGuard, falseGuard, _conditionInfo.isPure));
+    }
 
     DecoratedType thenType;
     DecoratedType elseType;
-
-    // TODO(paulberry): guard anything inside the true and false branches.
-    // See https://github.com/dart-lang/sdk/issues/41551.
 
     // Post-dominators diverge as we branch in the conditional.
     // Note: we don't have to create a scope for each branch because they can't
     // define variables.
     _postDominatedLocals.doScoped(action: () {
       _flowAnalysis.conditional_thenBegin(node.condition);
-      thenType = _dispatch(node.thenExpression);
+      if (trueGuard != null) {
+        _guards.add(trueGuard);
+      }
+      try {
+        thenType = _dispatch(node.thenExpression);
+        if (trueGuard != null) {
+          thenType = thenType
+              .withNode(_nullabilityNodeForGLB(node, thenType.node, trueGuard));
+        }
+      } finally {
+        if (trueGuard != null) {
+          _guards.removeLast();
+        }
+      }
       _flowAnalysis.conditional_elseBegin(node.thenExpression);
-      elseType = _dispatch(node.elseExpression);
+      if (falseGuard != null) {
+        _guards.add(falseGuard);
+      }
+      try {
+        elseType = _dispatch(node.elseExpression);
+        if (falseGuard != null) {
+          elseType = elseType.withNode(
+              _nullabilityNodeForGLB(node, elseType.node, falseGuard));
+        }
+      } finally {
+        if (falseGuard != null) {
+          _guards.removeLast();
+        }
+      }
       _flowAnalysis.conditional_end(node, node.elseExpression);
     });
 
@@ -677,6 +710,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         destinationType: _currentFunctionType.returnType,
         wrapFuture: node.isAsynchronous);
     return null;
+  }
+
+  @override
+  DecoratedType visitExpressionStatement(ExpressionStatement node) {
+    var decoratedType = _dispatch(node.expression);
+    _graph.connectDummy(decoratedType.node, DummyOrigin(source, node));
+    return decoratedType;
   }
 
   DecoratedType visitExtensionDeclaration(ExtensionDeclaration node) {
@@ -1496,14 +1536,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _flowAnalysis.switchStatement_expressionEnd(node);
     var hasDefault = false;
     for (var member in node.members) {
-      var hasLabel = member.labels.isNotEmpty;
-      _flowAnalysis.switchStatement_beginCase(hasLabel, node);
-      if (member is SwitchCase) {
-        _dispatch(member.expression);
-      } else {
-        hasDefault = true;
-      }
-      _dispatchList(member.statements);
+      _postDominatedLocals.doScoped(action: () {
+        var hasLabel = member.labels.isNotEmpty;
+        _flowAnalysis.switchStatement_beginCase(hasLabel, node);
+        if (member is SwitchCase) {
+          _dispatch(member.expression);
+        } else {
+          hasDefault = true;
+        }
+        _dispatchList(member.statements);
+      });
     }
     _flowAnalysis.switchStatement_end(hasDefault);
     return null;
@@ -2344,7 +2386,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (parts is ForPartsWithDeclarations) {
         _dispatch(parts.variables);
       } else if (parts is ForPartsWithExpression) {
-        _dispatch(parts.initialization);
+        var initializationType = _dispatch(parts.initialization);
+        if (initializationType != null) {
+          _graph.connectDummy(
+              initializationType.node, DummyOrigin(source, parts));
+        }
       }
       _flowAnalysis.for_conditionBegin(node);
       if (parts.condition != null) {
@@ -2394,7 +2440,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
       if (parts is ForParts) {
         _flowAnalysis.for_updaterBegin();
-        _dispatchList(parts.updaters);
+        for (var updater in parts.updaters ?? <Expression>[]) {
+          var updaterType = _dispatch(updater);
+          _graph.connectDummy(updaterType.node, DummyOrigin(source, updater));
+        }
         _flowAnalysis.for_end();
       } else {
         _flowAnalysis.forEach_end();

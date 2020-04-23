@@ -16,16 +16,17 @@ class PortMapTestPeer {
  public:
   static bool IsActivePort(Dart_Port port) {
     MutexLocker ml(PortMap::mutex_);
-    return (PortMap::FindPort(port) >= 0);
+    auto it = PortMap::ports_->TryLookup(port);
+    return it != PortMap::ports_->end();
   }
 
   static bool IsLivePort(Dart_Port port) {
     MutexLocker ml(PortMap::mutex_);
-    intptr_t index = PortMap::FindPort(port);
-    if (index < 0) {
+    auto it = PortMap::ports_->TryLookup(port);
+    if (it == PortMap::ports_->end()) {
       return false;
     }
-    return PortMap::map_[index].state == PortMap::kLivePort;
+    return (*it).state == PortMap::kLivePort;
   }
 };
 

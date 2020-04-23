@@ -92,8 +92,7 @@ const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
 
 bool NativeEntry::ReturnValueIsError(NativeArguments* arguments) {
   RawObject* retval = arguments->ReturnValue();
-  return (retval->IsHeapObject() &&
-          RawObject::IsErrorClassId(retval->GetClassId()));
+  return (retval->IsHeapObject() && IsErrorClassId(retval->GetClassId()));
 }
 
 void NativeEntry::PropagateErrors(NativeArguments* arguments) {

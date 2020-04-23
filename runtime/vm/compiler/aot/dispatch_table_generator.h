@@ -25,11 +25,13 @@ struct TableSelector {
   TableSelector(int32_t _id,
                 int32_t _call_count,
                 int32_t _offset,
-                bool _called_on_null)
+                bool _called_on_null,
+                bool _torn_off)
       : id(_id),
         call_count(_call_count),
         offset(_offset),
-        called_on_null(_called_on_null) {}
+        called_on_null(_called_on_null),
+        torn_off(_torn_off) {}
 
   bool IsUsed() const { return call_count > 0; }
 
@@ -42,6 +44,8 @@ struct TableSelector {
   int32_t offset;
   // Are there any call sites with this selector where the receiver may be null?
   bool called_on_null;
+  // Is this method ever torn off, i.e. is its method extractor accessed?
+  bool torn_off;
   // Is the selector part of the interface on Null (same as Object)?
   bool on_null_interface = false;
   // Do any targets of this selector assume that an args descriptor is passed?
@@ -63,7 +67,7 @@ class SelectorMap {
 
   int32_t SelectorId(const Function& interface_target) const;
 
-  void AddSelector(int32_t call_count, bool called_on_null);
+  void AddSelector(int32_t call_count, bool called_on_null, bool torn_off);
   void SetSelectorProperties(int32_t sid,
                              bool on_null_interface,
                              bool requires_args_descriptor);

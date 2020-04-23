@@ -124,7 +124,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       intptr_t argument_count,
       const Array& argument_names,
       intptr_t checked_argument_count,
-      const Function& interface_target,
+      const Function& interface_target = Function::null_function(),
+      const Function& tearoff_interface_target = Function::null_function(),
       const InferredTypeMetadata* result_type = nullptr,
       bool use_unchecked_entry = false,
       const CallSiteAttributesMetadata* call_site_attrs = nullptr,
@@ -135,7 +136,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment ThrowException(TokenPosition position);
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
-  Fragment LoadLateField(const Field& field, LocalVariable* instance);
   Fragment StoreLateField(const Field& field,
                           LocalVariable* instance,
                           LocalVariable* setter_value);

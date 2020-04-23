@@ -1038,7 +1038,12 @@ InstanceCallInstr* FlowGraphDeserializer::DeserializeInstanceCall(
     SExpList* sexp,
     const InstrInfo& info) {
   auto& interface_target = Function::ZoneHandle(zone());
+  auto& tearoff_interface_target = Function::ZoneHandle(zone());
   if (!ParseDartValue(Retrieve(sexp, "interface_target"), &interface_target)) {
+    return nullptr;
+  }
+  if (!ParseDartValue(Retrieve(sexp, "tearoff_interface_target"),
+                      &tearoff_interface_target)) {
     return nullptr;
   }
   auto& function_name = String::ZoneHandle(zone());
@@ -1048,6 +1053,8 @@ InstanceCallInstr* FlowGraphDeserializer::DeserializeInstanceCall(
     if (!ParseDartValue(name_sexp, &function_name)) return nullptr;
   } else if (!interface_target.IsNull()) {
     function_name = interface_target.name();
+  } else if (!tearoff_interface_target.IsNull()) {
+    function_name = tearoff_interface_target.name();
   }
 
   auto token_kind = Token::Kind::kILLEGAL;
@@ -1071,7 +1078,7 @@ InstanceCallInstr* FlowGraphDeserializer::DeserializeInstanceCall(
   auto const inst = new (zone()) InstanceCallInstr(
       info.token_pos, function_name, token_kind, call_info.inputs,
       call_info.type_args_len, call_info.argument_names, checked_arg_count,
-      info.deopt_id, interface_target);
+      info.deopt_id, interface_target, tearoff_interface_target);
 
   if (call_info.result_type != nullptr) {
     inst->SetResultType(zone(), *call_info.result_type);

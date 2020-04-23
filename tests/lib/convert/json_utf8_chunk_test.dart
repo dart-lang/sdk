@@ -148,7 +148,7 @@ void testKeywords() {
 // Tests combinations of numbers, strings and keywords.
 void testAll() {
   var s = r'{"":[true,false,42, -33e-3,null,"\u0080"], "z": 0}';
-  bool check(o) {
+  void check(o) {
     if (o is Map) {
       Expect.equals(2, o.length);
       Expect.equals(0, o["z"]);

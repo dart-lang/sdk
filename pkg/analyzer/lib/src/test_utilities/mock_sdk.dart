@@ -1239,7 +1239,7 @@ class MockSdk implements DartSdk {
     List<Source> librarySources = sdkLibraries
         .map((SdkLibrary library) => mapDartUri(library.shortName))
         .toList();
-    var featureSet = FeatureSet.fromEnableFlags([]);
+    var featureSet = FeatureSet.fromEnableFlags(['non-nullable']);
     return SummaryBuilder(librarySources, context).build(
       featureSet: featureSet,
     );

@@ -218,6 +218,14 @@ class FlowAnalysisHelper {
     return false;
   }
 
+  void labeledStatement_enter(LabeledStatement node) {
+    flow.labeledStatement_begin(node);
+  }
+
+  void labeledStatement_exit(LabeledStatement node) {
+    flow.labeledStatement_end();
+  }
+
   void topLevelDeclaration_enter(
       Declaration node, FormalParameterList parameters, FunctionBody body) {
     assert(node != null);
@@ -272,26 +280,28 @@ class FlowAnalysisHelper {
   /// not specify a label), so the default enclosing target is returned.
   static Statement getLabelTarget(AstNode node, LabelElement element) {
     for (; node != null; node = node.parent) {
-      if (node is DoStatement ||
-          node is ForStatement ||
-          node is SwitchStatement ||
-          node is WhileStatement) {
-        if (element == null) {
+      if (element == null) {
+        if (node is DoStatement ||
+            node is ForStatement ||
+            node is SwitchStatement ||
+            node is WhileStatement) {
           return node;
         }
-        var parent = node.parent;
-        if (parent is LabeledStatement) {
-          for (var nodeLabel in parent.labels) {
-            if (identical(nodeLabel.label.staticElement, element)) {
+      } else {
+        if (node is LabeledStatement) {
+          if (_hasLabel(node.labels, element)) {
+            var statement = node.statement;
+            if (statement is Block ||
+                statement is IfStatement ||
+                statement is TryStatement) {
               return node;
             }
+            return statement;
           }
         }
-      }
-      if (element != null && node is SwitchStatement) {
-        for (var member in node.members) {
-          for (var nodeLabel in member.labels) {
-            if (identical(nodeLabel.label.staticElement, element)) {
+        if (node is SwitchStatement) {
+          for (var member in node.members) {
+            if (_hasLabel(member.labels, element)) {
               return node;
             }
           }
@@ -299,6 +309,15 @@ class FlowAnalysisHelper {
       }
     }
     return null;
+  }
+
+  static bool _hasLabel(List<Label> labels, LabelElement element) {
+    for (var nodeLabel in labels) {
+      if (identical(nodeLabel.label.staticElement, element)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 

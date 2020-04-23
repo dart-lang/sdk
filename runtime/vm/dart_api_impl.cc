@@ -222,7 +222,7 @@ static bool GetNativeStringArgument(NativeArguments* arguments,
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   Object& obj = thread->ObjectHandle();
   obj = arguments->NativeArgAt(arg_index);
-  if (RawObject::IsStringClassId(obj.GetClassId())) {
+  if (IsStringClassId(obj.GetClassId())) {
     ASSERT(thread->api_top_scope() != NULL);
     *str = Api::NewHandle(thread, obj.raw());
     return true;
@@ -2269,14 +2269,14 @@ DART_EXPORT bool Dart_IsNumber(Dart_Handle object) {
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  return RawObject::IsNumberClassId(Api::ClassId(object));
+  return IsNumberClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsInteger(Dart_Handle object) {
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  return RawObject::IsIntegerClassId(Api::ClassId(object));
+  return IsIntegerClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsDouble(Dart_Handle object) {
@@ -2297,26 +2297,26 @@ DART_EXPORT bool Dart_IsString(Dart_Handle object) {
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  return RawObject::IsStringClassId(Api::ClassId(object));
+  return IsStringClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object) {
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  return RawObject::IsOneByteStringClassId(Api::ClassId(object));
+  return IsOneByteStringClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsExternalString(Dart_Handle object) {
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  return RawObject::IsExternalStringClassId(Api::ClassId(object));
+  return IsExternalStringClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsList(Dart_Handle object) {
   DARTSCOPE(Thread::Current());
-  if (RawObject::IsBuiltinListClassId(Api::ClassId(object))) {
+  if (IsBuiltinListClassId(Api::ClassId(object))) {
     return true;
   }
 
@@ -2389,9 +2389,8 @@ DART_EXPORT bool Dart_IsTypedData(Dart_Handle handle) {
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
   intptr_t cid = Api::ClassId(handle);
-  return RawObject::IsTypedDataClassId(cid) ||
-         RawObject::IsExternalTypedDataClassId(cid) ||
-         RawObject::IsTypedDataViewClassId(cid);
+  return IsTypedDataClassId(cid) || IsExternalTypedDataClassId(cid) ||
+         IsTypedDataViewClassId(cid);
 }
 
 DART_EXPORT bool Dart_IsByteBuffer(Dart_Handle handle) {
@@ -3446,7 +3445,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
       return CopyBytes(external_array, offset, native_array, length);
     }
   }
-  if (RawObject::IsTypedDataViewClassId(obj.GetClassId())) {
+  if (IsTypedDataViewClassId(obj.GetClassId())) {
     const auto& view = TypedDataView::Cast(obj);
     if (view.ElementSizeInBytes() == 1) {
       const intptr_t view_length = Smi::Value(view.length());
@@ -3732,8 +3731,7 @@ DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
   API_TIMELINE_DURATION(thread);
   TransitionNativeToVM transition(thread);
   intptr_t class_id = Api::ClassId(object);
-  if (RawObject::IsTypedDataClassId(class_id) ||
-      RawObject::IsTypedDataViewClassId(class_id)) {
+  if (IsTypedDataClassId(class_id) || IsTypedDataViewClassId(class_id)) {
     return GetType(class_id);
   }
   return Dart_TypedData_kInvalid;
@@ -3745,10 +3743,10 @@ Dart_GetTypeOfExternalTypedData(Dart_Handle object) {
   API_TIMELINE_DURATION(thread);
   TransitionNativeToVM transition(thread);
   intptr_t class_id = Api::ClassId(object);
-  if (RawObject::IsExternalTypedDataClassId(class_id)) {
+  if (IsExternalTypedDataClassId(class_id)) {
     return GetType(class_id);
   }
-  if (RawObject::IsTypedDataViewClassId(class_id)) {
+  if (IsTypedDataViewClassId(class_id)) {
     // Check if data object of the view is external.
     Zone* zone = thread->zone();
     const auto& view_obj = Api::UnwrapTypedDataViewHandle(zone, object);
@@ -4001,9 +3999,8 @@ static RawObject* GetByteBufferConstructor(Thread* thread,
 DART_EXPORT Dart_Handle Dart_NewByteBuffer(Dart_Handle typed_data) {
   DARTSCOPE(Thread::Current());
   intptr_t class_id = Api::ClassId(typed_data);
-  if (!RawObject::IsExternalTypedDataClassId(class_id) &&
-      !RawObject::IsTypedDataViewClassId(class_id) &&
-      !RawObject::IsTypedDataClassId(class_id)) {
+  if (!IsExternalTypedDataClassId(class_id) &&
+      !IsTypedDataViewClassId(class_id) && !IsTypedDataClassId(class_id)) {
     RETURN_TYPE_ERROR(Z, typed_data, 'TypedData');
   }
   Object& result = Object::Handle(Z);
@@ -4066,9 +4063,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   intptr_t class_id = Api::ClassId(object);
-  if (!RawObject::IsExternalTypedDataClassId(class_id) &&
-      !RawObject::IsTypedDataViewClassId(class_id) &&
-      !RawObject::IsTypedDataClassId(class_id)) {
+  if (!IsExternalTypedDataClassId(class_id) &&
+      !IsTypedDataViewClassId(class_id) && !IsTypedDataClassId(class_id)) {
     RETURN_TYPE_ERROR(Z, object, 'TypedData');
   }
   if (type == NULL) {
@@ -4088,7 +4084,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
   bool external = false;
   T->IncrementNoSafepointScopeDepth();
   START_NO_CALLBACK_SCOPE(T);
-  if (RawObject::IsExternalTypedDataClassId(class_id)) {
+  if (IsExternalTypedDataClassId(class_id)) {
     const ExternalTypedData& obj =
         Api::UnwrapExternalTypedDataHandle(Z, object);
     ASSERT(!obj.IsNull());
@@ -4096,14 +4092,14 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     size_in_bytes = length * ExternalTypedData::ElementSizeInBytes(class_id);
     data_tmp = obj.DataAddr(0);
     external = true;
-  } else if (RawObject::IsTypedDataClassId(class_id)) {
+  } else if (IsTypedDataClassId(class_id)) {
     const TypedData& obj = Api::UnwrapTypedDataHandle(Z, object);
     ASSERT(!obj.IsNull());
     length = obj.Length();
     size_in_bytes = length * TypedData::ElementSizeInBytes(class_id);
     data_tmp = obj.DataAddr(0);
   } else {
-    ASSERT(RawObject::IsTypedDataViewClassId(class_id));
+    ASSERT(IsTypedDataViewClassId(class_id));
     const auto& view_obj = Api::UnwrapTypedDataViewHandle(Z, object);
     ASSERT(!view_obj.IsNull());
     Smi& val = Smi::Handle();
@@ -4151,9 +4147,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   intptr_t class_id = Api::ClassId(object);
-  if (!RawObject::IsExternalTypedDataClassId(class_id) &&
-      !RawObject::IsTypedDataViewClassId(class_id) &&
-      !RawObject::IsTypedDataClassId(class_id)) {
+  if (!IsExternalTypedDataClassId(class_id) &&
+      !IsTypedDataViewClassId(class_id) && !IsTypedDataClassId(class_id)) {
     RETURN_TYPE_ERROR(Z, object, 'TypedData');
   }
   T->DecrementNoSafepointScopeDepth();

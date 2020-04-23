@@ -61,9 +61,11 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
 
   @override
   void graphEdge(EdgeInfo edge, EdgeOriginInfo originInfo) {
-    expect(test.edgeOrigin, isNot(contains(edge)));
-    test.edges.add(edge);
-    test.edgeOrigin[edge] = originInfo;
+    if (edge.destinationNode != test.always) {
+      expect(test.edgeOrigin, isNot(contains(edge)));
+      test.edges.add(edge);
+      test.edgeOrigin[edge] = originInfo;
+    }
   }
 
   @override

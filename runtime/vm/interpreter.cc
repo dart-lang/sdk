@@ -271,17 +271,18 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
   ASSERT(instance_size > 0);
   ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
 
-  const uword start = thread->top();
+  const TLAB tlab = thread->tlab();
 #ifndef PRODUCT
   auto table = thread->isolate_group()->shared_class_table();
   if (UNLIKELY(table->TraceAllocationFor(class_id))) {
     return false;
   }
 #endif
-  const intptr_t remaining = thread->end() - start;
+  const intptr_t remaining = tlab.RemainingSize();
   if (LIKELY(remaining >= instance_size)) {
-    thread->set_top(start + instance_size);
-    *result = InitializeHeader(start, class_id, instance_size);
+    const uword old_top = tlab.top;
+    thread->set_tlab(tlab.BumpAllocate(instance_size));
+    *result = InitializeHeader(old_top, class_id, instance_size);
     return true;
   }
   return false;
@@ -646,7 +647,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
       }
       UNREACHABLE();
     }
-    if (RawObject::IsErrorClassId(result_cid)) {
+    if (IsErrorClassId(result_cid)) {
       // Unwind to entry frame.
       fp_ = *FP;
       pc_ = SavedCallerPC(fp_);

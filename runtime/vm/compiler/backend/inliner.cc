@@ -2425,7 +2425,7 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
     // Load from the data from backing store which is a fixed-length array.
     *array = elements;
     array_cid = kArrayCid;
-  } else if (RawObject::IsExternalTypedDataClassId(array_cid)) {
+  } else if (IsExternalTypedDataClassId(array_cid)) {
     LoadUntaggedInstr* elements = new (Z)
         LoadUntaggedInstr(new (Z) Value(*array),
                           compiler::target::TypedDataBase::data_field_offset());
@@ -2626,9 +2626,8 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
 
   // Check if store barrier is needed. Byte arrays don't need a store barrier.
   StoreBarrierType needs_store_barrier =
-      (RawObject::IsTypedDataClassId(array_cid) ||
-       RawObject::IsTypedDataViewClassId(array_cid) ||
-       RawObject::IsExternalTypedDataClassId(array_cid))
+      (IsTypedDataClassId(array_cid) || IsTypedDataViewClassId(array_cid) ||
+       IsExternalTypedDataClassId(array_cid))
           ? kNoStoreBarrier
           : kEmitStoreBarrier;
 
@@ -2893,8 +2892,7 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
                                          intptr_t array_cid,
                                          Definition** array,
                                          Instruction** cursor) {
-  if (array_cid == kDynamicCid ||
-      RawObject::IsExternalTypedDataClassId(array_cid)) {
+  if (array_cid == kDynamicCid || IsExternalTypedDataClassId(array_cid)) {
     // Internal or External typed data: load untagged.
     auto elements = new (Z)
         LoadUntaggedInstr(new (Z) Value(*array),
@@ -2903,7 +2901,7 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
     *array = elements;
   } else {
     // Internal typed data: no action.
-    ASSERT(RawObject::IsTypedDataClassId(array_cid));
+    ASSERT(IsTypedDataClassId(array_cid));
   }
 }
 
@@ -4191,11 +4189,11 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       Type& type = Type::ZoneHandle(Z);
       if (receiver_cid == kDynamicCid) {
         return false;
-      } else if (RawObject::IsStringClassId(receiver_cid)) {
+      } else if (IsStringClassId(receiver_cid)) {
         type = Type::StringType();
       } else if (receiver_cid == kDoubleCid) {
         type = Type::Double();
-      } else if (RawObject::IsIntegerClassId(receiver_cid)) {
+      } else if (IsIntegerClassId(receiver_cid)) {
         type = Type::IntType();
       } else if (receiver_cid != kClosureCid) {
         const Class& cls = Class::Handle(

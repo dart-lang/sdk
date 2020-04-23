@@ -2631,8 +2631,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
 }
 
 bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
-  if (RawObject::IsTypedDataClassId(cid) ||
-      RawObject::IsExternalTypedDataClassId(cid)) {
+  if (IsTypedDataClassId(cid) || IsExternalTypedDataClassId(cid)) {
     return true;
   }
 
@@ -4111,7 +4110,12 @@ void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ LoadObject(InitInstanceFieldABI::kFieldReg,
                 Field::ZoneHandle(field().Original()));
-  compiler->GenerateStubCall(token_pos(), StubCode::InitInstanceField(),
+  const auto& stub = Code::ZoneHandle(
+      compiler->isolate()->object_store()->init_instance_field_stub());
+  // Instruction inputs are popped from the stack at this point,
+  // so deoptimization environment has to be adjusted.
+  // This adjustment is done in FlowGraph::AttachEnvironment.
+  compiler->GenerateStubCall(token_pos(), stub,
                              /*kind=*/RawPcDescriptors::kOther, locs(),
                              deopt_id());
   __ Bind(&no_call);
@@ -4688,6 +4692,7 @@ DispatchTableCallInstr* DispatchTableCallInstr::FromCall(
     Zone* zone,
     const InstanceCallBaseInstr* call,
     Value* cid,
+    const Function& interface_target,
     const compiler::TableSelector* selector) {
   InputsArray* args = new (zone) InputsArray(zone, call->ArgumentCount() + 1);
   for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
@@ -4695,7 +4700,7 @@ DispatchTableCallInstr* DispatchTableCallInstr::FromCall(
   }
   args->Add(cid);
   auto dispatch_table_call = new (zone) DispatchTableCallInstr(
-      call->token_pos(), call->interface_target(), selector, args,
+      call->token_pos(), interface_target, selector, args,
       call->type_args_len(), call->argument_names());
   if (call->has_inlining_id()) {
     dispatch_table_call->set_inlining_id(call->inlining_id());
@@ -4858,8 +4863,8 @@ RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
     const intptr_t start = targets[i].cid_start;
     const intptr_t end = targets[i].cid_end;
     for (intptr_t cid = start; cid <= end; cid++) {
-      is_string = is_string && RawObject::IsStringClassId(cid);
-      is_integer = is_integer && RawObject::IsIntegerClassId(cid);
+      is_string = is_string && IsStringClassId(cid);
+      is_integer = is_integer && IsIntegerClassId(cid);
       is_double = is_double && (cid == kDoubleCid);
     }
   }
@@ -5502,9 +5507,8 @@ Definition* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
-  if (RawObject::IsTypedDataClassId(class_id) ||
-      RawObject::IsTypedDataViewClassId(class_id) ||
-      RawObject::IsExternalTypedDataClassId(class_id)) {
+  if (IsTypedDataClassId(class_id) || IsTypedDataViewClassId(class_id) ||
+      IsExternalTypedDataClassId(class_id)) {
     return compiler::target::TypedDataBase::length_offset();
   }
 

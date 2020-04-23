@@ -40,7 +40,9 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final assist = findEditAction(
-        codeActions, CodeActionKind.Refactor, "Add explicit 'show' combinator");
+        codeActions,
+        CodeActionKind('refactor.add.showCombinator'),
+        "Add explicit 'show' combinator");
 
     // Ensure the edit came back, and using documentChanges.
     expect(assist, isNotNull);
@@ -77,7 +79,9 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final assistAction = findEditAction(
-        codeActions, CodeActionKind.Refactor, "Add explicit 'show' combinator");
+        codeActions,
+        CodeActionKind('refactor.add.showCombinator'),
+        "Add explicit 'show' combinator");
 
     // Ensure the edit came back, and using changes.
     expect(assistAction, isNotNull);

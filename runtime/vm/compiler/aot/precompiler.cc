@@ -984,60 +984,14 @@ void Precompiler::AddField(const Field& field) {
       ASSERT(value.IsInstance());
       AddConstObject(Instance::Cast(value));
     }
-
-    if (field.has_nontrivial_initializer()) {
-      if (!field.HasInitializerFunction() ||
-          !Function::Handle(Z, field.InitializerFunction()).HasCode()) {
-        if (FLAG_trace_precompiler) {
-          THR_Print("Precompiling initializer for %s\n", field.ToCString());
-        }
-        const intptr_t gop_offset =
-            FLAG_use_bare_instructions
-                ? global_object_pool_builder()->CurrentLength()
-                : 0;
-        ASSERT(Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
-        const Function& initializer =
-            Function::Handle(Z, CompileStaticInitializer(field));
-        ASSERT(!initializer.IsNull());
-        field.SetInitializerFunction(initializer);
-        AddCalleesOf(initializer, gop_offset);
-      }
-    }
-  }
-}
-
-RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
-  ASSERT(field.is_static());
-  Thread* thread = Thread::Current();
-  StackZone stack_zone(thread);
-  Zone* zone = stack_zone.GetZone();
-  ASSERT(Error::Handle(zone, thread->sticky_error()).IsNull());
-
-  const Function& initializer_fun =
-      Function::ZoneHandle(zone, field.EnsureInitializerFunction());
-  ParsedFunction* parsed_function =
-      new (zone) ParsedFunction(thread, initializer_fun);
-
-  DartCompilationPipeline pipeline;
-  PrecompileParsedFunctionHelper helper(Precompiler::Instance(),
-                                        parsed_function,
-                                        /* optimized = */ true);
-  if (!helper.Compile(&pipeline)) {
-    Error& error = Error::Handle(zone, thread->sticky_error());
-    ASSERT(!error.IsNull());
-    Jump(error);
-    UNREACHABLE();
   }
 
-  if ((FLAG_disassemble || FLAG_disassemble_optimized) &&
-      FlowGraphPrinter::ShouldPrint(parsed_function->function())) {
-    Code& code = Code::Handle(parsed_function->function().CurrentCode());
-    Disassembler::DisassembleCode(parsed_function->function(), code,
-                                  /* optimized = */ true);
+  if (field.has_nontrivial_initializer() &&
+      (field.is_static() || field.is_late())) {
+    const Function& initializer =
+        Function::ZoneHandle(Z, field.EnsureInitializerFunction());
+    AddFunction(initializer);
   }
-
-  ASSERT(Error::Handle(zone, thread->sticky_error()).IsNull());
-  return parsed_function->function().raw();
 }
 
 bool Precompiler::MustRetainFunction(const Function& function) {

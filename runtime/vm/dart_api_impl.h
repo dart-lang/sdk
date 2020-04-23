@@ -220,7 +220,7 @@ class Api : AllStatic {
 
   // Returns true if the handle holds an Error.
   static bool IsError(Dart_Handle handle) {
-    return RawObject::IsErrorClassId(ClassId(handle));
+    return IsErrorClassId(ClassId(handle));
   }
 
   static intptr_t ClassId(Dart_Handle handle) {

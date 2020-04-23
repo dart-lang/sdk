@@ -447,7 +447,7 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
 }
 
 bool SharedClassTable::ShouldUpdateSizeForClassId(intptr_t cid) {
-  return !RawObject::IsVariableSizeClassId(cid);
+  return !IsVariableSizeClassId(cid);
 }
 
 intptr_t SharedClassTable::ClassOffsetFor(intptr_t cid) {

@@ -41,9 +41,14 @@ typeOfInterest_isNot_nullable(Object? x) {
   x;
 }
 
-notATypeOfInterest_nullability(Object? x) {
+typeOfInterest_declaredNullable_exact(int? x) {
   x = 1;
-  x;
+  /*int*/ x;
+}
+
+typeOfInterest_declaredNullable_subtype(Object? x) {
+  x = 1;
+  /*Object*/ x;
 }
 
 typeOfInterest_notEqualNull(Object? x) {

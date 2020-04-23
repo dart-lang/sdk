@@ -5,13 +5,9 @@
 import 'dart:core' hide MapEntry;
 
 import 'package:_fe_analyzer_shared/src/util/link.dart';
-
 import 'package:kernel/ast.dart';
-
 import 'package:kernel/src/future_or.dart';
-
 import 'package:kernel/type_algebra.dart' show Substitution;
-
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart'
@@ -19,24 +15,15 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForMember,
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
-
 import '../fasta_codes.dart';
-
 import '../names.dart';
-
 import '../problems.dart' show unhandled;
-
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
-
 import '../type_inference/type_schema.dart' show UnknownType;
-
 import '../type_inference/type_schema_elimination.dart' show greatestClosure;
-
 import 'body_builder.dart' show combineStatements;
-
 import 'collections.dart'
     show
         ForElement,
@@ -48,11 +35,8 @@ import 'collections.dart'
         SpreadElement,
         SpreadMapEntry,
         convertToElement;
-
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
-
 import 'internal_ast.dart';
-
 import 'late_lowering.dart' as late_lowering;
 
 class InferenceVisitor
@@ -1247,7 +1231,19 @@ class InferenceVisitor
 
   @override
   StatementInferenceResult visitLabeledStatement(LabeledStatement node) {
+    bool isSimpleBody = node.body is Block ||
+        node.body is IfStatement ||
+        node.body is TryStatement;
+    if (isSimpleBody) {
+      inferrer.flowAnalysis.labeledStatement_begin(node);
+    }
+
     StatementInferenceResult bodyResult = inferrer.inferStatement(node.body);
+
+    if (isSimpleBody) {
+      inferrer.flowAnalysis.labeledStatement_end();
+    }
+
     if (bodyResult.hasChanged) {
       node.body = bodyResult.statement..parent = node;
     }
