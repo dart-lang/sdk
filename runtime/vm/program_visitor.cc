@@ -174,15 +174,21 @@ class ProgramWalker : public ValueObject {
     ASSERT(visitor_->IsCodeVisitor());
     visitor_->AsCodeVisitor()->VisitCode(code);
 
-    // If the precompiler can drop function objects not needed at runtime,
-    // then some entries in the static calls table may need to be visited.
+    // In the precompiler, some entries in the static calls table may need
+    // to be visited as they may not be reachable from other sources.
+    //
+    // TODO(dartbug.com/41636): Figure out why walking the static calls table
+    // in JIT mode with the DedupInstructions visitor fails, so we can remove
+    // the check for AOT mode.
     static_calls_array_ = code.static_calls_target_table();
-    if (static_calls_array_.IsNull()) return;
-    StaticCallsTable static_calls(static_calls_array_);
-    for (auto& view : static_calls) {
-      static_calls_table_entry_ = view.Get<Code::kSCallTableCodeOrTypeTarget>();
-      if (static_calls_table_entry_.IsCode()) {
-        AddToWorklist(Code::Cast(static_calls_table_entry_));
+    if (FLAG_precompiled_mode && !static_calls_array_.IsNull()) {
+      StaticCallsTable static_calls(static_calls_array_);
+      for (auto& view : static_calls) {
+        static_calls_table_entry_ =
+            view.Get<Code::kSCallTableCodeOrTypeTarget>();
+        if (static_calls_table_entry_.IsCode()) {
+          AddToWorklist(Code::Cast(static_calls_table_entry_));
+        }
       }
     }
   }
@@ -1185,6 +1191,10 @@ void ProgramVisitor::DedupInstructions(Zone* zone, Isolate* isolate) {
       if (!code.IsFunctionCode()) return;
       function_ = code.function();
       if (function_.IsNull()) return;
+      // Make sure that this is the code object currently installed for the
+      // function before we update the entry points.
+      if (!function_.HasCode()) return;
+      if (function_.CurrentCode() != code.raw()) return;
       function_.SetInstructions(code);  // Update cached entry point.
     }
 
