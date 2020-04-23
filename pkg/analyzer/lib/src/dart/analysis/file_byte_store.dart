@@ -106,12 +106,17 @@ class EvictingFileByteStore implements ByteStore {
   }
 
   static void _cleanUpFolder(String cachePath, int maxSizeBytes) {
+    List<FileSystemEntity> resources;
+    try {
+      resources = Directory(cachePath).listSync(recursive: true);
+    } catch (_) {
+      return;
+    }
+
     // Prepare the list of files and their statistics.
     List<File> files = <File>[];
     Map<File, FileStat> fileStatMap = {};
     int currentSizeBytes = 0;
-    List<FileSystemEntity> resources =
-        Directory(cachePath).listSync(recursive: true);
     for (FileSystemEntity resource in resources) {
       if (resource is File) {
         try {
