@@ -5,8 +5,13 @@
 // VMOptions=--dwarf-stack-traces --save-debugging-info=async_lazy_debug.so --lazy-async-stacks --no-causal-async-stacks
 
 import 'dart:async';
+import 'dart:io';
 
 import 'utils.dart';
 
-Future<void> main(List<String> args) async =>
-    await doTestsLazy('async_lazy_debug.so');
+Future<void> main(List<String> args) async {
+  // We won't have access to the debugging info file on Android.
+  if (Platform.isAndroid) return;
+
+  await doTestsLazy('async_lazy_debug.so');
+}
