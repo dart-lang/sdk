@@ -407,6 +407,60 @@ footer .wide {
   cursor: pointer;
 }
 
+.popup-pane {
+  display: none;
+  position: fixed;
+  top: 150px;
+  left: 150px;
+  right: 150px;
+  bottom: 150px;
+  border: 1px solid black;
+  border-top: 2px solid black;
+  border-radius: 7px;
+  box-shadow: 0px 0px 20px 2px #b4bfcb22;
+  z-index: 1;
+  background: #2b3036;
+  padding: 20px;
+}
+
+.popup-pane .close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  cursor: pointer;
+  text-shadow: 1px 1px 2px #888;
+  box-shadow: 1px 1px 2px #111;
+}
+
+.popup-pane h2 {
+  padding: 21px;
+  height: 10%;
+  margin: 0px;
+  box-sizing: border-box;
+}
+
+.popup-pane p {
+  height: 10%;
+  box-sizing: border-box;
+  padding: 0px 20px;
+}
+
+.popup-pane pre {
+  background: #282b2e;
+  padding: 20px;
+  bottom: 0px;
+  overflow: auto scroll;
+  height: 65%;
+  margin: 0px;
+  box-sizing: border-box;
+}
+
+.popup-pane .button.bottom {
+  margin: 20px 0px;
+  display: block;
+  text-align: center;
+}
+
 .rerunning-pane {
   display: none;
 }
@@ -476,7 +530,7 @@ a.post-link {
   margin: 3px;
 }
 
-button, a.post-link {
+button, a.post-link, .button {
   background-color: #33ccff;
   border: 2px solid #37aedc;
   border-radius: 3px;

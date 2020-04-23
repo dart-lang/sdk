@@ -41,9 +41,7 @@ void main() {
             ..remove('proposed')
             ..add('applied');
         }).catchError((e, st) {
-          logError('apply migration error: $e', st);
-
-          window.alert('Could not apply migration ($e).');
+          handleError('Could not apply migration', e, st);
         });
       }
     });
@@ -55,9 +53,7 @@ void main() {
         await doPost('/rerun-migration');
         window.location.reload();
       } catch (e, st) {
-        logError('rerun migration: $e', st);
-
-        window.alert('Failed to rerun migration: $e.');
+        handleError('Failed to rerun migration', e, st);
       } finally {
         document.body.classes.remove('rerunning');
       }
@@ -68,6 +64,9 @@ void main() {
       window.open('https://goo.gle/dart-null-safety-migration-tool-issue',
           'report-problem');
     });
+
+    document.querySelector('.popup-pane .close').onClick.listen(
+        (_) => document.querySelector('.popup-pane').style.display = 'none');
   });
 
   window.addEventListener('popstate', (event) {
@@ -188,6 +187,34 @@ Future<Map<String, Object>> doPost(String path) async {
   }
 }
 
+Uri getGithubUri(String description, Object exception, Object stackTrace) =>
+    Uri.https('github.com', 'dart-lang/sdk/issues/new', {
+      'title': 'Issue with NNBD migration tool: $description',
+      'labels': 'area-analyzer,analyzer-nnbd-migration,type-bug',
+      'body': '''
+$description
+
+Error: $exception
+
+Please fill in the following:
+
+**Name of package being migrated (if public)**:
+**What I was doing when this issue occurred**:
+**Is it possible to work around this issue**:
+**Has this issue happened before, and if so, how often**:
+**Dart SDK version**: (visible in lower left of migration preview)
+**Additional details**:
+
+Thanks for filing!
+
+Stacktrace: _auto populated by migration preview tool._
+
+```
+$stackTrace
+```
+''',
+    });
+
 int getLine(String location) {
   var str = Uri.parse(location).queryParameters['line'];
   return str == null ? null : int.tryParse(str);
@@ -196,6 +223,27 @@ int getLine(String location) {
 int getOffset(String location) {
   var str = Uri.parse(location).queryParameters['offset'];
   return str == null ? null : int.tryParse(str);
+}
+
+void handleError(String header, Object exception, Object stackTrace) {
+  String subheader;
+  if (exception is Map<String, Object> &&
+      exception['success'] == false &&
+      exception.containsKey('exception') &&
+      exception.containsKey('stackTrace')) {
+    subheader = exception['exception'];
+    stackTrace = exception['stackTrace'];
+  } else {
+    subheader = exception.toString();
+  }
+  final popupPane = document.querySelector('.popup-pane');
+  popupPane.querySelector('h2').innerText = header;
+  popupPane.querySelector('p').innerText = subheader;
+  popupPane.querySelector('pre').innerText = stackTrace.toString();
+  (popupPane.querySelector('a.bottom') as AnchorElement).href =
+      getGithubUri(header, subheader, stackTrace).toString();
+  popupPane..style.display = 'initial';
+  logError('handlePostLinkClick: $exception', stackTrace);
 }
 
 void handleNavLinkClick(
@@ -243,9 +291,7 @@ void handlePostLinkClick(MouseEvent event) async {
     // TODO(mfairhurst): Only refresh the regions/dart code, not the window.
     (document.window.location as Location).reload();
   } catch (e, st) {
-    logError('handlePostLinkClick: $e', st);
-
-    window.alert('Could not load $path ($e).');
+    handleError('Could not load $path', e, st);
   }
 }
 
