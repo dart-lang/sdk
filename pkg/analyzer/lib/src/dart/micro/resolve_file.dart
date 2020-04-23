@@ -260,10 +260,13 @@ class FileResolver {
     }
 
     if (analysisContext == null) {
+      var rootFolder = resourceProvider.getFolder(workspace.root);
       var root = ContextRootImpl(
         resourceProvider,
-        resourceProvider.getFolder(workspace.root),
+        rootFolder,
       );
+
+      root.included.add(rootFolder);
 
       analysisContext = MicroAnalysisContextImpl(
         this,
