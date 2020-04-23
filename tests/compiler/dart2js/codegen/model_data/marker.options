@@ -1,2 +1,3 @@
 strong=tests/compiler/dart2js/codegen/model_test.dart
 omit=tests/compiler/dart2js/codegen/model_test.dart
+dart2js:nnbd=tests/compiler/dart2js/codegen/model_test.dart

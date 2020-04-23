@@ -4,11 +4,11 @@
 
 // @dart = 2.7
 
-/*strong.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
+/*strong|dart2js:nnbd.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
 /*omit.class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A {}
 
-/*strong.class: B:checkedInstance,checks=[$isA],typeArgument*/
+/*strong|dart2js:nnbd.class: B:checkedInstance,checks=[$isA],typeArgument*/
 /*omit.class: B:checks=[$isA],typeArgument*/
 class B implements A {}
 
@@ -24,7 +24,7 @@ class D extends C<B> {}
 main() {
   C<A> c = new D();
   c.method(
-      /*strong.checks=[$signature],instance*/
+      /*strong|dart2js:nnbd.checks=[$signature],instance*/
       /*omit.checks=[],instance*/
       (A a) {});
 }

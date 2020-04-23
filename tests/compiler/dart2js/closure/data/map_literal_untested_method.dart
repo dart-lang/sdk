@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 @pragma('dart2js:noInline')
 method<T>() {
   /*omit.*/
-  /*strong.fields=[T],free=[T]*/
+  /*strong|dart2js:nnbd.fields=[T],free=[T]*/
   dynamic local() => <T, int>{};
   return local;
 }

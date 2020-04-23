@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 main() {
-  /*strong.checks=[$signature],instance*/
+  /*strong|dart2js:nnbd.checks=[$signature],instance*/
   /*omit.checks=[],instance*/
   T id<T>(T t) => t;
   int Function(int) x = id;

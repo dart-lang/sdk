@@ -12,7 +12,7 @@ class A<T> {
   @pragma('dart2js:noInline')
   method() {
     /*omit.hasThis*/
-    /*strong.fields=[this],free=[this],hasThis*/
+    /*strong|dart2js:nnbd.fields=[this],free=[this],hasThis*/
     dynamic local() => <T, int>{};
     return local;
   }

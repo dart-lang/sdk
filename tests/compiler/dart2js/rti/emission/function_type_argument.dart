@@ -6,13 +6,13 @@
 
 import 'package:expect/expect.dart';
 
-/*strong.class: C:checkedInstance,checks=[],instance,typeArgument*/
+/*strong|dart2js:nnbd.class: C:checkedInstance,checks=[],instance,typeArgument*/
 /*omit.class: C:checks=[],instance,typeArgument*/
 class C {
   call(int i) {}
 }
 
-/*strong.class: D:checkedInstance,checks=[],instance,typeArgument*/
+/*strong|dart2js:nnbd.class: D:checkedInstance,checks=[],instance,typeArgument*/
 /*omit.class: D:checks=[],instance,typeArgument*/
 class D {
   call(double i) {}

@@ -10,7 +10,7 @@ typedef int F<R>(R a);
 
 method<S>() {
   return
-      /*strong.fields=[S],free=[S]*/
+      /*strong|dart2js:nnbd.fields=[S],free=[S]*/
       /*omit.*/
       () {
     F<S> c = f;

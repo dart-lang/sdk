@@ -1,2 +1,3 @@
 strong=tests/compiler/dart2js/rti/rti_need_test_helper.dart
 omit=tests/compiler/dart2js/rti/rti_need_test_helper.dart
+dart2js:nnbd=tests/compiler/dart2js/rti/rti_need_test_helper.dart

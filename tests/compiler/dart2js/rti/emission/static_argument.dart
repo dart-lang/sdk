@@ -4,18 +4,17 @@
 
 // @dart = 2.7
 
-/*strong.class: I1:*/
-/*omit.class: I1:*/
+/*strong|omit.class: I1:*/
 class I1 {}
 
-/*strong.class: I2:checkedInstance*/
+/*strong|dart2js:nnbd.class: I2:checkedInstance*/
 class I2 {}
 
-/*strong.class: A:checks=[$isI2],instance*/
+/*strong|dart2js:nnbd.class: A:checks=[$isI2],instance*/
 /*omit.class: A:checks=[],instance*/
 class A implements I1, I2 {}
 
-/*strong.class: B:checks=[$isI2],instance*/
+/*strong|dart2js:nnbd.class: B:checks=[$isI2],instance*/
 /*omit.class: B:checks=[],instance*/
 class B implements I1, I2 {}
 

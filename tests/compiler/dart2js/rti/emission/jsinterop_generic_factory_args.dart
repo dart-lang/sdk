@@ -14,7 +14,7 @@ library foo;
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';
 
-/*strong.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
+/*strong|dart2js:nnbd.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
 /*omit.class: A:checkedTypeArgument,checks=[],typeArgument*/
 @JS()
 @anonymous

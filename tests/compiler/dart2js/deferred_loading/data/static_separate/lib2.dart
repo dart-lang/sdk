@@ -9,12 +9,13 @@ library lib2;
 import "package:expect/expect.dart";
 import "lib1.dart";
 
-/*member: foo:
+/*strong.member: foo:
  OutputUnit(3, {lib2}),
  constants=[
   ListConstant(<Map<int,int>>[MapConstant(<int, int>{IntConstant(1): IntConstant(3)})])=OutputUnit(3, {lib2}),
   MapConstant(<int, int>{IntConstant(1): IntConstant(3)})=OutputUnit(3, {lib2})]
 */
+/*dart2js:nnbd.member: foo:OutputUnit(3, {lib2}),constants=[ListConstant(<Map<int*,int*>*>[MapConstant(<int*, int*>{IntConstant(1): IntConstant(3)})])=OutputUnit(3, {lib2}),MapConstant(<int*, int*>{IntConstant(1): IntConstant(3)})=OutputUnit(3, {lib2})]*/
 foo() {
   Expect.equals(1, C.foo());
   Expect.mapEquals({}, C1.foo);

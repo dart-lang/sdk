@@ -13,7 +13,7 @@ class B<S> {
   /*member: B.method:hasThis*/
   method() {
     return
-        /*strong.fields=[this],free=[this],hasThis*/
+        /*strong|dart2js:nnbd.fields=[this],free=[this],hasThis*/
         /*omit.hasThis*/
         () {
       F<S> c = f;

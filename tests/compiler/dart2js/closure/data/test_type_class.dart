@@ -41,7 +41,7 @@ class Class3<T> {
   /*member: Class3.method3:hasThis*/
   method3(dynamic o) {
     /*omit.fields=[o],free=[o],hasThis*/
-    /*strong.fields=[o,this],free=[o,this],hasThis*/
+    /*strong|dart2js:nnbd.fields=[o,this],free=[o,this],hasThis*/
     T local() => o;
     return local;
   }

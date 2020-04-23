@@ -28,11 +28,11 @@ main() {
 // inserts an implicit cast at the call-site or we disregard the forced check
 // because it is a static call.
 
-/*strong.class: Class1a:checkedInstance*/
+/*strong|dart2js:nnbd.class: Class1a:checkedInstance*/
 /*omit.class: Class1a:*/
 class Class1a {}
 
-/*strong.class: Class1b:checkedInstance*/
+/*strong|dart2js:nnbd.class: Class1b:checkedInstance*/
 /*omit.class: Class1b:*/
 class Class1b {}
 
@@ -52,11 +52,11 @@ class Class3a {}
 /*class: Class3b:*/
 class Class3b {}
 
-/*strong.class: Class4a:checkedInstance*/
+/*strong|dart2js:nnbd.class: Class4a:checkedInstance*/
 /*omit.class: Class4a:*/
 class Class4a<T> {}
 
-/*strong.class: Class4b:checkedInstance*/
+/*strong|dart2js:nnbd.class: Class4b:checkedInstance*/
 /*omit.class: Class4b:*/
 class Class4b<T> {}
 

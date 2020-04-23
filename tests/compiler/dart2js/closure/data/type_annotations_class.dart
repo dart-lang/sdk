@@ -51,7 +51,7 @@ class Class2<T> {
   /*member: Class2.method2:hasThis*/
   method2() {
     /*omit.hasThis*/
-    /*strong.fields=[this],free=[this],hasThis*/
+    /*strong|dart2js:nnbd.fields=[this],free=[this],hasThis*/
     dynamic local(T t) => t;
     return local;
   }
@@ -66,7 +66,7 @@ class Class3<T> {
   /*member: Class3.method3:hasThis*/
   method3(dynamic o) {
     /*omit.fields=[o],free=[o],hasThis*/
-    /*strong.fields=[o,this],free=[o,this],hasThis*/
+    /*strong|dart2js:nnbd.fields=[o,this],free=[o,this],hasThis*/
     T local() => o;
     return local;
   }
@@ -109,7 +109,7 @@ class Class6<T> {
   /*member: Class6.method6:hasThis*/
   method6() {
     /*omit.hasThis*/
-    /*strong.fields=[this],free=[this],hasThis*/
+    /*strong|dart2js:nnbd.fields=[this],free=[this],hasThis*/
     dynamic local(T t) {
       /*fields=[t],free=[t],hasThis*/
       dynamic inner() => t;
@@ -129,7 +129,7 @@ class Class7<T> {
   /*member: Class7.method7:hasThis*/
   method7(dynamic o) {
     /*omit.fields=[o],free=[o],hasThis*/
-    /*strong.fields=[o,this],free=[o,this],hasThis*/
+    /*strong|dart2js:nnbd.fields=[o,this],free=[o,this],hasThis*/
     T local() {
       /*fields=[o],free=[o],hasThis*/
       dynamic inner() => o;

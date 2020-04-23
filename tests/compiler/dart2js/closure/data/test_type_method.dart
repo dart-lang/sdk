@@ -32,7 +32,7 @@ method2<T>(dynamic o) {
 
 /*member: method3:*/
 method3<T>(dynamic o) {
-  /*strong.fields=[T,o],free=[T,o]*/
+  /*strong|dart2js:nnbd.fields=[T,o],free=[T,o]*/
   /*omit.fields=[o],free=[o]*/
   T local() => o;
   return local;

@@ -23,7 +23,7 @@ method1<T>(T o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 method2<T>() {
-  /*strong.fields=[T],free=[T]*/
+  /*strong|dart2js:nnbd.fields=[T],free=[T]*/
   /*omit.*/
   dynamic local(T t) => t;
   return local;
@@ -34,7 +34,7 @@ method2<T>() {
 ////////////////////////////////////////////////////////////////////////////////
 
 method3<T>(dynamic o) {
-  /*strong.fields=[T,o],free=[T,o]*/
+  /*strong|dart2js:nnbd.fields=[T,o],free=[T,o]*/
   /*omit.fields=[o],free=[o]*/
   T local() => o;
   return local;
@@ -65,7 +65,7 @@ T method5<T>(dynamic o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 method6<T>() {
-  /*strong.fields=[T],free=[T]*/
+  /*strong|dart2js:nnbd.fields=[T],free=[T]*/
   /*omit.*/
   dynamic local(T t) {
     /*fields=[t],free=[t]*/
@@ -81,7 +81,7 @@ method6<T>() {
 ////////////////////////////////////////////////////////////////////////////////
 
 method7<T>(dynamic o) {
-  /*strong.fields=[T,o],free=[T,o]*/
+  /*strong|dart2js:nnbd.fields=[T,o],free=[T,o]*/
   /*omit.fields=[o],free=[o]*/
   T local() {
     /*fields=[o],free=[o]*/

@@ -6,11 +6,12 @@
 
 import 'lib1.dart' deferred as lib;
 
-/*member: main:
+/*strong.member: main:
  OutputUnit(main, {}),
  constants=[
   MapConstant(<int, dynamic Function({M b})>{IntConstant(1): FunctionConstant(f1), IntConstant(2): FunctionConstant(f2)})=OutputUnit(1, {lib})]
 */
+/*dart2js:nnbd.member: main:OutputUnit(main, {}),constants=[MapConstant(<int*, dynamic Function({M* b})*>{IntConstant(1): FunctionConstant(f1), IntConstant(2): FunctionConstant(f2)})=OutputUnit(1, {lib})]*/
 main() async {
   await lib.loadLibrary();
   print(lib.table[1]);

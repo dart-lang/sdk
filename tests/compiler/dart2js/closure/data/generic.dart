@@ -58,11 +58,11 @@ class Class1<T> {
     }
 
     var local2 =
-        /*strong.fields=[S,this],free=[S,this],hasThis*/
+        /*strong|dart2js:nnbd.fields=[S,this],free=[S,this],hasThis*/
         /*omit.hasThis*/
         (o) {
       return
-          /*strong.fields=[S,this],free=[S,this],hasThis*/
+          /*strong|dart2js:nnbd.fields=[S,this],free=[S,this],hasThis*/
           /*omit.hasThis*/
           () => new Map<T, S>();
     };

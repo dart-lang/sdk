@@ -19,6 +19,7 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 
+import '../helpers/compiler_helper.dart';
 import '../helpers/memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
 
@@ -37,16 +38,22 @@ const TestConfig omitConfig = const TestConfig(
     'strong mode without implicit checks',
     [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString]);
 
+const TestConfig dart2jsWithNnbdConfig =
+    const TestConfig(dart2jsWithNnbdMarker, 'dart2js with nnbd', []);
+
 const List<String> allInternalMarkers = const [
   strongMarker,
   omitMarker,
+  dart2jsWithNnbdMarker
 ];
 
 /// Default internal configurations not including experimental features.
-const List<TestConfig> defaultInternalConfigs = const [
-  strongConfig,
-  omitConfig
-];
+List<TestConfig> defaultInternalConfigs = isDart2jsNnbd
+    ? const [dart2jsWithNnbdConfig]
+    : const [
+        strongConfig,
+        omitConfig,
+      ];
 
 /// All internal configurations including experimental features.
 const List<TestConfig> allInternalConfigs = const [
@@ -56,12 +63,13 @@ const List<TestConfig> allInternalConfigs = const [
 
 /// Compliance mode configurations (with strong mode checks) including
 /// experimental features.
-const List<TestConfig> allStrongConfigs = const [
-  strongConfig,
-];
+List<TestConfig> allStrongConfigs =
+    isDart2jsNnbd ? const [dart2jsWithNnbdConfig] : const [strongConfig];
 
 /// Test configuration used in tests shared with CFE.
-const TestConfig sharedConfig = const TestConfig(dart2jsMarker, 'dart2js', []);
+TestConfig sharedConfig = isDart2jsNnbd
+    ? dart2jsWithNnbdConfig
+    : const TestConfig(dart2jsMarker, 'dart2js', []);
 
 abstract class DataComputer<T> {
   const DataComputer();
@@ -400,7 +408,8 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     int shards: 1,
     int shardIndex: 0,
     void onTest(Uri uri),
-    List<TestConfig> testedConfigs = defaultInternalConfigs}) async {
+    List<TestConfig> testedConfigs = const []}) async {
+  if (testedConfigs.isEmpty) testedConfigs = defaultInternalConfigs;
   Set<String> testedMarkers =
       testedConfigs.map((config) => config.marker).toSet();
   Expect.isTrue(
