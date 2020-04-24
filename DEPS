@@ -95,7 +95,7 @@ vars = {
   "http_multi_server_rev" : "ea269f79321d659208402088f3297e8920a88ee6",
   "http_parser_tag" : "3.1.3",
   "http_retry_tag": "0.1.1",
-  "http_tag" : "0.12.0+2",
+  "http_tag": "a131e563c09349f624d5421237183a06fb10552d",
   "http_throttle_tag" : "1.0.2",
   "icu_rev" : "5005010d694e16571b8dfbf07d70817841f80a69",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
