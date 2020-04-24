@@ -103,7 +103,7 @@ vars = {
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "eec10819a40e7bf2e401f2b97368776a90cc5550",
   "linter_tag": "0.1.115",
-  "logging_tag": "0.11.3+2",
+  "logging_tag": "9561ba016ae607747ae69b846c0e10958ca58ed4",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.1.1",
   "matcher_tag": "0.12.5",
