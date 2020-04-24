@@ -83,7 +83,7 @@ When writing lints, it can be useful to have the [Dart Language Specification](h
 
 ### Writing Tests that Depend on Dart SDK Details
 
-**Important:** when writing tests that use standard `dart:` libraries, it's important to keep in mind that linter tests use a mocked SDK that has only a small subset of the real one.  We do this for performance reasons as it's FAR faster to load a mock SDK into memory than read the real one from disk.  If you are writing tests that depend on something in the Dart SDK (for example, an interface such as `Iterable`), you may need to update our [mock content](https://github.com/dart-lang/linter/blob/master/test/mock_sdk.dart).
+**Important:** when writing tests that use standard `dart:` libraries, it's important to keep in mind that linter tests use a mocked SDK that has only a small subset of the real one.  We do this for performance reasons as it's FAR faster to load a mock SDK into memory than read the real one from disk.  If you are writing tests that depend on something in the Dart SDK (for example, an interface such as `Iterable`), you may need to update SDK mock content located in the `package:analyzer` [test utilities `mock_sdk.dart`](https://github.com/dart-lang/sdk/blob/master/pkg/analyzer/lib/src/test_utilities/mock_sdk.dart).
 
 ### Running Tests
 
