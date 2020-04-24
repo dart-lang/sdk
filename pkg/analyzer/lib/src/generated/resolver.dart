@@ -517,7 +517,9 @@ class ResolverVisitor extends ScopedVisitor {
         _unfinishedNullShorts.removeLast();
         _flowAnalysis.flow.nullAwareAccess_end();
       } while (identical(_unfinishedNullShorts.last, node));
-      node.staticType = typeSystem.makeNullable(node.staticType);
+      if (node is! CascadeExpression) {
+        node.staticType = typeSystem.makeNullable(node.staticType);
+      }
     }
   }
 
