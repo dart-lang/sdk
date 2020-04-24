@@ -191,6 +191,9 @@ class MemberSuggestionBuilder {
   /// The request for which suggestions are being built.
   final DartCompletionRequest request;
 
+  /// The builder used to build the suggestions.
+  final SuggestionBuilder builder;
+
   /// Map indicating, for each possible completion identifier, whether we have
   /// already generated completions for a getter, setter, or both.  The "both"
   /// case also handles the case where have generated a completion for a method
@@ -204,7 +207,7 @@ class MemberSuggestionBuilder {
   final Map<String, CompletionSuggestion> _suggestionMap =
       <String, CompletionSuggestion>{};
 
-  MemberSuggestionBuilder(this.request);
+  MemberSuggestionBuilder(this.request, this.builder);
 
   Iterable<CompletionSuggestion> get suggestions => _suggestionMap.values;
 
@@ -546,6 +549,29 @@ class SuggestionBuilder {
 
     suggestions.add(
         createSuggestion(request, extension, kind: kind, relevance: relevance));
+  }
+
+  /// Add a suggestion for the `call` method defined on functions.
+  void suggestFunctionCall() {
+    const callString = 'call()';
+    final element = protocol.Element(
+        protocol.ElementKind.METHOD, callString, protocol.Element.makeFlags(),
+        location: null,
+        typeParameters: null,
+        parameters: null,
+        returnType: 'void');
+    suggestions.add(CompletionSuggestion(
+      CompletionSuggestionKind.INVOCATION,
+      request.useNewRelevance ? Relevance.callFunction : DART_RELEVANCE_HIGH,
+      callString,
+      callString.length,
+      0,
+      false,
+      false,
+      displayText: callString,
+      element: element,
+      returnType: 'void',
+    ));
   }
 
   /// Add a suggestion for the [functionTypeAlias].

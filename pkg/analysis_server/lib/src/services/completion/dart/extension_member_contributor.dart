@@ -32,7 +32,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
-    memberBuilder = MemberSuggestionBuilder(request);
+    memberBuilder = MemberSuggestionBuilder(request, builder);
 
     // Recompute the target because resolution might have changed it.
     var expression = request.dotTarget;
