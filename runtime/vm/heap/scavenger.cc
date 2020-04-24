@@ -845,9 +845,12 @@ SemiSpace* Scavenger::Prologue() {
     OUT_OF_MEMORY();
   }
   UpdateMaxHeapCapacity();
-  top_ = FirstObjectStart();
-  resolved_top_ = top_;
-  end_ = to_->end();
+  {
+    MutexLocker ml(&space_lock_);
+    top_ = FirstObjectStart();
+    resolved_top_ = top_;
+    end_ = to_->end();
+  }
 
   return from;
 }
