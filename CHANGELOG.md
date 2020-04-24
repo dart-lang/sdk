@@ -18,6 +18,17 @@
 
 ### Tools
 
+#### dartfmt
+
+* Add `--fix-single-cascade-statements`.
+* Correctly handle `var` in `--fix-function-typedefs`.
+* Preserve leading indentation in fixed doc comments.
+* Split outer nested control flow elements.
+* Always place a blank line after script tags.
+* Don't add unneeded splits on if elements near comments.
+* Indent blocks in initializers of multiple-variable declarations.
+* Update the null-aware subscript syntax from `?.[]` to `?[]`.
+
 #### Linter
 
 Updated the Linter to `0.1.115`, which includes:
