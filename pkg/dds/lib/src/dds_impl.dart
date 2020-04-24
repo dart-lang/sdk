@@ -107,6 +107,9 @@ class _DartDevelopmentService implements DartDevelopmentService {
     return uri.replace(scheme: 'ws', pathSegments: pathSegments);
   }
 
+  String _getNamespace(_DartDevelopmentServiceClient client) =>
+      _clients.keyOf(client);
+
   Uri get remoteVmServiceUri => _remoteVmServiceUri;
   Uri get remoteVmServiceWsUri => _toWebSocket(_remoteVmServiceUri);
   Uri _remoteVmServiceUri;
@@ -123,7 +126,11 @@ class _DartDevelopmentService implements DartDevelopmentService {
   _StreamManager get streamManager => _streamManager;
   _StreamManager _streamManager;
 
-  final List<_DartDevelopmentServiceClient> _clients = [];
+  // Handles namespace generation for service extensions.
+  static const _kServicePrologue = 's';
+  final NamedLookup<_DartDevelopmentServiceClient> _clients = NamedLookup(
+    prologue: _kServicePrologue,
+  );
 
   json_rpc.Peer _vmServiceClient;
   WebSocketChannel _vmServiceSocket;

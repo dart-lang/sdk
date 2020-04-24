@@ -12,17 +12,72 @@ class _StreamManager {
   /// If `data` is of type `Uint8List`, the notification is assumed to be a
   /// binary event and is forwarded directly over the subscriber's websocket.
   /// Otherwise, the event is sent via the JSON RPC client.
-  void streamNotify(String streamId, data) {
+  ///
+  /// If `excludedClient` is provided, the notification will be sent to all
+  /// clients subscribed to `streamId` except for `excludedClient`.
+  void streamNotify(
+    String streamId,
+    data, {
+    _DartDevelopmentServiceClient excludedClient,
+  }) {
     if (streamListeners.containsKey(streamId)) {
       final listeners = streamListeners[streamId];
       final isBinaryData = data is Uint8List;
       for (final listener in listeners) {
+        if (listener == excludedClient) {
+          continue;
+        }
         if (isBinaryData) {
           listener.ws.sink.add(data);
         } else {
           listener.sendNotification('streamNotify', data);
         }
       }
+    }
+  }
+
+  void sendServiceRegisteredEvent(
+    _DartDevelopmentServiceClient client,
+    String service,
+    String alias,
+  ) {
+    final namespace = dds._getNamespace(client);
+    streamNotify(
+      kServiceStream,
+      {
+        'streamId': kServiceStream,
+        'event': {
+          'type': 'Event',
+          'kind': 'ServiceRegistered',
+          'timestamp': DateTime.now().millisecondsSinceEpoch,
+          'service': service,
+          'method': namespace + '.' + service,
+          'alias': alias,
+        },
+      },
+      excludedClient: client,
+    );
+  }
+
+  void _sendServiceUnregisteredEvents(
+    _DartDevelopmentServiceClient client,
+  ) {
+    final namespace = dds._getNamespace(client);
+    for (final service in client.services.keys) {
+      streamNotify(
+        kServiceStream,
+        {
+          'streamId': kServiceStream,
+          'event': {
+            'type': 'Event',
+            'kind': 'ServiceUnregistered',
+            'timestamp': DateTime.now().millisecondsSinceEpoch,
+            'service': service,
+            'method': namespace + '.' + service,
+          },
+        },
+        excludedClient: client,
+      );
     }
   }
 
@@ -94,22 +149,20 @@ class _StreamManager {
         test: (e) => e is json_rpc.RpcException,
       );
     }
+    // Notify other service clients of service extensions that are being
+    // unregistered.
+    _sendServiceUnregisteredEvents(client);
   }
 
-  // These error codes must be kept in sync with those in vm/json_stream.h and
-  // vmservice.dart.
-  static const kStreamAlreadySubscribed = 103;
-  static const kStreamNotSubscribed = 104;
+  static const kServiceStream = 'Service';
 
-  // Keep these messages in sync with the VM service.
-  static final kStreamAlreadySubscribedException = json_rpc.RpcException(
-    kStreamAlreadySubscribed,
-    'Stream already subscribed',
+  static final kStreamAlreadySubscribedException =
+      _RpcErrorCodes.buildRpcException(
+    _RpcErrorCodes.kStreamAlreadySubscribed,
   );
 
-  static final kStreamNotSubscribedException = json_rpc.RpcException(
-    kStreamNotSubscribed,
-    'Stream not subscribed',
+  static final kStreamNotSubscribedException = _RpcErrorCodes.buildRpcException(
+    _RpcErrorCodes.kStreamNotSubscribed,
   );
 
   final _DartDevelopmentService dds;
