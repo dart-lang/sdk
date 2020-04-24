@@ -8,7 +8,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';

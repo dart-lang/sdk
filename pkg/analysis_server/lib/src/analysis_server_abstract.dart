@@ -47,10 +47,11 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/glob.dart';
+import 'package:nnbd_migration/api_for_analysis_server/driver_provider.dart';
 
 /// Implementations of [AbstractAnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
-abstract class AbstractAnalysisServer {
+abstract class AbstractAnalysisServer implements DriverProvider {
   /// The options of this server instance.
   AnalysisServerOptions options;
 
@@ -127,6 +128,7 @@ abstract class AbstractAnalysisServer {
   ];
 
   /// The [ResourceProvider] using which paths are converted into [Resource]s.
+  @override
   final OverlayResourceProvider resourceProvider;
 
   /// The next modification stamp for a changed file in the [resourceProvider].
@@ -263,6 +265,7 @@ abstract class AbstractAnalysisServer {
   /// Return an analysis driver to which the file with the given [path] is
   /// added if one exists, otherwise a driver in which the file was analyzed if
   /// one exists, otherwise the first driver, otherwise `null`.
+  @override
   nd.AnalysisDriver getAnalysisDriver(String path) {
     var drivers = driverMap.values.toList();
     if (drivers.isNotEmpty) {

@@ -8,13 +8,17 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show Location, SourceChange, SourceEdit, SourceFileEdit;
+import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
 
 /// Tasks use this API to report results.
-class DartFixListener {
+class DartFixListener implements DartFixListenerInterface {
+  @override
   final AnalysisServer server;
 
   final List<DartFixSuggestion> suggestions = <DartFixSuggestion>[];
   final List<DartFixSuggestion> otherSuggestions = <DartFixSuggestion>[];
+
+  @override
   final SourceChange sourceChange = SourceChange('dartfix');
 
   /// The details to be returned to the client.

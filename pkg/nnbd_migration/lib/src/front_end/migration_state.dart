@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
+import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/info_builder.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
@@ -20,7 +20,7 @@ class MigrationState {
   final String includedRoot;
 
   /// The listener used to collect fixes.
-  final DartFixListener listener;
+  final DartFixListenerInterface listener;
 
   /// The listener that collected information during the migration.
   final InstrumentationListener instrumentationListener;

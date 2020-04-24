@@ -4,8 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -15,6 +13,8 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
+import 'package:nnbd_migration/api_for_analysis_server/driver_provider.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -35,7 +35,7 @@ class InfoBuilder {
   final InstrumentationInformation info;
 
   /// The listener used to gather the changes to be applied.
-  final DartFixListener listener;
+  final DartFixListenerInterface listener;
 
   /// The [NullabilityMigration] instance for this migration.
   final NullabilityMigration migration;
@@ -48,8 +48,8 @@ class InfoBuilder {
   InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
       this.migration);
 
-  /// The analysis server used to get information about libraries.
-  AnalysisServer get server => listener.server;
+  /// The provider used to get information about libraries.
+  DriverProvider get driverProvider => listener.server;
 
   /// Return the migration information for all of the libraries that were
   /// migrated.
@@ -59,7 +59,7 @@ class InfoBuilder {
         SplayTreeSet<UnitInfo>((u1, u2) => u1.path.compareTo(u2.path));
     for (var source in sourceInfoMap.keys) {
       var filePath = source.fullName;
-      var session = server.getAnalysisDriver(filePath).currentSession;
+      var session = driverProvider.getAnalysisDriver(filePath).currentSession;
       if (!session.getFile(filePath).isPart) {
         var result = await session.getResolvedLibrary(filePath);
         for (var unitResult in result.units) {
