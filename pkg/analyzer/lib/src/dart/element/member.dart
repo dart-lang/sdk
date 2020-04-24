@@ -1021,6 +1021,7 @@ abstract class VariableMember extends Member implements VariableElement {
   @override
   VariableElement get baseElement => declaration;
 
+  @Deprecated('Use computeConstantValue() instead')
   @override
   DartObject get constantValue => declaration.constantValue;
 

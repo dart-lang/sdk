@@ -1,3 +1,7 @@
+## 0.39.8-dev
+* Deprecated `VariableElement.constantValue`, it does not guarantee that
+  the value has been computed. Use `computeConstantValue()` instead.
+
 ## 0.39.7
 * Added new error codes: ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING and
   THROW_OF_INVALID_TYPE.

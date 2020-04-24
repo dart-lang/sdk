@@ -145,7 +145,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['typeParameters'] = element.typeParameters;
     }
     if (element is VariableElement) {
-      properties['constantValue'] = element.constantValue;
       properties['hasImplicitType'] = element.hasImplicitType;
       properties['isConst'] = element.isConst;
       properties['isFinal'] = element.isFinal;

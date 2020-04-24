@@ -2212,12 +2212,10 @@ main() {
     SimpleIdentifier argument = findNode.simple('C);');
     PropertyAccessorElementImpl getter = argument.staticElement;
     TopLevelVariableElement constant = getter.variable;
-    expect(constant.constantValue, isNull);
 
     DartObject value = constant.computeConstantValue();
     expect(value, isNotNull);
     expect(value.toIntValue(), 42);
-    expect(constant.constantValue, value);
   }
 }
 

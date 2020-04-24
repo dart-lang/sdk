@@ -885,8 +885,8 @@ const y = 1;
     var result = await driver.getResult(testFile);
     var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
     var y = AstFinder.getTopLevelVariableElement(result.unit, 'y');
-    expect(x.constantValue.toIntValue(), 2);
-    expect(y.constantValue.toIntValue(), 1);
+    expect(x.computeConstantValue().toIntValue(), 2);
+    expect(y.computeConstantValue().toIntValue(), 1);
   }
 
   test_const_externalConstFactory() async {
@@ -901,7 +901,7 @@ class B {}
 ''');
     var result = await driver.getResult(testFile);
     var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
-    expect(x.constantValue, isNotNull);
+    expect(x.computeConstantValue(), isNotNull);
   }
 
   test_const_implicitCreation() async {
@@ -967,7 +967,7 @@ const x = const Derived();
 ''');
     var result = await driver.getResult(testFile);
     var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
-    expect(x.constantValue, isNotNull);
+    expect(x.computeConstantValue(), isNotNull);
   }
 
   test_const_simple_topLevelVariable() async {
@@ -976,7 +976,7 @@ const x = 1;
 ''');
     var result = await driver.getResult(testFile);
     var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
-    expect(x.constantValue.toIntValue(), 1);
+    expect(x.computeConstantValue().toIntValue(), 1);
   }
 
   test_currentSession() async {

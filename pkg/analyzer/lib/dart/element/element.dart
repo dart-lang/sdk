@@ -1735,6 +1735,7 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   /// Return `null` if either this variable was not declared with the 'const'
   /// modifier or if the value of this variable could not be computed because of
   /// errors.
+  @Deprecated('Use computeConstantValue() instead')
   DartObject get constantValue;
 
   @override
