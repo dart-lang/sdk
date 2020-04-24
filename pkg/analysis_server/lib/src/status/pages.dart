@@ -221,7 +221,7 @@ abstract class Site {
     int code = HttpStatus.ok,
   }) async {
     if (request.headers.contentType.subType == 'json') {
-      return respondJson(request, {"success": true}, code);
+      return respondJson(request, {'success': true}, code);
     }
 
     var response = request.response;
