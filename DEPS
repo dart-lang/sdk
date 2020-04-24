@@ -105,7 +105,7 @@ vars = {
   "linter_tag": "0.1.115",
   "logging_tag": "9561ba016ae607747ae69b846c0e10958ca58ed4",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "markdown_tag": "2.1.1",
+  "markdown_tag": "dd150bb64c5f3b41d31f20f399ae2a855f7f8c00",
   "matcher_tag": "0.12.5",
   "mime_tag": "0.9.6+2",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
