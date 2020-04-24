@@ -869,6 +869,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (variable.isFinal) {
         flags |= ParameterDeclaration.isFinalFlag;
       }
+      if (variable.isRequired) {
+        flags |= ParameterDeclaration.isRequiredFlag;
+      }
       return flags;
     }
 
@@ -2661,6 +2664,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       flags |= ClosureDeclaration.hasTypeParamsFlag;
     }
 
+    final List<int> parameterFlags = getParameterFlags(function);
+    if (parameterFlags != null) {
+      flags |= ClosureDeclaration.hasParameterFlagsFlag;
+    }
+
     return new ClosureDeclaration(
         flags,
         objectTable.getHandle(parent),
@@ -2671,6 +2679,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         function.requiredParameterCount,
         function.namedParameters.length,
         parameters,
+        parameterFlags,
         objectTable.getHandle(function.returnType));
   }
 

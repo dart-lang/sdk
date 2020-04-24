@@ -209,10 +209,15 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
     intptr_t num_params = reader_.ReadUInt();
     ASSERT(num_params ==
            function.NumParameters() - function.NumImplicitParameters());
-    for (intptr_t i = 0; i < num_params; ++i) {
-      reader_.ReadUInt();
+    for (intptr_t i = function.NumImplicitParameters();
+         i < function.NumParameters(); ++i) {
+      const intptr_t flags = reader_.ReadUInt();
+      if ((flags & Parameter::kIsRequiredFlag) != 0) {
+        function.SetIsRequiredAt(i);
+      }
     }
   }
+  function.TruncateUnusedParameterFlags();
   if (has_forwarding_stub_target) {
     reader_.ReadUInt();
   }
@@ -457,6 +462,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   const int kIsSyncStarFlag = 1 << 6;
   const int kIsDebuggableFlag = 1 << 7;
   const int kHasAttributesFlag = 1 << 8;
+  const int kHasParameterFlagsFlag = 1 << 9;
 
   const intptr_t flags = reader_.ReadUInt();
 
@@ -503,12 +509,12 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   closures_->SetAt(closureIndex, closure);
 
   Type& signature_type = Type::Handle(
-      Z, ReadFunctionSignature(closure,
-                               (flags & kHasOptionalPositionalParamsFlag) != 0,
-                               (flags & kHasOptionalNamedParamsFlag) != 0,
-                               (flags & kHasTypeParamsFlag) != 0,
-                               /* has_positional_param_names = */ true,
-                               Nullability::kNonNullable));
+      Z, ReadFunctionSignature(
+             closure, (flags & kHasOptionalPositionalParamsFlag) != 0,
+             (flags & kHasOptionalNamedParamsFlag) != 0,
+             (flags & kHasTypeParamsFlag) != 0,
+             /* has_positional_param_names = */ true,
+             (flags & kHasParameterFlagsFlag) != 0, Nullability::kNonNullable));
 
   closure.SetSignatureType(signature_type);
 
@@ -554,6 +560,7 @@ RawType* BytecodeReaderHelper::ReadFunctionSignature(
     bool has_optional_named_params,
     bool has_type_params,
     bool has_positional_param_names,
+    bool has_parameter_flags,
     Nullability nullability) {
   FunctionTypeScope function_type_scope(this);
 
@@ -575,8 +582,9 @@ RawType* BytecodeReaderHelper::ReadFunctionSignature(
   const Array& parameter_types =
       Array::Handle(Z, Array::New(num_params, Heap::kOld));
   func.set_parameter_types(parameter_types);
-  const Array& parameter_names =
-      Array::Handle(Z, Array::New(num_params, Heap::kOld));
+  const Array& parameter_names = Array::Handle(
+      Z, Array::New(Function::NameArrayLengthIncludingFlags(num_params),
+                    Heap::kOld));
   func.set_parameter_names(parameter_names);
 
   intptr_t i = 0;
@@ -597,6 +605,16 @@ RawType* BytecodeReaderHelper::ReadFunctionSignature(
     type ^= ReadObject();
     parameter_types.SetAt(i, type);
   }
+  if (has_parameter_flags) {
+    intptr_t num_flags = reader_.ReadUInt();
+    for (intptr_t i = 0; i < num_flags; ++i) {
+      intptr_t flag = reader_.ReadUInt();
+      if ((flag & Parameter::kIsRequiredFlag) != 0) {
+        func.SetIsRequiredAt(kImplicitClosureParam + i);
+      }
+    }
+  }
+  func.TruncateUnusedParameterFlags();
 
   type ^= ReadObject();
   func.set_result_type(type);
@@ -1801,7 +1819,8 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
           signature_function, (flags & kFlagHasOptionalPositionalParams) != 0,
           (flags & kFlagHasOptionalNamedParams) != 0,
           (flags & kFlagHasTypeParams) != 0,
-          /* has_positional_param_names = */ false, nullability);
+          /* has_positional_param_names = */ false,
+          /* has_parameter_flags */ false, nullability);
     }
     default:
       UNREACHABLE();
@@ -2346,7 +2365,8 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     parameter_types = Array::New(num_params, Heap::kOld);
     function.set_parameter_types(parameter_types);
 
-    parameter_names = Array::New(num_params, Heap::kOld);
+    parameter_names = Array::New(
+        Function::NameArrayLengthIncludingFlags(num_params), Heap::kOld);
     function.set_parameter_names(parameter_names);
 
     intptr_t param_index = 0;
@@ -3056,6 +3076,11 @@ void BytecodeReaderHelper::ParseForwarderFunction(
       bool is_covariant = (flags & Parameter::kIsCovariantFlag) != 0;
       bool is_generic_covariant_impl =
           (flags & Parameter::kIsGenericCovariantImplFlag) != 0;
+      bool is_required = (flags & Parameter::kIsRequiredFlag) != 0;
+
+      if (is_required) {
+        function.SetIsRequiredAt(num_implicit_params + i);
+      }
 
       LocalVariable* variable =
           parsed_function->ParameterVariable(num_implicit_params + i);

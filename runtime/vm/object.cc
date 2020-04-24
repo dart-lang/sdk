@@ -22522,6 +22522,9 @@ void Array::Truncate(intptr_t new_len) const {
 
   intptr_t old_len = array.Length();
   ASSERT(new_len <= old_len);
+  if (old_len == new_len) {
+    return;
+  }
   intptr_t old_size = Array::InstanceSize(old_len);
   intptr_t new_size = Array::InstanceSize(new_len);
 

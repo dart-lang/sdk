@@ -147,6 +147,7 @@ class BytecodeReaderHelper : public ValueObject {
     static const int kIsCovariantFlag = 1 << 0;
     static const int kIsGenericCovariantImplFlag = 1 << 1;
     static const int kIsFinalFlag = 1 << 2;
+    static const int kIsRequiredFlag = 1 << 3;
   };
 
   class FunctionTypeScope : public ValueObject {
@@ -197,6 +198,7 @@ class BytecodeReaderHelper : public ValueObject {
                                  bool has_optional_named_params,
                                  bool has_type_params,
                                  bool has_positional_param_names,
+                                 bool has_parameter_flags,
                                  Nullability nullability);
   void ReadTypeParametersDeclaration(const Class& parameterized_class,
                                      const Function& parameterized_function);
