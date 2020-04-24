@@ -55,6 +55,9 @@ class FileState {
    */
   final Source source;
 
+  /// Files that reference this file.
+  final List<FileState> referencingFiles = [];
+
   final List<FileState> importedFiles = [];
   final List<FileState> exportedFiles = [];
   final List<FileState> partedFiles = [];
@@ -152,6 +155,8 @@ class FileState {
   }
 
   void refresh() {
+    _fsState.testView.refreshedFiles.add(path);
+
     _fsState.timers.digest.run(() {
       _digest = utf8.encode(_fsState.getFileDigest(path));
       _exists = _digest.isNotEmpty;
@@ -233,7 +238,10 @@ class FileState {
       return _fsState.unresolvedFile;
     }
 
-    return _fsState.getFileForUri(absoluteUri);
+    var file = _fsState.getFileForUri(absoluteUri);
+    file.referencingFiles.add(this);
+
+    return file;
   }
 
   void _prefetchDirectReferences(UnlinkedUnit2 unlinkedUnit2) {
@@ -370,6 +378,8 @@ class FileSystemState {
 
   final FileSystemStateTimers timers = FileSystemStateTimers();
 
+  final FileSystemStateTestView testView = FileSystemStateTestView();
+
   FileSystemState(
     this._logger,
     this._resourceProvider,
@@ -391,6 +401,23 @@ class FileSystemState {
       _unresolvedFile.refresh();
     }
     return _unresolvedFile;
+  }
+
+  /// Update the state to reflect the fact that the file with the given [path]
+  /// was changed. Specifically this means that we evict this file and every
+  /// file that referenced it.
+  void changeFile(String path, List<FileState> removedFiles) {
+    var file = _pathToFile.remove(path);
+    if (file == null) {
+      return;
+    }
+
+    removedFiles.add(file);
+    _uriToFile.remove(file.uri);
+
+    for (var reference in file.referencingFiles) {
+      changeFile(reference.path, removedFiles);
+    }
   }
 
   FileState getFileForPath(String path) {
@@ -449,6 +476,10 @@ class FileSystemState {
     );
     timers.reset();
   }
+}
+
+class FileSystemStateTestView {
+  final List<String> refreshedFiles = [];
 }
 
 class FileSystemStateTimer {

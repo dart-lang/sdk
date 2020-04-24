@@ -12,8 +12,99 @@ import 'file_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(FileResolver_changeFile_Test);
     defineReflectiveTests(FileResolverTest);
   });
+}
+
+@reflectiveTest
+class FileResolver_changeFile_Test extends FileResolutionTest {
+  String aPath;
+  String bPath;
+  String cPath;
+
+  @override
+  void setUp() {
+    super.setUp();
+    aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    bPath = convertPath('/workspace/dart/test/lib/b.dart');
+    cPath = convertPath('/workspace/dart/test/lib/c.dart');
+  }
+
+  test_changeFile_refreshedFiles() async {
+    newFile(aPath, content: r'''
+class A {}
+''');
+
+    newFile(bPath, content: r'''
+class B {}
+''');
+
+    newFile(cPath, content: r'''
+import 'a.dart';
+import 'b.dart';
+''');
+
+    // First time we refresh everything.
+    await fileResolver.resolve(cPath);
+    _assertRefreshedFiles([aPath, bPath, cPath], withSdk: true);
+
+    // Without changes we refresh nothing.
+    await fileResolver.resolve(cPath);
+    _assertRefreshedFiles([]);
+
+    // We already know a.dart, refresh nothing.
+    await fileResolver.resolve(aPath);
+    _assertRefreshedFiles([]);
+
+    // Change a.dart, refresh a.dart and c.dart, but not b.dart
+    fileResolver.changeFile(aPath);
+    await fileResolver.resolve(cPath);
+    _assertRefreshedFiles([aPath, cPath]);
+  }
+
+  test_changeFile_resolution() async {
+    newFile(aPath, content: r'''
+class A {}
+''');
+
+    newFile(bPath, content: r'''
+import 'a.dart';
+A a;
+B b;
+''');
+
+    result = fileResolver.resolve(bPath);
+    assertErrorsInResolvedUnit(result, [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 22, 1),
+    ]);
+
+    newFile(aPath, content: r'''
+class A {}
+class B {}
+''');
+    fileResolver.changeFile(aPath);
+
+    result = fileResolver.resolve(bPath);
+    assertErrorsInResolvedUnit(result, []);
+  }
+
+  void _assertRefreshedFiles(List<String> expected, {bool withSdk = false}) {
+    var expectedPlusSdk = expected.toSet();
+
+    if (withSdk) {
+      expectedPlusSdk
+        ..add(convertPath('/sdk/lib/async/async.dart'))
+        ..add(convertPath('/sdk/lib/async/stream.dart'))
+        ..add(convertPath('/sdk/lib/core/core.dart'))
+        ..add(convertPath('/sdk/lib/math/math.dart'));
+    }
+
+    var refreshedFiles = fileResolver.fsState.testView.refreshedFiles;
+    expect(refreshedFiles, unorderedEquals(expectedPlusSdk));
+
+    refreshedFiles.clear();
+  }
 }
 
 @reflectiveTest

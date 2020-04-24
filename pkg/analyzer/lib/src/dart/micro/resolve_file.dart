@@ -69,6 +69,16 @@ class FileResolver {
 
   final Workspace workspace;
 
+  /// If not `null`, the library context will be reset after the specified
+  /// interval of inactivity. Keeping library context with loaded elements
+  /// significantly improves performance of resolution, because we don't have
+  /// to resynthesize elements, build export scopes for libraries, etc.
+  /// However keeping elements that we don't need anymore, or when the user
+  /// does not work with files, is wasteful.
+  ///
+  /// TODO(scheglov) use it
+  final Duration libraryContextResetDuration;
+
   /// This field gets value only during testing.
   FileResolverTestView testView;
 
@@ -78,12 +88,40 @@ class FileResolver {
 
   _LibraryContext libraryContext;
 
-  FileResolver(this.logger, this.resourceProvider, this.byteStore,
-      this.sourceFactory, this.getFileDigest, this.prefetchFiles,
-      {@required Workspace workspace})
-      : this.workspace = workspace;
+  FileResolver(
+    this.logger,
+    this.resourceProvider,
+    this.byteStore,
+    this.sourceFactory,
+    this.getFileDigest,
+    this.prefetchFiles, {
+    @required Workspace workspace,
+    this.libraryContextResetDuration,
+  }) : this.workspace = workspace;
 
   FeatureSet get defaultFeatureSet => FeatureSet.fromEnableFlags([]);
+
+  /// Update the resolver to reflect the fact that the file with the given
+  /// [path] was changed. We need to make sure that when this file, of any file
+  /// that directly or indirectly referenced it, is resolved, we used the new
+  /// state of the file.
+  void changeFile(String path) {
+    if (fsState == null) {
+      return;
+    }
+
+    // Remove this file and all files that transitively depend on it.
+    var removedFiles = <FileState>[];
+    fsState.changeFile(path, removedFiles);
+
+    // Remove libraries represented by removed files.
+    // If we need these libraries later, we will relink and reattach them.
+    if (libraryContext != null) {
+      libraryContext.elementFactory.removeLibraries(
+        removedFiles.map((e) => e.uriStr).toList(),
+      );
+    }
+  }
 
   ErrorsResult getErrors(String path) {
     _throwIfNotAbsoluteNormalizedPath(path);

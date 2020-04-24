@@ -150,6 +150,7 @@ class LinkedElementFactory {
   /// We have linked the bundle, and need to disconnect its libraries, so
   /// that the client can re-add the bundle, this time read from bytes.
   void removeBundle(LinkedBundleContext context) {
+    // TODO(scheglov) Use removeLibraries()
     for (var uriStr in context.libraryMap.keys) {
       libraryMap.remove(uriStr);
       rootReference.removeChild(uriStr);
@@ -157,6 +158,18 @@ class LinkedElementFactory {
 
     var classHierarchy = analysisSession.classHierarchy;
     classHierarchy.removeOfLibraries(context.libraryMap.keys);
+  }
+
+  /// Remove libraries with the specified URIs from the reference tree, and
+  /// any session level caches.
+  void removeLibraries(List<String> uriStrList) {
+    for (var uriStr in uriStrList) {
+      libraryMap.remove(uriStr);
+      rootReference.removeChild(uriStr);
+    }
+
+    var classHierarchy = analysisSession.classHierarchy;
+    classHierarchy.removeOfLibraries(uriStrList);
   }
 
   /// Set optional informative data for the unit.
