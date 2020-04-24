@@ -73,7 +73,7 @@ List<TestConfig> allSpecConfigs = isDart2jsNnbd
 
 /// Test configuration used in tests shared with CFE.
 TestConfig sharedConfig = isDart2jsNnbd
-    ? const TestConfig(dart2jsWithNnbdMarker, 'dart2js-nnbd', [])
+    ? const TestConfig(dart2jsWithNnbdSdkMarker, 'dart2js with nnbd sdk', [])
     : const TestConfig(dart2jsMarker, 'dart2js', []);
 
 abstract class DataComputer<T> {
