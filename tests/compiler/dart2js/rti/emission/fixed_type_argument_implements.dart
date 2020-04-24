@@ -7,19 +7,19 @@
 // Test that we emit the relation between B and A even when B is only live
 // as a type argument through the supertype of D.
 
-/*strong|dart2js:nnbd.class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A {}
 
-/*strong|dart2js:nnbd.class: B:checks=[$isA],typeArgument*/
-/*omit.class: B:checks=[],typeArgument*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: B:checks=[$isA],typeArgument*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: B:checks=[],typeArgument*/
 class B implements A {}
 
-/*strong|dart2js:nnbd.class: C:checkedInstance*/
-/*omit.class: C:*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: C:checkedInstance*/
+/*prod:nnbd-off.class: C:*/
 class C<T> {}
 
-/*strong|dart2js:nnbd.class: D:checks=[$isC],instance*/
-/*omit.class: D:checks=[],instance*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: D:checks=[$isC],instance*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: D:checks=[],instance*/
 class D implements C<B> {}
 
 main() {

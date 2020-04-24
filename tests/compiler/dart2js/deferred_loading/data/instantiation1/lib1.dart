@@ -9,12 +9,12 @@ T getFoo<T>(T v) => v;
 
 typedef dynamic G<T>(T v);
 
-/*strong.member: m:
+/*spec:nnbd-off.member: m:
  OutputUnit(1, {b}),
  constants=[
   InstantiationConstant([int],FunctionConstant(getFoo))=OutputUnit(1, {b})]
 */
-/*dart2js:nnbd.member: m:OutputUnit(1, {b}),constants=[InstantiationConstant([int*],FunctionConstant(getFoo))=OutputUnit(1, {b})]*/
+/*spec:nnbd-sdk.member: m:OutputUnit(1, {b}),constants=[InstantiationConstant([int*],FunctionConstant(getFoo))=OutputUnit(1, {b})]*/
 m(int x, {G<int> f: getFoo}) {
   print(f(x));
 }

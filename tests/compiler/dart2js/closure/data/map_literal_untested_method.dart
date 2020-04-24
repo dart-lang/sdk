@@ -8,8 +8,8 @@ import 'package:expect/expect.dart';
 
 @pragma('dart2js:noInline')
 method<T>() {
-  /*omit.*/
-  /*strong|dart2js:nnbd.fields=[T],free=[T]*/
+  /*prod:nnbd-off.*/
+  /*spec:nnbd-off|spec:nnbd-sdk.fields=[T],free=[T]*/
   dynamic local() => <T, int>{};
   return local;
 }

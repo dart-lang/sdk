@@ -8,8 +8,8 @@
 class A {
   /*member: A.noSuchMethod:[exact=JSUInt31]*/
   noSuchMethod(
-          /*strong.[null|subclass=Object]*/
-          /*omit.[null|exact=JSInvocationMirror]*/
+          /*spec:nnbd-off.[null|subclass=Object]*/
+          /*prod:nnbd-off.[null|exact=JSInvocationMirror]*/
           im) =>
       42;
 }

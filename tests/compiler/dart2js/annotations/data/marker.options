@@ -1,3 +1,4 @@
-strong=tests/compiler/dart2js/annotations/annotations_test.dart
-omit=tests/compiler/dart2js/annotations/annotations_test.dart
-dart2js:nnbd=tests/compiler/dart2js/annotations/annotations_test.dart
+spec:nnbd-off=tests/compiler/dart2js/annotations/annotations_test.dart
+prod:nnbd-off=tests/compiler/dart2js/annotations/annotations_test.dart
+spec:nnbd-sdk=tests/compiler/dart2js/annotations/annotations_test.dart
+prod:nnbd-sdk=tests/compiler/dart2js/annotations/annotations_test.dart

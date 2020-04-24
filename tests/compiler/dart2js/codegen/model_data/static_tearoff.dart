@@ -20,8 +20,15 @@ void foo(I1 x) {}
 @pragma('dart2js:noInline')
 void bar(I2 x) {}
 
-/*strong.member: main:calls=[bar(1),bar(1),foo(1),foo(1)],params=0*/
-/*omit.member: main:calls=[bar(1),bar(1),foo(1),foo(1)],params=0*/
+/*spec:nnbd-off|prod:nnbd-off.member: main:calls=[bar(1),bar(1),foo(1),foo(1)],params=0*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.member: main:
+ calls=[
+  bar(1),
+  bar(1),
+  foo(1),
+  foo(1)],
+ params=0
+*/
 main() {
   dynamic f = bar;
 

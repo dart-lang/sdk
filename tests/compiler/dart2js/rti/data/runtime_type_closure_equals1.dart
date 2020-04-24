@@ -6,16 +6,16 @@
 
 import 'package:expect/expect.dart';
 
-/*strong.class: Class:*/
-/*omit.class: Class:*/
+/*spec:nnbd-off.class: Class:*/
+/*prod:nnbd-off.class: Class:*/
 class Class<T> {
-  /*strong.member: Class.:*/
-  /*omit.member: Class.:*/
+  /*spec:nnbd-off.member: Class.:*/
+  /*prod:nnbd-off.member: Class.:*/
   Class();
 }
 
-/*strong.member: main:*/
-/*omit.member: main:*/
+/*spec:nnbd-off.member: main:*/
+/*prod:nnbd-off.member: main:*/
 main() {
   /*needsSignature*/
   local1a() {}

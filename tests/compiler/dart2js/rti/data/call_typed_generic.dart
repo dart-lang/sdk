@@ -6,11 +6,11 @@
 
 import 'package:expect/expect.dart';
 
-/*strong.class: A:direct,explicit=[A.T],needsArgs*/
-/*omit.class: A:*/
+/*spec:nnbd-off.class: A:direct,explicit=[A.T],needsArgs*/
+/*prod:nnbd-off.class: A:*/
 class A<T> {
-  /*strong.member: A.call:*/
-  /*omit.member: A.call:*/
+  /*spec:nnbd-off.member: A.call:*/
+  /*prod:nnbd-off.member: A.call:*/
   call(T t) {}
 }
 

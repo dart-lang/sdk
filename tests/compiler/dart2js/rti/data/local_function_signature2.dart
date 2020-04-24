@@ -27,8 +27,8 @@ class Class1 {
 }
 
 class Class2 {
-  /*strong.member: Class2.method4:direct,explicit=[method4.T],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
-  /*omit.member: Class2.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*spec:nnbd-off.member: Class2.method4:direct,explicit=[method4.T],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*prod:nnbd-off.member: Class2.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
   method4<T>() {
     /*needsSignature*/
     num local(T n) => null;
@@ -46,8 +46,8 @@ class Class3 {
 }
 
 class Class4 {
-  /*strong.member: Class4.method6:direct,explicit=[method6.T],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
-  /*omit.member: Class4.method6:*/
+  /*spec:nnbd-off.member: Class4.method6:direct,explicit=[method6.T],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
+  /*prod:nnbd-off.member: Class4.method6:*/
   method6<T>() {
     /**/
     num local(num n, T t) => null;
@@ -55,8 +55,8 @@ class Class4 {
   }
 }
 
-/*strong.member: method7:direct,explicit=[method7.T],needsArgs*/
-/*omit.member: method7:needsArgs*/
+/*spec:nnbd-off.member: method7:direct,explicit=[method7.T],needsArgs*/
+/*prod:nnbd-off.member: method7:needsArgs*/
 method7<T>() {
   /*needsSignature*/
   num local(T n) => null;
@@ -70,8 +70,8 @@ method8<T>() {
   return local;
 }
 
-/*strong.member: method9:direct,explicit=[method9.T],needsArgs*/
-/*omit.member: method9:*/
+/*spec:nnbd-off.member: method9:direct,explicit=[method9.T],needsArgs*/
+/*prod:nnbd-off.member: method9:*/
 method9<T>() {
   /**/
   num local(num n, T t) => null;
@@ -79,8 +79,8 @@ method9<T>() {
 }
 
 method10() {
-  /*strong.direct,explicit=[local.T],needsArgs*/
-  /*omit.*/
+  /*spec:nnbd-off.direct,explicit=[local.T],needsArgs*/
+  /*prod:nnbd-off.*/
   num local<T>(T n) => null;
   return local;
 }
@@ -92,8 +92,8 @@ method11() {
 }
 
 method12() {
-  /*strong.direct,explicit=[local.T],needsArgs*/
-  /*omit.*/
+  /*spec:nnbd-off.direct,explicit=[local.T],needsArgs*/
+  /*prod:nnbd-off.*/
   num local<T>(num n, T t) => null;
   return local;
 }

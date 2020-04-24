@@ -4,14 +4,14 @@
 
 // @dart = 2.7
 
-/*strong.member: f:deps=[B],direct,explicit=[f.T],needsArgs,needsInst=[<B.S>]*/
-/*omit.member: f:deps=[B],direct,explicit=[f.T],needsArgs,needsInst=[<B.S>]*/
+/*spec:nnbd-off.member: f:deps=[B],direct,explicit=[f.T],needsArgs,needsInst=[<B.S>]*/
+/*prod:nnbd-off.member: f:deps=[B],direct,explicit=[f.T],needsArgs,needsInst=[<B.S>]*/
 bool f<T>(T a) => a is T;
 
 typedef bool F<R>(R a);
 
-/*strong.class: B:direct,explicit=[bool Function(B.S)],needsArgs*/
-/*omit.class: B:indirect,needsArgs*/
+/*spec:nnbd-off.class: B:direct,explicit=[bool Function(B.S)],needsArgs*/
+/*prod:nnbd-off.class: B:indirect,needsArgs*/
 class B<S> {
   F<S> c;
 

@@ -24,7 +24,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const AnnotationDataComputer(),
-        args: args, testedConfigs: allStrongConfigs);
+        args: args, testedConfigs: allSpecConfigs);
   });
 }
 

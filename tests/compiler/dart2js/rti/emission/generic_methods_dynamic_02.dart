@@ -8,12 +8,12 @@
 
 library generic_methods_dynamic_test;
 
-/*strong|dart2js:nnbd.class: A:checkedInstance,checks=[],typeArgument*/
-/*omit.class: A:*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: A:checkedInstance,checks=[],typeArgument*/
+/*prod:nnbd-off.class: A:*/
 class A {}
 
-/*strong|dart2js:nnbd.class: B:checks=[],instance*/
-/*omit.class: B:*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: B:checks=[],instance*/
+/*prod:nnbd-off.class: B:*/
 class B {}
 
 /*class: C:*/

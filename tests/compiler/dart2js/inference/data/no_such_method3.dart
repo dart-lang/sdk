@@ -10,8 +10,8 @@ class A {
   // throws an exception.
   /*member: A.noSuchMethod:[empty]*/
   noSuchMethod(
-          /*strong.[null|subclass=Object]*/
-          /*omit.[null|exact=JSInvocationMirror]*/
+          /*spec:nnbd-off.[null|subclass=Object]*/
+          /*prod:nnbd-off.[null|exact=JSInvocationMirror]*/
           im) =>
       throw 'foo';
 }

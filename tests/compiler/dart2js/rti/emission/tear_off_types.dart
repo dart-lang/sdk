@@ -36,12 +36,12 @@ A1<String> method1c() => null;
 @pragma('dart2js:noInline')
 bool _test1(f) => f is A1<int> Function();
 
-/*strong|dart2js:nnbd.class: A2:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*omit.class: A2:checkedTypeArgument,checks=[],typeArgument*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: A2:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: A2:checkedTypeArgument,checks=[],typeArgument*/
 class A2<T> {}
 
-/*strong|dart2js:nnbd.class: B2:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*omit.class: B2:checkedTypeArgument,checks=[],typeArgument*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: B2:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: B2:checkedTypeArgument,checks=[],typeArgument*/
 class B2 extends A2<int> {}
 
 @pragma('dart2js:noInline')
@@ -58,12 +58,12 @@ void method2c(A2<String> a) {}
 @pragma('dart2js:noInline')
 bool _test2(f) => f is void Function(A2<int>);
 
-/*strong|dart2js:nnbd.class: A3:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*omit.class: A3:checkedTypeArgument,checks=[],typeArgument*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: A3:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: A3:checkedTypeArgument,checks=[],typeArgument*/
 class A3<T> {}
 
-/*strong|dart2js:nnbd.class: B3:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*omit.class: B3:checkedTypeArgument,checks=[],typeArgument*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: B3:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: B3:checkedTypeArgument,checks=[],typeArgument*/
 class B3 extends A3<int> {}
 
 @pragma('dart3js:noInline')

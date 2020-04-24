@@ -6,46 +6,46 @@
 
 import 'package:expect/expect.dart';
 
-/*strong.class: Class1a:explicit=[Class1a]*/
+/*spec:nnbd-off.class: Class1a:explicit=[Class1a]*/
 class Class1a {}
 
 class Class1b extends Class1a {}
 
-/*strong.class: Class2a:explicit=[Class2a<num>],needsArgs*/
+/*spec:nnbd-off.class: Class2a:explicit=[Class2a<num>],needsArgs*/
 class Class2a<T> {}
 
 class Class2b<T> extends Class2a<T> {}
 
-/*strong.member: method1:needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+/*spec:nnbd-off.member: method1:needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
 method1<T extends Class1a>() => null;
 
-/*strong.member: method2:needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+/*spec:nnbd-off.member: method2:needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
 method2<T extends Class2a<num>>() => null;
 
 method3<T>() => null;
 
 class Class3 {
-  /*strong.member: Class3.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*spec:nnbd-off.member: Class3.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
   method4<T extends Class1a>() => null;
 
-  /*strong.member: Class3.method5:needsArgs,selectors=[Selector(call, method5, arity=0, types=1)]*/
+  /*spec:nnbd-off.member: Class3.method5:needsArgs,selectors=[Selector(call, method5, arity=0, types=1)]*/
   method5<T extends Class2a<num>>() => null;
 
   method6<T>() => null;
 }
 
-/*strong.class: Class4:explicit=[Class4]*/
+/*spec:nnbd-off.class: Class4:explicit=[Class4]*/
 class Class4 {}
 
-/*strong.member: method10:needsArgs*/
+/*spec:nnbd-off.member: method10:needsArgs*/
 method10<T extends Class4>() => null;
 
 main() {
-  /*strong.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
-  /*omit.*/method7<T extends Class1a>() => null;
+  /*spec:nnbd-off.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+  /*prod:nnbd-off.*/method7<T extends Class1a>() => null;
 
-  /*strong.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
-  /*omit.*/method8<T extends Class2a<num>>() => null;
+  /*spec:nnbd-off.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+  /*prod:nnbd-off.*/method8<T extends Class2a<num>>() => null;
 
   /**/
   method9<T>() => null;

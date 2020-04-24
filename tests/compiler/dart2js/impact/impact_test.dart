@@ -25,15 +25,13 @@ main(List<String> args) {
     print('==================================================================');
     useImpactDataForTesting = false;
     await checkTests(dataDir, const ImpactDataComputer(),
-        args: args,
-        testedConfigs: [strongConfig]);
+        args: args, testedConfigs: allSpecConfigs);
 
     print('Testing computation of ResolutionImpact through ImpactData');
     print('==================================================================');
     useImpactDataForTesting = true;
     await checkTests(dataDir, const ImpactDataComputer(),
-        args: args,
-        testedConfigs: [strongConfig]);
+        args: args, testedConfigs: allSpecConfigs);
   });
 }
 

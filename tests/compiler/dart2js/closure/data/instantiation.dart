@@ -7,8 +7,8 @@
 T id<T>(T t) => t;
 
 method<S>(S s) {
-  /*strong|dart2js:nnbd.fields=[S],free=[S]*/
-  /*omit.*/
+  /*spec:nnbd-off|spec:nnbd-sdk.fields=[S],free=[S]*/
+  /*prod:nnbd-off.*/
   S Function(S) getId() => id;
   return getId();
 }

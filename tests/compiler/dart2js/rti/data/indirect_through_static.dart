@@ -4,19 +4,19 @@
 
 // @dart = 2.7
 
-/*strong.class: A:implicit=[A]*/
-/*omit.class: A:implicit=[A]*/
+/*spec:nnbd-off.class: A:implicit=[A]*/
+/*prod:nnbd-off.class: A:implicit=[A]*/
 abstract class A {}
 
 class B implements A {}
 
-/*strong.class: C:
+/*spec:nnbd-off.class: C:
   deps=[lookup],
   explicit=[C<lookup.T>,Map<String,C>],
   implicit=[C],
   needsArgs
 */
-/*omit.class: C:
+/*prod:nnbd-off.class: C:
  deps=[lookup],explicit=[C<lookup.T>],
  needsArgs
 */
@@ -28,8 +28,8 @@ void setup() {
   map['x'] = new C<B>();
 }
 
-/*strong.member: lookup:direct,explicit=[C<lookup.T>],needsArgs*/
-/*omit.member: lookup:direct,explicit=[C<lookup.T>],needsArgs*/
+/*spec:nnbd-off.member: lookup:direct,explicit=[C<lookup.T>],needsArgs*/
+/*prod:nnbd-off.member: lookup:direct,explicit=[C<lookup.T>],needsArgs*/
 C<T> lookup<T>(String key) {
   final value = map[key];
   if (value != null && value is C<T>) {

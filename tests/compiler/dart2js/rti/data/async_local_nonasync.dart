@@ -8,8 +8,8 @@ main() {
   // If any method was `async`, this would have triggered the need for the
   // signature on this closure. See the 'async_local.dart' test.
 
-  /*strong.*/
-  /*omit.*/
+  /*spec:nnbd-off.*/
+  /*prod:nnbd-off.*/
   local(object, stacktrace) => null;
 
   return local;

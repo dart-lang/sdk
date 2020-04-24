@@ -4,8 +4,8 @@
 
 // @dart = 2.7
 
-/*omit.class: A:*/
-/*strong.class: A:explicit=[A]*/
+/*prod:nnbd-off.class: A:*/
+/*spec:nnbd-off.class: A:explicit=[A]*/
 class A {
   /*member: A.instanceMethod:deps=[B.instanceMethod],direct,explicit=[instanceMethod.T],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
   instanceMethod<T>(t) => t is T;
