@@ -89,7 +89,7 @@ vars = {
   "dartdoc_tag" : "v0.31.0",
   "ffi_tag": "ea88d71b043ee14b268c3aedff14e9eb32e20959",
   "fixnum_tag": "0.10.9",
-  "glob_tag": "1.1.7",
+  "glob_tag": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
   "html_tag" : "0.14.0+1",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev" : "ea269f79321d659208402088f3297e8920a88ee6",
