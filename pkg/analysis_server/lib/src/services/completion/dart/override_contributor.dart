@@ -39,6 +39,11 @@ class OverrideContributor implements DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
+    var comment = containingNode.thisOrAncestorOfType<Comment>();
+    if (target.isCommentText || comment != null) {
+      return const <CompletionSuggestion>[];
+    }
+
     var sourceRange = _getTargetSourceRange(target);
     sourceRange ??= range.startOffsetEndOffset(request.offset, 0);
 
