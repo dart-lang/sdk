@@ -269,7 +269,7 @@ final _subtypeCache = JS('', 'Symbol("_subtypeCache")');
 /// normalization doc:
 /// https://github.com/dart-lang/language/blob/master/resources/type-system/normalization.md
 @notNull
-Object nullable(type) {
+Object nullable(@notNull Object type) {
   // Check if a nullable version of this type has already been created.
   var cached = JS<Object>('', '#[#]', type, _cachedNullable);
   if (JS<bool>('!', '# !== void 0', cached)) {
@@ -282,7 +282,7 @@ Object nullable(type) {
   return cachedType;
 }
 
-Object _computeNullable(type) {
+Object _computeNullable(@notNull Object type) {
   // *? normalizes to ?.
   if (_jsInstanceOf(type, LegacyType)) {
     return nullable(JS<Object>('!', '#.type', type));
@@ -307,7 +307,7 @@ Object _computeNullable(type) {
 /// normalization doc:
 /// https://github.com/dart-lang/language/blob/master/resources/type-system/normalization.md
 @notNull
-Object legacy(type) {
+Object legacy(@notNull Object type) {
   // Check if a legacy version of this type has already been created.
   var cached = JS<Object>('', '#[#]', type, _cachedLegacy);
   if (JS<bool>('!', '# !== void 0', cached)) {
@@ -320,7 +320,7 @@ Object legacy(type) {
   return cachedType;
 }
 
-Object _computeLegacy(type) {
+Object _computeLegacy(@notNull Object type) {
   // Note: ?* normalizes to ?, so we cache type? at type?[_cachedLegacy].
   if (_jsInstanceOf(type, LegacyType) ||
       _jsInstanceOf(type, NullableType) ||
@@ -335,7 +335,7 @@ Object _computeLegacy(type) {
 class NullableType extends DartType {
   final Type type;
 
-  NullableType(this.type);
+  NullableType(@notNull this.type);
 
   @override
   String get name => '$type?';
@@ -356,7 +356,7 @@ class NullableType extends DartType {
 class LegacyType extends DartType {
   final Type type;
 
-  LegacyType(this.type);
+  LegacyType(@notNull this.type);
 
   @override
   String get name => '$type';
@@ -1138,7 +1138,7 @@ String typeName(type) => JS('', '''(() => {
 })()''');
 
 /// Returns true if [ft1] <: [ft2].
-_isFunctionSubtype(ft1, ft2, bool strictMode) => JS('', '''(() => {
+_isFunctionSubtype(ft1, ft2, @notNull bool strictMode) => JS('', '''(() => {
   let ret1 = $ft1.returnType;
   let ret2 = $ft2.returnType;
 
@@ -1231,7 +1231,7 @@ _isFunctionSubtype(ft1, ft2, bool strictMode) => JS('', '''(() => {
 
 /// Returns true if [t1] <: [t2].
 @notNull
-bool isSubtypeOf(Object t1, Object t2) {
+bool isSubtypeOf(@notNull Object t1, @notNull Object t2) {
   // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, so they're
   // dispatched on the type. Can we optimize the subtype relation too?
   var map = JS<Object>('!', '#[#]', t1, _subtypeCache);
@@ -1311,7 +1311,7 @@ bool _isFutureOr(type) {
 }
 
 @notNull
-bool _isSubtype(t1, t2, bool strictMode) => JS<bool>('!', '''(() => {
+bool _isSubtype(t1, t2, @notNull bool strictMode) => JS<bool>('!', '''(() => {
   if (!$strictMode) {
     // Strip nullable types when performing check in weak mode.
     // TODO(nshahan) Investigate stripping off legacy types as well.
@@ -1502,7 +1502,7 @@ bool _isSubtype(t1, t2, bool strictMode) => JS<bool>('!', '''(() => {
   return ${_isFunctionSubtype(t1, t2, strictMode)};
 })()''');
 
-bool _isInterfaceSubtype(t1, t2, strictMode) => JS('', '''(() => {
+bool _isInterfaceSubtype(t1, t2, @notNull bool strictMode) => JS('', '''(() => {
   // If we have lazy JS types, unwrap them.  This will effectively
   // reduce to a prototype check below.
   if (${_jsInstanceOf(t1, LazyJSType)}) $t1 = $t1.rawJSTypeForCheck();
