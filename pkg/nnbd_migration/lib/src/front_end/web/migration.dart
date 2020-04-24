@@ -231,7 +231,7 @@ void handleError(String header, Object exception, Object stackTrace) {
       exception['success'] == false &&
       exception.containsKey('exception') &&
       exception.containsKey('stackTrace')) {
-    subheader = exception['exception'];
+    subheader = exception['exception'] as String;
     stackTrace = exception['stackTrace'];
   } else {
     subheader = exception.toString();
