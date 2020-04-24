@@ -59,7 +59,7 @@ class InfoBuilder {
         SplayTreeSet<UnitInfo>((u1, u2) => u1.path.compareTo(u2.path));
     for (var source in sourceInfoMap.keys) {
       var filePath = source.fullName;
-      var session = driverProvider.getAnalysisDriver(filePath).currentSession;
+      var session = driverProvider.getAnalysisSession(filePath);
       if (!session.getFile(filePath).isPart) {
         var result = await session.getResolvedLibrary(filePath);
         for (var unitResult in result.units) {

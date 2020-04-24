@@ -265,7 +265,6 @@ abstract class AbstractAnalysisServer implements DriverProvider {
   /// Return an analysis driver to which the file with the given [path] is
   /// added if one exists, otherwise a driver in which the file was analyzed if
   /// one exists, otherwise the first driver, otherwise `null`.
-  @override
   nd.AnalysisDriver getAnalysisDriver(String path) {
     var drivers = driverMap.values.toList();
     if (drivers.isNotEmpty) {
@@ -284,6 +283,10 @@ abstract class AbstractAnalysisServer implements DriverProvider {
     }
     return null;
   }
+
+  @override
+  AnalysisSession getAnalysisSession(String path) =>
+      getAnalysisDriver(path).currentSession;
 
   DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
     return declarationsTracker
