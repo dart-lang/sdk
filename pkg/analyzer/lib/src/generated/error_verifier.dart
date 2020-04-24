@@ -350,6 +350,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, node.awaitKeyword);
     }
+    if (_isNonNullableByDefault) {
+      _checkForUseOfVoidResult(node.expression);
+    }
     _checkForAwaitInLateLocalVariableInitializer(node);
     super.visitAwaitExpression(node);
   }

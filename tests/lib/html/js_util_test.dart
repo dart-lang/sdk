@@ -360,12 +360,12 @@ main() {
     });
   });
 
-  void testResolvedPromise() async {
+  Future<void> testResolvedPromise() async {
     final String result = await js_util.promiseToFuture(resolvedPromise);
     expect(result, equals('resolved'));
   }
 
-  void testRejectedPromise() async {
+  Future<void> testRejectedPromise() async {
     try {
       final String result = await promiseToFuture(rejectedPromise);
       fail('expected Future to throw an error');
@@ -374,7 +374,7 @@ main() {
     }
   }
 
-  void testReturnRejectedPromise() async {
+  Future<void> testReturnRejectedPromise() async {
     final String result = await promiseToFuture(getResolvedPromise());
     expect(result, equals('resolved'));
   }
