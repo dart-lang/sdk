@@ -12,6 +12,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:charcode/charcode.dart';
+import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
 import 'package:nnbd_migration/api_for_analysis_server/http_preview_server.dart';
 import 'package:nnbd_migration/api_for_analysis_server/instrumentation_listener.dart';
 import 'package:nnbd_migration/api_for_analysis_server/migration_state.dart';
@@ -37,7 +38,7 @@ class NonNullableFix extends FixCodeTask {
 
   final int preferredPort;
 
-  final DartFixListener listener;
+  final DartFixListenerInterface listener;
 
   /// The root of the included paths.
   ///
@@ -290,7 +291,7 @@ environment:
 }
 
 class NullabilityMigrationAdapter implements NullabilityMigrationListener {
-  final DartFixListener listener;
+  final DartFixListenerInterface listener;
 
   NullabilityMigrationAdapter(this.listener);
 

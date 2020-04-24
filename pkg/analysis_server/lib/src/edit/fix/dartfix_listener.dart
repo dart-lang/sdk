@@ -28,6 +28,7 @@ class DartFixListener implements DartFixListenerInterface {
 
   /// Add the given [detail] to the list of details to be returned to the
   /// client.
+  @override
   void addDetail(String detail) {
     if (details.length < 200) {
       details.add(detail);
@@ -38,11 +39,13 @@ class DartFixListener implements DartFixListenerInterface {
   ///
   /// The associated suggestion should be separately added by calling
   /// [addSuggestion].
+  @override
   void addEditWithoutSuggestion(Source source, SourceEdit edit) {
     sourceChange.addEdit(source.fullName, -1, edit);
   }
 
   /// Record a recommendation to be sent to the client.
+  @override
   void addRecommendation(String description, [Location location]) {
     otherSuggestions.add(DartFixSuggestion(description, location: location));
   }
@@ -68,6 +71,7 @@ class DartFixListener implements DartFixListenerInterface {
   }
 
   /// Record a source change to be sent to the client.
+  @override
   void addSourceFileEdit(
       String description, Location location, SourceFileEdit fileEdit) {
     suggestions.add(DartFixSuggestion(description, location: location));
@@ -80,6 +84,7 @@ class DartFixListener implements DartFixListenerInterface {
   ///
   /// The associated edits should be separately added by calling
   /// [addEditWithoutRecommendation].
+  @override
   void addSuggestion(String description, Location location) {
     suggestions.add(DartFixSuggestion(description, location: location));
   }
