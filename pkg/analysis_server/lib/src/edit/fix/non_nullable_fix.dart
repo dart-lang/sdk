@@ -48,7 +48,7 @@ class NonNullableFix extends FixCodeTask {
   final String includedRoot;
 
   /// The HTTP server that serves the preview tool.
-  HttpPreviewServer server;
+  HttpPreviewServer _server;
 
   /// The port on which preview pages should be served, or `null` if no preview
   /// server should be started.
@@ -96,11 +96,11 @@ class NonNullableFix extends FixCodeTask {
         migration, includedRoot, listener, instrumentationListener);
     await state.refresh();
 
-    if (server == null) {
-      server = HttpPreviewServer(state, rerun, preferredPort);
-      server.serveHttp();
-      port = await server.boundPort;
-      authToken = await server.authToken;
+    if (_server == null) {
+      _server = HttpPreviewServer(state, rerun, preferredPort);
+      _server.serveHttp();
+      port = await _server.boundPort;
+      authToken = await _server.authToken;
     }
   }
 
@@ -252,6 +252,10 @@ environment:
     migration = NullabilityMigration(adapter,
         permissive: _usePermissiveMode,
         instrumentation: instrumentationListener);
+  }
+
+  void shutdownServer() {
+    _server?.close();
   }
 
   static void task(DartFixRegistrar registrar, DartFixListener listener,
