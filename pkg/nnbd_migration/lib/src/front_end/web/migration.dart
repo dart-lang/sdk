@@ -150,9 +150,9 @@ void addClickHandlers(String selector, bool clearEditDetails) {
     });
   }
 
-  List<Element> postLinks = parentElement.querySelectorAll('.post-link');
-  postLinks.forEach((link) {
-    link.onClick.listen(handlePostLinkClick);
+  List<Element> addHintLinks = parentElement.querySelectorAll('.add-hint-link');
+  addHintLinks.forEach((link) {
+    link.onClick.listen(handleAddHintLinkClick);
   });
 }
 
@@ -225,6 +225,23 @@ int getOffset(String location) {
   return str == null ? null : int.tryParse(str);
 }
 
+void handleAddHintLinkClick(MouseEvent event) async {
+  var path = (event.currentTarget as Element).getAttribute('href');
+
+  // Don't navigate on link click.
+  event.preventDefault();
+
+  try {
+    // Directing the server to produce an edit; request it, then do work with the
+    // response.
+    await doPost(path);
+    // TODO(mfairhurst): Only refresh the regions/dart code, not the window.
+    (document.window.location as Location).reload();
+  } catch (e, st) {
+    handleError('Could not add/remove hint', e, st);
+  }
+}
+
 void handleError(String header, Object exception, Object stackTrace) {
   String subheader;
   if (exception is Map<String, Object> &&
@@ -275,23 +292,6 @@ void handleNavLinkClick(
     navigate(path, null, null, clearEditDetails, callback: () {
       pushState(path, null, null);
     });
-  }
-}
-
-void handlePostLinkClick(MouseEvent event) async {
-  var path = (event.currentTarget as Element).getAttribute('href');
-
-  // Don't navigate on link click.
-  event.preventDefault();
-
-  try {
-    // Directing the server to produce an edit; request it, then do work with the
-    // response.
-    await doPost(path);
-    // TODO(mfairhurst): Only refresh the regions/dart code, not the window.
-    (document.window.location as Location).reload();
-  } catch (e, st) {
-    handleError('Could not load $path', e, st);
   }
 }
 
@@ -694,7 +694,7 @@ void _populateEditLinks(EditDetails response, Element editPanel) {
       editParagraph.append(a);
       a.append(Text(edit.description));
       a.setAttribute('href', edit.href);
-      a.classes = ['post-link', 'before-apply'];
+      a.classes = ['add-hint-link', 'before-apply', 'button'];
     }
   }
 }

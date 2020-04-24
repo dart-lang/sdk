@@ -525,12 +525,12 @@ a:hover {
   fill: #fff;
 }
 
-a.post-link {
+.add-hint-link {
   display: inline-block;
   margin: 3px;
 }
 
-button, a.post-link, .button {
+button, a.button {
   background-color: #33ccff;
   border: 2px solid #37aedc;
   border-radius: 3px;
@@ -539,7 +539,7 @@ button, a.post-link, .button {
   color: #282828;
 }
 
-button:hover, a.post-link:hover {
+button:hover, .button:hover {
   background-color: #80dfff;
   border: 2px solid #52b8e0;
   cursor: pointer;
