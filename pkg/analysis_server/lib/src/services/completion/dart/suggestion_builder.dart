@@ -13,7 +13,10 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:meta/meta.dart';
 
@@ -427,20 +430,40 @@ class SuggestionBuilder {
   /// A collection of completion suggestions.
   final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
+  /// A flag indicating whether the [_cachedContextType] has been computed.
+  bool _hasContextType = false;
+
+  /// The context type associated with the completion location, or `null` if
+  /// either the location does not have a context type, or if the context type
+  /// has not yet been computed. In the latter case, [_hasContextType] will be
+  /// `false`.
+  DartType _cachedContextType;
+
   /// Initialize a newly created suggestion builder to build suggestions for the
   /// given [request].
   SuggestionBuilder(this.request);
+
+  DartType get _contextType {
+    if (!_hasContextType) {
+      _hasContextType = true;
+      _cachedContextType = request.featureComputer
+          .computeContextType(request.target.containingNode);
+    }
+    return _cachedContextType;
+  }
 
   /// Add a suggestion for the [classElement].
   void suggestClass(ClassElement classElement,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
     int relevance;
     if (request.useNewRelevance) {
-      relevance = _computeTopLevelRelevance(classElement);
+      relevance = _computeTopLevelRelevance(classElement,
+          elementType: _instantiateClassElement(classElement));
+    } else if (classElement.hasDeprecated) {
+      relevance = DART_RELEVANCE_LOW;
     } else {
-      relevance = classElement.hasDeprecated
-          ? DART_RELEVANCE_LOW
-          : DART_RELEVANCE_DEFAULT;
+      relevance = request.opType.typeNameSuggestionsFilter(
+          _instantiateClassElement(classElement), DART_RELEVANCE_DEFAULT);
     }
 
     suggestions.add(createSuggestion(request, classElement,
@@ -514,7 +537,8 @@ class SuggestionBuilder {
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
     int relevance;
     if (request.useNewRelevance) {
-      relevance = _computeTopLevelRelevance(extension);
+      relevance = _computeTopLevelRelevance(extension,
+          elementType: extension.extendedType);
     } else {
       relevance =
           extension.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
@@ -534,7 +558,9 @@ class SuggestionBuilder {
     } else {
       relevance = functionTypeAlias.hasDeprecated
           ? DART_RELEVANCE_LOW
-          : DART_RELEVANCE_DEFAULT;
+          : (functionTypeAlias.library == request.libraryElement
+              ? DART_RELEVANCE_LOCAL_FUNCTION
+              : DART_RELEVANCE_DEFAULT);
     }
     suggestions.add(createSuggestion(request, functionTypeAlias,
         kind: kind, relevance: relevance));
@@ -545,6 +571,8 @@ class SuggestionBuilder {
   void suggestLoadLibraryFunction(FunctionElement function) {
     int relevance;
     if (request.useNewRelevance) {
+      // TODO(brianwilkerson) This might want to use the context type rather
+      //  than a fixed value.
       relevance = Relevance.loadLibrary;
     } else {
       relevance =
@@ -559,7 +587,8 @@ class SuggestionBuilder {
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
     int relevance;
     if (request.useNewRelevance) {
-      relevance = _computeTopLevelRelevance(function);
+      relevance =
+          _computeTopLevelRelevance(function, elementType: function.returnType);
     } else {
       relevance = function.hasDeprecated
           ? DART_RELEVANCE_LOW
@@ -588,7 +617,8 @@ class SuggestionBuilder {
     var variable = accessor.variable;
     int relevance;
     if (request.useNewRelevance) {
-      relevance = _computeTopLevelRelevance(variable);
+      relevance =
+          _computeTopLevelRelevance(variable, elementType: variable.type);
     } else {
       relevance = accessor.hasDeprecated
           ? DART_RELEVANCE_LOW
@@ -602,17 +632,39 @@ class SuggestionBuilder {
   }
 
   /// Return the relevance score for a top-level [element].
-  int _computeTopLevelRelevance(Element element, {int defaultRelevance = 800}) {
+  int _computeTopLevelRelevance(Element element,
+      {int defaultRelevance = 800, DartType elementType}) {
     // TODO(brianwilkerson) The old relevance computation used a signal based
     //  on whether the element being suggested was from the same library in
     //  which completion is being performed. Explore whether that's a useful
     //  signal.
     var featureComputer = request.featureComputer;
+    var contextTypeFeature =
+        featureComputer.contextTypeFeature(_contextType, elementType);
     var elementKind = featureComputer.elementKindFeature(
         element, request.opType.completionLocation);
     var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
     return toRelevance(
-        weightedAverage([elementKind, hasDeprecated], [0.8, 0.2]),
+        weightedAverage(
+            [contextTypeFeature, elementKind, hasDeprecated], [0.8, 0.8, 0.2]),
         defaultRelevance);
+  }
+
+  InterfaceType _instantiateClassElement(ClassElement element) {
+    var typeParameters = element.typeParameters;
+    var typeArguments = const <DartType>[];
+    if (typeParameters.isNotEmpty) {
+      var neverType = request.libraryElement.typeProvider.neverType;
+      typeArguments = List.filled(typeParameters.length, neverType);
+    }
+
+    var nullabilitySuffix = request.featureSet.isEnabled(Feature.non_nullable)
+        ? NullabilitySuffix.none
+        : NullabilitySuffix.star;
+
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 }
