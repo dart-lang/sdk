@@ -644,7 +644,11 @@ class _SyncStarIterator<T> implements Iterator<T> {
         } else {
           assert(state == _IterationMarker.YIELD_STAR);
           Iterator<T> inner = value.value.iterator;
-          if (inner is _SyncStarIterator<T>) {
+          if (inner is _SyncStarIterator) {
+            // The test needs to be 'is _SyncStarIterator<T>' for promotion to
+            // work. However, that test is much more expensive, so we use an
+            // unsafe cast.
+            _SyncStarIterator<T> innerSyncStarIterator = JS('', '#', inner);
             // Suspend the current state machine and start acting on behalf of
             // the nested state machine.
             //
@@ -652,7 +656,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
             // suspending the current body when all it will do is step without
             // effect to ITERATION_ENDED.
             (_suspendedBodies ??= []).add(_body);
-            _body = inner._body;
+            _body = innerSyncStarIterator._body;
             continue;
           } else {
             _nestedIterator = inner;

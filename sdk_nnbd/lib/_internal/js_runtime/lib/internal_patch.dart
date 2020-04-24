@@ -10,8 +10,9 @@ import 'dart:_interceptors' show JSArray;
 import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 
 @patch
+@pragma('dart2js:tryInline')
 bool typeAcceptsNull<T>() {
-  const isLegacySubtyping = <Null>[] is List<int>;
+  bool isLegacySubtyping = JS_GET_FLAG('LEGACY');
   return isLegacySubtyping || null is T;
 }
 
