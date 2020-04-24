@@ -281,6 +281,8 @@ class PluginManager {
   /// plugin has been started.
   final Map<String, dynamic> _overlayState = <String, dynamic>{};
 
+  final StreamController<void> _pluginsChanged = StreamController.broadcast();
+
   /// Initialize a newly created plugin manager. The notifications from the
   /// running plugins will be handled by the given [notificationManager].
   PluginManager(this.resourceProvider, this.byteStorePath, this.sdkPath,
@@ -288,6 +290,9 @@ class PluginManager {
 
   /// Return a list of all of the plugins that are currently known.
   List<PluginInfo> get plugins => _pluginMap.values.toList();
+
+  /// Stream emitting an event when known [plugins] change.
+  Stream<void> get pluginsChanged => _pluginsChanged.stream;
 
   /// Add the plugin with the given [path] to the list of plugins that should be
   /// used when analyzing code for the given [contextRoot]. If the plugin had
@@ -317,6 +322,7 @@ class PluginManager {
           var session = await plugin.start(byteStorePath, sdkPath);
           session?.onDone?.then((_) {
             _pluginMap.remove(path);
+            _notifyPluginsChanged();
           });
         } catch (exception, stackTrace) {
           // Record the exception (for debugging purposes) and record the fact
@@ -325,6 +331,8 @@ class PluginManager {
           isNew = false;
         }
       }
+
+      _notifyPluginsChanged();
     }
     plugin.addContextRoot(contextRoot);
     if (isNew) {
@@ -469,6 +477,7 @@ class PluginManager {
       plugin.removeContextRoot(contextRoot);
       if (plugin is DiscoveredPluginInfo && plugin.contextRoots.isEmpty) {
         _pluginMap.remove(plugin.path);
+        _notifyPluginsChanged();
         try {
           plugin.stop();
         } catch (e, st) {
@@ -707,6 +716,8 @@ class PluginManager {
     }
     return packagesFile;
   }
+
+  void _notifyPluginsChanged() => _pluginsChanged.add(null);
 
   /// Return the names of packages that are listed as dependencies in the given
   /// [pubspecFile].

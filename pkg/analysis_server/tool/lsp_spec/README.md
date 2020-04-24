@@ -46,7 +46,7 @@ Below is a list of LSP methods and their implementation status.
 | window/logMessage | ✅ | | | |
 | telemetry/event | | | | |
 | client/registerCapability | ✅ | ✅ | ✅ | ✅ |
-| client/unregisterCapability | | | | | (unused, capabilities don't change currently)
+| client/unregisterCapability | ✅ | ✅ | ✅ | | Capabilities only change when using analyzer plugins
 | workspace/workspaceFolders | | | | |
 | workspace/didChangeWorkspaceFolders | ✅ | ✅ | ✅ | ✅ |
 | workspace/configuration | | | | |

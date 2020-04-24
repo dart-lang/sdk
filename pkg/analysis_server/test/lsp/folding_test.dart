@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -64,6 +66,65 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
     final regions = await getFoldingRegions(mainFileUri);
     expect(regions, unorderedEquals(expectedRegions));
+  }
+
+  Future<void> test_fromPlugins_dartFile() async {
+    final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.dart');
+    final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
+
+    const content = '''
+    // [[contributed by fake plugin]]
+
+    class AnnotatedDartClass {[[
+      // content of dart class, contributed by server
+    ]]}
+    ''';
+    final ranges = rangesFromMarkers(content);
+    final withoutMarkers = withoutRangeMarkers(content);
+    newFile(pluginAnalyzedFilePath);
+
+    await initialize();
+    await openFile(pluginAnalyzedUri, withoutMarkers);
+
+    final pluginResult = plugin.AnalysisFoldingParams(
+      pluginAnalyzedFilePath,
+      [plugin.FoldingRegion(plugin.FoldingKind.DIRECTIVES, 7, 26)],
+    );
+    configureTestPlugin(notification: pluginResult.toNotification());
+
+    final res = await getFoldingRegions(pluginAnalyzedUri);
+    expect(
+      res,
+      unorderedEquals([
+        _toFoldingRange(ranges[0], FoldingRangeKind.Imports),
+        _toFoldingRange(ranges[1], null),
+      ]),
+    );
+  }
+
+  Future<void> test_fromPlugins_nonDartFile() async {
+    final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.sql');
+    final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
+    const content = '''
+      CREATE TABLE foo(
+         [[-- some columns]]
+      );
+    ''';
+    final withoutMarkers = withoutRangeMarkers(content);
+    newFile(pluginAnalyzedFilePath, content: withoutMarkers);
+
+    await initialize();
+    await openFile(pluginAnalyzedUri, withoutMarkers);
+
+    final pluginResult = plugin.AnalysisFoldingParams(
+      pluginAnalyzedFilePath,
+      [plugin.FoldingRegion(plugin.FoldingKind.CLASS_BODY, 33, 15)],
+    );
+    configureTestPlugin(notification: pluginResult.toNotification());
+
+    final res = await getFoldingRegions(pluginAnalyzedUri);
+    final expectedRange = rangeFromMarkers(content);
+    expect(res, [_toFoldingRange(expectedRange, null)]);
   }
 
   Future<void> test_headersImportsComments() async {

@@ -11,6 +11,7 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
+import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
@@ -23,7 +24,9 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
@@ -42,6 +45,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:watcher/watcher.dart';
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
@@ -81,12 +85,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Capabilities of the server. Will be null prior to initialization as
   /// the server capabilities depend on the client capabilities.
   ServerCapabilities capabilities;
+  ServerCapabilitiesComputer capabilitiesComputer;
 
   LspPerformance performanceStats = LspPerformance();
 
   /// Whether or not the server is controlling the shutdown and will exit
   /// automatically.
   bool willExit = false;
+
+  StreamSubscription _pluginChangeSubscription;
 
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
@@ -99,14 +106,19 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     InstrumentationService instrumentationService, {
     DiagnosticServer diagnosticServer,
   }) : super(
-            options,
-            sdkManager,
-            diagnosticServer,
-            crashReportingAttachmentsBuilder,
-            baseResourceProvider,
-            instrumentationService,
-            NullNotificationManager()) {
+          options,
+          sdkManager,
+          diagnosticServer,
+          crashReportingAttachmentsBuilder,
+          baseResourceProvider,
+          instrumentationService,
+          NotificationManager(
+            const NoOpServerCommunicationChannel(),
+            baseResourceProvider.pathContext,
+          ),
+        ) {
     messageHandler = UninitializedStateMessageHandler(this);
+    capabilitiesComputer = ServerCapabilitiesComputer(this);
 
     final contextManagerCallbacks =
         LspServerContextManagerCallbacks(this, resourceProvider);
@@ -116,6 +128,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     analysisDriverScheduler.start();
 
     channel.listen(handleMessage, onDone: done, onError: socketError);
+    _pluginChangeSubscription =
+        pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
   }
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
@@ -127,6 +141,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// specific server functionality. Will be null prior to initialization.
   LspInitializationOptions get initializationOptions => _initializationOptions;
 
+  @override
+  set pluginManager(PluginManager value) {
+    // we exchange the plugin manager in tests
+    super.pluginManager = value;
+    _pluginChangeSubscription?.cancel();
+
+    _pluginChangeSubscription =
+        pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
+  }
+
   RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
       RefactoringWorkspace(driverMap.values, searchEngine);
 
@@ -134,7 +158,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final didAdd = priorityFiles.add(path);
     assert(didAdd);
     if (didAdd) {
-      _updateDriversPriorityFiles();
+      _updateDriversAndPluginsPriorityFiles();
     }
   }
 
@@ -315,7 +339,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final didRemove = priorityFiles.remove(path);
     assert(didRemove);
     if (didRemove) {
-      _updateDriversPriorityFiles();
+      _updateDriversAndPluginsPriorityFiles();
     }
   }
 
@@ -398,6 +422,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     declarationsTracker?.discardContexts();
     final uniquePaths = HashSet<String>.of(includedPaths ?? const []);
     contextManager.setRoots(uniquePaths.toList(), [], {});
+    notificationManager.setAnalysisRoots(includedPaths, []);
     addContextsToDeclarationsTracker();
   }
 
@@ -457,6 +482,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     Future(() {
       channel.close();
     });
+    _pluginChangeSubscription?.cancel();
 
     return Future.value();
   }
@@ -491,9 +517,32 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     notifyFlutterWidgetDescriptions(path);
   }
 
-  void _updateDriversPriorityFiles() {
+  void _onPluginsChanged() {
+    capabilitiesComputer.performDynamicRegistration();
+  }
+
+  void _updateDriversAndPluginsPriorityFiles() {
+    final priorityFilesList = priorityFiles.toList();
     driverMap.values.forEach((driver) {
-      driver.priorityFiles = priorityFiles.toList();
+      driver.priorityFiles = priorityFilesList;
+    });
+
+    final pluginPriorities =
+        plugin.AnalysisSetPriorityFilesParams(priorityFilesList);
+    pluginManager.setAnalysisSetPriorityFilesParams(pluginPriorities);
+
+    // Plugins send most of their analysis results via notifications, but with
+    // LSP we're supposed to have them available per request. Assume that we'll
+    // only receive requests for files that are currently open.
+    final pluginSubscriptions = plugin.AnalysisSetSubscriptionsParams({
+      for (final service in plugin.AnalysisService.VALUES)
+        service: priorityFilesList,
+    });
+    pluginManager.setAnalysisSetSubscriptionsParams(pluginSubscriptions);
+
+    notificationManager.setSubscriptions({
+      for (final service in protocol.AnalysisService.VALUES)
+        service: priorityFiles
     });
   }
 }
@@ -665,7 +714,19 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 }
 
-class NullNotificationManager implements NotificationManager {
+class NoOpServerCommunicationChannel implements ServerCommunicationChannel {
+  const NoOpServerCommunicationChannel();
+
   @override
-  dynamic noSuchMethod(Invocation invocation) {}
+  void close() {}
+
+  @override
+  void listen(void Function(protocol.Request request) onRequest,
+      {Function onError, void Function() onDone}) {}
+
+  @override
+  void sendNotification(protocol.Notification notification) {}
+
+  @override
+  void sendResponse(protocol.Response response) {}
 }
