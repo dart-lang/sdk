@@ -63,7 +63,7 @@ vars = {
   "boolean_selector_tag": "1309eabed510cc3b7536fd4367d39b97ebee3d69",
   "boringssl_gen_rev": "b9e27cff1ff0803e97ab1f88764a83be4aa94a6d",
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
-  "charcode_tag": "v1.1.2",
+  "charcode_tag": "9085e6b6127f084d66c0a94810a808121459012a",
   "chrome_rev" : "19997",
   "cli_util_rev" : "4ad7ccbe3195fd2583b30f86a86697ef61e80f41",
   "collection_tag": "7be42e03d427cc19571cd7f9fc628a5913a6b757",
