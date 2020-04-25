@@ -10,9 +10,11 @@ import 'dart:_interceptors' show JSArray;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_runtime' as dart;
 
+// TODO(41657) Make a constant when CFE evaluates in the null safety mode.
+var isLegacySubtyping = const <Null>[] is List<int>;
+
 @patch
 bool typeAcceptsNull<T>() {
-  const isLegacySubtyping = <Null>[] is List<int>;
   return isLegacySubtyping || null is T;
 }
 
