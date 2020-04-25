@@ -44,6 +44,30 @@ void f(int i) {
 }
 ''');
   }
+
+  test_localLevelVariable_never_null() async {
+    await assertErrorsInCode('''
+void f(Never x) {
+  x = null;
+}
+''', [
+      error(HintCode.DEAD_CODE, 24, 5),
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 24, 4),
+    ]);
+  }
+
+  test_topLevelVariable_never_null() async {
+    await assertErrorsInCode('''
+Never x = throw 0;
+
+void f() {
+  x = null;
+}
+''', [
+      error(HintCode.DEAD_CODE, 37, 5),
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 37, 4),
+    ]);
+  }
 }
 
 @reflectiveTest

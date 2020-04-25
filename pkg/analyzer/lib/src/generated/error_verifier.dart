@@ -3146,7 +3146,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (identical(lhs.staticType, NeverTypeImpl.instance)) {
+    if (lhs is IndexExpression &&
+            identical(lhs.realTarget.staticType, NeverTypeImpl.instance) ||
+        lhs is PrefixedIdentifier &&
+            identical(lhs.prefix.staticType, NeverTypeImpl.instance) ||
+        lhs is PropertyAccess &&
+            identical(lhs.realTarget.staticType, NeverTypeImpl.instance)) {
       return;
     }
 
