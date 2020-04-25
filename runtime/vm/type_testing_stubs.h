@@ -41,8 +41,8 @@ class TypeTestingStubGenerator {
   // During bootstrapping it will return `null` for a whitelisted set of types,
   // otherwise it will return a default stub which tail-calls
   // subtypingtest/runtime code.
-  static RawCode* DefaultCodeForType(const AbstractType& type,
-                                     bool lazy_specialize = true);
+  static CodePtr DefaultCodeForType(const AbstractType& type,
+                                    bool lazy_specialize = true);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static void SpecializeStubFor(Thread* thread, const AbstractType& type);
@@ -52,12 +52,12 @@ class TypeTestingStubGenerator {
 
   // Creates new stub for [type] (and registers the tuple in object store
   // array) or returns default stub.
-  RawCode* OptimizedCodeForType(const AbstractType& type);
+  CodePtr OptimizedCodeForType(const AbstractType& type);
 
  private:
 #if !defined(TARGET_ARCH_IA32)
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  RawCode* BuildCodeForType(const Type& type);
+  CodePtr BuildCodeForType(const Type& type);
   static void BuildOptimizedTypeTestStub(
       compiler::Assembler* assembler,
       compiler::UnresolvedPcRelativeCalls* unresolved_calls,
@@ -247,7 +247,7 @@ class TypeArgumentInstantiator {
         type_arguments_handles_(zone),
         type_handles_(zone) {}
 
-  RawTypeArguments* Instantiate(
+  TypeArgumentsPtr Instantiate(
       const Class& klass,
       const TypeArguments& type_arguments,
       const TypeArguments& instantiator_type_arguments) {
@@ -260,7 +260,7 @@ class TypeArgumentInstantiator {
       const Class& klass,
       const TypeArguments& type_arguments);
 
-  RawAbstractType* InstantiateType(const AbstractType& type);
+  AbstractTypePtr InstantiateType(const AbstractType& type);
 
   Class& klass_;
   AbstractType& type_;

@@ -1242,7 +1242,7 @@ RegExpCapture* RegExpParser::GetCapture(intptr_t index) {
   return captures_->At(index - 1);
 }
 
-RawArray* RegExpParser::CreateCaptureNameMap() {
+ArrayPtr RegExpParser::CreateCaptureNameMap() {
   if (named_captures_ == nullptr || named_captures_->is_empty()) {
     return Array::null();
   }

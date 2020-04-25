@@ -70,7 +70,7 @@ class ReversePcLookupCache {
   // If [is_return_address] is true, then the PC may be immediately after the
   // payload, if the last instruction is a call that is guaranteed not to
   // return. Otherwise, the PC must be within the payload.
-  inline RawCode* Lookup(uword pc, bool is_return_address = false) {
+  inline CodePtr Lookup(uword pc, bool is_return_address = false) {
     NoSafepointScope no_safepoint_scope;
 
     intptr_t left = 0;
@@ -99,7 +99,7 @@ class ReversePcLookupCache {
     }
 
     auto code_array = isolate_group_->object_store()->code_order_table();
-    auto raw_code = reinterpret_cast<RawCode*>(Array::DataOf(code_array)[left]);
+    auto raw_code = static_cast<CodePtr>(Array::DataOf(code_array)[left]);
 
 #if defined(DEBUG)
     ASSERT(raw_code->GetClassIdMayBeSmi() == kCodeCid);
@@ -128,7 +128,7 @@ class ReversePcLookupCache {
 
   inline bool Contains(uword pc) { return false; }
 
-  inline RawCode* Lookup(uword pc, bool is_return_address = false) {
+  inline CodePtr Lookup(uword pc, bool is_return_address = false) {
     UNREACHABLE();
   }
 };

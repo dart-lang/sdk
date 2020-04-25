@@ -279,7 +279,7 @@ intptr_t NativeCallingConvention::num_args() const {
   return c_signature_.num_fixed_parameters() - kNativeParamsStartAt;
 }
 
-RawAbstractType* NativeCallingConvention::CType(intptr_t arg_index) const {
+AbstractTypePtr NativeCallingConvention::CType(intptr_t arg_index) const {
   if (arg_index == kResultIndex) {
     return c_signature_.result_type();
   }

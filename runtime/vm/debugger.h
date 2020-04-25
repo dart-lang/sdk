@@ -58,7 +58,7 @@ class Breakpoint {
   bool IsRepeated() const { return kind_ == kRepeated; }
   bool IsSingleShot() const { return kind_ == kSingleShot; }
   bool IsPerClosure() const { return kind_ == kPerClosure; }
-  RawInstance* closure() const { return closure_; }
+  InstancePtr closure() const { return closure_; }
 
   void SetIsRepeated() {
     ASSERT(kind_ == kNone);
@@ -97,7 +97,7 @@ class Breakpoint {
   intptr_t id_;
   ConditionKind kind_;
   Breakpoint* next_;
-  RawInstance* closure_;
+  InstancePtr closure_;
   BreakpointLocation* bpt_location_;
   bool is_synthetic_async_;
 
@@ -131,12 +131,12 @@ class BreakpointLocation {
 
   ~BreakpointLocation();
 
-  RawFunction* function() const { return function_; }
+  FunctionPtr function() const { return function_; }
   TokenPosition token_pos() const { return token_pos_; }
   TokenPosition end_token_pos() const { return end_token_pos_; }
 
-  RawScript* script() const { return script_; }
-  RawString* url() const { return url_; }
+  ScriptPtr script() const { return script_; }
+  StringPtr url() const { return url_; }
 
   intptr_t requested_line_number() const { return requested_line_number_; }
   intptr_t requested_column_number() const { return requested_column_number_; }
@@ -174,8 +174,8 @@ class BreakpointLocation {
   Breakpoint* breakpoints() const { return this->conditions_; }
   void set_breakpoints(Breakpoint* head) { this->conditions_ = head; }
 
-  RawScript* script_;
-  RawString* url_;
+  ScriptPtr script_;
+  StringPtr url_;
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
   BreakpointLocation* next_;
@@ -184,7 +184,7 @@ class BreakpointLocation {
   intptr_t requested_column_number_;
 
   // Valid for resolved breakpoints:
-  RawFunction* function_;
+  FunctionPtr function_;
   TokenPosition bytecode_token_pos_;
   TokenPosition code_token_pos_;
 
@@ -200,16 +200,16 @@ class CodeBreakpoint {
   CodeBreakpoint(const Code& code,
                  TokenPosition token_pos,
                  uword pc,
-                 RawPcDescriptors::Kind kind);
+                 PcDescriptorsLayout::Kind kind);
   CodeBreakpoint(const Bytecode& bytecode, TokenPosition token_pos, uword pc);
   ~CodeBreakpoint();
 
-  RawFunction* function() const;
+  FunctionPtr function() const;
   uword pc() const { return pc_; }
   TokenPosition token_pos() const { return token_pos_; }
 
-  RawScript* SourceCode();
-  RawString* SourceUrl();
+  ScriptPtr SourceCode();
+  StringPtr SourceUrl();
   intptr_t LineNumber();
 
   void Enable();
@@ -217,7 +217,7 @@ class CodeBreakpoint {
   bool IsEnabled() const { return is_enabled_; }
   bool IsInterpreted() const { return bytecode_ != Bytecode::null(); }
 
-  RawCode* OrigStubAddress() const;
+  CodePtr OrigStubAddress() const;
 
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -233,8 +233,8 @@ class CodeBreakpoint {
   void SetBytecodeBreakpoint();
   void UnsetBytecodeBreakpoint();
 
-  RawCode* code_;
-  RawBytecode* bytecode_;
+  CodePtr code_;
+  BytecodePtr bytecode_;
   TokenPosition token_pos_;
   uword pc_;
   intptr_t line_number_;
@@ -243,8 +243,8 @@ class CodeBreakpoint {
   BreakpointLocation* bpt_location_;
   CodeBreakpoint* next_;
 
-  RawPcDescriptors::Kind breakpoint_kind_;
-  RawCode* saved_value_;
+  PcDescriptorsLayout::Kind breakpoint_kind_;
+  CodePtr saved_value_;
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(CodeBreakpoint);
@@ -309,10 +309,10 @@ class ActivationFrame : public ZoneAllocated {
 
   Relation CompareTo(uword other_fp, bool other_is_interpreted) const;
 
-  RawString* QualifiedFunctionName();
-  RawString* SourceUrl();
-  RawScript* SourceScript();
-  RawLibrary* Library();
+  StringPtr QualifiedFunctionName();
+  StringPtr SourceUrl();
+  ScriptPtr SourceScript();
+  LibraryPtr Library();
   TokenPosition TokenPos();
   intptr_t LineNumber();
   intptr_t ColumnNumber();
@@ -340,28 +340,28 @@ class ActivationFrame : public ZoneAllocated {
                   TokenPosition* visible_end_token_pos,
                   Object* value);
 
-  RawArray* GetLocalVariables();
-  RawObject* GetParameter(intptr_t index);
-  RawObject* GetClosure();
-  RawObject* GetReceiver();
+  ArrayPtr GetLocalVariables();
+  ObjectPtr GetParameter(intptr_t index);
+  ObjectPtr GetClosure();
+  ObjectPtr GetReceiver();
 
   const Context& GetSavedCurrentContext();
-  RawObject* GetAsyncOperation();
+  ObjectPtr GetAsyncOperation();
 
-  RawTypeArguments* BuildParameters(
+  TypeArgumentsPtr BuildParameters(
       const GrowableObjectArray& param_names,
       const GrowableObjectArray& param_values,
       const GrowableObjectArray& type_params_names);
 
-  RawObject* EvaluateCompiledExpression(const ExternalTypedData& kernel_data,
-                                        const Array& arguments,
-                                        const Array& type_definitions,
-                                        const TypeArguments& type_arguments);
+  ObjectPtr EvaluateCompiledExpression(const ExternalTypedData& kernel_data,
+                                       const Array& arguments,
+                                       const Array& type_definitions,
+                                       const TypeArguments& type_arguments);
 
   void PrintToJSONObject(JSONObject* jsobj);
 
-  RawObject* GetAsyncAwaiter();
-  RawObject* GetCausalStack();
+  ObjectPtr GetAsyncAwaiter();
+  ObjectPtr GetCausalStack();
 
   bool HandlesException(const Instance& exc_obj);
 
@@ -381,11 +381,11 @@ class ActivationFrame : public ZoneAllocated {
   void GetVarDescriptors();
   void GetDescIndices();
 
-  RawObject* GetAsyncContextVariable(const String& name);
-  RawObject* GetAsyncStreamControllerStreamAwaiter(const Object& stream);
-  RawObject* GetAsyncStreamControllerStream();
-  RawObject* GetAsyncCompleterAwaiter(const Object& completer);
-  RawObject* GetAsyncCompleter();
+  ObjectPtr GetAsyncContextVariable(const String& name);
+  ObjectPtr GetAsyncStreamControllerStreamAwaiter(const Object& stream);
+  ObjectPtr GetAsyncStreamControllerStream();
+  ObjectPtr GetAsyncCompleterAwaiter(const Object& completer);
+  ObjectPtr GetAsyncCompleter();
   intptr_t GetAwaitJumpVariable();
   void ExtractTokenPositionFromAsyncClosure();
 
@@ -407,11 +407,11 @@ class ActivationFrame : public ZoneAllocated {
     }
   }
 
-  RawObject* GetStackVar(VariableIndex var_index);
-  RawObject* GetRelativeContextVar(intptr_t ctxt_level,
-                                   intptr_t slot_index,
-                                   intptr_t frame_ctx_level);
-  RawObject* GetContextVar(intptr_t ctxt_level, intptr_t slot_index);
+  ObjectPtr GetStackVar(VariableIndex var_index);
+  ObjectPtr GetRelativeContextVar(intptr_t ctxt_level,
+                                  intptr_t slot_index,
+                                  intptr_t frame_ctx_level);
+  ObjectPtr GetContextVar(intptr_t ctxt_level, intptr_t slot_index);
 
   uword pc_;
   uword fp_;
@@ -602,16 +602,16 @@ class Debugger {
   static const char* QualifiedFunctionName(const Function& func);
 
   // Pause execution for a breakpoint.  Called from generated code.
-  RawError* PauseBreakpoint();
+  ErrorPtr PauseBreakpoint();
 
   // Pause execution due to stepping.  Called from generated code.
-  RawError* PauseStepping();
+  ErrorPtr PauseStepping();
 
   // Pause execution due to isolate interrupt.
-  RawError* PauseInterrupted();
+  ErrorPtr PauseInterrupted();
 
   // Pause after a reload request.
-  RawError* PausePostRequest();
+  ErrorPtr PausePostRequest();
 
   // Pause execution due to an uncaught exception.
   void PauseException(const Instance& exc);
@@ -620,7 +620,7 @@ class Debugger {
   // Dart.
   void PauseDeveloper(const String& msg);
 
-  RawCode* GetPatchedStubAddress(uword breakpoint_address);
+  CodePtr GetPatchedStubAddress(uword breakpoint_address);
 
   void PrintBreakpointsToJSONArray(JSONArray* jsarr) const;
   void PrintSettingsToJSONObject(JSONObject* jsobj) const;
@@ -636,7 +636,7 @@ class Debugger {
   static DebuggerStackTrace* CollectAwaiterReturnStackTrace();
 
  private:
-  RawError* PauseRequest(ServiceEvent::EventKind kind);
+  ErrorPtr PauseRequest(ServiceEvent::EventKind kind);
 
   // Finds the breakpoint we hit at |location|.
   Breakpoint* FindHitBreakpoint(BreakpointLocation* location,
@@ -661,8 +661,8 @@ class Debugger {
                    TokenPosition token_pos,
                    TokenPosition last_token_pos,
                    Function* best_fit);
-  RawFunction* FindInnermostClosure(const Function& function,
-                                    TokenPosition token_pos);
+  FunctionPtr FindInnermostClosure(const Function& function,
+                                   TokenPosition token_pos);
   TokenPosition ResolveBreakpointPos(bool in_bytecode,
                                      const Function& func,
                                      TokenPosition requested_token_pos,
@@ -728,9 +728,9 @@ class Debugger {
       StackFrame* frame,
       const Bytecode& bytecode,
       ActivationFrame::Kind kind = ActivationFrame::kRegular);
-  static RawArray* DeoptimizeToArray(Thread* thread,
-                                     StackFrame* frame,
-                                     const Code& code);
+  static ArrayPtr DeoptimizeToArray(Thread* thread,
+                                    StackFrame* frame,
+                                    const Code& code);
   TokenPosition FindExactTokenPosition(const Script& script,
                                        TokenPosition start_of_line,
                                        intptr_t column_number);
@@ -828,7 +828,7 @@ class Debugger {
   // Used to track the current async/async* function.
   uword async_stepping_fp_;
   bool interpreted_async_stepping_;
-  RawObject* top_frame_awaiter_;
+  ObjectPtr top_frame_awaiter_;
 
   // If we step while at a breakpoint, we would hit the same pc twice.
   // We use this field to let us skip the next single-step after a

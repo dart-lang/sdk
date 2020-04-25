@@ -48,11 +48,6 @@ class Library;
 class ObjectLocator;
 class ObjectPointerVisitor;
 class ObjectStore;
-class RawError;
-class RawGrowableObjectArray;
-class RawLibrary;
-class RawObject;
-class RawString;
 class Script;
 class UpdateClassesVisitor;
 
@@ -74,10 +69,10 @@ class InstanceMorpher : public ZoneAllocated {
   virtual ~InstanceMorpher() {}
 
   // Called on each instance that needs to be morphed.
-  RawInstance* Morph(const Instance& instance) const;
+  InstancePtr Morph(const Instance& instance) const;
 
   // Adds an object to be morphed.
-  void AddObject(RawObject* object);
+  void AddObject(ObjectPtr object);
 
   // Create the morphed objects based on the before() list.
   void CreateMorphedCopies();
@@ -118,11 +113,11 @@ class ReasonForCancelling : public ZoneAllocated {
 
   // Conversion to a VM error object.
   // Default implementation calls ToString.
-  virtual RawError* ToError();
+  virtual ErrorPtr ToError();
 
   // Conversion to a string object.
   // Default implementation calls ToError.
-  virtual RawString* ToString();
+  virtual StringPtr ToString();
 
   // Append the reason to JSON array.
   virtual void AppendTo(JSONArray* array);
@@ -165,7 +160,7 @@ class IsolateGroupReloadContext {
   IsolateGroup* isolate_group() const { return isolate_group_; }
   bool reload_aborted() const { return HasReasonsForCancelling(); }
   bool reload_skipped() const { return reload_skipped_; }
-  RawError* error() const;
+  ErrorPtr error() const;
   int64_t start_time_micros() const { return start_time_micros_; }
   int64_t reload_timestamp() const { return reload_timestamp_; }
 
@@ -278,13 +273,11 @@ class IsolateGroupReloadContext {
   BitVector* modified_libs_ = nullptr;
 
   String& root_lib_url_;
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&root_url_prefix_);
-  }
-  RawString* root_url_prefix_;
-  RawString* old_root_url_prefix_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&old_root_url_prefix_);
+  ObjectPtr* from() { return reinterpret_cast<ObjectPtr*>(&root_url_prefix_); }
+  StringPtr root_url_prefix_;
+  StringPtr old_root_url_prefix_;
+  ObjectPtr* to() {
+    return reinterpret_cast<ObjectPtr*>(&old_root_url_prefix_);
   }
 
   friend class Isolate;
@@ -295,7 +288,7 @@ class IsolateGroupReloadContext {
   friend class ReasonForCancelling;
   friend class IsolateReloadContext;
   friend class IsolateGroup;  // GetClassSizeForHeapWalkAt
-  friend class RawObject;     // GetClassSizeForHeapWalkAt
+  friend class ObjectLayout;  // GetClassSizeForHeapWalkAt
 
   static Dart_FileModifiedCallback file_modified_callback_;
 };
@@ -321,14 +314,14 @@ class IsolateReloadContext {
   bool IsDirty(const Library& lib);
 
   // Prefers old classes when we are in the middle of a reload.
-  RawClass* GetClassForHeapWalkAt(intptr_t cid);
+  ClassPtr GetClassForHeapWalkAt(intptr_t cid);
   void DiscardSavedClassTable(bool is_rollback);
 
   void RegisterClass(const Class& new_cls);
 
   // Finds the library private key for |replacement_or_new| or return null
   // if |replacement_or_new| is new.
-  RawString* FindLibraryPrivateKey(const Library& replacement_or_new);
+  StringPtr FindLibraryPrivateKey(const Library& replacement_or_new);
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -340,8 +333,8 @@ class IsolateReloadContext {
 
   void ReloadPhase1AllocateStorageMapsAndCheckpoint();
   void CheckpointClasses();
-  RawObject* ReloadPhase2LoadKernel(kernel::Program* program,
-                                    const String& root_lib_url);
+  ObjectPtr ReloadPhase2LoadKernel(kernel::Program* program,
+                                   const String& root_lib_url);
   void ReloadPhase3FinalizeLoading();
   void ReloadPhase4CommitPrepare();
   void ReloadPhase4CommitFinish();
@@ -382,12 +375,12 @@ class IsolateReloadContext {
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
   Isolate* isolate_;
   intptr_t saved_num_cids_ = -1;
-  std::atomic<RawClass**> saved_class_table_;
+  std::atomic<ClassPtr*> saved_class_table_;
   MallocGrowableArray<LibraryInfo> library_infos_;
 
-  RawClass* OldClassOrNull(const Class& replacement_or_new);
-  RawLibrary* OldLibraryOrNull(const Library& replacement_or_new);
-  RawLibrary* OldLibraryOrNullBaseMoved(const Library& replacement_or_new);
+  ClassPtr OldClassOrNull(const Class& replacement_or_new);
+  LibraryPtr OldLibraryOrNull(const Library& replacement_or_new);
+  LibraryPtr OldLibraryOrNullBaseMoved(const Library& replacement_or_new);
 
   void BuildLibraryMapping();
   void BuildRemovedClassesSet();
@@ -401,19 +394,19 @@ class IsolateReloadContext {
   void AddEnumBecomeMapping(const Object& old, const Object& neu);
   void RebuildDirectSubclasses();
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&old_classes_set_storage_);
+  ObjectPtr* from() {
+    return reinterpret_cast<ObjectPtr*>(&old_classes_set_storage_);
   }
-  RawArray* old_classes_set_storage_;
-  RawArray* class_map_storage_;
-  RawArray* removed_class_set_storage_;
-  RawArray* old_libraries_set_storage_;
-  RawArray* library_map_storage_;
-  RawArray* become_map_storage_;
-  RawGrowableObjectArray* become_enum_mappings_;
-  RawLibrary* saved_root_library_;
-  RawGrowableObjectArray* saved_libraries_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&saved_libraries_); }
+  ArrayPtr old_classes_set_storage_;
+  ArrayPtr class_map_storage_;
+  ArrayPtr removed_class_set_storage_;
+  ArrayPtr old_libraries_set_storage_;
+  ArrayPtr library_map_storage_;
+  ArrayPtr become_map_storage_;
+  GrowableObjectArrayPtr become_enum_mappings_;
+  LibraryPtr saved_root_library_;
+  GrowableObjectArrayPtr saved_libraries_;
+  ObjectPtr* to() { return reinterpret_cast<ObjectPtr*>(&saved_libraries_); }
 
   friend class Isolate;
   friend class Class;  // AddStaticFieldMapping, AddEnumBecomeMapping.

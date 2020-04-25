@@ -42,7 +42,7 @@ class NativeCallingConvention : public ZoneAllocated {
   // The C Type (expressed in a Dart Type) of the argument at `arg_index`.
   //
   // Excluding the #0 argument which is the function pointer.
-  RawAbstractType* CType(intptr_t arg_index) const;
+  AbstractTypePtr CType(intptr_t arg_index) const;
 
   // The location of the argument at `arg_index`.
   const NativeLocation& Location(intptr_t arg_index) const {

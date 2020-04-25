@@ -73,10 +73,10 @@ class TranslationHelper {
 
   KernelProgramInfo& info() { return info_; }
 
-  RawGrowableObjectArray* EnsurePotentialPragmaFunctions();
+  GrowableObjectArrayPtr EnsurePotentialPragmaFunctions();
 
   void AddPotentialExtensionLibrary(const Library& library);
-  RawGrowableObjectArray* GetPotentialExtensionLibraries();
+  GrowableObjectArrayPtr GetPotentialExtensionLibraries();
 
   void SetKernelProgramInfo(const KernelProgramInfo& info);
   const KernelProgramInfo& GetKernelProgramInfo() const { return info_; }
@@ -113,7 +113,7 @@ class TranslationHelper {
   // of the enclosing class or library.
   NameIndex EnclosingName(NameIndex name);
 
-  RawInstance* Canonicalize(const Instance& instance);
+  InstancePtr Canonicalize(const Instance& instance);
 
   const String& DartString(const char* content) {
     return DartString(content, allocation_space_);
@@ -159,20 +159,19 @@ class TranslationHelper {
   // A subclass overrides these when reading in the Kernel program in order to
   // support recursive type expressions (e.g. for "implements X" ...
   // annotations).
-  virtual RawLibrary* LookupLibraryByKernelLibrary(NameIndex library);
-  virtual RawClass* LookupClassByKernelClass(NameIndex klass);
+  virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library);
+  virtual ClassPtr LookupClassByKernelClass(NameIndex klass);
 
-  RawField* LookupFieldByKernelField(NameIndex field);
-  RawFunction* LookupStaticMethodByKernelProcedure(NameIndex procedure);
-  RawFunction* LookupConstructorByKernelConstructor(NameIndex constructor);
-  RawFunction* LookupConstructorByKernelConstructor(const Class& owner,
-                                                    NameIndex constructor);
-  RawFunction* LookupConstructorByKernelConstructor(
+  FieldPtr LookupFieldByKernelField(NameIndex field);
+  FunctionPtr LookupStaticMethodByKernelProcedure(NameIndex procedure);
+  FunctionPtr LookupConstructorByKernelConstructor(NameIndex constructor);
+  FunctionPtr LookupConstructorByKernelConstructor(const Class& owner,
+                                                   NameIndex constructor);
+  FunctionPtr LookupConstructorByKernelConstructor(
       const Class& owner,
       StringIndex constructor_name);
-  RawFunction* LookupMethodByMember(NameIndex target,
-                                    const String& method_name);
-  RawFunction* LookupDynamicFunction(const Class& klass, const String& name);
+  FunctionPtr LookupMethodByMember(NameIndex target, const String& method_name);
+  FunctionPtr LookupDynamicFunction(const Class& klass, const String& name);
 
   Type& GetDeclarationType(const Class& klass);
 
@@ -193,7 +192,7 @@ class TranslationHelper {
                    const char* format,
                    ...) PRINTF_ATTRIBUTE(5, 6);
 
-  RawArray* GetBytecodeComponent() const { return info_.bytecode_component(); }
+  ArrayPtr GetBytecodeComponent() const { return info_.bytecode_component(); }
   void SetBytecodeComponent(const Array& bytecode_component) {
     info_.set_bytecode_component(bytecode_component);
   }
@@ -213,7 +212,7 @@ class TranslationHelper {
     ASSERT(!real_class.IsNull());
     expression_evaluation_real_class_ = &Class::Handle(zone_, real_class.raw());
   }
-  RawClass* GetExpressionEvaluationRealClass() {
+  ClassPtr GetExpressionEvaluationRealClass() {
     ASSERT(expression_evaluation_real_class_ != nullptr);
     return expression_evaluation_real_class_->raw();
   }
@@ -1228,7 +1227,7 @@ class KernelReaderHelper {
   intptr_t GetOffsetForSourceInfo(intptr_t index);
   String& SourceTableUriFor(intptr_t index);
   const String& GetSourceFor(intptr_t index);
-  RawTypedData* GetLineStartsFor(intptr_t index);
+  TypedDataPtr GetLineStartsFor(intptr_t index);
   String& SourceTableImportUriFor(intptr_t index, uint32_t binaryVersion);
 
   Zone* zone_;
@@ -1286,12 +1285,12 @@ class ActiveClass {
 
   bool MemberIsProcedure() {
     ASSERT(member != NULL);
-    RawFunction::Kind function_kind = member->kind();
-    return function_kind == RawFunction::kRegularFunction ||
-           function_kind == RawFunction::kGetterFunction ||
-           function_kind == RawFunction::kSetterFunction ||
-           function_kind == RawFunction::kMethodExtractor ||
-           function_kind == RawFunction::kDynamicInvocationForwarder ||
+    FunctionLayout::Kind function_kind = member->kind();
+    return function_kind == FunctionLayout::kRegularFunction ||
+           function_kind == FunctionLayout::kGetterFunction ||
+           function_kind == FunctionLayout::kSetterFunction ||
+           function_kind == FunctionLayout::kMethodExtractor ||
+           function_kind == FunctionLayout::kDynamicInvocationForwarder ||
            member->IsFactory();
   }
 

@@ -19,8 +19,8 @@ namespace compiler {
 
 namespace ffi {
 
-RawFunction* TrampolineFunction(const Function& dart_signature,
-                                const Function& c_signature);
+FunctionPtr TrampolineFunction(const Function& dart_signature,
+                               const Function& c_signature);
 
 }  // namespace ffi
 

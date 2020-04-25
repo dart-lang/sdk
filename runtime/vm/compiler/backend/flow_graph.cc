@@ -410,7 +410,7 @@ bool FlowGraph::IsReceiver(Definition* def) const {
 
 FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     InstanceCallInstr* call,
-    RawFunction::Kind kind) const {
+    FunctionLayout::Kind kind) const {
   if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
     // Even if class or function are private, lazy class finalization
     // may later add overriding methods.
@@ -472,7 +472,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   }
 
   const String& method_name =
-      (kind == RawFunction::kMethodExtractor)
+      (kind == FunctionLayout::kMethodExtractor)
           ? String::Handle(zone(), Field::NameFromGetter(call->function_name()))
           : call->function_name();
 

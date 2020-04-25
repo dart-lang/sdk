@@ -118,10 +118,7 @@ config("compiler") {
       ldflags += [ "-fsanitize=thread" ]
     }
     if (is_ubsan) {
-      cflags += [
-        "-fsanitize=undefined",
-        "-fno-sanitize=null,alignment",
-      ]
+      cflags += [ "-fsanitize=undefined" ]
       ldflags += [ "-fsanitize=undefined" ]
     }
   }

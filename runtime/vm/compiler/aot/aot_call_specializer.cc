@@ -851,7 +851,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   if (has_one_target) {
     const Function& target = targets.FirstTarget();
-    RawFunction::Kind function_kind = target.kind();
+    FunctionLayout::Kind function_kind = target.kind();
     if (flow_graph()->CheckForInstanceCall(instr, function_kind) ==
         FlowGraph::ToCheck::kNoCheck) {
       StaticCallInstr* call = StaticCallInstr::FromCall(

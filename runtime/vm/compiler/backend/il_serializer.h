@@ -148,7 +148,7 @@ class FlowGraphSerializer : ValueObject {
       return a.raw() == b.raw();
     }
     static uword Hash(const Object& obj) {
-      if (obj.IsSmi()) return reinterpret_cast<uword>(obj.raw());
+      if (obj.IsSmi()) return static_cast<uword>(obj.raw());
       if (obj.IsInstance()) return Instance::Cast(obj).CanonicalizeHash();
       return obj.GetClassId();
     }

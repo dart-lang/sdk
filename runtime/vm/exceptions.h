@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
+#include "vm/tagged_pointer.h"
 #include "vm/token_position.h"
 
 namespace dart {
@@ -19,11 +20,6 @@ class Error;
 class LanguageError;
 class Instance;
 class Integer;
-class RawInstance;
-class RawObject;
-class RawScript;
-class RawStackTrace;
-class RawUnhandledException;
 class ReadStream;
 class WriteStream;
 class String;
@@ -42,9 +38,9 @@ class Exceptions : AllStatic {
   DART_NORETURN static void PropagateToEntry(const Error& error);
 
   // Helpers to create and throw errors.
-  static RawStackTrace* CurrentStackTrace();
-  static RawScript* GetCallerScript(DartFrameIterator* iterator);
-  static RawInstance* NewInstance(const char* class_name);
+  static StackTracePtr CurrentStackTrace();
+  static ScriptPtr GetCallerScript(DartFrameIterator* iterator);
+  static InstancePtr NewInstance(const char* class_name);
   static void CreateAndThrowTypeError(TokenPosition location,
                                       const AbstractType& src_type,
                                       const AbstractType& dst_type,
@@ -91,13 +87,13 @@ class Exceptions : AllStatic {
 
   // Returns a RawInstance if the exception is successfully created,
   // otherwise returns a RawError.
-  static RawObject* Create(ExceptionType type, const Array& arguments);
+  static ObjectPtr Create(ExceptionType type, const Array& arguments);
 
   // Returns RawUnhandledException that wraps exception of type [type] with
   // [msg] as a single argument.
-  static RawUnhandledException* CreateUnhandledException(Zone* zone,
-                                                         ExceptionType type,
-                                                         const char* msg);
+  static UnhandledExceptionPtr CreateUnhandledException(Zone* zone,
+                                                        ExceptionType type,
+                                                        const char* msg);
 
   DART_NORETURN static void JumpToFrame(Thread* thread,
                                         uword program_counter,

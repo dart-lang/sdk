@@ -38,11 +38,11 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
 
   virtual bool CanReadUnaligned();
 
-  static RawArray* Execute(const RegExp& regexp,
-                           const String& input,
-                           const Smi& start_offset,
-                           bool sticky,
-                           Zone* zone);
+  static ArrayPtr Execute(const RegExp& regexp,
+                          const String& input,
+                          const Smi& start_offset,
+                          bool sticky,
+                          Zone* zone);
 
   virtual bool IsClosed() const { return (current_instruction_ == NULL); }
 

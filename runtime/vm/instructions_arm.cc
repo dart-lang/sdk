@@ -64,9 +64,8 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
   ASSERT(reg == R9);
 }
 
-RawCode* NativeCallPattern::target() const {
-  return reinterpret_cast<RawCode*>(
-      object_pool_.ObjectAt(target_code_pool_index_));
+CodePtr NativeCallPattern::target() const {
+  return static_cast<CodePtr>(object_pool_.ObjectAt(target_code_pool_index_));
 }
 
 void NativeCallPattern::set_target(const Code& new_target) const {
@@ -103,7 +102,7 @@ uword InstructionPattern::DecodeLoadObject(uword end,
   } else {
     intptr_t value = 0;
     start = DecodeLoadWordImmediate(end, reg, &value);
-    *obj = reinterpret_cast<RawObject*>(value);
+    *obj = static_cast<ObjectPtr>(value);
   }
   return start;
 }
@@ -259,16 +258,15 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   return false;
 }
 
-RawCode* CallPattern::TargetCode() const {
-  return reinterpret_cast<RawCode*>(
-      object_pool_.ObjectAt(target_code_pool_index_));
+CodePtr CallPattern::TargetCode() const {
+  return static_cast<CodePtr>(object_pool_.ObjectAt(target_code_pool_index_));
 }
 
 void CallPattern::SetTargetCode(const Code& target_code) const {
   object_pool_.SetObjectAt(target_code_pool_index_, target_code);
 }
 
-RawObject* ICCallPattern::Data() const {
+ObjectPtr ICCallPattern::Data() const {
   return object_pool_.ObjectAt(data_pool_index_);
 }
 
@@ -277,8 +275,8 @@ void ICCallPattern::SetData(const Object& data) const {
   object_pool_.SetObjectAt(data_pool_index_, data);
 }
 
-RawCode* ICCallPattern::TargetCode() const {
-  return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_pool_index_));
+CodePtr ICCallPattern::TargetCode() const {
+  return static_cast<CodePtr>(object_pool_.ObjectAt(target_pool_index_));
 }
 
 void ICCallPattern::SetTargetCode(const Code& target_code) const {
@@ -290,7 +288,7 @@ SwitchableCallPatternBase::SwitchableCallPatternBase(const Code& code)
       data_pool_index_(-1),
       target_pool_index_(-1) {}
 
-RawObject* SwitchableCallPatternBase::data() const {
+ObjectPtr SwitchableCallPatternBase::data() const {
   return object_pool_.ObjectAt(data_pool_index_);
 }
 
@@ -314,8 +312,8 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   ASSERT(reg == CODE_REG);
 }
 
-RawCode* SwitchableCallPattern::target() const {
-  return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_pool_index_));
+CodePtr SwitchableCallPattern::target() const {
+  return static_cast<CodePtr>(object_pool_.ObjectAt(target_pool_index_));
 }
 void SwitchableCallPattern::SetTarget(const Code& target) const {
   ASSERT(Object::Handle(object_pool_.ObjectAt(target_pool_index_)).IsCode());
@@ -338,7 +336,7 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
   ASSERT(reg == LR);
 }
 
-RawCode* BareSwitchableCallPattern::target() const {
+CodePtr BareSwitchableCallPattern::target() const {
   const uword pc = object_pool_.RawValueAt(target_pool_index_);
   auto rct = IsolateGroup::Current()->reverse_pc_lookup_cache();
   if (rct->Contains(pc)) {

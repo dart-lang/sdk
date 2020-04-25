@@ -134,7 +134,7 @@ static void Jump(const Error& error) {
   Thread::Current()->long_jump_base()->Jump(1, error);
 }
 
-RawError* Precompiler::CompileAll() {
+ErrorPtr Precompiler::CompileAll() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Precompiler precompiler(Thread::Current());
@@ -608,7 +608,7 @@ void Precompiler::CollectCallbackFields() {
             if (subcls.is_allocated()) {
               // Add dispatcher to cls.
               dispatcher = subcls.GetInvocationDispatcher(
-                  field_name, args_desc, RawFunction::kInvokeFieldDispatcher,
+                  field_name, args_desc, FunctionLayout::kInvokeFieldDispatcher,
                   /* create_if_absent = */ true);
               if (FLAG_trace_precompiler) {
                 THR_Print("Added invoke-field-dispatcher for %s to %s\n",
@@ -806,7 +806,7 @@ void Precompiler::AddTypesOf(const Function& function) {
   }
   Code& code = Code::Handle(Z, function.CurrentCode());
   if (code.IsNull()) {
-    ASSERT(function.kind() == RawFunction::kSignatureFunction);
+    ASSERT(function.kind() == FunctionLayout::kSignatureFunction);
   } else {
     const ExceptionHandlers& handlers =
         ExceptionHandlers::Handle(Z, code.exception_handlers());
@@ -940,8 +940,8 @@ void Precompiler::AddConstObject(const class Instance& instance) {
           precompiler_(precompiler),
           subinstance_(Object::Handle()) {}
 
-    virtual void VisitPointers(RawObject** first, RawObject** last) {
-      for (RawObject** current = first; current <= last; current++) {
+    virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+      for (ObjectPtr* current = first; current <= last; current++) {
         subinstance_ = *current;
         if (subinstance_.IsInstance()) {
           precompiler_->AddConstObject(Instance::Cast(subinstance_));
@@ -956,16 +956,17 @@ void Precompiler::AddConstObject(const class Instance& instance) {
   };
 
   ConstObjectVisitor visitor(this, I);
-  instance.raw()->VisitPointers(&visitor);
+  instance.raw()->ptr()->VisitPointers(&visitor);
 }
 
 void Precompiler::AddClosureCall(const Array& arguments_descriptor) {
   const Class& cache_class =
       Class::Handle(Z, I->object_store()->closure_class());
-  const Function& dispatcher = Function::Handle(
-      Z, cache_class.GetInvocationDispatcher(
-             Symbols::Call(), arguments_descriptor,
-             RawFunction::kInvokeFieldDispatcher, true /* create_if_absent */));
+  const Function& dispatcher =
+      Function::Handle(Z, cache_class.GetInvocationDispatcher(
+                              Symbols::Call(), arguments_descriptor,
+                              FunctionLayout::kInvokeFieldDispatcher,
+                              true /* create_if_absent */));
   AddFunction(dispatcher);
 }
 
@@ -1181,7 +1182,7 @@ void Precompiler::AddAnnotatedRoots() {
 
           if ((type == EntryPointPragma::kAlways ||
                type == EntryPointPragma::kGetterOnly) &&
-              function.kind() != RawFunction::kConstructor &&
+              function.kind() != FunctionLayout::kConstructor &&
               !function.IsSetterFunction()) {
             function2 = function.ImplicitClosureFunction();
             AddFunction(function2);
@@ -1191,7 +1192,7 @@ void Precompiler::AddAnnotatedRoots() {
             AddInstantiatedClass(cls);
           }
         }
-        if (function.kind() == RawFunction::kImplicitGetter &&
+        if (function.kind() == FunctionLayout::kImplicitGetter &&
             !implicit_getters.IsNull()) {
           for (intptr_t i = 0; i < implicit_getters.Length(); ++i) {
             field ^= implicit_getters.At(i);
@@ -1200,7 +1201,7 @@ void Precompiler::AddAnnotatedRoots() {
             }
           }
         }
-        if (function.kind() == RawFunction::kImplicitSetter &&
+        if (function.kind() == FunctionLayout::kImplicitSetter &&
             !implicit_setters.IsNull()) {
           for (intptr_t i = 0; i < implicit_setters.Length(); ++i) {
             field ^= implicit_setters.At(i);
@@ -1209,7 +1210,7 @@ void Precompiler::AddAnnotatedRoots() {
             }
           }
         }
-        if (function.kind() == RawFunction::kImplicitStaticGetter &&
+        if (function.kind() == FunctionLayout::kImplicitStaticGetter &&
             !implicit_static_getters.IsNull()) {
           for (intptr_t i = 0; i < implicit_static_getters.Length(); ++i) {
             field ^= implicit_static_getters.At(i);
@@ -1281,7 +1282,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
           if (IsSent(selector3)) {
             AddFunction(function);
           }
-        } else if (function.kind() == RawFunction::kRegularFunction) {
+        } else if (function.kind() == FunctionLayout::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
           if (IsSent(selector2)) {
             metadata = kernel::ProcedureAttributesOf(function, Z);
@@ -1300,12 +1301,12 @@ void Precompiler::CheckForNewDynamicFunctions() {
           }
         }
 
-        if (function.kind() == RawFunction::kImplicitSetter ||
-            function.kind() == RawFunction::kSetterFunction ||
-            function.kind() == RawFunction::kRegularFunction) {
+        if (function.kind() == FunctionLayout::kImplicitSetter ||
+            function.kind() == FunctionLayout::kSetterFunction ||
+            function.kind() == FunctionLayout::kRegularFunction) {
           selector2 = Function::CreateDynamicInvocationForwarderName(selector);
           if (IsSent(selector2)) {
-            if (function.kind() == RawFunction::kImplicitSetter) {
+            if (function.kind() == FunctionLayout::kImplicitSetter) {
               field = function.accessor_field();
               metadata = kernel::ProcedureAttributesOf(field, Z);
             } else if (!found_metadata) {
@@ -1333,7 +1334,7 @@ class NameFunctionsTraits {
            String::Cast(a).Equals(String::Cast(b));
   }
   static uword Hash(const Object& obj) { return String::Cast(obj).Hash(); }
-  static RawObject* NewKey(const String& str) { return str.raw(); }
+  static ObjectPtr NewKey(const String& str) { return str.raw(); }
 };
 
 typedef UnorderedHashMap<NameFunctionsTraits> Table;
@@ -1710,7 +1711,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
                               GrowableHandlePtrArray<const AbstractType>* types)
           : type_(AbstractType::Handle(zone)), types_(types) {}
 
-      void VisitObject(RawObject* obj) {
+      void VisitObject(ObjectPtr obj) {
         if (obj->GetClassId() == kTypeCid || obj->GetClassId() == kTypeRefCid) {
           type_ ^= obj;
           types_->Add(type_);
@@ -2157,7 +2158,7 @@ struct CodeKeyTraits {
 typedef UnorderedHashSet<CodeKeyTraits> CodeSet;
 
 #if defined(DEBUG)
-RawFunction* Precompiler::FindUnvisitedRetainedFunction() {
+FunctionPtr Precompiler::FindUnvisitedRetainedFunction() {
   class CodeChecker : public CodeVisitor {
    public:
     CodeChecker()
@@ -2200,7 +2201,7 @@ void Precompiler::Obfuscate() {
                               GrowableHandlePtrArray<const Script>* scripts)
         : script_(Script::Handle(zone)), scripts_(scripts) {}
 
-    void VisitObject(RawObject* obj) {
+    void VisitObject(ObjectPtr obj) {
       if (obj->GetClassId() == kScriptCid) {
         script_ ^= obj;
         scripts_->Add(Script::Cast(script_));
@@ -2563,10 +2564,10 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   return is_compiled;
 }
 
-static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
-                                          CompilationPipeline* pipeline,
-                                          const Function& function,
-                                          bool optimized) {
+static ErrorPtr PrecompileFunctionHelper(Precompiler* precompiler,
+                                         CompilationPipeline* pipeline,
+                                         const Function& function,
+                                         bool optimized) {
   // Check that we optimize, except if the function is not optimizable.
   ASSERT(CompilerState::Current().is_aot());
   ASSERT(!function.IsOptimizable() || optimized);
@@ -2638,10 +2639,10 @@ static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
   return Error::null();
 }
 
-RawError* Precompiler::CompileFunction(Precompiler* precompiler,
-                                       Thread* thread,
-                                       Zone* zone,
-                                       const Function& function) {
+ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
+                                      Thread* thread,
+                                      Zone* zone,
+                                      const Function& function) {
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
 
@@ -2780,8 +2781,8 @@ void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
   PreventRenaming("_NamespaceImpl");
 }
 
-RawString* Obfuscator::ObfuscationState::RenameImpl(const String& name,
-                                                    bool atomic) {
+StringPtr Obfuscator::ObfuscationState::RenameImpl(const String& name,
+                                                   bool atomic) {
   ASSERT(name.IsSymbol());
 
   renamed_ ^= renames_.GetOrNull(name);
@@ -2857,7 +2858,7 @@ void Obfuscator::ObfuscationState::NextName() {
   }
 }
 
-RawString* Obfuscator::ObfuscationState::NewAtomicRename(
+StringPtr Obfuscator::ObfuscationState::NewAtomicRename(
     bool should_be_private) {
   do {
     NextName();
@@ -2869,8 +2870,8 @@ RawString* Obfuscator::ObfuscationState::NewAtomicRename(
   return renamed_.raw();
 }
 
-RawString* Obfuscator::ObfuscationState::BuildRename(const String& name,
-                                                     bool atomic) {
+StringPtr Obfuscator::ObfuscationState::BuildRename(const String& name,
+                                                    bool atomic) {
   if (atomic) {
     return NewAtomicRename(name.CharAt(0) == '_');
   }

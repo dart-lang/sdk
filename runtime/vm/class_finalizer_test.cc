@@ -9,7 +9,7 @@
 
 namespace dart {
 
-static RawClass* CreateTestClass(const char* name) {
+static ClassPtr CreateTestClass(const char* name) {
   const String& class_name =
       String::Handle(Symbols::New(Thread::Current(), name));
   const Script& script = Script::Handle();

@@ -48,9 +48,9 @@ DEFINE_FLAG(bool,
 
 #define VM_SERVICE_METHOD_CALL_FROM_NATIVE 5
 
-static RawArray* MakeServiceControlMessage(Dart_Port port_id,
-                                           intptr_t code,
-                                           const String& name) {
+static ArrayPtr MakeServiceControlMessage(Dart_Port port_id,
+                                          intptr_t code,
+                                          const String& name) {
   const Array& list = Array::Handle(Array::New(4));
   ASSERT(!list.IsNull());
   const Integer& code_int = Integer::Handle(Integer::New(code));
@@ -63,9 +63,9 @@ static RawArray* MakeServiceControlMessage(Dart_Port port_id,
   return list.raw();
 }
 
-static RawArray* MakeServerControlMessage(const SendPort& sp,
-                                          intptr_t code,
-                                          bool enable = false) {
+static ArrayPtr MakeServerControlMessage(const SendPort& sp,
+                                         intptr_t code,
+                                         bool enable = false) {
   const Array& list = Array::Handle(Array::New(3));
   ASSERT(!list.IsNull());
   list.SetAt(0, Integer::Handle(Integer::New(code)));

@@ -1451,7 +1451,7 @@ class CodeLookupTableBuilder : public ObjectVisitor {
 
   ~CodeLookupTableBuilder() {}
 
-  void VisitObject(RawObject* raw_obj) {
+  void VisitObject(ObjectPtr raw_obj) {
     if (raw_obj->IsCode()) {
       table_->Add(Code::Handle(Code::RawCast(raw_obj)));
     } else if (raw_obj->IsBytecode()) {

@@ -13,15 +13,15 @@ namespace compiler {
 namespace ffi {
 
 // TODO(dartbug.com/36607): Cache the trampolines.
-RawFunction* TrampolineFunction(const Function& dart_signature,
-                                const Function& c_signature) {
+FunctionPtr TrampolineFunction(const Function& dart_signature,
+                               const Function& c_signature) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   String& name = String::Handle(zone, Symbols::New(thread, "FfiTrampoline"));
   const Library& lib = Library::Handle(zone, Library::FfiLibrary());
   const Class& owner_class = Class::Handle(zone, lib.toplevel_class());
   Function& function =
-      Function::Handle(zone, Function::New(name, RawFunction::kFfiTrampoline,
+      Function::Handle(zone, Function::New(name, FunctionLayout::kFfiTrampoline,
                                            /*is_static=*/true,
                                            /*is_const=*/false,
                                            /*is_abstract=*/false,

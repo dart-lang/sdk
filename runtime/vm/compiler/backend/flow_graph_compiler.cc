@@ -252,7 +252,7 @@ bool FlowGraphCompiler::CanOSRFunction() const {
 
 void FlowGraphCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
   const intptr_t offset = assembler()->InsertAlignedRelocation(reloc);
-  AddDescriptor(RawPcDescriptors::kBSSRelocation, /*pc_offset=*/offset,
+  AddDescriptor(PcDescriptorsLayout::kBSSRelocation, /*pc_offset=*/offset,
                 /*deopt_id=*/DeoptId::kNone, TokenPosition::kNoSource,
                 /*try_index=*/-1);
 }
@@ -456,7 +456,7 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env,
 
 void FlowGraphCompiler::EmitCallsiteMetadata(TokenPosition token_pos,
                                              intptr_t deopt_id,
-                                             RawPcDescriptors::Kind kind,
+                                             PcDescriptorsLayout::Kind kind,
                                              LocationSummary* locs,
                                              Environment* env) {
   AddCurrentDescriptor(kind, deopt_id, token_pos);
@@ -471,14 +471,15 @@ void FlowGraphCompiler::EmitCallsiteMetadata(TokenPosition token_pos,
     } else {
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
-      AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+      AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, deopt_id_after,
+                           token_pos);
     }
   }
 }
 
 void FlowGraphCompiler::EmitYieldPositionMetadata(TokenPosition token_pos,
                                                   intptr_t yield_index) {
-  AddDescriptor(RawPcDescriptors::kOther, assembler()->CodeSize(),
+  AddDescriptor(PcDescriptorsLayout::kOther, assembler()->CodeSize(),
                 DeoptId::kNone, token_pos, CurrentTryIndex(), yield_index);
 }
 
@@ -488,7 +489,7 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
       // Instructions that can be deoptimization targets need to record kDeopt
       // PcDescriptor corresponding to their deopt id. GotoInstr records its
       // own so that it can control the placement.
-      AddCurrentDescriptor(RawPcDescriptors::kDeopt, instr->deopt_id(),
+      AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, instr->deopt_id(),
                            instr->token_pos());
     }
     AllocateRegistersLocally(instr);
@@ -732,7 +733,7 @@ void FlowGraphCompiler::SetNeedsStackTrace(intptr_t try_index) {
   exception_handlers_list_->SetNeedsStackTrace(try_index);
 }
 
-void FlowGraphCompiler::AddDescriptor(RawPcDescriptors::Kind kind,
+void FlowGraphCompiler::AddDescriptor(PcDescriptorsLayout::Kind kind,
                                       intptr_t pc_offset,
                                       intptr_t deopt_id,
                                       TokenPosition token_pos,
@@ -740,13 +741,13 @@ void FlowGraphCompiler::AddDescriptor(RawPcDescriptors::Kind kind,
                                       intptr_t yield_index) {
   code_source_map_builder_->NoteDescriptor(kind, pc_offset, token_pos);
   // Don't emit deopt-descriptors in AOT mode.
-  if (FLAG_precompiled_mode && (kind == RawPcDescriptors::kDeopt)) return;
+  if (FLAG_precompiled_mode && (kind == PcDescriptorsLayout::kDeopt)) return;
   pc_descriptors_list_->AddDescriptor(kind, pc_offset, deopt_id, token_pos,
                                       try_index, yield_index);
 }
 
 // Uses current pc position and try-index.
-void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
+void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptorsLayout::Kind kind,
                                              intptr_t deopt_id,
                                              TokenPosition token_pos) {
   AddDescriptor(kind, assembler()->CodeSize(), deopt_id, token_pos,
@@ -1123,7 +1124,7 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
   code.set_pc_descriptors(descriptors);
 }
 
-RawArray* FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
+ArrayPtr FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
   // No deopt information if we precompile (no deoptimization allowed).
   if (FLAG_precompiled_mode) {
     return Array::empty_array().raw();
@@ -1185,8 +1186,8 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     // descriptor for IrregexpFunction.
     ASSERT(parsed_function().scope() == nullptr);
     var_descs = LocalVarDescriptors::New(1);
-    RawLocalVarDescriptors::VarInfo info;
-    info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
+    LocalVarDescriptorsLayout::VarInfo info;
+    info.set_kind(LocalVarDescriptorsLayout::kSavedCurrentContext);
     info.scope_id = 0;
     info.begin_pos = TokenPosition::kMinSource;
     info.end_pos = TokenPosition::kMinSource;
@@ -1285,7 +1286,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
     // there are no checks necessary in any case and we can therefore intrinsify
     // them even in checked mode and strong mode.
     switch (parsed_function().function().kind()) {
-      case RawFunction::kImplicitGetter: {
+      case FunctionLayout::kImplicitGetter: {
         Field& field = Field::Handle(function().accessor_field());
         ASSERT(!field.IsNull());
 #if defined(DEBUG)
@@ -1308,7 +1309,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
         }
         return false;
       }
-      case RawFunction::kImplicitSetter: {
+      case FunctionLayout::kImplicitSetter: {
         if (!isolate()->argument_type_checks()) {
           Field& field = Field::Handle(function().accessor_field());
           ASSERT(!field.IsNull());
@@ -1329,7 +1330,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
         break;
       }
 #if !defined(TARGET_ARCH_IA32)
-      case RawFunction::kMethodExtractor: {
+      case FunctionLayout::kMethodExtractor: {
         auto& extracted_method = Function::ZoneHandle(
             parsed_function().function().extracted_method_closure());
         auto& klass = Class::Handle(extracted_method.Owner());
@@ -1371,7 +1372,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
 
 void FlowGraphCompiler::GenerateStubCall(TokenPosition token_pos,
                                          const Code& stub,
-                                         RawPcDescriptors::Kind kind,
+                                         PcDescriptorsLayout::Kind kind,
                                          LocationSummary* locs,
                                          intptr_t deopt_id,
                                          Environment* env) {
@@ -1474,7 +1475,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
               ->raw();
       call_ic_data = call_ic_data.Original();
     }
-    AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id, token_pos);
+    AddCurrentDescriptor(PcDescriptorsLayout::kRewind, deopt_id, token_pos);
     EmitUnoptimizedStaticCall(args_info.size_with_type_args, deopt_id,
                               token_pos, locs, call_ic_data, entry_kind);
   }
@@ -2086,8 +2087,8 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
   if (class_id < 0) return false;
   if (class_id >= isolate->class_table()->NumCids()) return false;
 
-  RawClass* raw_class = isolate->class_table()->At(class_id);
-  if (raw_class == NULL) return false;
+  ClassPtr raw_class = isolate->class_table()->At(class_id);
+  if (raw_class == nullptr) return false;
   Class& cls = Class::Handle(zone, raw_class);
   if (cls.IsNull()) return false;
   if (!cls.is_finalized()) return false;
@@ -2203,7 +2204,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(smi_case)->target;
-    GenerateStaticDartCall(deopt_id, token_index, RawPcDescriptors::kOther,
+    GenerateStaticDartCall(deopt_id, token_index, PcDescriptorsLayout::kOther,
                            locs, function, entry_kind);
     __ Drop(args_info.size_with_type_args);
     if (match_found != NULL) {
@@ -2253,7 +2254,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(i)->target;
-    GenerateStaticDartCall(deopt_id, token_index, RawPcDescriptors::kOther,
+    GenerateStaticDartCall(deopt_id, token_index, PcDescriptorsLayout::kOther,
                            locs, function, entry_kind);
     __ Drop(args_info.size_with_type_args);
     if (!is_last_check || add_megamorphic_call) {
@@ -2557,7 +2558,7 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ CallRuntime(runtime_entry_, num_args_);
   }
   const intptr_t deopt_id = instruction()->deopt_id();
-  compiler->AddDescriptor(RawPcDescriptors::kOther,
+  compiler->AddDescriptor(PcDescriptorsLayout::kOther,
                           compiler->assembler()->CodeSize(), deopt_id,
                           instruction()->token_pos(), try_index_);
   AddMetadataForRuntimeCall(compiler);

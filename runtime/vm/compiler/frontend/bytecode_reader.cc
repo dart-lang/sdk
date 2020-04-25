@@ -123,7 +123,7 @@ bool BytecodeMetadataHelper::FindModifiedLibrariesForHotReload(
   return true;
 }
 
-RawLibrary* BytecodeMetadataHelper::GetMainLibrary() {
+LibraryPtr BytecodeMetadataHelper::GetMainLibrary() {
   const intptr_t md_offset = GetComponentMetadataPayloadOffset();
   if (md_offset < 0) {
     return Library::null();
@@ -141,8 +141,8 @@ RawLibrary* BytecodeMetadataHelper::GetMainLibrary() {
   return bytecode_reader.ReadMain();
 }
 
-RawArray* BytecodeMetadataHelper::GetBytecodeComponent() {
-  RawArray* array = translation_helper_.GetBytecodeComponent();
+ArrayPtr BytecodeMetadataHelper::GetBytecodeComponent() {
+  ArrayPtr array = translation_helper_.GetBytecodeComponent();
   if (array == Array::null()) {
     array = ReadBytecodeComponent();
     ASSERT(array != Array::null());
@@ -150,7 +150,7 @@ RawArray* BytecodeMetadataHelper::GetBytecodeComponent() {
   return array;
 }
 
-RawArray* BytecodeMetadataHelper::ReadBytecodeComponent() {
+ArrayPtr BytecodeMetadataHelper::ReadBytecodeComponent() {
   const intptr_t md_offset = GetComponentMetadataPayloadOffset();
   if (md_offset < 0) {
     return Array::null();
@@ -343,9 +343,8 @@ static intptr_t IndexFor(Zone* zone,
   return -1;
 }
 
-RawArray* BytecodeReaderHelper::CreateForwarderChecks(
-    const Function& function) {
-  ASSERT(function.kind() != RawFunction::kDynamicInvocationForwarder);
+ArrayPtr BytecodeReaderHelper::CreateForwarderChecks(const Function& function) {
+  ASSERT(function.kind() != FunctionLayout::kDynamicInvocationForwarder);
   ASSERT(function.is_declared_in_bytecode());
 
   TypeArguments& default_args = TypeArguments::Handle(Z);
@@ -469,7 +468,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   Object& parent = Object::Handle(Z, ReadObject());
   if (!parent.IsFunction()) {
     ASSERT(parent.IsField());
-    ASSERT(function.kind() == RawFunction::kFieldInitializer);
+    ASSERT(function.kind() == FunctionLayout::kFieldInitializer);
     // Closure in a static field initializer, so use current function as parent.
     parent = function.raw();
   }
@@ -491,13 +490,13 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   closure.set_end_token_pos(end_position);
 
   if ((flags & kIsSyncStarFlag) != 0) {
-    closure.set_modifier(RawFunction::kSyncGen);
+    closure.set_modifier(FunctionLayout::kSyncGen);
   } else if ((flags & kIsAsyncFlag) != 0) {
-    closure.set_modifier(RawFunction::kAsync);
+    closure.set_modifier(FunctionLayout::kAsync);
     closure.set_is_inlinable(!FLAG_causal_async_stacks &&
                              !FLAG_lazy_async_stacks);
   } else if ((flags & kIsAsyncStarFlag) != 0) {
-    closure.set_modifier(RawFunction::kAsyncGen);
+    closure.set_modifier(FunctionLayout::kAsyncGen);
     closure.set_is_inlinable(!FLAG_causal_async_stacks &&
                              !FLAG_lazy_async_stacks);
   }
@@ -554,7 +553,7 @@ static bool HasNonCanonicalTypes(Zone* zone, const Function& func) {
   return false;
 }
 
-RawType* BytecodeReaderHelper::ReadFunctionSignature(
+TypePtr BytecodeReaderHelper::ReadFunctionSignature(
     const Function& func,
     bool has_optional_positional_params,
     bool has_optional_named_params,
@@ -955,7 +954,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
   return obj_count - 1;
 }
 
-RawBytecode* BytecodeReaderHelper::ReadBytecode(const ObjectPool& pool) {
+BytecodePtr BytecodeReaderHelper::ReadBytecode(const ObjectPool& pool) {
 #if defined(SUPPORT_TIMELINE)
   TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
                     "BytecodeReaderHelper::ReadBytecode");
@@ -1016,14 +1015,14 @@ void BytecodeReaderHelper::ReadExceptionsTable(const Bytecode& bytecode,
         handler_type ^= pool.ObjectAt(type_index);
         handler_types.SetAt(i, handler_type);
       }
-      pc_descriptors_list->AddDescriptor(RawPcDescriptors::kOther, start_pc,
-                                         DeoptId::kNone,
-                                         TokenPosition::kNoSource, try_index,
-                                         RawPcDescriptors::kInvalidYieldIndex);
-      pc_descriptors_list->AddDescriptor(RawPcDescriptors::kOther, end_pc,
-                                         DeoptId::kNone,
-                                         TokenPosition::kNoSource, try_index,
-                                         RawPcDescriptors::kInvalidYieldIndex);
+      pc_descriptors_list->AddDescriptor(
+          PcDescriptorsLayout::kOther, start_pc, DeoptId::kNone,
+          TokenPosition::kNoSource, try_index,
+          PcDescriptorsLayout::kInvalidYieldIndex);
+      pc_descriptors_list->AddDescriptor(
+          PcDescriptorsLayout::kOther, end_pc, DeoptId::kNone,
+          TokenPosition::kNoSource, try_index,
+          PcDescriptorsLayout::kInvalidYieldIndex);
 
       // The exception handler keeps a zone handle of the types array, rather
       // than a raw pointer. Do not share the handle across iterations to avoid
@@ -1067,8 +1066,8 @@ void BytecodeReaderHelper::ReadLocalVariables(const Bytecode& bytecode,
       bytecode_component_->GetLocalVariablesOffset() + offset);
 }
 
-RawTypedData* BytecodeReaderHelper::NativeEntry(const Function& function,
-                                                const String& external_name) {
+TypedDataPtr BytecodeReaderHelper::NativeEntry(const Function& function,
+                                               const String& external_name) {
   MethodRecognizer::Kind kind = function.recognized_kind();
   // This list of recognized methods must be kept in sync with the list of
   // methods handled specially by the NativeCall bytecode in the interpreter.
@@ -1146,7 +1145,7 @@ RawTypedData* BytecodeReaderHelper::NativeEntry(const Function& function,
   return NativeEntryData::New(kind, trampoline, native_function, argc_tag);
 }
 
-RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
+ArrayPtr BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   ASSERT(Thread::Current()->IsMutatorThread());
 
   AlternativeReadingScope alt(&reader_, md_offset);
@@ -1279,14 +1278,14 @@ void BytecodeReaderHelper::ResetObjects() {
   }
 }
 
-RawObject* BytecodeReaderHelper::ReadObject() {
+ObjectPtr BytecodeReaderHelper::ReadObject() {
   uint32_t header = reader_.ReadUInt();
   if ((header & kReferenceBit) != 0) {
     intptr_t index = header >> kIndexShift;
     if (index == 0) {
       return Object::null();
     }
-    RawObject* obj = bytecode_component_->GetObject(index);
+    ObjectPtr obj = bytecode_component_->GetObject(index);
     if (obj->IsHeapObject()) {
       return obj;
     }
@@ -1310,8 +1309,8 @@ RawObject* BytecodeReaderHelper::ReadObject() {
   return ReadObjectContents(header);
 }
 
-RawString* BytecodeReaderHelper::ConstructorName(const Class& cls,
-                                                 const String& name) {
+StringPtr BytecodeReaderHelper::ConstructorName(const Class& cls,
+                                                const String& name) {
   GrowableHandlePtrArray<const String> pieces(Z, 3);
   pieces.Add(String::Handle(Z, cls.Name()));
   pieces.Add(Symbols::Dot());
@@ -1319,7 +1318,7 @@ RawString* BytecodeReaderHelper::ConstructorName(const Class& cls,
   return Symbols::FromConcatAll(thread_, pieces);
 }
 
-RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
+ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
   ASSERT(((header & kReferenceBit) == 0));
 
   // Must be in sync with enum ObjectKind in
@@ -1370,7 +1369,7 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       break;
     case kLibrary: {
       String& uri = String::CheckedHandle(Z, ReadObject());
-      RawLibrary* library = Library::LookupLibrary(thread_, uri);
+      LibraryPtr library = Library::LookupLibrary(thread_, uri);
       if (library == Library::null()) {
         // We do not register expression evaluation libraries with the VM:
         // The expression evaluation functions should be GC-able as soon as
@@ -1396,13 +1395,13 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       const String& class_name = String::CheckedHandle(Z, ReadObject());
       if (class_name.raw() == Symbols::Empty().raw()) {
         NoSafepointScope no_safepoint_scope(thread_);
-        RawClass* cls = library.toplevel_class();
+        ClassPtr cls = library.toplevel_class();
         if (cls == Class::null()) {
           FATAL1("Unable to find toplevel class %s", library.ToCString());
         }
         return cls;
       }
-      RawClass* cls = library.LookupLocalClass(class_name);
+      ClassPtr cls = library.LookupLocalClass(class_name);
       if (cls == Class::null()) {
         if (IsExpressionEvaluationLibrary(library)) {
           return H.GetExpressionEvaluationRealClass();
@@ -1425,7 +1424,7 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
       String& name = String::CheckedHandle(Z, ReadObject());
       if ((flags & kFlagIsField) != 0) {
-        RawField* field = cls.LookupField(name);
+        FieldPtr field = cls.LookupField(name);
         if (field == Field::null()) {
 #if !defined(PRODUCT)
           ASSERT(Isolate::Current()->HasAttemptedReload());
@@ -1448,7 +1447,7 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
             cls.raw() == scoped_function_class_.raw()) {
           return scoped_function_.raw();
         }
-        RawFunction* function = cls.LookupFunction(name);
+        FunctionPtr function = cls.LookupFunction(name);
         if (function == Function::null()) {
           // When requesting a getter, also return method extractors.
           if (Field::IsGetterName(name)) {
@@ -1556,7 +1555,7 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
   return Object::null();
 }
 
-RawObject* BytecodeReaderHelper::ReadConstObject(intptr_t tag) {
+ObjectPtr BytecodeReaderHelper::ReadConstObject(intptr_t tag) {
   // Must be in sync with enum ConstTag in
   // pkg/vm/lib/bytecode/object_table.dart.
   enum ConstTag {
@@ -1669,8 +1668,8 @@ RawObject* BytecodeReaderHelper::ReadConstObject(intptr_t tag) {
   return Object::null();
 }
 
-RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
-                                          Nullability nullability) {
+ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
+                                         Nullability nullability) {
   // Must be in sync with enum TypeTag in
   // pkg/vm/lib/bytecode/object_table.dart.
   enum TypeTag {
@@ -1828,7 +1827,7 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
   return Object::null();
 }
 
-RawString* BytecodeReaderHelper::ReadString(bool is_canonical) {
+StringPtr BytecodeReaderHelper::ReadString(bool is_canonical) {
   const int kFlagTwoByteString = 1;
   const int kHeaderFields = 2;
   const int kUInt32Size = 4;
@@ -1878,8 +1877,8 @@ RawString* BytecodeReaderHelper::ReadString(bool is_canonical) {
   }
 }
 
-RawScript* BytecodeReaderHelper::ReadSourceFile(const String& uri,
-                                                intptr_t offset) {
+ScriptPtr BytecodeReaderHelper::ReadSourceFile(const String& uri,
+                                               intptr_t offset) {
   // SourceFile flags, must be in sync with SourceFile constants in
   // pkg/vm/lib/bytecode/declarations.dart.
   const int kHasLineStartsFlag = 1 << 0;
@@ -1921,7 +1920,7 @@ RawScript* BytecodeReaderHelper::ReadSourceFile(const String& uri,
   return script.raw();
 }
 
-RawTypeArguments* BytecodeReaderHelper::ReadTypeArguments() {
+TypeArgumentsPtr BytecodeReaderHelper::ReadTypeArguments() {
   const bool is_recursive = reading_type_arguments_of_recursive_type_;
   reading_type_arguments_of_recursive_type_ = false;
   const intptr_t length = reader_.ReadUInt();
@@ -2108,8 +2107,8 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     if ((flags & kHasGetterFlag) != 0) {
       name ^= ReadObject();
       function = Function::New(name,
-                               is_static ? RawFunction::kImplicitStaticGetter
-                                         : RawFunction::kImplicitGetter,
+                               is_static ? FunctionLayout::kImplicitStaticGetter
+                                         : FunctionLayout::kImplicitGetter,
                                is_static, is_const,
                                false,  // is_abstract
                                false,  // is_external
@@ -2132,7 +2131,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       ASSERT(is_late || ((!is_static) && (!is_final)));
       ASSERT(!is_const);
       name ^= ReadObject();
-      function = Function::New(name, RawFunction::kImplicitSetter, is_static,
+      function = Function::New(name, FunctionLayout::kImplicitSetter, is_static,
                                false,  // is_const
                                false,  // is_abstract
                                false,  // is_external
@@ -2201,8 +2200,8 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
   }
 }
 
-RawPatchClass* BytecodeReaderHelper::GetPatchClass(const Class& cls,
-                                                   const Script& script) {
+PatchClassPtr BytecodeReaderHelper::GetPatchClass(const Class& cls,
+                                                  const Script& script) {
   if (patch_class_ != nullptr && patch_class_->patched_class() == cls.raw() &&
       patch_class_->script() == script.raw()) {
     return patch_class_->raw();
@@ -2286,13 +2285,13 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
       end_position = reader_.ReadPosition();
     }
 
-    RawFunction::Kind kind = RawFunction::kRegularFunction;
+    FunctionLayout::Kind kind = FunctionLayout::kRegularFunction;
     if ((flags & kIsGetterFlag) != 0) {
-      kind = RawFunction::kGetterFunction;
+      kind = FunctionLayout::kGetterFunction;
     } else if ((flags & kIsSetterFlag) != 0) {
-      kind = RawFunction::kSetterFunction;
+      kind = FunctionLayout::kSetterFunction;
     } else if ((flags & (kIsConstructorFlag | kIsFactoryFlag)) != 0) {
-      kind = RawFunction::kConstructor;
+      kind = FunctionLayout::kConstructor;
       name = ConstructorName(cls, name);
     }
 
@@ -2327,17 +2326,17 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     }
 
     if ((flags & kIsSyncStarFlag) != 0) {
-      function.set_modifier(RawFunction::kSyncGen);
+      function.set_modifier(FunctionLayout::kSyncGen);
       function.set_is_visible(!FLAG_causal_async_stacks &&
                               !FLAG_lazy_async_stacks);
     } else if ((flags & kIsAsyncFlag) != 0) {
-      function.set_modifier(RawFunction::kAsync);
+      function.set_modifier(FunctionLayout::kAsync);
       function.set_is_inlinable(!FLAG_causal_async_stacks &&
                                 !FLAG_lazy_async_stacks);
       function.set_is_visible(!FLAG_causal_async_stacks &&
                               !FLAG_lazy_async_stacks);
     } else if ((flags & kIsAsyncStarFlag) != 0) {
-      function.set_modifier(RawFunction::kAsyncGen);
+      function.set_modifier(FunctionLayout::kAsyncGen);
       function.set_is_inlinable(!FLAG_causal_async_stacks &&
                                 !FLAG_lazy_async_stacks);
       function.set_is_visible(!FLAG_causal_async_stacks &&
@@ -2843,7 +2842,7 @@ void BytecodeReaderHelper::ReadParameterCovariance(
   }
 }
 
-RawObject* BytecodeReaderHelper::BuildParameterDescriptor(
+ObjectPtr BytecodeReaderHelper::BuildParameterDescriptor(
     const Function& function) {
   ASSERT(function.is_declared_in_bytecode());
 
@@ -2968,20 +2967,20 @@ void BytecodeReaderHelper::ParseBytecodeFunction(
     const Function& function) {
   // Handle function kinds which don't have a user-defined body first.
   switch (function.kind()) {
-    case RawFunction::kImplicitClosureFunction:
+    case FunctionLayout::kImplicitClosureFunction:
       ParseForwarderFunction(parsed_function, function,
                              Function::Handle(Z, function.parent_function()));
       return;
-    case RawFunction::kDynamicInvocationForwarder:
+    case FunctionLayout::kDynamicInvocationForwarder:
       ParseForwarderFunction(parsed_function, function,
                              Function::Handle(Z, function.ForwardingTarget()));
       return;
-    case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitSetter:
-    case RawFunction::kMethodExtractor:
+    case FunctionLayout::kImplicitGetter:
+    case FunctionLayout::kImplicitSetter:
+    case FunctionLayout::kMethodExtractor:
       BytecodeScopeBuilder(parsed_function).BuildScopes();
       return;
-    case RawFunction::kImplicitStaticGetter: {
+    case FunctionLayout::kImplicitStaticGetter: {
       if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
         break;
       } else {
@@ -2989,18 +2988,18 @@ void BytecodeReaderHelper::ParseBytecodeFunction(
         return;
       }
     }
-    case RawFunction::kRegularFunction:
-    case RawFunction::kGetterFunction:
-    case RawFunction::kSetterFunction:
-    case RawFunction::kClosureFunction:
-    case RawFunction::kConstructor:
-    case RawFunction::kFieldInitializer:
+    case FunctionLayout::kRegularFunction:
+    case FunctionLayout::kGetterFunction:
+    case FunctionLayout::kSetterFunction:
+    case FunctionLayout::kClosureFunction:
+    case FunctionLayout::kConstructor:
+    case FunctionLayout::kFieldInitializer:
       break;
-    case RawFunction::kNoSuchMethodDispatcher:
-    case RawFunction::kInvokeFieldDispatcher:
-    case RawFunction::kSignatureFunction:
-    case RawFunction::kIrregexpFunction:
-    case RawFunction::kFfiTrampoline:
+    case FunctionLayout::kNoSuchMethodDispatcher:
+    case FunctionLayout::kInvokeFieldDispatcher:
+    case FunctionLayout::kSignatureFunction:
+    case FunctionLayout::kIrregexpFunction:
+    case FunctionLayout::kFfiTrampoline:
       UNREACHABLE();
       break;
   }
@@ -3172,7 +3171,7 @@ void BytecodeReaderHelper::ParseForwarderFunction(
   }
 }
 
-RawLibrary* BytecodeReaderHelper::ReadMain() {
+LibraryPtr BytecodeReaderHelper::ReadMain() {
   return Library::RawCast(ReadObject());
 }
 
@@ -3260,32 +3259,32 @@ void BytecodeComponentData::SetObject(intptr_t index, const Object& obj) const {
   data_.SetAt(kNumFields + index, obj);
 }
 
-RawObject* BytecodeComponentData::GetObject(intptr_t index) const {
+ObjectPtr BytecodeComponentData::GetObject(intptr_t index) const {
   return data_.At(kNumFields + index);
 }
 
-RawArray* BytecodeComponentData::New(Zone* zone,
-                                     intptr_t version,
-                                     intptr_t num_objects,
-                                     intptr_t strings_header_offset,
-                                     intptr_t strings_contents_offset,
-                                     intptr_t object_offsets_offset,
-                                     intptr_t objects_contents_offset,
-                                     intptr_t main_offset,
-                                     intptr_t num_libraries,
-                                     intptr_t library_index_offset,
-                                     intptr_t libraries_offset,
-                                     intptr_t num_classes,
-                                     intptr_t classes_offset,
-                                     intptr_t members_offset,
-                                     intptr_t num_codes,
-                                     intptr_t codes_offset,
-                                     intptr_t source_positions_offset,
-                                     intptr_t source_files_offset,
-                                     intptr_t line_starts_offset,
-                                     intptr_t local_variables_offset,
-                                     intptr_t annotations_offset,
-                                     Heap::Space space) {
+ArrayPtr BytecodeComponentData::New(Zone* zone,
+                                    intptr_t version,
+                                    intptr_t num_objects,
+                                    intptr_t strings_header_offset,
+                                    intptr_t strings_contents_offset,
+                                    intptr_t object_offsets_offset,
+                                    intptr_t objects_contents_offset,
+                                    intptr_t main_offset,
+                                    intptr_t num_libraries,
+                                    intptr_t library_index_offset,
+                                    intptr_t libraries_offset,
+                                    intptr_t num_classes,
+                                    intptr_t classes_offset,
+                                    intptr_t members_offset,
+                                    intptr_t num_codes,
+                                    intptr_t codes_offset,
+                                    intptr_t source_positions_offset,
+                                    intptr_t source_files_offset,
+                                    intptr_t line_starts_offset,
+                                    intptr_t local_variables_offset,
+                                    intptr_t annotations_offset,
+                                    Heap::Space space) {
   const Array& data =
       Array::Handle(zone, Array::New(kNumFields + num_objects, space));
   Smi& smi_handle = Smi::Handle(zone);
@@ -3353,8 +3352,8 @@ RawArray* BytecodeComponentData::New(Zone* zone,
   return data.raw();
 }
 
-RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
-                                               const Function& function) {
+ErrorPtr BytecodeReader::ReadFunctionBytecode(Thread* thread,
+                                              const Function& function) {
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!function.HasBytecode());
   ASSERT(thread->sticky_error() == Error::null());
@@ -3382,31 +3381,31 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
     auto& bytecode = Bytecode::Handle(zone);
 
     switch (function.kind()) {
-      case RawFunction::kImplicitGetter:
+      case FunctionLayout::kImplicitGetter:
         bytecode = Object::implicit_getter_bytecode().raw();
         break;
-      case RawFunction::kImplicitSetter:
+      case FunctionLayout::kImplicitSetter:
         bytecode = Object::implicit_setter_bytecode().raw();
         break;
-      case RawFunction::kImplicitStaticGetter:
+      case FunctionLayout::kImplicitStaticGetter:
         if (!IsStaticFieldGetterGeneratedAsInitializer(function, zone)) {
           bytecode = Object::implicit_static_getter_bytecode().raw();
         }
         break;
-      case RawFunction::kMethodExtractor:
+      case FunctionLayout::kMethodExtractor:
         bytecode = Object::method_extractor_bytecode().raw();
         break;
-      case RawFunction::kInvokeFieldDispatcher:
+      case FunctionLayout::kInvokeFieldDispatcher:
         if (Class::Handle(zone, function.Owner()).id() == kClosureCid) {
           bytecode = Object::invoke_closure_bytecode().raw();
         } else {
           bytecode = Object::invoke_field_bytecode().raw();
         }
         break;
-      case RawFunction::kNoSuchMethodDispatcher:
+      case FunctionLayout::kNoSuchMethodDispatcher:
         bytecode = Object::nsm_dispatcher_bytecode().raw();
         break;
-      case RawFunction::kDynamicInvocationForwarder: {
+      case FunctionLayout::kDynamicInvocationForwarder: {
         const Function& target =
             Function::Handle(zone, function.ForwardingTarget());
         if (!target.HasBytecode()) {
@@ -3477,7 +3476,7 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
   }
 }
 
-RawObject* BytecodeReader::ReadAnnotation(const Field& annotation_field) {
+ObjectPtr BytecodeReader::ReadAnnotation(const Field& annotation_field) {
   ASSERT(annotation_field.is_declared_in_bytecode());
 
   Thread* thread = Thread::Current();
@@ -3502,8 +3501,8 @@ RawObject* BytecodeReader::ReadAnnotation(const Field& annotation_field) {
   return bytecode_reader.ReadObject();
 }
 
-RawArray* BytecodeReader::ReadExtendedAnnotations(const Field& annotation_field,
-                                                  intptr_t count) {
+ArrayPtr BytecodeReader::ReadExtendedAnnotations(const Field& annotation_field,
+                                                 intptr_t count) {
   ASSERT(annotation_field.is_declared_in_bytecode());
 
   Thread* thread = Thread::Current();
@@ -3608,8 +3607,8 @@ void BytecodeReader::FinishClassLoading(const Class& cls) {
   bytecode_reader.ReadMembers(cls, discard_fields);
 }
 
-RawObject* BytecodeReader::GetBytecodeAttribute(const Object& key,
-                                                const String& name) {
+ObjectPtr BytecodeReader::GetBytecodeAttribute(const Object& key,
+                                               const String& name) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const auto* object_store = thread->isolate()->object_store();
@@ -3648,7 +3647,7 @@ InferredTypeMetadata InferredTypeBytecodeAttribute::GetInferredTypeAt(
 }
 
 #if !defined(PRODUCT)
-RawLocalVarDescriptors* BytecodeReader::ComputeLocalVarDescriptors(
+LocalVarDescriptorsPtr BytecodeReader::ComputeLocalVarDescriptors(
     Zone* zone,
     const Function& function,
     const Bytecode& bytecode) {
@@ -3666,14 +3665,14 @@ RawLocalVarDescriptors* BytecodeReader::ComputeLocalVarDescriptors(
     const auto& parent_vars = LocalVarDescriptors::Handle(
         zone, parent_bytecode.GetLocalVarDescriptors());
     for (intptr_t i = 0; i < parent_vars.Length(); ++i) {
-      RawLocalVarDescriptors::VarInfo var_info;
+      LocalVarDescriptorsLayout::VarInfo var_info;
       parent_vars.GetInfo(i, &var_info);
       // Include parent's context variable if variable's scope
       // intersects with the local function range.
       // It is not enough to check if local function is declared within the
       // scope of variable, because in case of async functions closure has
       // the same range as original function.
-      if (var_info.kind() == RawLocalVarDescriptors::kContextVar &&
+      if (var_info.kind() == LocalVarDescriptorsLayout::kContextVar &&
           ((var_info.begin_pos <= function.token_pos() &&
             function.token_pos() <= var_info.end_pos) ||
            (function.token_pos() <= var_info.begin_pos &&
@@ -3698,11 +3697,11 @@ RawLocalVarDescriptors* BytecodeReader::ComputeLocalVarDescriptors(
           LocalVarDescriptorsBuilder::VarDesc desc;
           desc.name = &String::Handle(zone, local_vars.Name());
           if (local_vars.IsCaptured()) {
-            desc.info.set_kind(RawLocalVarDescriptors::kContextVar);
+            desc.info.set_kind(LocalVarDescriptorsLayout::kContextVar);
             desc.info.scope_id = context_level;
             desc.info.set_index(local_vars.Index());
           } else {
-            desc.info.set_kind(RawLocalVarDescriptors::kStackVar);
+            desc.info.set_kind(LocalVarDescriptorsLayout::kStackVar);
             desc.info.scope_id = scope_id;
             if (local_vars.Index() < 0) {
               // Parameter
@@ -3722,7 +3721,7 @@ RawLocalVarDescriptors* BytecodeReader::ComputeLocalVarDescriptors(
           const intptr_t context_variable_index = -local_vars.Index();
           LocalVarDescriptorsBuilder::VarDesc desc;
           desc.name = &Symbols::CurrentContextVar();
-          desc.info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
+          desc.info.set_kind(LocalVarDescriptorsLayout::kSavedCurrentContext);
           desc.info.scope_id = 0;
           desc.info.declaration_pos = TokenPosition::kMinSource;
           desc.info.begin_pos = TokenPosition::kMinSource;
@@ -3740,7 +3739,7 @@ RawLocalVarDescriptors* BytecodeReader::ComputeLocalVarDescriptors(
 
 bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
                                                Zone* zone) {
-  ASSERT(function.kind() == RawFunction::kImplicitStaticGetter);
+  ASSERT(function.kind() == FunctionLayout::kImplicitStaticGetter);
 
   const auto& field = Field::Handle(zone, function.accessor_field());
   return field.is_declared_in_bytecode() && field.is_const() &&

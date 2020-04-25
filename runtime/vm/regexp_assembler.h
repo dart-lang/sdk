@@ -16,19 +16,22 @@ namespace dart {
 
 // Utility function for the DotPrinter
 void PrintUtf16(uint16_t c);
+
+extern "C" {
 // Compares two-byte strings case insensitively as UCS2.
 // Called from generated RegExp code.
-RawBool* CaseInsensitiveCompareUCS2(RawString* str_raw,
-                                    RawSmi* lhs_index_raw,
-                                    RawSmi* rhs_index_raw,
-                                    RawSmi* length_raw);
+uword /*BoolPtr*/ CaseInsensitiveCompareUCS2(uword /*StringPtr*/ str_raw,
+                                             uword /*SmiPtr*/ lhs_index_raw,
+                                             uword /*SmiPtr*/ rhs_index_raw,
+                                             uword /*SmiPtr*/ length_raw);
 
 // Compares two-byte strings case insensitively as UTF16.
 // Called from generated RegExp code.
-RawBool* CaseInsensitiveCompareUTF16(RawString* str_raw,
-                                     RawSmi* lhs_index_raw,
-                                     RawSmi* rhs_index_raw,
-                                     RawSmi* length_raw);
+uword /*BoolPtr*/ CaseInsensitiveCompareUTF16(uword /*StringPtr*/ str_raw,
+                                              uword /*SmiPtr*/ lhs_index_raw,
+                                              uword /*SmiPtr*/ rhs_index_raw,
+                                              uword /*SmiPtr*/ length_raw);
+}
 
 /// Convenience wrapper around a BlockEntryInstr pointer.
 class BlockLabel : public ValueObject {

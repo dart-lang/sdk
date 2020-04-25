@@ -77,7 +77,7 @@ class PrologueBuilder : public BaseFlowGraphBuilder {
     }
 
     ASSERT(parsed_function_->function().kind() ==
-           RawFunction::kNoSuchMethodDispatcher);
+           FunctionLayout::kNoSuchMethodDispatcher);
     return Instance::null_instance();
   }
 

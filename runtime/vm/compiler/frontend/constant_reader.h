@@ -23,8 +23,8 @@ class ConstantReader {
 
   virtual ~ConstantReader() {}
 
-  RawInstance* ReadConstantExpression();
-  RawObject* ReadAnnotations();
+  InstancePtr ReadConstantExpression();
+  ObjectPtr ReadAnnotations();
 
   // Peeks to see if constant at the given offset will evaluate to
   // instance of the given clazz.
@@ -32,10 +32,10 @@ class ConstantReader {
 
   // Reads a constant at the given offset (possibly by recursing
   // into sub-constants).
-  RawInstance* ReadConstant(intptr_t constant_offset);
+  InstancePtr ReadConstant(intptr_t constant_offset);
 
  private:
-  RawInstance* ReadConstantInternal(intptr_t constant_offset);
+  InstancePtr ReadConstantInternal(intptr_t constant_offset);
 
   KernelReaderHelper* helper_;
   Zone* zone_;
@@ -67,12 +67,12 @@ class KernelConstMapKeyEqualsTraits : public AllStatic {
   static uword Hash(const intptr_t key) {
     return HashValue(Smi::Value(KeyAsSmi(key)));
   }
-  static RawObject* NewKey(const intptr_t key) { return KeyAsSmi(key); }
+  static ObjectPtr NewKey(const intptr_t key) { return KeyAsSmi(key); }
 
  private:
   static uword HashValue(intptr_t pos) { return pos % (Smi::kMaxValue - 13); }
 
-  static RawSmi* KeyAsSmi(const intptr_t key) {
+  static SmiPtr KeyAsSmi(const intptr_t key) {
     ASSERT(key >= 0);
     return Smi::New(key);
   }

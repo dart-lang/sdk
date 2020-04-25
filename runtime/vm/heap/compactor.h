@@ -18,7 +18,6 @@ namespace dart {
 class FreeList;
 class Heap;
 class HeapPage;
-class RawObject;
 
 // Implements a sliding compactor.
 class GCCompactor : public ValueObject,
@@ -38,11 +37,11 @@ class GCCompactor : public ValueObject,
 
   void SetupImagePageBoundaries();
   void ForwardStackPointers();
-  void ForwardPointer(RawObject** ptr);
-  void VisitTypedDataViewPointers(RawTypedDataView* view,
-                                  RawObject** first,
-                                  RawObject** last);
-  void VisitPointers(RawObject** first, RawObject** last);
+  void ForwardPointer(ObjectPtr* ptr);
+  void VisitTypedDataViewPointers(TypedDataViewPtr view,
+                                  ObjectPtr* first,
+                                  ObjectPtr* last);
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last);
   void VisitHandle(uword addr);
 
   Heap* heap_;
@@ -59,7 +58,7 @@ class GCCompactor : public ValueObject,
   // The typed data views whose inner pointer must be updated after sliding is
   // complete.
   Mutex typed_data_view_mutex_;
-  MallocGrowableArray<RawTypedDataView*> typed_data_views_;
+  MallocGrowableArray<TypedDataViewPtr> typed_data_views_;
 };
 
 }  // namespace dart

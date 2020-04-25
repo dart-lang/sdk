@@ -15,7 +15,6 @@ namespace dart {
 
 class Array;
 class Object;
-class RawObject;
 class CountingPage;
 
 #if !defined(PRODUCT)
@@ -32,7 +31,7 @@ class ObjectGraph : public ThreadStackResource {
   class StackIterator {
    public:
     // The object this iterator currently points to.
-    RawObject* Get() const;
+    ObjectPtr Get() const;
     // Returns false if there is no parent.
     bool MoveToParent();
     // Offset into parent for the pointer to current object. -1 if no parent.
@@ -177,8 +176,8 @@ class HeapSnapshotWriter : public ThreadStackResource {
     WriteBytes(value, len);
   }
 
-  void AssignObjectId(RawObject* obj);
-  intptr_t GetObjectId(RawObject* obj) const;
+  void AssignObjectId(ObjectPtr obj);
+  intptr_t GetObjectId(ObjectPtr obj) const;
   void ClearObjectIds();
   void CountReferences(intptr_t count);
   void CountExternalProperty();
@@ -190,8 +189,8 @@ class HeapSnapshotWriter : public ThreadStackResource {
   static const intptr_t kPreferredChunkSize = MB;
 
   void SetupCountingPages();
-  bool OnImagePage(RawObject* obj) const;
-  CountingPage* FindCountingPage(RawObject* obj) const;
+  bool OnImagePage(ObjectPtr obj) const;
+  CountingPage* FindCountingPage(ObjectPtr obj) const;
 
   void EnsureAvailable(intptr_t needed);
   void Flush(bool last = false);
@@ -222,7 +221,7 @@ class CountObjectsVisitor : public ObjectVisitor, public HandleVisitor {
   CountObjectsVisitor(Thread* thread, intptr_t class_count);
   ~CountObjectsVisitor() {}
 
-  void VisitObject(RawObject* obj);
+  void VisitObject(ObjectPtr obj);
   void VisitHandle(uword addr);
 
   std::unique_ptr<intptr_t[]> new_count_;

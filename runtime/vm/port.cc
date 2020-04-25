@@ -56,7 +56,7 @@ Dart_Port PortMap::AllocatePort() {
       continue;
     }
 
-    ASSERT(!reinterpret_cast<RawObject*>(result)->IsWellFormed());
+    ASSERT(!static_cast<ObjectPtr>(static_cast<uword>(result))->IsWellFormed());
   } while (ports_->Contains(result));
 
   ASSERT(result != 0);

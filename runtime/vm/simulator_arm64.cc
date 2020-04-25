@@ -258,7 +258,7 @@ TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
   uword pc_offset = pc - code.PayloadStart();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
+  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
@@ -538,8 +538,7 @@ void SimulatorDebugger::Debug() {
             if (Isolate::Current()->heap()->Contains(value)) {
               OS::PrintErr("%s: \n", arg1);
 #if defined(DEBUG)
-              const Object& obj =
-                  Object::Handle(reinterpret_cast<RawObject*>(value));
+              const Object& obj = Object::Handle(static_cast<ObjectPtr>(value));
               obj.Print();
 #endif  // defined(DEBUG)
             } else {
@@ -3585,7 +3584,7 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   int64_t code =
       *reinterpret_cast<int64_t*>(fp + kPcMarkerSlotFromFp * kWordSize);
   int64_t pp = (FLAG_precompiled_mode && FLAG_use_bare_instructions)
-                   ? reinterpret_cast<int64_t>(thread->global_object_pool())
+                   ? static_cast<int64_t>(thread->global_object_pool())
                    : *reinterpret_cast<int64_t*>(
                          code + Code::object_pool_offset() - kHeapObjectTag);
   pp -= kHeapObjectTag;  // In the PP register, the pool pointer is untagged.

@@ -71,7 +71,7 @@ SharedClassTable::~SharedClassTable() {
   NOT_IN_PRODUCT(free(trace_allocation_table_.load()));
 }
 
-void ClassTable::set_table(RawClass** table) {
+void ClassTable::set_table(ClassPtr* table) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != nullptr);
   table_.store(table);
@@ -82,7 +82,7 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
     : top_(kNumPredefinedCids),
       capacity_(0),
       table_(NULL),
-      old_class_tables_(new MallocGrowableArray<RawClass**>()),
+      old_class_tables_(new MallocGrowableArray<ClassPtr*>()),
       shared_class_table_(shared_class_table) {
   if (Dart::vm_isolate() == NULL) {
     ASSERT(kInitialCapacity >= kNumPredefinedCids);
@@ -91,14 +91,14 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
     // Don't use set_table because caller is supposed to set up isolates
     // cached copy when constructing ClassTable. Isolate::Current might not
     // be available at this point yet.
-    table_.store(static_cast<RawClass**>(calloc(capacity_, sizeof(RawClass*))));
+    table_.store(static_cast<ClassPtr*>(calloc(capacity_, sizeof(ClassPtr))));
   } else {
     // Duplicate the class table from the VM isolate.
     ClassTable* vm_class_table = Dart::vm_isolate()->class_table();
     capacity_ = vm_class_table->capacity_;
     // Note that [calloc] will zero-initialize the memory.
-    RawClass** table =
-        static_cast<RawClass**>(calloc(capacity_, sizeof(RawClass*)));
+    ClassPtr* table =
+        static_cast<ClassPtr*>(calloc(capacity_, sizeof(ClassPtr)));
     // The following cids don't have a corresponding class object in Dart code.
     // We therefore need to initialize them eagerly.
     for (intptr_t i = kObjectCid; i < kInstanceCid; i++) {
@@ -124,7 +124,7 @@ ClassTable::~ClassTable() {
   free(table_.load());
 }
 
-void ClassTable::AddOldTable(RawClass** old_class_table) {
+void ClassTable::AddOldTable(ClassPtr* old_class_table) {
   ASSERT(Thread::Current()->IsMutatorThread());
   old_class_tables_->Add(old_class_table);
 }
@@ -224,8 +224,8 @@ void ClassTable::Grow(intptr_t new_capacity) {
   ASSERT(new_capacity > capacity_);
 
   auto old_table = table_.load();
-  auto new_table = static_cast<RawClass**>(
-      malloc(new_capacity * sizeof(RawClass*)));  // NOLINT
+  auto new_table = static_cast<ClassPtr*>(
+      malloc(new_capacity * sizeof(ClassPtr)));  // NOLINT
   intptr_t i;
   for (i = 0; i < capacity_; i++) {
     // Don't use memmove, which changes this from a relaxed atomic operation
@@ -335,9 +335,9 @@ void SharedClassTable::Unregister(intptr_t index) {
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
   ASSERT(Thread::Current()->IsAtSafepoint());
   const intptr_t num_cids = NumCids();
-  std::unique_ptr<RawClass*[]> cls_by_old_cid(new RawClass*[num_cids]);
+  std::unique_ptr<ClassPtr[]> cls_by_old_cid(new ClassPtr[num_cids]);
   auto* table = table_.load();
-  memmove(cls_by_old_cid.get(), table, sizeof(RawClass*) * num_cids);
+  memmove(cls_by_old_cid.get(), table, sizeof(ClassPtr) * num_cids);
   for (intptr_t i = 0; i < num_cids; i++) {
     table[old_to_new_cid[i]] = cls_by_old_cid[i];
   }
@@ -372,8 +372,8 @@ void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->set_gc_root_type("class table");
   if (top_ != 0) {
     auto* table = table_.load();
-    RawObject** from = reinterpret_cast<RawObject**>(&table[0]);
-    RawObject** to = reinterpret_cast<RawObject**>(&table[top_ - 1]);
+    ObjectPtr* from = reinterpret_cast<ObjectPtr*>(&table[0]);
+    ObjectPtr* to = reinterpret_cast<ObjectPtr*>(&table[top_ - 1]);
     visitor->VisitPointers(from, to);
   }
   visitor->clear_gc_root_type();
@@ -413,14 +413,14 @@ void ClassTable::Print() {
       continue;
     }
     cls = At(i);
-    if (cls.raw() != reinterpret_cast<RawClass*>(0)) {
+    if (cls.raw() != nullptr) {
       name = cls.Name();
       OS::PrintErr("%" Pd ": %s\n", i, name.ToCString());
     }
   }
 }
 
-void ClassTable::SetAt(intptr_t index, RawClass* raw_cls) {
+void ClassTable::SetAt(intptr_t index, ClassPtr raw_cls) {
   // This is called by snapshot reader and class finalizer.
   ASSERT(index < capacity_);
   const intptr_t size =

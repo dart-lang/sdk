@@ -61,7 +61,7 @@ class BlockBuilder : public ValueObject {
 
     ReturnInstr* instr = new ReturnInstr(
         TokenPos(), value, CompilerState::Current().GetNextDeoptId(),
-        RawPcDescriptors::kInvalidYieldIndex, representation);
+        PcDescriptorsLayout::kInvalidYieldIndex, representation);
     AddInstruction(instr);
     entry_->set_last_instruction(instr);
   }

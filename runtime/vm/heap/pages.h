@@ -65,7 +65,7 @@ class HeapPage {
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
-  RawObject* FindObject(FindObjectVisitor* visitor) const;
+  ObjectPtr FindObject(FindObjectVisitor* visitor) const;
 
   void WriteProtect(bool read_only);
 
@@ -76,11 +76,10 @@ class HeapPage {
   // Warning: This does not work for objects on image pages because image pages
   // are not aligned. However, it works for objects on large pages, because
   // only one object is allocated per large page.
-  static HeapPage* Of(RawObject* obj) {
+  static HeapPage* Of(ObjectPtr obj) {
     ASSERT(obj->IsHeapObject());
     ASSERT(obj->IsOldObject());
-    return reinterpret_cast<HeapPage*>(reinterpret_cast<uword>(obj) &
-                                       kPageMask);
+    return reinterpret_cast<HeapPage*>(static_cast<uword>(obj) & kPageMask);
   }
 
   // Warning: This does not work for addresses on image pages or on large pages.
@@ -89,16 +88,16 @@ class HeapPage {
   }
 
   // Warning: This does not work for objects on image pages.
-  static RawObject* ToExecutable(RawObject* obj) {
+  static ObjectPtr ToExecutable(ObjectPtr obj) {
     HeapPage* page = Of(obj);
     VirtualMemory* memory = page->memory_;
     const intptr_t alias_offset = memory->AliasOffset();
     if (alias_offset == 0) {
       return obj;  // Not aliased.
     }
-    uword addr = RawObject::ToAddr(obj);
+    uword addr = ObjectLayout::ToAddr(obj);
     if (memory->Contains(addr)) {
-      return RawObject::FromAddr(addr + alias_offset);
+      return ObjectLayout::FromAddr(addr + alias_offset);
     }
     // obj is executable.
     ASSERT(memory->ContainsAlias(addr));
@@ -106,16 +105,16 @@ class HeapPage {
   }
 
   // Warning: This does not work for objects on image pages.
-  static RawObject* ToWritable(RawObject* obj) {
+  static ObjectPtr ToWritable(ObjectPtr obj) {
     HeapPage* page = Of(obj);
     VirtualMemory* memory = page->memory_;
     const intptr_t alias_offset = memory->AliasOffset();
     if (alias_offset == 0) {
       return obj;  // Not aliased.
     }
-    uword addr = RawObject::ToAddr(obj);
+    uword addr = ObjectLayout::ToAddr(obj);
     if (memory->ContainsAlias(addr)) {
-      return RawObject::FromAddr(addr - alias_offset);
+      return ObjectLayout::FromAddr(addr - alias_offset);
     }
     // obj is writable.
     ASSERT(memory->Contains(addr));
@@ -134,7 +133,7 @@ class HeapPage {
     return OFFSET_OF(HeapPage, card_table_);
   }
 
-  void RememberCard(RawObject* const* slot) {
+  void RememberCard(ObjectPtr const* slot) {
     ASSERT(Contains(reinterpret_cast<uword>(slot)));
     if (card_table_ == NULL) {
       card_table_ = reinterpret_cast<uint8_t*>(
@@ -362,8 +361,8 @@ class PageSpace {
 
   void VisitRememberedCards(ObjectPointerVisitor* visitor) const;
 
-  RawObject* FindObject(FindObjectVisitor* visitor,
-                        HeapPage::PageType type) const;
+  ObjectPtr FindObject(FindObjectVisitor* visitor,
+                       HeapPage::PageType type) const;
 
   // Collect the garbage in the page space using mark-sweep or mark-compact.
   void CollectGarbage(bool compact, bool finalize);
@@ -471,7 +470,7 @@ class PageSpace {
     enable_concurrent_mark_ = enable_concurrent_mark;
   }
 
-  bool IsObjectFromImagePages(RawObject* object);
+  bool IsObjectFromImagePages(ObjectPtr object);
 
   void MergeOtherPageSpace(PageSpace* other);
 

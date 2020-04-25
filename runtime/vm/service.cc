@@ -172,7 +172,7 @@ void Service::CancelStream(const char* stream_id) {
   }
 }
 
-RawObject* Service::RequestAssets() {
+ObjectPtr Service::RequestAssets() {
   Thread* T = Thread::Current();
   Object& object = Object::Handle();
   {
@@ -415,7 +415,7 @@ static bool IsValidClassId(Isolate* isolate, intptr_t cid) {
   return class_table->IsValidIndex(cid) && class_table->HasValidClassAt(cid);
 }
 
-static RawClass* GetClassForId(Isolate* isolate, intptr_t cid) {
+static ClassPtr GetClassForId(Isolate* isolate, intptr_t cid) {
   ASSERT(isolate == Isolate::Current());
   ASSERT(isolate != NULL);
   ClassTable* class_table = isolate->class_table();
@@ -846,9 +846,9 @@ void Service::PostError(const String& method_name,
   js.PostReply();
 }
 
-RawError* Service::InvokeMethod(Isolate* I,
-                                const Array& msg,
-                                bool parameters_are_dart_objects) {
+ErrorPtr Service::InvokeMethod(Isolate* I,
+                               const Array& msg,
+                               bool parameters_are_dart_objects) {
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
   ASSERT(I != NULL);
@@ -957,17 +957,17 @@ RawError* Service::InvokeMethod(Isolate* I,
   }
 }
 
-RawError* Service::HandleRootMessage(const Array& msg_instance) {
+ErrorPtr Service::HandleRootMessage(const Array& msg_instance) {
   Isolate* isolate = Isolate::Current();
   return InvokeMethod(isolate, msg_instance);
 }
 
-RawError* Service::HandleObjectRootMessage(const Array& msg_instance) {
+ErrorPtr Service::HandleObjectRootMessage(const Array& msg_instance) {
   Isolate* isolate = Isolate::Current();
   return InvokeMethod(isolate, msg_instance, true);
 }
 
-RawError* Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
+ErrorPtr Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
   ASSERT(isolate != NULL);
   const Error& error = Error::Handle(InvokeMethod(isolate, msg));
   return MaybePause(isolate, error);
@@ -1663,9 +1663,9 @@ static bool ContainsNonInstance(const Object& obj) {
   }
 }
 
-static RawObject* LookupObjectId(Thread* thread,
-                                 const char* arg,
-                                 ObjectIdRing::LookupResult* kind) {
+static ObjectPtr LookupObjectId(Thread* thread,
+                                const char* arg,
+                                ObjectIdRing::LookupResult* kind) {
   *kind = ObjectIdRing::kValid;
   if (strncmp(arg, "int-", 4) == 0) {
     arg += 4;
@@ -1695,9 +1695,9 @@ static RawObject* LookupObjectId(Thread* thread,
   return ring->GetObjectForId(id, kind);
 }
 
-static RawObject* LookupHeapObjectLibraries(Isolate* isolate,
-                                            char** parts,
-                                            int num_parts) {
+static ObjectPtr LookupHeapObjectLibraries(Isolate* isolate,
+                                           char** parts,
+                                           int num_parts) {
   // Library ids look like "libraries/35"
   if (num_parts < 2) {
     return Object::sentinel().raw();
@@ -1761,9 +1761,9 @@ static RawObject* LookupHeapObjectLibraries(Isolate* isolate,
   return Object::sentinel().raw();
 }
 
-static RawObject* LookupHeapObjectClasses(Thread* thread,
-                                          char** parts,
-                                          int num_parts) {
+static ObjectPtr LookupHeapObjectClasses(Thread* thread,
+                                         char** parts,
+                                         int num_parts) {
   // Class ids look like: "classes/17"
   if (num_parts < 2) {
     return Object::sentinel().raw();
@@ -1883,9 +1883,9 @@ static RawObject* LookupHeapObjectClasses(Thread* thread,
   return Object::sentinel().raw();
 }
 
-static RawObject* LookupHeapObjectTypeArguments(Thread* thread,
-                                                char** parts,
-                                                int num_parts) {
+static ObjectPtr LookupHeapObjectTypeArguments(Thread* thread,
+                                               char** parts,
+                                               int num_parts) {
   Isolate* isolate = thread->isolate();
   // TypeArguments ids look like: "typearguments/17"
   if (num_parts < 2) {
@@ -1906,9 +1906,9 @@ static RawObject* LookupHeapObjectTypeArguments(Thread* thread,
   return table.At(id);
 }
 
-static RawObject* LookupHeapObjectCode(Isolate* isolate,
-                                       char** parts,
-                                       int num_parts) {
+static ObjectPtr LookupHeapObjectCode(Isolate* isolate,
+                                      char** parts,
+                                      int num_parts) {
   if (num_parts != 2) {
     return Object::sentinel().raw();
   }
@@ -1958,9 +1958,9 @@ static RawObject* LookupHeapObjectCode(Isolate* isolate,
   return Object::sentinel().raw();
 }
 
-static RawObject* LookupHeapObjectMessage(Thread* thread,
-                                          char** parts,
-                                          int num_parts) {
+static ObjectPtr LookupHeapObjectMessage(Thread* thread,
+                                         char** parts,
+                                         int num_parts) {
   if (num_parts != 2) {
     return Object::sentinel().raw();
   }
@@ -1982,9 +1982,9 @@ static RawObject* LookupHeapObjectMessage(Thread* thread,
   }
 }
 
-static RawObject* LookupHeapObject(Thread* thread,
-                                   const char* id_original,
-                                   ObjectIdRing::LookupResult* result) {
+static ObjectPtr LookupHeapObject(Thread* thread,
+                                  const char* id_original,
+                                  ObjectIdRing::LookupResult* result) {
   char* id = thread->zone()->MakeCopyOfString(id_original);
 
   // Parse the id by splitting at each '/'.
@@ -2197,7 +2197,7 @@ static bool PrintRetainingPath(Thread* thread,
             slot_offset.Value() - (Array::element_offset(0) >> kWordSizeLog2);
         jselement.AddProperty("parentListIndex", element_index);
       } else if (element.IsLinkedHashMap()) {
-        map = static_cast<RawLinkedHashMap*>(path.At(i * 2));
+        map = static_cast<LinkedHashMapPtr>(path.At(i * 2));
         map_data = map.data();
         intptr_t element_index =
             slot_offset.Value() - (Array::element_offset(0) >> kWordSizeLog2);
@@ -2870,7 +2870,7 @@ static const MethodParameter* evaluate_compiled_expression_params[] = {
     NULL,
 };
 
-RawExternalTypedData* DecodeKernelBuffer(const char* kernel_buffer_base64) {
+ExternalTypedDataPtr DecodeKernelBuffer(const char* kernel_buffer_base64) {
   intptr_t kernel_length;
   uint8_t* kernel_buffer = DecodeBase64(kernel_buffer_base64, &kernel_length);
   return ExternalTypedData::NewFinalizeWithFree(kernel_buffer, kernel_length);
@@ -3021,7 +3021,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
       : cls_(cls), storage_(storage), limit_(limit), count_(0) {}
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
-    RawObject* raw_obj = it->Get();
+    ObjectPtr raw_obj = it->Get();
     if (raw_obj->IsPseudoObject()) {
       return kProceed;
     }
@@ -3249,7 +3249,7 @@ void Service::CheckForPause(Isolate* isolate, JSONStream* stream) {
       BoolParameter::Parse(stream->LookupParam("pause"), false));
 }
 
-RawError* Service::MaybePause(Isolate* isolate, const Error& error) {
+ErrorPtr Service::MaybePause(Isolate* isolate, const Error& error) {
   // Don't pause twice.
   if (!isolate->IsPaused()) {
     if (isolate->should_pause_post_service_request()) {
@@ -3424,7 +3424,7 @@ static bool RemoveBreakpoint(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static RawClass* GetMetricsClass(Thread* thread) {
+static ClassPtr GetMetricsClass(Thread* thread) {
   Zone* zone = thread->zone();
   const Library& prof_lib = Library::Handle(zone, Library::DeveloperLibrary());
   ASSERT(!prof_lib.IsNull());

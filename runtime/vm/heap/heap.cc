@@ -323,26 +323,26 @@ void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   old_space_.VisitObjectPointers(visitor);
 }
 
-RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
+InstructionsPtr Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
   // Only executable pages can have RawInstructions objects.
-  RawObject* raw_obj = old_space_.FindObject(visitor, HeapPage::kExecutable);
+  ObjectPtr raw_obj = old_space_.FindObject(visitor, HeapPage::kExecutable);
   ASSERT((raw_obj == Object::null()) ||
          (raw_obj->GetClassId() == kInstructionsCid));
-  return reinterpret_cast<RawInstructions*>(raw_obj);
+  return static_cast<InstructionsPtr>(raw_obj);
 }
 
-RawObject* Heap::FindOldObject(FindObjectVisitor* visitor) const {
+ObjectPtr Heap::FindOldObject(FindObjectVisitor* visitor) const {
   return old_space_.FindObject(visitor, HeapPage::kData);
 }
 
-RawObject* Heap::FindNewObject(FindObjectVisitor* visitor) {
+ObjectPtr Heap::FindNewObject(FindObjectVisitor* visitor) {
   return new_space_.FindObject(visitor);
 }
 
-RawObject* Heap::FindObject(FindObjectVisitor* visitor) {
+ObjectPtr Heap::FindObject(FindObjectVisitor* visitor) {
   // The visitor must not allocate from the heap.
   NoSafepointScope no_safepoint_scope;
-  RawObject* raw_obj = FindNewObject(visitor);
+  ObjectPtr raw_obj = FindNewObject(visitor);
   if (raw_obj != Object::null()) {
     return raw_obj;
   }
@@ -893,7 +893,7 @@ void Heap::ResetObjectIdTable() {
   old_weak_tables_[kObjectIds]->Reset();
 }
 
-intptr_t Heap::GetWeakEntry(RawObject* raw_obj, WeakSelector sel) const {
+intptr_t Heap::GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const {
   if (raw_obj->IsNewObject()) {
     return new_weak_tables_[sel]->GetValue(raw_obj);
   }
@@ -901,7 +901,7 @@ intptr_t Heap::GetWeakEntry(RawObject* raw_obj, WeakSelector sel) const {
   return old_weak_tables_[sel]->GetValue(raw_obj);
 }
 
-void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
+void Heap::SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val) {
   if (raw_obj->IsNewObject()) {
     new_weak_tables_[sel]->SetValue(raw_obj, val);
   } else {
@@ -910,8 +910,7 @@ void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
   }
 }
 
-void Heap::ForwardWeakEntries(RawObject* before_object,
-                              RawObject* after_object) {
+void Heap::ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object) {
   const auto before_space =
       before_object->IsNewObject() ? Heap::kNew : Heap::kOld;
   const auto after_space =

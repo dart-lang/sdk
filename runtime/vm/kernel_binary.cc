@@ -31,7 +31,7 @@ const char* Reader::TagName(Tag tag) {
   return "Unknown";
 }
 
-RawTypedData* Reader::ReadLineStartsData(intptr_t line_start_count) {
+TypedDataPtr Reader::ReadLineStartsData(intptr_t line_start_count) {
   TypedData& line_starts_data = TypedData::Handle(
       TypedData::New(kTypedDataInt8ArrayCid, line_start_count, Heap::kOld));
 

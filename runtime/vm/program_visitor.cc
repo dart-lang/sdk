@@ -18,7 +18,7 @@ class WorklistElement : public ZoneAllocated {
   WorklistElement(Zone* zone, const Object& object)
       : object_(Object::Handle(zone, object.raw())), next_(nullptr) {}
 
-  RawObject* value() const { return object_.raw(); }
+  ObjectPtr value() const { return object_.raw(); }
 
   void set_next(WorklistElement* elem) { next_ = elem; }
   WorklistElement* next() const { return next_; }
@@ -51,7 +51,7 @@ class Worklist : public ValueObject {
     ASSERT(first_ != nullptr && last_ != nullptr);
   }
 
-  RawObject* Remove() {
+  ObjectPtr Remove() {
     ASSERT(first_ != nullptr);
     WorklistElement* result = first_;
     first_ = first_->next();
@@ -322,7 +322,7 @@ class Dedupper : public ValueObject {
     }
   }
 
-  typename T::RawObjectType* Dedup(const T& obj) {
+  typename T::ObjectPtrType Dedup(const T& obj) {
     if (ShouldAdd(obj)) {
       if (auto const canonical = canonical_objects_.LookupValue(&obj)) {
         return canonical->raw();
@@ -583,7 +583,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
     // Creates a new global table of stack map information. Also adds the
     // offsets of encoded StackMapEntry objects to entry_offsets for use
     // when normalizing CompressedStackMaps.
-    RawCompressedStackMaps* CreateGlobalTable(
+    CompressedStackMapsPtr CreateGlobalTable(
         StackMapEntryIntMap* entry_offsets) {
       ASSERT(entry_offsets->IsEmpty());
       if (collected_entries_.length() == 0) return CompressedStackMaps::null();
@@ -677,7 +677,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
 
    private:
     // Creates a normalized CSM from the given non-normalized CSM.
-    RawCompressedStackMaps* NormalizeEntries(const CompressedStackMaps& maps) {
+    CompressedStackMapsPtr NormalizeEntries(const CompressedStackMaps& maps) {
       GrowableArray<uint8_t> new_payload;
       CompressedStackMapsIterator it(maps, old_global_table_);
       intptr_t last_offset = 0;
@@ -1033,7 +1033,7 @@ void ProgramVisitor::DedupLists(Zone* zone, Isolate* isolate) {
    private:
     bool IsCorrectType(const Object& obj) const { return obj.IsArray(); }
 
-    RawArray* PrepareParameterTypes(const Function& function) {
+    ArrayPtr PrepareParameterTypes(const Function& function) {
       list_ = function.parameter_types();
       // Preserve parameter types in the JIT. Needed in case of recompilation
       // in checked mode, or if available to mirrors, or for copied types to
@@ -1051,7 +1051,7 @@ void ProgramVisitor::DedupLists(Zone* zone, Isolate* isolate) {
       return list_.raw();
     }
 
-    RawArray* PrepareParameterNames(const Function& function) {
+    ArrayPtr PrepareParameterNames(const Function& function) {
       list_ = function.parameter_names();
       // Preserve parameter names in case of recompilation for the JIT. Also
       // avoid attempting to change read-only VM objects for de-duplication.
@@ -1172,7 +1172,7 @@ void ProgramVisitor::DedupInstructions(Zone* zone, Isolate* isolate) {
       }
     }
 
-    void VisitObject(RawObject* obj) {
+    void VisitObject(ObjectPtr obj) {
       if (!obj->IsInstructions()) return;
       instructions_ = Instructions::RawCast(obj);
       AddCanonical(instructions_);

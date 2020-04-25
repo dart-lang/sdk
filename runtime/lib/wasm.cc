@@ -133,7 +133,7 @@ static bool ToWasmValueTag(classid_t type, wasmer_value_tag* out) {
   }
 }
 
-static RawObject* ToDartObject(wasmer_value_t ret) {
+static ObjectPtr ToDartObject(wasmer_value_t ret) {
   switch (ret.tag) {
     case wasmer_value_tag::WASM_I32:
       return Integer::New(ret.value.I32);
@@ -165,7 +165,7 @@ static Dart_Handle ToDartApiObject(wasmer_value value, wasmer_value_tag type) {
   }
 }
 
-RawExternalTypedData* WasmMemoryToExternalTypedData(wasmer_memory_t* memory) {
+ExternalTypedDataPtr WasmMemoryToExternalTypedData(wasmer_memory_t* memory) {
   uint8_t* data = wasmer_memory_data(memory);
   uint32_t size = wasmer_memory_data_length(memory);
   return ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, data, size);
@@ -191,7 +191,7 @@ std::ostream& operator<<(std::ostream& o, const wasmer_import_export_kind& io) {
   }
 }
 
-RawString* DescribeModule(const wasmer_module_t* module) {
+StringPtr DescribeModule(const wasmer_module_t* module) {
   std::stringstream desc;
 
   desc << "Imports:\n";

@@ -3872,7 +3872,7 @@ LocationSummary* JoinEntryInstr::MakeLocationSummary(Zone* zone,
 void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt, GetDeoptId(),
+    compiler->AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, GetDeoptId(),
                                    TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
@@ -3899,7 +3899,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // The deoptimization descriptor points after the edge counter code for
     // uniformity with ARM, where we can reuse pattern matching code that
     // matches backwards from the end of the pattern.
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt, GetDeoptId(),
+    compiler->AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, GetDeoptId(),
                                    TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
@@ -3973,7 +3973,7 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // The deoptimization descriptor points after the edge counter code for
     // uniformity with ARM, where we can reuse pattern matching code that
     // matches backwards from the end of the pattern.
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt, GetDeoptId(),
+    compiler->AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, GetDeoptId(),
                                    TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
@@ -4082,7 +4082,7 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(InitStaticFieldABI::kFieldReg,
                 Field::ZoneHandle(field().Original()));
   compiler->GenerateStubCall(token_pos(), init_static_field_stub,
-                             /*kind=*/RawPcDescriptors::kOther, locs(),
+                             /*kind=*/PcDescriptorsLayout::kOther, locs(),
                              deopt_id());
   __ Bind(&no_call);
 }
@@ -4116,7 +4116,7 @@ void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // so deoptimization environment has to be adjusted.
   // This adjustment is done in FlowGraph::AttachEnvironment.
   compiler->GenerateStubCall(token_pos(), stub,
-                             /*kind=*/RawPcDescriptors::kOther, locs(),
+                             /*kind=*/PcDescriptorsLayout::kOther, locs(),
                              deopt_id());
   __ Bind(&no_call);
 }
@@ -4136,7 +4136,7 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Code::ZoneHandle(compiler->zone(), object_store->throw_stub());
 
   compiler->GenerateStubCall(token_pos(), throw_stub,
-                             /*kind=*/RawPcDescriptors::kOther, locs(),
+                             /*kind=*/PcDescriptorsLayout::kOther, locs(),
                              deopt_id());
   // Issue(dartbug.com/41353): Right now we have to emit an extra breakpoint
   // instruction: The ThrowInstr will terminate the current block. The very
@@ -4164,7 +4164,7 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler->SetNeedsStackTrace(catch_try_index());
   compiler->GenerateStubCall(token_pos(), re_throw_stub,
-                             /*kind=*/RawPcDescriptors::kOther, locs(),
+                             /*kind=*/PcDescriptorsLayout::kOther, locs(),
                              deopt_id());
   // Issue(dartbug.com/41353): Right now we have to emit an extra breakpoint
   // instruction: The ThrowInstr will terminate the current block. The very
@@ -4198,7 +4198,7 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ CompareObject(AssertBooleanABI::kObjectReg, Object::null_instance());
   __ BranchIf(NOT_EQUAL, &done);
   compiler->GenerateStubCall(token_pos(), assert_boolean_stub,
-                             /*kind=*/RawPcDescriptors::kOther, locs(),
+                             /*kind=*/PcDescriptorsLayout::kOther, locs(),
                              deopt_id());
   __ Bind(&done);
 }
@@ -4489,7 +4489,7 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary(Zone* zone,
   return MakeCallSummary(zone, this);
 }
 
-static RawCode* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
+static CodePtr TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
   if (!FLAG_two_args_smi_icd) {
     return Code::null();
   }
@@ -4596,7 +4596,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   } else {
     // Unoptimized code.
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
+    compiler->AddCurrentDescriptor(PcDescriptorsLayout::kRewind, deopt_id(),
                                    token_pos());
     bool is_smi_two_args_op = false;
     const Code& stub =
@@ -4622,7 +4622,7 @@ bool InstanceCallInstr::MatchesCoreName(const String& name) {
   return Library::IsPrivateCoreLibName(function_name(), name);
 }
 
-RawFunction* InstanceCallBaseInstr::ResolveForReceiverClass(
+FunctionPtr InstanceCallBaseInstr::ResolveForReceiverClass(
     const Class& cls,
     bool allow_add /* = true */) {
   const Array& args_desc_array = Array::Handle(GetArgumentsDescriptor());
@@ -4719,7 +4719,7 @@ void DispatchTableCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->EmitDispatchTableCall(cid_reg, selector()->offset,
                                   arguments_descriptor);
   compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
-                                 RawPcDescriptors::kOther, locs());
+                                 PcDescriptorsLayout::kOther, locs());
   if (selector()->called_on_null && !selector()->on_null_interface) {
     Value* receiver = ArgumentValueAt(FirstArgIndex());
     if (receiver->Type()->is_nullable()) {
@@ -4850,7 +4850,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       total_call_count(), !receiver_is_not_smi());
 }
 
-RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
+TypePtr PolymorphicInstanceCallInstr::ComputeRuntimeType(
     const CallTargets& targets) {
   bool is_string = true;
   bool is_integer = true;

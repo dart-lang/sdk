@@ -267,49 +267,50 @@ static word TranslateOffsetInWordsToHost(word offset) {
 }
 
 bool SizeFitsInSizeTag(uword instance_size) {
-  return dart::RawObject::SizeTag::SizeFits(
+  return dart::ObjectLayout::SizeTag::SizeFits(
       TranslateOffsetInWordsToHost(instance_size));
 }
 
 uint32_t MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
-  return dart::RawObject::SizeTag::encode(
+  return dart::ObjectLayout::SizeTag::encode(
              TranslateOffsetInWordsToHost(instance_size)) |
-         dart::RawObject::ClassIdTag::encode(cid) |
-         dart::RawObject::NewBit::encode(true);
+         dart::ObjectLayout::ClassIdTag::encode(cid) |
+         dart::ObjectLayout::NewBit::encode(true);
 }
 
 word Object::tags_offset() {
   return 0;
 }
 
-const word RawObject::kCardRememberedBit = dart::RawObject::kCardRememberedBit;
+const word ObjectLayout::kCardRememberedBit =
+    dart::ObjectLayout::kCardRememberedBit;
 
-const word RawObject::kOldAndNotRememberedBit =
-    dart::RawObject::kOldAndNotRememberedBit;
+const word ObjectLayout::kOldAndNotRememberedBit =
+    dart::ObjectLayout::kOldAndNotRememberedBit;
 
-const word RawObject::kOldAndNotMarkedBit =
-    dart::RawObject::kOldAndNotMarkedBit;
+const word ObjectLayout::kOldAndNotMarkedBit =
+    dart::ObjectLayout::kOldAndNotMarkedBit;
 
-const word RawObject::kSizeTagPos = dart::RawObject::kSizeTagPos;
+const word ObjectLayout::kSizeTagPos = dart::ObjectLayout::kSizeTagPos;
 
-const word RawObject::kSizeTagSize = dart::RawObject::kSizeTagSize;
+const word ObjectLayout::kSizeTagSize = dart::ObjectLayout::kSizeTagSize;
 
-const word RawObject::kClassIdTagPos = dart::RawObject::kClassIdTagPos;
+const word ObjectLayout::kClassIdTagPos = dart::ObjectLayout::kClassIdTagPos;
 
-const word RawObject::kClassIdTagSize = dart::RawObject::kClassIdTagSize;
+const word ObjectLayout::kClassIdTagSize = dart::ObjectLayout::kClassIdTagSize;
 
-const word RawObject::kSizeTagMaxSizeTag =
-    dart::RawObject::SizeTag::kMaxSizeTagInUnitsOfAlignment *
+const word ObjectLayout::kSizeTagMaxSizeTag =
+    dart::ObjectLayout::SizeTag::kMaxSizeTagInUnitsOfAlignment *
     ObjectAlignment::kObjectAlignment;
 
-const word RawObject::kTagBitsSizeTagPos =
-    dart::RawObject::TagBits::kSizeTagPos;
+const word ObjectLayout::kTagBitsSizeTagPos =
+    dart::ObjectLayout::TagBits::kSizeTagPos;
 
-const word RawAbstractType::kTypeStateFinalizedInstantiated =
-    dart::RawAbstractType::kFinalizedInstantiated;
+const word AbstractTypeLayout::kTypeStateFinalizedInstantiated =
+    dart::AbstractTypeLayout::kFinalizedInstantiated;
 
-const word RawObject::kBarrierOverlapShift =
-    dart::RawObject::kBarrierOverlapShift;
+const word ObjectLayout::kBarrierOverlapShift =
+    dart::ObjectLayout::kBarrierOverlapShift;
 
 bool IsTypedDataClassId(intptr_t cid) {
   return dart::IsTypedDataClassId(cid);
@@ -617,7 +618,7 @@ bool IsSmi(const dart::Object& a) {
 
 word ToRawSmi(const dart::Object& a) {
   RELEASE_ASSERT(IsSmi(a));
-  return static_cast<word>(reinterpret_cast<intptr_t>(a.raw()));
+  return static_cast<word>(static_cast<intptr_t>(a.raw()));
 }
 
 word ToRawSmi(intptr_t value) {
@@ -645,7 +646,7 @@ word ToRawPointer(const dart::Object& a) {
   static_assert(kHostWordSize == kWordSize,
                 "Can't embed raw pointers to runtime objects when host and "
                 "target word sizes are different");
-  return reinterpret_cast<word>(a.raw());
+  return static_cast<word>(a.raw());
 }
 #endif  // defined(TARGET_ARCH_IA32)
 

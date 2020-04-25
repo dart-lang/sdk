@@ -1089,22 +1089,22 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     bytecode_metadata_helper_.ParseBytecodeFunction(parsed_function());
 
     switch (function.kind()) {
-      case RawFunction::kImplicitClosureFunction:
+      case FunctionLayout::kImplicitClosureFunction:
         return B->BuildGraphOfImplicitClosureFunction(function);
-      case RawFunction::kImplicitGetter:
-      case RawFunction::kImplicitSetter:
+      case FunctionLayout::kImplicitGetter:
+      case FunctionLayout::kImplicitSetter:
         return B->BuildGraphOfFieldAccessor(function);
-      case RawFunction::kImplicitStaticGetter: {
+      case FunctionLayout::kImplicitStaticGetter: {
         if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
           break;
         }
         return B->BuildGraphOfFieldAccessor(function);
       }
-      case RawFunction::kDynamicInvocationForwarder:
+      case FunctionLayout::kDynamicInvocationForwarder:
         return B->BuildGraphOfDynamicInvocationForwarder(function);
-      case RawFunction::kMethodExtractor:
+      case FunctionLayout::kMethodExtractor:
         return B->BuildGraphOfMethodExtractor(function);
-      case RawFunction::kNoSuchMethodDispatcher:
+      case FunctionLayout::kNoSuchMethodDispatcher:
         return B->BuildGraphOfNoSuchMethodDispatcher(function);
       default:
         break;
@@ -1127,51 +1127,51 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
   // Certain special functions could have a VM-internal bytecode
   // attached to them.
   ASSERT((!function.HasBytecode()) ||
-         (function.kind() == RawFunction::kImplicitGetter) ||
-         (function.kind() == RawFunction::kImplicitSetter) ||
-         (function.kind() == RawFunction::kImplicitStaticGetter) ||
-         (function.kind() == RawFunction::kMethodExtractor) ||
-         (function.kind() == RawFunction::kInvokeFieldDispatcher) ||
-         (function.kind() == RawFunction::kNoSuchMethodDispatcher));
+         (function.kind() == FunctionLayout::kImplicitGetter) ||
+         (function.kind() == FunctionLayout::kImplicitSetter) ||
+         (function.kind() == FunctionLayout::kImplicitStaticGetter) ||
+         (function.kind() == FunctionLayout::kMethodExtractor) ||
+         (function.kind() == FunctionLayout::kInvokeFieldDispatcher) ||
+         (function.kind() == FunctionLayout::kNoSuchMethodDispatcher));
 
   ParseKernelASTFunction();
 
   switch (function.kind()) {
-    case RawFunction::kRegularFunction:
-    case RawFunction::kGetterFunction:
-    case RawFunction::kSetterFunction:
-    case RawFunction::kClosureFunction:
-    case RawFunction::kConstructor: {
+    case FunctionLayout::kRegularFunction:
+    case FunctionLayout::kGetterFunction:
+    case FunctionLayout::kSetterFunction:
+    case FunctionLayout::kClosureFunction:
+    case FunctionLayout::kConstructor: {
       if (B->IsRecognizedMethodForFlowGraph(function)) {
         return B->BuildGraphOfRecognizedMethod(function);
       }
       return BuildGraphOfFunction(function.IsGenerativeConstructor());
     }
-    case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitStaticGetter:
-    case RawFunction::kImplicitSetter: {
+    case FunctionLayout::kImplicitGetter:
+    case FunctionLayout::kImplicitStaticGetter:
+    case FunctionLayout::kImplicitSetter: {
       const Field& field = Field::Handle(Z, function.accessor_field());
       if (field.is_const() && field.IsUninitialized()) {
         EvaluateConstFieldValue(field);
       }
       return B->BuildGraphOfFieldAccessor(function);
     }
-    case RawFunction::kFieldInitializer:
+    case FunctionLayout::kFieldInitializer:
       return BuildGraphOfFieldInitializer();
-    case RawFunction::kDynamicInvocationForwarder:
+    case FunctionLayout::kDynamicInvocationForwarder:
       return B->BuildGraphOfDynamicInvocationForwarder(function);
-    case RawFunction::kMethodExtractor:
+    case FunctionLayout::kMethodExtractor:
       return flow_graph_builder_->BuildGraphOfMethodExtractor(function);
-    case RawFunction::kNoSuchMethodDispatcher:
+    case FunctionLayout::kNoSuchMethodDispatcher:
       return flow_graph_builder_->BuildGraphOfNoSuchMethodDispatcher(function);
-    case RawFunction::kInvokeFieldDispatcher:
+    case FunctionLayout::kInvokeFieldDispatcher:
       return flow_graph_builder_->BuildGraphOfInvokeFieldDispatcher(function);
-    case RawFunction::kImplicitClosureFunction:
+    case FunctionLayout::kImplicitClosureFunction:
       return flow_graph_builder_->BuildGraphOfImplicitClosureFunction(function);
-    case RawFunction::kFfiTrampoline:
+    case FunctionLayout::kFfiTrampoline:
       return flow_graph_builder_->BuildGraphOfFfiTrampoline(function);
-    case RawFunction::kSignatureFunction:
-    case RawFunction::kIrregexpFunction:
+    case FunctionLayout::kSignatureFunction:
+    case FunctionLayout::kIrregexpFunction:
       break;
   }
   UNREACHABLE();
@@ -1188,13 +1188,13 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
 
   // Mark forwarding stubs.
   switch (function.kind()) {
-    case RawFunction::kRegularFunction:
-    case RawFunction::kImplicitClosureFunction:
-    case RawFunction::kGetterFunction:
-    case RawFunction::kSetterFunction:
-    case RawFunction::kClosureFunction:
-    case RawFunction::kConstructor:
-    case RawFunction::kDynamicInvocationForwarder:
+    case FunctionLayout::kRegularFunction:
+    case FunctionLayout::kImplicitClosureFunction:
+    case FunctionLayout::kGetterFunction:
+    case FunctionLayout::kSetterFunction:
+    case FunctionLayout::kClosureFunction:
+    case FunctionLayout::kConstructor:
+    case FunctionLayout::kDynamicInvocationForwarder:
       ReadForwardingStubTarget(function);
       break;
     default:
@@ -1204,34 +1204,34 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
   set_scopes(parsed_function()->EnsureKernelScopes());
 
   switch (function.kind()) {
-    case RawFunction::kRegularFunction:
-    case RawFunction::kGetterFunction:
-    case RawFunction::kSetterFunction:
-    case RawFunction::kClosureFunction:
-    case RawFunction::kConstructor:
-    case RawFunction::kImplicitClosureFunction:
+    case FunctionLayout::kRegularFunction:
+    case FunctionLayout::kGetterFunction:
+    case FunctionLayout::kSetterFunction:
+    case FunctionLayout::kClosureFunction:
+    case FunctionLayout::kConstructor:
+    case FunctionLayout::kImplicitClosureFunction:
       ReadUntilFunctionNode();
       SetupDefaultParameterValues();
       ReadDefaultFunctionTypeArguments(function);
       break;
-    case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitStaticGetter:
-    case RawFunction::kImplicitSetter:
-    case RawFunction::kFieldInitializer:
-    case RawFunction::kMethodExtractor:
-    case RawFunction::kNoSuchMethodDispatcher:
-    case RawFunction::kInvokeFieldDispatcher:
-    case RawFunction::kFfiTrampoline:
+    case FunctionLayout::kImplicitGetter:
+    case FunctionLayout::kImplicitStaticGetter:
+    case FunctionLayout::kImplicitSetter:
+    case FunctionLayout::kFieldInitializer:
+    case FunctionLayout::kMethodExtractor:
+    case FunctionLayout::kNoSuchMethodDispatcher:
+    case FunctionLayout::kInvokeFieldDispatcher:
+    case FunctionLayout::kFfiTrampoline:
       break;
-    case RawFunction::kDynamicInvocationForwarder:
+    case FunctionLayout::kDynamicInvocationForwarder:
       if (PeekTag() != kField) {
         ReadUntilFunctionNode();
         SetupDefaultParameterValues();
         ReadDefaultFunctionTypeArguments(function);
       }
       break;
-    case RawFunction::kSignatureFunction:
-    case RawFunction::kIrregexpFunction:
+    case FunctionLayout::kSignatureFunction:
+    case FunctionLayout::kIrregexpFunction:
       UNREACHABLE();
       break;
   }
@@ -5104,8 +5104,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
       // NOTE: This is not TokenPosition in the general sense!
       if (!closure_owner_.IsNull()) {
         function = Function::NewClosureFunctionWithKind(
-            RawFunction::kClosureFunction, *name, parsed_function()->function(),
-            position, closure_owner_);
+            FunctionLayout::kClosureFunction, *name,
+            parsed_function()->function(), position, closure_owner_);
       } else {
         function = Function::NewClosureFunction(
             *name, parsed_function()->function(), position);
@@ -5115,14 +5115,14 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
                                  FunctionNodeHelper::kSync);
       switch (function_node_helper.dart_async_marker_) {
         case FunctionNodeHelper::kSyncStar:
-          function.set_modifier(RawFunction::kSyncGen);
+          function.set_modifier(FunctionLayout::kSyncGen);
           break;
         case FunctionNodeHelper::kAsync:
-          function.set_modifier(RawFunction::kAsync);
+          function.set_modifier(FunctionLayout::kAsync);
           function.set_is_inlinable(!FLAG_causal_async_stacks);
           break;
         case FunctionNodeHelper::kAsyncStar:
-          function.set_modifier(RawFunction::kAsyncGen);
+          function.set_modifier(FunctionLayout::kAsyncGen);
           function.set_is_inlinable(!FLAG_causal_async_stacks);
           break;
         default:

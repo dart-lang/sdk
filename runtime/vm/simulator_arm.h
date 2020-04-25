@@ -22,7 +22,6 @@ namespace dart {
 
 class Isolate;
 class Mutex;
-class RawObject;
 class SimulatorSetjmpBuffer;
 class Thread;
 

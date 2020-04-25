@@ -2797,7 +2797,7 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
   ReturnInstr(TokenPosition token_pos,
               Value* value,
               intptr_t deopt_id,
-              intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex,
+              intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex,
               Representation representation = kTagged)
       : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
@@ -3693,7 +3693,7 @@ struct ArgumentsInfo {
                                (type_args_len > 0 ? 1 : 0)),
         argument_names(argument_names) {}
 
-  RawArray* ToArgumentsDescriptor() const {
+  ArrayPtr ToArgumentsDescriptor() const {
     return ArgumentsDescriptor::New(type_args_len, count_without_type_args,
                                     size_without_type_args, argument_names);
   }
@@ -3726,7 +3726,7 @@ class TemplateDartCall : public Definition {
     }
   }
 
-  RawString* Selector() {
+  StringPtr Selector() {
     if (auto static_call = this->AsStaticCall()) {
       return static_call->function().name();
     } else if (auto instance_call = this->AsInstanceCall()) {
@@ -3783,7 +3783,7 @@ class TemplateDartCall : public Definition {
   intptr_t type_args_len() const { return type_args_len_; }
   const Array& argument_names() const { return argument_names_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
-  RawArray* GetArgumentsDescriptor() const {
+  ArrayPtr GetArgumentsDescriptor() const {
     return ArgumentsDescriptor::New(
         type_args_len(), ArgumentCountWithoutTypeArgs(),
         ArgumentsSizeWithoutTypeArgs(), argument_names());
@@ -3927,7 +3927,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
     return result_type_->ToCid();
   }
 
-  RawFunction* ResolveForReceiverClass(const Class& cls, bool allow_add = true);
+  FunctionPtr ResolveForReceiverClass(const Class& cls, bool allow_add = true);
 
   Code::EntryKind entry_kind() const { return entry_kind_; }
   void set_entry_kind(Code::EntryKind value) { entry_kind_ = value; }
@@ -4124,7 +4124,7 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
 
   virtual Definition* Canonicalize(FlowGraph* graph);
 
-  static RawType* ComputeRuntimeType(const CallTargets& targets);
+  static TypePtr ComputeRuntimeType(const CallTargets& targets);
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
@@ -5024,7 +5024,7 @@ class FfiCallInstr : public Definition {
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
  public:
   DebugStepCheckInstr(TokenPosition token_pos,
-                      RawPcDescriptors::Kind stub_kind,
+                      PcDescriptorsLayout::Kind stub_kind,
                       intptr_t deopt_id)
       : TemplateInstruction<0, NoThrow>(deopt_id),
         token_pos_(token_pos),
@@ -5041,7 +5041,7 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
 
  private:
   const TokenPosition token_pos_;
-  const RawPcDescriptors::Kind stub_kind_;
+  const PcDescriptorsLayout::Kind stub_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(DebugStepCheckInstr);
 };
@@ -5254,7 +5254,7 @@ class GuardFieldLengthInstr : public GuardFieldInstr {
 
 // For a field of static type G<T0, ..., Tn> and a stored value of runtime
 // type T checks that type arguments of T at G exactly match <T0, ..., Tn>
-// and updates guarded state (RawField::static_type_exactness_state_)
+// and updates guarded state (FieldLayout::static_type_exactness_state_)
 // accordingly.
 //
 // See StaticTypeExactnessState for more information.

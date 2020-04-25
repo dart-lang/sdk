@@ -109,36 +109,34 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
   return Object::null();
 }
 
-class RawObjectPtrSetTraits {
+class ObjectPtrSetTraitsLayout {
  public:
   static bool ReportStats() { return false; }
   static const char* Name() { return "RawObjectPtrSetTraits"; }
 
-  static bool IsMatch(const RawObject* a, const RawObject* b) { return a == b; }
+  static bool IsMatch(const ObjectPtr a, const ObjectPtr b) { return a == b; }
 
-  static uword Hash(const RawObject* obj) {
-    return reinterpret_cast<uword>(obj);
-  }
+  static uword Hash(const ObjectPtr obj) { return static_cast<uword>(obj); }
 };
 
-static RawObject* ValidateMessageObject(Zone* zone,
-                                        Isolate* isolate,
-                                        const Object& obj) {
+static ObjectPtr ValidateMessageObject(Zone* zone,
+                                       Isolate* isolate,
+                                       const Object& obj) {
   TIMELINE_DURATION(Thread::Current(), Isolate, "ValidateMessageObject");
 
   class SendMessageValidator : public ObjectPointerVisitor {
    public:
     SendMessageValidator(IsolateGroup* isolate_group,
                          WeakTable* visited,
-                         MallocGrowableArray<RawObject*>* const working_set)
+                         MallocGrowableArray<ObjectPtr>* const working_set)
         : ObjectPointerVisitor(isolate_group),
           visited_(visited),
           working_set_(working_set) {}
 
    private:
-    void VisitPointers(RawObject** from, RawObject** to) {
-      for (RawObject** raw = from; raw <= to; raw++) {
-        if (!(*raw)->IsHeapObject() || (*raw)->IsCanonical()) {
+    void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+      for (ObjectPtr* raw = from; raw <= to; raw++) {
+        if (!(*raw)->IsHeapObject() || (*raw)->ptr()->IsCanonical()) {
           continue;
         }
         if (visited_->GetValueExclusive(*raw) == 1) {
@@ -150,9 +148,9 @@ static RawObject* ValidateMessageObject(Zone* zone,
     }
 
     WeakTable* visited_;
-    MallocGrowableArray<RawObject*>* const working_set_;
+    MallocGrowableArray<ObjectPtr>* const working_set_;
   };
-  if (!obj.raw()->IsHeapObject() || obj.raw()->IsCanonical()) {
+  if (!obj.raw()->IsHeapObject() || obj.raw()->ptr()->IsCanonical()) {
     return obj.raw();
   }
   ClassTable* class_table = isolate->class_table();
@@ -160,7 +158,7 @@ static RawObject* ValidateMessageObject(Zone* zone,
   Class& klass = Class::Handle(zone);
   Closure& closure = Closure::Handle(zone);
 
-  MallocGrowableArray<RawObject*> working_set;
+  MallocGrowableArray<ObjectPtr> working_set;
   std::unique_ptr<WeakTable> visited(new WeakTable());
 
   NoSafepointScope no_safepoint;
@@ -170,7 +168,7 @@ static RawObject* ValidateMessageObject(Zone* zone,
   working_set.Add(obj.raw());
 
   while (!working_set.is_empty()) {
-    RawObject* raw = working_set.RemoveLast();
+    ObjectPtr raw = working_set.RemoveLast();
 
     if (visited->GetValueExclusive(raw) > 0) {
       continue;
@@ -196,7 +194,7 @@ static RawObject* ValidateMessageObject(Zone* zone,
 
       case kClosureCid: {
         closure = Closure::RawCast(raw);
-        RawFunction* func = closure.function();
+        FunctionPtr func = closure.function();
         // We only allow closure of top level methods or static functions in a
         // class to be sent in isolate messages.
         if (!Function::IsImplicitStaticClosureFunction(func)) {
@@ -215,7 +213,7 @@ static RawObject* ValidateMessageObject(Zone* zone,
           }
         }
     }
-    raw->VisitPointers(&visitor);
+    raw->ptr()->VisitPointers(&visitor);
   }
   isolate->set_forward_table_new(nullptr);
   return obj.raw();

@@ -10,11 +10,11 @@ namespace dart {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 
-static uword BeginPcFromCode(const RawCode* code) {
+static uword BeginPcFromCode(const CodePtr code) {
   return Code::PayloadStartOf(code);
 }
 
-static uword EndPcFromCode(const RawCode* code) {
+static uword EndPcFromCode(const CodePtr code) {
   return Code::PayloadStartOf(code) + Code::PayloadSizeOf(code);
 }
 
@@ -30,15 +30,13 @@ void ReversePcLookupCache::BuildAndAttachToIsolateGroup(
     {
       NoSafepointScope no_safepoint_scope;
 
-      const uword begin =
-          BeginPcFromCode(reinterpret_cast<RawCode*>(array.At(0)));
+      const uword begin = BeginPcFromCode(static_cast<CodePtr>(array.At(0)));
       const uword end =
-          EndPcFromCode(reinterpret_cast<RawCode*>(array.At(length - 1)));
+          EndPcFromCode(static_cast<CodePtr>(array.At(length - 1)));
 
       auto pc_array = new uint32_t[length];
       for (intptr_t i = 0; i < length; i++) {
-        const auto end_pc =
-            EndPcFromCode(reinterpret_cast<RawCode*>(array.At(i)));
+        const auto end_pc = EndPcFromCode(static_cast<CodePtr>(array.At(i)));
         pc_array[i] = end_pc - begin;
       }
 #if defined(DEBUG)

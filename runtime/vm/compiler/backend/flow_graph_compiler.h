@@ -181,9 +181,9 @@ class CompilerDeoptInfo : public ZoneAllocated {
   }
   virtual ~CompilerDeoptInfo() {}
 
-  RawTypedData* CreateDeoptInfo(FlowGraphCompiler* compiler,
-                                DeoptInfoBuilder* builder,
-                                const Array& deopt_table);
+  TypedDataPtr CreateDeoptInfo(FlowGraphCompiler* compiler,
+                               DeoptInfoBuilder* builder,
+                               const Array& deopt_table);
 
   // No code needs to be generated.
   virtual void GenerateCode(FlowGraphCompiler* compiler, intptr_t stub_ix) {}
@@ -602,27 +602,27 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateStubCall(TokenPosition token_pos,
                         const Code& stub,
-                        RawPcDescriptors::Kind kind,
+                        PcDescriptorsLayout::Kind kind,
                         LocationSummary* locs,
                         intptr_t deopt_id = DeoptId::kNone,
                         Environment* env = nullptr);
 
   void GeneratePatchableCall(TokenPosition token_pos,
                              const Code& stub,
-                             RawPcDescriptors::Kind kind,
+                             PcDescriptorsLayout::Kind kind,
                              LocationSummary* locs);
 
   void GenerateDartCall(intptr_t deopt_id,
                         TokenPosition token_pos,
                         const Code& stub,
-                        RawPcDescriptors::Kind kind,
+                        PcDescriptorsLayout::Kind kind,
                         LocationSummary* locs,
                         Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void GenerateStaticDartCall(
       intptr_t deopt_id,
       TokenPosition token_pos,
-      RawPcDescriptors::Kind kind,
+      PcDescriptorsLayout::Kind kind,
       LocationSummary* locs,
       const Function& target,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
@@ -785,7 +785,7 @@ class FlowGraphCompiler : public ValueObject {
   // `pending_deoptimization_env`.
   void EmitCallsiteMetadata(TokenPosition token_pos,
                             intptr_t deopt_id,
-                            RawPcDescriptors::Kind kind,
+                            PcDescriptorsLayout::Kind kind,
                             LocationSummary* locs,
                             Environment* env = nullptr);
 
@@ -823,16 +823,16 @@ class FlowGraphCompiler : public ValueObject {
                            const Array& handler_types,
                            bool needs_stacktrace);
   void SetNeedsStackTrace(intptr_t try_index);
-  void AddCurrentDescriptor(RawPcDescriptors::Kind kind,
+  void AddCurrentDescriptor(PcDescriptorsLayout::Kind kind,
                             intptr_t deopt_id,
                             TokenPosition token_pos);
   void AddDescriptor(
-      RawPcDescriptors::Kind kind,
+      PcDescriptorsLayout::Kind kind,
       intptr_t pc_offset,
       intptr_t deopt_id,
       TokenPosition token_pos,
       intptr_t try_index,
-      intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex);
+      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
 
   // Add NullCheck information for the current PC.
   void AddNullCheck(TokenPosition token_pos, const String& name);
@@ -851,7 +851,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizePcDescriptors(const Code& code);
-  RawArray* CreateDeoptInfo(compiler::Assembler* assembler);
+  ArrayPtr CreateDeoptInfo(compiler::Assembler* assembler);
   void FinalizeStackMaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeCatchEntryMovesMap(const Code& code);
@@ -929,9 +929,9 @@ class FlowGraphCompiler : public ValueObject {
   void AddStubCallTarget(const Code& code);
   void AddDispatchTableCallTarget(const compiler::TableSelector* selector);
 
-  RawArray* edge_counters_array() const { return edge_counters_array_.raw(); }
+  ArrayPtr edge_counters_array() const { return edge_counters_array_.raw(); }
 
-  RawArray* InliningIdToFunction() const;
+  ArrayPtr InliningIdToFunction() const;
 
   void BeginCodeSourceRange();
   void EndCodeSourceRange(TokenPosition token_pos);
@@ -1029,13 +1029,13 @@ class FlowGraphCompiler : public ValueObject {
                      compiler::Label* is_instance_lbl,
                      compiler::Label* is_not_instance_lbl);
 
-  RawSubtypeTestCache* GenerateInlineInstanceof(
+  SubtypeTestCachePtr GenerateInlineInstanceof(
       TokenPosition token_pos,
       const AbstractType& type,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 
-  RawSubtypeTestCache* GenerateInstantiatedTypeWithArgumentsTest(
+  SubtypeTestCachePtr GenerateInstantiatedTypeWithArgumentsTest(
       TokenPosition token_pos,
       const AbstractType& dst_type,
       compiler::Label* is_instance_lbl,
@@ -1047,19 +1047,19 @@ class FlowGraphCompiler : public ValueObject {
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 
-  RawSubtypeTestCache* GenerateUninstantiatedTypeTest(
+  SubtypeTestCachePtr GenerateUninstantiatedTypeTest(
       TokenPosition token_pos,
       const AbstractType& dst_type,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_label);
 
-  RawSubtypeTestCache* GenerateFunctionTypeTest(
+  SubtypeTestCachePtr GenerateFunctionTypeTest(
       TokenPosition token_pos,
       const AbstractType& dst_type,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_label);
 
-  RawSubtypeTestCache* GenerateSubtype1TestCacheLookup(
+  SubtypeTestCachePtr GenerateSubtype1TestCacheLookup(
       TokenPosition token_pos,
       const Class& type_class,
       compiler::Label* is_instance_lbl,
@@ -1076,7 +1076,7 @@ class FlowGraphCompiler : public ValueObject {
   TypeTestStubKind GetTypeTestStubKindForTypeParameter(
       const TypeParameter& type_param);
 
-  RawSubtypeTestCache* GenerateCallSubtypeTestStub(
+  SubtypeTestCachePtr GenerateCallSubtypeTestStub(
       TypeTestStubKind test_kind,
       Register instance_reg,
       Register instantiator_type_arguments_reg,

@@ -53,31 +53,31 @@ class ParsedFunction;
 //
 // Note: native slots are expected to be non-nullable.
 #define NATIVE_SLOTS_LIST(V)                                                   \
-  V(Array, RawArray, length, Smi, FINAL)                                       \
-  V(Context, RawContext, parent, Context, FINAL)                               \
-  V(Closure, RawClosure, instantiator_type_arguments, TypeArguments, FINAL)    \
-  V(Closure, RawClosure, delayed_type_arguments, TypeArguments, FINAL)         \
-  V(Closure, RawClosure, function_type_arguments, TypeArguments, FINAL)        \
-  V(Closure, RawClosure, function, Function, FINAL)                            \
-  V(Closure, RawClosure, context, Context, FINAL)                              \
-  V(Closure, RawClosure, hash, Context, VAR)                                   \
-  V(GrowableObjectArray, RawGrowableObjectArray, length, Smi, VAR)             \
-  V(GrowableObjectArray, RawGrowableObjectArray, data, Array, VAR)             \
-  V(TypedDataBase, RawTypedDataBase, length, Smi, FINAL)                       \
-  V(TypedDataView, RawTypedDataView, offset_in_bytes, Smi, FINAL)              \
-  V(TypedDataView, RawTypedDataView, data, Dynamic, FINAL)                     \
-  V(String, RawString, length, Smi, FINAL)                                     \
-  V(LinkedHashMap, RawLinkedHashMap, index, TypedDataUint32Array, VAR)         \
-  V(LinkedHashMap, RawLinkedHashMap, data, Array, VAR)                         \
-  V(LinkedHashMap, RawLinkedHashMap, hash_mask, Smi, VAR)                      \
-  V(LinkedHashMap, RawLinkedHashMap, used_data, Smi, VAR)                      \
-  V(LinkedHashMap, RawLinkedHashMap, deleted_keys, Smi, VAR)                   \
-  V(ArgumentsDescriptor, RawArray, type_args_len, Smi, FINAL)                  \
-  V(ArgumentsDescriptor, RawArray, positional_count, Smi, FINAL)               \
-  V(ArgumentsDescriptor, RawArray, count, Smi, FINAL)                          \
-  V(ArgumentsDescriptor, RawArray, size, Smi, FINAL)                           \
-  V(PointerBase, RawPointerBase, data_field, Dynamic, FINAL)                   \
-  V(Type, RawType, arguments, TypeArguments, FINAL)
+  V(Array, ArrayLayout, length, Smi, FINAL)                                    \
+  V(Context, ContextLayout, parent, Context, FINAL)                            \
+  V(Closure, ClosureLayout, instantiator_type_arguments, TypeArguments, FINAL) \
+  V(Closure, ClosureLayout, delayed_type_arguments, TypeArguments, FINAL)      \
+  V(Closure, ClosureLayout, function_type_arguments, TypeArguments, FINAL)     \
+  V(Closure, ClosureLayout, function, Function, FINAL)                         \
+  V(Closure, ClosureLayout, context, Context, FINAL)                           \
+  V(Closure, ClosureLayout, hash, Context, VAR)                                \
+  V(GrowableObjectArray, GrowableObjectArrayLayout, length, Smi, VAR)          \
+  V(GrowableObjectArray, GrowableObjectArrayLayout, data, Array, VAR)          \
+  V(TypedDataBase, TypedDataBaseLayout, length, Smi, FINAL)                    \
+  V(TypedDataView, TypedDataViewLayout, offset_in_bytes, Smi, FINAL)           \
+  V(TypedDataView, TypedDataViewLayout, data, Dynamic, FINAL)                  \
+  V(String, StringLayout, length, Smi, FINAL)                                  \
+  V(LinkedHashMap, LinkedHashMapLayout, index, TypedDataUint32Array, VAR)      \
+  V(LinkedHashMap, LinkedHashMapLayout, data, Array, VAR)                      \
+  V(LinkedHashMap, LinkedHashMapLayout, hash_mask, Smi, VAR)                   \
+  V(LinkedHashMap, LinkedHashMapLayout, used_data, Smi, VAR)                   \
+  V(LinkedHashMap, LinkedHashMapLayout, deleted_keys, Smi, VAR)                \
+  V(ArgumentsDescriptor, ArrayLayout, type_args_len, Smi, FINAL)               \
+  V(ArgumentsDescriptor, ArrayLayout, positional_count, Smi, FINAL)            \
+  V(ArgumentsDescriptor, ArrayLayout, count, Smi, FINAL)                       \
+  V(ArgumentsDescriptor, ArrayLayout, size, Smi, FINAL)                        \
+  V(PointerBase, PointerBaseLayout, data_field, Dynamic, FINAL)                \
+  V(Type, TypeLayout, arguments, TypeArguments, FINAL)
 
 // Slot is an abstraction that describes an readable (and possibly writeable)
 // location within an object.

@@ -264,7 +264,7 @@ class IsolateObjectStore {
   ~IsolateObjectStore();
 
 #define DECLARE_GETTER(Type, name)                                             \
-  Raw##Type* name() const { return name##_; }                                  \
+  Type##Ptr name() const { return name##_; }                                   \
   static intptr_t name##_offset() {                                            \
     return OFFSET_OF(IsolateObjectStore, name##_);                             \
   }
@@ -282,7 +282,7 @@ class IsolateObjectStore {
   // Called to initialize objects required by the vm but which invoke
   // dart code.  If an error occurs the error object is returned otherwise
   // a null object is returned.
-  RawError* PreallocateObjects();
+  ErrorPtr PreallocateObjects();
 
   void Init();
   void PostLoad();
@@ -303,16 +303,16 @@ class IsolateObjectStore {
 
  private:
   // Finds a core library private method in Object.
-  RawFunction* PrivateObjectLookup(const String& name);
+  FunctionPtr PrivateObjectLookup(const String& name);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&preallocated_unhandled_exception_);
+  ObjectPtr* from() {
+    return reinterpret_cast<ObjectPtr*>(&preallocated_unhandled_exception_);
   }
-#define DECLARE_OBJECT_STORE_FIELD(type, name) Raw##type* name##_;
+#define DECLARE_OBJECT_STORE_FIELD(type, name) type##Ptr name##_;
   ISOLATE_OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
                                   DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
-  RawObject** to() { return reinterpret_cast<RawObject**>(&error_listeners_); }
+  ObjectPtr* to() { return reinterpret_cast<ObjectPtr*>(&error_listeners_); }
 
   ObjectStore* object_store_;
 
@@ -337,7 +337,7 @@ class ObjectStore {
   ~ObjectStore();
 
 #define DECLARE_GETTER(Type, name)                                             \
-  Raw##Type* name() const { return name##_; }                                  \
+  Type##Ptr name() const { return name##_; }                                   \
   static intptr_t name##_offset() { return OFFSET_OF(ObjectStore, name##_); }
 #define DECLARE_GETTER_AND_SETTER(Type, name)                                  \
   DECLARE_GETTER(Type, name)                                                   \
@@ -346,7 +346,7 @@ class ObjectStore {
 #undef DECLARE_GETTER
 #undef DECLARE_GETTER_AND_SETTER
 
-  RawLibrary* bootstrap_library(BootstrapLibraryId index) {
+  LibraryPtr bootstrap_library(BootstrapLibraryId index) {
     switch (index) {
 #define MAKE_CASE(CamelName, name)                                             \
   case k##CamelName:                                                           \
@@ -387,7 +387,7 @@ class ObjectStore {
   // Called to initialize objects required by the vm but which invoke
   // dart code.  If an error occurs the error object is returned otherwise
   // a null object is returned.
-  RawError* PreallocateObjects();
+  ErrorPtr PreallocateObjects();
 
   void InitKnownObjects();
 
@@ -399,23 +399,23 @@ class ObjectStore {
 
  private:
   // Finds a core library private method in Object.
-  RawFunction* PrivateObjectLookup(const String& name);
+  FunctionPtr PrivateObjectLookup(const String& name);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&object_class_); }
-#define DECLARE_OBJECT_STORE_FIELD(type, name) Raw##type* name##_;
+  ObjectPtr* from() { return reinterpret_cast<ObjectPtr*>(&object_class_); }
+#define DECLARE_OBJECT_STORE_FIELD(type, name) type##Ptr name##_;
   OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
                           DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ffi_as_function_internal_);
+  ObjectPtr* to() {
+    return reinterpret_cast<ObjectPtr*>(&ffi_as_function_internal_);
   }
-  RawObject** to_snapshot(Snapshot::Kind kind) {
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
-        return reinterpret_cast<RawObject**>(&global_object_pool_);
+        return reinterpret_cast<ObjectPtr*>(&global_object_pool_);
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&megamorphic_call_miss_function_);
+        return reinterpret_cast<ObjectPtr*>(&megamorphic_call_miss_function_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:

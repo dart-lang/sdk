@@ -109,9 +109,9 @@ static void CheckOffsets() {
 
 #define CHECK_FIELD(Class, Name) CHECK_OFFSET(Class::Name(), Class##_##Name)
 #define CHECK_ARRAY(Class, Name)                                               \
-  CHECK_OFFSET(Class::ArrayLayout::elements_start_offset(),                    \
+  CHECK_OFFSET(Class::ArrayTraits::elements_start_offset(),                    \
                Class##_elements_start_offset)                                  \
-  CHECK_OFFSET(Class::ArrayLayout::kElementSize, Class##_element_size)
+  CHECK_OFFSET(Class::ArrayTraits::kElementSize, Class##_element_size)
 #define CHECK_ARRAY_STRUCTFIELD(Class, Name, ElementOffsetName, FieldOffset)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -680,12 +680,12 @@ static bool CloneIntoChildIsolateAOT(Thread* T,
 }
 #endif
 
-RawError* Dart::InitIsolateFromSnapshot(Thread* T,
-                                        Isolate* I,
-                                        const uint8_t* snapshot_data,
-                                        const uint8_t* snapshot_instructions,
-                                        const uint8_t* kernel_buffer,
-                                        intptr_t kernel_buffer_size) {
+ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
+                                       Isolate* I,
+                                       const uint8_t* snapshot_data,
+                                       const uint8_t* snapshot_instructions,
+                                       const uint8_t* kernel_buffer,
+                                       intptr_t kernel_buffer_size) {
   Error& error = Error::Handle(T->zone());
   error = Object::Init(I, kernel_buffer, kernel_buffer_size);
   if (!error.IsNull()) {
@@ -790,12 +790,12 @@ static void PrintLLVMConstantPool(Thread* T, Isolate* I) {
 }
 #endif
 
-RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
-                                  const uint8_t* snapshot_instructions,
-                                  const uint8_t* kernel_buffer,
-                                  intptr_t kernel_buffer_size,
-                                  IsolateGroup* source_isolate_group,
-                                  void* isolate_data) {
+ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
+                                 const uint8_t* snapshot_instructions,
+                                 const uint8_t* kernel_buffer,
+                                 intptr_t kernel_buffer_size,
+                                 IsolateGroup* source_isolate_group,
+                                 void* isolate_data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();

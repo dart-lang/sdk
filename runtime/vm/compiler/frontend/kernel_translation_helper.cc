@@ -86,7 +86,7 @@ void TranslationHelper::InitFromKernelProgramInfo(
   SetKernelProgramInfo(info);
 }
 
-RawGrowableObjectArray* TranslationHelper::EnsurePotentialPragmaFunctions() {
+GrowableObjectArrayPtr TranslationHelper::EnsurePotentialPragmaFunctions() {
   auto& funcs =
       GrowableObjectArray::Handle(Z, info_.potential_pragma_functions());
   if (funcs.IsNull()) {
@@ -104,7 +104,7 @@ void TranslationHelper::AddPotentialExtensionLibrary(const Library& library) {
   potential_extension_libraries_->Add(library);
 }
 
-RawGrowableObjectArray* TranslationHelper::GetPotentialExtensionLibraries() {
+GrowableObjectArrayPtr TranslationHelper::GetPotentialExtensionLibraries() {
   if (potential_extension_libraries_ != nullptr) {
     GrowableObjectArray* result = potential_extension_libraries_;
     potential_extension_libraries_ = nullptr;
@@ -337,11 +337,11 @@ NameIndex TranslationHelper::EnclosingName(NameIndex name) {
   return enclosing;
 }
 
-RawInstance* TranslationHelper::Canonicalize(const Instance& instance) {
+InstancePtr TranslationHelper::Canonicalize(const Instance& instance) {
   if (instance.IsNull()) return instance.raw();
 
   const char* error_str = NULL;
-  RawInstance* result = instance.CheckAndCanonicalize(thread(), &error_str);
+  InstancePtr result = instance.CheckAndCanonicalize(thread(), &error_str);
   if (result == Object::null()) {
     ReportError("Invalid const object %s", error_str);
   }
@@ -533,7 +533,7 @@ static void CheckStaticLookup(const Object& target) {
   }
 }
 
-RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
+LibraryPtr TranslationHelper::LookupLibraryByKernelLibrary(
     NameIndex kernel_library) {
   // We only use the string and don't rely on having any particular parent.
   // This ASSERT is just a sanity check.
@@ -541,7 +541,7 @@ RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
          IsAdministrative(CanonicalNameParent(kernel_library)));
   {
     name_index_handle_ = Smi::New(kernel_library);
-    RawLibrary* raw_lib = info_.LookupLibrary(thread_, name_index_handle_);
+    LibraryPtr raw_lib = info_.LookupLibrary(thread_, name_index_handle_);
     NoSafepointScope no_safepoint_scope(thread_);
     if (raw_lib != Library::null()) {
       return raw_lib;
@@ -558,11 +558,11 @@ RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
   return info_.InsertLibrary(thread_, name_index_handle_, library);
 }
 
-RawClass* TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
+ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
   ASSERT(IsClass(kernel_class));
   {
     name_index_handle_ = Smi::New(kernel_class);
-    RawClass* raw_class = info_.LookupClass(thread_, name_index_handle_);
+    ClassPtr raw_class = info_.LookupClass(thread_, name_index_handle_);
     NoSafepointScope no_safepoint_scope(thread_);
     if (raw_class != Class::null()) {
       return raw_class;
@@ -585,7 +585,7 @@ RawClass* TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
   return info_.InsertClass(thread_, name_index_handle_, klass);
 }
 
-RawField* TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
+FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
   ASSERT(IsField(kernel_field));
   NameIndex enclosing = EnclosingName(kernel_field);
 
@@ -606,7 +606,7 @@ RawField* TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
   return field.raw();
 }
 
-RawFunction* TranslationHelper::LookupStaticMethodByKernelProcedure(
+FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
     NameIndex procedure) {
   const String& procedure_name = DartProcedureName(procedure);
 
@@ -633,7 +633,7 @@ RawFunction* TranslationHelper::LookupStaticMethodByKernelProcedure(
   }
 }
 
-RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
+FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
     NameIndex constructor) {
   ASSERT(IsConstructor(constructor));
   Class& klass =
@@ -642,7 +642,7 @@ RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
   return LookupConstructorByKernelConstructor(klass, constructor);
 }
 
-RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
+FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
     const Class& owner,
     NameIndex constructor) {
   ASSERT(IsConstructor(constructor));
@@ -652,7 +652,7 @@ RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
   return function.raw();
 }
 
-RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
+FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
     const Class& owner,
     StringIndex constructor_name) {
   GrowableHandlePtrArray<const String> pieces(Z, 3);
@@ -663,14 +663,13 @@ RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
 
   String& new_name =
       String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
-  RawFunction* function = owner.LookupConstructorAllowPrivate(new_name);
+  FunctionPtr function = owner.LookupConstructorAllowPrivate(new_name);
   ASSERT(function != Object::null());
   return function;
 }
 
-RawFunction* TranslationHelper::LookupMethodByMember(
-    NameIndex target,
-    const String& method_name) {
+FunctionPtr TranslationHelper::LookupMethodByMember(NameIndex target,
+                                                    const String& method_name) {
   NameIndex kernel_class = EnclosingName(target);
   Class& klass = Class::Handle(Z, LookupClassByKernelClass(kernel_class));
 
@@ -687,12 +686,12 @@ RawFunction* TranslationHelper::LookupMethodByMember(
   return function.raw();
 }
 
-RawFunction* TranslationHelper::LookupDynamicFunction(const Class& klass,
-                                                      const String& name) {
+FunctionPtr TranslationHelper::LookupDynamicFunction(const Class& klass,
+                                                     const String& name) {
   // Search the superclass chain for the selector.
   Class& iterate_klass = Class::Handle(Z, klass.raw());
   while (!iterate_klass.IsNull()) {
-    RawFunction* function =
+    FunctionPtr function =
         iterate_klass.LookupDynamicFunctionAllowPrivate(name);
     if (function != Object::null()) {
       return function;
@@ -2726,7 +2725,7 @@ const String& KernelReaderHelper::GetSourceFor(intptr_t index) {
   }
 }
 
-RawTypedData* KernelReaderHelper::GetLineStartsFor(intptr_t index) {
+TypedDataPtr KernelReaderHelper::GetLineStartsFor(intptr_t index) {
   // Line starts are delta encoded. So get the max delta first so that we
   // can store them as tighly as possible.
   AlternativeReadingScope alt(&reader_);

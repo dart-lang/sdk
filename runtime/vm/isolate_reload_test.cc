@@ -4002,7 +4002,7 @@ class FindNoInstancesOfClass : public FindObjectVisitor {
   }
   virtual ~FindNoInstancesOfClass() {}
 
-  virtual bool FindObject(RawObject* obj) const {
+  virtual bool FindObject(ObjectPtr obj) const {
     return obj->GetClassId() == cid_;
   }
 

@@ -88,7 +88,7 @@ const char* TypeTestingStubNamer::AssemblerSafeName(char* cname) {
   return cname;
 }
 
-RawCode* TypeTestingStubGenerator::DefaultCodeForType(
+CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
   if (type.IsTypeRef()) {
@@ -139,7 +139,7 @@ void TypeTestingStubGenerator::SpecializeStubFor(Thread* thread,
 TypeTestingStubGenerator::TypeTestingStubGenerator()
     : object_store_(Isolate::Current()->object_store()) {}
 
-RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
+CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
     const AbstractType& type) {
 #if !defined(TARGET_ARCH_IA32)
   ASSERT(StubCode::HasBeenInitialized());
@@ -178,7 +178,7 @@ RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
 #if !defined(TARGET_ARCH_IA32)
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
+CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   auto thread = Thread::Current();
   auto zone = thread->zone();
   HierarchyInfo* hi = thread->hierarchy_info();
@@ -633,7 +633,7 @@ const TypeArguments& TypeArgumentInstantiator::InstantiateTypeArguments(
   return *instantiated_type_arguments;
 }
 
-RawAbstractType* TypeArgumentInstantiator::InstantiateType(
+AbstractTypePtr TypeArgumentInstantiator::InstantiateType(
     const AbstractType& type) {
   if (type.IsTypeParameter()) {
     const TypeParameter& parameter = TypeParameter::Cast(type);
@@ -941,7 +941,7 @@ void DeoptimizeTypeTestingStubs() {
     CollectTypes(GrowableArray<AbstractType*>* types, Zone* zone)
         : types_(types), object_(Object::Handle(zone)), zone_(zone) {}
 
-    void VisitObject(RawObject* object) {
+    void VisitObject(ObjectPtr object) {
       if (object->IsPseudoObject()) {
         // Cannot even be wrapped in handles.
         return;

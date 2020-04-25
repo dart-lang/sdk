@@ -1741,7 +1741,7 @@ void Assembler::StoreIntoObject(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
-  // Compare RawObject::StorePointer.
+  // Compare ObjectLayout::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
@@ -1749,7 +1749,7 @@ void Assembler::StoreIntoObject(Register object,
   if (!lr_reserved) Push(LR);
   ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
   ldrb(LR, FieldAddress(value, target::Object::tags_offset()));
-  and_(TMP, LR, Operand(TMP, LSR, target::RawObject::kBarrierOverlapShift));
+  and_(TMP, LR, Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
   ldr(LR, Address(THR, target::Thread::write_barrier_mask_offset()));
   tst(TMP, Operand(LR));
   if (value != kWriteBarrierValueReg) {
@@ -1805,7 +1805,7 @@ void Assembler::StoreIntoArray(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
-  // Compare RawObject::StorePointer.
+  // Compare ObjectLayout::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
@@ -1813,7 +1813,7 @@ void Assembler::StoreIntoArray(Register object,
   if (!lr_reserved) Push(LR);
   ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
   ldrb(LR, FieldAddress(value, target::Object::tags_offset()));
-  and_(TMP, LR, Operand(TMP, LSR, target::RawObject::kBarrierOverlapShift));
+  and_(TMP, LR, Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
   ldr(LR, Address(THR, target::Thread::write_barrier_mask_offset()));
   tst(TMP, Operand(LR));
 
@@ -1853,7 +1853,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
   ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
-  tst(TMP, Operand(1 << target::RawObject::kOldAndNotRememberedBit));
+  tst(TMP, Operand(1 << target::ObjectLayout::kOldAndNotRememberedBit));
   b(&done, ZERO);
 
   Stop("Store buffer update is required");
@@ -1974,30 +1974,30 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
 }
 
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
-  ASSERT(target::RawObject::kClassIdTagPos == 16);
-  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
   ASSERT(sizeof(classid_t) == sizeof(uint16_t));
-  Lsr(result, tags, Operand(target::RawObject::kClassIdTagPos), AL);
+  Lsr(result, tags, Operand(target::ObjectLayout::kClassIdTagPos), AL);
 }
 
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
-  ASSERT(target::RawObject::kSizeTagPos == 8);
-  ASSERT(target::RawObject::kSizeTagSize == 8);
+  ASSERT(target::ObjectLayout::kSizeTagPos == 8);
+  ASSERT(target::ObjectLayout::kSizeTagSize == 8);
   Lsr(result, tags,
-      Operand(target::RawObject::kSizeTagPos -
+      Operand(target::ObjectLayout::kSizeTagPos -
               target::ObjectAlignment::kObjectAlignmentLog2),
       AL);
   AndImmediate(result, result,
-               (Utils::NBitMask(target::RawObject::kSizeTagSize)
+               (Utils::NBitMask(target::ObjectLayout::kSizeTagSize)
                 << target::ObjectAlignment::kObjectAlignmentLog2));
 }
 
 void Assembler::LoadClassId(Register result, Register object, Condition cond) {
-  ASSERT(target::RawObject::kClassIdTagPos == 16);
-  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::RawObject::kClassIdTagPos / kBitsPerByte;
+      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
   ldrh(result, FieldAddress(object, class_id_offset), cond);
 }
 

@@ -19,7 +19,7 @@ ConstantReader::ConstantReader(KernelReaderHelper* helper,
       script_(helper->script()),
       result_(Instance::Handle(zone_)) {}
 
-RawInstance* ConstantReader::ReadConstantExpression() {
+InstancePtr ConstantReader::ReadConstantExpression() {
   Tag tag = helper_->ReadTag();  // read tag.
   switch (tag) {
     case kConstantExpression:
@@ -44,7 +44,7 @@ RawInstance* ConstantReader::ReadConstantExpression() {
   return result_.raw();
 }
 
-RawObject* ConstantReader::ReadAnnotations() {
+ObjectPtr ConstantReader::ReadAnnotations() {
   intptr_t list_length = helper_->ReadListLength();  // read list length.
   const Array& metadata_values =
       Array::Handle(Z, Array::New(list_length, H.allocation_space()));
@@ -57,7 +57,7 @@ RawObject* ConstantReader::ReadAnnotations() {
   return metadata_values.raw();
 }
 
-RawInstance* ConstantReader::ReadConstant(intptr_t constant_offset) {
+InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
   ASSERT(!H.constants().IsNull());
   ASSERT(!H.constants_table().IsNull());  // raw bytes
 
@@ -100,7 +100,7 @@ bool ConstantReader::IsInstanceConstant(intptr_t constant_offset,
   return false;
 }
 
-RawInstance* ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
+InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
   // Get reader directly into raw bytes of constant table.
   bool null_safety = H.thread()->isolate()->null_safety();
   KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);

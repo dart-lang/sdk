@@ -16,7 +16,6 @@ namespace dart {
 // Forward declarations.
 class BootstrapNatives;
 class Object;
-class RawObject;
 class Simulator;
 class Thread;
 
@@ -83,11 +82,11 @@ class NativeArguments {
   // Includes type arguments vector.
   int ArgCount() const { return ArgcBits::decode(argc_tag_); }
 
-  RawObject* ArgAt(int index) const {
+  ObjectPtr ArgAt(int index) const {
     ASSERT((index >= 0) && (index < ArgCount()));
-    RawObject** arg_ptr =
+    ObjectPtr* arg_ptr =
         &(argv_[ReverseArgOrderBit::decode(argc_tag_) ? index : -index]);
-    // Tell MemorySanitizer the RawObject* was initialized (by generated code).
+    // Tell MemorySanitizer the ObjectPtr was initialized (by generated code).
     MSAN_UNPOISON(arg_ptr, kWordSize);
     return *arg_ptr;
   }
@@ -95,7 +94,7 @@ class NativeArguments {
   void SetArgAt(int index, const Object& value) const {
     ASSERT(thread_->execution_state() == Thread::kThreadInVM);
     ASSERT((index >= 0) && (index < ArgCount()));
-    RawObject** arg_ptr =
+    ObjectPtr* arg_ptr =
         &(argv_[ReverseArgOrderBit::decode(argc_tag_) ? index : -index]);
     *arg_ptr = value.raw();
   }
@@ -106,7 +105,7 @@ class NativeArguments {
     return ArgCount() - NumHiddenArgs(function_bits);
   }
 
-  RawObject* NativeArg0() const {
+  ObjectPtr NativeArg0() const {
     int function_bits = FunctionBits::decode(argc_tag_);
     if ((function_bits & (kClosureFunctionBit | kInstanceFunctionBit)) ==
         (kClosureFunctionBit | kInstanceFunctionBit)) {
@@ -121,7 +120,7 @@ class NativeArguments {
     return ArgAt(NumHiddenArgs(function_bits));
   }
 
-  RawObject* NativeArgAt(int index) const {
+  ObjectPtr NativeArgAt(int index) const {
     ASSERT((index >= 0) && (index < NativeArgCount()));
     if (index == 0) {
       return NativeArg0();
@@ -131,7 +130,7 @@ class NativeArguments {
     return ArgAt(actual_index);
   }
 
-  RawTypeArguments* NativeTypeArgs() const {
+  TypeArgumentsPtr NativeTypeArgs() const {
     ASSERT(ToGenericFunction());
     return TypeArguments::RawCast(ArgAt(0));
   }
@@ -148,7 +147,7 @@ class NativeArguments {
     return 0;
   }
 
-  RawAbstractType* NativeTypeArgAt(int index) const {
+  AbstractTypePtr NativeTypeArgAt(int index) const {
     ASSERT((index >= 0) && (index < NativeTypeArgCount()));
     TypeArguments& type_args = TypeArguments::Handle(NativeTypeArgs());
     if (type_args.IsNull()) {
@@ -163,7 +162,7 @@ class NativeArguments {
     *retval_ = value.raw();
   }
 
-  RawObject* ReturnValue() const {
+  ObjectPtr ReturnValue() const {
     // Tell MemorySanitizer the retval_ was initialized (by generated code).
     MSAN_UNPOISON(retval_, kWordSize);
     return *retval_;
@@ -242,8 +241,8 @@ class NativeArguments {
   // on the stack.
   NativeArguments(Thread* thread,
                   int argc_tag,
-                  RawObject** argv,
-                  RawObject** retval)
+                  ObjectPtr* argv,
+                  ObjectPtr* retval)
       : thread_(thread),
         argc_tag_(ReverseArgOrderBit::update(true, argc_tag)),
         argv_(argv),
@@ -253,7 +252,7 @@ class NativeArguments {
   // exceedingly careful when we use it.  If there are any other side
   // effects in the statement that may cause GC, it could lead to
   // bugs.
-  void SetReturnUnsafe(RawObject* value) const {
+  void SetReturnUnsafe(ObjectPtr value) const {
     ASSERT(thread_->execution_state() == Thread::kThreadInVM);
     *retval_ = value;
   }
@@ -290,8 +289,8 @@ class NativeArguments {
 
   Thread* thread_;      // Current thread pointer.
   intptr_t argc_tag_;   // Encodes argument count and invoked native call type.
-  RawObject** argv_;    // Pointer to an array of arguments to runtime call.
-  RawObject** retval_;  // Pointer to the return value area.
+  ObjectPtr* argv_;     // Pointer to an array of arguments to runtime call.
+  ObjectPtr* retval_;   // Pointer to the return value area.
 };
 
 }  // namespace dart

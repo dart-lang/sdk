@@ -1025,7 +1025,7 @@ void NativeEntryInstr::PrintTo(BufferFormatter* f) const {
 
 void ReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
   Instruction::PrintOperandsTo(f);
-  if (yield_index() != RawPcDescriptors::kInvalidYieldIndex) {
+  if (yield_index() != PcDescriptorsLayout::kInvalidYieldIndex) {
     f->Print(", yield_index = %" Pd "", yield_index());
   }
 }

@@ -14,6 +14,7 @@
 #include "vm/constants.h"
 #include "vm/growable_array.h"
 #include "vm/stub_code_list.h"
+#include "vm/tagged_pointer.h"
 
 namespace dart {
 
@@ -54,7 +55,7 @@ class StubCodeCompiler : public AllStatic {
       const Object& context_allocation_stub);
 #endif
 
-  static RawArray* BuildStaticCallsTable(
+  static ArrayPtr BuildStaticCallsTable(
       Zone* zone,
       compiler::UnresolvedPcRelativeCalls* unresolved_calls);
 

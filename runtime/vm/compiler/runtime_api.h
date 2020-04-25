@@ -40,7 +40,7 @@ class RuntimeEntry;
 class Zone;
 
 #define DO(clazz)                                                              \
-  class Raw##clazz;                                                            \
+  class clazz##Layout;                                                         \
   class clazz;
 CLASS_LIST_FOR_HANDLES(DO)
 #undef DO
@@ -372,7 +372,7 @@ bool WillAllocateNewOrRememberedArray(intptr_t length);
 // Currently we use the same names for classes, constants and getters to make
 // migration easier.
 
-class RawObject : public AllStatic {
+class ObjectLayout : public AllStatic {
  public:
   static const word kCardRememberedBit;
   static const word kOldAndNotRememberedBit;
@@ -388,7 +388,7 @@ class RawObject : public AllStatic {
   static bool IsTypedDataClassId(intptr_t cid);
 };
 
-class RawAbstractType : public AllStatic {
+class AbstractTypeLayout : public AllStatic {
  public:
   static const word kTypeStateFinalizedInstantiated;
 };
@@ -418,7 +418,7 @@ class Class : public AllStatic {
 
   static word super_type_offset();
 
-  // The offset of the RawObject::num_type_arguments_ field in bytes.
+  // The offset of the ObjectLayout::num_type_arguments_ field in bytes.
   static word num_type_arguments_offset();
 
   // The value used if no type arguments vector is present.

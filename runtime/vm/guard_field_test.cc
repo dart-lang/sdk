@@ -10,10 +10,10 @@
 
 namespace dart {
 
-RawField* LookupField(Dart_Handle library,
-                      const char* class_name,
-                      const char* field_name) {
-  RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(library));
+FieldPtr LookupField(Dart_Handle library,
+                     const char* class_name,
+                     const char* field_name) {
+  LibraryPtr raw_library = Library::RawCast(Api::UnwrapHandle(library));
   Library& lib = Library::ZoneHandle(raw_library);
   const String& classname =
       String::Handle(Symbols::New(Thread::Current(), class_name));

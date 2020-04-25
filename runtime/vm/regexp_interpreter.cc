@@ -36,11 +36,15 @@ bool BackRefMatchesNoCase<uint16_t>(Canonicalize* interp_canonicalize,
                                     bool unicode) {
   Bool& ret = Bool::Handle();
   if (unicode) {
-    ret = CaseInsensitiveCompareUTF16(subject.raw(), Smi::New(from),
-                                      Smi::New(current), Smi::New(len));
+    ret = static_cast<BoolPtr>(CaseInsensitiveCompareUTF16(
+        static_cast<uword>(subject.raw()), static_cast<uword>(Smi::New(from)),
+        static_cast<uword>(Smi::New(current)),
+        static_cast<uword>(Smi::New(len))));
   } else {
-    ret = CaseInsensitiveCompareUCS2(subject.raw(), Smi::New(from),
-                                     Smi::New(current), Smi::New(len));
+    ret = static_cast<BoolPtr>(CaseInsensitiveCompareUCS2(
+        static_cast<uword>(subject.raw()), static_cast<uword>(Smi::New(from)),
+        static_cast<uword>(Smi::New(current)),
+        static_cast<uword>(Smi::New(len))));
   }
   return ret.value();
 }

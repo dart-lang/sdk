@@ -8,15 +8,15 @@
 #include "platform/assert.h"
 #include "vm/globals.h"
 #include "vm/os_thread.h"
+#include "vm/tagged_pointer.h"
 
 namespace dart {
 
 // Forward declarations.
 class Isolate;
-class RawObject;
 class ObjectPointerVisitor;
 
-// A set of RawObject*. Must be emptied before destruction (using Pop/Reset).
+// A set of ObjectPtr. Must be emptied before destruction (using Pop/Reset).
 template <int Size>
 class PointerBlock {
  public:
@@ -33,18 +33,18 @@ class PointerBlock {
   bool IsFull() const { return Count() == kSize; }
   bool IsEmpty() const { return Count() == 0; }
 
-  void Push(RawObject* obj) {
+  void Push(ObjectPtr obj) {
     ASSERT(!IsFull());
     pointers_[top_++] = obj;
   }
 
-  RawObject* Pop() {
+  ObjectPtr Pop() {
     ASSERT(!IsEmpty());
     return pointers_[--top_];
   }
 
 #if defined(TESTING)
-  bool Contains(RawObject* obj) const {
+  bool Contains(ObjectPtr obj) const {
     // Generated code appends to store buffers; tell MemorySanitizer.
     MSAN_UNPOISON(this, sizeof(*this));
     for (intptr_t i = 0; i < Count(); i++) {
@@ -71,7 +71,7 @@ class PointerBlock {
 
   PointerBlock<Size>* next_;
   int32_t top_;
-  RawObject* pointers_[kSize];
+  ObjectPtr pointers_[kSize];
 
   template <int>
   friend class BlockStack;
@@ -159,7 +159,7 @@ class BlockWorkList : public ValueObject {
   }
 
   // Returns nullptr if no more work was found.
-  RawObject* Pop() {
+  ObjectPtr Pop() {
     ASSERT(work_ != nullptr);
     if (work_->IsEmpty()) {
       // TODO(koda): Track over/underflow events and use in heuristics to
@@ -176,7 +176,7 @@ class BlockWorkList : public ValueObject {
     return work_->Pop();
   }
 
-  void Push(RawObject* raw_obj) {
+  void Push(ObjectPtr raw_obj) {
     if (work_->IsFull()) {
       // TODO(koda): Track over/underflow events and use in heuristics to
       // distribute work and prevent degenerate flip-flopping.

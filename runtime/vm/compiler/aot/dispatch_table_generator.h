@@ -93,7 +93,7 @@ class DispatchTableGenerator {
 
   // Build up an array of Code objects, used to serialize the information
   // deserialized as a DispatchTable at runtime.
-  RawArray* BuildCodeArray();
+  ArrayPtr BuildCodeArray();
 
  private:
   void ReadTableSelectorInfo();

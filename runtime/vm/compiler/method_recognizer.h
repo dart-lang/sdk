@@ -16,8 +16,6 @@ namespace dart {
 class Function;
 class Library;
 class Object;
-class RawFunction;
-class RawGrowableObjectArray;
 class String;
 class Zone;
 

@@ -76,7 +76,7 @@ class InterpreterSetjmpBuffer {
   jmp_buf buffer_;
 
  private:
-  RawObject** fp_;
+  ObjectPtr* fp_;
   Interpreter* interpreter_;
   InterpreterSetjmpBuffer* link_;
 
@@ -86,12 +86,13 @@ class InterpreterSetjmpBuffer {
   DISALLOW_COPY_AND_ASSIGN(InterpreterSetjmpBuffer);
 };
 
-DART_FORCE_INLINE static RawObject** SavedCallerFP(RawObject** FP) {
-  return reinterpret_cast<RawObject**>(FP[kKBCSavedCallerFpSlotFromFp]);
+DART_FORCE_INLINE static ObjectPtr* SavedCallerFP(ObjectPtr* FP) {
+  return reinterpret_cast<ObjectPtr*>(
+      static_cast<uword>(FP[kKBCSavedCallerFpSlotFromFp]));
 }
 
-DART_FORCE_INLINE static RawObject** FrameArguments(RawObject** FP,
-                                                    intptr_t argc) {
+DART_FORCE_INLINE static ObjectPtr* FrameArguments(ObjectPtr* FP,
+                                                   intptr_t argc) {
   return FP - (kKBCDartFrameFixedSize + argc);
 }
 
@@ -100,34 +101,34 @@ DART_FORCE_INLINE static RawObject** FrameArguments(RawObject** FP,
 class InterpreterHelpers {
  public:
 #define DEFINE_CASTS(Type)                                                     \
-  DART_FORCE_INLINE static Raw##Type* CastTo##Type(RawObject* obj) {           \
+  DART_FORCE_INLINE static Type##Ptr CastTo##Type(ObjectPtr obj) {             \
     ASSERT((k##Type##Cid == kSmiCid)                                           \
                ? !obj->IsHeapObject()                                          \
                : (k##Type##Cid == kIntegerCid)                                 \
                      ? (!obj->IsHeapObject() || obj->IsMint())                 \
                      : obj->Is##Type());                                       \
-    return reinterpret_cast<Raw##Type*>(obj);                                  \
+    return static_cast<Type##Ptr>(obj);                                        \
   }
   CLASS_LIST(DEFINE_CASTS)
 #undef DEFINE_CASTS
 
-  DART_FORCE_INLINE static RawSmi* GetClassIdAsSmi(RawObject* obj) {
+  DART_FORCE_INLINE static SmiPtr GetClassIdAsSmi(ObjectPtr obj) {
     return Smi::New(obj->IsHeapObject() ? obj->GetClassId()
                                         : static_cast<intptr_t>(kSmiCid));
   }
 
-  DART_FORCE_INLINE static intptr_t GetClassId(RawObject* obj) {
+  DART_FORCE_INLINE static intptr_t GetClassId(ObjectPtr obj) {
     return obj->IsHeapObject() ? obj->GetClassId()
                                : static_cast<intptr_t>(kSmiCid);
   }
 
-  DART_FORCE_INLINE static RawTypeArguments* GetTypeArguments(
+  DART_FORCE_INLINE static TypeArgumentsPtr GetTypeArguments(
       Thread* thread,
-      RawInstance* instance) {
-    RawClass* instance_class =
+      InstancePtr instance) {
+    ClassPtr instance_class =
         thread->isolate()->class_table()->At(GetClassId(instance));
     return instance_class->ptr()->num_type_arguments_ > 0
-               ? reinterpret_cast<RawTypeArguments**>(instance->ptr())
+               ? reinterpret_cast<TypeArgumentsPtr*>(instance->ptr())
                      [instance_class->ptr()
                           ->host_type_arguments_field_offset_in_words_]
                : TypeArguments::null();
@@ -136,57 +137,56 @@ class InterpreterHelpers {
   // The usage counter is actually a 'hotness' counter.
   // For an instance call, both the usage counters of the caller and of the
   // calle will get incremented, as well as the ICdata counter at the call site.
-  DART_FORCE_INLINE static void IncrementUsageCounter(RawFunction* f) {
+  DART_FORCE_INLINE static void IncrementUsageCounter(FunctionPtr f) {
     f->ptr()->usage_counter_++;
   }
 
-  DART_FORCE_INLINE static void IncrementICUsageCount(RawObject** entries,
+  DART_FORCE_INLINE static void IncrementICUsageCount(ObjectPtr* entries,
                                                       intptr_t offset,
                                                       intptr_t args_tested) {
     const intptr_t count_offset = ICData::CountIndexFor(args_tested);
     const intptr_t raw_smi_old =
-        reinterpret_cast<intptr_t>(entries[offset + count_offset]);
+        static_cast<intptr_t>(entries[offset + count_offset]);
     const intptr_t raw_smi_new = raw_smi_old + Smi::RawValue(1);
     *reinterpret_cast<intptr_t*>(&entries[offset + count_offset]) = raw_smi_new;
   }
 
-  DART_FORCE_INLINE static bool CheckIndex(RawSmi* index, RawSmi* length) {
-    return !index->IsHeapObject() && (reinterpret_cast<intptr_t>(index) >= 0) &&
-           (reinterpret_cast<intptr_t>(index) <
-            reinterpret_cast<intptr_t>(length));
+  DART_FORCE_INLINE static bool CheckIndex(SmiPtr index, SmiPtr length) {
+    return !index->IsHeapObject() && (static_cast<intptr_t>(index) >= 0) &&
+           (static_cast<intptr_t>(index) < static_cast<intptr_t>(length));
   }
 
-  DART_FORCE_INLINE static intptr_t ArgDescTypeArgsLen(RawArray* argdesc) {
-    return Smi::Value(*reinterpret_cast<RawSmi**>(
+  DART_FORCE_INLINE static intptr_t ArgDescTypeArgsLen(ArrayPtr argdesc) {
+    return Smi::Value(*reinterpret_cast<SmiPtr*>(
         reinterpret_cast<uword>(argdesc->ptr()) +
         Array::element_offset(ArgumentsDescriptor::kTypeArgsLenIndex)));
   }
 
-  DART_FORCE_INLINE static intptr_t ArgDescArgCount(RawArray* argdesc) {
-    return Smi::Value(*reinterpret_cast<RawSmi**>(
+  DART_FORCE_INLINE static intptr_t ArgDescArgCount(ArrayPtr argdesc) {
+    return Smi::Value(*reinterpret_cast<SmiPtr*>(
         reinterpret_cast<uword>(argdesc->ptr()) +
         Array::element_offset(ArgumentsDescriptor::kCountIndex)));
   }
 
-  DART_FORCE_INLINE static intptr_t ArgDescArgSize(RawArray* argdesc) {
-    return Smi::Value(*reinterpret_cast<RawSmi**>(
+  DART_FORCE_INLINE static intptr_t ArgDescArgSize(ArrayPtr argdesc) {
+    return Smi::Value(*reinterpret_cast<SmiPtr*>(
         reinterpret_cast<uword>(argdesc->ptr()) +
         Array::element_offset(ArgumentsDescriptor::kSizeIndex)));
   }
 
-  DART_FORCE_INLINE static intptr_t ArgDescPosCount(RawArray* argdesc) {
-    return Smi::Value(*reinterpret_cast<RawSmi**>(
+  DART_FORCE_INLINE static intptr_t ArgDescPosCount(ArrayPtr argdesc) {
+    return Smi::Value(*reinterpret_cast<SmiPtr*>(
         reinterpret_cast<uword>(argdesc->ptr()) +
         Array::element_offset(ArgumentsDescriptor::kPositionalCountIndex)));
   }
 
-  DART_FORCE_INLINE static RawBytecode* FrameBytecode(RawObject** FP) {
+  DART_FORCE_INLINE static BytecodePtr FrameBytecode(ObjectPtr* FP) {
     ASSERT(GetClassId(FP[kKBCPcMarkerSlotFromFp]) == kBytecodeCid);
-    return static_cast<RawBytecode*>(FP[kKBCPcMarkerSlotFromFp]);
+    return static_cast<BytecodePtr>(FP[kKBCPcMarkerSlotFromFp]);
   }
 
-  DART_FORCE_INLINE static bool FieldNeedsGuardUpdate(RawField* field,
-                                                      RawObject* value) {
+  DART_FORCE_INLINE static bool FieldNeedsGuardUpdate(FieldPtr field,
+                                                      ObjectPtr value) {
     // The interpreter should never see a cloned field.
     ASSERT(field->ptr()->owner_->GetClassId() != kFieldCid);
 
@@ -232,42 +232,43 @@ class InterpreterHelpers {
     return false;
   }
 
-  DART_FORCE_INLINE static bool IsFinalized(RawClass* cls) {
+  DART_FORCE_INLINE static bool IsFinalized(ClassPtr cls) {
     return Class::ClassFinalizedBits::decode(cls->ptr()->state_bits_) ==
-           RawClass::kFinalized;
+           ClassLayout::kFinalized;
   }
 };
 
-DART_FORCE_INLINE static const KBCInstr* SavedCallerPC(RawObject** FP) {
-  return reinterpret_cast<const KBCInstr*>(FP[kKBCSavedCallerPcSlotFromFp]);
+DART_FORCE_INLINE static const KBCInstr* SavedCallerPC(ObjectPtr* FP) {
+  return reinterpret_cast<const KBCInstr*>(
+      static_cast<uword>(FP[kKBCSavedCallerPcSlotFromFp]));
 }
 
-DART_FORCE_INLINE static RawFunction* FrameFunction(RawObject** FP) {
-  RawFunction* function = static_cast<RawFunction*>(FP[kKBCFunctionSlotFromFp]);
+DART_FORCE_INLINE static FunctionPtr FrameFunction(ObjectPtr* FP) {
+  FunctionPtr function = static_cast<FunctionPtr>(FP[kKBCFunctionSlotFromFp]);
   ASSERT(InterpreterHelpers::GetClassId(function) == kFunctionCid ||
          InterpreterHelpers::GetClassId(function) == kNullCid);
   return function;
 }
 
-DART_FORCE_INLINE static RawObject* InitializeHeader(uword addr,
-                                                     intptr_t class_id,
-                                                     intptr_t instance_size) {
+DART_FORCE_INLINE static ObjectPtr InitializeHeader(uword addr,
+                                                    intptr_t class_id,
+                                                    intptr_t instance_size) {
   uint32_t tags = 0;
-  tags = RawObject::ClassIdTag::update(class_id, tags);
-  tags = RawObject::SizeTag::update(instance_size, tags);
-  tags = RawObject::OldBit::update(false, tags);
-  tags = RawObject::OldAndNotMarkedBit::update(false, tags);
-  tags = RawObject::OldAndNotRememberedBit::update(false, tags);
-  tags = RawObject::NewBit::update(true, tags);
+  tags = ObjectLayout::ClassIdTag::update(class_id, tags);
+  tags = ObjectLayout::SizeTag::update(instance_size, tags);
+  tags = ObjectLayout::OldBit::update(false, tags);
+  tags = ObjectLayout::OldAndNotMarkedBit::update(false, tags);
+  tags = ObjectLayout::OldAndNotRememberedBit::update(false, tags);
+  tags = ObjectLayout::NewBit::update(true, tags);
   // Also writes zero in the hash_ field.
   *reinterpret_cast<uword*>(addr + Object::tags_offset()) = tags;
-  return RawObject::FromAddr(addr);
+  return ObjectLayout::FromAddr(addr);
 }
 
 DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
                                           intptr_t class_id,
                                           intptr_t instance_size,
-                                          RawObject** result) {
+                                          ObjectPtr* result) {
   ASSERT(instance_size > 0);
   ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
 
@@ -295,14 +296,13 @@ void LookupCache::Clear() {
 }
 
 bool LookupCache::Lookup(intptr_t receiver_cid,
-                         RawString* function_name,
-                         RawArray* arguments_descriptor,
-                         RawFunction** target) const {
+                         StringPtr function_name,
+                         ArrayPtr arguments_descriptor,
+                         FunctionPtr* target) const {
   ASSERT(receiver_cid != kIllegalCid);  // Sentinel value.
 
-  const intptr_t hash = receiver_cid ^
-                        reinterpret_cast<intptr_t>(function_name) ^
-                        reinterpret_cast<intptr_t>(arguments_descriptor);
+  const intptr_t hash = receiver_cid ^ static_cast<intptr_t>(function_name) ^
+                        static_cast<intptr_t>(arguments_descriptor);
   const intptr_t probe1 = hash & kTableMask;
   if (entries_[probe1].receiver_cid == receiver_cid &&
       entries_[probe1].function_name == function_name &&
@@ -323,17 +323,16 @@ bool LookupCache::Lookup(intptr_t receiver_cid,
 }
 
 void LookupCache::Insert(intptr_t receiver_cid,
-                         RawString* function_name,
-                         RawArray* arguments_descriptor,
-                         RawFunction* target) {
+                         StringPtr function_name,
+                         ArrayPtr arguments_descriptor,
+                         FunctionPtr target) {
   // Otherwise we have to clear the cache or rehash on scavenges too.
   ASSERT(function_name->IsOldObject());
   ASSERT(arguments_descriptor->IsOldObject());
   ASSERT(target->IsOldObject());
 
-  const intptr_t hash = receiver_cid ^
-                        reinterpret_cast<intptr_t>(function_name) ^
-                        reinterpret_cast<intptr_t>(arguments_descriptor);
+  const intptr_t hash = receiver_cid ^ static_cast<intptr_t>(function_name) ^
+                        static_cast<intptr_t>(arguments_descriptor);
   const intptr_t probe1 = hash & kTableMask;
   if (entries_[probe1].receiver_cid == kIllegalCid) {
     entries_[probe1].receiver_cid = receiver_cid;
@@ -359,7 +358,11 @@ void LookupCache::Insert(intptr_t receiver_cid,
 }
 
 Interpreter::Interpreter()
-    : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL), lookup_cache_() {
+    : stack_(NULL),
+      fp_(NULL),
+      pp_(nullptr),
+      argdesc_(nullptr),
+      lookup_cache_() {
   // Setup interpreter support first. Some of this information is needed to
   // setup the architecture state.
   // We allocate the stack here, the size is computed as the sum of
@@ -503,15 +506,15 @@ typedef intptr_t (*InterpreterLeafRuntimeCall)(intptr_t r0,
 typedef double (*InterpreterLeafFloatRuntimeCall)(double d0, double d1);
 
 void Interpreter::Exit(Thread* thread,
-                       RawObject** base,
-                       RawObject** frame,
+                       ObjectPtr* base,
+                       ObjectPtr* frame,
                        const KBCInstr* pc) {
   frame[0] = Function::null();
   frame[1] = Bytecode::null();
-  frame[2] = reinterpret_cast<RawObject*>(reinterpret_cast<uword>(pc));
-  frame[3] = reinterpret_cast<RawObject*>(base);
+  frame[2] = static_cast<ObjectPtr>(reinterpret_cast<uword>(pc));
+  frame[3] = static_cast<ObjectPtr>(reinterpret_cast<uword>(base));
 
-  RawObject** exit_fp = frame + kKBCDartFrameFixedSize;
+  ObjectPtr* exit_fp = frame + kKBCDartFrameFixedSize;
   thread->set_top_exit_frame_info(reinterpret_cast<uword>(exit_fp));
   fp_ = exit_fp;
 
@@ -527,8 +530,8 @@ void Interpreter::Exit(Thread* thread,
 void Interpreter::Unexit(Thread* thread) {
 #if !defined(PRODUCT)
   // For the profiler.
-  RawObject** exit_fp =
-      reinterpret_cast<RawObject**>(thread->top_exit_frame_info());
+  ObjectPtr* exit_fp =
+      reinterpret_cast<ObjectPtr*>(thread->top_exit_frame_info());
   ASSERT(exit_fp != 0);
   pc_ = SavedCallerPC(exit_fp);
   fp_ = SavedCallerFP(exit_fp);
@@ -537,7 +540,7 @@ void Interpreter::Unexit(Thread* thread) {
 }
 
 // Calling into runtime may trigger garbage collection and relocate objects,
-// so all RawObject* pointers become outdated and should not be used across
+// so all ObjectPtr pointers become outdated and should not be used across
 // runtime calls.
 // Note: functions below are marked DART_NOINLINE to recover performance where
 // inlining these functions into the interpreter loop seemed to cause some code
@@ -576,15 +579,25 @@ static DART_NOINLINE bool InvokeNative(Thread* thread,
   }
 }
 
+extern "C" {
+// Note: The invocation stub follows the C ABI, so we cannot pass C++ struct
+// values like ObjectPtr. In some calling conventions (IA32), ObjectPtr is
+// passed/returned different from a pointer.
+typedef uword /*ObjectPtr*/ (*invokestub)(uword /*CodePtr*/ code,
+                                          uword /*ArrayPtr*/ argdesc,
+                                          ObjectPtr* arg0,
+                                          Thread* thread);
+}
+
 DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
-                                               RawFunction* function,
-                                               RawObject** call_base,
-                                               RawObject** call_top,
+                                               FunctionPtr function,
+                                               ObjectPtr* call_base,
+                                               ObjectPtr* call_top,
                                                const KBCInstr** pc,
-                                               RawObject*** FP,
-                                               RawObject*** SP) {
+                                               ObjectPtr** FP,
+                                               ObjectPtr** SP) {
   ASSERT(Function::HasCode(function));
-  RawCode* volatile code = function->ptr()->code_;
+  CodePtr code = function->ptr()->code_;
   ASSERT(code != StubCode::LazyCompile().raw());
   // TODO(regis): Once we share the same stack, try to invoke directly.
 #if defined(DEBUG)
@@ -594,11 +607,9 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   }
 #endif
   // On success, returns a RawInstance.  On failure, a RawError.
-  typedef RawObject* (*invokestub)(RawCode * code, RawArray * argdesc,
-                                   RawObject * *arg0, Thread * thread);
   invokestub volatile entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCodeFromBytecode().EntryPoint());
-  RawObject* volatile result;
+  ObjectPtr result;
   Exit(thread, *FP, call_top + 1, *pc);
   {
     InterpreterSetjmpBuffer buffer(this);
@@ -610,14 +621,15 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
       if (!thread->os_thread()->HasStackHeadroom()) {
         thread->SetStackLimit(-1);
       }
-      result = bit_copy<RawObject*, int64_t>(
-          Simulator::Current()->Call(reinterpret_cast<intptr_t>(entrypoint),
-                                     reinterpret_cast<intptr_t>(code),
-                                     reinterpret_cast<intptr_t>(argdesc_),
-                                     reinterpret_cast<intptr_t>(call_base),
-                                     reinterpret_cast<intptr_t>(thread)));
+      result = bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
+          reinterpret_cast<intptr_t>(entrypoint), static_cast<intptr_t>(code),
+          static_cast<intptr_t>(argdesc_),
+          reinterpret_cast<intptr_t>(call_base),
+          reinterpret_cast<intptr_t>(thread)));
 #else
-      result = entrypoint(code, argdesc_, call_base, thread);
+      result = static_cast<ObjectPtr>(entrypoint(static_cast<uword>(code),
+                                                 static_cast<uword>(argdesc_),
+                                                 call_base, thread));
 #endif
       ASSERT(thread->vm_tag() == VMTag::kDartInterpretedTagId);
       ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
@@ -665,12 +677,12 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
 }
 
 DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
-                                                   RawFunction* function,
-                                                   RawObject** call_base,
-                                                   RawObject** call_top,
+                                                   FunctionPtr function,
+                                                   ObjectPtr* call_base,
+                                                   ObjectPtr* call_top,
                                                    const KBCInstr** pc,
-                                                   RawObject*** FP,
-                                                   RawObject*** SP) {
+                                                   ObjectPtr** FP,
+                                                   ObjectPtr** SP) {
   ASSERT(Function::HasBytecode(function));
 #if defined(DEBUG)
   if (IsTracingExecution()) {
@@ -679,13 +691,14 @@ DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
               Function::Handle(function).ToFullyQualifiedCString());
   }
 #endif
-  RawObject** callee_fp = call_top + kKBCDartFrameFixedSize;
+  ObjectPtr* callee_fp = call_top + kKBCDartFrameFixedSize;
   ASSERT(function == FrameFunction(callee_fp));
-  RawBytecode* bytecode = function->ptr()->bytecode_;
+  BytecodePtr bytecode = function->ptr()->bytecode_;
   callee_fp[kKBCPcMarkerSlotFromFp] = bytecode;
   callee_fp[kKBCSavedCallerPcSlotFromFp] =
-      reinterpret_cast<RawObject*>(reinterpret_cast<uword>(*pc));
-  callee_fp[kKBCSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(*FP);
+      static_cast<ObjectPtr>(reinterpret_cast<uword>(*pc));
+  callee_fp[kKBCSavedCallerFpSlotFromFp] =
+      static_cast<ObjectPtr>(reinterpret_cast<uword>(*FP));
   pp_ = bytecode->ptr()->object_pool_;
   *pc = reinterpret_cast<const KBCInstr*>(bytecode->ptr()->instructions_);
   NOT_IN_PRODUCT(pc_ = *pc);  // For the profiler.
@@ -696,13 +709,13 @@ DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
 }
 
 DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
-                                           RawObject** call_base,
-                                           RawObject** call_top,
+                                           ObjectPtr* call_base,
+                                           ObjectPtr* call_top,
                                            const KBCInstr** pc,
-                                           RawObject*** FP,
-                                           RawObject*** SP) {
-  RawObject** callee_fp = call_top + kKBCDartFrameFixedSize;
-  RawFunction* function = FrameFunction(callee_fp);
+                                           ObjectPtr** FP,
+                                           ObjectPtr** SP) {
+  ObjectPtr* callee_fp = call_top + kKBCDartFrameFixedSize;
+  FunctionPtr function = FrameFunction(callee_fp);
 
   for (;;) {
     if (Function::HasCode(function)) {
@@ -728,12 +741,12 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
 }
 
 DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
-                                                 RawString* target_name,
-                                                 RawObject** call_base,
-                                                 RawObject** top,
+                                                 StringPtr target_name,
+                                                 ObjectPtr* call_base,
+                                                 ObjectPtr* top,
                                                  const KBCInstr** pc,
-                                                 RawObject*** FP,
-                                                 RawObject*** SP) {
+                                                 ObjectPtr** FP,
+                                                 ObjectPtr** SP) {
   const intptr_t type_args_len =
       InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
   const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
@@ -741,7 +754,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
   intptr_t receiver_cid =
       InterpreterHelpers::GetClassId(call_base[receiver_idx]);
 
-  RawFunction* target;
+  FunctionPtr target;
   if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, argdesc_,
                                      &target))) {
     // Table lookup miss.
@@ -759,9 +772,9 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
       return false;
     }
 
-    target = static_cast<RawFunction*>(top[4]);
-    target_name = static_cast<RawString*>(top[2]);
-    argdesc_ = static_cast<RawArray*>(top[3]);
+    target = static_cast<FunctionPtr>(top[4]);
+    target_name = static_cast<StringPtr>(top[2]);
+    argdesc_ = static_cast<ArrayPtr>(top[3]);
     ASSERT(target->IsFunction());
     lookup_cache_.Insert(receiver_cid, target_name, argdesc_, target);
   }
@@ -971,7 +984,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 #define UNBOX_INT64(value, obj, selector)                                      \
   int64_t value;                                                               \
   {                                                                            \
-    word raw_value = reinterpret_cast<word>(obj);                              \
+    word raw_value = static_cast<word>(obj);                                   \
     if (LIKELY((raw_value & kSmiTagMask) == kSmiTag)) {                        \
       value = raw_value >> kSmiTagShift;                                       \
     } else {                                                                   \
@@ -1047,8 +1060,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 
 bool Interpreter::CopyParameters(Thread* thread,
                                  const KBCInstr** pc,
-                                 RawObject*** FP,
-                                 RawObject*** SP,
+                                 ObjectPtr** FP,
+                                 ObjectPtr** SP,
                                  const intptr_t num_fixed_params,
                                  const intptr_t num_opt_pos_params,
                                  const intptr_t num_opt_named_params) {
@@ -1066,7 +1079,7 @@ bool Interpreter::CopyParameters(Thread* thread,
   }
 
   // Copy all passed position arguments.
-  RawObject** first_arg = FrameArguments(*FP, arg_count);
+  ObjectPtr* first_arg = FrameArguments(*FP, arg_count);
   memmove(*FP, first_arg, pos_count * kWordSize);
 
   if (num_opt_named_params != 0) {
@@ -1075,7 +1088,7 @@ bool Interpreter::CopyParameters(Thread* thread,
     // default values encoded as pairs of LoadConstant instructions that
     // follows the entry point and find matching values via arguments
     // descriptor.
-    RawObject** argdesc_data = argdesc_->ptr()->data();
+    ObjectPtr* argdesc_data = argdesc_->ptr()->data();
 
     intptr_t i = 0;  // argument position
     intptr_t j = 0;  // parameter position
@@ -1089,11 +1102,11 @@ bool Interpreter::CopyParameters(Thread* thread,
       const uint8_t reg = KernelBytecode::DecodeA(load_name);
       ASSERT(reg == KernelBytecode::DecodeA(load_value));
 
-      RawString* name = static_cast<RawString*>(
+      StringPtr name = static_cast<StringPtr>(
           LOAD_CONSTANT(KernelBytecode::DecodeE(load_name)));
       if (name == argdesc_data[ArgumentsDescriptor::name_index(i)]) {
         // Parameter was passed. Fetch passed value.
-        const intptr_t arg_index = Smi::Value(static_cast<RawSmi*>(
+        const intptr_t arg_index = Smi::Value(static_cast<SmiPtr>(
             argdesc_data[ArgumentsDescriptor::position_index(i)]));
         (*FP)[reg] = first_arg[arg_index];
         ++i;  // Consume passed argument.
@@ -1161,28 +1174,28 @@ bool Interpreter::CopyParameters(Thread* thread,
 
 bool Interpreter::AssertAssignable(Thread* thread,
                                    const KBCInstr* pc,
-                                   RawObject** FP,
-                                   RawObject** call_top,
-                                   RawObject** args,
-                                   RawSubtypeTestCache* cache) {
-  RawObject* null_value = Object::null();
+                                   ObjectPtr* FP,
+                                   ObjectPtr* call_top,
+                                   ObjectPtr* args,
+                                   SubtypeTestCachePtr cache) {
+  ObjectPtr null_value = Object::null();
   if (cache != null_value) {
-    RawInstance* instance = static_cast<RawInstance*>(args[0]);
-    RawTypeArguments* instantiator_type_arguments =
-        static_cast<RawTypeArguments*>(args[2]);
-    RawTypeArguments* function_type_arguments =
-        static_cast<RawTypeArguments*>(args[3]);
+    InstancePtr instance = static_cast<InstancePtr>(args[0]);
+    TypeArgumentsPtr instantiator_type_arguments =
+        static_cast<TypeArgumentsPtr>(args[2]);
+    TypeArgumentsPtr function_type_arguments =
+        static_cast<TypeArgumentsPtr>(args[3]);
 
     const intptr_t cid = InterpreterHelpers::GetClassId(instance);
 
-    RawTypeArguments* instance_type_arguments =
-        static_cast<RawTypeArguments*>(null_value);
-    RawObject* instance_cid_or_function;
+    TypeArgumentsPtr instance_type_arguments =
+        static_cast<TypeArgumentsPtr>(null_value);
+    ObjectPtr instance_cid_or_function;
 
-    RawTypeArguments* parent_function_type_arguments;
-    RawTypeArguments* delayed_function_type_arguments;
+    TypeArgumentsPtr parent_function_type_arguments;
+    TypeArgumentsPtr delayed_function_type_arguments;
     if (cid == kClosureCid) {
-      RawClosure* closure = static_cast<RawClosure*>(instance);
+      ClosurePtr closure = static_cast<ClosurePtr>(instance);
       instance_type_arguments = closure->ptr()->instantiator_type_arguments_;
       parent_function_type_arguments = closure->ptr()->function_type_arguments_;
       delayed_function_type_arguments = closure->ptr()->delayed_type_arguments_;
@@ -1190,21 +1203,21 @@ bool Interpreter::AssertAssignable(Thread* thread,
     } else {
       instance_cid_or_function = Smi::New(cid);
 
-      RawClass* instance_class = thread->isolate()->class_table()->At(cid);
+      ClassPtr instance_class = thread->isolate()->class_table()->At(cid);
       if (instance_class->ptr()->num_type_arguments_ < 0) {
         goto AssertAssignableCallRuntime;
       } else if (instance_class->ptr()->num_type_arguments_ > 0) {
-        instance_type_arguments = reinterpret_cast<RawTypeArguments**>(
+        instance_type_arguments = reinterpret_cast<TypeArgumentsPtr*>(
             instance->ptr())[instance_class->ptr()
                                  ->host_type_arguments_field_offset_in_words_];
       }
       parent_function_type_arguments =
-          static_cast<RawTypeArguments*>(null_value);
+          static_cast<TypeArgumentsPtr>(null_value);
       delayed_function_type_arguments =
-          static_cast<RawTypeArguments*>(null_value);
+          static_cast<TypeArgumentsPtr>(null_value);
     }
 
-    for (RawObject** entries = cache->ptr()->cache_->ptr()->data();
+    for (ObjectPtr* entries = cache->ptr()->cache_->ptr()->data();
          entries[0] != null_value;
          entries += SubtypeTestCache::kTestEntryLength) {
       if ((entries[SubtypeTestCache::kInstanceClassIdOrFunction] ==
@@ -1245,29 +1258,29 @@ AssertAssignableCallRuntime:
 template <bool is_getter>
 bool Interpreter::AssertAssignableField(Thread* thread,
                                         const KBCInstr* pc,
-                                        RawObject** FP,
-                                        RawObject** SP,
-                                        RawInstance* instance,
-                                        RawField* field,
-                                        RawInstance* value) {
-  RawAbstractType* field_type = field->ptr()->type_;
+                                        ObjectPtr* FP,
+                                        ObjectPtr* SP,
+                                        InstancePtr instance,
+                                        FieldPtr field,
+                                        InstancePtr value) {
+  AbstractTypePtr field_type = field->ptr()->type_;
   // Perform type test of value if field type is not one of dynamic, object,
   // or void, and if the value is not null.
   if (field_type->GetClassId() == kTypeCid) {
-    classid_t cid = Smi::Value(reinterpret_cast<RawSmi*>(
-        Type::RawCast(field_type)->ptr()->type_class_id_));
+    classid_t cid = Smi::Value(
+        static_cast<SmiPtr>(Type::RawCast(field_type)->ptr()->type_class_id_));
     // TODO(regis): Revisit shortcut for NNBD.
     if (cid == kDynamicCid || cid == kInstanceCid || cid == kVoidCid) {
       return true;
     }
   }
-  RawObject* null_value = Object::null();
+  ObjectPtr null_value = Object::null();
   if (value == null_value) {
     // TODO(regis): Revisit null shortcut for NNBD.
     return true;
   }
 
-  RawSubtypeTestCache* cache = field->ptr()->type_test_cache_;
+  SubtypeTestCachePtr cache = field->ptr()->type_test_cache_;
   if (UNLIKELY(cache == null_value)) {
     // Allocate new cache.
     SP[1] = instance;    // Preserve.
@@ -1283,10 +1296,10 @@ bool Interpreter::AssertAssignableField(Thread* thread,
     }
 
     // Reload objects after the call which may trigger GC.
-    instance = reinterpret_cast<RawInstance*>(SP[1]);
-    field = reinterpret_cast<RawField*>(SP[2]);
-    value = reinterpret_cast<RawInstance*>(SP[3]);
-    cache = reinterpret_cast<RawSubtypeTestCache*>(SP[4]);
+    instance = static_cast<InstancePtr>(SP[1]);
+    field = static_cast<FieldPtr>(SP[2]);
+    value = static_cast<InstancePtr>(SP[3]);
+    cache = static_cast<SubtypeTestCachePtr>(SP[4]);
     field_type = field->ptr()->type_;
     field->ptr()->type_test_cache_ = cache;
   }
@@ -1302,10 +1315,10 @@ bool Interpreter::AssertAssignableField(Thread* thread,
                           /* args */ SP + 1, cache);
 }
 
-RawObject* Interpreter::Call(const Function& function,
-                             const Array& arguments_descriptor,
-                             const Array& arguments,
-                             Thread* thread) {
+ObjectPtr Interpreter::Call(const Function& function,
+                            const Array& arguments_descriptor,
+                            const Array& arguments,
+                            Thread* thread) {
   return Call(function.raw(), arguments_descriptor.raw(), arguments.Length(),
               arguments.raw_ptr()->data(), thread);
 }
@@ -1315,12 +1328,12 @@ RawObject* Interpreter::Call(const Function& function,
 DART_NOINLINE bool Interpreter::AllocateMint(Thread* thread,
                                              int64_t value,
                                              const KBCInstr* pc,
-                                             RawObject** FP,
-                                             RawObject** SP) {
+                                             ObjectPtr* FP,
+                                             ObjectPtr* SP) {
   ASSERT(!Smi::IsValid(value));
-  RawMint* result;
+  MintPtr result;
   if (TryAllocate(thread, kMintCid, Mint::InstanceSize(),
-                  reinterpret_cast<RawObject**>(&result))) {
+                  reinterpret_cast<ObjectPtr*>(&result))) {
     result->ptr()->value_ = value;
     SP[0] = result;
     return true;
@@ -1333,7 +1346,7 @@ DART_NOINLINE bool Interpreter::AllocateMint(Thread* thread,
     if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
       return false;
     }
-    reinterpret_cast<RawMint*>(SP[0])->ptr()->value_ = value;
+    static_cast<MintPtr>(SP[0])->ptr()->value_ = value;
     return true;
   }
 }
@@ -1343,11 +1356,11 @@ DART_NOINLINE bool Interpreter::AllocateMint(Thread* thread,
 DART_NOINLINE bool Interpreter::AllocateDouble(Thread* thread,
                                                double value,
                                                const KBCInstr* pc,
-                                               RawObject** FP,
-                                               RawObject** SP) {
-  RawDouble* result;
+                                               ObjectPtr* FP,
+                                               ObjectPtr* SP) {
+  DoublePtr result;
   if (TryAllocate(thread, kDoubleCid, Double::InstanceSize(),
-                  reinterpret_cast<RawObject**>(&result))) {
+                  reinterpret_cast<ObjectPtr*>(&result))) {
     result->ptr()->value_ = value;
     SP[0] = result;
     return true;
@@ -1370,11 +1383,11 @@ DART_NOINLINE bool Interpreter::AllocateDouble(Thread* thread,
 DART_NOINLINE bool Interpreter::AllocateFloat32x4(Thread* thread,
                                                   simd128_value_t value,
                                                   const KBCInstr* pc,
-                                                  RawObject** FP,
-                                                  RawObject** SP) {
-  RawFloat32x4* result;
+                                                  ObjectPtr* FP,
+                                                  ObjectPtr* SP) {
+  Float32x4Ptr result;
   if (TryAllocate(thread, kFloat32x4Cid, Float32x4::InstanceSize(),
-                  reinterpret_cast<RawObject**>(&result))) {
+                  reinterpret_cast<ObjectPtr*>(&result))) {
     value.writeTo(result->ptr()->value_);
     SP[0] = result;
     return true;
@@ -1397,11 +1410,11 @@ DART_NOINLINE bool Interpreter::AllocateFloat32x4(Thread* thread,
 DART_NOINLINE bool Interpreter::AllocateFloat64x2(Thread* thread,
                                                   simd128_value_t value,
                                                   const KBCInstr* pc,
-                                                  RawObject** FP,
-                                                  RawObject** SP) {
-  RawFloat64x2* result;
+                                                  ObjectPtr* FP,
+                                                  ObjectPtr* SP) {
+  Float64x2Ptr result;
   if (TryAllocate(thread, kFloat64x2Cid, Float64x2::InstanceSize(),
-                  reinterpret_cast<RawObject**>(&result))) {
+                  reinterpret_cast<ObjectPtr*>(&result))) {
     value.writeTo(result->ptr()->value_);
     SP[0] = result;
     return true;
@@ -1422,17 +1435,17 @@ DART_NOINLINE bool Interpreter::AllocateFloat64x2(Thread* thread,
 // Allocate a _List with the given type arguments and length and put it into
 // SP[0]. Returns false on exception.
 bool Interpreter::AllocateArray(Thread* thread,
-                                RawTypeArguments* type_args,
-                                RawObject* length_object,
+                                TypeArgumentsPtr type_args,
+                                ObjectPtr length_object,
                                 const KBCInstr* pc,
-                                RawObject** FP,
-                                RawObject** SP) {
+                                ObjectPtr* FP,
+                                ObjectPtr* SP) {
   if (LIKELY(!length_object->IsHeapObject())) {
     const intptr_t length = Smi::Value(Smi::RawCast(length_object));
     if (LIKELY(Array::IsValidLength(length))) {
-      RawArray* result;
+      ArrayPtr result;
       if (TryAllocate(thread, kArrayCid, Array::InstanceSize(length),
-                      reinterpret_cast<RawObject**>(&result))) {
+                      reinterpret_cast<ObjectPtr*>(&result))) {
         result->ptr()->type_arguments_ = type_args;
         result->ptr()->length_ = Smi::New(length);
         for (intptr_t i = 0; i < length; i++) {
@@ -1457,15 +1470,15 @@ bool Interpreter::AllocateArray(Thread* thread,
 bool Interpreter::AllocateContext(Thread* thread,
                                   intptr_t num_context_variables,
                                   const KBCInstr* pc,
-                                  RawObject** FP,
-                                  RawObject** SP) {
-  RawContext* result;
+                                  ObjectPtr* FP,
+                                  ObjectPtr* SP) {
+  ContextPtr result;
   if (TryAllocate(thread, kContextCid,
                   Context::InstanceSize(num_context_variables),
-                  reinterpret_cast<RawObject**>(&result))) {
+                  reinterpret_cast<ObjectPtr*>(&result))) {
     result->ptr()->num_variables_ = num_context_variables;
-    RawObject* null_value = Object::null();
-    result->ptr()->parent_ = static_cast<RawContext*>(null_value);
+    ObjectPtr null_value = Object::null();
+    result->ptr()->parent_ = static_cast<ContextPtr>(null_value);
     for (intptr_t i = 0; i < num_context_variables; i++) {
       result->ptr()->data()[i] = null_value;
     }
@@ -1484,17 +1497,17 @@ bool Interpreter::AllocateContext(Thread* thread,
 // Returns false on exception.
 bool Interpreter::AllocateClosure(Thread* thread,
                                   const KBCInstr* pc,
-                                  RawObject** FP,
-                                  RawObject** SP) {
+                                  ObjectPtr* FP,
+                                  ObjectPtr* SP) {
   const intptr_t instance_size = Closure::InstanceSize();
-  RawClosure* result;
+  ClosurePtr result;
   if (TryAllocate(thread, kClosureCid, instance_size,
-                  reinterpret_cast<RawObject**>(&result))) {
-    uword start = RawObject::ToAddr(result);
-    RawObject* null_value = Object::null();
-    for (intptr_t offset = sizeof(RawInstance); offset < instance_size;
+                  reinterpret_cast<ObjectPtr*>(&result))) {
+    uword start = ObjectLayout::ToAddr(result);
+    ObjectPtr null_value = Object::null();
+    for (intptr_t offset = sizeof(InstanceLayout); offset < instance_size;
          offset += kWordSize) {
-      *reinterpret_cast<RawObject**>(start + offset) = null_value;
+      *reinterpret_cast<ObjectPtr*>(start + offset) = null_value;
     }
     SP[0] = result;
     return true;
@@ -1508,21 +1521,21 @@ bool Interpreter::AllocateClosure(Thread* thread,
   }
 }
 
-RawObject* Interpreter::Call(RawFunction* function,
-                             RawArray* argdesc,
-                             intptr_t argc,
-                             RawObject* const* argv,
-                             Thread* thread) {
+ObjectPtr Interpreter::Call(FunctionPtr function,
+                            ArrayPtr argdesc,
+                            intptr_t argc,
+                            ObjectPtr const* argv,
+                            Thread* thread) {
   // Interpreter state (see constants_kbc.h for high-level overview).
   const KBCInstr* pc;  // Program Counter: points to the next op to execute.
-  RawObject** FP;      // Frame Pointer.
-  RawObject** SP;      // Stack Pointer.
+  ObjectPtr* FP;       // Frame Pointer.
+  ObjectPtr* SP;       // Stack Pointer.
 
   uint32_t op;  // Currently executing op.
 
   bool reentering = fp_ != NULL;
   if (!reentering) {
-    fp_ = reinterpret_cast<RawObject**>(stack_base_);
+    fp_ = reinterpret_cast<ObjectPtr*>(stack_base_);
   }
 #if defined(DEBUG)
   if (IsTracingExecution()) {
@@ -1565,22 +1578,22 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   // Save outer top_exit_frame_info, current argdesc, and current pp.
   fp_[kKBCExitLinkSlotFromEntryFp] =
-      reinterpret_cast<RawObject*>(thread->top_exit_frame_info());
+      static_cast<ObjectPtr>(thread->top_exit_frame_info());
   thread->set_top_exit_frame_info(0);
-  fp_[kKBCSavedArgDescSlotFromEntryFp] = reinterpret_cast<RawObject*>(argdesc_);
-  fp_[kKBCSavedPpSlotFromEntryFp] = reinterpret_cast<RawObject*>(pp_);
+  fp_[kKBCSavedArgDescSlotFromEntryFp] = static_cast<ObjectPtr>(argdesc_);
+  fp_[kKBCSavedPpSlotFromEntryFp] = static_cast<ObjectPtr>(pp_);
 
   // Copy arguments and setup the Dart frame.
   for (intptr_t i = 0; i < arg_count; i++) {
     fp_[kKBCEntrySavedSlots + i] = argv[argc < 0 ? -i : i];
   }
 
-  RawBytecode* bytecode = function->ptr()->bytecode_;
+  BytecodePtr bytecode = function->ptr()->bytecode_;
   FP[kKBCFunctionSlotFromFp] = function;
   FP[kKBCPcMarkerSlotFromFp] = bytecode;
-  FP[kKBCSavedCallerPcSlotFromFp] =
-      reinterpret_cast<RawObject*>(kEntryFramePcMarker);
-  FP[kKBCSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(fp_);
+  FP[kKBCSavedCallerPcSlotFromFp] = static_cast<ObjectPtr>(kEntryFramePcMarker);
+  FP[kKBCSavedCallerFpSlotFromFp] =
+      static_cast<ObjectPtr>(reinterpret_cast<uword>(fp_));
 
   // Load argument descriptor.
   argdesc_ = argdesc;
@@ -1603,9 +1616,9 @@ RawObject* Interpreter::Call(RawFunction* function,
   thread->set_top_resource(NULL);
 
   // Cache some frequently used values in the frame.
-  RawBool* true_value = Bool::True().raw();
-  RawBool* false_value = Bool::False().raw();
-  RawObject* null_value = Object::null();
+  BoolPtr true_value = Bool::True().raw();
+  BoolPtr false_value = Bool::False().raw();
+  ObjectPtr null_value = Object::null();
 
 #ifdef DART_HAS_COMPUTED_GOTO
   static const void* dispatch[] = {
@@ -1701,7 +1714,7 @@ SwitchDispatch:
                        NativeArguments(thread, 0, nullptr, nullptr));
       }
     }
-    RawFunction* function = FrameFunction(FP);
+    FunctionPtr function = FrameFunction(FP);
     int32_t counter = ++(function->ptr()->usage_counter_);
     if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
                  counter >= FLAG_compilation_counter_threshold &&
@@ -1746,7 +1759,7 @@ SwitchDispatch:
   {
     BYTECODE(InstantiateType, D);
     // Stack: instantiator type args, function type args
-    RawObject* type = LOAD_CONSTANT(rD);
+    ObjectPtr type = LOAD_CONSTANT(rD);
     SP[1] = type;
     SP[2] = SP[-1];
     SP[3] = SP[0];
@@ -1762,21 +1775,21 @@ SwitchDispatch:
   {
     BYTECODE(InstantiateTypeArgumentsTOS, A_E);
     // Stack: instantiator type args, function type args
-    RawTypeArguments* type_arguments =
-        static_cast<RawTypeArguments*>(LOAD_CONSTANT(rE));
+    TypeArgumentsPtr type_arguments =
+        static_cast<TypeArgumentsPtr>(LOAD_CONSTANT(rE));
 
-    RawObject* instantiator_type_args = SP[-1];
-    RawObject* function_type_args = SP[0];
+    ObjectPtr instantiator_type_args = SP[-1];
+    ObjectPtr function_type_args = SP[0];
     // If both instantiators are null and if the type argument vector
     // instantiated from null becomes a vector of dynamic, then use null as
     // the type arguments.
     if ((rA == 0) || (null_value != instantiator_type_args) ||
         (null_value != function_type_args)) {
       // First lookup in the cache.
-      RawArray* instantiations = type_arguments->ptr()->instantiations_;
+      ArrayPtr instantiations = type_arguments->ptr()->instantiations_;
       for (intptr_t i = 0;
            instantiations->ptr()->data()[i] !=
-           reinterpret_cast<RawObject*>(TypeArguments::kNoInstantiator);
+           static_cast<ObjectPtr>(TypeArguments::kNoInstantiator);
            i += TypeArguments::Instantiation::kSizeInWords) {
         if ((instantiations->ptr()->data()
                  [i +
@@ -1905,9 +1918,9 @@ SwitchDispatch:
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       *++SP = LOAD_CONSTANT(kidx);
-      RawObject** call_base = SP - argc;
-      RawObject** call_top = SP;
-      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
+      ObjectPtr* call_base = SP - argc;
+      ObjectPtr* call_top = SP;
+      argdesc_ = static_cast<ArrayPtr>(LOAD_CONSTANT(kidx + 1));
       if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
         HANDLE_EXCEPTION;
       }
@@ -1926,9 +1939,9 @@ SwitchDispatch:
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       *++SP = LOAD_CONSTANT(kidx);
-      RawObject** call_base = SP - argc;
-      RawObject** call_top = SP;
-      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
+      ObjectPtr* call_base = SP - argc;
+      ObjectPtr* call_top = SP;
+      argdesc_ = static_cast<ArrayPtr>(LOAD_CONSTANT(kidx + 1));
       if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
         HANDLE_EXCEPTION;
       }
@@ -1944,13 +1957,13 @@ SwitchDispatch:
       const uint32_t argc = rF;
       const uint32_t kidx = rD;
 
-      RawObject** call_base = SP - argc + 1;
-      RawObject** call_top = SP + 1;
+      ObjectPtr* call_base = SP - argc + 1;
+      ObjectPtr* call_top = SP + 1;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      RawString* target_name =
-          static_cast<RawFunction*>(LOAD_CONSTANT(kidx))->ptr()->name_;
-      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
+      StringPtr target_name =
+          static_cast<FunctionPtr>(LOAD_CONSTANT(kidx))->ptr()->name_;
+      argdesc_ = static_cast<ArrayPtr>(LOAD_CONSTANT(kidx + 1));
       if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
                         &SP)) {
         HANDLE_EXCEPTION;
@@ -1966,13 +1979,13 @@ SwitchDispatch:
       const uint32_t argc = rF;
       const uint32_t kidx = rD;
 
-      RawObject** call_base = SP - argc + 1;
-      RawObject** call_top = SP + 1;
+      ObjectPtr* call_base = SP - argc + 1;
+      ObjectPtr* call_top = SP + 1;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      RawString* target_name =
-          static_cast<RawFunction*>(LOAD_CONSTANT(kidx))->ptr()->name_;
-      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
+      StringPtr target_name =
+          static_cast<FunctionPtr>(LOAD_CONSTANT(kidx))->ptr()->name_;
+      argdesc_ = static_cast<ArrayPtr>(LOAD_CONSTANT(kidx + 1));
       if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
                         &SP)) {
         HANDLE_EXCEPTION;
@@ -1989,16 +2002,16 @@ SwitchDispatch:
       const uint32_t argc = rF;
       const uint32_t kidx = rD;
 
-      RawClosure* receiver = Closure::RawCast(*SP--);
-      RawObject** call_base = SP - argc + 1;
-      RawObject** call_top = SP + 1;
+      ClosurePtr receiver = Closure::RawCast(*SP--);
+      ObjectPtr* call_base = SP - argc + 1;
+      ObjectPtr* call_top = SP + 1;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       if (UNLIKELY(receiver == null_value)) {
         SP[0] = Symbols::Call().raw();
         goto ThrowNullError;
       }
-      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx));
+      argdesc_ = static_cast<ArrayPtr>(LOAD_CONSTANT(kidx));
       call_top[0] = receiver->ptr()->function_;
 
       if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
@@ -2016,13 +2029,13 @@ SwitchDispatch:
       const uint32_t argc = rF;
       const uint32_t kidx = rD;
 
-      RawObject** call_base = SP - argc + 1;
-      RawObject** call_top = SP + 1;
+      ObjectPtr* call_base = SP - argc + 1;
+      ObjectPtr* call_top = SP + 1;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      RawString* target_name =
-          static_cast<RawFunction*>(LOAD_CONSTANT(kidx))->ptr()->name_;
-      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
+      StringPtr target_name =
+          static_cast<FunctionPtr>(LOAD_CONSTANT(kidx))->ptr()->name_;
+      argdesc_ = static_cast<ArrayPtr>(LOAD_CONSTANT(kidx + 1));
       if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
                         &SP)) {
         HANDLE_EXCEPTION;
@@ -2039,11 +2052,11 @@ SwitchDispatch:
       const uint32_t argc = rF;
       const uint32_t kidx = rD;
 
-      RawObject** call_base = SP - argc + 1;
-      RawObject** call_top = SP + 1;
+      ObjectPtr* call_base = SP - argc + 1;
+      ObjectPtr* call_top = SP + 1;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      RawString* target_name = String::RawCast(LOAD_CONSTANT(kidx));
+      StringPtr target_name = String::RawCast(LOAD_CONSTANT(kidx));
       argdesc_ = Array::RawCast(LOAD_CONSTANT(kidx + 1));
       if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
                         &SP)) {
@@ -2056,7 +2069,7 @@ SwitchDispatch:
 
   {
     BYTECODE(NativeCall, D);
-    RawTypedData* data = static_cast<RawTypedData*>(LOAD_CONSTANT(rD));
+    TypedDataPtr data = static_cast<TypedDataPtr>(LOAD_CONSTANT(rD));
     MethodRecognizer::Kind kind = NativeEntryData::GetKind(data);
     switch (kind) {
       case MethodRecognizer::kObjectEquals: {
@@ -2065,8 +2078,8 @@ SwitchDispatch:
       } break;
       case MethodRecognizer::kStringBaseLength:
       case MethodRecognizer::kStringBaseIsEmpty: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
-        SP[0] = reinterpret_cast<RawObject**>(
+        InstancePtr instance = static_cast<InstancePtr>(SP[0]);
+        SP[0] = reinterpret_cast<ObjectPtr*>(
             instance->ptr())[String::length_offset() / kWordSize];
         if (kind == MethodRecognizer::kStringBaseIsEmpty) {
           SP[0] =
@@ -2074,29 +2087,29 @@ SwitchDispatch:
         }
       } break;
       case MethodRecognizer::kGrowableArrayLength: {
-        RawGrowableObjectArray* instance =
-            reinterpret_cast<RawGrowableObjectArray*>(SP[0]);
+        GrowableObjectArrayPtr instance =
+            static_cast<GrowableObjectArrayPtr>(SP[0]);
         SP[0] = instance->ptr()->length_;
       } break;
       case MethodRecognizer::kObjectArrayLength:
       case MethodRecognizer::kImmutableArrayLength: {
-        RawArray* instance = reinterpret_cast<RawArray*>(SP[0]);
+        ArrayPtr instance = static_cast<ArrayPtr>(SP[0]);
         SP[0] = instance->ptr()->length_;
       } break;
       case MethodRecognizer::kTypedListLength:
       case MethodRecognizer::kTypedListViewLength:
       case MethodRecognizer::kByteDataViewLength: {
-        RawTypedDataBase* instance = reinterpret_cast<RawTypedDataBase*>(SP[0]);
+        TypedDataBasePtr instance = static_cast<TypedDataBasePtr>(SP[0]);
         SP[0] = instance->ptr()->length_;
       } break;
       case MethodRecognizer::kByteDataViewOffsetInBytes:
       case MethodRecognizer::kTypedDataViewOffsetInBytes: {
-        RawTypedDataView* instance = reinterpret_cast<RawTypedDataView*>(SP[0]);
+        TypedDataViewPtr instance = static_cast<TypedDataViewPtr>(SP[0]);
         SP[0] = instance->ptr()->offset_in_bytes_;
       } break;
       case MethodRecognizer::kByteDataViewTypedData:
       case MethodRecognizer::kTypedDataViewTypedData: {
-        RawTypedDataView* instance = reinterpret_cast<RawTypedDataView*>(SP[0]);
+        TypedDataViewPtr instance = static_cast<TypedDataViewPtr>(SP[0]);
         SP[0] = instance->ptr()->typed_data_;
       } break;
       case MethodRecognizer::kClassIDgetID: {
@@ -2106,8 +2119,8 @@ SwitchDispatch:
         SP[0] = Object::null();
       } break;
       case MethodRecognizer::kGrowableArrayCapacity: {
-        RawGrowableObjectArray* instance =
-            reinterpret_cast<RawGrowableObjectArray*>(SP[0]);
+        GrowableObjectArrayPtr instance =
+            static_cast<GrowableObjectArrayPtr>(SP[0]);
         SP[0] = instance->ptr()->data_->ptr()->length_;
       } break;
       case MethodRecognizer::kListFactory: {
@@ -2116,8 +2129,8 @@ SwitchDispatch:
         //                                            : new _GrowableList<E>(0);
         // }
         if (InterpreterHelpers::ArgDescPosCount(argdesc_) == 2) {
-          RawTypeArguments* type_args = TypeArguments::RawCast(SP[-1]);
-          RawObject* length = SP[0];
+          TypeArgumentsPtr type_args = TypeArguments::RawCast(SP[-1]);
+          ObjectPtr length = SP[0];
           SP--;
           if (!AllocateArray(thread, type_args, length, pc, FP, SP)) {
             HANDLE_EXCEPTION;
@@ -2142,72 +2155,74 @@ SwitchDispatch:
         }
       } break;
       case MethodRecognizer::kObjectArrayAllocate: {
-        RawTypeArguments* type_args = TypeArguments::RawCast(SP[-1]);
-        RawObject* length = SP[0];
+        TypeArgumentsPtr type_args = TypeArguments::RawCast(SP[-1]);
+        ObjectPtr length = SP[0];
         SP--;
         if (!AllocateArray(thread, type_args, length, pc, FP, SP)) {
           HANDLE_EXCEPTION;
         }
       } break;
       case MethodRecognizer::kLinkedHashMap_getIndex: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
-        SP[0] = reinterpret_cast<RawObject**>(
+        InstancePtr instance = static_cast<InstancePtr>(SP[0]);
+        SP[0] = reinterpret_cast<ObjectPtr*>(
             instance->ptr())[LinkedHashMap::index_offset() / kWordSize];
       } break;
       case MethodRecognizer::kLinkedHashMap_setIndex: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
-        instance->StorePointer(reinterpret_cast<RawObject**>(instance->ptr()) +
-                                   LinkedHashMap::index_offset() / kWordSize,
-                               SP[0]);
+        InstancePtr instance = static_cast<InstancePtr>(SP[-1]);
+        instance->ptr()->StorePointer(
+            reinterpret_cast<ObjectPtr*>(instance->ptr()) +
+                LinkedHashMap::index_offset() / kWordSize,
+            SP[0]);
         *--SP = null_value;
       } break;
       case MethodRecognizer::kLinkedHashMap_getData: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
-        SP[0] = reinterpret_cast<RawObject**>(
+        InstancePtr instance = static_cast<InstancePtr>(SP[0]);
+        SP[0] = reinterpret_cast<ObjectPtr*>(
             instance->ptr())[LinkedHashMap::data_offset() / kWordSize];
       } break;
       case MethodRecognizer::kLinkedHashMap_setData: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
-        instance->StorePointer(reinterpret_cast<RawObject**>(instance->ptr()) +
-                                   LinkedHashMap::data_offset() / kWordSize,
-                               SP[0]);
+        InstancePtr instance = static_cast<InstancePtr>(SP[-1]);
+        instance->ptr()->StorePointer(
+            reinterpret_cast<ObjectPtr*>(instance->ptr()) +
+                LinkedHashMap::data_offset() / kWordSize,
+            SP[0]);
         *--SP = null_value;
       } break;
       case MethodRecognizer::kLinkedHashMap_getHashMask: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
-        SP[0] = reinterpret_cast<RawObject**>(
+        InstancePtr instance = static_cast<InstancePtr>(SP[0]);
+        SP[0] = reinterpret_cast<ObjectPtr*>(
             instance->ptr())[LinkedHashMap::hash_mask_offset() / kWordSize];
       } break;
       case MethodRecognizer::kLinkedHashMap_setHashMask: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
+        InstancePtr instance = static_cast<InstancePtr>(SP[-1]);
         ASSERT(!SP[0]->IsHeapObject());
-        reinterpret_cast<RawObject**>(
+        reinterpret_cast<ObjectPtr*>(
             instance->ptr())[LinkedHashMap::hash_mask_offset() / kWordSize] =
             SP[0];
         *--SP = null_value;
       } break;
       case MethodRecognizer::kLinkedHashMap_getUsedData: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
-        SP[0] = reinterpret_cast<RawObject**>(
+        InstancePtr instance = static_cast<InstancePtr>(SP[0]);
+        SP[0] = reinterpret_cast<ObjectPtr*>(
             instance->ptr())[LinkedHashMap::used_data_offset() / kWordSize];
       } break;
       case MethodRecognizer::kLinkedHashMap_setUsedData: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
+        InstancePtr instance = static_cast<InstancePtr>(SP[-1]);
         ASSERT(!SP[0]->IsHeapObject());
-        reinterpret_cast<RawObject**>(
+        reinterpret_cast<ObjectPtr*>(
             instance->ptr())[LinkedHashMap::used_data_offset() / kWordSize] =
             SP[0];
         *--SP = null_value;
       } break;
       case MethodRecognizer::kLinkedHashMap_getDeletedKeys: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
-        SP[0] = reinterpret_cast<RawObject**>(
+        InstancePtr instance = static_cast<InstancePtr>(SP[0]);
+        SP[0] = reinterpret_cast<ObjectPtr*>(
             instance->ptr())[LinkedHashMap::deleted_keys_offset() / kWordSize];
       } break;
       case MethodRecognizer::kLinkedHashMap_setDeletedKeys: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
+        InstancePtr instance = static_cast<InstancePtr>(SP[-1]);
         ASSERT(!SP[0]->IsHeapObject());
-        reinterpret_cast<RawObject**>(
+        reinterpret_cast<ObjectPtr*>(
             instance->ptr())[LinkedHashMap::deleted_keys_offset() / kWordSize] =
             SP[0];
         *--SP = null_value;
@@ -2231,8 +2246,8 @@ SwitchDispatch:
 
         *++SP = null_value;  // Result slot.
 
-        RawObject** incoming_args = SP - num_arguments;
-        RawObject** return_slot = SP;
+        ObjectPtr* incoming_args = SP - num_arguments;
+        ObjectPtr* return_slot = SP;
         Exit(thread, FP, SP + 1, pc);
         NativeArguments native_args(thread, argc_tag, incoming_args,
                                     return_slot);
@@ -2249,10 +2264,9 @@ SwitchDispatch:
   }
 
   {
-    RawObject* result;  // result to return to the caller.
-
     BYTECODE(ReturnTOS, 0);
     DEBUG_CHECK;
+    ObjectPtr result;  // result to return to the caller.
     result = *SP;
     // Restore caller PC.
     pc = SavedCallerPC(FP);
@@ -2260,14 +2274,12 @@ SwitchDispatch:
     // Check if it is a fake PC marking the entry frame.
     if (IsEntryFrameMarker(pc)) {
       // Pop entry frame.
-      RawObject** entry_fp = SavedCallerFP(FP);
+      ObjectPtr* entry_fp = SavedCallerFP(FP);
       // Restore exit frame info saved in entry frame.
-      pp_ = reinterpret_cast<RawObjectPool*>(
-          entry_fp[kKBCSavedPpSlotFromEntryFp]);
-      argdesc_ = reinterpret_cast<RawArray*>(
-          entry_fp[kKBCSavedArgDescSlotFromEntryFp]);
-      uword exit_fp =
-          reinterpret_cast<uword>(entry_fp[kKBCExitLinkSlotFromEntryFp]);
+      pp_ = static_cast<ObjectPoolPtr>(entry_fp[kKBCSavedPpSlotFromEntryFp]);
+      argdesc_ =
+          static_cast<ArrayPtr>(entry_fp[kKBCSavedArgDescSlotFromEntryFp]);
+      uword exit_fp = static_cast<uword>(entry_fp[kKBCExitLinkSlotFromEntryFp]);
       thread->set_top_exit_frame_info(exit_fp);
       thread->set_top_resource(top_resource);
       thread->set_vm_tag(vm_tag);
@@ -2312,12 +2324,12 @@ SwitchDispatch:
 
   {
     BYTECODE(InitLateField, D);
-    RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
-    RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+    FieldPtr field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
+    InstancePtr instance = static_cast<InstancePtr>(SP[0]);
     intptr_t offset_in_words = field->ptr()->host_offset_or_field_id_;
 
-    instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
+    instance->ptr()->StorePointer(
+        reinterpret_cast<ObjectPtr*>(instance->ptr()) + offset_in_words,
         Object::RawCast(Object::sentinel().raw()), thread);
 
     SP -= 1;  // Drop instance.
@@ -2341,8 +2353,8 @@ SwitchDispatch:
 
   {
     BYTECODE(StoreStaticTOS, D);
-    RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
-    RawInstance* value = static_cast<RawInstance*>(*SP--);
+    FieldPtr field = static_cast<FieldPtr>(LOAD_CONSTANT(rD));
+    InstancePtr value = static_cast<InstancePtr>(*SP--);
     intptr_t field_id = field->ptr()->host_offset_or_field_id_;
     thread->field_table_values()[field_id] = value;
     DISPATCH();
@@ -2350,9 +2362,9 @@ SwitchDispatch:
 
   {
     BYTECODE(LoadStatic, D);
-    RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
+    FieldPtr field = static_cast<FieldPtr>(LOAD_CONSTANT(rD));
     intptr_t field_id = field->ptr()->host_offset_or_field_id_;
-    RawInstance* value = thread->field_table_values()[field_id];
+    InstancePtr value = thread->field_table_values()[field_id];
     ASSERT((value != Object::sentinel().raw()) &&
            (value != Object::transition_sentinel().raw()));
     *++SP = value;
@@ -2361,9 +2373,9 @@ SwitchDispatch:
 
   {
     BYTECODE(StoreFieldTOS, D);
-    RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
-    RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
-    RawObject* value = reinterpret_cast<RawObject*>(SP[0]);
+    FieldPtr field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
+    InstancePtr instance = static_cast<InstancePtr>(SP[-1]);
+    ObjectPtr value = static_cast<ObjectPtr>(SP[0]);
     intptr_t offset_in_words = field->ptr()->host_offset_or_field_id_;
 
     if (InterpreterHelpers::FieldNeedsGuardUpdate(field, value)) {
@@ -2379,7 +2391,7 @@ SwitchDispatch:
 
       // Reload objects after the call which may trigger GC.
       field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
-      instance = reinterpret_cast<RawInstance*>(SP[-1]);
+      instance = static_cast<InstancePtr>(SP[-1]);
       value = SP[0];
     }
 
@@ -2389,47 +2401,47 @@ SwitchDispatch:
     classid_t guarded_cid = field->ptr()->guarded_cid_;
     if (unboxing && (guarded_cid == kDoubleCid) && supports_unboxed_doubles_) {
       double raw_value = Double::RawCast(value)->ptr()->value_;
-      ASSERT(*(reinterpret_cast<RawDouble**>(instance->ptr()) +
+      ASSERT(*(reinterpret_cast<DoublePtr*>(instance->ptr()) +
                offset_in_words) == null_value);  // Initializing store.
       if (!AllocateDouble(thread, raw_value, pc, FP, SP)) {
         HANDLE_EXCEPTION;
       }
-      RawDouble* box = Double::RawCast(SP[0]);
-      instance = reinterpret_cast<RawInstance*>(SP[-1]);
-      instance->StorePointer(
-          reinterpret_cast<RawDouble**>(instance->ptr()) + offset_in_words, box,
+      DoublePtr box = Double::RawCast(SP[0]);
+      instance = static_cast<InstancePtr>(SP[-1]);
+      instance->ptr()->StorePointer(
+          reinterpret_cast<DoublePtr*>(instance->ptr()) + offset_in_words, box,
           thread);
     } else if (unboxing && (guarded_cid == kFloat32x4Cid) &&
                supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
-      ASSERT(*(reinterpret_cast<RawFloat32x4**>(instance->ptr()) +
+      ASSERT(*(reinterpret_cast<Float32x4Ptr*>(instance->ptr()) +
                offset_in_words) == null_value);  // Initializing store.
       if (!AllocateFloat32x4(thread, raw_value, pc, FP, SP)) {
         HANDLE_EXCEPTION;
       }
-      RawFloat32x4* box = Float32x4::RawCast(SP[0]);
-      instance = reinterpret_cast<RawInstance*>(SP[-1]);
-      instance->StorePointer(
-          reinterpret_cast<RawFloat32x4**>(instance->ptr()) + offset_in_words,
+      Float32x4Ptr box = Float32x4::RawCast(SP[0]);
+      instance = static_cast<InstancePtr>(SP[-1]);
+      instance->ptr()->StorePointer(
+          reinterpret_cast<Float32x4Ptr*>(instance->ptr()) + offset_in_words,
           box, thread);
     } else if (unboxing && (guarded_cid == kFloat64x2Cid) &&
                supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
-      ASSERT(*(reinterpret_cast<RawFloat64x2**>(instance->ptr()) +
+      ASSERT(*(reinterpret_cast<Float64x2Ptr*>(instance->ptr()) +
                offset_in_words) == null_value);  // Initializing store.
       if (!AllocateFloat64x2(thread, raw_value, pc, FP, SP)) {
         HANDLE_EXCEPTION;
       }
-      RawFloat64x2* box = Float64x2::RawCast(SP[0]);
-      instance = reinterpret_cast<RawInstance*>(SP[-1]);
-      instance->StorePointer(
-          reinterpret_cast<RawFloat64x2**>(instance->ptr()) + offset_in_words,
+      Float64x2Ptr box = Float64x2::RawCast(SP[0]);
+      instance = static_cast<InstancePtr>(SP[-1]);
+      instance->ptr()->StorePointer(
+          reinterpret_cast<Float64x2Ptr*>(instance->ptr()) + offset_in_words,
           box, thread);
     } else {
-      instance->StorePointer(
-          reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
+      instance->ptr()->StorePointer(
+          reinterpret_cast<ObjectPtr*>(instance->ptr()) + offset_in_words,
           value, thread);
     }
 
@@ -2441,13 +2453,13 @@ SwitchDispatch:
     BYTECODE(StoreContextParent, 0);
     const uword offset_in_words =
         static_cast<uword>(Context::parent_offset() / kWordSize);
-    RawContext* instance = reinterpret_cast<RawContext*>(SP[-1]);
-    RawContext* value = reinterpret_cast<RawContext*>(SP[0]);
+    ContextPtr instance = static_cast<ContextPtr>(SP[-1]);
+    ContextPtr value = static_cast<ContextPtr>(SP[0]);
     SP -= 2;  // Drop instance and value.
 
-    instance->StorePointer(
-        reinterpret_cast<RawContext**>(instance->ptr()) + offset_in_words,
-        value, thread);
+    instance->ptr()->StorePointer(
+        reinterpret_cast<ContextPtr*>(instance->ptr()) + offset_in_words, value,
+        thread);
 
     DISPATCH();
   }
@@ -2456,12 +2468,12 @@ SwitchDispatch:
     BYTECODE(StoreContextVar, A_E);
     const uword offset_in_words =
         static_cast<uword>(Context::variable_offset(rE) / kWordSize);
-    RawContext* instance = reinterpret_cast<RawContext*>(SP[-1]);
-    RawObject* value = reinterpret_cast<RawContext*>(SP[0]);
+    ContextPtr instance = static_cast<ContextPtr>(SP[-1]);
+    ObjectPtr value = static_cast<ContextPtr>(SP[0]);
     SP -= 2;  // Drop instance and value.
     ASSERT(rE < static_cast<uint32_t>(instance->ptr()->num_variables_));
-    instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
+    instance->ptr()->StorePointer(
+        reinterpret_cast<ObjectPtr*>(instance->ptr()) + offset_in_words, value,
         thread);
 
     DISPATCH();
@@ -2473,7 +2485,7 @@ SwitchDispatch:
     // Currently only used to load closure fields, which are not unboxed.
     // If used for general field, code for copying the mutable box must be
     // added.
-    RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
+    FieldPtr field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
     const bool unboxing =
         (field->ptr()->is_nullable_ != kNullCid) &&
         Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
@@ -2481,8 +2493,8 @@ SwitchDispatch:
 #endif
     const uword offset_in_words =
         static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
-    RawInstance* instance = static_cast<RawInstance*>(SP[0]);
-    SP[0] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    InstancePtr instance = static_cast<InstancePtr>(SP[0]);
+    SP[0] = reinterpret_cast<ObjectPtr*>(instance->ptr())[offset_in_words];
     DISPATCH();
   }
 
@@ -2490,8 +2502,8 @@ SwitchDispatch:
     BYTECODE(LoadTypeArgumentsField, D);
     const uword offset_in_words =
         static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
-    RawInstance* instance = static_cast<RawInstance*>(SP[0]);
-    SP[0] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    InstancePtr instance = static_cast<InstancePtr>(SP[0]);
+    SP[0] = reinterpret_cast<ObjectPtr*>(instance->ptr())[offset_in_words];
     DISPATCH();
   }
 
@@ -2499,8 +2511,8 @@ SwitchDispatch:
     BYTECODE(LoadContextParent, 0);
     const uword offset_in_words =
         static_cast<uword>(Context::parent_offset() / kWordSize);
-    RawContext* instance = static_cast<RawContext*>(SP[0]);
-    SP[0] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    ContextPtr instance = static_cast<ContextPtr>(SP[0]);
+    SP[0] = reinterpret_cast<ObjectPtr*>(instance->ptr())[offset_in_words];
     DISPATCH();
   }
 
@@ -2508,9 +2520,9 @@ SwitchDispatch:
     BYTECODE(LoadContextVar, A_E);
     const uword offset_in_words =
         static_cast<uword>(Context::variable_offset(rE) / kWordSize);
-    RawContext* instance = static_cast<RawContext*>(SP[0]);
+    ContextPtr instance = static_cast<ContextPtr>(SP[0]);
     ASSERT(rE < static_cast<uint32_t>(instance->ptr()->num_variables_));
-    SP[0] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    SP[0] = reinterpret_cast<ObjectPtr*>(instance->ptr())[offset_in_words];
     DISPATCH();
   }
 
@@ -2536,17 +2548,17 @@ SwitchDispatch:
 
   {
     BYTECODE(Allocate, D);
-    RawClass* cls = Class::RawCast(LOAD_CONSTANT(rD));
+    ClassPtr cls = Class::RawCast(LOAD_CONSTANT(rD));
     if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
       const intptr_t instance_size = cls->ptr()->host_instance_size_in_words_
                                      << kWordSizeLog2;
-      RawObject* result;
+      ObjectPtr result;
       if (TryAllocate(thread, class_id, instance_size, &result)) {
-        uword start = RawObject::ToAddr(result);
-        for (intptr_t offset = sizeof(RawInstance); offset < instance_size;
+        uword start = ObjectLayout::ToAddr(result);
+        for (intptr_t offset = sizeof(InstanceLayout); offset < instance_size;
              offset += kWordSize) {
-          *reinterpret_cast<RawObject**>(start + offset) = null_value;
+          *reinterpret_cast<ObjectPtr*>(start + offset) = null_value;
         }
         *++SP = result;
         DISPATCH();
@@ -2565,23 +2577,23 @@ SwitchDispatch:
 
   {
     BYTECODE(AllocateT, 0);
-    RawClass* cls = Class::RawCast(SP[0]);
-    RawTypeArguments* type_args = TypeArguments::RawCast(SP[-1]);
+    ClassPtr cls = Class::RawCast(SP[0]);
+    TypeArgumentsPtr type_args = TypeArguments::RawCast(SP[-1]);
     if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
       const intptr_t instance_size = cls->ptr()->host_instance_size_in_words_
                                      << kWordSizeLog2;
-      RawObject* result;
+      ObjectPtr result;
       if (TryAllocate(thread, class_id, instance_size, &result)) {
-        uword start = RawObject::ToAddr(result);
-        for (intptr_t offset = sizeof(RawInstance); offset < instance_size;
+        uword start = ObjectLayout::ToAddr(result);
+        for (intptr_t offset = sizeof(InstanceLayout); offset < instance_size;
              offset += kWordSize) {
-          *reinterpret_cast<RawObject**>(start + offset) = null_value;
+          *reinterpret_cast<ObjectPtr*>(start + offset) = null_value;
         }
         const intptr_t type_args_offset =
             cls->ptr()->host_type_arguments_field_offset_in_words_
             << kWordSizeLog2;
-        *reinterpret_cast<RawObject**>(start + type_args_offset) = type_args;
+        *reinterpret_cast<ObjectPtr*>(start + type_args_offset) = type_args;
         *--SP = result;
         DISPATCH();
       }
@@ -2598,8 +2610,8 @@ SwitchDispatch:
 
   {
     BYTECODE(CreateArrayTOS, 0);
-    RawTypeArguments* type_args = TypeArguments::RawCast(SP[-1]);
-    RawObject* length = SP[0];
+    TypeArgumentsPtr type_args = TypeArguments::RawCast(SP[-1]);
+    ObjectPtr length = SP[0];
     SP--;
     if (!AllocateArray(thread, type_args, length, pc, FP, SP)) {
       HANDLE_EXCEPTION;
@@ -2610,14 +2622,14 @@ SwitchDispatch:
   {
     BYTECODE(AssertAssignable, A_E);
     // Stack: instance, type, instantiator type args, function type args, name
-    RawObject** args = SP - 4;
+    ObjectPtr* args = SP - 4;
     const bool may_be_smi = (rA == 1);
     const bool is_smi =
-        ((reinterpret_cast<intptr_t>(args[0]) & kSmiTagMask) == kSmiTag);
+        ((static_cast<intptr_t>(args[0]) & kSmiTagMask) == kSmiTag);
     const bool smi_ok = is_smi && may_be_smi;
     if (!smi_ok && (args[0] != null_value)) {
-      RawSubtypeTestCache* cache =
-          static_cast<RawSubtypeTestCache*>(LOAD_CONSTANT(rE));
+      SubtypeTestCachePtr cache =
+          static_cast<SubtypeTestCachePtr>(LOAD_CONSTANT(rE));
 
       if (!AssertAssignable(thread, pc, FP, SP, args, cache)) {
         HANDLE_EXCEPTION;
@@ -2630,7 +2642,7 @@ SwitchDispatch:
 
   {
     BYTECODE(AssertSubtype, 0);
-    RawObject** args = SP - 4;
+    ObjectPtr* args = SP - 4;
 
     // TODO(kustermann): Implement fast case for common arguments.
 
@@ -2643,7 +2655,7 @@ SwitchDispatch:
 
     // This is unused, since the negative case throws an exception.
     SP++;
-    RawObject** result_slot = SP;
+    ObjectPtr* result_slot = SP;
 
     Exit(thread, FP, SP + 1, pc);
     INVOKE_RUNTIME(DRT_SubtypeCheck,
@@ -2657,7 +2669,7 @@ SwitchDispatch:
 
   {
     BYTECODE(AssertBoolean, A);
-    RawObject* value = SP[0];
+    ObjectPtr value = SP[0];
     if (rA != 0u) {  // Should we perform type check?
       if ((value == true_value) || (value == false_value)) {
         goto AssertBooleanOk;
@@ -2764,12 +2776,12 @@ SwitchDispatch:
   {
     BYTECODE(StoreIndexedTOS, 0);
     SP -= 3;
-    RawArray* array = RAW_CAST(Array, SP[1]);
-    RawSmi* index = RAW_CAST(Smi, SP[2]);
-    RawObject* value = SP[3];
+    ArrayPtr array = RAW_CAST(Array, SP[1]);
+    SmiPtr index = RAW_CAST(Smi, SP[2]);
+    ObjectPtr value = SP[3];
     ASSERT(InterpreterHelpers::CheckIndex(index, array->ptr()->length_));
-    array->StorePointer(array->ptr()->data() + Smi::Value(index), value,
-                        thread);
+    array->ptr()->StorePointer(array->ptr()->data() + Smi::Value(index), value,
+                               thread);
     DISPATCH();
   }
 
@@ -3139,20 +3151,20 @@ SwitchDispatch:
   {
     BYTECODE(VMInternal_ImplicitGetter, 0);
 
-    RawFunction* function = FrameFunction(FP);
-    ASSERT(Function::kind(function) == RawFunction::kImplicitGetter);
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == FunctionLayout::kImplicitGetter);
 
     BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
     // Field object is cached in function's data_.
-    RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
+    FieldPtr field = static_cast<FieldPtr>(function->ptr()->data_);
     intptr_t offset_in_words = field->ptr()->host_offset_or_field_id_;
 
     const intptr_t kArgc = 1;
-    RawInstance* instance =
-        reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
-    RawInstance* value =
-        reinterpret_cast<RawInstance**>(instance->ptr())[offset_in_words];
+    InstancePtr instance =
+        static_cast<InstancePtr>(FrameArguments(FP, kArgc)[0]);
+    InstancePtr value =
+        reinterpret_cast<InstancePtr*>(instance->ptr())[offset_in_words];
 
     if (UNLIKELY(value == Object::sentinel().raw())) {
       SP[1] = 0;  // Result slot.
@@ -3164,10 +3176,10 @@ SwitchDispatch:
           NativeArguments(thread, 2, /* argv */ SP + 2, /* ret val */ SP + 1));
 
       function = FrameFunction(FP);
-      instance = reinterpret_cast<RawInstance*>(SP[2]);
-      field = reinterpret_cast<RawField*>(SP[3]);
+      instance = static_cast<InstancePtr>(SP[2]);
+      field = static_cast<FieldPtr>(SP[3]);
       offset_in_words = field->ptr()->host_offset_or_field_id_;
-      value = reinterpret_cast<RawInstance**>(instance->ptr())[offset_in_words];
+      value = reinterpret_cast<InstancePtr*>(instance->ptr())[offset_in_words];
     }
 
     *++SP = value;
@@ -3179,9 +3191,9 @@ SwitchDispatch:
         HANDLE_EXCEPTION;
       }
       // Reload objects after the call which may trigger GC.
-      field = reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
-      instance = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
-      value = reinterpret_cast<RawInstance**>(instance->ptr())[offset_in_words];
+      field = static_cast<FieldPtr>(FrameFunction(FP)->ptr()->data_);
+      instance = static_cast<InstancePtr>(FrameArguments(FP, kArgc)[0]);
+      value = reinterpret_cast<InstancePtr*>(instance->ptr())[offset_in_words];
     }
 #endif
 
@@ -3220,28 +3232,27 @@ SwitchDispatch:
   {
     BYTECODE(VMInternal_ImplicitSetter, 0);
 
-    RawFunction* function = FrameFunction(FP);
-    ASSERT(Function::kind(function) == RawFunction::kImplicitSetter);
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == FunctionLayout::kImplicitSetter);
 
     BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
     // Field object is cached in function's data_.
-    RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
+    FieldPtr field = static_cast<FieldPtr>(function->ptr()->data_);
     intptr_t offset_in_words = field->ptr()->host_offset_or_field_id_;
     const intptr_t kArgc = 2;
-    RawInstance* instance =
-        reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
-    RawInstance* value =
-        reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[1]);
+    InstancePtr instance =
+        static_cast<InstancePtr>(FrameArguments(FP, kArgc)[0]);
+    InstancePtr value = static_cast<InstancePtr>(FrameArguments(FP, kArgc)[1]);
 
     if (!AssertAssignableField<false>(thread, pc, FP, SP, instance, field,
                                       value)) {
       HANDLE_EXCEPTION;
     }
     // Reload objects after the call which may trigger GC.
-    field = reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
-    instance = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
-    value = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[1]);
+    field = static_cast<FieldPtr>(FrameFunction(FP)->ptr()->data_);
+    instance = static_cast<InstancePtr>(FrameArguments(FP, kArgc)[0]);
+    value = static_cast<InstancePtr>(FrameArguments(FP, kArgc)[1]);
 
     if (InterpreterHelpers::FieldNeedsGuardUpdate(field, value)) {
       SP[1] = 0;  // Unused result of runtime call.
@@ -3255,9 +3266,9 @@ SwitchDispatch:
       }
 
       // Reload objects after the call which may trigger GC.
-      field = reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
-      instance = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
-      value = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[1]);
+      field = static_cast<FieldPtr>(FrameFunction(FP)->ptr()->data_);
+      instance = static_cast<InstancePtr>(FrameArguments(FP, kArgc)[0]);
+      value = static_cast<InstancePtr>(FrameArguments(FP, kArgc)[1]);
     }
 
     const bool unboxing =
@@ -3266,29 +3277,29 @@ SwitchDispatch:
     classid_t guarded_cid = field->ptr()->guarded_cid_;
     if (unboxing && (guarded_cid == kDoubleCid) && supports_unboxed_doubles_) {
       double raw_value = Double::RawCast(value)->ptr()->value_;
-      RawDouble* box =
-          *(reinterpret_cast<RawDouble**>(instance->ptr()) + offset_in_words);
+      DoublePtr box =
+          *(reinterpret_cast<DoublePtr*>(instance->ptr()) + offset_in_words);
       ASSERT(box != null_value);  // Non-initializing store.
       box->ptr()->value_ = raw_value;
     } else if (unboxing && (guarded_cid == kFloat32x4Cid) &&
                supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
-      RawFloat32x4* box = *(reinterpret_cast<RawFloat32x4**>(instance->ptr()) +
-                            offset_in_words);
+      Float32x4Ptr box =
+          *(reinterpret_cast<Float32x4Ptr*>(instance->ptr()) + offset_in_words);
       ASSERT(box != null_value);  // Non-initializing store.
       raw_value.writeTo(box->ptr()->value_);
     } else if (unboxing && (guarded_cid == kFloat64x2Cid) &&
                supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
-      RawFloat64x2* box = *(reinterpret_cast<RawFloat64x2**>(instance->ptr()) +
-                            offset_in_words);
+      Float64x2Ptr box =
+          *(reinterpret_cast<Float64x2Ptr*>(instance->ptr()) + offset_in_words);
       ASSERT(box != null_value);  // Non-initializing store.
       raw_value.writeTo(box->ptr()->value_);
     } else {
-      instance->StorePointer(
-          reinterpret_cast<RawInstance**>(instance->ptr()) + offset_in_words,
+      instance->ptr()->StorePointer(
+          reinterpret_cast<InstancePtr*>(instance->ptr()) + offset_in_words,
           value, thread);
     }
 
@@ -3300,15 +3311,15 @@ SwitchDispatch:
   {
     BYTECODE(VMInternal_ImplicitStaticGetter, 0);
 
-    RawFunction* function = FrameFunction(FP);
-    ASSERT(Function::kind(function) == RawFunction::kImplicitStaticGetter);
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == FunctionLayout::kImplicitStaticGetter);
 
     BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
     // Field object is cached in function's data_.
-    RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
+    FieldPtr field = static_cast<FieldPtr>(function->ptr()->data_);
     intptr_t field_id = field->ptr()->host_offset_or_field_id_;
-    RawInstance* value = thread->field_table_values()[field_id];
+    InstancePtr value = thread->field_table_values()[field_id];
     if (value == Object::sentinel().raw() ||
         value == Object::transition_sentinel().raw()) {
       SP[1] = 0;  // Unused result of invoking the initializer.
@@ -3319,7 +3330,7 @@ SwitchDispatch:
 
       // Reload objects after the call which may trigger GC.
       function = FrameFunction(FP);
-      field = reinterpret_cast<RawField*>(function->ptr()->data_);
+      field = static_cast<FieldPtr>(function->ptr()->data_);
       // The field is initialized by the runtime call, but not returned.
       intptr_t field_id = field->ptr()->host_offset_or_field_id_;
       value = thread->field_table_values()[field_id];
@@ -3330,9 +3341,9 @@ SwitchDispatch:
 
 #if !defined(PRODUCT)
     if (UNLIKELY(Field::NeedsLoadGuardBit::decode(field->ptr()->kind_bits_))) {
-      if (!AssertAssignableField<true>(
-              thread, pc, FP, SP, reinterpret_cast<RawInstance*>(null_value),
-              field, value)) {
+      if (!AssertAssignableField<true>(thread, pc, FP, SP,
+                                       static_cast<InstancePtr>(null_value),
+                                       field, value)) {
         HANDLE_EXCEPTION;
       }
     }
@@ -3344,8 +3355,8 @@ SwitchDispatch:
   {
     BYTECODE(VMInternal_MethodExtractor, 0);
 
-    RawFunction* function = FrameFunction(FP);
-    ASSERT(Function::kind(function) == RawFunction::kMethodExtractor);
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == FunctionLayout::kMethodExtractor);
 
     BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
@@ -3361,21 +3372,22 @@ SwitchDispatch:
       HANDLE_EXCEPTION;
     }
 
-    RawContext* context = Context::RawCast(*SP--);
-    RawInstance* instance = Instance::RawCast(FrameArguments(FP, 1)[0]);
-    context->StorePointer(
-        reinterpret_cast<RawInstance**>(&context->ptr()->data()[0]), instance);
+    ContextPtr context = Context::RawCast(*SP--);
+    InstancePtr instance = Instance::RawCast(FrameArguments(FP, 1)[0]);
+    context->ptr()->StorePointer(
+        reinterpret_cast<InstancePtr*>(&context->ptr()->data()[0]), instance);
 
-    RawClosure* closure = Closure::RawCast(*SP);
-    closure->StorePointer(
+    ClosurePtr closure = Closure::RawCast(*SP);
+    closure->ptr()->StorePointer(
         &closure->ptr()->instantiator_type_arguments_,
         InterpreterHelpers::GetTypeArguments(thread, instance));
     // function_type_arguments_ is already null
     closure->ptr()->delayed_type_arguments_ =
         Object::empty_type_arguments().raw();
-    closure->StorePointer(&closure->ptr()->function_,
-                          Function::RawCast(FrameFunction(FP)->ptr()->data_));
-    closure->StorePointer(&closure->ptr()->context_, context);
+    closure->ptr()->StorePointer(
+        &closure->ptr()->function_,
+        Function::RawCast(FrameFunction(FP)->ptr()->data_));
+    closure->ptr()->StorePointer(&closure->ptr()->context_, context);
     // hash_ is already null
 
     DISPATCH();
@@ -3384,8 +3396,8 @@ SwitchDispatch:
   {
     BYTECODE(VMInternal_InvokeClosure, 0);
 
-    RawFunction* function = FrameFunction(FP);
-    ASSERT(Function::kind(function) == RawFunction::kInvokeFieldDispatcher);
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == FunctionLayout::kInvokeFieldDispatcher);
 
     BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
@@ -3395,7 +3407,7 @@ SwitchDispatch:
     const intptr_t argc =
         InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
 
-    RawClosure* receiver =
+    ClosurePtr receiver =
         Closure::RawCast(FrameArguments(FP, argc)[receiver_idx]);
     function = receiver->ptr()->function_;
 
@@ -3406,8 +3418,8 @@ SwitchDispatch:
   {
     BYTECODE(VMInternal_InvokeField, 0);
 
-    RawFunction* function = FrameFunction(FP);
-    ASSERT(Function::kind(function) == RawFunction::kInvokeFieldDispatcher);
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == FunctionLayout::kInvokeFieldDispatcher);
 
     BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
@@ -3417,7 +3429,7 @@ SwitchDispatch:
     const intptr_t argc =
         InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
 
-    RawObject* receiver = FrameArguments(FP, argc)[receiver_idx];
+    ObjectPtr receiver = FrameArguments(FP, argc)[receiver_idx];
 
     // Invoke field getter on receiver.
     {
@@ -3482,8 +3494,8 @@ SwitchDispatch:
     }
 
     // Copy arguments into the newly allocated array.
-    RawObject** argv = FrameArguments(FP, argc);
-    RawArray* array = static_cast<RawArray*>(SP[4]);
+    ObjectPtr* argv = FrameArguments(FP, argc);
+    ArrayPtr array = static_cast<ArrayPtr>(SP[4]);
     ASSERT(array->GetClassId() == kArrayCid);
     for (intptr_t i = 0; i < argc; i++) {
       array->ptr()->data()[i] = argv[i];
@@ -3508,16 +3520,17 @@ SwitchDispatch:
 
   {
     BYTECODE(VMInternal_ForwardDynamicInvocation, 0);
-    RawFunction* function = FrameFunction(FP);
+    FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::kind(function) ==
-           RawFunction::kDynamicInvocationForwarder);
+           FunctionLayout::kDynamicInvocationForwarder);
 
     BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
-    RawArray* checks = Array::RawCast(function->ptr()->data_);
-    RawFunction* target = Function::RawCast(checks->ptr()->data()[0]);
-    ASSERT(Function::kind(target) != RawFunction::kDynamicInvocationForwarder);
-    RawBytecode* target_bytecode = target->ptr()->bytecode_;
+    ArrayPtr checks = Array::RawCast(function->ptr()->data_);
+    FunctionPtr target = Function::RawCast(checks->ptr()->data()[0]);
+    ASSERT(Function::kind(target) !=
+           FunctionLayout::kDynamicInvocationForwarder);
+    BytecodePtr target_bytecode = target->ptr()->bytecode_;
     ASSERT(target_bytecode != Bytecode::null());
     ASSERT(target_bytecode->IsBytecode());
 
@@ -3545,7 +3558,7 @@ SwitchDispatch:
     const intptr_t argc =
         InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
 
-    RawInstance* receiver =
+    InstancePtr receiver =
         Instance::RawCast(FrameArguments(FP, argc)[receiver_idx]);
     SP[5] = InterpreterHelpers::GetTypeArguments(thread, receiver);
 
@@ -3566,7 +3579,7 @@ SwitchDispatch:
     }
 
     for (intptr_t i = 2; i < len; i++) {
-      RawParameterTypeCheck* check =
+      ParameterTypeCheckPtr check =
           ParameterTypeCheck::RawCast(checks->ptr()->data()[i]);
 
       if (LIKELY(check->ptr()->index_ != 0)) {
@@ -3612,35 +3625,37 @@ SwitchDispatch:
 
   {
     BYTECODE(VMInternal_NoSuchMethodDispatcher, 0);
-    RawFunction* function = FrameFunction(FP);
-    ASSERT(Function::kind(function) == RawFunction::kNoSuchMethodDispatcher);
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == FunctionLayout::kNoSuchMethodDispatcher);
     goto NoSuchMethodFromPrologue;
   }
 
   {
     BYTECODE(VMInternal_ImplicitStaticClosure, 0);
-    RawFunction* function = FrameFunction(FP);
-    ASSERT(Function::kind(function) == RawFunction::kImplicitClosureFunction);
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::kind(function) ==
+           FunctionLayout::kImplicitClosureFunction);
     UNIMPLEMENTED();
     DISPATCH();
   }
 
   {
     BYTECODE(VMInternal_ImplicitInstanceClosure, 0);
-    RawFunction* function = FrameFunction(FP);
-    ASSERT(Function::kind(function) == RawFunction::kImplicitClosureFunction);
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::kind(function) ==
+           FunctionLayout::kImplicitClosureFunction);
     UNIMPLEMENTED();
     DISPATCH();
   }
 
   {
   TailCallSP1:
-    RawFunction* function = Function::RawCast(SP[1]);
+    FunctionPtr function = Function::RawCast(SP[1]);
 
     for (;;) {
       if (Function::HasBytecode(function)) {
         ASSERT(function->IsFunction());
-        RawBytecode* bytecode = function->ptr()->bytecode_;
+        BytecodePtr bytecode = function->ptr()->bytecode_;
         ASSERT(bytecode->IsBytecode());
         FP[kKBCFunctionSlotFromFp] = function;
         FP[kKBCPcMarkerSlotFromFp] = bytecode;
@@ -3656,13 +3671,13 @@ SwitchDispatch:
         const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
         const intptr_t argc =
             InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
-        RawObject** argv = FrameArguments(FP, argc);
+        ObjectPtr* argv = FrameArguments(FP, argc);
         for (intptr_t i = 0; i < argc; i++) {
           *++SP = argv[i];
         }
 
-        RawObject** call_base = SP - argc + 1;
-        RawObject** call_top = SP + 1;
+        ObjectPtr* call_base = SP - argc + 1;
+        ObjectPtr* call_top = SP + 1;
         call_top[0] = function;
         if (!InvokeCompiled(thread, function, call_base, call_top, &pc, &FP,
                             &SP)) {
@@ -3693,14 +3708,14 @@ SwitchDispatch:
   // Helper used to handle noSuchMethod on closures.
   {
   NoSuchMethodFromPrologue:
-    RawFunction* function = FrameFunction(FP);
+    FunctionPtr function = FrameFunction(FP);
 
     const intptr_t type_args_len =
         InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
     const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
     const intptr_t argc =
         InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
-    RawObject** args = FrameArguments(FP, argc);
+    ObjectPtr* args = FrameArguments(FP, argc);
 
     SP[1] = null_value;
     SP[2] = args[receiver_idx];
@@ -3719,7 +3734,7 @@ SwitchDispatch:
       }
 
       // Copy arguments into the newly allocated array.
-      RawArray* array = static_cast<RawArray*>(SP[5]);
+      ArrayPtr array = static_cast<ArrayPtr>(SP[5]);
       ASSERT(array->GetClassId() == kArrayCid);
       for (intptr_t i = 0; i < argc; i++) {
         array->ptr()->data()[i] = args[i];
@@ -3776,10 +3791,9 @@ SwitchDispatch:
     FP = fp_;
     pc = pc_;
     if (IsEntryFrameMarker(pc)) {
-      pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]);
-      argdesc_ =
-          reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);
-      uword exit_fp = reinterpret_cast<uword>(fp_[kKBCExitLinkSlotFromEntryFp]);
+      pp_ = static_cast<ObjectPoolPtr>(fp_[kKBCSavedPpSlotFromEntryFp]);
+      argdesc_ = static_cast<ArrayPtr>(fp_[kKBCSavedArgDescSlotFromEntryFp]);
+      uword exit_fp = static_cast<uword>(fp_[kKBCExitLinkSlotFromEntryFp]);
       thread->set_top_exit_frame_info(exit_fp);
       thread->set_top_resource(top_resource);
       thread->set_vm_tag(vm_tag);
@@ -3819,13 +3833,13 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // in the previous C++ frames.
   StackResource::Unwind(thread);
 
-  fp_ = reinterpret_cast<RawObject**>(fp);
+  fp_ = reinterpret_cast<ObjectPtr*>(fp);
 
   if (pc == StubCode::RunExceptionHandler().EntryPoint()) {
     // The RunExceptionHandler stub is a placeholder.  We implement
     // its behavior here.
-    RawObject* raw_exception = thread->active_exception();
-    RawObject* raw_stacktrace = thread->active_stacktrace();
+    ObjectPtr raw_exception = thread->active_exception();
+    ObjectPtr raw_stacktrace = thread->active_stacktrace();
     ASSERT(raw_exception != Object::null());
     thread->set_active_exception(Object::null_object());
     thread->set_active_stacktrace(Object::null_object());
@@ -3846,8 +3860,8 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
 }
 
 void Interpreter::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&pp_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&argdesc_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&pp_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&argdesc_));
 }
 
 }  // namespace dart

@@ -1934,7 +1934,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
   testb(FieldAddress(object, target::Object::tags_offset()),
-        Immediate(1 << target::RawObject::kOldAndNotRememberedBit));
+        Immediate(1 << target::ObjectLayout::kOldAndNotRememberedBit));
   j(ZERO, &done, Assembler::kNearJump);
 
   Stop("Store buffer update is required");
@@ -2622,11 +2622,11 @@ void Assembler::EmitGenericShift(int rm,
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::RawObject::kClassIdTagPos == 16);
-  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::RawObject::kClassIdTagPos / kBitsPerByte;
+      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
   movzxw(result, FieldAddress(object, class_id_offset));
 }
 
@@ -2652,11 +2652,11 @@ void Assembler::SmiUntagOrCheckClass(Register object,
                                      Register scratch,
                                      Label* is_smi) {
   ASSERT(kSmiTagShift == 1);
-  ASSERT(target::RawObject::kClassIdTagPos == 16);
-  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::RawObject::kClassIdTagPos / kBitsPerByte;
+      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
 
   // Untag optimistically. Tag bit is shifted into the CARRY.
   SmiUntag(object);
@@ -2682,8 +2682,8 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
     Bind(&join);
   } else {
     ASSERT(result != object);
-    static const intptr_t kSmiCidSource = kSmiCid
-                                          << target::RawObject::kClassIdTagPos;
+    static const intptr_t kSmiCidSource =
+        kSmiCid << target::ObjectLayout::kClassIdTagPos;
 
     // Make a dummy "Object" whose cid is kSmiCid.
     movl(result, Immediate(reinterpret_cast<int32_t>(&kSmiCidSource) + 1));

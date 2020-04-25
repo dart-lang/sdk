@@ -17,7 +17,6 @@ class Heap;
 class IsolateGroup;
 class ObjectPointerVisitor;
 class PageSpace;
-class RawWeakProperty;
 template <bool sync>
 class MarkingVisitorBase;
 class Thread;

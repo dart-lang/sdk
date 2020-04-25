@@ -971,7 +971,7 @@ Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
   return Fragment();
 #else
   return Fragment(new (Z) DebugStepCheckInstr(
-      position, RawPcDescriptors::kRuntimeCall, GetNextDeoptId()));
+      position, PcDescriptorsLayout::kRuntimeCall, GetNextDeoptId()));
 #endif
 }
 

@@ -28,23 +28,23 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
 
   while (current < end) {
     intptr_t obj_size;
-    RawObject* raw_obj = RawObject::FromAddr(current);
+    ObjectPtr raw_obj = ObjectLayout::FromAddr(current);
     ASSERT(HeapPage::Of(raw_obj) == page);
-    if (raw_obj->IsMarked()) {
+    if (raw_obj->ptr()->IsMarked()) {
       // Found marked object. Clear the mark bit and update swept bytes.
-      raw_obj->ClearMarkBit();
-      obj_size = raw_obj->HeapSize();
+      raw_obj->ptr()->ClearMarkBit();
+      obj_size = raw_obj->ptr()->HeapSize();
       used_in_bytes += obj_size;
     } else {
-      uword free_end = current + raw_obj->HeapSize();
+      uword free_end = current + raw_obj->ptr()->HeapSize();
       while (free_end < end) {
-        RawObject* next_obj = RawObject::FromAddr(free_end);
-        if (next_obj->IsMarked()) {
+        ObjectPtr next_obj = ObjectLayout::FromAddr(free_end);
+        if (next_obj->ptr()->IsMarked()) {
           // Reached the end of the free block.
           break;
         }
         // Expand the free block by the size of this object.
-        free_end += next_obj->HeapSize();
+        free_end += next_obj->ptr()->HeapSize();
       }
       obj_size = free_end - current;
       if (is_executable) {
@@ -80,21 +80,21 @@ intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
   ASSERT(!page->is_image_page());
 
   intptr_t words_to_end = 0;
-  RawObject* raw_obj = RawObject::FromAddr(page->object_start());
+  ObjectPtr raw_obj = ObjectLayout::FromAddr(page->object_start());
   ASSERT(HeapPage::Of(raw_obj) == page);
-  if (raw_obj->IsMarked()) {
-    raw_obj->ClearMarkBit();
-    words_to_end = (raw_obj->HeapSize() >> kWordSizeLog2);
+  if (raw_obj->ptr()->IsMarked()) {
+    raw_obj->ptr()->ClearMarkBit();
+    words_to_end = (raw_obj->ptr()->HeapSize() >> kWordSizeLog2);
   }
 #ifdef DEBUG
   // Array::MakeFixedLength creates trailing filler objects,
   // but they are always unreachable. Verify that they are not marked.
-  uword current = RawObject::ToAddr(raw_obj) + raw_obj->HeapSize();
+  uword current = ObjectLayout::ToAddr(raw_obj) + raw_obj->ptr()->HeapSize();
   uword end = page->object_end();
   while (current < end) {
-    RawObject* cur_obj = RawObject::FromAddr(current);
-    ASSERT(!cur_obj->IsMarked());
-    intptr_t obj_size = cur_obj->HeapSize();
+    ObjectPtr cur_obj = ObjectLayout::FromAddr(current);
+    ASSERT(!cur_obj->ptr()->IsMarked());
+    intptr_t obj_size = cur_obj->ptr()->HeapSize();
     memset(reinterpret_cast<void*>(current), Heap::kZapByte, obj_size);
     current += obj_size;
   }

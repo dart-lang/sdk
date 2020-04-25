@@ -12,6 +12,7 @@
 #include "vm/allocation.h"
 #include "vm/finalizable_data.h"
 #include "vm/globals.h"
+#include "vm/tagged_pointer.h"
 
 // Duplicated from dart_api.h to avoid including the whole header.
 typedef int64_t Dart_Port;
@@ -20,7 +21,6 @@ namespace dart {
 
 class Bequest;
 class JSONStream;
-class RawObject;
 class PersistentHandle;
 class HeapPage;
 class WeakTable;
@@ -63,7 +63,7 @@ class Message {
   // Message objects can also carry RawObject pointers for Smis and objects in
   // the VM heap. This is indicated by setting the len_ field to 0.
   Message(Dart_Port dest_port,
-          RawObject* raw_obj,
+          ObjectPtr raw_obj,
           Priority priority,
           Dart_Port delivery_failure_port = kIllegalPort);
 
@@ -97,7 +97,7 @@ class Message {
     return size;
   }
 
-  RawObject* raw_obj() const {
+  ObjectPtr raw_obj() const {
     ASSERT(IsRaw());
     return payload_.raw_obj_;
   }
@@ -137,11 +137,11 @@ class Message {
   Dart_Port delivery_failure_port_;
   union Payload {
     Payload(uint8_t* snapshot) : snapshot_(snapshot) {}
-    Payload(RawObject* raw_obj) : raw_obj_(raw_obj) {}
+    Payload(ObjectPtr raw_obj) : raw_obj_(raw_obj) {}
     Payload(Bequest* bequest) : bequest_(bequest) {}
 
     uint8_t* snapshot_;
-    RawObject* raw_obj_;
+    ObjectPtr raw_obj_;
     Bequest* bequest_;
   } payload_;
   intptr_t snapshot_length_;

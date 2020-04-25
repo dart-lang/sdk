@@ -2285,7 +2285,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
   // replace them with inline FG before inlining introduces any superfluous
   // AssertAssignable instructions.
   if (function.IsDispatcherOrImplicitAccessor() &&
-      !(function.kind() == RawFunction::kDynamicInvocationForwarder &&
+      !(function.kind() == FunctionLayout::kDynamicInvocationForwarder &&
         function.IsRecognized())) {
     // Smaller or same size as the call.
     return true;
@@ -2298,7 +2298,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
 
   if (function.IsGetterFunction() || function.IsSetterFunction() ||
       IsInlineableOperator(function) ||
-      (function.kind() == RawFunction::kConstructor)) {
+      (function.kind() == FunctionLayout::kConstructor)) {
     const intptr_t count = function.optimized_instruction_count();
     if ((count != 0) && (count < FLAG_inline_getters_setters_smaller_than)) {
       return true;

@@ -23,11 +23,11 @@ class Array;
 // representation as a FreeListElement.
 class ForwardingCorpse {
  public:
-  RawObject* target() const { return target_; }
-  void set_target(RawObject* target) { target_ = target; }
+  ObjectPtr target() const { return target_; }
+  void set_target(ObjectPtr target) { target_ = target; }
 
   intptr_t HeapSize() {
-    intptr_t size = RawObject::SizeTag::decode(tags_);
+    intptr_t size = ObjectLayout::SizeTag::decode(tags_);
     if (size != 0) return size;
     return *SizeAddress();
   }
@@ -57,7 +57,7 @@ class ForwardingCorpse {
 #if defined(HASH_IN_OBJECT_HEADER)
   uint32_t hash_;
 #endif
-  RawObject* target_;
+  ObjectPtr target_;
 
   // Returns the address of the embedded size.
   intptr_t* SizeAddress() const {
@@ -91,7 +91,7 @@ class Become : public AllStatic {
   // forwarding objects' targets.
   static void FollowForwardingPointers(Thread* thread);
 
-  static void CrashDump(RawObject* before_obj, RawObject* after_obj);
+  static void CrashDump(ObjectPtr before_obj, ObjectPtr after_obj);
 };
 
 }  // namespace dart

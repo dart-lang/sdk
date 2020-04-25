@@ -283,7 +283,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&stack_ok);
 #endif
   ASSERT(__ constant_pool_allowed());
-  if (yield_index() != RawPcDescriptors::kInvalidYieldIndex) {
+  if (yield_index() != PcDescriptorsLayout::kInvalidYieldIndex) {
     compiler->EmitYieldPositionMetadata(token_pos(), yield_index());
   }
   __ LeaveDartFrame();  // Disallows constant pool use.
@@ -400,7 +400,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ blr(R2);
   compiler->EmitCallsiteMetadata(token_pos(), deopt_id(),
-                                 RawPcDescriptors::kOther, locs());
+                                 PcDescriptorsLayout::kOther, locs());
   __ Drop(argument_count);
 }
 
@@ -837,7 +837,7 @@ Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   Location right = locs()->in(1);
   if (right.IsConstant()) {
     ASSERT(right.constant().IsSmi());
-    const int64_t imm = reinterpret_cast<int64_t>(right.constant().raw());
+    const int64_t imm = static_cast<int64_t>(right.constant().raw());
     __ TestImmediate(left, imm);
   } else {
     __ tst(left, compiler::Operand(right.reg()));
@@ -980,9 +980,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    : ObjectPool::Patchability::kNotPatchable);
   if (link_lazily()) {
     compiler->GeneratePatchableCall(token_pos(), *stub,
-                                    RawPcDescriptors::kOther, locs());
+                                    PcDescriptorsLayout::kOther, locs());
   } else {
-    compiler->GenerateStubCall(token_pos(), *stub, RawPcDescriptors::kOther,
+    compiler->GenerateStubCall(token_pos(), *stub, PcDescriptorsLayout::kOther,
                                locs());
   }
   __ Pop(result);
@@ -1017,7 +1017,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // instruction.
   __ adr(temp, compiler::Immediate(Instr::kInstrSize));
   compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
-                                 RawPcDescriptors::Kind::kOther, locs());
+                                 PcDescriptorsLayout::Kind::kOther, locs());
 
   __ StoreToOffset(temp, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
 
@@ -2108,7 +2108,7 @@ class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateStubCall(TokenPosition::kNoSource,  // No token position.
-                               stub, RawPcDescriptors::kOther, locs);
+                               stub, PcDescriptorsLayout::kOther, locs);
     __ MoveRegister(result_, R0);
     compiler->RestoreLiveRegisters(locs);
     __ b(exit_label());
@@ -2505,9 +2505,9 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // data area to be initialized.
   // R6: null
   if (num_elements > 0) {
-    const intptr_t array_size = instance_size - sizeof(RawArray);
+    const intptr_t array_size = instance_size - sizeof(ArrayLayout);
     __ LoadObject(R6, Object::null_object());
-    __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag);
+    __ AddImmediate(R8, R0, sizeof(ArrayLayout) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kWordSize)) {
       intptr_t current_offset = 0;
       while (current_offset < array_size) {
@@ -2566,7 +2566,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const auto& allocate_array_stub =
       Code::ZoneHandle(compiler->zone(), object_store->allocate_array_stub());
   compiler->GenerateStubCall(token_pos(), allocate_array_stub,
-                             RawPcDescriptors::kOther, locs(), deopt_id());
+                             PcDescriptorsLayout::kOther, locs(), deopt_id());
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
@@ -2807,8 +2807,8 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // Lookup cache in stub before calling runtime.
   __ LoadObject(InstantiationABI::kUninstantiatedTypeArgumentsReg,
                 type_arguments());
-  compiler->GenerateStubCall(token_pos(), GetStub(), RawPcDescriptors::kOther,
-                             locs());
+  compiler->GenerateStubCall(token_pos(), GetStub(),
+                             PcDescriptorsLayout::kOther, locs());
   __ Bind(&type_arguments_instantiated);
 }
 
@@ -2849,8 +2849,8 @@ class AllocateContextSlowPath
 
     __ LoadImmediate(R1, instruction()->num_context_variables());
     compiler->GenerateStubCall(instruction()->token_pos(),
-                               allocate_context_stub, RawPcDescriptors::kOther,
-                               locs);
+                               allocate_context_stub,
+                               PcDescriptorsLayout::kOther, locs);
     ASSERT(instruction()->locs()->out(0).reg() == R0);
     compiler->RestoreLiveRegisters(instruction()->locs());
     __ b(exit_label());
@@ -2900,7 +2900,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Code::ZoneHandle(compiler->zone(), object_store->allocate_context_stub());
   __ LoadImmediate(R1, num_context_variables());
   compiler->GenerateStubCall(token_pos(), allocate_context_stub,
-                             RawPcDescriptors::kOther, locs());
+                             PcDescriptorsLayout::kOther, locs());
 }
 
 LocationSummary* CloneContextInstr::MakeLocationSummary(Zone* zone,
@@ -2922,7 +2922,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const auto& clone_context_stub =
       Code::ZoneHandle(compiler->zone(), object_store->clone_context_stub());
   compiler->GenerateStubCall(token_pos(), clone_context_stub,
-                             /*kind=*/RawPcDescriptors::kOther, locs());
+                             /*kind=*/PcDescriptorsLayout::kOther, locs());
 }
 
 LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
@@ -2943,7 +2943,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler->is_optimizing()) {
       compiler->AddDeoptIndexAtCall(deopt_id);
     } else {
-      compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id,
+      compiler->AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, deopt_id,
                                      TokenPosition::kNoSource);
     }
   }
@@ -3042,7 +3042,7 @@ class CheckStackOverflowSlowPath
       compiler->RecordSafepoint(locs, kNumSlowPathArgs);
       compiler->RecordCatchEntryMoves();
       compiler->AddDescriptor(
-          RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
+          PcDescriptorsLayout::kOther, compiler->assembler()->CodeSize(),
           instruction()->deopt_id(), instruction()->token_pos(),
           compiler->CurrentTryIndex());
     } else {
@@ -3054,7 +3054,7 @@ class CheckStackOverflowSlowPath
     if (compiler->isolate()->use_osr() && !compiler->is_optimizing() &&
         instruction()->in_loop()) {
       // In unoptimized code, record loop stack checks as possible OSR entries.
-      compiler->AddCurrentDescriptor(RawPcDescriptors::kOsrEntry,
+      compiler->AddCurrentDescriptor(PcDescriptorsLayout::kOsrEntry,
                                      instruction()->deopt_id(),
                                      TokenPosition::kNoSource);
     }
@@ -3151,8 +3151,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       const bool right_needs_check =
           !RangeUtils::IsWithin(right_range, 0, max_right - 1);
       if (right_needs_check) {
-        __ CompareImmediate(right,
-                            reinterpret_cast<int64_t>(Smi::New(max_right)));
+        __ CompareImmediate(right, static_cast<int64_t>(Smi::New(max_right)));
         __ b(deopt, CS);
       }
       __ SmiUntag(TMP, right);
@@ -3171,8 +3170,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
         __ b(deopt, MI);
       }
 
-      __ CompareImmediate(right,
-                          reinterpret_cast<int64_t>(Smi::New(Smi::kBits)));
+      __ CompareImmediate(right, static_cast<int64_t>(Smi::New(Smi::kBits)));
       __ csel(result, ZR, result, CS);
       __ SmiUntag(TMP, right);
       __ lslv(TMP, left, TMP);
@@ -3184,8 +3182,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   } else {
     if (right_needs_check) {
       ASSERT(shift_left->CanDeoptimize());
-      __ CompareImmediate(right,
-                          reinterpret_cast<int64_t>(Smi::New(Smi::kBits)));
+      __ CompareImmediate(right, static_cast<int64_t>(Smi::New(Smi::kBits)));
       __ b(deopt, CS);
     }
     // Left is not a constant.
@@ -3309,8 +3306,7 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kSHL:
       ASSERT(result != left);
       ASSERT(result != right);
-      __ CompareImmediate(right,
-                          reinterpret_cast<int64_t>(Smi::New(Smi::kBits)));
+      __ CompareImmediate(right, static_cast<int64_t>(Smi::New(Smi::kBits)));
       __ b(slow_path->entry_label(), CS);
 
       __ SmiUntag(TMP, right);
@@ -3322,8 +3318,7 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kSHR:
       ASSERT(result != left);
       ASSERT(result != right);
-      __ CompareImmediate(right,
-                          reinterpret_cast<int64_t>(Smi::New(Smi::kBits)));
+      __ CompareImmediate(right, static_cast<int64_t>(Smi::New(Smi::kBits)));
       __ b(slow_path->entry_label(), CS);
 
       __ SmiUntag(result, right);
@@ -3542,7 +3537,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    const int64_t imm = reinterpret_cast<int64_t>(constant.raw());
+    const int64_t imm = static_cast<int64_t>(constant.raw());
     switch (op_kind()) {
       case Token::kADD: {
         if (deopt == NULL) {
@@ -3972,10 +3967,12 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
   const bool stubs_in_vm_isolate = (Isolate::Current()
                                         ->object_store()
                                         ->allocate_mint_with_fpu_regs_stub()
+                                        ->ptr()
                                         ->InVMIsolateHeap() ||
                                     Isolate::Current()
                                         ->object_store()
                                         ->allocate_mint_without_fpu_regs_stub()
+                                        ->ptr()
                                         ->InVMIsolateHeap());
   const bool shared_slow_path_call = SlowPathSharingSupported(opt) &&
                                      FLAG_use_bare_instructions &&
@@ -4030,7 +4027,7 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       ASSERT(!locs()->live_registers()->ContainsRegister(R0));
       auto extended_env = compiler->SlowPathEnvironmentFor(this, 0);
-      compiler->GenerateStubCall(token_pos(), stub, RawPcDescriptors::kOther,
+      compiler->GenerateStubCall(token_pos(), stub, PcDescriptorsLayout::kOther,
                                  locs(), DeoptId::kNone, extended_env);
     } else {
       BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(),
@@ -5409,7 +5406,7 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (index_loc.IsConstant()) {
     const Register length = length_loc.reg();
     const Smi& index = Smi::Cast(index_loc.constant());
-    __ CompareImmediate(length, reinterpret_cast<int64_t>(index.raw()));
+    __ CompareImmediate(length, static_cast<int64_t>(index.raw()));
     __ b(deopt, LS);
   } else if (length_loc.IsConstant()) {
     const Smi& length = Smi::Cast(length_loc.constant());
@@ -5421,7 +5418,7 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ tst(index, compiler::Operand(index));
       __ b(deopt, MI);
     } else {
-      __ CompareImmediate(index, reinterpret_cast<int64_t>(length.raw()));
+      __ CompareImmediate(index, static_cast<int64_t>(length.raw()));
       __ b(deopt, CS);
     }
   } else {
@@ -6250,7 +6247,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     // Add a deoptimization descriptor for deoptimizing instructions that
     // may be inserted before this instruction.
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt, GetDeoptId(),
+    compiler->AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, GetDeoptId(),
                                    TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
@@ -6417,7 +6414,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
-  compiler->GenerateStubCall(token_pos(), stub, RawPcDescriptors::kOther,
+  compiler->GenerateStubCall(token_pos(), stub, PcDescriptorsLayout::kOther,
                              locs());
 }
 

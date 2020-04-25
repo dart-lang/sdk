@@ -33,7 +33,7 @@ void IsolateObjectStore::Init() {
   ISOLATE_OBJECT_STORE_FIELD_LIST(INIT_FIELD, INIT_FIELD)
 #undef INIT_FIELD
 
-  for (RawObject** current = from(); current <= to(); current++) {
+  for (ObjectPtr* current = from(); current <= to(); current++) {
     ASSERT(*current == Object::null());
   }
 }
@@ -55,7 +55,7 @@ void IsolateObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 }
 #endif  // !PRODUCT
 
-static RawUnhandledException* CreatePreallocatedUnandledException(
+static UnhandledExceptionPtr CreatePreallocatedUnandledException(
     Zone* zone,
     const Object& out_of_memory) {
   // Allocate pre-allocated unhandled exception object initialized with the
@@ -66,7 +66,7 @@ static RawUnhandledException* CreatePreallocatedUnandledException(
   return unhandled_exception.raw();
 }
 
-static RawStackTrace* CreatePreallocatedStackTrace(Zone* zone) {
+static StackTracePtr CreatePreallocatedStackTrace(Zone* zone) {
   const Array& code_array = Array::Handle(
       zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
   const Array& pc_offset_array = Array::Handle(
@@ -79,7 +79,7 @@ static RawStackTrace* CreatePreallocatedStackTrace(Zone* zone) {
   return stack_trace.raw();
 }
 
-RawError* IsolateObjectStore::PreallocateObjects() {
+ErrorPtr IsolateObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -106,7 +106,7 @@ ObjectStore::ObjectStore() {
   OBJECT_STORE_FIELD_LIST(INIT_FIELD, INIT_FIELD)
 #undef INIT_FIELD
 
-  for (RawObject** current = from(); current <= to(); current++) {
+  for (ObjectPtr* current = from(); current <= to(); current++) {
     ASSERT(*current == Object::null());
   }
 }
@@ -142,14 +142,14 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 }
 #endif  // !PRODUCT
 
-static RawInstance* AllocateObjectByClassName(const Library& library,
-                                              const String& class_name) {
+static InstancePtr AllocateObjectByClassName(const Library& library,
+                                             const String& class_name) {
   const Class& cls = Class::Handle(library.LookupClassAllowPrivate(class_name));
   ASSERT(!cls.IsNull());
   return Instance::New(cls);
 }
 
-RawError* ObjectStore::PreallocateObjects() {
+ErrorPtr ObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
   IsolateGroup* isolate_group = thread->isolate_group();
   Isolate* isolate = thread->isolate();
@@ -186,7 +186,7 @@ RawError* ObjectStore::PreallocateObjects() {
   return Error::null();
 }
 
-RawFunction* ObjectStore::PrivateObjectLookup(const String& name) {
+FunctionPtr ObjectStore::PrivateObjectLookup(const String& name) {
   const Library& core_lib = Library::Handle(core_library());
   const String& mangled = String::ZoneHandle(core_lib.PrivateName(name));
   const Class& cls = Class::Handle(object_class());

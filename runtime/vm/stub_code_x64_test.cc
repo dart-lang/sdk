@@ -29,8 +29,8 @@ static Function* CreateFunction(const char* name) {
   const String& function_name =
       String::ZoneHandle(Symbols::New(Thread::Current(), name));
   Function& function = Function::ZoneHandle(Function::New(
-      function_name, RawFunction::kRegularFunction, true, false, false, false,
-      false, owner_class, TokenPosition::kNoSource));
+      function_name, FunctionLayout::kRegularFunction, true, false, false,
+      false, false, owner_class, TokenPosition::kNoSource));
   return &function;
 }
 

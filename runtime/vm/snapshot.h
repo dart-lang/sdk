@@ -43,61 +43,6 @@ class ObjectStore;
 class MegamorphicCache;
 class PageSpace;
 class TypedDataView;
-class RawApiError;
-class RawArray;
-class RawCapability;
-class RawClass;
-class RawClosure;
-class RawClosureData;
-class RawCodeSourceMap;
-class RawCompressedStackMaps;
-class RawContext;
-class RawContextScope;
-class RawDouble;
-class RawExceptionHandlers;
-class RawFfiTrampolineData;
-class RawField;
-class RawFloat32x4;
-class RawFloat64x2;
-class RawFunction;
-class RawGrowableObjectArray;
-class RawCallSiteData;
-class RawICData;
-class RawImmutableArray;
-class RawInstructions;
-class RawInt32x4;
-class RawRegExp;
-class RawLanguageError;
-class RawLibrary;
-class RawLibraryPrefix;
-class RawLinkedHashMap;
-class RawLocalVarDescriptors;
-class RawMegamorphicCache;
-class RawMint;
-class RawNamespace;
-class RawObject;
-class RawObjectPool;
-class RawOneByteString;
-class RawPatchClass;
-class RawPcDescriptors;
-class RawReceivePort;
-class RawRedirectionData;
-class RawNativeEntryData;
-class RawScript;
-class RawSignatureData;
-class RawSendPort;
-class RawSmi;
-class RawStackTrace;
-class RawSubtypeTestCache;
-class RawTwoByteString;
-class RawType;
-class RawTypeArguments;
-class RawTypedData;
-class RawTypedDataView;
-class RawTypeParameter;
-class RawTypeRef;
-class RawUnhandledException;
-class RawWeakProperty;
 class String;
 class TypeArguments;
 class TypedData;
@@ -261,7 +206,7 @@ class BaseReader {
 
   intptr_t PendingBytes() const { return stream_.PendingBytes(); }
 
-  RawSmi* ReadAsSmi();
+  SmiPtr ReadAsSmi();
   intptr_t ReadSmiValue();
 
   // Negative header value indicates VM isolate object id.
@@ -325,7 +270,7 @@ class SnapshotReader : public BaseReader {
   Snapshot::Kind kind() const { return kind_; }
 
   // Reads an object.
-  RawObject* ReadObject();
+  ObjectPtr ReadObject();
 
   // Add object to backward references.
   void AddBackRef(intptr_t id, Object* obj, DeserializeState state);
@@ -334,9 +279,9 @@ class SnapshotReader : public BaseReader {
   Object* GetBackRef(intptr_t id);
 
   // Read version number of snapshot and verify.
-  RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
+  ApiErrorPtr VerifyVersionAndFeatures(Isolate* isolate);
 
-  RawObject* NewInteger(int64_t value);
+  ObjectPtr NewInteger(int64_t value);
 
  protected:
   SnapshotReader(const uint8_t* buffer,
@@ -358,24 +303,24 @@ class SnapshotReader : public BaseReader {
 
   void EnqueueRehashingOfMap(const LinkedHashMap& map);
   void EnqueueRehashingOfSet(const Object& set);
-  RawObject* RunDelayedRehashingOfMaps();
+  ObjectPtr RunDelayedRehashingOfMaps();
 
-  RawClass* ReadClassId(intptr_t object_id);
-  RawObject* ReadStaticImplicitClosure(intptr_t object_id, intptr_t cls_header);
+  ClassPtr ReadClassId(intptr_t object_id);
+  ObjectPtr ReadStaticImplicitClosure(intptr_t object_id, intptr_t cls_header);
 
   // Implementation to read an object.
-  RawObject* ReadObjectImpl(bool as_reference);
-  RawObject* ReadObjectImpl(intptr_t header, bool as_reference);
+  ObjectPtr ReadObjectImpl(bool as_reference);
+  ObjectPtr ReadObjectImpl(intptr_t header, bool as_reference);
 
   // Read a Dart Instance object.
-  RawObject* ReadInstance(intptr_t object_id, intptr_t tags, bool as_reference);
+  ObjectPtr ReadInstance(intptr_t object_id, intptr_t tags, bool as_reference);
 
   // Read a VM isolate object that was serialized as an Id.
-  RawObject* ReadVMIsolateObject(intptr_t object_id);
+  ObjectPtr ReadVMIsolateObject(intptr_t object_id);
 
   // Read an object that was serialized as an Id (singleton in object store,
   // or an object that was already serialized before).
-  RawObject* ReadIndexedObject(intptr_t object_id);
+  ObjectPtr ReadIndexedObject(intptr_t object_id);
 
   // Decode class id from the header field.
   intptr_t LookupInternalClass(intptr_t class_header);
@@ -389,7 +334,7 @@ class SnapshotReader : public BaseReader {
 
   void SetReadException(const char* msg);
 
-  RawObject* VmIsolateSnapshotObject(intptr_t index) const;
+  ObjectPtr VmIsolateSnapshotObject(intptr_t index) const;
 
   bool is_vm_isolate() const;
 
@@ -599,10 +544,10 @@ class ForwardList {
   }
 
   // Returns the id for the added object.
-  intptr_t AddObject(Zone* zone, RawObject* raw, SerializeState state);
+  intptr_t AddObject(Zone* zone, ObjectPtr raw, SerializeState state);
 
   // Returns the id for the object it it exists in the list.
-  intptr_t FindObject(RawObject* raw);
+  intptr_t FindObject(ObjectPtr raw);
 
   // Exhaustively processes all unserialized objects in this list. 'writer' may
   // concurrently add more objects.
@@ -623,8 +568,8 @@ class ForwardList {
   GrowableArray<Node*> nodes_;
   intptr_t first_unprocessed_object_id_;
 
-  void SetObjectId(RawObject* object, intptr_t id);
-  intptr_t GetObjectId(RawObject* object);
+  void SetObjectId(ObjectPtr object, intptr_t id);
+  intptr_t GetObjectId(ObjectPtr object);
 
   DISALLOW_COPY_AND_ASSIGN(ForwardList);
 };
@@ -648,10 +593,11 @@ class SnapshotWriter : public BaseWriter {
   Heap* heap() const { return isolate()->heap(); }
 
   // Serialize an object into the buffer.
-  void WriteObject(RawObject* raw);
+  void WriteObject(ObjectPtr raw);
 
-  static uint32_t GetObjectTags(RawObject* raw);
-  static uword GetObjectTagsAndHash(RawObject* raw);
+  static uint32_t GetObjectTags(ObjectPtr raw);
+  static uint32_t GetObjectTags(ObjectLayout* raw);
+  static uword GetObjectTagsAndHash(ObjectPtr raw);
 
   Exceptions::ExceptionType exception_type() const { return exception_type_; }
   void set_exception_type(Exceptions::ExceptionType type) {
@@ -665,19 +611,19 @@ class SnapshotWriter : public BaseWriter {
   // Write a version string for the snapshot.
   void WriteVersionAndFeatures();
 
-  RawFunction* IsSerializableClosure(RawClosure* closure);
+  FunctionPtr IsSerializableClosure(ClosurePtr closure);
 
   void WriteStaticImplicitClosure(intptr_t object_id,
-                                  RawFunction* func,
+                                  FunctionPtr func,
                                   intptr_t tags);
 
  protected:
-  bool CheckAndWritePredefinedObject(RawObject* raw);
-  bool HandleVMIsolateObject(RawObject* raw);
+  bool CheckAndWritePredefinedObject(ObjectPtr raw);
+  bool HandleVMIsolateObject(ObjectPtr raw);
 
-  void WriteClassId(RawClass* cls);
-  void WriteObjectImpl(RawObject* raw, bool as_reference);
-  void WriteMarkedObjectImpl(RawObject* raw,
+  void WriteClassId(ClassLayout* cls);
+  void WriteObjectImpl(ObjectPtr raw, bool as_reference);
+  void WriteMarkedObjectImpl(ObjectPtr raw,
                              intptr_t tags,
                              intptr_t object_id,
                              bool as_reference);
@@ -685,20 +631,20 @@ class SnapshotWriter : public BaseWriter {
   void ArrayWriteTo(intptr_t object_id,
                     intptr_t array_kind,
                     intptr_t tags,
-                    RawSmi* length,
-                    RawTypeArguments* type_arguments,
-                    RawObject* data[],
+                    SmiPtr length,
+                    TypeArgumentsPtr type_arguments,
+                    ObjectPtr data[],
                     bool as_reference);
-  RawClass* GetFunctionOwner(RawFunction* func);
-  void CheckForNativeFields(RawClass* cls);
+  ClassPtr GetFunctionOwner(FunctionPtr func);
+  void CheckForNativeFields(ClassPtr cls);
   void SetWriteException(Exceptions::ExceptionType type, const char* msg);
-  void WriteInstance(RawObject* raw,
-                     RawClass* cls,
+  void WriteInstance(ObjectPtr raw,
+                     ClassPtr cls,
                      intptr_t tags,
                      intptr_t object_id,
                      bool as_reference);
-  bool AllowObjectsInDartLibrary(RawLibrary* library);
-  intptr_t FindVmSnapshotObject(RawObject* rawobj);
+  bool AllowObjectsInDartLibrary(LibraryPtr library);
+  intptr_t FindVmSnapshotObject(ObjectPtr rawobj);
 
   ObjectStore* object_store() const { return object_store_; }
 
@@ -712,37 +658,37 @@ class SnapshotWriter : public BaseWriter {
   const char* exception_msg_;  // Message associated with exception.
   bool can_send_any_object_;   // True if any Dart instance can be sent.
 
-  friend class RawArray;
-  friend class RawClass;
-  friend class RawClosureData;
-  friend class RawCode;
-  friend class RawContextScope;
-  friend class RawDynamicLibrary;
-  friend class RawExceptionHandlers;
-  friend class RawField;
-  friend class RawFunction;
-  friend class RawGrowableObjectArray;
-  friend class RawImmutableArray;
-  friend class RawInstructions;
-  friend class RawLibrary;
-  friend class RawLinkedHashMap;
-  friend class RawLocalVarDescriptors;
-  friend class RawMirrorReference;
-  friend class RawObjectPool;
-  friend class RawPointer;
-  friend class RawReceivePort;
-  friend class RawRegExp;
-  friend class RawScript;
-  friend class RawStackTrace;
-  friend class RawSubtypeTestCache;
-  friend class RawTransferableTypedData;
-  friend class RawType;
-  friend class RawTypeArguments;
-  friend class RawTypeParameter;
-  friend class RawTypeRef;
-  friend class RawTypedDataView;
-  friend class RawUserTag;
-  friend class RawWeakSerializationReference;
+  friend class ArrayLayout;
+  friend class ClassLayout;
+  friend class ClosureDataLayout;
+  friend class CodeLayout;
+  friend class ContextScopeLayout;
+  friend class DynamicLibraryLayout;
+  friend class ExceptionHandlersLayout;
+  friend class FieldLayout;
+  friend class FunctionLayout;
+  friend class GrowableObjectArrayLayout;
+  friend class ImmutableArrayLayout;
+  friend class InstructionsLayout;
+  friend class LibraryLayout;
+  friend class LinkedHashMapLayout;
+  friend class LocalVarDescriptorsLayout;
+  friend class MirrorReferenceLayout;
+  friend class ObjectPoolLayout;
+  friend class PointerLayout;
+  friend class ReceivePortLayout;
+  friend class RegExpLayout;
+  friend class ScriptLayout;
+  friend class StackTraceLayout;
+  friend class SubtypeTestCacheLayout;
+  friend class TransferableTypedDataLayout;
+  friend class TypeLayout;
+  friend class TypeArgumentsLayout;
+  friend class TypeParameterLayout;
+  friend class TypeRefLayout;
+  friend class TypedDataViewLayout;
+  friend class UserTagLayout;
+  friend class WeakSerializationReferenceLayout;
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
@@ -791,7 +737,7 @@ class SnapshotWriterVisitor : public ObjectPointerVisitor {
         writer_(writer),
         as_references_(as_references) {}
 
-  virtual void VisitPointers(RawObject** first, RawObject** last);
+  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last);
 
  private:
   SnapshotWriter* writer_;

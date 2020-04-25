@@ -236,7 +236,7 @@ class FlowGraph : public ZoneAllocated {
   // Return value indicates that the call needs no check at all,
   // just a null check, or a full class check.
   ToCheck CheckForInstanceCall(InstanceCallInstr* call,
-                               RawFunction::Kind kind) const;
+                               FunctionLayout::Kind kind) const;
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread()->zone(); }

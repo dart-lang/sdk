@@ -13,6 +13,7 @@
 #include "vm/allocation.h"
 #include "vm/constants.h"
 #include "vm/native_function.h"
+#include "vm/tagged_pointer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/assembler/assembler.h"
@@ -24,9 +25,6 @@ class Code;
 class ICData;
 class Object;
 class ObjectPool;
-class RawCode;
-class RawICData;
-class RawObject;
 
 class InstructionPattern : public AllStatic {
  public:
@@ -86,7 +84,7 @@ class CallPattern : public ValueObject {
  public:
   CallPattern(uword pc, const Code& code);
 
-  RawCode* TargetCode() const;
+  CodePtr TargetCode() const;
   void SetTargetCode(const Code& target) const;
 
  private:
@@ -101,10 +99,10 @@ class ICCallPattern : public ValueObject {
  public:
   ICCallPattern(uword pc, const Code& caller_code);
 
-  RawObject* Data() const;
+  ObjectPtr Data() const;
   void SetData(const Object& data) const;
 
-  RawCode* TargetCode() const;
+  CodePtr TargetCode() const;
   void SetTargetCode(const Code& target) const;
 
  private:
@@ -120,7 +118,7 @@ class NativeCallPattern : public ValueObject {
  public:
   NativeCallPattern(uword pc, const Code& code);
 
-  RawCode* target() const;
+  CodePtr target() const;
   void set_target(const Code& target) const;
 
   NativeFunction native_function() const;
@@ -145,7 +143,7 @@ class SwitchableCallPatternBase : public ValueObject {
  public:
   explicit SwitchableCallPatternBase(const Code& code);
 
-  RawObject* data() const;
+  ObjectPtr data() const;
   void SetData(const Object& data) const;
 
  protected:
@@ -165,7 +163,7 @@ class SwitchableCallPattern : public SwitchableCallPatternBase {
  public:
   SwitchableCallPattern(uword pc, const Code& code);
 
-  RawCode* target() const;
+  CodePtr target() const;
   void SetTarget(const Code& target) const;
 
  private:
@@ -180,7 +178,7 @@ class BareSwitchableCallPattern : public SwitchableCallPatternBase {
  public:
   BareSwitchableCallPattern(uword pc, const Code& code);
 
-  RawCode* target() const;
+  CodePtr target() const;
   void SetTarget(const Code& target) const;
 
  private:

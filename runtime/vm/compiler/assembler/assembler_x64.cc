@@ -1374,14 +1374,14 @@ void Assembler::StoreIntoObject(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
-  // Compare RawObject::StorePointer.
+  // Compare ObjectLayout::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     testq(value, Immediate(kSmiTagMask));
     j(ZERO, &done, kNearJump);
   }
   movb(TMP, FieldAddress(object, target::Object::tags_offset()));
-  shrl(TMP, Immediate(target::RawObject::kBarrierOverlapShift));
+  shrl(TMP, Immediate(target::ObjectLayout::kBarrierOverlapShift));
   andl(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
   testb(FieldAddress(value, target::Object::tags_offset()), TMP);
   j(ZERO, &done, kNearJump);
@@ -1426,14 +1426,14 @@ void Assembler::StoreIntoArray(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
-  // Compare RawObject::StorePointer.
+  // Compare ObjectLayout::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     testq(value, Immediate(kSmiTagMask));
     j(ZERO, &done, kNearJump);
   }
   movb(TMP, FieldAddress(object, target::Object::tags_offset()));
-  shrl(TMP, Immediate(target::RawObject::kBarrierOverlapShift));
+  shrl(TMP, Immediate(target::ObjectLayout::kBarrierOverlapShift));
   andl(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
   testb(FieldAddress(value, target::Object::tags_offset()), TMP);
   j(ZERO, &done, kNearJump);
@@ -1461,7 +1461,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
   testb(FieldAddress(object, target::Object::tags_offset()),
-        Immediate(1 << target::RawObject::kOldAndNotRememberedBit));
+        Immediate(1 << target::ObjectLayout::kOldAndNotRememberedBit));
   j(ZERO, &done, Assembler::kNearJump);
 
   Stop("Store buffer update is required");
@@ -2104,31 +2104,31 @@ void Assembler::EmitGenericShift(bool wide,
 }
 
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
-  ASSERT(target::RawObject::kClassIdTagPos == 16);
-  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
   ASSERT(sizeof(classid_t) == sizeof(uint16_t));
   movl(result, tags);
-  shrl(result, Immediate(target::RawObject::kClassIdTagPos));
+  shrl(result, Immediate(target::ObjectLayout::kClassIdTagPos));
 }
 
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
-  ASSERT(target::RawObject::kSizeTagPos == 8);
-  ASSERT(target::RawObject::kSizeTagSize == 8);
+  ASSERT(target::ObjectLayout::kSizeTagPos == 8);
+  ASSERT(target::ObjectLayout::kSizeTagSize == 8);
   movzxw(result, tags);
-  shrl(result, Immediate(target::RawObject::kSizeTagPos -
+  shrl(result, Immediate(target::ObjectLayout::kSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2));
   AndImmediate(result,
-               Immediate(Utils::NBitMask(target::RawObject::kSizeTagSize)
+               Immediate(Utils::NBitMask(target::ObjectLayout::kSizeTagSize)
                          << target::ObjectAlignment::kObjectAlignmentLog2));
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::RawObject::kClassIdTagPos == 16);
-  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
   ASSERT(sizeof(classid_t) == sizeof(uint16_t));
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::RawObject::kClassIdTagPos / kBitsPerByte;
+      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
   movzxw(result, FieldAddress(object, class_id_offset));
 }
 
@@ -2154,12 +2154,12 @@ void Assembler::SmiUntagOrCheckClass(Register object,
                                      intptr_t class_id,
                                      Label* is_smi) {
   ASSERT(kSmiTagShift == 1);
-  ASSERT(target::RawObject::kClassIdTagPos == 16);
-  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
   ASSERT(sizeof(classid_t) == sizeof(uint16_t));
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::RawObject::kClassIdTagPos / kBitsPerByte;
+      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
 
   // Untag optimistically. Tag bit is shifted into the CARRY.
   SmiUntag(object);

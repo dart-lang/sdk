@@ -103,10 +103,10 @@ DEFINE_NATIVE_ENTRY(Ffi_address, 0, 1) {
   return Integer::New(pointer.NativeAddress());
 }
 
-static RawObject* LoadValueNumeric(Zone* zone,
-                                   const Pointer& target,
-                                   classid_t type_cid,
-                                   const Integer& offset) {
+static ObjectPtr LoadValueNumeric(Zone* zone,
+                                  const Pointer& target,
+                                  classid_t type_cid,
+                                  const Integer& offset) {
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
   const size_t address =
       target.NativeAddress() + static_cast<intptr_t>(offset.AsInt64Value());
@@ -164,9 +164,9 @@ DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 2) {
   return Pointer::New(type_arg, *reinterpret_cast<uword*>(address));
 }
 
-static RawObject* LoadValueStruct(Zone* zone,
-                                  const Pointer& target,
-                                  const AbstractType& instance_type_arg) {
+static ObjectPtr LoadValueStruct(Zone* zone,
+                                 const Pointer& target,
+                                 const AbstractType& instance_type_arg) {
   // Result is a struct class -- find <class name>.#fromPointer
   // constructor and call it.
   const Class& cls = Class::Handle(zone, instance_type_arg.type_class());

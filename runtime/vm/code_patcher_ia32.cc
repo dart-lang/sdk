@@ -26,8 +26,8 @@ class UnoptimizedCall : public ValueObject {
     ASSERT(IsValid());
   }
 
-  RawObject* ic_data() const {
-    return *reinterpret_cast<RawObject**>(start_ + 1);
+  ObjectPtr ic_data() const {
+    return *reinterpret_cast<ObjectPtr*>(start_ + 1);
   }
 
   static const int kMovInstructionSize = 5;
@@ -89,20 +89,20 @@ class InstanceCall : public UnoptimizedCall {
 #endif  // DEBUG
   }
 
-  RawObject* data() const { return *reinterpret_cast<RawObject**>(start_ + 1); }
+  ObjectPtr data() const { return *reinterpret_cast<ObjectPtr*>(start_ + 1); }
   void set_data(const Object& data) const {
     uword* cache_addr = reinterpret_cast<uword*>(start_ + 1);
-    uword imm = reinterpret_cast<uword>(data.raw());
+    uword imm = static_cast<uword>(data.raw());
     *cache_addr = imm;
   }
 
-  RawCode* target() const {
+  CodePtr target() const {
     const uword imm = *reinterpret_cast<uword*>(start_ + 6);
-    return reinterpret_cast<RawCode*>(imm);
+    return static_cast<CodePtr>(imm);
   }
   void set_target(const Code& target) const {
     uword* target_addr = reinterpret_cast<uword*>(start_ + 6);
-    uword imm = reinterpret_cast<uword>(target.raw());
+    uword imm = static_cast<uword>(target.raw());
     *target_addr = imm;
   }
 
@@ -142,14 +142,14 @@ class StaticCall : public ValueObject {
     return (code_bytes[0] == 0xBF) && (code_bytes[5] == 0xFF);
   }
 
-  RawCode* target() const {
+  CodePtr target() const {
     const uword imm = *reinterpret_cast<uword*>(start_ + 1);
-    return reinterpret_cast<RawCode*>(imm);
+    return static_cast<CodePtr>(imm);
   }
 
   void set_target(const Code& target) const {
     uword* target_addr = reinterpret_cast<uword*>(start_ + 1);
-    uword imm = reinterpret_cast<uword>(target.raw());
+    uword imm = static_cast<uword>(target.raw());
     *target_addr = imm;
     CPU::FlushICache(start_ + 1, sizeof(imm));
   }
@@ -169,8 +169,8 @@ class StaticCall : public ValueObject {
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticCall);
 };
 
-RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
-                                            const Code& code) {
+CodePtr CodePatcher::GetStaticCallTargetAt(uword return_address,
+                                           const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
   StaticCall call(return_address);
   return call.target();
@@ -194,9 +194,9 @@ void CodePatcher::InsertDeoptimizationCallAt(uword start) {
   UNREACHABLE();
 }
 
-RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
-                                        const Code& caller_code,
-                                        Object* data) {
+CodePtr CodePatcher::GetInstanceCallAt(uword return_address,
+                                       const Code& caller_code,
+                                       Object* data) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   InstanceCall call(return_address);
   if (data != NULL) {
@@ -232,9 +232,9 @@ void CodePatcher::PatchInstanceCallAtWithMutatorsStopped(
   call.set_target(target);
 }
 
-RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
-                                                     const Code& caller_code,
-                                                     ICData* ic_data_result) {
+FunctionPtr CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
+                                                    const Code& caller_code,
+                                                    ICData* ic_data_result) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   UnoptimizedStaticCall static_call(return_address);
   ICData& ic_data = ICData::Handle();
@@ -263,15 +263,15 @@ void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
   UNREACHABLE();
 }
 
-RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
-                                                const Code& caller_code) {
+CodePtr CodePatcher::GetSwitchableCallTargetAt(uword return_address,
+                                               const Code& caller_code) {
   // Switchable instance calls only generated for precompilation.
   UNREACHABLE();
   return Code::null();
 }
 
-RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
-                                                const Code& caller_code) {
+ObjectPtr CodePatcher::GetSwitchableCallDataAt(uword return_address,
+                                               const Code& caller_code) {
   // Switchable instance calls only generated for precompilation.
   UNREACHABLE();
   return Object::null();
@@ -284,9 +284,9 @@ void CodePatcher::PatchNativeCallAt(uword return_address,
   UNREACHABLE();
 }
 
-RawCode* CodePatcher::GetNativeCallAt(uword return_address,
-                                      const Code& caller_code,
-                                      NativeFunction* target) {
+CodePtr CodePatcher::GetNativeCallAt(uword return_address,
+                                     const Code& caller_code,
+                                     NativeFunction* target) {
   UNREACHABLE();
   return NULL;
 }

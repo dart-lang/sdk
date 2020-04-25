@@ -84,7 +84,7 @@ DEFINE_FLAG(bool,
 
 #define CHECK_ERROR_HANDLE(error)                                              \
   {                                                                            \
-    RawError* err = (error);                                                   \
+    ErrorPtr err = (error);                                                    \
     if (err != Error::null()) {                                                \
       return Api::NewHandle(T, err);                                           \
     }                                                                          \
@@ -115,7 +115,7 @@ class CheckFunctionTypesVisitor : public ObjectVisitor {
         funcHandle_(Function::Handle(thread->zone())),
         typeHandle_(AbstractType::Handle(thread->zone())) {}
 
-  void VisitObject(RawObject* obj) {
+  void VisitObject(ObjectPtr obj) {
     if (obj->IsFunction()) {
       funcHandle_ ^= obj;
       classHandle_ ^= funcHandle_.Owner();
@@ -145,7 +145,7 @@ class CheckFunctionTypesVisitor : public ObjectVisitor {
 };
 #endif  // #if defined(DEBUG).
 
-static RawInstance* GetListInstance(Zone* zone, const Object& obj) {
+static InstancePtr GetListInstance(Zone* zone, const Object& obj) {
   if (obj.IsInstance()) {
     ObjectStore* object_store = Isolate::Current()->object_store();
     Type& list_rare_type =
@@ -169,7 +169,7 @@ static RawInstance* GetListInstance(Zone* zone, const Object& obj) {
   return Instance::null();
 }
 
-static RawInstance* GetMapInstance(Zone* zone, const Object& obj) {
+static InstancePtr GetMapInstance(Zone* zone, const Object& obj) {
   if (obj.IsInstance()) {
     ObjectStore* object_store = Isolate::Current()->object_store();
     Type& map_rare_type =
@@ -294,7 +294,7 @@ static Dart_Handle GetNativeFieldsOfArgument(NativeArguments* arguments,
                        current_func, field_count, num_fields);
 }
 
-static RawObject* Send0Arg(const Instance& receiver, const String& selector) {
+static ObjectPtr Send0Arg(const Instance& receiver, const String& selector) {
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 1;
   ArgumentsDescriptor args_desc(
@@ -309,9 +309,9 @@ static RawObject* Send0Arg(const Instance& receiver, const String& selector) {
   return DartEntry::InvokeFunction(function, args);
 }
 
-static RawObject* Send1Arg(const Instance& receiver,
-                           const String& selector,
-                           const Instance& argument) {
+static ObjectPtr Send1Arg(const Instance& receiver,
+                          const String& selector,
+                          const Instance& argument) {
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 2;
   ArgumentsDescriptor args_desc(
@@ -346,7 +346,7 @@ static const char* GetErrorString(Thread* thread, const Object& obj) {
   }
 }
 
-Dart_Handle Api::InitNewHandle(Thread* thread, RawObject* raw) {
+Dart_Handle Api::InitNewHandle(Thread* thread, ObjectPtr raw) {
   LocalHandles* local_handles = Api::TopScope(thread)->local_handles();
   ASSERT(local_handles != NULL);
   LocalHandle* ref = local_handles->AllocateHandle();
@@ -354,7 +354,7 @@ Dart_Handle Api::InitNewHandle(Thread* thread, RawObject* raw) {
   return ref->apiHandle();
 }
 
-Dart_Handle Api::NewHandle(Thread* thread, RawObject* raw) {
+Dart_Handle Api::NewHandle(Thread* thread, ObjectPtr raw) {
   if (raw == Object::null()) {
     return Null();
   }
@@ -368,7 +368,7 @@ Dart_Handle Api::NewHandle(Thread* thread, RawObject* raw) {
   return InitNewHandle(thread, raw);
 }
 
-RawObject* Api::UnwrapHandle(Dart_Handle object) {
+ObjectPtr Api::UnwrapHandle(Dart_Handle object) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
@@ -520,8 +520,8 @@ void Api::Init() {
   ASSERT(api_native_key_ != kUnsetThreadLocalKey);
 }
 
-static Dart_Handle InitNewReadOnlyApiHandle(RawObject* raw) {
-  ASSERT(raw->InVMIsolateHeap());
+static Dart_Handle InitNewReadOnlyApiHandle(ObjectPtr raw) {
+  ASSERT(raw->ptr()->InVMIsolateHeap());
   LocalHandle* ref = Dart::AllocateReadOnlyApiHandle();
   ref->set_raw(raw);
   return ref->apiHandle();
@@ -558,14 +558,14 @@ bool Api::StringGetPeerHelper(NativeArguments* arguments,
                               int arg_index,
                               void** peer) {
   NoSafepointScope no_safepoint_scope;
-  RawObject* raw_obj = arguments->NativeArgAt(arg_index);
+  ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
   if (!raw_obj->IsHeapObject()) {
     return false;
   }
   intptr_t cid = raw_obj->GetClassId();
   if (cid == kExternalOneByteStringCid) {
-    RawExternalOneByteString* raw_string =
-        reinterpret_cast<RawExternalOneByteString*>(raw_obj);
+    ExternalOneByteStringPtr raw_string =
+        static_cast<ExternalOneByteStringPtr>(raw_obj);
     *peer = raw_string->ptr()->peer_;
     return true;
   }
@@ -575,8 +575,8 @@ bool Api::StringGetPeerHelper(NativeArguments* arguments,
     return (*peer != 0);
   }
   if (cid == kExternalTwoByteStringCid) {
-    RawExternalTwoByteString* raw_string =
-        reinterpret_cast<RawExternalTwoByteString*>(raw_obj);
+    ExternalTwoByteStringPtr raw_string =
+        static_cast<ExternalTwoByteStringPtr>(raw_obj);
     *peer = raw_string->ptr()->peer_;
     return true;
   }
@@ -585,13 +585,13 @@ bool Api::StringGetPeerHelper(NativeArguments* arguments,
 
 bool Api::GetNativeReceiver(NativeArguments* arguments, intptr_t* value) {
   NoSafepointScope no_safepoint_scope;
-  RawObject* raw_obj = arguments->NativeArg0();
+  ObjectPtr raw_obj = arguments->NativeArg0();
   if (raw_obj->IsHeapObject()) {
     intptr_t cid = raw_obj->GetClassId();
     if (cid >= kNumPredefinedCids) {
       ASSERT(Instance::Cast(Object::Handle(raw_obj)).IsValidNativeIndex(0));
-      RawTypedData* native_fields = *reinterpret_cast<RawTypedData**>(
-          RawObject::ToAddr(raw_obj) + sizeof(RawObject));
+      TypedDataPtr native_fields = *reinterpret_cast<TypedDataPtr*>(
+          ObjectLayout::ToAddr(raw_obj) + sizeof(ObjectLayout));
       if (native_fields == TypedData::null()) {
         *value = 0;
       } else {
@@ -607,7 +607,7 @@ bool Api::GetNativeBooleanArgument(NativeArguments* arguments,
                                    int arg_index,
                                    bool* value) {
   NoSafepointScope no_safepoint_scope;
-  RawObject* raw_obj = arguments->NativeArgAt(arg_index);
+  ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
   if (raw_obj->IsHeapObject()) {
     intptr_t cid = raw_obj->GetClassId();
     if (cid == kBoolCid) {
@@ -626,16 +626,16 @@ bool Api::GetNativeIntegerArgument(NativeArguments* arguments,
                                    int arg_index,
                                    int64_t* value) {
   NoSafepointScope no_safepoint_scope;
-  RawObject* raw_obj = arguments->NativeArgAt(arg_index);
+  ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
   if (raw_obj->IsHeapObject()) {
     intptr_t cid = raw_obj->GetClassId();
     if (cid == kMintCid) {
-      *value = reinterpret_cast<RawMint*>(raw_obj)->ptr()->value_;
+      *value = static_cast<MintPtr>(raw_obj)->ptr()->value_;
       return true;
     }
     return false;
   }
-  *value = Smi::Value(reinterpret_cast<RawSmi*>(raw_obj));
+  *value = Smi::Value(static_cast<SmiPtr>(raw_obj));
   return true;
 }
 
@@ -643,21 +643,21 @@ bool Api::GetNativeDoubleArgument(NativeArguments* arguments,
                                   int arg_index,
                                   double* value) {
   NoSafepointScope no_safepoint_scope;
-  RawObject* raw_obj = arguments->NativeArgAt(arg_index);
+  ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
   if (raw_obj->IsHeapObject()) {
     intptr_t cid = raw_obj->GetClassId();
     if (cid == kDoubleCid) {
-      *value = reinterpret_cast<RawDouble*>(raw_obj)->ptr()->value_;
+      *value = static_cast<DoublePtr>(raw_obj)->ptr()->value_;
       return true;
     }
     if (cid == kMintCid) {
-      *value = static_cast<double>(
-          reinterpret_cast<RawMint*>(raw_obj)->ptr()->value_);
+      *value =
+          static_cast<double>(static_cast<MintPtr>(raw_obj)->ptr()->value_);
       return true;
     }
     return false;
   }
-  *value = static_cast<double>(Smi::Value(reinterpret_cast<RawSmi*>(raw_obj)));
+  *value = static_cast<double>(Smi::Value(static_cast<SmiPtr>(raw_obj)));
   return true;
 }
 
@@ -666,12 +666,12 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
                                     int num_fields,
                                     intptr_t* field_values) {
   NoSafepointScope no_safepoint_scope;
-  RawObject* raw_obj = arguments->NativeArgAt(arg_index);
+  ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
   if (raw_obj->IsHeapObject()) {
     intptr_t cid = raw_obj->GetClassId();
     if (cid >= kNumPredefinedCids) {
-      RawTypedData* native_fields = *reinterpret_cast<RawTypedData**>(
-          RawObject::ToAddr(raw_obj) + sizeof(RawObject));
+      TypedDataPtr native_fields = *reinterpret_cast<TypedDataPtr*>(
+          ObjectLayout::ToAddr(raw_obj) + sizeof(ObjectLayout));
       if (native_fields == TypedData::null()) {
         memset(field_values, 0, (num_fields * sizeof(field_values[0])));
       } else if (num_fields == Smi::Value(native_fields->ptr()->length_)) {
@@ -865,7 +865,7 @@ DART_EXPORT void Dart_PropagateError(Dart_Handle handle) {
     // that GC won't touch the raw error object before creating a valid
     // handle for it in the surviving zone.
     NoSafepointScope no_safepoint;
-    RawError* raw_error = Api::UnwrapErrorHandle(thread->zone(), handle).raw();
+    ErrorPtr raw_error = Api::UnwrapErrorHandle(thread->zone(), handle).raw();
     thread->UnwindScopes(thread->top_exit_frame_info());
     // Note that thread's zone is different here than at the beginning of this
     // function.
@@ -2011,7 +2011,7 @@ DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis) {
     const Error* error;
     {
       NoSafepointScope no_safepoint;
-      RawError* raw_error = Error::Cast(result).raw();
+      ErrorPtr raw_error = Error::Cast(result).raw();
       T->UnwindScopes(T->top_exit_frame_info());
       error = &Error::Handle(T->zone(), raw_error);
     }
@@ -2028,7 +2028,7 @@ DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis) {
     const Error* error;
     {
       NoSafepointScope no_safepoint;
-      RawError* raw_error = T->StealStickyError();
+      ErrorPtr raw_error = T->StealStickyError();
       T->UnwindScopes(T->top_exit_frame_info());
       error = &Error::Handle(T->zone(), raw_error);
     }
@@ -2084,7 +2084,7 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   }
 
   // Smis and null can be sent without serialization.
-  RawObject* raw_obj = Api::UnwrapHandle(handle);
+  ObjectPtr raw_obj = Api::UnwrapHandle(handle);
   if (ApiObjectConverter::CanConvert(raw_obj)) {
     return PortMap::PostMessage(
         Message::New(port_id, raw_obj, Message::kNormalPriority));
@@ -2471,7 +2471,7 @@ DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
     RETURN_TYPE_ERROR(Z, function, Function);
   }
   if (func.IsNonImplicitClosureFunction()) {
-    RawFunction* parent_function = func.parent_function();
+    FunctionPtr parent_function = func.parent_function();
     return Api::NewHandle(T, parent_function);
   }
   const Class& owner = Class::Handle(Z, func.Owner());
@@ -2515,7 +2515,7 @@ DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure) {
 
   ASSERT(ClassFinalizer::AllClassesFinalized());
 
-  RawFunction* rf = Closure::Cast(closure_obj).function();
+  FunctionPtr rf = Closure::Cast(closure_obj).function();
   return Api::NewHandle(T, rf);
 }
 
@@ -2607,7 +2607,7 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_DURATION(T);
   const String& str_obj = String::Handle(Z, String::New(str));
-  RawInteger* integer = Integer::New(str_obj);
+  IntegerPtr integer = Integer::New(str_obj);
   if (integer == Integer::null()) {
     return Api::NewError("%s: Cannot create Dart integer from string %s",
                          CURRENT_FUNC, str);
@@ -2733,7 +2733,7 @@ DART_EXPORT Dart_Handle Dart_GetStaticMethodClosure(Dart_Handle library,
     return Api::NewError("function_name must refer to a static method.");
   }
 
-  if (func.kind() != RawFunction::kRegularFunction) {
+  if (func.kind() != FunctionLayout::kRegularFunction) {
     return Api::NewError(
         "function_name must be the name of a regular function.");
   }
@@ -3021,7 +3021,7 @@ DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
   return Dart_NewListOf(Dart_CoreType_Dynamic, length);
 }
 
-static RawTypeArguments* TypeArgumentsForElementType(
+static TypeArgumentsPtr TypeArgumentsForElementType(
     ObjectStore* store,
     Dart_CoreType_Id element_type_id) {
   switch (element_type_id) {
@@ -3321,13 +3321,13 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
   }
 }
 
-static RawObject* ResolveConstructor(const char* current_func,
-                                     const Class& cls,
-                                     const String& class_name,
-                                     const String& dotted_name,
-                                     int num_args);
+static ObjectPtr ResolveConstructor(const char* current_func,
+                                    const Class& cls,
+                                    const String& class_name,
+                                    const String& dotted_name,
+                                    int num_args);
 
-static RawObject* ThrowArgumentError(const char* exception_message) {
+static ObjectPtr ThrowArgumentError(const char* exception_message) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   // Lookup the class ArgumentError in dart:core.
@@ -3378,7 +3378,7 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
   const Instance* saved_exception;
   {
     NoSafepointScope no_safepoint;
-    RawInstance* raw_exception = exception.raw();
+    InstancePtr raw_exception = exception.raw();
     thread->UnwindScopes(thread->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
   }
@@ -3759,9 +3759,9 @@ Dart_GetTypeOfExternalTypedData(Dart_Handle object) {
   return Dart_TypedData_kInvalid;
 }
 
-static RawObject* GetByteDataConstructor(Thread* thread,
-                                         const String& constructor_name,
-                                         intptr_t num_args) {
+static ObjectPtr GetByteDataConstructor(Thread* thread,
+                                        const String& constructor_name,
+                                        intptr_t num_args) {
   const Library& lib =
       Library::Handle(thread->isolate()->object_store()->typed_data_library());
   ASSERT(!lib.IsNull());
@@ -3982,10 +3982,10 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedDataWithFinalizer(
   return Api::Null();
 }
 
-static RawObject* GetByteBufferConstructor(Thread* thread,
-                                           const String& class_name,
-                                           const String& constructor_name,
-                                           intptr_t num_args) {
+static ObjectPtr GetByteBufferConstructor(Thread* thread,
+                                          const String& class_name,
+                                          const String& constructor_name,
+                                          intptr_t num_args) {
   const Library& lib =
       Library::Handle(thread->isolate()->object_store()->typed_data_library());
   ASSERT(!lib.IsNull());
@@ -4184,11 +4184,11 @@ DART_EXPORT Dart_Handle Dart_GetDataFromByteBuffer(Dart_Handle object) {
 
 // ---  Invoking Constructors, Methods, and Field accessors ---
 
-static RawObject* ResolveConstructor(const char* current_func,
-                                     const Class& cls,
-                                     const String& class_name,
-                                     const String& constr_name,
-                                     int num_args) {
+static ObjectPtr ResolveConstructor(const char* current_func,
+                                    const Class& cls,
+                                    const String& class_name,
+                                    const String& constr_name,
+                                    int num_args) {
   // The constructor must be present in the interface.
   const Function& constructor =
       Function::Handle(cls.LookupFunctionAllowPrivate(constr_name));
@@ -4223,7 +4223,7 @@ static RawObject* ResolveConstructor(const char* current_func,
         current_func, constr_name.ToCString(), error_message.ToCString()));
     return ApiError::New(message);
   }
-  RawError* error = constructor.VerifyCallEntryPoint();
+  ErrorPtr error = constructor.VerifyCallEntryPoint();
   if (error != Error::null()) return error;
   return constructor.raw();
 }
@@ -4365,7 +4365,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   return Api::NewHandle(T, new_object.raw());
 }
 
-static RawInstance* AllocateObject(Thread* thread, const Class& cls) {
+static InstancePtr AllocateObject(Thread* thread, const Class& cls) {
   if (!cls.is_fields_marked_nullable()) {
     // Mark all fields as nullable.
     Zone* zone = thread->zone();
@@ -4841,7 +4841,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
   const Instance* saved_exception;
   {
     NoSafepointScope no_safepoint;
-    RawInstance* raw_exception =
+    InstancePtr raw_exception =
         Api::UnwrapInstanceHandle(zone, exception).raw();
     thread->UnwindScopes(thread->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
@@ -4879,9 +4879,9 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
   const StackTrace* saved_stacktrace;
   {
     NoSafepointScope no_safepoint;
-    RawInstance* raw_exception =
+    InstancePtr raw_exception =
         Api::UnwrapInstanceHandle(zone, exception).raw();
-    RawStackTrace* raw_stacktrace =
+    StackTracePtr raw_stacktrace =
         Api::UnwrapStackTraceHandle(zone, stacktrace).raw();
     thread->UnwindScopes(thread->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
@@ -5242,7 +5242,7 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 }
 
 // --- Environment ---
-RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
+StringPtr Api::GetEnvironmentValue(Thread* thread, const String& name) {
   String& result = String::Handle(CallEnvironmentCallback(thread, name));
   if (result.IsNull()) {
     // Every 'dart:X' library introduces an environment variable
@@ -5304,7 +5304,7 @@ RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
   return result.raw();
 }
 
-RawString* Api::CallEnvironmentCallback(Thread* thread, const String& name) {
+StringPtr Api::CallEnvironmentCallback(Thread* thread, const String& name) {
   Isolate* isolate = thread->isolate();
   Dart_EnvironmentCallback callback = isolate->environment_callback();
   if (callback != NULL) {
@@ -5903,7 +5903,7 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
   }
   {
     NoSafepointScope no_safepoint;
-    RawObject* raw_obj = obj.raw();
+    ObjectPtr raw_obj = obj.raw();
     *peer = thread->isolate()->heap()->GetPeer(raw_obj);
   }
   return Api::Success();
@@ -5923,7 +5923,7 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
   }
   {
     NoSafepointScope no_safepoint;
-    RawObject* raw_obj = obj.raw();
+    ObjectPtr raw_obj = obj.raw();
     thread->isolate()->heap()->SetPeer(raw_obj, peer);
   }
   return Api::Success();

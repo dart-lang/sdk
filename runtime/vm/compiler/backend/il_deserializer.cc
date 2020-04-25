@@ -1013,10 +1013,10 @@ ConstantInstr* FlowGraphDeserializer::DeserializeConstant(
 DebugStepCheckInstr* FlowGraphDeserializer::DeserializeDebugStepCheck(
     SExpList* sexp,
     const InstrInfo& info) {
-  auto kind = RawPcDescriptors::kAnyKind;
+  auto kind = PcDescriptorsLayout::kAnyKind;
   if (auto const kind_sexp = CheckSymbol(Retrieve(sexp, "stub_kind"))) {
-    if (!RawPcDescriptors::ParseKind(kind_sexp->value(), &kind)) {
-      StoreError(kind_sexp, "not a valid RawPcDescriptors::Kind name");
+    if (!PcDescriptorsLayout::ParseKind(kind_sexp->value(), &kind)) {
+      StoreError(kind_sexp, "not a valid PcDescriptorsLayout::Kind name");
       return nullptr;
     }
   }
@@ -1641,13 +1641,13 @@ bool FlowGraphDeserializer::ParseFunction(SExpList* list, Object* out) {
   auto& function = Function::Cast(*out);
   // Check the kind expected by the S-expression if one was specified.
   if (auto const kind_sexp = CheckSymbol(list->ExtraLookupValue("kind"))) {
-    RawFunction::Kind kind;
-    if (!RawFunction::ParseKind(kind_sexp->value(), &kind)) {
+    FunctionLayout::Kind kind;
+    if (!FunctionLayout::ParseKind(kind_sexp->value(), &kind)) {
       StoreError(kind_sexp, "unexpected function kind");
       return false;
     }
     if (function.kind() != kind) {
-      auto const kind_str = RawFunction::KindToCString(function.kind());
+      auto const kind_str = FunctionLayout::KindToCString(function.kind());
       StoreError(list, "retrieved function has kind %s", kind_str);
       return false;
     }

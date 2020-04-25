@@ -51,8 +51,8 @@ DEFINE_NATIVE_ENTRY(Closure_equals, 0, 2) {
         const Context& context_a = Context::Handle(zone, receiver.context());
         const Context& context_b =
             Context::Handle(zone, other_closure.context());
-        RawObject* receiver_a = context_a.At(0);
-        RawObject* receiver_b = context_b.At(0);
+        ObjectPtr receiver_a = context_a.At(0);
+        ObjectPtr receiver_b = context_b.At(0);
         if ((receiver_a == receiver_b) &&
             ((func_a.raw() == func_b.raw()) ||
              ((func_a.name() == func_b.name()) &&

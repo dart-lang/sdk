@@ -72,19 +72,6 @@ class ObjectIdRing;
 class ObjectPointerVisitor;
 class ObjectStore;
 class PersistentHandle;
-class RawInstance;
-class RawArray;
-class RawContext;
-class RawDouble;
-class RawError;
-class RawField;
-class RawGrowableObjectArray;
-class RawMint;
-class RawObject;
-class RawInteger;
-class RawFloat32x4;
-class RawInt32x4;
-class RawUserTag;
 class ReversePcLookupCache;
 class RwLock;
 class SafepointRwLock;
@@ -229,7 +216,7 @@ class IsolateGroupSource {
   std::unique_ptr<intptr_t[]> cid_permutation_map;
 
   // List of weak pointers to external typed data for hot reload blobs.
-  RawArray* hot_reload_blobs_;
+  ArrayPtr hot_reload_blobs_;
   intptr_t num_hot_reloads_;
 };
 
@@ -503,7 +490,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
 
-  RawArray* saved_unlinked_calls() const { return saved_unlinked_calls_; }
+  ArrayPtr saved_unlinked_calls() const { return saved_unlinked_calls_; }
   void set_saved_unlinked_calls(const Array& saved_unlinked_calls);
 
   // Returns the pc -> code lookup cache object for this isolate.
@@ -598,7 +585,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<Heap> heap_;
   std::unique_ptr<DispatchTable> dispatch_table_;
   ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
-  RawArray* saved_unlinked_calls_;
+  ArrayPtr saved_unlinked_calls_;
 
   IdleTimeHandler idle_time_handler_;
   uint32_t isolate_group_flags_ = 0;
@@ -676,8 +663,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   ClassTable* class_table() { return class_table_.get(); }
 
-  RawClass** cached_class_table_table() { return cached_class_table_table_; }
-  void set_cached_class_table_table(RawClass** cached_class_table_table) {
+  ClassPtr* cached_class_table_table() { return cached_class_table_table_; }
+  void set_cached_class_table_table(ClassPtr* cached_class_table_table) {
     cached_class_table_table_ = cached_class_table_table;
   }
   static intptr_t cached_class_table_table_offset() {
@@ -723,7 +710,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
   // Prefers old classes when we are in the middle of a reload.
-  RawClass* GetClassForHeapWalkAt(intptr_t cid);
+  ClassPtr GetClassForHeapWalkAt(intptr_t cid);
 
   static intptr_t ic_miss_code_offset() {
     return OFFSET_OF(Isolate, ic_miss_code_);
@@ -790,9 +777,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   bool HasTagHandler() const {
     return group()->library_tag_handler() != nullptr;
   }
-  RawObject* CallTagHandler(Dart_LibraryTag tag,
-                            const Object& arg1,
-                            const Object& arg2);
+  ObjectPtr CallTagHandler(Dart_LibraryTag tag,
+                           const Object& arg1,
+                           const Object& arg2);
 
   void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
 
@@ -1020,7 +1007,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 #endif  // !defined(PRODUCT)
 
-  RawError* PausePostRequest();
+  ErrorPtr PausePostRequest();
 
   uword user_tag() const { return user_tag_; }
   static intptr_t user_tag_offset() { return OFFSET_OF(Isolate, user_tag_); }
@@ -1040,28 +1027,28 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   static intptr_t IsolateListLength();
 
-  RawGrowableObjectArray* tag_table() const { return tag_table_; }
+  GrowableObjectArrayPtr tag_table() const { return tag_table_; }
   void set_tag_table(const GrowableObjectArray& value);
 
-  RawUserTag* current_tag() const { return current_tag_; }
+  UserTagPtr current_tag() const { return current_tag_; }
   void set_current_tag(const UserTag& tag);
 
-  RawUserTag* default_tag() const { return default_tag_; }
+  UserTagPtr default_tag() const { return default_tag_; }
   void set_default_tag(const UserTag& tag);
 
   void set_ic_miss_code(const Code& code);
 
-  RawGrowableObjectArray* deoptimized_code_array() const {
+  GrowableObjectArrayPtr deoptimized_code_array() const {
     return deoptimized_code_array_;
   }
   void set_deoptimized_code_array(const GrowableObjectArray& value);
   void TrackDeoptimizedCode(const Code& code);
 
   // Also sends a paused at exit event over the service protocol.
-  void SetStickyError(RawError* sticky_error);
+  void SetStickyError(ErrorPtr sticky_error);
 
-  RawError* sticky_error() const { return sticky_error_; }
-  DART_WARN_UNUSED_RESULT RawError* StealStickyError();
+  ErrorPtr sticky_error() const { return sticky_error_; }
+  DART_WARN_UNUSED_RESULT ErrorPtr StealStickyError();
 
   // In precompilation we finalize all regular classes before compiling.
   bool all_classes_finalized() const {
@@ -1082,10 +1069,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // deoptimization in the mutator thread.
   void AddDeoptimizingBoxedField(const Field& field);
   // Returns Field::null() if none available in the list.
-  RawField* GetDeoptimizingBoxedField();
+  FieldPtr GetDeoptimizingBoxedField();
 
 #ifndef PRODUCT
-  RawError* InvokePendingServiceExtensionCalls();
+  ErrorPtr InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
                                   const String& method_name,
                                   const Array& parameter_keys,
@@ -1094,7 +1081,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
                                   const Instance& id);
   void RegisterServiceExtensionHandler(const String& name,
                                        const Instance& closure);
-  RawInstance* LookupServiceExtensionHandler(const String& name);
+  InstancePtr LookupServiceExtensionHandler(const String& name);
 #endif
 
   static void VisitIsolates(IsolateVisitor* visitor);
@@ -1105,10 +1092,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 #endif
 
   void AddClosureFunction(const Function& function) const;
-  RawFunction* LookupClosureFunction(const Function& parent,
-                                     TokenPosition token_pos) const;
+  FunctionPtr LookupClosureFunction(const Function& parent,
+                                    TokenPosition token_pos) const;
   intptr_t FindClosureIndex(const Function& needle) const;
-  RawFunction* ClosureFunctionFromIndex(intptr_t idx) const;
+  FunctionPtr ClosureFunctionFromIndex(intptr_t idx) const;
 
   bool is_service_isolate() const {
     return IsServiceIsolateBit::decode(isolate_flags_);
@@ -1290,12 +1277,12 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_user_tag(uword tag) { user_tag_ = tag; }
 
 #if !defined(PRODUCT)
-  RawGrowableObjectArray* GetAndClearPendingServiceExtensionCalls();
-  RawGrowableObjectArray* pending_service_extension_calls() const {
+  GrowableObjectArrayPtr GetAndClearPendingServiceExtensionCalls();
+  GrowableObjectArrayPtr pending_service_extension_calls() const {
     return pending_service_extension_calls_;
   }
   void set_pending_service_extension_calls(const GrowableObjectArray& value);
-  RawGrowableObjectArray* registered_service_extension_handlers() const {
+  GrowableObjectArrayPtr registered_service_extension_handlers() const {
     return registered_service_extension_handlers_;
   }
   void set_registered_service_extension_handlers(
@@ -1321,14 +1308,14 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
   uword user_tag_ = 0;
-  RawUserTag* current_tag_;
-  RawUserTag* default_tag_;
-  RawCode* ic_miss_code_;
+  UserTagPtr current_tag_;
+  UserTagPtr default_tag_;
+  CodePtr ic_miss_code_;
   // Cached value of object_store_shared_ptr_, here for generated code access
   ObjectStore* cached_object_store_ = nullptr;
   SharedClassTable* shared_class_table_ = nullptr;
   // Cached value of class_table_->table_, here for generated code access
-  RawClass** cached_class_table_table_ = nullptr;
+  ClassPtr* cached_class_table_table_ = nullptr;
   FieldTable* field_table_ = nullptr;
   bool single_step_ = false;
   // End accessed from generated code.
@@ -1397,12 +1384,12 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   enum {kPendingHandlerIndex = 0, kPendingMethodNameIndex, kPendingKeysIndex,
         kPendingValuesIndex,      kPendingReplyPortIndex,  kPendingIdIndex,
         kPendingEntrySize};
-  RawGrowableObjectArray* pending_service_extension_calls_;
+  GrowableObjectArrayPtr pending_service_extension_calls_;
 
   // We use 2 list entries for each registered extension handler.
   enum {kRegisteredNameIndex = 0, kRegisteredHandlerIndex,
         kRegisteredEntrySize};
-  RawGrowableObjectArray* registered_service_extension_handlers_;
+  GrowableObjectArrayPtr registered_service_extension_handlers_;
 
   // Used to wake the isolate when it is in the pause event loop.
   Monitor* pause_loop_monitor_ = nullptr;
@@ -1451,11 +1438,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;
   DeoptContext* deopt_context_ = nullptr;
 
-  RawGrowableObjectArray* tag_table_;
+  GrowableObjectArrayPtr tag_table_;
 
-  RawGrowableObjectArray* deoptimized_code_array_;
+  GrowableObjectArrayPtr deoptimized_code_array_;
 
-  RawError* sticky_error_;
+  ErrorPtr sticky_error_;
 
   std::unique_ptr<Bequest> bequest_;
   Dart_Port beneficiary_ = 0;
@@ -1463,7 +1450,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // Protect access to boxed_field_list_.
   Mutex field_list_mutex_;
   // List of fields that became boxed and that trigger deoptimization.
-  RawGrowableObjectArray* boxed_field_list_;
+  GrowableObjectArrayPtr boxed_field_list_;
 
   // This guards spawn_count_. An isolate cannot complete shutdown and be
   // destroyed while there are child isolates in the midst of a spawn.
@@ -1620,9 +1607,9 @@ class IsolateSpawnState {
   bool errors_are_fatal() const { return errors_are_fatal_; }
   Dart_IsolateFlags* isolate_flags() { return &isolate_flags_; }
 
-  RawObject* ResolveFunction();
-  RawInstance* BuildArgs(Thread* thread);
-  RawInstance* BuildMessage(Thread* thread);
+  ObjectPtr ResolveFunction();
+  InstancePtr BuildArgs(Thread* thread);
+  InstancePtr BuildMessage(Thread* thread);
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
 

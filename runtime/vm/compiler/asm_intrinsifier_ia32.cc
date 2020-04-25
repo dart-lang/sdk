@@ -135,9 +135,9 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* EDI: allocation size. */                                                  \
   {                                                                            \
     Label size_tag_overflow, done;                                             \
-    __ cmpl(EDI, Immediate(target::RawObject::kSizeTagMaxSizeTag));            \
+    __ cmpl(EDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));         \
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);                     \
-    __ shll(EDI, Immediate(target::RawObject::kTagBitsSizeTagPos -             \
+    __ shll(EDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -          \
                            target::ObjectAlignment::kObjectAlignmentLog2));    \
     __ jmp(&done, Assembler::kNearJump);                                       \
                                                                                \
@@ -2075,9 +2075,9 @@ static void TryAllocateOneByteString(Assembler* assembler,
   // EDI: allocation size.
   {
     Label size_tag_overflow, done;
-    __ cmpl(EDI, Immediate(target::RawObject::kSizeTagMaxSizeTag));
+    __ cmpl(EDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EDI, Immediate(target::RawObject::kTagBitsSizeTagPos -
+    __ shll(EDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
 

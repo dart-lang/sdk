@@ -50,20 +50,18 @@ namespace dart {
 class FlowGraph;
 class Function;
 class Library;
-class RawFunction;
-class RawLibrary;
 
-RawLibrary* LoadTestScript(const char* script,
-                           Dart_NativeEntryResolver resolver = nullptr,
-                           const char* lib_uri = RESOLVED_USER_TEST_URI);
+LibraryPtr LoadTestScript(const char* script,
+                          Dart_NativeEntryResolver resolver = nullptr,
+                          const char* lib_uri = RESOLVED_USER_TEST_URI);
 
-RawFunction* GetFunction(const Library& lib, const char* name);
-RawClass* GetClass(const Library& lib, const char* name);
-RawTypeParameter* GetClassTypeParameter(const Class& klass, const char* name);
-RawTypeParameter* GetFunctionTypeParameter(const Function& fun,
-                                           const char* name);
+FunctionPtr GetFunction(const Library& lib, const char* name);
+ClassPtr GetClass(const Library& lib, const char* name);
+TypeParameterPtr GetClassTypeParameter(const Class& klass, const char* name);
+TypeParameterPtr GetFunctionTypeParameter(const Function& fun,
+                                          const char* name);
 
-RawObject* Invoke(const Library& lib, const char* name);
+ObjectPtr Invoke(const Library& lib, const char* name);
 
 class TestPipeline : public ValueObject {
  public:
@@ -291,7 +289,7 @@ class FlowGraphBuilderHelper {
   static FlowGraph& MakeDummyGraph(Thread* thread) {
     const Function& func = Function::ZoneHandle(Function::New(
         String::Handle(Symbols::New(thread, "dummy")),
-        RawFunction::kRegularFunction,
+        FunctionLayout::kRegularFunction,
         /*is_static=*/true,
         /*is_const=*/false,
         /*is_abstract=*/false,

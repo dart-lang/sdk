@@ -28,7 +28,6 @@ namespace dart {
 
 // Forward declarations.
 class ObjectPointerVisitor;
-class RawContext;
 class LocalVariable;
 
 extern FrameLayout runtime_frame_layout;
@@ -81,8 +80,8 @@ class StackFrame : public ValueObject {
     pc_ = value;
   }
 
-  void set_pc_marker(RawCode* code) {
-    *reinterpret_cast<RawCode**>(
+  void set_pc_marker(CodePtr code) {
+    *reinterpret_cast<CodePtr*>(
         fp() + ((is_interpreted() ? kKBCPcMarkerSlotFromFp
                                   : runtime_frame_layout.code_from_fp) *
                 kWordSize)) = code;
@@ -120,9 +119,9 @@ class StackFrame : public ValueObject {
 
   virtual bool is_interpreted() const { return is_interpreted_; }
 
-  RawFunction* LookupDartFunction() const;
-  RawCode* LookupDartCode() const;
-  RawBytecode* LookupDartBytecode() const;
+  FunctionPtr LookupDartFunction() const;
+  CodePtr LookupDartCode() const;
+  BytecodePtr LookupDartBytecode() const;
   bool FindExceptionHandler(Thread* thread,
                             uword* handler_pc,
                             bool* needs_stacktrace,
@@ -156,9 +155,8 @@ class StackFrame : public ValueObject {
   Thread* thread() const { return thread_; }
 
  private:
-  RawCode* GetCodeObject() const;
-  RawBytecode* GetBytecodeObject() const;
-
+  CodePtr GetCodeObject() const;
+  BytecodePtr GetBytecodeObject() const;
 
   uword GetCallerFp() const {
     return *(reinterpret_cast<uword*>(
@@ -409,7 +407,7 @@ class InlinedFunctionsIterator : public ValueObject {
   bool Done() const { return index_ == -1; }
   void Advance();
 
-  RawFunction* function() const {
+  FunctionPtr function() const {
     ASSERT(!Done());
     return function_.raw();
   }
@@ -419,7 +417,7 @@ class InlinedFunctionsIterator : public ValueObject {
     return pc_;
   }
 
-  RawCode* code() const {
+  CodePtr code() const {
     ASSERT(!Done());
     return code_.raw();
   }

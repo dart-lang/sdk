@@ -130,7 +130,7 @@ class Scavenger {
   // be part of the surviving objects.
   bool Contains(uword addr) const { return to_->Contains(addr); }
 
-  RawObject* FindObject(FindObjectVisitor* visitor);
+  ObjectPtr FindObject(FindObjectVisitor* visitor);
 
   uword TryAllocate(Thread* thread, intptr_t size) {
     uword addr = TryAllocateFromTLAB(thread, size);
@@ -288,7 +288,7 @@ class Scavenger {
   void MournWeakHandles();
   void Epilogue(SemiSpace* from);
 
-  bool IsUnreachable(RawObject** p);
+  bool IsUnreachable(ObjectPtr* p);
 
   void VerifyStoreBuffers();
 

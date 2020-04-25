@@ -18,9 +18,9 @@ namespace dart {
 // sdk/lib/async/stream_controller.dart:_StreamController._STATE_SUBSCRIBED.
 const intptr_t kStreamController_StateSubscribed = 1;
 
-RawClosure* FindClosureInFrame(RawObject** last_object_in_caller,
-                               const Function& function,
-                               bool is_interpreted) {
+ClosurePtr FindClosureInFrame(ObjectPtr* last_object_in_caller,
+                              const Function& function,
+                              bool is_interpreted) {
   NoSafepointScope nsp;
 
   // The callee has function signature
@@ -32,7 +32,7 @@ RawClosure* FindClosureInFrame(RawObject** last_object_in_caller,
   auto& closure = Closure::Handle();
   for (intptr_t i = 0; i < 4; i++) {
     // KBC builds the stack upwards instead of the usual downwards stack.
-    RawObject* arg = last_object_in_caller[(is_interpreted ? -i : i)];
+    ObjectPtr arg = last_object_in_caller[(is_interpreted ? -i : i)];
     if (arg->IsHeapObject() && arg->GetClassId() == kClosureCid) {
       closure = Closure::RawCast(arg);
       if (closure.function() == function.raw()) {
@@ -49,7 +49,7 @@ RawClosure* FindClosureInFrame(RawObject** last_object_in_caller,
 intptr_t GetYieldIndex(const Closure& receiver_closure) {
   const auto& function = Function::Handle(receiver_closure.function());
   if (!function.IsAsyncClosure() && !function.IsAsyncGenClosure()) {
-    return RawPcDescriptors::kInvalidYieldIndex;
+    return PcDescriptorsLayout::kInvalidYieldIndex;
   }
   const auto& await_jump_var =
       Object::Handle(Context::Handle(receiver_closure.context())
@@ -59,10 +59,10 @@ intptr_t GetYieldIndex(const Closure& receiver_closure) {
 }
 
 intptr_t FindPcOffset(const PcDescriptors& pc_descs, intptr_t yield_index) {
-  if (yield_index == RawPcDescriptors::kInvalidYieldIndex) {
+  if (yield_index == PcDescriptorsLayout::kInvalidYieldIndex) {
     return 0;
   }
-  PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
+  PcDescriptors::Iterator iter(pc_descs, PcDescriptorsLayout::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.YieldIndex() == yield_index) {
       return iter.PcOffset();
@@ -73,7 +73,7 @@ intptr_t FindPcOffset(const PcDescriptors& pc_descs, intptr_t yield_index) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 intptr_t FindPcOffset(const Bytecode& bytecode, intptr_t yield_index) {
-  if (yield_index == RawPcDescriptors::kInvalidYieldIndex) {
+  if (yield_index == PcDescriptorsLayout::kInvalidYieldIndex) {
     return 0;
   }
   if (!bytecode.HasSourcePositions()) {
@@ -197,7 +197,7 @@ class CallerClosureFinder {
     ASSERT(!state_data_field.IsNull());
   }
 
-  RawClosure* GetCallerInFutureImpl(const Object& future_) {
+  ClosurePtr GetCallerInFutureImpl(const Object& future_) {
     ASSERT(!future_.IsNull());
     ASSERT(future_.GetClassId() == future_impl_class.id());
 
@@ -217,7 +217,7 @@ class CallerClosureFinder {
     return Closure::Cast(callback_).raw();
   }
 
-  RawClosure* FindCallerInAsyncClosure(const Context& receiver_context) {
+  ClosurePtr FindCallerInAsyncClosure(const Context& receiver_context) {
     context_entry_ = receiver_context.At(Context::kAsyncCompleterIndex);
     ASSERT(context_entry_.IsInstance());
     ASSERT(context_entry_.GetClassId() == async_await_completer_class.id());
@@ -227,7 +227,7 @@ class CallerClosureFinder {
     return GetCallerInFutureImpl(future_);
   }
 
-  RawClosure* FindCallerInAsyncGenClosure(const Context& receiver_context) {
+  ClosurePtr FindCallerInAsyncGenClosure(const Context& receiver_context) {
     context_entry_ = receiver_context.At(Context::kControllerIndex);
     ASSERT(context_entry_.IsInstance());
     ASSERT(context_entry_.GetClassId() ==
@@ -277,7 +277,7 @@ class CallerClosureFinder {
     UNREACHABLE();  // If no onData is found we have a bug.
   }
 
-  RawClosure* FindCaller(const Closure& receiver_closure) {
+  ClosurePtr FindCaller(const Closure& receiver_closure) {
     receiver_function_ = receiver_closure.function();
     receiver_context_ = receiver_closure.context();
 
@@ -426,8 +426,8 @@ void StackTraceUtils::CollectFramesLazy(
 
       // Next, look up caller's closure on the stack and walk backwards through
       // the yields.
-      RawObject** last_caller_obj = reinterpret_cast<RawObject**>(
-          frame->GetCallerSp());
+      ObjectPtr* last_caller_obj =
+          reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
       closure = FindClosureInFrame(last_caller_obj, function,
                                    frame->is_interpreted());
 

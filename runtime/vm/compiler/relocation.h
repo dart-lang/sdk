@@ -25,10 +25,10 @@ namespace dart {
 class UnresolvedCall : public IntrusiveDListEntry<UnresolvedCall>,
                        public IntrusiveDListEntry<UnresolvedCall, 2> {
  public:
-  UnresolvedCall(RawCode* caller,
+  UnresolvedCall(CodePtr caller,
                  intptr_t call_offset,
                  intptr_t text_offset,
-                 RawCode* callee,
+                 CodePtr callee,
                  intptr_t offset_into_target,
                  bool is_tail_call)
       : caller(caller),
@@ -50,13 +50,13 @@ class UnresolvedCall : public IntrusiveDListEntry<UnresolvedCall>,
 
   // The caller which has an unresolved call (will be null'ed out when
   // resolved).
-  RawCode* caller;
+  CodePtr caller;
   // The offset from the payload of the calling code which performs the call.
   const intptr_t call_offset;
   // The offset in the .text segment where the call happens.
   const intptr_t text_offset;
   // The target of the forward call (will be null'ed out when resolved).
-  RawCode* callee;
+  CodePtr callee;
   // The extra offset into the target.
   const intptr_t offset_into_target;
   // Whether this is a tail call.
@@ -78,7 +78,7 @@ using SameDestinationUnresolvedCallsList = IntrusiveDList<UnresolvedCall, 2>;
 // instead (which will tail-call the destination).
 class UnresolvedTrampoline : public IntrusiveDListEntry<UnresolvedTrampoline> {
  public:
-  UnresolvedTrampoline(RawCode* callee,
+  UnresolvedTrampoline(CodePtr callee,
                        intptr_t offset_into_target,
                        uint8_t* trampoline_bytes,
                        intptr_t text_offset)
@@ -88,7 +88,7 @@ class UnresolvedTrampoline : public IntrusiveDListEntry<UnresolvedTrampoline> {
         text_offset(text_offset) {}
 
   // The target of the forward call.
-  RawCode* callee;
+  CodePtr callee;
   // The extra offset into the target.
   intptr_t offset_into_target;
 
@@ -104,21 +104,21 @@ template <typename ValueType, ValueType kNoValue>
 class InstructionsMapTraits {
  public:
   struct Pair {
-    RawInstructions* instructions;
+    InstructionsPtr instructions;
     ValueType value;
 
     Pair() : instructions(nullptr), value(kNoValue) {}
-    Pair(RawInstructions* i, const ValueType& value)
+    Pair(InstructionsPtr i, const ValueType& value)
         : instructions(i), value(value) {}
   };
 
-  typedef const RawInstructions* Key;
+  typedef const InstructionsPtr Key;
   typedef const ValueType Value;
 
   static Key KeyOf(Pair kv) { return kv.instructions; }
   static ValueType ValueOf(Pair kv) { return kv.value; }
   static inline intptr_t Hashcode(Key key) {
-    return reinterpret_cast<intptr_t>(key);
+    return static_cast<intptr_t>(key);
   }
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair.instructions == key;
@@ -147,7 +147,7 @@ class CodeRelocator : public StackResource {
   // Populates the image writer command array which must be used later to write
   // the ".text" segment.
   static void Relocate(Thread* thread,
-                       GrowableArray<RawCode*>* code_objects,
+                       GrowableArray<CodePtr>* code_objects,
                        GrowableArray<ImageWriterCommand>* commands,
                        bool is_vm_isolate) {
     CodeRelocator relocator(thread, code_objects, commands);
@@ -156,20 +156,20 @@ class CodeRelocator : public StackResource {
 
  private:
   CodeRelocator(Thread* thread,
-                GrowableArray<RawCode*>* code_objects,
+                GrowableArray<CodePtr>* code_objects,
                 GrowableArray<ImageWriterCommand>* commands);
 
   void Relocate(bool is_vm_isolate);
 
   void FindInstructionAndCallLimits();
 
-  bool AddInstructionsToText(RawCode* code);
+  bool AddInstructionsToText(CodePtr code);
   void ScanCallTargets(const Code& code,
                        const Array& call_targets,
                        intptr_t code_text_offset);
 
   UnresolvedTrampoline* FindTrampolineFor(UnresolvedCall* unresolved_call);
-  void AddTrampolineToText(RawInstructions* destination,
+  void AddTrampolineToText(InstructionsPtr destination,
                            uint8_t* trampoline_bytes,
                            intptr_t trampoline_length);
 
@@ -177,7 +177,7 @@ class CodeRelocator : public StackResource {
   void EnqueueUnresolvedTrampoline(UnresolvedTrampoline* unresolved_trampoline);
 
   bool TryResolveBackwardsCall(UnresolvedCall* unresolved_call);
-  void ResolveUnresolvedCallsTargeting(const RawInstructions* instructions);
+  void ResolveUnresolvedCallsTargeting(const InstructionsPtr instructions);
   void ResolveCall(UnresolvedCall* unresolved_call);
   void ResolveCallToDestination(UnresolvedCall* unresolved_call,
                                 intptr_t destination_text);
@@ -185,7 +185,7 @@ class CodeRelocator : public StackResource {
 
   void BuildTrampolinesForAlmostOutOfRangeCalls();
 
-  intptr_t FindDestinationInText(const RawInstructions* destination,
+  intptr_t FindDestinationInText(const InstructionsPtr destination,
                                  intptr_t offset_into_target);
 
   static intptr_t AdjustPayloadOffset(intptr_t payload_offset);
@@ -193,14 +193,14 @@ class CodeRelocator : public StackResource {
   bool IsTargetInRangeFor(UnresolvedCall* unresolved_call,
                           intptr_t target_text_offset);
 
-  RawCode* GetTarget(const StaticCallsTableEntry& entry);
+  CodePtr GetTarget(const StaticCallsTableEntry& entry);
 
   // The code relocation happens during AOT snapshot writing and operates on raw
   // objects. No allocations can be done.
   NoSafepointScope no_savepoint_scope_;
   Thread* thread_;
 
-  const GrowableArray<RawCode*>* code_objects_;
+  const GrowableArray<CodePtr>* code_objects_;
   GrowableArray<ImageWriterCommand>* commands_;
 
   // The size of largest instructions object in bytes.

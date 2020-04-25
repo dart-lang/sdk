@@ -90,7 +90,7 @@ TEST_CASE(LargeSweep) {
 }
 
 #ifndef PRODUCT
-static RawClass* GetClass(const Library& lib, const char* name) {
+static ClassPtr GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
@@ -208,24 +208,24 @@ TEST_CASE(ClassHeapStats) {
 
 class FindOnly : public FindObjectVisitor {
  public:
-  explicit FindOnly(RawObject* target) : target_(target) {
+  explicit FindOnly(ObjectPtr target) : target_(target) {
 #if defined(DEBUG)
     EXPECT_GT(Thread::Current()->no_safepoint_scope_depth(), 0);
 #endif
   }
   virtual ~FindOnly() {}
 
-  virtual bool FindObject(RawObject* obj) const { return obj == target_; }
+  virtual bool FindObject(ObjectPtr obj) const { return obj == target_; }
 
  private:
-  RawObject* target_;
+  ObjectPtr target_;
 };
 
 class FindNothing : public FindObjectVisitor {
  public:
   FindNothing() {}
   virtual ~FindNothing() {}
-  virtual bool FindObject(RawObject* obj) const { return false; }
+  virtual bool FindObject(ObjectPtr obj) const { return false; }
 };
 
 ISOLATE_UNIT_TEST_CASE(FindObject) {
@@ -257,11 +257,11 @@ ISOLATE_UNIT_TEST_CASE(IterateReadOnly) {
   GCTestHelper::WaitForGCTasks();
 
   Heap* heap = Thread::Current()->isolate()->heap();
-  EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
+  EXPECT(heap->Contains(ObjectLayout::ToAddr(obj.raw())));
   heap->WriteProtect(true);
-  EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
+  EXPECT(heap->Contains(ObjectLayout::ToAddr(obj.raw())));
   heap->WriteProtect(false);
-  EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
+  EXPECT(heap->Contains(ObjectLayout::ToAddr(obj.raw())));
 }
 
 void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
@@ -333,8 +333,8 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   const Array& after_obj = Array::Handle(Array::New(1, Heap::kOld));
   before_obj.SetAt(0, new_element);
   after_obj.SetAt(0, old_element);
-  EXPECT(before_obj.raw()->IsRemembered());
-  EXPECT(!after_obj.raw()->IsRemembered());
+  EXPECT(before_obj.raw()->ptr()->IsRemembered());
+  EXPECT(!after_obj.raw()->ptr()->IsRemembered());
 
   EXPECT(before_obj.raw() != after_obj.raw());
 
@@ -346,7 +346,7 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   Become::ElementsForwardIdentity(before, after);
 
   EXPECT(before_obj.raw() == after_obj.raw());
-  EXPECT(!after_obj.raw()->IsRemembered());
+  EXPECT(!after_obj.raw()->ptr()->IsRemembered());
 
   GCTestHelper::CollectAllGarbage();
 
@@ -633,7 +633,7 @@ class MergeIsolatesHeapsHandler : public MessageHandler {
       Bequest* bequest = message->bequest();
       PersistentHandle* handle = bequest->handle();
       // Object in the receiving isolate's heap.
-      EXPECT(isolate()->heap()->Contains(RawObject::ToAddr(handle->raw())));
+      EXPECT(isolate()->heap()->Contains(ObjectLayout::ToAddr(handle->raw())));
       response_obj = handle->raw();
       isolate()->group()->api_state()->FreePersistentHandle(handle);
     } else {
