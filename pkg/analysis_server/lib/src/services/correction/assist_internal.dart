@@ -16,10 +16,17 @@ import 'package:analysis_server/src/services/correction/dart/add_return_type.dar
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
+import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/shadow_field.dart';
+import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
 import 'package:analysis_server/src/services/correction/dart/split_and_condition.dart';
+import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
@@ -34,7 +41,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -106,11 +112,6 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_convertToMultilineString();
     await _addProposal_convertToNormalParameter();
     if (!_containsErrorCode(
-      {LintNames.avoid_relative_lib_imports},
-    )) {
-      await _addProposal_convertToPackageImport();
-    }
-    if (!_containsErrorCode(
       {LintNames.prefer_single_quotes},
     )) {
       await _addProposal_convertToSingleQuotedString();
@@ -128,36 +129,17 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_flutterWrapWidget();
     await _addProposal_flutterWrapWidgets();
     await _addProposal_importAddShow();
-    if (!_containsErrorCode(
-      {LintNames.prefer_inlined_adds},
-    )) {
-      await _addProposal_inlineAdd();
-    }
     await _addProposal_introduceLocalTestedType();
     await _addProposal_invertIf();
     await _addProposal_joinIfStatementInner();
     await _addProposal_joinIfStatementOuter();
     await _addProposal_joinVariableDeclaration_onAssignment();
     await _addProposal_joinVariableDeclaration_onDeclaration();
-    await _addProposal_removeTypeAnnotation();
     await _addProposal_reparentFlutterList();
     await _addProposal_replaceConditionalWithIfElse();
     await _addProposal_replaceIfElseWithConditional();
-    if (!_containsErrorCode({LintNames.omit_local_variable_types})) {
-      await _addProposal_replaceWithVar();
-    }
-    if (!_containsErrorCode(
-      {LintNames.sort_child_properties_last},
-    )) {
-      await _addProposal_sortChildPropertyLast();
-    }
     await _addProposal_splitVariableDeclaration();
     await _addProposal_surroundWith();
-    if (!_containsErrorCode(
-      {LintNames.curly_braces_in_flow_control_structures},
-    )) {
-      await _addProposal_useCurlyBraces();
-    }
     if (experimentStatus.control_flow_collections) {
       if (!_containsErrorCode(
         {LintNames.prefer_if_elements_to_conditional_expressions},
@@ -281,12 +263,37 @@ class AssistProcessor extends BaseProcessor {
       {LintNames.prefer_null_aware_operators},
     );
     await computeIfNotErrorCode(
+      ConvertToPackageImport(),
+      {LintNames.avoid_relative_lib_imports},
+    );
+    await computeIfNotErrorCode(
+      ConvertToRelativeImport(),
+      {LintNames.prefer_relative_imports},
+    );
+    await computeIfNotErrorCode(
       ConvertToSetLiteral(),
       {LintNames.prefer_collection_literals},
     );
     await compute(ExchangeOperands());
+    await computeIfNotErrorCode(
+      InlineInvocation(),
+      {LintNames.prefer_inlined_adds},
+    );
+    await compute(RemoveTypeAnnotation());
+    await computeIfNotErrorCode(
+      ReplaceWithVar(),
+      {LintNames.omit_local_variable_types},
+    );
     await compute(ShadowField());
+    await computeIfNotErrorCode(
+      SortChildPropertyLast(),
+      {LintNames.sort_child_properties_last},
+    );
     await compute(SplitAndCondition());
+    await computeIfNotErrorCode(
+      UseCurlyBraces(),
+      {LintNames.curly_braces_in_flow_control_structures},
+    );
   }
 
   Future<void> _addProposal_addNotNullAssert() async {
@@ -1150,12 +1157,6 @@ class AssistProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addProposal_convertToPackageImport() async {
-    final changeBuilder = await createBuilder_convertToPackageImport();
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.CONVERT_TO_PACKAGE_IMPORT);
-  }
-
   Future<void> _addProposal_convertToSingleQuotedString() async {
     await _convertQuotes(true, DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
   }
@@ -1989,12 +1990,6 @@ class AssistProcessor extends BaseProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.IMPORT_ADD_SHOW);
   }
 
-  Future<void> _addProposal_inlineAdd() async {
-    final changeBuilder = await createBuilder_inlineAdd();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.INLINE_INVOCATION,
-        args: ['add']);
-  }
-
   Future<void> _addProposal_introduceLocalTestedType() async {
     var node = this.node;
     if (node is IfStatement) {
@@ -2354,13 +2349,6 @@ class AssistProcessor extends BaseProcessor {
         changeBuilder, DartAssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
-  Future<void> _addProposal_removeTypeAnnotation() async {
-    // todo (pq): unify w/ fix (and then add a guard to not assist on lints:
-    // avoid_return_types_on_setters, type_init_formals)
-    final changeBuilder = await createBuilder_removeTypeAnnotation();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.REMOVE_TYPE_ANNOTATION);
-  }
-
   Future<void> _addProposal_reparentFlutterList() async {
     if (node is! ListLiteral) {
       return;
@@ -2571,63 +2559,6 @@ class AssistProcessor extends BaseProcessor {
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
     }
-  }
-
-  Future<void> _addProposal_replaceWithVar() async {
-    /// Return `true` if the type in the [node] can be replaced with `var`.
-    bool canConvertVariableDeclarationList(VariableDeclarationList node) {
-      final staticType = node?.type?.type;
-      if (staticType == null || staticType.isDynamic) {
-        return false;
-      }
-      for (final child in node.variables) {
-        var initializer = child.initializer;
-        if (initializer == null || initializer.staticType != staticType) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    /// Return `true` if the given node can be replaced with `var`.
-    bool canReplaceWithVar() {
-      var parent = node.parent;
-      while (parent != null) {
-        if (parent is VariableDeclarationStatement) {
-          return canConvertVariableDeclarationList(parent.variables);
-        } else if (parent is ForPartsWithDeclarations) {
-          return canConvertVariableDeclarationList(parent.variables);
-        } else if (parent is ForEachPartsWithDeclaration) {
-          var loopVariableType = parent.loopVariable.type;
-          var staticType = loopVariableType?.type;
-          if (staticType == null || staticType.isDynamic) {
-            return false;
-          }
-          final iterableType = parent.iterable.staticType;
-          if (iterableType is InterfaceTypeImpl) {
-            var instantiatedType =
-                iterableType.asInstanceOf(typeProvider.iterableElement);
-            if (instantiatedType?.typeArguments?.first == staticType) {
-              return true;
-            }
-          }
-          return false;
-        }
-        parent = parent.parent;
-      }
-      return false;
-    }
-
-    if (canReplaceWithVar()) {
-      var changeBuilder = await createBuilder_replaceWithVar();
-      _addAssistFromBuilder(changeBuilder, DartAssistKind.REPLACE_WITH_VAR);
-    }
-  }
-
-  Future<void> _addProposal_sortChildPropertyLast() async {
-    final changeBuilder = await createBuilder_sortChildPropertyLast();
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.SORT_CHILD_PROPERTY_LAST);
   }
 
   Future<void> _addProposal_splitVariableDeclaration() async {
@@ -2912,11 +2843,6 @@ class AssistProcessor extends BaseProcessor {
             changeBuilder, DartAssistKind.SURROUND_WITH_SET_STATE);
       }
     }
-  }
-
-  Future<void> _addProposal_useCurlyBraces() async {
-    final changeBuilder = await createBuilder_useCurlyBraces();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
   }
 
   Future<void> _addProposals_addTypeAnnotation() async {

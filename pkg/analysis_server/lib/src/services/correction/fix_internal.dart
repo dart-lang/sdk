@@ -19,8 +19,11 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_contains
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
+import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
@@ -29,6 +32,9 @@ import 'package:analysis_server/src/services/correction/dart/remove_unused.dart'
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
+import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
+import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -615,9 +621,6 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.avoid_redundant_argument_values) {
         await _addFix_removeArgument();
       }
-      if (name == LintNames.avoid_relative_lib_imports) {
-        await _addFix_convertToPackageImport();
-      }
       if (name == LintNames.avoid_return_types_on_setters) {
         await _addFix_removeTypeAnnotation();
       }
@@ -629,9 +632,6 @@ class FixProcessor extends BaseProcessor {
       }
       if (name == LintNames.await_only_futures) {
         await _addFix_removeAwait();
-      }
-      if (name == LintNames.curly_braces_in_flow_control_structures) {
-        await _addFix_addCurlyBraces();
       }
       if (name == LintNames.directives_ordering) {
         await _addFix_sortDirectives();
@@ -656,9 +656,6 @@ class FixProcessor extends BaseProcessor {
       }
       if (name == LintNames.null_closures) {
         await _addFix_replaceNullWithClosure();
-      }
-      if (name == LintNames.omit_local_variable_types) {
-        await _addFix_replaceWithVar();
       }
       if (name == LintNames.prefer_adjacent_string_concatenation) {
         await _addFix_removeOperator();
@@ -691,9 +688,6 @@ class FixProcessor extends BaseProcessor {
           LintNames.prefer_if_elements_to_conditional_expressions) {
         await _addFix_convertConditionalToIfElement();
       }
-      if (name == LintNames.prefer_inlined_adds) {
-        await _addFix_convertToInlineAdd();
-      }
       if (name == LintNames.prefer_int_literals) {
         await _addFix_convertToIntLiteral();
       }
@@ -713,9 +707,6 @@ class FixProcessor extends BaseProcessor {
       if (errorCode.name == LintNames.prefer_if_null_operators) {
         await _addFix_convertToIfNullOperator();
       }
-      if (name == LintNames.prefer_relative_imports) {
-        await _addFix_convertToRelativeImport();
-      }
       if (name == LintNames.prefer_single_quotes) {
         await _addFix_convertSingleQuotes();
       }
@@ -724,9 +715,6 @@ class FixProcessor extends BaseProcessor {
       }
       if (name == LintNames.prefer_spread_collections) {
         await _addFix_convertAddAllToSpread();
-      }
-      if (name == LintNames.sort_child_properties_last) {
-        await _addFix_sortChildPropertiesLast();
       }
       if (name == LintNames.type_init_formals) {
         await _addFix_removeTypeAnnotation();
@@ -823,11 +811,6 @@ class FixProcessor extends BaseProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CONST);
     }
-  }
-
-  Future<void> _addFix_addCurlyBraces() async {
-    final changeBuilder = await createBuilder_useCurlyBraces();
-    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CURLY_BRACES);
   }
 
   Future<void> _addFix_addExplicitCast() async {
@@ -1574,12 +1557,6 @@ class FixProcessor extends BaseProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_IF_NULL);
   }
 
-  Future<void> _addFix_convertToInlineAdd() async {
-    final changeBuilder = await createBuilder_inlineAdd();
-    _addFixFromBuilder(changeBuilder, DartFixKind.INLINE_INVOCATION,
-        args: ['add']);
-  }
-
   Future<void> _addFix_convertToIntLiteral() async {
     final changeBuilder = await createBuilder_convertToIntLiteral();
     _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_INT_LITERAL);
@@ -1659,16 +1636,6 @@ class FixProcessor extends BaseProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_NAMED_ARGUMENTS);
     }
-  }
-
-  Future<void> _addFix_convertToPackageImport() async {
-    final changeBuilder = await createBuilder_convertToPackageImport();
-    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_PACKAGE_IMPORT);
-  }
-
-  Future<void> _addFix_convertToRelativeImport() async {
-    final changeBuilder = await createBuilder_convertToRelativeImport();
-    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_RELATIVE_IMPORT);
   }
 
   Future<void> _addFix_createClass() async {
@@ -4107,16 +4074,6 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_replaceWithVar() async {
-    var changeBuilder = await createBuilder_replaceWithVar();
-    _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_VAR);
-  }
-
-  Future<void> _addFix_sortChildPropertiesLast() async {
-    final changeBuilder = await createBuilder_sortChildPropertyLast();
-    _addFixFromBuilder(changeBuilder, DartFixKind.SORT_CHILD_PROPERTY_LAST);
-  }
-
   Future<void> _addFix_sortDirectives() async {
     var organizer =
         DirectiveOrganizer(resolvedResult.content, unit, resolvedResult.errors);
@@ -4526,22 +4483,34 @@ class FixProcessor extends BaseProcessor {
         await compute(AddReturnType());
       } else if (name == LintNames.avoid_private_typedef_functions) {
         await compute(InlineTypedef());
+      } else if (name == LintNames.avoid_relative_lib_imports) {
+        await compute(ConvertToPackageImport());
       } else if (name == LintNames.avoid_returning_null_for_future) {
         await compute(WrapInFuture());
+      } else if (name == LintNames.curly_braces_in_flow_control_structures) {
+        await compute(UseCurlyBraces());
       } else if (name == LintNames.diagnostic_describe_all_properties) {
         await compute(AddDiagnosticPropertyReference());
+      } else if (name == LintNames.omit_local_variable_types) {
+        await compute(ReplaceWithVar());
       } else if (name == LintNames.prefer_collection_literals) {
         await compute(ConvertToListLiteral());
         await compute(ConvertToMapLiteral());
         await compute(ConvertToSetLiteral());
       } else if (name == LintNames.prefer_contains) {
         await compute(ConvertToContains());
+      } else if (name == LintNames.prefer_inlined_adds) {
+        await compute(InlineInvocation());
       } else if (name == LintNames.prefer_interpolation_to_compose_strings) {
         await compute(ReplaceWithInterpolation());
       } else if (name == LintNames.prefer_iterable_whereType) {
         await compute(ConvertToWhereType());
       } else if (name == LintNames.prefer_null_aware_operators) {
         await compute(ConvertToNullAware());
+      } else if (name == LintNames.prefer_relative_imports) {
+        await compute(ConvertToRelativeImport());
+      } else if (name == LintNames.sort_child_properties_last) {
+        await compute(SortChildPropertyLast());
       } else if (name == LintNames.unnecessary_null_in_if_null_operators) {
         await compute(RemoveIfNullOperator());
       } else if (name == LintNames.use_full_hex_values_for_flutter_colors) {
