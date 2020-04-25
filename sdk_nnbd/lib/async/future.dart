@@ -368,9 +368,7 @@ abstract class Future<T> {
     late StackTrace stackTrace; // The stackTrace that came with the error.
 
     // Handle an error from any of the futures.
-    // TODO(jmesserly): use `void` return type once it can be inferred for the
-    // `then` call below.
-    handleError(Object theError, StackTrace theStackTrace) {
+    void handleError(Object theError, StackTrace theStackTrace) {
       remaining--;
       List<T?>? valueList = values;
       if (valueList != null) {
@@ -411,8 +409,6 @@ abstract class Future<T> {
               result._completeWithValue(List<T>.from(valueList));
             }
           } else {
-            // Forced read of error to assert that it has occurred earlier.
-            assert(error != null);
             if (cleanUp != null && value != null) {
               // Ensure errors from cleanUp are uncaught.
               new Future.sync(() {
@@ -420,6 +416,8 @@ abstract class Future<T> {
               });
             }
             if (remaining == 0 && !eagerError) {
+              // If eagerError is false, and valueList is null, then
+              // error and stackTrace have been set in handleError above.
               result._completeError(error, stackTrace);
             }
           }
