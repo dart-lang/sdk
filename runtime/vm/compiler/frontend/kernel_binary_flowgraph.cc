@@ -54,6 +54,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
     body += Constant(
         Instance::ZoneHandle(Z, constant_reader_.ReadConstantExpression()));
   } else {
+    body += SetupCapturedParameters(parsed_function()->function());
     body += BuildExpression();  // read initializer.
   }
   body += Return(TokenPosition::kNoSource);

@@ -2779,7 +2779,7 @@ class Function : public Object {
 
   bool HasThisParameter() const {
     return IsDynamicFunction(/*allow_abstract=*/true) ||
-           IsGenerativeConstructor();
+           IsGenerativeConstructor() || (IsFieldInitializer() && !is_static());
   }
 
   bool IsDynamicFunction(bool allow_abstract = false) const {
@@ -3245,7 +3245,7 @@ class Function : public Object {
     return kind() == RawFunction::kImplicitSetter;
   }
 
-  // Returns true if this function represents an the initializer for a static or
+  // Returns true if this function represents an initializer for a static or
   // instance field. The function returns the initial value and the caller is
   // responsible for setting the field.
   bool IsFieldInitializer() const {
