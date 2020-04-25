@@ -420,7 +420,7 @@ class Primitives {
       // again.
       return null;
     }
-    String decimalMatch = match[decimalIndex];
+    Object? decimalMatch = match[decimalIndex];
     if (radix == null) {
       if (decimalMatch != null) {
         // Cannot fail because we know that the digits are all decimal.
