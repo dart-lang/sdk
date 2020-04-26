@@ -65,6 +65,28 @@ abstract class CorrectionProducer {
     _context = context;
   }
 
+  /// Return the function body of the most deeply nested method or function that
+  /// encloses the [node], or `null` if the node is not in a method or function.
+  FunctionBody getEnclosingFunctionBody() {
+    var closure = node.thisOrAncestorOfType<FunctionExpression>();
+    if (closure != null) {
+      return closure.body;
+    }
+    var function = node.thisOrAncestorOfType<FunctionDeclaration>();
+    if (function != null) {
+      return function.functionExpression.body;
+    }
+    var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
+    if (constructor != null) {
+      return constructor.body;
+    }
+    var method = node.thisOrAncestorOfType<MethodDeclaration>();
+    if (method != null) {
+      return method.body;
+    }
+    return null;
+  }
+
   /// Return the text of the given [range] in the unit.
   String getRangeText(SourceRange range) {
     return utils.getRangeText(range);
