@@ -7,6 +7,7 @@ library kernel.transformations.track_widget_constructor_locations;
 import 'package:meta/meta.dart';
 
 import '../ast.dart';
+import '../target/changed_structure_notifier.dart';
 
 // Parameter name used to track were widget constructor calls were made from.
 //
@@ -309,11 +310,13 @@ class WidgetCreatorTracker {
   Class _widgetClass;
   Class _locationClass;
 
+  final ChangedStructureNotifier _changedStructureNotifier;
+
   /// Marker interface indicating that a private _location field is
   /// available.
   Class _hasCreationLocationClass;
 
-  WidgetCreatorTracker();
+  WidgetCreatorTracker(this._changedStructureNotifier);
 
   void _resolveFlutterClasses(Iterable<Library> libraries) {
     // If the Widget or Debug location classes have been updated we need to get
@@ -358,6 +361,8 @@ class WidgetCreatorTracker {
     }
     clazz.implementedTypes
         .add(new Supertype(_hasCreationLocationClass, <DartType>[]));
+    _changedStructureNotifier?.registerClassHierarchyChange(clazz);
+
     // We intentionally use the library context of the _HasCreationLocation
     // class for the private field even if [clazz] is in a different library
     // so that all classes implementing Widget behave consistently.

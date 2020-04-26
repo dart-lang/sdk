@@ -1073,7 +1073,8 @@ class KernelTarget extends TargetImplementation {
         loader.coreTypes,
         loader.libraries,
         new KernelDiagnosticReporter(loader),
-        logger: (String msg) => ticker.logMs(msg));
+        logger: (String msg) => ticker.logMs(msg),
+        changedStructureNotifier: changedStructureNotifier);
 
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);

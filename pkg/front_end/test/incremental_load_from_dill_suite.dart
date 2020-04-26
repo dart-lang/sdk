@@ -15,6 +15,8 @@ import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
+import "package:dev_compiler/src/kernel/target.dart" show DevCompilerTarget;
+
 import 'package:expect/expect.dart' show Expect;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -59,7 +61,8 @@ import 'package:kernel/kernel.dart'
         LibraryDependency,
         Member,
         Name,
-        Procedure;
+        Procedure,
+        Supertype;
 
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
@@ -164,6 +167,7 @@ class RunCompilations extends Step<TestData, TestData, Context> {
           "omitPlatform",
           "target",
           "forceLateLoweringForTesting",
+          "trackWidgetCreation",
           "incrementalSerialization"
         ]);
         await new NewWorldTest().newWorldTest(
@@ -173,7 +177,8 @@ class RunCompilations extends Step<TestData, TestData, Context> {
           map["modules"],
           map["omitPlatform"],
           map["target"],
-          map["forceLateLoweringForTesting"],
+          map["forceLateLoweringForTesting"] ?? false,
+          map["trackWidgetCreation"] ?? false,
           map["incrementalSerialization"],
         );
         break;
@@ -245,16 +250,13 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
   checkIsEqual(normalDillData, initializedDillData);
 }
 
-Future<Map<String, List<int>>> createModules(
-    Map module,
-    final List<int> sdkSummaryData,
-    String targetName,
-    bool forceLateLoweringForTesting) async {
+Future<Map<String, List<int>>> createModules(Map module,
+    final List<int> sdkSummaryData, Target target, String sdkSummary) async {
   final Uri base = Uri.parse("org-dartlang-test:///");
-  final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
+  final Uri sdkSummaryUri = base.resolve(sdkSummary);
 
   MemoryFileSystem fs = new MemoryFileSystem(base);
-  fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
+  fs.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
 
   // Setup all sources
   for (Map moduleSources in module.values) {
@@ -281,12 +283,11 @@ Future<Map<String, List<int>>> createModules(
         moduleSources.add(uri);
       }
     }
-    CompilerOptions options = getOptions(
-        targetName: targetName,
-        forceLateLoweringForTesting: forceLateLoweringForTesting);
+    CompilerOptions options =
+        getOptions(target: target, sdkSummary: sdkSummary);
     options.fileSystem = fs;
     options.sdkRoot = null;
-    options.sdkSummary = sdkSummary;
+    options.sdkSummary = sdkSummaryUri;
     options.omitPlatform = true;
     options.onDiagnostic = (DiagnosticMessage message) {
       if (getMessageCodeObject(message)?.name == "InferredPackageUri") return;
@@ -334,12 +335,32 @@ class NewWorldTest {
       bool omitPlatform,
       String targetName,
       bool forceLateLoweringForTesting,
+      bool trackWidgetCreation,
       bool incrementalSerialization) async {
     final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
+
+    TargetFlags targetFlags = new TargetFlags(
+        forceLateLoweringForTesting: forceLateLoweringForTesting,
+        trackWidgetCreation: trackWidgetCreation);
+    Target target = new VmTarget(targetFlags);
+    String sdkSummary = "vm_platform_strong.dill";
+    if (targetName != null) {
+      if (targetName == "None") {
+        target = new NoneTarget(targetFlags);
+      } else if (targetName == "DDC") {
+        target = new DevCompilerTarget(targetFlags);
+        sdkSummary = "ddc_platform.dill";
+      } else if (targetName == "VM") {
+        // default.
+      } else {
+        throw "Unknown target name '$targetName'";
+      }
+    }
+
     final Uri base = Uri.parse("org-dartlang-test:///");
-    final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
+    final Uri sdkSummaryUri = base.resolve(sdkSummary);
     final Uri initializeFrom = base.resolve("initializeFrom.dill");
-    Uri platformUri = sdkRoot.resolve("vm_platform_strong.dill");
+    Uri platformUri = sdkRoot.resolve(sdkSummary);
     final List<int> sdkSummaryData =
         await new File.fromUri(platformUri).readAsBytes();
 
@@ -354,8 +375,8 @@ class NewWorldTest {
     Map<String, Component> moduleComponents;
 
     if (modules != null) {
-      moduleData = await createModules(
-          modules, sdkSummaryData, targetName, forceLateLoweringForTesting);
+      moduleData =
+          await createModules(modules, sdkSummaryData, target, sdkSummary);
       sdk = newestWholeComponent = new Component();
       new BinaryBuilder(sdkSummaryData,
               filename: null, disableLazyReading: false)
@@ -411,7 +432,7 @@ class NewWorldTest {
       if (brandNewWorld) {
         fs = new MemoryFileSystem(base);
       }
-      fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
+      fs.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
       bool expectInitializeFromDill = false;
       if (newestWholeComponentData != null &&
           newestWholeComponentData.isNotEmpty) {
@@ -443,12 +464,10 @@ class NewWorldTest {
       }
 
       if (brandNewWorld) {
-        options = getOptions(
-            targetName: targetName,
-            forceLateLoweringForTesting: forceLateLoweringForTesting);
+        options = getOptions(target: target, sdkSummary: sdkSummary);
         options.fileSystem = fs;
         options.sdkRoot = null;
-        options.sdkSummary = sdkSummary;
+        options.sdkSummary = sdkSummaryUri;
         options.omitPlatform = omitPlatform != false;
         if (world["experiments"] != null) {
           Map<ExperimentalFlag, bool> experimentalFlags =
@@ -908,10 +927,32 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
     sb.writeln("Library ${library.importUri}");
     for (Class c in library.classes) {
       sb.writeln("  - Class ${c.name}");
+
+      Set<Class> checkedSupertypes = <Class>{};
+      void checkSupertype(Supertype supertype) {
+        if (supertype == null) return;
+        Class superclass = supertype.classNode;
+        if (checkedSupertypes.add(superclass)) {
+          Supertype asSuperClass =
+              classHierarchy.getClassAsInstanceOf(c, superclass);
+          if (asSuperClass == null) {
+            throw "${superclass} not found as a superclass of $c";
+          }
+          checkSupertype(superclass.supertype);
+          checkSupertype(superclass.mixedInType);
+          for (Supertype interface in superclass.implementedTypes) {
+            checkSupertype(interface);
+          }
+        }
+      }
+
+      checkSupertype(c.asThisSupertype);
+
       ForTestingClassInfo info = classHierarchyMap[c];
       if (info == null) {
         throw "Didn't find any class hierarchy info for $c";
       }
+
       if (info.lazyDeclaredGettersAndCalls != null) {
         sb.writeln("    - lazyDeclaredGettersAndCalls:");
         for (Member member in info.lazyDeclaredGettersAndCalls) {
@@ -1330,20 +1371,10 @@ void checkIsEqual(List<int> a, List<int> b) {
   Expect.equals(a.length, b.length);
 }
 
-CompilerOptions getOptions(
-    {String targetName, bool forceLateLoweringForTesting: false}) {
+CompilerOptions getOptions({Target target, String sdkSummary}) {
+  target ??= new VmTarget(new TargetFlags());
+  sdkSummary ??= 'vm_platform_strong.dill';
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
-  Target target = new VmTarget(new TargetFlags(
-      forceLateLoweringForTesting: forceLateLoweringForTesting));
-  if (targetName != null) {
-    if (targetName == "None") {
-      target = new NoneTarget(new TargetFlags());
-    } else if (targetName == "VM") {
-      // default.
-    } else {
-      throw "Unknown target name '$targetName'";
-    }
-  }
   CompilerOptions options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..target = target
@@ -1356,7 +1387,7 @@ CompilerOptions getOptions(
             "Unexpected error: ${message.plainTextFormatted.join('\n')}");
       }
     }
-    ..sdkSummary = sdkRoot.resolve("vm_platform_strong.dill")
+    ..sdkSummary = sdkRoot.resolve(sdkSummary)
     ..environmentDefines = const {};
   return options;
 }

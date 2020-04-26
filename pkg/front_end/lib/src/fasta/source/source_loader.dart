@@ -926,7 +926,7 @@ class SourceLoader extends Loader {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
       Component component = computeFullComponent();
       hierarchy.coreTypes = coreTypes;
-      hierarchy.applyTreeChanges(const [], component.libraries,
+      hierarchy.applyTreeChanges(const [], component.libraries, const [],
           reissueAmbiguousSupertypesFor: component);
     }
     for (AmbiguousTypesRecord record in ambiguousTypesRecords) {

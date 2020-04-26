@@ -174,7 +174,7 @@ class Dart2jsTester {
     stopwatch.reset();
     stopwatch.start();
     Uri input = Platform.script.resolve("../../compiler/bin/dart2js.dart");
-    CompilerOptions options = helper.getOptions(targetName: "VM");
+    CompilerOptions options = helper.getOptions();
     helper.TestIncrementalCompiler compiler =
         new helper.TestIncrementalCompiler(options, input);
     compiler.useExperimentalInvalidation = useExperimentalInvalidation;

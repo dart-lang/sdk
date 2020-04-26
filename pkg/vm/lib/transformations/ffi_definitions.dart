@@ -134,7 +134,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     if (fieldsValid) {
       final structSize = _replaceFields(node, indexedClass);
       _replaceSizeOfMethod(node, structSize, indexedClass);
-      changedStructureNotifier?.forClass(node);
+      changedStructureNotifier?.registerClassMemberChange(node);
     }
 
     return node;
