@@ -165,8 +165,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getAssists(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = EditGetAssistsParams.fromRequest(request);
     var file = params.file;
     var offset = params.offset;
@@ -287,8 +285,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getPostfixCompletion(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     server.options.analytics?.sendEvent('edit', 'getPostfixCompletion');
 
     var params = EditGetPostfixCompletionParams.fromRequest(request);
@@ -319,9 +315,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getStatementCompletion(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     var params = EditGetStatementCompletionParams.fromRequest(request);
     var file = params.file;
 
@@ -396,9 +389,6 @@ class EditDomainHandler extends AbstractRequestHandler {
 
   /// Implement the `edit.importElements` request.
   Future<void> importElements(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     var params = EditImportElementsParams.fromRequest(request);
     var file = params.file;
 
@@ -437,8 +427,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future isPostfixCompletionApplicable(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = EditGetPostfixCompletionParams.fromRequest(request);
     var file = params.file;
 
@@ -475,8 +463,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future<void> organizeDirectives(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     server.options.analytics?.sendEvent('edit', 'organizeDirectives');
 
     var params = EditOrganizeDirectivesParams.fromRequest(request);
@@ -516,8 +502,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future<void> sortMembers(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = EditSortMembersParams.fromRequest(request);
     var file = params.file;
 
@@ -922,8 +906,6 @@ class _RefactoringManager {
     }
 
     runZonedGuarded(() async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       await _init(params.kind, file, params.offset, params.length);
       if (initStatus.hasFatalError) {
         feedback = null;
@@ -1013,8 +995,6 @@ class _RefactoringManager {
   /// parameters. The existing [Refactoring] is reused or created as needed.
   Future _init(
       RefactoringKind kind, String file, int offset, int length) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
         this.file == file &&

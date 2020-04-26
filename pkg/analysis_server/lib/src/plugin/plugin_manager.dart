@@ -195,8 +195,6 @@ abstract class PluginInfo {
   /// used to interact with the plugin, or `null` if the plugin could not be
   /// run.
   Future<PluginSession> start(String byteStorePath, String sdkPath) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (currentSession != null) {
       throw StateError('Cannot start a plugin that is already running.');
     }
@@ -299,8 +297,6 @@ class PluginManager {
   /// not yet been started, then it will be started by this method.
   Future<void> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var plugin = _pluginMap[path];
     var isNew = plugin == null;
     if (isNew) {
@@ -372,8 +368,6 @@ class PluginManager {
   /// response.
   Future<List<Future<Response>>> broadcastWatchEvent(
       watcher.WatchEvent watchEvent) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var filePath = watchEvent.path;
 
     /// Return `true` if the given glob [pattern] matches the file being
@@ -490,8 +484,6 @@ class PluginManager {
 
   /// Restart all currently running plugins.
   Future<void> restartPlugins() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     for (var plugin in _pluginMap.values.toList()) {
       if (plugin.currentSession != null) {
         //
@@ -904,8 +896,6 @@ class PluginSession {
   /// the given [byteStorePath]. Return `true` if the plugin is compatible and
   /// running.
   Future<bool> start(String byteStorePath, String sdkPath) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (channel != null) {
       throw StateError('Cannot start a plugin that is already running.');
     }
