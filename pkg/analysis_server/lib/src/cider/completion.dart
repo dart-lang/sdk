@@ -9,10 +9,13 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
+import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 
@@ -131,6 +134,13 @@ class CiderCompletionComputer {
       });
     }
 
+    _logger.run('Filter suggestions', () {
+      suggestions = _FilterSort(
+        _dartCompletionRequest,
+        suggestions,
+      ).perform();
+    });
+
     var result = CiderCompletionResult._(suggestions);
 
     _cache._lastResult =
@@ -198,6 +208,74 @@ class _CiderImportedLibrarySuggestions {
   final List<CompletionSuggestion> suggestions;
 
   _CiderImportedLibrarySuggestions(this.signature, this.suggestions);
+}
+
+class _FilterSort {
+  final DartCompletionRequestImpl _request;
+  final List<CompletionSuggestion> _suggestions;
+
+  FuzzyMatcher _matcher;
+
+  _FilterSort(this._request, this._suggestions);
+
+  List<CompletionSuggestion> perform() {
+    var pattern = _matchingPattern();
+    _matcher = FuzzyMatcher(pattern, matchStyle: MatchStyle.SYMBOL);
+
+    var scored = _suggestions
+        .map((e) => _FuzzyScoredSuggestion(e, _score(e)))
+        .where((e) => e.score > 0)
+        .toList();
+
+    scored.sort((a, b) {
+      // Prefer what the user requested by typing.
+      if (a.score > b.score) {
+        return -1;
+      } else if (a.score < b.score) {
+        return 1;
+      }
+
+      // Then prefer what is more relevant in the context.
+      if (a.suggestion.relevance != b.suggestion.relevance) {
+        return -(a.suggestion.relevance - b.suggestion.relevance);
+      }
+
+      // Other things being equal, sort by name.
+      return a.suggestion.completion.compareTo(b.suggestion.completion);
+    });
+
+    return scored.map((e) => e.suggestion).toList();
+  }
+
+  /// Return the pattern to match suggestions against, from the identifier
+  /// to the left of the caret. Return the empty string if cannot find the
+  /// identifier.
+  String _matchingPattern() {
+    SimpleIdentifier patternNode;
+    _request.target.containingNode.accept(
+      FunctionAstVisitor(simpleIdentifier: (node) {
+        if (node.end == _request.offset) {
+          patternNode = node;
+        }
+      }),
+    );
+
+    if (patternNode != null) {
+      return patternNode.name;
+    }
+
+    return '';
+  }
+
+  double _score(CompletionSuggestion e) => _matcher.score(e.completion);
+}
+
+/// [CompletionSuggestion] scored using [FuzzyMatcher].
+class _FuzzyScoredSuggestion {
+  final CompletionSuggestion suggestion;
+  final double score;
+
+  _FuzzyScoredSuggestion(this.suggestion, this.score);
 }
 
 class _LastCompletionResult {
