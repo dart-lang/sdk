@@ -11,6 +11,7 @@ import 'dart:async';
 import 'dart:collection' hide LinkedList, LinkedListEntry;
 import 'dart:_internal' hide Symbol;
 import 'dart:io';
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -130,11 +131,12 @@ Uri _resolvePackageUri(Uri uri) {
     _log('Resolving package with uri path: ${uri.path}');
   }
   var resolvedUri;
-  if (_packageError != null) {
+  final error = _packageError;
+  if (error != null) {
     if (_traceLoading) {
-      _log("Resolving package with pending resolution error: $_packageError");
+      _log("Resolving package with pending resolution error: $error");
     }
-    throw _packageError;
+    throw error;
   } else {
     if (packageNameEnd < 0) {
       // Package URIs must have a path after the package name, even if it's
@@ -430,9 +432,67 @@ _parsePackagesFile(bool traceLoading, Uri packagesFile, List<int> data) {
   return result;
 }
 
+_loadPackageConfigFile(bool traceLoading, Uri packageConfig) {
+  try {
+    final Uint8List data = File.fromUri(packageConfig).readAsBytesSync();
+    if (traceLoading) {
+      _log("Loaded package config file from $packageConfig.");
+    }
+    return _parsePackageConfig(traceLoading, packageConfig, data);
+  } catch (e, s) {
+    if (traceLoading) {
+      _log("Error loading packages: $e\n$s");
+    }
+    return "Uncaught error ($e) loading packages file.";
+  }
+}
+
+// The .dart_tool/package_config.json format is described in
+//
+// https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/package-config-file-v2.md
+//
+// The returned list has the format:
+//
+//    [0] Location of package_config.json file.
+//    [1] null
+//    [n*2] Name of n-th package
+//    [n*2 + 1] Location of n-th package's sources (as a String)
+//
+List _parsePackageConfig(
+    bool traceLoading, Uri packageConfig, Uint8List bytes) {
+  final Map packageJson = json.decode(utf8.decode(bytes));
+  final version = packageJson['configVersion'];
+  if (version != 2) {
+    throw 'The package configuration file has an unsupported version.';
+  }
+  // The first entry contains the location of the identified
+  // .dart_tool/package_config.json file instead of a mapping.
+  final result = <dynamic>[packageConfig.toString(), null];
+  final List packages = packageJson['packages'] ?? [];
+  for (final Map package in packages) {
+    final String name = package['name'];
+    final String rootUri = package['rootUri'];
+    final String packageUri = package['packageUri'];
+    final Uri resolvedRootUri = packageConfig.resolve(rootUri);
+    final Uri resolvedPackageUri = packageUri != null
+        ? resolvedRootUri.resolve(packageUri)
+        : resolvedRootUri;
+    if (packageUri != null &&
+        !'$resolvedPackageUri'.contains('$resolvedRootUri')) {
+      throw 'The resolved "packageUri" is not a subdirectory of the "rootUri".';
+    }
+    result.add(name);
+    result.add(resolvedPackageUri.toString());
+    if (traceLoading) {
+      _log('Resolved package $name to be at $resolvedPackageUri');
+    }
+  }
+  return result;
+}
+
 _loadPackagesFile(bool traceLoading, Uri packagesFile) {
   try {
-    var data = new File.fromUri(packagesFile).readAsBytesSync();
+    final Uint8List data = File.fromUri(packagesFile).readAsBytesSync();
     if (traceLoading) {
       _log("Loaded packages file from $packagesFile:\n"
           "${new String.fromCharCodes(data)}");
@@ -446,39 +506,49 @@ _loadPackagesFile(bool traceLoading, Uri packagesFile) {
   }
 }
 
-_findPackagesFile(bool traceLoading, Uri base) {
+_findPackagesConfiguration(bool traceLoading, Uri base) {
   try {
-    // Walk up the directory hierarchy to check for the existence of
-    // .packages files in parent directories and for the existence of a
-    // packages/ directory on the first iteration.
-    var dir = new File.fromUri(base).parent;
-    var prev = null;
-    // Keep searching until we reach the root.
-    while ((prev == null) || (prev.path != dir.path)) {
-      // Check for the existence of a .packages file and if it exists try to
-      // load and parse it.
-      var dirUri = dir.uri;
-      var packagesFile = dirUri.resolve(".packages");
+    // Walk up the directory hierarchy to check for the existence of either one
+    // of
+    //   - .dart_tool/package_config.json
+    //   - .packages
+    var currentDir = new File.fromUri(base).parent;
+    while (true) {
+      final dirUri = currentDir.uri;
+
+      // We prefer using `.dart_tool/package_config.json` over `.packages`.
+      final packageConfig = dirUri.resolve(".dart_tool/package_config.json");
+      if (traceLoading) {
+        _log("Checking for $packageConfig file.");
+      }
+      bool exists = File.fromUri(packageConfig).existsSync();
+      if (traceLoading) {
+        _log("$packageConfig exists: $exists");
+      }
+      if (exists) {
+        return _loadPackageConfigFile(traceLoading, packageConfig);
+      }
+
+      final packagesFile = dirUri.resolve(".packages");
       if (traceLoading) {
         _log("Checking for $packagesFile file.");
       }
-      var exists = new File.fromUri(packagesFile).existsSync();
+      exists = File.fromUri(packagesFile).existsSync();
       if (traceLoading) {
         _log("$packagesFile exists: $exists");
       }
       if (exists) {
         return _loadPackagesFile(traceLoading, packagesFile);
       }
-      // Move up one level.
-      prev = dir;
-      dir = dir.parent;
+      final parentDir = currentDir.parent;
+      if (currentDir == parentDir) break;
+      currentDir = parentDir;
     }
 
-    // No .packages file was found.
     if (traceLoading) {
-      _log("Could not resolve a package location from $base");
+      _log("Could not resolve a package configuration from $base");
     }
-    return "Could not resolve a package location for base at $base";
+    return "Could not resolve a package configuration for base at $base";
   } catch (e, s) {
     if (traceLoading) {
       _log("Error loading packages: $e\n$s");
@@ -509,7 +579,7 @@ _handlePackagesRequest(bool traceLoading, int tag, Uri resource) {
   try {
     if (tag == -1) {
       if (resource.scheme == '' || resource.scheme == 'file') {
-        return _findPackagesFile(traceLoading, resource);
+        return _findPackagesConfiguration(traceLoading, resource);
       } else {
         return "Unsupported scheme used to locate .packages file:'$resource'.";
       }
@@ -580,6 +650,9 @@ void _setWorkingDirectory(String cwd) {
 }
 
 // Embedder Entrypoint:
+// The embedder calls this method with the value of the --packages command line
+// option. It can point to a ".packages" or a ".dart_tool/package_config.json"
+// file.
 @pragma("vm:entry-point")
 String _setPackagesMap(String packagesParam) {
   if (!_setupCompleted) {
