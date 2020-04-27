@@ -71,6 +71,13 @@ class _MigrationCliTest {
     return stderrText;
   }
 
+  Future<String> assertParseArgsFailure(List<String> args) async {
+    var cli = _createCli();
+    await cli.run(args);
+    var stderrText = assertErrorExit(cli);
+    return stderrText;
+  }
+
   CommandLineOptions assertParseArgsSuccess(List<String> args) {
     var cli = _createCli();
     cli.parseCommandLineArgs(args);
@@ -102,7 +109,8 @@ class _MigrationCliTest {
     return resourceProvider.convertPath(projectPathPosix);
   }
 
-  Map<String, String> simpleProject() {
+  Map<String, String> simpleProject({bool migrated: false}) {
+    // TODO(paulberry): pubspec needs to be updated when migrating.
     return {
       'pubspec.yaml': '''
 name: test
@@ -110,7 +118,7 @@ environment:
 sdk: '>=2.6.0 <3.0.0'
 ''',
       'lib/test.dart': '''
-int f() => null;
+int${migrated ? '?' : ''} f() => null;
 '''
     };
   }
@@ -119,6 +127,27 @@ int f() => null;
     // When running normally, we don't override the logger; make sure it has a
     // non-null default so that there won't be a crash.
     expect(MigrationCli(binaryName: 'nnbd_migration').logger, isNotNull);
+  }
+
+  test_flag_apply_changes_default() {
+    expect(assertParseArgsSuccess([]).applyChanges, isFalse);
+  }
+
+  test_flag_apply_changes_disable() async {
+    // "--no-apply-changes" is not an option.
+    await assertParseArgsFailure(['--no-apply-changes']);
+  }
+
+  test_flag_apply_changes_enable() {
+    expect(
+        assertParseArgsSuccess(['--no-web-preview', '--apply-changes'])
+            .applyChanges,
+        isTrue);
+  }
+
+  test_flag_apply_changes_incompatible_with_web_preview() async {
+    expect(await assertParseArgsFailure(['--web-preview', '--apply-changes']),
+        contains('--apply-changes requires --no-web-preview'));
   }
 
   test_flag_help() async {
@@ -143,6 +172,21 @@ int f() => null;
 
   test_flag_web_preview_enable() {
     expect(assertParseArgsSuccess(['--web-preview']).webPreview, isTrue);
+  }
+
+  test_lifecycle_apply_changes() async {
+    var projectContents = simpleProject();
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli.run(['--no-web-preview', '--apply-changes', projectDir]);
+    // Check that a summary was printed
+    expect(logger.stdoutBuffer.toString(), contains('Applying changes'));
+    // And that it refers to test.dart
+    expect(logger.stdoutBuffer.toString(), contains('test.dart'));
+    // And that it does not tell the user they can rerun with `--apply-changes`
+    expect(logger.stdoutBuffer.toString(), isNot(contains('--apply-changes')));
+    // Changes should have been made
+    assertProjectContents(projectDir, simpleProject(migrated: true));
   }
 
   test_lifecycle_no_preview() async {
@@ -228,11 +272,8 @@ int f() => null;
   }
 
   test_option_unrecognized() async {
-    var cli = _createCli();
-    await cli.run(['--this-option-does-not-exist']);
-    var stderrText = assertErrorExit(cli);
     expect(
-        stderrText,
+        await assertParseArgsFailure(['--this-option-does-not-exist']),
         contains(
             'Could not find an option named "this-option-does-not-exist"'));
   }

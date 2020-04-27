@@ -31,12 +31,14 @@ String _pluralize(int count, String single, {String multiple}) {
 /// have been passed in by the client.
 @visibleForTesting
 class CommandLineOptions {
-  static const applyChangesOption = 'apply-changes';
+  static const applyChangesFlag = 'apply-changes';
   static const helpFlag = 'help';
   static const previewPortOption = 'preview-port';
   static const sdkPathOption = 'sdk-path';
   static const verboseFlag = 'verbose';
   static const webPreviewFlag = 'web-preview';
+
+  final bool applyChanges;
 
   final String directory;
 
@@ -47,7 +49,8 @@ class CommandLineOptions {
   final bool webPreview;
 
   CommandLineOptions(
-      {@required this.directory,
+      {@required this.applyChanges,
+      @required this.directory,
       @required this.previewPort,
       @required this.sdkPath,
       @required this.webPreview});
@@ -127,6 +130,8 @@ class MigrationCli {
       } else {
         migratePath = rest[0];
       }
+      var applyChanges =
+          argResults[CommandLineOptions.applyChangesFlag] as bool;
       var previewPortRaw =
           argResults[CommandLineOptions.previewPortOption] as String;
       int previewPort;
@@ -136,13 +141,18 @@ class MigrationCli {
         throw Exception(
             'Invalid value for --${CommandLineOptions.previewPortOption}');
       }
+      var webPreview = argResults[CommandLineOptions.webPreviewFlag] as bool;
+      if (applyChanges && webPreview) {
+        throw Exception('--apply-changes requires --no-web-preview');
+      }
       options = CommandLineOptions(
+          applyChanges: applyChanges,
           directory: migratePath,
           previewPort: previewPort,
           sdkPath: argResults[CommandLineOptions.sdkPathOption] as String ??
               defaultSdkPathOverride ??
               getSdkPath(),
-          webPreview: argResults[CommandLineOptions.webPreviewFlag] as bool);
+          webPreview: webPreview);
       if (isVerbose) {
         logger = loggerFactory(true);
       }
@@ -187,7 +197,22 @@ class MigrationCli {
       previewUrls = await fixCodeProcessor.run();
     });
 
-    // TODO(paulberry): apply changes if that's what the user wants
+    if (options.applyChanges) {
+      logger.stdout(ansi.emphasized('Applying changes:'));
+
+      var allEdits = dartFixListener.sourceChange.edits;
+      _applyMigrationSuggestions(allEdits);
+
+      logger.stdout('');
+      logger.stdout(
+          'Applied ${allEdits.length} ${_pluralize(allEdits.length, 'edit')}.');
+
+      // Note: do not open the web preview if apply-changes is specified, as we
+      // currently cannot tell the web preview to disable the "apply migration"
+      // button.
+      exitCode = 0;
+      return;
+    }
 
     if (options.webPreview) {
       String url = previewUrls.first;
@@ -204,7 +229,7 @@ Visit:
 
 to see the migration results. Use the interactive web view to review, improve, or apply
 the results (alternatively, to apply the results without using the web preview, re-run
-the tool with --${CommandLineOptions.applyChangesOption}).
+the tool with --${CommandLineOptions.applyChangesFlag}).
 ''');
 
       logger.stdout('When finished with the preview, hit ctrl-c '
@@ -220,13 +245,52 @@ the tool with --${CommandLineOptions.applyChangesOption}).
 
       logger.stdout('');
       logger.stdout('To apply these changes, re-run the tool with '
-          '--${CommandLineOptions.applyChangesOption}.');
+          '--${CommandLineOptions.applyChangesFlag}.');
     }
     exitCode = 0;
   }
 
+  /// Perform the indicated source edits to the given source, returning the
+  /// resulting transformed text.
+  String _applyEdits(SourceFileEdit sourceFileEdit, String source) {
+    List<SourceEdit> edits = _sortEdits(sourceFileEdit);
+    return SourceEdit.applySequence(source, edits);
+  }
+
+  void _applyMigrationSuggestions(List<SourceFileEdit> edits) {
+    // Apply the changes to disk.
+    for (SourceFileEdit sourceFileEdit in edits) {
+      String relPath =
+          pathContext.relative(sourceFileEdit.file, from: options.directory);
+      int count = sourceFileEdit.edits.length;
+      logger.stdout('  $relPath ($count ${_pluralize(count, 'change')})');
+
+      String source;
+      var file = resourceProvider.getFile(sourceFileEdit.file);
+      try {
+        source = file.readAsStringSync();
+      } catch (_) {}
+
+      if (source == null) {
+        logger.stdout('    Unable to retrieve source for file.');
+      } else {
+        source = _applyEdits(sourceFileEdit, source);
+
+        try {
+          file.writeAsStringSync(source);
+        } catch (e) {
+          logger.stdout('    Unable to write source for file: $e');
+        }
+      }
+    }
+  }
+
   ArgParser _createParser({bool hide = true}) {
     var parser = ArgParser();
+    parser.addFlag(CommandLineOptions.applyChangesFlag,
+        defaultsTo: false,
+        negatable: false,
+        help: 'Apply the proposed null safety changes to the files on disk.');
     parser.addFlag(CommandLineOptions.helpFlag,
         abbr: 'h',
         help:
@@ -297,6 +361,15 @@ the tool with --${CommandLineOptions.applyChangesOption}).
           .stderr('Run "$binaryName -h -v" for verbose help output, including '
               'less commonly used options.');
     }
+  }
+
+  List<SourceEdit> _sortEdits(SourceFileEdit sourceFileEdit) {
+    // Sort edits in reverse offset order.
+    List<SourceEdit> edits = sourceFileEdit.edits.toList();
+    edits.sort((a, b) {
+      return b.offset - a.offset;
+    });
+    return edits;
   }
 
   Future<void> _withProgress(String message, FutureOr<void> callback()) async {
