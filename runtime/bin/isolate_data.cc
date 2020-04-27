@@ -10,16 +10,21 @@ namespace dart {
 namespace bin {
 
 IsolateGroupData::IsolateGroupData(const char* url,
+                                   const char* package_root,
                                    const char* packages_file,
                                    AppSnapshot* app_snapshot,
                                    bool isolate_run_app_snapshot)
     : script_url((url != NULL) ? strdup(url) : NULL),
+      package_root(NULL),
       app_snapshot_(app_snapshot),
       resolved_packages_config_(NULL),
       kernel_buffer_(NULL),
       kernel_buffer_size_(0),
       isolate_run_app_snapshot_(isolate_run_app_snapshot) {
-  if (packages_file != NULL) {
+  if (package_root != NULL) {
+    ASSERT(packages_file == NULL);
+    package_root = strdup(package_root);
+  } else if (packages_file != NULL) {
     packages_file_ = strdup(packages_file);
   }
 }
@@ -27,6 +32,8 @@ IsolateGroupData::IsolateGroupData(const char* url,
 IsolateGroupData::~IsolateGroupData() {
   free(script_url);
   script_url = NULL;
+  free(package_root);
+  package_root = NULL;
   free(packages_file_);
   packages_file_ = NULL;
   free(resolved_packages_config_);
