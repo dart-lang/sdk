@@ -23,9 +23,11 @@ class FactorTypeTest extends FactorTypeTestMixin<DartType> {
   CoreTypes get coreTypes => typeEnvironment.coreTypes;
 
   void run() {
+    test_dynamic();
     test_futureOr();
     test_object();
     test_subtype();
+    test_void();
   }
 
   @override
@@ -47,6 +49,9 @@ class FactorTypeTest extends FactorTypeTestMixin<DartType> {
   @override
   DartType futureOrNone(DartType type) => new InterfaceType(
       coreTypes.futureOrClass, Nullability.nonNullable, [type]);
+
+  @override
+  DartType get dynamicType => const DynamicType();
 
   @override
   DartType get intNone => coreTypes.intNonNullableRawType;
@@ -86,6 +91,9 @@ class FactorTypeTest extends FactorTypeTestMixin<DartType> {
 
   @override
   DartType get stringStar => coreTypes.stringLegacyRawType;
+
+  @override
+  DartType get voidType => const VoidType();
 
   @override
   String typeString(DartType type) =>

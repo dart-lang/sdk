@@ -742,6 +742,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     assert(
         node.promotedType == null ||
             promotedType == typeEnvironment.nullType ||
+            promotedType is ir.InterfaceType &&
+                promotedType.classNode == typeEnvironment.futureOrClass ||
             typeEnvironment.isSubtypeOf(promotedType, node.promotedType,
                 ir.SubtypeCheckMode.ignoringNullabilities),
         "Unexpected promotion of ${node.variable} in ${node.parent}. "

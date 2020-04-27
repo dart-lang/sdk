@@ -20,6 +20,12 @@ class DecoratedTypeOperations
       this._typeSystem, this._variableRepository, this._graph);
 
   @override
+  DecoratedType factor(DecoratedType from, DecoratedType what) {
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/41672
+    return from;
+  }
+
+  @override
   bool isSameType(DecoratedType type1, DecoratedType type2) {
     return type1 == type2;
   }

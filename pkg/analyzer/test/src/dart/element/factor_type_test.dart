@@ -33,12 +33,13 @@ class FactorTypeTest with FactorTypeTestMixin<DartType>, ElementsTypesMixin {
     );
   }
 
-  void setUp() {
-    var analysisContext = TestAnalysisContext(
-      featureSet: testFeatureSet,
-    );
-    typeProvider = analysisContext.typeProviderNonNullableByDefault;
-    typeSystem = analysisContext.typeSystemNonNullableByDefault;
+  @override
+  DartType get voidType => typeProvider.voidType;
+
+  @override
+  void expect(
+      DartType T, DartType S, String actualResult, String expectedResult) {
+    test.expect(actualResult, expectedResult);
   }
 
   @override
@@ -46,10 +47,12 @@ class FactorTypeTest with FactorTypeTestMixin<DartType>, ElementsTypesMixin {
     return typeSystem.factor(T, S);
   }
 
-  @override
-  void expect(
-      DartType T, DartType S, String actualResult, String expectedResult) {
-    test.expect(actualResult, expectedResult);
+  void setUp() {
+    var analysisContext = TestAnalysisContext(
+      featureSet: testFeatureSet,
+    );
+    typeProvider = analysisContext.typeProviderNonNullableByDefault;
+    typeSystem = analysisContext.typeSystemNonNullableByDefault;
   }
 
   @override

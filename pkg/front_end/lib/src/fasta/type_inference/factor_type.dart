@@ -18,6 +18,9 @@ DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
   // * Else if T is R? then factor(R, S)?
   if (T.nullability == Nullability.nullable) {
     DartType R = T.withNullability(Nullability.nonNullable);
+    if (identical(R, T)) {
+      return T;
+    }
     DartType factor_RS = factorType(typeEnvironment, R, S);
     if (typeEnvironment.isSubtypeOf(
         typeEnvironment.nullType, S, SubtypeCheckMode.withNullabilities)) {

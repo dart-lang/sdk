@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 class A {}
 
 class B extends A {}
@@ -59,6 +61,60 @@ isType(v) {
     /*String*/ v;
   } else {
     v;
+  }
+  v;
+}
+
+isType_factor_Null(int? v) {
+  if (v is Null) {
+    /*Null*/ v;
+  } else {
+    /*int*/ v;
+  }
+  v;
+}
+
+isType_factor_nullable(num? v) {
+  if (v is int?) {
+    /*int?*/ v;
+  } else {
+    /*num*/ v;
+  }
+  v;
+}
+
+isType_factor_declaredType(int? v) {
+  if (v is int?) {
+    v;
+  } else {
+    /*Never*/ v;
+  }
+  v;
+}
+
+isType_factor_supertype(int? v) {
+  if (v is num?) {
+    v;
+  } else {
+    /*Never*/ v;
+  }
+  v;
+}
+
+isType_factor_futureOr_future(FutureOr<int> v) {
+  if (v is Future<int>) {
+    /*Future<int>*/ v;
+  } else {
+    /*int*/ v;
+  }
+  v;
+}
+
+isType_factor_futureOr_type(FutureOr<int> v) {
+  if (v is int) {
+    /*int*/ v;
+  } else {
+    /*Future<int>*/ v;
   }
   v;
 }
