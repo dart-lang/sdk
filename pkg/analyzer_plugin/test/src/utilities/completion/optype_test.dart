@@ -1070,6 +1070,14 @@ main() {new core.String.from^CharCodes([]);}
         completionLocation: 'ExtensionDeclaration_member', typeNames: true);
   }
 
+  Future<void> test_extensionDeclaration_extendedType() async {
+    // SimpleIdentifier  MethodDeclaration  ExtensionDeclaration
+    addTestSource('extension E on ^ {}');
+    await assertOpType(
+        completionLocation: 'ExtensionDeclaration_extendedType',
+        typeNames: true);
+  }
+
   Future<void> test_extensionOverride_argumentList() async {
     // ExtensionDeclaration  CompilationUnit
     addTestSource('''

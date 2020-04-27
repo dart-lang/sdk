@@ -634,6 +634,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     if (identical(entity, node.extendedType)) {
       optype.completionLocation = 'ExtensionDeclaration_extendedType';
+      optype.includeTypeNameSuggestions = true;
     } else if (node.members.contains(entity) ||
         identical(entity, node.rightBracket)) {
       // Make suggestions in the body of the extension declaration

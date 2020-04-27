@@ -1924,12 +1924,47 @@ main() {
     assertNoSuggestions();
   }
 
-  Future<void> test_extendsClause() async {
+  Future<void> test_ExtendsClause() async {
     newFile('/home/test/lib/a.dart', content: 'class A {}');
     addTestSource('''
 import 'a.dart';
 
 class B extends ^
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+  }
+
+  Future<void> test_ExtensionDeclaration_extendedType() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    addTestSource('''
+import 'a.dart';
+
+extension E on ^
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('E');
+  }
+
+  Future<void> test_ExtensionDeclaration_extendedType2() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    addTestSource('''
+import 'a.dart';
+
+extension E on ^ {}
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('E');
+  }
+
+  Future<void> test_ExtensionDeclaration_member() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    addTestSource('''
+import 'a.dart';
+
+extension E on A { ^ }
 ''');
     await computeSuggestions();
     assertSuggestClass('A');
