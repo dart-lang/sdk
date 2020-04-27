@@ -146,7 +146,7 @@ vars = {
   "usage_tag": "3.4.0",
   "watcher_rev": "fc3c9aae5d31d707b3013b42634dde8d8a1161b4",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
-  "web_socket_channel_tag": "1.1.0",
+  "web_socket_channel_tag": "490061ef0e22d3c8460ad2802f9948219365ad6b",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
   "yaml_tag": "2.2.0",
   "zlib_rev": "c44fb7248079cc3d5563b14b3f758aee60d6b415",
