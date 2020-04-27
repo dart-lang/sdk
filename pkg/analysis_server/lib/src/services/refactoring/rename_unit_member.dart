@@ -186,8 +186,6 @@ class _RenameUnitMemberValidator {
   }
 
   Future<RefactoringStatus> validate() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _validateWillConflict();
     if (isRename) {
       references = await searchEngine.searchReferences(element);
@@ -271,8 +269,6 @@ class _RenameUnitMemberValidator {
 
   /// Validates if renamed [element] will shadow any [Element] named [name].
   Future _validateWillShadow() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
       var member = declaration.element;

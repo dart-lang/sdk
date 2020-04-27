@@ -299,8 +299,6 @@ abstract class AbstractAnalysisServer implements DriverProvider {
   /// [offset] of the given [file], or with `null` if there is no node at the
   /// [offset] or the node does not have an element.
   Future<Element> getElementAtOffset(String file, int offset) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (!priorityFiles.contains(file)) {
       var driver = getAnalysisDriver(file);
       if (driver == null) {
@@ -348,8 +346,6 @@ abstract class AbstractAnalysisServer implements DriverProvider {
   /// given [offset] of the given [file], or with `null` if there is no node as
   /// the [offset].
   Future<AstNode> getNodeAtOffset(String file, int offset) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = await getResolvedUnit(file);
     var unit = result?.unit;
     if (unit != null) {

@@ -69,8 +69,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     Set<String> includedElementNames,
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
   ) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     //
     // Allow plugins to start computing fixes.
     //

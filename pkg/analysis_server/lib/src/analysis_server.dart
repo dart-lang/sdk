@@ -597,8 +597,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   }
 
   Future<void> _scheduleAnalysisImplementedNotification() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var files = analysisServices[AnalysisService.IMPLEMENTED];
     if (files != null) {
       scheduleImplementedNotification(this, files);

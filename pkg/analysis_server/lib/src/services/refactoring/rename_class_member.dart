@@ -66,8 +66,6 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = await super.checkInitialConditions();
     if (element is MethodElement && (element as MethodElement).isOperator) {
       result.addFatalError('Cannot rename operator.');
@@ -160,8 +158,6 @@ class _ClassMemberValidator {
         elementKind = element.kind;
 
   Future<RefactoringStatus> validate() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // check if there is a member with "newName" in the same ClassElement
     for (var newNameMember in getChildren(elementClass, name)) {
       result.addError(
@@ -292,8 +288,6 @@ class _ClassMemberValidator {
 
   /// Fills [elements] with [Element]s to rename.
   Future _prepareElements() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (element is ClassMemberElement) {
       elements = await getHierarchyMembers(searchEngine, element);
     } else {
@@ -303,15 +297,11 @@ class _ClassMemberValidator {
 
   /// Fills [references] with all references to [elements].
   Future _prepareReferences() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (!isRename) {
       return Future.value();
     }
     await _prepareElements();
     await Future.forEach(elements, (Element element) async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       var elementReferences = await searchEngine.searchReferences(element);
       references.addAll(elementReferences);
     });

@@ -43,8 +43,6 @@ mixin RequestHandlerMixin<T extends AbstractAnalysisServer> {
       Map<PluginInfo, Future<plugin.Response>> futures,
       {plugin.RequestParams requestParameters,
       int timeout = 500}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // TODO(brianwilkerson) requestParameters might need to be required.
     var endTime = DateTime.now().millisecondsSinceEpoch + timeout;
     var responses = <plugin.Response>[];

@@ -18,8 +18,6 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<Set<String>> membersOfSubtypes(ClassElement type) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
 
@@ -29,8 +27,6 @@ class SearchEngineImpl implements SearchEngine {
     var members = <String>{};
 
     Future<void> addMembers(ClassElement type, SubtypeResult subtype) async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       if (subtype != null && !visitedIds.add(subtype.id)) {
         return;
       }
@@ -57,13 +53,9 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<Set<ClassElement>> searchAllSubtypes(ClassElement type) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var allSubtypes = <ClassElement>{};
 
     Future<void> addSubtypes(ClassElement type) async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       var directResults = await _searchDirectSubtypes(type);
       for (var directResult in directResults) {
         var directSubtype = directResult.enclosingElement as ClassElement;
@@ -79,8 +71,6 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchMemberDeclarations(String name) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var allDeclarations = <SearchMatch>[];
     var drivers = _drivers.toList();
     for (var driver in drivers) {
@@ -92,8 +82,6 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchMemberReferences(String name) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var allResults = <SearchResult>[];
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
@@ -107,8 +95,6 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchReferences(Element element) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var allResults = <SearchResult>[];
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
@@ -121,16 +107,12 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchSubtypes(ClassElement type) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var results = await _searchDirectSubtypes(type);
     return results.map(SearchMatchImpl.forSearchResult).toList();
   }
 
   @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var allElements = <Element>{};
     var regExp = RegExp(pattern);
     var drivers = _drivers.toList();
@@ -152,8 +134,6 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   Future<List<SearchResult>> _searchDirectSubtypes(ClassElement type) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var allResults = <SearchResult>[];
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);

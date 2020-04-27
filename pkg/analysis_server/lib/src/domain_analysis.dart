@@ -57,8 +57,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 
   /// Implement the `analysis.getHover` request.
   Future<void> getHover(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = AnalysisGetHoverParams.fromRequest(request);
     var file = params.file;
 
@@ -87,8 +85,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 
   /// Implement the `analysis.getImportedElements` request.
   Future<void> getImportedElements(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = AnalysisGetImportedElementsParams.fromRequest(request);
     var file = params.file;
 
@@ -147,8 +143,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 
   /// Implement the `analysis.getNavigation` request.
   Future<void> getNavigation(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = AnalysisGetNavigationParams.fromRequest(request);
     var file = params.file;
     var offset = params.offset;
