@@ -866,6 +866,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 #endif
 
   TimelineEventBlock* head_;
+  TimelineEventBlock* tail_;
   intptr_t block_index_;
 
   friend class TimelineTestHelper;
