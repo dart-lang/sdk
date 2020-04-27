@@ -8,8 +8,6 @@ import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -80,11 +78,10 @@ class InheritedReferenceContributor extends DartCompletionContributor {
         }
       } else {
         if (opType.includeVoidReturnSuggestions) {
-          var suggestion = memberBuilder.addSuggestionForMethod(
+          memberBuilder.addSuggestionForMethod(
               method: method,
               inheritanceDistance: inheritanceDistance,
               kind: kind);
-          _updateFlutterSuggestions(request, method, suggestion);
         }
       }
     }
@@ -127,36 +124,5 @@ class InheritedReferenceContributor extends DartCompletionContributor {
       node = node.parent;
     }
     return null;
-  }
-
-  void _updateFlutterSuggestions(DartCompletionRequest request, Element element,
-      CompletionSuggestion suggestion) {
-    if (suggestion == null) {
-      return;
-    }
-    if (element is MethodElement &&
-        element.name == 'setState' &&
-        Flutter.of(request.result).isExactState(element.enclosingElement)) {
-      // Find the line indentation.
-      var indent = getRequestLineIndent(request);
-
-      // Let the user know that we are going to insert a complete statement.
-      suggestion.displayText = 'setState(() {});';
-
-      // Build the completion and the selection offset.
-      var buffer = StringBuffer();
-      buffer.writeln('setState(() {');
-      buffer.write('$indent  ');
-      suggestion.selectionOffset = buffer.length;
-      buffer.writeln();
-      buffer.write('$indent});');
-      suggestion.completion = buffer.toString();
-
-      // There are no arguments to fill.
-      suggestion.parameterNames = null;
-      suggestion.parameterTypes = null;
-      suggestion.requiredParameterCount = null;
-      suggestion.hasNamedParameters = null;
-    }
   }
 }

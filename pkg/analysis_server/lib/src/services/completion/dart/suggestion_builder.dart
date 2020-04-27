@@ -13,6 +13,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -293,94 +294,25 @@ class MemberSuggestionBuilder {
   }
 
   /// Add a suggestion for the given [method].
-  CompletionSuggestion addSuggestionForMethod(
+  void addSuggestionForMethod(
       {@required MethodElement method,
       String containingMethodName,
       CompletionSuggestionKind kind,
       @required double inheritanceDistance}) {
-    int oldRelevance() {
-      if (method.hasDeprecated) {
-        return DART_RELEVANCE_LOW;
-      } else if (method.name == containingMethodName) {
-        // Boost the relevance of a super expression calling a method of the
-        // same name as the containing method.
-        return DART_RELEVANCE_HIGH;
-      }
-      var identifier = method.displayName;
-      if (identifier != null && identifier.startsWith(r'$')) {
-        // Decrease relevance of suggestions starting with $
-        // https://github.com/dart-lang/sdk/issues/27303
-        return DART_RELEVANCE_LOW;
-      }
-      return DART_RELEVANCE_DEFAULT;
+    if (method.isAccessibleIn(request.libraryElement) &&
+        _shouldAddSuggestion(method)) {
+      builder.suggestMethod(method,
+          containingMethodName: containingMethodName,
+          kind: kind,
+          inheritanceDistance: inheritanceDistance);
     }
-
-    if (!method.isAccessibleIn(request.libraryElement)) {
-      // Don't suggest private members from imported libraries.
-      return null;
-    }
-    int relevance;
-    if (request.useNewRelevance) {
-      var featureComputer = request.featureComputer;
-      var contextType = featureComputer.contextTypeFeature(
-          request.contextType, method.returnType);
-      var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
-      var startsWithDollar =
-          featureComputer.startsWithDollarFeature(method.name);
-      var superMatches = featureComputer.superMatchesFeature(
-          containingMethodName, method.name);
-      relevance = _computeRelevance(
-          contextType: contextType,
-          hasDeprecated: hasDeprecated,
-          inheritanceDistance: inheritanceDistance,
-          startsWithDollar: startsWithDollar,
-          superMatches: superMatches);
-    } else {
-      relevance = oldRelevance();
-    }
-    return _addSuggestion(method, relevance, kind: kind);
   }
 
   /// Add a suggestion for the given [element] with the given [relevance],
   /// provided that it is not shadowed by a previously added suggestion.
   CompletionSuggestion _addSuggestion(Element element, int relevance,
       {CompletionSuggestionKind kind}) {
-    var identifier = element.displayName;
-
-    var alreadyGenerated = _completionTypesGenerated.putIfAbsent(
-        identifier, () => _COMPLETION_TYPE_NONE);
-    if (element is MethodElement) {
-      // Anything shadows a method.
-      if (alreadyGenerated != _COMPLETION_TYPE_NONE) {
-        return null;
-      }
-      _completionTypesGenerated[identifier] =
-          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
-    } else if (element is PropertyAccessorElement) {
-      if (element.isGetter) {
-        // Getters, fields, and methods shadow a getter.
-        if ((alreadyGenerated & _COMPLETION_TYPE_GETTER) != 0) {
-          return null;
-        }
-        _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_GETTER;
-      } else {
-        // Setters, fields, and methods shadow a setter.
-        if ((alreadyGenerated & _COMPLETION_TYPE_SETTER) != 0) {
-          return null;
-        }
-        _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_SETTER;
-      }
-    } else if (element is FieldElement) {
-      // Fields and methods shadow a field.  A getter/setter pair shadows a
-      // field, but a getter or setter by itself doesn't.
-      if (alreadyGenerated == _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET) {
-        return null;
-      }
-      _completionTypesGenerated[identifier] =
-          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
-    } else {
-      // Unexpected element type; skip it.
-      assert(false);
+    if (!_shouldAddSuggestion(element)) {
       return null;
     }
     var suggestion =
@@ -422,6 +354,49 @@ class MemberSuggestionBuilder {
     ]);
     return toRelevance(score, Relevance.member);
   }
+
+  /// Return `true` if a suggestion for the given [element] should be created.
+  bool _shouldAddSuggestion(Element element) {
+    var identifier = element.displayName;
+
+    var alreadyGenerated = _completionTypesGenerated.putIfAbsent(
+        identifier, () => _COMPLETION_TYPE_NONE);
+    if (element is MethodElement) {
+      // Anything shadows a method.
+      if (alreadyGenerated != _COMPLETION_TYPE_NONE) {
+        return false;
+      }
+      _completionTypesGenerated[identifier] =
+          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
+    } else if (element is PropertyAccessorElement) {
+      if (element.isGetter) {
+        // Getters, fields, and methods shadow a getter.
+        if ((alreadyGenerated & _COMPLETION_TYPE_GETTER) != 0) {
+          return false;
+        }
+        _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_GETTER;
+      } else {
+        // Setters, fields, and methods shadow a setter.
+        if ((alreadyGenerated & _COMPLETION_TYPE_SETTER) != 0) {
+          return false;
+        }
+        _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_SETTER;
+      }
+    } else if (element is FieldElement) {
+      // Fields and methods shadow a field.  A getter/setter pair shadows a
+      // field, but a getter or setter by itself doesn't.
+      if (alreadyGenerated == _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET) {
+        return false;
+      }
+      _completionTypesGenerated[identifier] =
+          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
+    } else {
+      // Unexpected element type; skip it.
+      assert(false);
+      return false;
+    }
+    return true;
+  }
 }
 
 /// An object used to build a list of suggestions in response to a single
@@ -442,9 +417,17 @@ class SuggestionBuilder {
   /// `false`.
   DartType _cachedContextType;
 
+  /// The cached instance of the flutter utilities, or `null` if it hasn't been
+  /// created yet.
+  Flutter _flutter;
+
   /// Initialize a newly created suggestion builder to build suggestions for the
   /// given [request].
   SuggestionBuilder(this.request);
+
+  /// Return an object that can answer questions about Flutter code based on the
+  /// flavor of Flutter being used.
+  Flutter get flutter => _flutter ??= Flutter.of(request.result);
 
   DartType get _contextType {
     if (!_hasContextType) {
@@ -608,6 +591,82 @@ class SuggestionBuilder {
     suggestions.add(createSuggestion(request, function, relevance: relevance));
   }
 
+  void suggestMethod(MethodElement method,
+      {String containingMethodName,
+      CompletionSuggestionKind kind,
+      @required double inheritanceDistance}) {
+    // TODO(brianwilkerson) Refactor callers so that we're passing in the type
+    //  of the target (assuming we don't already have that type available via
+    //  the [request]) and compute the [inheritanceDistance] in this method.
+    int oldRelevance() {
+      if (method.hasDeprecated) {
+        return DART_RELEVANCE_LOW;
+      } else if (method.name == containingMethodName) {
+        // Boost the relevance of a super expression calling a method of the
+        // same name as the containing method.
+        return DART_RELEVANCE_HIGH;
+      }
+      var identifier = method.displayName;
+      if (identifier != null && identifier.startsWith(r'$')) {
+        // Decrease relevance of suggestions starting with $
+        // https://github.com/dart-lang/sdk/issues/27303
+        return DART_RELEVANCE_LOW;
+      }
+      return DART_RELEVANCE_DEFAULT;
+    }
+
+    int relevance;
+    if (request.useNewRelevance) {
+      var featureComputer = request.featureComputer;
+      var contextType = featureComputer.contextTypeFeature(
+          request.contextType, method.returnType);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
+      var startsWithDollar =
+          featureComputer.startsWithDollarFeature(method.name);
+      var superMatches = featureComputer.superMatchesFeature(
+          containingMethodName, method.name);
+      relevance = _computeMemberRelevance(
+          contextType: contextType,
+          hasDeprecated: hasDeprecated,
+          inheritanceDistance: inheritanceDistance,
+          startsWithDollar: startsWithDollar,
+          superMatches: superMatches);
+    } else {
+      relevance = oldRelevance();
+    }
+
+    var suggestion =
+        createSuggestion(request, method, kind: kind, relevance: relevance);
+    if (suggestion != null) {
+      if (method.name == 'setState' &&
+          flutter.isExactState(method.enclosingElement)) {
+        // TODO(brianwilkerson) Make this more efficient by creating the correct
+        //  suggestion in the first place.
+        // Find the line indentation.
+        var indent = getRequestLineIndent(request);
+
+        // Let the user know that we are going to insert a complete statement.
+        suggestion.displayText = 'setState(() {});';
+
+        // Build the completion and the selection offset.
+        var buffer = StringBuffer();
+        buffer.writeln('setState(() {');
+        buffer.write('$indent  ');
+        suggestion.selectionOffset = buffer.length;
+        buffer.writeln();
+        buffer.write('$indent});');
+        suggestion.completion = buffer.toString();
+
+        // There are no arguments to fill.
+        suggestion.parameterNames = null;
+        suggestion.parameterTypes = null;
+        suggestion.requiredParameterCount = null;
+        suggestion.hasNamedParameters = null;
+      }
+      suggestions.add(suggestion);
+    }
+  }
+
   /// Add a suggestion for the top-level [function].
   void suggestTopLevelFunction(FunctionElement function,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
@@ -655,6 +714,38 @@ class SuggestionBuilder {
 
     suggestions.add(
         createSuggestion(request, variable, kind: kind, relevance: relevance));
+  }
+
+  /// Compute a relevance value from the given feature scores:
+  /// - [contextType] is higher if the type of the element matches the context
+  ///   type,
+  /// - [hasDeprecated] is higher if the element is not deprecated,
+  /// - [inheritanceDistance] is higher if the element is defined closer to the
+  ///   target type,
+  /// - [startsWithDollar] is higher if the element's name doe _not_ start with
+  ///   a dollar sign, and
+  /// - [superMatches] is higher if the element is being invoked through `super`
+  ///   and the element's name matches the name of the enclosing method.
+  int _computeMemberRelevance(
+      {@required double contextType,
+      @required double hasDeprecated,
+      @required double inheritanceDistance,
+      @required double startsWithDollar,
+      @required double superMatches}) {
+    var score = weightedAverage([
+      contextType,
+      hasDeprecated,
+      inheritanceDistance,
+      startsWithDollar,
+      superMatches
+    ], [
+      1.0,
+      0.5,
+      1.0,
+      0.5,
+      1.0
+    ]);
+    return toRelevance(score, Relevance.member);
   }
 
   /// Return the relevance score for a top-level [element].
