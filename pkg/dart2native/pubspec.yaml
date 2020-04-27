@@ -1,6 +1,9 @@
 name: dart2native
 publish_to: none
 
+environment:
+  sdk: "^2.7.0"
+
 # Add the bin/dart2native.dart script to the scripts pub installs.
 executables:
   dart2native:

@@ -310,9 +310,7 @@ final _testToken = Object();
 bool _initializedTestNameCallback = false;
 
 /// The current combined name of the nesting [group] or [test].
-// TODO(rnystrom): Type this "String?" when this library does not need to be
-// NNBD agnostic.
-dynamic _currentName = null;
+String _currentName = "";
 
 String _pushName(String newName) {
   // Look up the current test name from the zone created for the test.
@@ -322,7 +320,7 @@ String _pushName(String newName) {
   }
 
   var oldName = _currentName;
-  if (oldName == null) {
+  if (oldName == "") {
     _currentName = newName;
   } else {
     _currentName = "$oldName $newName";

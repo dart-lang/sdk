@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-03-11T09:16:09.767708",
+  "generated": "2020-04-21T17:36:03.446742",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -66,19 +66,18 @@
       "name": "args",
       "rootUri": "../third_party/pkg/args",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.3"
     },
     {
       "name": "async",
       "rootUri": "../third_party/pkg/async",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.2"
     },
     {
       "name": "async_helper",
       "rootUri": "../pkg/async_helper",
-      "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "packageUri": "lib/"
     },
     {
       "name": "bazel_worker",
@@ -115,12 +114,6 @@
       "rootUri": "../third_party/pkg/cli_util",
       "packageUri": "lib/",
       "languageVersion": "2.0"
-    },
-    {
-      "name": "code_transformers",
-      "rootUri": "../third_party/pkg/code_transformers",
-      "packageUri": "lib/",
-      "languageVersion": "1.0"
     },
     {
       "name": "collection",
@@ -180,7 +173,7 @@
       "name": "dart_style",
       "rootUri": "../third_party/pkg_tested/dart_style",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.7"
     },
     {
       "name": "dartdev",
@@ -192,7 +185,7 @@
       "name": "dartdoc",
       "rootUri": "../third_party/pkg/dartdoc",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.7"
     },
     {
       "name": "dartfix",
@@ -204,7 +197,7 @@
       "name": "dds",
       "rootUri": "../pkg/dds",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.6"
     },
     {
       "name": "dev_compiler",
@@ -221,8 +214,7 @@
     {
       "name": "expect",
       "rootUri": "../pkg/expect",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "packageUri": "lib/"
     },
     {
       "name": "ffi",
@@ -272,12 +264,6 @@
       "rootUri": "../pkg/frontend_server",
       "packageUri": "lib/",
       "languageVersion": "2.7"
-    },
-    {
-      "name": "func",
-      "rootUri": "../third_party/pkg/func",
-      "packageUri": "lib/",
-      "languageVersion": "1.9"
     },
     {
       "name": "gardening",
@@ -334,16 +320,10 @@
       "languageVersion": "2.0"
     },
     {
-      "name": "initialize",
-      "rootUri": "../third_party/pkg/initialize",
-      "packageUri": "lib/",
-      "languageVersion": "1.9"
-    },
-    {
       "name": "intl",
       "rootUri": "../third_party/pkg/intl",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.5"
     },
     {
       "name": "js",
@@ -379,7 +359,7 @@
       "name": "linter",
       "rootUri": "../third_party/pkg/linter",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.6"
     },
     {
       "name": "logging",
@@ -404,12 +384,6 @@
       "rootUri": "../pkg/meta",
       "packageUri": "lib/",
       "languageVersion": "1.12"
-    },
-    {
-      "name": "metatest",
-      "rootUri": "../third_party/pkg/metatest",
-      "packageUri": "lib/",
-      "languageVersion": "1.8"
     },
     {
       "name": "mime",
@@ -454,12 +428,6 @@
       "languageVersion": "2.0"
     },
     {
-      "name": "observable",
-      "rootUri": "../third_party/pkg/observable",
-      "packageUri": "lib/",
-      "languageVersion": "1.19"
-    },
-    {
       "name": "observatory",
       "rootUri": "../runtime/observatory",
       "packageUri": "lib/",
@@ -469,12 +437,6 @@
       "name": "observatory_test_package",
       "rootUri": "../runtime/observatory/tests/service/observatory_test_package",
       "languageVersion": "2.7"
-    },
-    {
-      "name": "observe",
-      "rootUri": "../third_party/pkg/observe",
-      "packageUri": "lib/",
-      "languageVersion": "1.9"
     },
     {
       "name": "package_config",
@@ -495,26 +457,8 @@
       "languageVersion": "2.1"
     },
     {
-      "name": "platform",
-      "rootUri": "../third_party/pkg/platform",
-      "packageUri": "lib/",
-      "languageVersion": "1.24"
-    },
-    {
-      "name": "plugin",
-      "rootUri": "../third_party/pkg/plugin",
-      "packageUri": "lib/",
-      "languageVersion": "1.0"
-    },
-    {
       "name": "pool",
       "rootUri": "../third_party/pkg/pool",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
-    },
-    {
-      "name": "process",
-      "rootUri": "../third_party/pkg/process",
       "packageUri": "lib/",
       "languageVersion": "2.0"
     },
@@ -534,7 +478,7 @@
       "name": "pub_semver",
       "rootUri": "../third_party/pkg/pub_semver",
       "packageUri": "lib/",
-      "languageVersion": "1.0"
+      "languageVersion": "2.0"
     },
     {
       "name": "quiver",
@@ -547,12 +491,6 @@
       "rootUri": "../third_party/pkg/resource",
       "packageUri": "lib/",
       "languageVersion": "2.0"
-    },
-    {
-      "name": "scheduled_test",
-      "rootUri": "../third_party/pkg/scheduled_test",
-      "packageUri": "lib/",
-      "languageVersion": "1.22"
     },
     {
       "name": "sdk_library_metadata",
@@ -570,13 +508,13 @@
       "name": "shelf_packages_handler",
       "rootUri": "../third_party/pkg/shelf_packages_handler",
       "packageUri": "lib/",
-      "languageVersion": "1.22"
+      "languageVersion": "2.0"
     },
     {
       "name": "shelf_proxy",
       "rootUri": "../third_party/pkg/shelf_proxy",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.0"
     },
     {
       "name": "shelf_static",
@@ -597,16 +535,10 @@
       "languageVersion": "2.3"
     },
     {
-      "name": "smoke",
-      "rootUri": "../third_party/pkg/smoke",
-      "packageUri": "lib/",
-      "languageVersion": "1.12"
-    },
-    {
       "name": "source_map_stack_trace",
       "rootUri": "../third_party/pkg/source_map_stack_trace",
       "packageUri": "lib/",
-      "languageVersion": "1.8"
+      "languageVersion": "2.7"
     },
     {
       "name": "source_maps",
@@ -672,19 +604,19 @@
       "name": "test",
       "rootUri": "../third_party/pkg/test/pkgs/test",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.7"
     },
     {
       "name": "test_api",
       "rootUri": "../third_party/pkg/test/pkgs/test_api",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.7"
     },
     {
       "name": "test_core",
       "rootUri": "../third_party/pkg/test/pkgs/test_core",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.7"
     },
     {
       "name": "test_descriptor",
@@ -723,12 +655,6 @@
       "languageVersion": "2.6"
     },
     {
-      "name": "tuple",
-      "rootUri": "../third_party/pkg/tuple",
-      "packageUri": "lib/",
-      "languageVersion": "1.6"
-    },
-    {
       "name": "typed_data",
       "rootUri": "../third_party/pkg/typed_data",
       "packageUri": "lib/",
@@ -737,12 +663,6 @@
     {
       "name": "usage",
       "rootUri": "../third_party/pkg/usage",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
-    },
-    {
-      "name": "utf",
-      "rootUri": "../third_party/pkg/utf",
       "packageUri": "lib/",
       "languageVersion": "2.0"
     },
@@ -762,7 +682,7 @@
       "name": "watcher",
       "rootUri": "../third_party/pkg/watcher",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.2"
     },
     {
       "name": "web_components",

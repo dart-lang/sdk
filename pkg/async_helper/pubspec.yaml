@@ -7,6 +7,5 @@ description: >-
  language tests.
  Third parties are discouraged from using this, and should use
  the facilities provided in package:test.
-
 dependencies:
   expect: any

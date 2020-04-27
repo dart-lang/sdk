@@ -191,10 +191,10 @@ void testUnsendable(name, func) {
   });
   Expect.throws(() {
     noReply.sendPort.send(func);
-  }, null, "send direct");
+  }, (_) => true, "send direct");
   Expect.throws(() {
     noReply.sendPort.send([func]);
-  }, null, "send wrapped");
+  }, (_) => true, "send wrapped");
   scheduleMicrotask(() {
     noReply.close();
     asyncEnd();

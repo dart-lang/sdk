@@ -3,6 +3,9 @@ name: vm
 # version: do-not-upload
 description: VM specific Dart code and helper scripts
 
+environment:
+  sdk: "^2.7.0"
+
 dependencies:
   build_integration:
     path: ../build_integration
