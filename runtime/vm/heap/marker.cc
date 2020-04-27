@@ -485,13 +485,7 @@ void GCMarker::ProcessObjectIdTable(Thread* thread) {
 #ifndef PRODUCT
   TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessObjectIdTable");
   ObjectIdRingClearPointerVisitor visitor(isolate_group_);
-  isolate_group_->ForEachIsolate(
-      [&](Isolate* isolate) {
-        ObjectIdRing* ring = isolate->object_id_ring();
-        ASSERT(ring != NULL);
-        ring->VisitPointers(&visitor);
-      },
-      /*at_safepoint=*/true);
+  isolate_group_->VisitObjectIdRingPointers(&visitor);
 #endif  // !PRODUCT
 }
 

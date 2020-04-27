@@ -475,6 +475,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
                            ValidationPolicy validate_frames);
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
+  void VisitObjectIdRingPointers(ObjectPointerVisitor* visitor);
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   bool compaction_in_progress() const {
