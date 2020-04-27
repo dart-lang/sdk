@@ -90,7 +90,7 @@ vars = {
   "ffi_tag": "ea88d71b043ee14b268c3aedff14e9eb32e20959",
   "fixnum_tag": "eb3748663dc979271ff6a3d014fbe522543b1d91",
   "glob_tag": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
-  "html_tag" : "0.14.0+1",
+  "html_tag": "083a36cd801a4b787ba156b7c6e4c8b2e2daed4a",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev" : "ea269f79321d659208402088f3297e8920a88ee6",
   "http_parser_tag" : "3.1.3",
