@@ -74,6 +74,12 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('Object');
   }
 
+  Future<void> test_Combinator_hide_duplicate() async {
+    addTestSource('import "dart:math" hide PI, ^;');
+    await computeSuggestions();
+    assertNotSuggested('PI');
+  }
+
   Future<void> test_Combinator_show() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/home/test/lib/ab.dart', '''
@@ -121,6 +127,12 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('D');
     assertNotSuggested('X');
     assertNotSuggested('Object');
+  }
+
+  Future<void> test_Combinator_show_duplicate() async {
+    addTestSource('import "dart:math" show PI, ^;');
+    await computeSuggestions();
+    assertNotSuggested('PI');
   }
 
   Future<void> test_Combinator_show_export_withShow() async {
