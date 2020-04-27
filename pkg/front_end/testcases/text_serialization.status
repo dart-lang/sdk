@@ -165,6 +165,7 @@ instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError
 instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/issue41180: RuntimeError
+nnbd/issue41567: TypeCheckError
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/never_opt_out: TypeCheckError

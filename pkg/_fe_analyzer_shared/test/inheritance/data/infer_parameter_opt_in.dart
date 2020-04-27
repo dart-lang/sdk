@@ -56,57 +56,49 @@ class E4 implements B, A {
 
 /*class: F1:A,C,F1,Object*/
 class F1 extends A implements C {
-  /*cfe|cfe:builder.member: F1.method:void Function(void, {void named})*/
-  /*analyzer.member: F1.method:Object? Function(Object?, {Object? named})*/
+  /*member: F1.method:Object? Function(Object?, {Object? named})*/
   method(o, {named}) {}
 }
 
 /*class: F2:A,C,F2,Object*/
 class F2 extends C implements A {
-  /*cfe|cfe:builder.member: F2.method:void Function(void, {void named})*/
-  /*analyzer.member: F2.method:Object? Function(Object?, {Object? named})*/
+  /*member: F2.method:Object? Function(Object?, {Object? named})*/
   method(o, {named}) {}
 }
 
 /*class: F3:A,C,F3,Object*/
 class F3 implements A, C {
-  /*cfe|cfe:builder.member: F3.method:void Function(void, {void named})*/
-  /*analyzer.member: F3.method:Object? Function(Object?, {Object? named})*/
+  /*member: F3.method:Object? Function(Object?, {Object? named})*/
   method(o, {named}) {}
 }
 
 /*class: F4:A,C,F4,Object*/
 class F4 implements C, A {
-  /*cfe|cfe:builder.member: F4.method:void Function(void, {void named})*/
-  /*analyzer.member: F4.method:Object? Function(Object?, {Object? named})*/
+  /*member: F4.method:Object? Function(Object?, {Object? named})*/
   method(o, {named}) {}
 }
 
 /*class: G1:A,B,C,G1,Object*/
 class G1 extends B implements C {
-  /*cfe|cfe:builder.member: G1.method:void Function(void, {void named})*/
-  /*analyzer.member: G1.method:Object? Function(Object?, {Object? named})*/
+  /*member: G1.method:Object? Function(Object?, {Object? named})*/
   method(o, {named}) {}
 }
 
 /*class: G2:A,B,C,G2,Object*/
 class G2 extends C implements B {
-  /*cfe|cfe:builder.member: G2.method:void Function(void, {void named})*/
-  /*analyzer.member: G2.method:Object? Function(Object?, {Object? named})*/
+  /*member: G2.method:Object? Function(Object?, {Object? named})*/
   method(o, {named}) {}
 }
 
 /*class: G3:A,B,C,G3,Object*/
 class G3 implements B, C {
-  /*cfe|cfe:builder.member: G3.method:void Function(void, {void named})*/
-  /*analyzer.member: G3.method:Object? Function(Object?, {Object? named})*/
+  /*member: G3.method:Object? Function(Object?, {Object? named})*/
   method(o, {named}) {}
 }
 
 /*class: G4:A,B,C,G4,Object*/
 class G4 implements C, B {
-  /*cfe|cfe:builder.member: G4.method:void Function(void, {void named})*/
-  /*analyzer.member: G4.method:Object? Function(Object?, {Object? named})*/
+  /*member: G4.method:Object? Function(Object?, {Object? named})*/
   method(o, {named}) {}
 }
 

@@ -55,8 +55,8 @@ class NnbdTopMergeVisitor extends MergeVisitor {
         // NNBD_TOP_MERGE(Object?, dynamic) = Object?
         return coreTypes.objectNullableRawType;
       } else if (b is VoidType) {
-        // NNBD_TOP_MERGE(Object?, void) = void
-        return const VoidType();
+        // NNBD_TOP_MERGE(Object?, void) = Object?
+        return coreTypes.objectNullableRawType;
       } else if (b == coreTypes.objectNullableRawType) {
         // NNBD_TOP_MERGE(Object?, Object?) = Object?
         return coreTypes.objectNullableRawType;
@@ -66,8 +66,8 @@ class NnbdTopMergeVisitor extends MergeVisitor {
         // NNBD_TOP_MERGE(Object*, dynamic) = Object?
         return coreTypes.objectNullableRawType;
       } else if (b is VoidType) {
-        // NNBD_TOP_MERGE(Object*, void) = void
-        return const VoidType();
+        // NNBD_TOP_MERGE(Object*, void) = Object?
+        return coreTypes.objectNullableRawType;
       }
     } else if (a == coreTypes.nullType &&
         b is NeverType &&
@@ -81,17 +81,17 @@ class NnbdTopMergeVisitor extends MergeVisitor {
   @override
   DartType visitVoidType(VoidType a, DartType b) {
     if (b is DynamicType) {
-      // NNBD_TOP_MERGE(void, dynamic) = void
-      return const VoidType();
+      // NNBD_TOP_MERGE(void, dynamic) = Object?
+      return coreTypes.objectNullableRawType;
     } else if (b is VoidType) {
       // NNBD_TOP_MERGE(void, void) = void
       return const VoidType();
     } else if (b == coreTypes.objectNullableRawType) {
-      // NNBD_TOP_MERGE(void, Object?) = void
-      return const VoidType();
+      // NNBD_TOP_MERGE(void, Object?) = Object?
+      return coreTypes.objectNullableRawType;
     } else if (b == coreTypes.objectLegacyRawType) {
-      // NNBD_TOP_MERGE(void, Object*) = void
-      return const VoidType();
+      // NNBD_TOP_MERGE(void, Object*) = Object?
+      return coreTypes.objectNullableRawType;
     }
     return null;
   }
@@ -102,8 +102,8 @@ class NnbdTopMergeVisitor extends MergeVisitor {
       // NNBD_TOP_MERGE(dynamic, dynamic) = dynamic
       return const DynamicType();
     } else if (b is VoidType) {
-      // NNBD_TOP_MERGE(dynamic, void) = void
-      return const VoidType();
+      // NNBD_TOP_MERGE(dynamic, void) = Object?
+      return coreTypes.objectNullableRawType;
     } else if (b == coreTypes.objectNullableRawType) {
       // NNBD_TOP_MERGE(dynamic, Object?) = Object?
       return coreTypes.objectNullableRawType;
