@@ -126,7 +126,7 @@ class MigrationCli {
       if (rest.isEmpty) {
         migratePath = Directory.current.path;
       } else if (rest.length > 1) {
-        throw Exception('No more than one path may be specified.');
+        throw _BadArgException('No more than one path may be specified.');
       } else {
         migratePath = rest[0];
       }
@@ -138,12 +138,12 @@ class MigrationCli {
       try {
         previewPort = previewPortRaw == null ? null : int.parse(previewPortRaw);
       } on FormatException catch (_) {
-        throw Exception(
+        throw _BadArgException(
             'Invalid value for --${CommandLineOptions.previewPortOption}');
       }
       var webPreview = argResults[CommandLineOptions.webPreviewFlag] as bool;
       if (applyChanges && webPreview) {
-        throw Exception('--apply-changes requires --no-web-preview');
+        throw _BadArgException('--apply-changes requires --no-web-preview');
       }
       options = CommandLineOptions(
           applyChanges: applyChanges,
@@ -156,8 +156,17 @@ class MigrationCli {
       if (isVerbose) {
         logger = loggerFactory(true);
       }
-    } on Exception catch (e) {
-      logger.stderr(e.toString());
+    } on Object catch (exception) {
+      String message;
+      if (exception is FormatException) {
+        message = exception.message;
+      } else if (exception is _BadArgException) {
+        message = exception.message;
+      } else {
+        message =
+            'Exception occurred while parsing command-line options: $exception';
+      }
+      logger.stderr(message);
       _showUsage(false);
       exitCode = 1;
       return;
@@ -390,6 +399,12 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
       return Logger.standard(ansi: ansi);
     }
   }
+}
+
+class _BadArgException implements Exception {
+  final String message;
+
+  _BadArgException(this.message);
 }
 
 class _DartFixListener implements DartFixListenerInterface {

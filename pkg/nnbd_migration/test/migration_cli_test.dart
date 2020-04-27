@@ -75,6 +75,7 @@ class _MigrationCliTest {
     var cli = _createCli();
     await cli.run(args);
     var stderrText = assertErrorExit(cli);
+    expect(stderrText, isNot(contains('Exception')));
     return stderrText;
   }
 
@@ -246,11 +247,9 @@ int${migrated ? '?' : ''} f() => null;
     expect(assertParseArgsSuccess([]).previewPort, isNull);
   }
 
-  test_option_preview_port_format_error() {
-    var cli = _createCli();
-    cli.parseCommandLineArgs(['--preview-port', 'abc']);
-    var stderrText = assertErrorExit(cli);
-    expect(stderrText, contains('Invalid value for --preview-port'));
+  test_option_preview_port_format_error() async {
+    expect(await assertParseArgsFailure(['--preview-port', 'abc']),
+        contains('Invalid value for --preview-port'));
   }
 
   test_option_sdk() {
