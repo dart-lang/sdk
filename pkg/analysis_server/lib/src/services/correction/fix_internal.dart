@@ -28,6 +28,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_int_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_on_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
@@ -4403,6 +4404,8 @@ class FixProcessor extends BaseProcessor {
         await compute(ConvertToPackageImport());
       } else if (name == LintNames.avoid_returning_null_for_future) {
         await compute(WrapInFuture());
+      } else if (name == LintNames.avoid_types_as_parameter_names) {
+        await compute(ConvertToOnType());
       } else if (name == LintNames.curly_braces_in_flow_control_structures) {
         await compute(UseCurlyBraces());
       } else if (name == LintNames.diagnostic_describe_all_properties) {

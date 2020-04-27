@@ -34,6 +34,12 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   /// Return the lint code being tested.
   String get lintCode;
 
+  bool Function(AnalysisError) lintNameFilter(String name) {
+    return (e) {
+      return e.errorCode is LintCode && e.errorCode.name == name;
+    };
+  }
+
   @override
   void setUp() {
     super.setUp();
