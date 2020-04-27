@@ -22,38 +22,44 @@ import self as self;
 import "dart:core" as core;
 
 static method f() → dynamic /* originally sync* */ {
-  core::int* :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  function :sync_op(core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
-    {
-      invalid-expression "pkg/front_end/testcases/regress/issue_29983.dart:7:3: Error: 'sync*' and 'async*' can't return a value.
+  function :sync_op_gen() → (core::_SyncIterator<dynamic>*) →* core::bool* {
+    core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    return (core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
+      {
+        invalid-expression "pkg/front_end/testcases/regress/issue_29983.dart:7:3: Error: 'sync*' and 'async*' can't return a value.
   return missing;
   ^";
-    }
-    return false;
+      }
+      return false;
+    };
   }
-  return new core::_SyncIterable::•<dynamic>(:sync_op);
+  return new core::_SyncIterable::•<dynamic>(:sync_op_gen);
 }
 static method g() → dynamic /* originally sync* */ {
-  core::int* :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  function :sync_op(core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
-    invalid-expression "pkg/front_end/testcases/regress/issue_29983.dart:11:14: Error: 'sync*' and 'async*' can't return a value.
+  function :sync_op_gen() → (core::_SyncIterator<dynamic>*) →* core::bool* {
+    core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    return (core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
+      invalid-expression "pkg/front_end/testcases/regress/issue_29983.dart:11:14: Error: 'sync*' and 'async*' can't return a value.
 g() sync* => dummy;
              ^";
-    return false;
+      return false;
+    };
   }
-  return new core::_SyncIterable::•<dynamic>(:sync_op);
+  return new core::_SyncIterable::•<dynamic>(:sync_op_gen);
 }
 static method h() → dynamic /* originally sync* */ {
-  core::int* :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  function :sync_op(core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
-    {
-      (() → core::String* => "return").call();
-    }
-    return false;
+  function :sync_op_gen() → (core::_SyncIterator<dynamic>*) →* core::bool* {
+    core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    return (core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
+      {
+        (() → core::String* => "return").call();
+      }
+      return false;
+    };
   }
-  return new core::_SyncIterable::•<dynamic>(:sync_op);
+  return new core::_SyncIterable::•<dynamic>(:sync_op_gen);
 }
 static method main() → dynamic {}

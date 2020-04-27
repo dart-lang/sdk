@@ -282,9 +282,15 @@ class Frame {
 
   Frame(this.function, this.parent);
 
-  VariableDeclaration getSyntheticVar(String name) =>
-      syntheticVars[name] ??
-      (throw '${name} variable is not declared in ${function}');
+  VariableDeclaration getSyntheticVar(String name) {
+    if (syntheticVars == null) {
+      throw 'No synthetic variables declared in ${function}!';
+    }
+    if (syntheticVars[name] == null) {
+      throw '${name} variable is not declared in ${function}';
+    }
+    return syntheticVars[name];
+  }
 }
 
 class Scope {
@@ -315,6 +321,17 @@ bool _hasReceiverParameter(TreeNode node) {
 
 class _ScopeBuilder extends RecursiveVisitor<Null> {
   final LocalVariables locals;
+
+  // Set of synthetic variables we need to keep track of in Frame.
+  static final registeredSyntheticVars = RegExp(r'^(' +
+      '${ContinuationVariables.awaitJumpVar}|' +
+      '${ContinuationVariables.awaitContextVar}|' +
+      '${ContinuationVariables.asyncCompleter}|' +
+      // :exception0, :stack_trace17, etc..
+      '${ContinuationVariables.savedTryContextVarPrefix}[0-9]+|' +
+      '${ContinuationVariables.exceptionVarPrefix}[0-9]+|' +
+      '${ContinuationVariables.stackTraceVarPrefix}[0-9]+' +
+      r')$');
 
   Scope _currentScope;
   Frame _currentFrame;
@@ -402,6 +419,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       visitList(function.positionalParameters, this);
       visitList(_currentFrame.sortedNamedParameters, this);
 
+      // Inner (a)sync_op(..).
       if (_currentFrame.isSyncYielding) {
         // The following variables from parent frame are used implicitly and need
         // to be captured to preserve state across closure invocations.
@@ -424,7 +442,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
           _useVariable(_currentFrame.parent
               .getSyntheticVar(ContinuationVariables.asyncStackTraceVar));
         }
-      }
+      } // _currentFrame.isSyncYielding
 
       if (node is Constructor) {
         for (var field in node.enclosingClass.fields) {
@@ -437,13 +455,25 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
 
       function.body?.accept(this);
 
+      // sync* is transformed to have two nested synthetic functions.
+      // The first such function defines :await_jump_var, which needs to be
+      // made part of the outer function's scope.
+      if (_currentFrame.parent?.dartAsyncMarker == AsyncMarker.SyncStar) {
+        locals
+            ._getVarDesc(_currentFrame
+                .getSyntheticVar(ContinuationVariables.awaitJumpVar))
+            .moveToScope(_currentScope);
+      }
+
+      // Outer, original async/async*.
       if (_currentFrame.dartAsyncMarker == AsyncMarker.Async ||
-          _currentFrame.dartAsyncMarker == AsyncMarker.SyncStar ||
           _currentFrame.dartAsyncMarker == AsyncMarker.AsyncStar) {
         locals
             ._getVarDesc(_currentFrame
                 .getSyntheticVar(ContinuationVariables.awaitJumpVar))
             .moveToScope(_currentScope);
+
+        // Depending on the type of async, an additional synth. var. is needed.
         if (_currentFrame.dartAsyncMarker == AsyncMarker.Async) {
           locals
               ._getVarDesc(_currentFrame
@@ -509,7 +539,8 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       scope = _currentScope;
     }
     final VarDesc v = new VarDesc(variable, scope);
-    assert(locals._vars[variable] == null);
+    assert(locals._vars[variable] == null,
+        'Double declaring variable ${variable}!');
     locals._vars[variable] = v;
   }
 
@@ -540,7 +571,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
         _currentFrame.scratchVar,
         _currentFrame.returnVar,
       ]);
-    transient.addAll((_currentFrame.function as FunctionDeclaration)
+    transient.addAll((_currentFrame.function as LocalFunction)
         .function
         .positionalParameters);
     for (Scope scope = _currentScope;
@@ -621,11 +652,12 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     _declareVariable(node);
-
-    if (_currentFrame.dartAsyncMarker != AsyncMarker.Sync &&
-        node.name[0] == ':') {
+    // Register synthetic variables so we can reference them later where
+    // they're implicitely used.
+    if (node.name != null && registeredSyntheticVars.hasMatch(node.name)) {
       _currentFrame.syntheticVars ??= <String, VariableDeclaration>{};
-      assert(_currentFrame.syntheticVars[node.name] == null);
+      assert(_currentFrame.syntheticVars[node.name] == null,
+          "Synthetic variable ${node} double declared!");
       _currentFrame.syntheticVars[node.name] = node;
     }
 
@@ -737,7 +769,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
     VariableDeclaration iteratorVar;
     if (_currentFrame.isSyncYielding) {
       // Declare a variable to hold 'iterator' so it could be captured.
-      iteratorVar = new VariableDeclaration(':iterator');
+      iteratorVar = VariableDeclaration(':for-in-iterator');
       _declareVariable(iteratorVar);
       locals._capturedIteratorVars ??=
           new Map<ForInStatement, VariableDeclaration>();
@@ -833,6 +865,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   }
 }
 
+// Allocate context slots for each local variable.
 class _Allocator extends RecursiveVisitor<Null> {
   final LocalVariables locals;
 
@@ -853,20 +886,6 @@ class _Allocator extends RecursiveVisitor<Null> {
 
       if (_currentScope.parent != null) {
         _currentFrame.contextLevelAtEntry = _currentScope.parent.contextLevel;
-
-        if (_currentFrame.isSyncYielding) {
-          // _Closure._clone(), which is used to clone sync-yielding closures
-          // only clones 1 level of a context. So parent frame of a
-          // sync-yielding closure should have exactly 1 context level.
-          final parentFrame = _currentFrame.parent;
-          final currentLevel = _currentFrame.contextLevelAtEntry;
-          final parentLevel = parentFrame.contextLevelAtEntry ?? -1;
-          if (currentLevel != parentLevel + 1) {
-            throw 'Unexpected context allocation in ${parentFrame.function}\n'
-                ' - context level at parent entry: ${parentLevel}\n'
-                ' - context level at synthetic closure entry: ${currentLevel}\n';
-          }
-        }
       }
 
       _currentScope.localsUsed = 0;
@@ -882,6 +901,8 @@ class _Allocator extends RecursiveVisitor<Null> {
 
     final int parentContextLevel =
         _currentScope.parent != null ? _currentScope.parent.contextLevel : -1;
+
+    assert(parentContextLevel != null);
 
     final int numCaptured =
         _currentScope.vars.where((v) => v.isCaptured).length;
@@ -1100,8 +1121,11 @@ class _Allocator extends RecursiveVisitor<Null> {
       final FunctionNode function = (node as dynamic).function;
       assert(function != null);
 
+      // Specially allocate implicit variables before anything else to ensure
+      // reserved spot in context.
+
+      // Outer async/async* function.
       if (_currentFrame.dartAsyncMarker == AsyncMarker.Async ||
-          _currentFrame.dartAsyncMarker == AsyncMarker.SyncStar ||
           _currentFrame.dartAsyncMarker == AsyncMarker.AsyncStar) {
         final awaitJumpVar =
             _currentFrame.getSyntheticVar(ContinuationVariables.awaitJumpVar);
@@ -1109,19 +1133,29 @@ class _Allocator extends RecursiveVisitor<Null> {
         assert(
             locals._getVarDesc(awaitJumpVar).index == awaitJumpVarContextIndex);
       }
+
+      // :await_jump_var is declared in sync_op_gen, and implicitely used in sync_op.
+      if (_currentFrame.parent?.dartAsyncMarker == AsyncMarker.SyncStar) {
+        final awaitJumpVar =
+            _currentFrame.getSyntheticVar(ContinuationVariables.awaitJumpVar);
+        _allocateVariable(awaitJumpVar);
+        assert(
+            locals._getVarDesc(awaitJumpVar).index == awaitJumpVarContextIndex);
+      }
+
       if (_currentFrame.dartAsyncMarker == AsyncMarker.Async) {
         final asyncCompleter =
             _currentFrame.getSyntheticVar(ContinuationVariables.asyncCompleter);
         _allocateVariable(asyncCompleter);
         assert(locals._getVarDesc(asyncCompleter).index ==
             asyncCompleterContextIndex);
-      }
-      if (_currentFrame.dartAsyncMarker == AsyncMarker.AsyncStar) {
+      } else if (_currentFrame.dartAsyncMarker == AsyncMarker.AsyncStar) {
         final controller =
             _currentFrame.getSyntheticVar(ContinuationVariables.controller);
         _allocateVariable(controller);
         assert(locals._getVarDesc(controller).index == controllerContextIndex);
       }
+
       _allocateParameters(node, function);
       _allocateSpecialVariables();
 
@@ -1134,6 +1168,7 @@ class _Allocator extends RecursiveVisitor<Null> {
         visitList(node.initializers, this);
       }
 
+      // The visit the function body.
       function.body?.accept(this);
     }
 
@@ -1180,6 +1215,8 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
+    // Since these synthetic vars are specially allocated at a set index,
+    // verify these slots, and only allocate normal vars.
     if (node.name == ContinuationVariables.awaitJumpVar) {
       assert(locals._getVarDesc(node).index == awaitJumpVarContextIndex);
     } else if (node.name == ContinuationVariables.asyncCompleter) {
@@ -1189,6 +1226,7 @@ class _Allocator extends RecursiveVisitor<Null> {
     } else {
       _allocateVariable(node);
     }
+
     node.visitChildren(this);
   }
 

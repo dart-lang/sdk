@@ -78,8 +78,8 @@ static method foo() → asy::Stream<core::List<core::int*>*>* /* originally asyn
         }
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-        :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
       }
     finally {
       :controller.{asy::_AsyncStarStreamController::close}();
@@ -92,37 +92,39 @@ static method foo() → asy::Stream<core::List<core::int*>*>* /* originally asyn
   return :controller_stream;
 }
 static method bar() → core::Iterable<core::Map<core::int*, core::int*>*>* /* originally sync* */ {
-  core::int* :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  function :sync_op(core::_SyncIterator<core::Map<core::int*, core::int*>*>* :iterator) → core::bool* yielding {
-    {
+  function :sync_op_gen() → (core::_SyncIterator<core::Map<core::int*, core::int*>*>*) →* core::bool* {
+    core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    return (core::_SyncIterator<core::Map<core::int*, core::int*>*>* :iterator) → core::bool* yielding {
       {
-        :iterator.{core::_SyncIterator::_current} = core::Map::•<core::int*, core::int*>();
-        [yield] true;
-      }
-      {
-        :iterator.{core::_SyncIterator::_current} = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:23:69: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Map<int, int>'.
+        {
+          :iterator.{core::_SyncIterator::_current} = core::Map::•<core::int*, core::int*>();
+          [yield] true;
+        }
+        {
+          :iterator.{core::_SyncIterator::_current} = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:23:69: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Map<int, int>'.
  - 'List' is from 'dart:core'.
  - 'Map' is from 'dart:core'.
   yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ List();
                                                                     ^" in core::_GrowableList::•<dynamic>(0) as{TypeError} core::Map<core::int*, core::int*>*;
-        [yield] true;
-      }
-      {
-        :iterator.{core::_SyncIterator::_yieldEachIterable} = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:24:79: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'Iterable<Map<int, int>>'.
+          [yield] true;
+        }
+        {
+          :iterator.{core::_SyncIterator::_yieldEachIterable} = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:24:79: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'Iterable<Map<int, int>>'.
  - 'Map' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   yield* /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic, dynamic */ Map();
                                                                               ^" in core::Map::•<dynamic, dynamic>() as{TypeError} core::Iterable<core::Map<core::int*, core::int*>*>*;
-        [yield] true;
+          [yield] true;
+        }
+        {
+          :iterator.{core::_SyncIterator::_yieldEachIterable} = core::_GrowableList::•<core::Map<core::int*, core::int*>*>(0);
+          [yield] true;
+        }
       }
-      {
-        :iterator.{core::_SyncIterator::_yieldEachIterable} = core::_GrowableList::•<core::Map<core::int*, core::int*>*>(0);
-        [yield] true;
-      }
-    }
-    return false;
+      return false;
+    };
   }
-  return new core::_SyncIterable::•<core::Map<core::int*, core::int*>*>(:sync_op);
+  return new core::_SyncIterable::•<core::Map<core::int*, core::int*>*>(:sync_op_gen);
 }
 static method main() → dynamic {}
