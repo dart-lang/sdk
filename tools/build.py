@@ -67,12 +67,11 @@ def BuildOptions():
         help='Build variants (comma-separated).',
         metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
         default='none')
-    # TODO(38701): Remove this option once the NNBD SDK is stable/performant
-    # and there is no need to build a legacy version of the SDK for comparison
-    # purposes.
+    # TODO(38701): Remove this and everything that references it once the
+    # forked NNBD SDK is merged back in.
     result.add_option(
-        "--no-nnbd",
-        help='Build the Legacy (pre NNBD) version of the SDK.',
+        "--nnbd",
+        help='Use the NNBD fork of the SDK.',
         default=False,
         action='store_true')
     result.add_option(
@@ -219,7 +218,7 @@ def GenerateBuildfilesIfNeeded():
     return True
 
 
-def RunGNIfNeeded(out_dir, target_os, mode, arch, dont_use_nnbd, sanitizer):
+def RunGNIfNeeded(out_dir, target_os, mode, arch, use_nnbd, sanitizer):
     if os.path.isfile(os.path.join(out_dir, 'args.gn')):
         return
     gn_os = 'host' if target_os == HOST_OS else target_os
@@ -236,8 +235,8 @@ def RunGNIfNeeded(out_dir, target_os, mode, arch, dont_use_nnbd, sanitizer):
         gn_os,
         '-v',
     ]
-    if dont_use_nnbd:
-        gn_command.append('--no-nnbd')
+    if use_nnbd:
+        gn_command.append('--nnbd')
 
     process = subprocess.Popen(gn_command)
     process.wait()
@@ -292,13 +291,13 @@ def EnsureGomaStarted(out_dir):
 # Returns a tuple (build_config, command to run, whether goma is used)
 def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
     build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer,
-                                      options.no_nnbd)
+                                      options.nnbd)
     out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer,
-                                 options.no_nnbd)
+                                 options.nnbd)
     using_goma = False
     # TODO(zra): Remove auto-run of gn, replace with prompt for user to run
     # gn.py manually.
-    RunGNIfNeeded(out_dir, target_os, mode, arch, options.no_nnbd, sanitizer)
+    RunGNIfNeeded(out_dir, target_os, mode, arch, options.nnbd, sanitizer)
     command = ['ninja', '-C', out_dir]
     if options.verbose:
         command += ['-v']

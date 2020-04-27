@@ -5,11 +5,9 @@
 _dart_root = get_path_info(".", "abspath")
 
 declare_args() {
-  # Whether to build a Legacy SDK using Legacy core libraries.
-  # TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant
-  # and there is no need to build a legacy version of the SDK for comparison
-  # purposes.
-  dont_use_nnbd = false
+  # Whether to use the NNBD fork of the SDK core libraries.
+  # TODO(#38701): Remove this when the fork has been merged back in.
+  use_nnbd = false
 
   # Absolute path to the .git folder.
   #
