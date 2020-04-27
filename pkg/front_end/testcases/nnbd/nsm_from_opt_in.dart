@@ -6,6 +6,13 @@
 
 import 'nsm_from_opt_in_lib.dart';
 
+abstract class A2 implements A {
+  @override
+  noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
+}
+
 abstract class B2 extends A implements C2 {
   @override
   noSuchMethod(Invocation invocation) {
@@ -15,6 +22,9 @@ abstract class B2 extends A implements C2 {
 
 abstract class C2 {
   int method(int i, {optional});
+  T genericMethod1<T>(T t);
+  T genericMethod2<T extends Object>(T t);
+  T genericMethod3<T extends Object>(T t);
 }
 
 main() {}

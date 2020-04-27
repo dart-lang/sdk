@@ -733,7 +733,7 @@ class TestHarness {
   VariableDeclaration makeVariable() => new VariableDeclaration(null);
 
   TypeParameter makeTypeParameter([String name]) {
-    return new TypeParameter(name, objectLegacyRawType);
+    return new TypeParameter(name, objectLegacyRawType, const DynamicType());
   }
 
   TestHarness() {

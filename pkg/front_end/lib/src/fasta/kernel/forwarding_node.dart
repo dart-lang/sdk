@@ -346,8 +346,15 @@ class ForwardingNode {
         parameterIndex < interfaceTypeParameters.length;
         parameterIndex++) {
       TypeParameter typeParameter = interfaceTypeParameters[parameterIndex];
-      bool isGenericCovariantImpl = typeParameter.isGenericCovariantImpl ||
-          needsCheck(typeParameter.bound);
+      DartType parameterBound =
+          substitution.substituteType(typeParameter.bound);
+      DartType bound = initialType(_combinedMemberIndex, parameterBound);
+      DartType parameterDefaultType =
+          substitution.substituteType(typeParameter.defaultType);
+      DartType defaultType =
+          initialType(_combinedMemberIndex, parameterDefaultType);
+      bool isGenericCovariantImpl =
+          typeParameter.isGenericCovariantImpl || needsCheck(parameterBound);
       TypeParameter superTypeParameter = typeParameter;
       for (int candidateIndex = 0;
           candidateIndex < _candidates.length;
@@ -373,6 +380,14 @@ class ForwardingNode {
           stub.function.typeParameters[parameterIndex].isGenericCovariantImpl =
               true;
         }
+      }
+      if (bound != null && bound != parameterBound) {
+        createStubIfNeeded(forMemberSignature: true);
+        stub.function.typeParameters[parameterIndex].bound = bound;
+      }
+      if (defaultType != null && defaultType != parameterDefaultType) {
+        createStubIfNeeded(forMemberSignature: true);
+        stub.function.typeParameters[parameterIndex].defaultType = defaultType;
       }
     }
     DartType returnType =
@@ -486,6 +501,8 @@ class ForwardingNode {
       for (int i = 0; i < typeParameters.length; i++) {
         typeParameters[i].bound =
             substitution.substituteType(targetTypeParameters[i].bound);
+        typeParameters[i].defaultType =
+            substitution.substituteType(targetTypeParameters[i].defaultType);
       }
     }
     List<VariableDeclaration> positionalParameters =

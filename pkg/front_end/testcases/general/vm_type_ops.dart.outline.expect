@@ -48,7 +48,7 @@ class H<T extends core::Object* = dynamic> extends self::G<self::H::T*> implemen
     ;
   method foo8<generic-covariant-impl Q extends self::H::T* = self::H::T*>(self::H::foo8::Q* a, covariant core::int* b, generic-covariant-impl self::H::T* c) → void
     ;
-  forwarding-stub method foo7<generic-covariant-impl Q extends self::H::T*>(self::H::foo7::Q* a, covariant core::num* b, generic-covariant-impl self::H::T* c) → void
+  forwarding-stub method foo7<generic-covariant-impl Q extends self::H::T* = self::H::T*>(self::H::foo7::Q* a, covariant core::num* b, generic-covariant-impl self::H::T* c) → void
     return super.{self::G::foo7}<self::H::foo7::Q*>(a, b, c);
 }
 static field core::List<core::Iterable<dynamic>*>* globalVar;
