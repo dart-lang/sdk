@@ -109,7 +109,7 @@ vars = {
   "matcher_tag": "af4fe7daf8e94a46981e4f072872be550a6969e9",
   "mime_tag": "179b5e6a88f4b63f36dc1b8fcbc1e83e5e0cd3a7",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
-  "mustache_tag" : "5e81b12215566dbe2473b2afd01a8a8aedd56ad9",
+  "mustache_tag": "664737ecad027e6b96d0d1e627257efa0e46fcb1",
   "oauth2_tag": "1.2.1",
   "package_config_tag": "v1.9.2",
   "path_tag": "1.7.0",
