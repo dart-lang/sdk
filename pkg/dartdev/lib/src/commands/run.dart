@@ -26,6 +26,7 @@ Run a Dart file.''');
     // command pub with no commands or flags.
     final command = sdk.dart;
     final args = [
+      '--disable-dart-dev',
       '--help',
       if (verbose) '--verbose',
     ];
@@ -52,7 +53,8 @@ Run a Dart file.''');
 
     // Starting in ProcessStartMode.inheritStdio mode means the child process
     // can detect support for ansi chars.
-    final process = await Process.start(sdk.dart, args,
+    final process = await Process.start(
+        sdk.dart, ['--disable-dart-dev', ...args],
         mode: ProcessStartMode.inheritStdio);
     return process.exitCode;
   }
