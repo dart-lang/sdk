@@ -861,6 +861,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     DartType staticType = _getStaticType(receiver);
     // TODO(sigmund): this needs to be adjusted when we enable non-nullable
     // types to handle legacy and nullable wrappers.
+    staticType = staticType.withoutNullability;
     if (staticType is InterfaceType) {
       ClassEntity cls = staticType.element;
       if (receiver is ir.ThisExpression && !_closedWorld.isUsedAsMixin(cls)) {
@@ -1706,7 +1707,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (exception != null) {
       TypeInformation mask;
       DartType type = node.guard != null
-          ? _elementMap.getDartType(node.guard)
+          ? _elementMap.getDartType(node.guard).withoutNullability
           : _dartTypes.dynamicType();
       if (type is InterfaceType) {
         InterfaceType interfaceType = type;
