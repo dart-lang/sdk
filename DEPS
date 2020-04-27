@@ -138,7 +138,7 @@ vars = {
   "string_scanner_tag": "1.0.3",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
-  "term_glyph_tag": "1.0.1",
+  "term_glyph_tag": "b3da31e9684a99cfe5f192b89914492018b44da7",
   "test_reflective_loader_tag": "0.1.9",
   "test_tag": "test_core-v0.3.2",
   "tflite_native_rev": "3c777c40608a2a9f1427bfe0028ab48e7116b4c1",
