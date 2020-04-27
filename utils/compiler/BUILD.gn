@@ -46,10 +46,10 @@ prebuilt_dart_action("dart2js_create_snapshot_entry") {
   args = [ "--output_dir=$output_dir" ]
 }
 
-if (use_nnbd) {
-  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
-} else {
+if (dont_use_nnbd) {
   libraries_specification_path = "sdk/lib/libraries.json"
+} else {
+  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
 }
 
 application_snapshot("dart2js") {
@@ -91,7 +91,7 @@ compile_platform("compile_dart2js_platform") {
     "dart:core",
   ]
 
-  if (use_nnbd) {
+  if (!dont_use_nnbd) {
     args += [ "--enable-experiment=non-nullable" ]
   }
 }
@@ -112,7 +112,7 @@ compile_platform("compile_dart2js_server_platform") {
     "dart:core",
   ]
 
-  if (use_nnbd) {
+  if (!dont_use_nnbd) {
     args += [ "--enable-experiment=non-nullable" ]
   }
 }
