@@ -2387,13 +2387,16 @@ void Isolate::Shutdown() {
 
   // Then, proceed with low-level teardown.
   Isolate::UnMarkIsolateReady(this);
-  LowLevelShutdown();
 
+  // Post message before LowLevelShutdown that sends onExit message.
+  // This ensures that exit message comes last.
   if (bequest_.get() != nullptr) {
     auto beneficiary = bequest_->beneficiary();
     PortMap::PostMessage(Message::New(beneficiary, bequest_.release(),
                                       Message::kNormalPriority));
   }
+
+  LowLevelShutdown();
 
   // Now we can unregister from the thread, invoke cleanup callback, delete the
   // isolate (and possibly the isolate group).
