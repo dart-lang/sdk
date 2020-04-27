@@ -71,6 +71,25 @@ class _MigrationCliTest {
     return stderrText;
   }
 
+  CommandLineOptions assertParseArgsSuccess(List<String> args) {
+    var cli = _createCli();
+    cli.parseCommandLineArgs(args);
+    expect(cli.exitCode, isNull);
+    var options = cli.options;
+    return options;
+  }
+
+  void assertProjectContents(String projectDir, Map<String, String> expected) {
+    for (var entry in expected.entries) {
+      var relativePathPosix = entry.key;
+      assert(!path.posix.isAbsolute(relativePathPosix));
+      var filePath = resourceProvider.pathContext
+          .join(projectDir, resourceProvider.convertPath(relativePathPosix));
+      expect(
+          resourceProvider.getFile(filePath).readAsStringSync(), entry.value);
+    }
+  }
+
   String createProjectDir(Map<String, String> contents) {
     var projectPathPosix = '/test_project';
     for (var entry in contents.entries) {
@@ -81,6 +100,19 @@ class _MigrationCliTest {
           resourceProvider.convertPath(filePathPosix), entry.value);
     }
     return resourceProvider.convertPath(projectPathPosix);
+  }
+
+  Map<String, String> simpleProject() {
+    return {
+      'pubspec.yaml': '''
+name: test
+environment:
+sdk: '>=2.6.0 <3.0.0'
+''',
+      'lib/test.dart': '''
+int f() => null;
+'''
+    };
   }
 
   test_default_logger() {
@@ -101,18 +133,57 @@ class _MigrationCliTest {
     expect(helpText, isNot(hasVerboseHelpMessage));
   }
 
-  test_migrate_path_none() {
+  test_flag_web_preview_default() {
+    expect(assertParseArgsSuccess([]).webPreview, isTrue);
+  }
+
+  test_flag_web_preview_disable() {
+    expect(assertParseArgsSuccess(['--no-web-preview']).webPreview, isFalse);
+  }
+
+  test_flag_web_preview_enable() {
+    expect(assertParseArgsSuccess(['--web-preview']).webPreview, isTrue);
+  }
+
+  test_lifecycle_no_preview() async {
+    var projectContents = simpleProject();
+    var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
-    cli.parseCommandLineArgs([]);
-    expect(cli.exitCode, isNull);
-    expect(cli.options.directory, Directory.current.path);
+    await cli.run(['--no-web-preview', projectDir]);
+    // Check that a summary was printed
+    expect(logger.stdoutBuffer.toString(), contains('Summary'));
+    // And that it refers to test.dart
+    expect(logger.stdoutBuffer.toString(), contains('test.dart'));
+    // And that it tells the user they can rerun with `--apply-changes`
+    expect(logger.stdoutBuffer.toString(), contains('--apply-changes'));
+    // No changes should have been made
+    assertProjectContents(projectDir, projectContents);
+  }
+
+  test_lifecycle_preview() async {
+    var projectContents = simpleProject();
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    String url;
+    await cli.runWithPreviewServer([projectDir], () async {
+      // Server should be running now
+      url = RegExp('http://.*', multiLine: true)
+          .stringMatch(logger.stdoutBuffer.toString());
+      var response = await http.get(url);
+      expect(response.statusCode, 200);
+    });
+    // Server should be stopped now
+    expect(http.get(url), throwsA(anything));
+    // And no changes should have been made.
+    assertProjectContents(projectDir, projectContents);
+  }
+
+  test_migrate_path_none() {
+    expect(assertParseArgsSuccess([]).directory, Directory.current.path);
   }
 
   test_migrate_path_one() {
-    var cli = _createCli();
-    cli.parseCommandLineArgs(['foo']);
-    expect(cli.exitCode, isNull);
-    expect(cli.options.directory, 'foo');
+    expect(assertParseArgsSuccess(['foo']).directory, 'foo');
   }
 
   test_migrate_path_two() async {
@@ -123,17 +194,12 @@ class _MigrationCliTest {
   }
 
   test_option_preview_port() {
-    var cli = _createCli();
-    cli.parseCommandLineArgs(['--preview-port', '4040']);
-    expect(cli.exitCode, isNull);
-    expect(cli.options.previewPort, 4040);
+    expect(
+        assertParseArgsSuccess(['--preview-port', '4040']).previewPort, 4040);
   }
 
   test_option_preview_port_default() {
-    var cli = _createCli();
-    cli.parseCommandLineArgs([]);
-    expect(cli.exitCode, isNull);
-    expect(cli.options.previewPort, isNull);
+    expect(assertParseArgsSuccess([]).previewPort, isNull);
   }
 
   test_option_preview_port_format_error() {
@@ -144,10 +210,8 @@ class _MigrationCliTest {
   }
 
   test_option_sdk() {
-    var cli = _createCli();
     var path = Uri.parse('file:///foo/bar/baz').toFilePath();
-    cli.parseCommandLineArgs(['--sdk-path', path]);
-    expect(cli.options.sdkPath, same(path));
+    expect(assertParseArgsSuccess(['--sdk-path', path]).sdkPath, same(path));
   }
 
   test_option_sdk_default() {
@@ -171,30 +235,6 @@ class _MigrationCliTest {
         stderrText,
         contains(
             'Could not find an option named "this-option-does-not-exist"'));
-  }
-
-  test_preview_server_lifecycle() async {
-    var projectDir = await createProjectDir({
-      'pubspec.yaml': '''
-name: test
-environment:
-  sdk: '>=2.6.0 <3.0.0'
-''',
-      'lib/test.dart': '''
-int f() => null;
-'''
-    });
-    var cli = _createCli();
-    String url;
-    await cli.runWithPreviewServer([projectDir], () async {
-      // Server should be running now
-      url = RegExp('http://.*', multiLine: true)
-          .stringMatch(logger.stdoutBuffer.toString());
-      var response = await http.get(url);
-      expect(response.statusCode, 200);
-    });
-    // Server should be stopped now
-    expect(http.get(url), throwsA(anything));
   }
 
   test_uses_physical_resource_provider_by_default() {

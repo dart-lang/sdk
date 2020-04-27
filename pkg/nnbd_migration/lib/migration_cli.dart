@@ -21,6 +21,11 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
 import 'package:nnbd_migration/api_for_analysis_server/driver_provider.dart';
+import 'package:path/path.dart' show Context;
+
+String _pluralize(int count, String single, {String multiple}) {
+  return count == 1 ? single : (multiple ?? '${single}s');
+}
 
 /// Data structure recording command-line options for the migration tool that
 /// have been passed in by the client.
@@ -31,6 +36,7 @@ class CommandLineOptions {
   static const previewPortOption = 'preview-port';
   static const sdkPathOption = 'sdk-path';
   static const verboseFlag = 'verbose';
+  static const webPreviewFlag = 'web-preview';
 
   final String directory;
 
@@ -38,13 +44,13 @@ class CommandLineOptions {
 
   final String sdkPath;
 
+  final bool webPreview;
+
   CommandLineOptions(
       {@required this.directory,
       @required this.previewPort,
-      @required this.sdkPath});
-
-  /// TODO(paulberry): make this a genuine option
-  bool get webPreview => true;
+      @required this.sdkPath,
+      @required this.webPreview});
 }
 
 /// Command-line API for the migration tool, with additional methods exposed for
@@ -86,6 +92,8 @@ class MigrationCli {
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   Ansi get ansi => logger.ansi;
+
+  Context get pathContext => resourceProvider.pathContext;
 
   /// Blocks until an interrupt signal (control-C) is received.  Tests may
   /// override this method to simulate control-C.
@@ -133,7 +141,8 @@ class MigrationCli {
           previewPort: previewPort,
           sdkPath: argResults[CommandLineOptions.sdkPathOption] as String ??
               defaultSdkPathOverride ??
-              getSdkPath());
+              getSdkPath(),
+          webPreview: argResults[CommandLineOptions.webPreviewFlag] as bool);
       if (isVerbose) {
         logger = loggerFactory(true);
       }
@@ -159,6 +168,7 @@ class MigrationCli {
 
     List<String> previewUrls;
     NonNullableFix nonNullableFix;
+    _DartFixListener dartFixListener;
     await _withProgress(
         '${ansi.emphasized('Generating migration suggestions')}', () async {
       var contextCollection = AnalysisContextCollectionImpl(
@@ -167,15 +177,15 @@ class MigrationCli {
           sdkPath: options.sdkPath);
       var context = contextCollection.contexts.single;
       var fixCodeProcessor = _FixCodeProcessor(context);
-      var dartFixListener = _DartFixListener(
+      dartFixListener = _DartFixListener(
           _DriverProvider(resourceProvider, context.currentSession));
       nonNullableFix = NonNullableFix(dartFixListener,
-          included: [options.directory], preferredPort: options.previewPort);
+          included: [options.directory],
+          preferredPort: options.previewPort,
+          enablePreview: options.webPreview);
       fixCodeProcessor.registerCodeTask(nonNullableFix);
       previewUrls = await fixCodeProcessor.run();
     });
-
-    // TODO(paulberry): print a summary of changes found
 
     // TODO(paulberry): apply changes if that's what the user wants
 
@@ -204,8 +214,13 @@ the tool with --${CommandLineOptions.applyChangesOption}).
       await blockUntilSignalInterrupt();
       nonNullableFix.shutdownServer();
     } else {
-      // TODO(paulberry): display summary of changes, and instructions about how
-      // to apply them
+      logger.stdout(ansi.emphasized('Summary of changes:'));
+
+      _displayChangeSummary(dartFixListener);
+
+      logger.stdout('');
+      logger.stdout('To apply these changes, re-run the tool with '
+          '--${CommandLineOptions.applyChangesOption}.');
     }
     exitCode = 0;
   }
@@ -229,7 +244,46 @@ the tool with --${CommandLineOptions.applyChangesOption}).
         defaultsTo: false,
         help: 'Verbose output.',
         negatable: false);
+    parser.addFlag(CommandLineOptions.webPreviewFlag,
+        defaultsTo: true,
+        negatable: true,
+        help: 'Show an interactive preview of the proposed null safety changes '
+            'in a browser window.\n'
+            'With --no-web-preview, the proposed changes are instead printed to '
+            'the console.');
     return parser;
+  }
+
+  void _displayChangeSummary(_DartFixListener migrationResults) {
+    Map<String, List<_DartFixSuggestion>> fileSuggestions = {};
+    for (_DartFixSuggestion suggestion in migrationResults.suggestions) {
+      String file = suggestion.location.file;
+      fileSuggestions.putIfAbsent(file, () => <_DartFixSuggestion>[]);
+      fileSuggestions[file].add(suggestion);
+    }
+
+    // present a diff-like view
+    for (SourceFileEdit sourceFileEdit in migrationResults.sourceChange.edits) {
+      String file = sourceFileEdit.file;
+      String relPath = pathContext.relative(file, from: options.directory);
+      int count = sourceFileEdit.edits.length;
+
+      logger.stdout('');
+      logger.stdout('${ansi.emphasized(relPath)} '
+          '($count ${_pluralize(count, 'change')}):');
+
+      String source;
+      try {
+        source = resourceProvider.getFile(file).readAsStringSync();
+      } catch (_) {}
+
+      if (source == null) {
+        logger.stdout('  (unable to retrieve source for file)');
+      } else {
+        // TODO(paulberry): implement this
+        logger.stdout('  (diff view not yet functional)');
+      }
+    }
   }
 
   void _showUsage(bool isVerbose) {
@@ -272,6 +326,8 @@ class _DartFixListener implements DartFixListenerInterface {
   @override
   final SourceChange sourceChange = SourceChange('null safety migration');
 
+  final List<_DartFixSuggestion> suggestions = [];
+
   _DartFixListener(this.server);
 
   @override
@@ -281,7 +337,7 @@ class _DartFixListener implements DartFixListenerInterface {
 
   @override
   void addEditWithoutSuggestion(Source source, SourceEdit edit) {
-    // TODO(paulberry)
+    sourceChange.addEdit(source.fullName, -1, edit);
   }
 
   @override
@@ -297,8 +353,16 @@ class _DartFixListener implements DartFixListenerInterface {
 
   @override
   void addSuggestion(String description, Location location) {
-    // TODO(paulberry)
+    suggestions.add(_DartFixSuggestion(description, location: location));
   }
+}
+
+class _DartFixSuggestion {
+  final String description;
+
+  final Location location;
+
+  _DartFixSuggestion(this.description, {@required this.location});
 }
 
 class _DriverProvider implements DriverProvider {
