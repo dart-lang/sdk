@@ -115,7 +115,7 @@ vars = {
   "path_tag": "1.7.0",
   "pedantic_tag": "v1.9.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
-  "pool_tag": "1.3.6",
+  "pool_tag": "86fbb2cde9bbc66c8d159909d2f65a5981ea5b50",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
   "pub_rev": "3606265962da4248d34d352aa3d170aae4496a90",
   "pub_semver_tag": "v1.4.4",
