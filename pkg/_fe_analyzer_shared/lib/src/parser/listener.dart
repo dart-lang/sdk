@@ -1213,7 +1213,7 @@ class Listener implements UnescapeErrorListener {
   void reportVarianceModifierNotEnabled(Token variance) {
     if (variance != null) {
       handleRecoverableError(
-          templateExperimentNotEnabled.withArguments('variance'),
+          templateExperimentNotEnabled.withArguments('variance', '2.9'),
           variance,
           variance);
     }

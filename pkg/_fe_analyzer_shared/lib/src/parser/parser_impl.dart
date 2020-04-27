@@ -2482,7 +2482,7 @@ class Parser {
         reportRecoverableError(
             beforeType.next,
             codes.templateExperimentNotEnabled
-                .withArguments('extension-methods'));
+                .withArguments('extension-methods', '2.6'));
         token = rewriter.insertSyntheticToken(token, TokenType.SEMICOLON);
       } else {
         token = ensureSemicolon(token);

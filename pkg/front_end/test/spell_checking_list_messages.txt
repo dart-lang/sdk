@@ -46,6 +46,7 @@ opt
 opts
 part(s)
 patch(es)
+pubspec.yaml
 re
 sdksummary
 stacktrace
