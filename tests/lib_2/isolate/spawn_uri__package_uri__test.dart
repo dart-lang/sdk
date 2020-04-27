@@ -104,9 +104,9 @@ Future withTempDir(Future fn(String dir)) async {
 Future<ProcessResult> run(String executable, List<String> args,
     {String cwd}) async {
   print('Running $executable ${args.join(' ')}');
-  cwd ??= Directory.current.absolute.path;
+  final String workingDirectory = cwd ?? Directory.current.absolute.path;
   final result = await Process.run(executable, ['--trace-loading', ...args],
-      workingDirectory: cwd);
+      workingDirectory: workingDirectory);
   print('exitCode:\n${result.exitCode}');
   print('stdout:\n${result.stdout}');
   print('stdout:\n${result.stderr}');
@@ -151,7 +151,7 @@ String buildMainIsolate(String spawnUri, String packageConfigUri) => '''
         uri,
         isolateArgs,
         rp.sendPort,
-        packageConfig: ${packageConfigUri != null ? 'Uri.parse("$packageConfigUri")' : 'null'});
+        packageConfig: ${packageConfigUri != null ? 'Uri.file("$packageConfigUri")' : 'null'});
     final childIsolateMessage = await rp.first;
     if (childIsolateMessage != 'child isolate is done') {
       throw 'Did not receive correct message from child isolate.';
