@@ -29,16 +29,19 @@ library /*isNonNullableByDefault*/;
 //       c2.noSuchMethod; // error
 //          ^
 //
-// pkg/front_end/testcases/nnbd/nullable_object_access.dart:56:53: Error: A value of type 'String Function()' can't be assigned to a variable of type 'String Function({Object o})'.
+// pkg/front_end/testcases/nnbd/nullable_object_access.dart:56:9: Error: The argument type 'String' can't be assigned to the parameter type 'Class?'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
+//   c2 == ''; // ok or error?
+//         ^
+//
+// pkg/front_end/testcases/nnbd/nullable_object_access.dart:59:53: Error: A value of type 'String Function()' can't be assigned to a variable of type 'String Function({Object o})'.
 //  - 'Object' is from 'dart:core'.
 //   String Function({Object o}) toStringTearOff2 = c2.toString; // error
 //                                                     ^
 //
-// pkg/front_end/testcases/nnbd/nullable_object_access.dart:59:6: Error: Method 'toString' cannot be called on 'Class?' because it is potentially null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
-// Try calling using ?. instead.
+// pkg/front_end/testcases/nnbd/nullable_object_access.dart:62:15: Error: No named parameter with the name 'o'.
 //   c2.toString(o: c1); // error
-//      ^^^^^^^^
+//               ^
 //
 import self as self;
 import "dart:core" as core;
@@ -104,18 +107,19 @@ static method test(self::Class c1, self::Class? c2, core::Invocation invocation,
   (core::Invocation) → dynamic noSuchMethodTearOffVariable2 = c2.{core::Object::noSuchMethod};
   core::int noSuchMethod2 = c2.{core::Object::noSuchMethod}(invocation) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
   dynamic noSuchMethodVariable2 = c2.{core::Object::noSuchMethod}(invocation);
-  c2.{core::Object::==}("");
-  c2.{core::Object::==}(c1);
-  ({o: core::Object}) → core::String toStringTearOff2 = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:56:53: Error: A value of type 'String Function()' can't be assigned to a variable of type 'String Function({Object o})'.
+  c2.{self::Class::==}(let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:56:9: Error: The argument type 'String' can't be assigned to the parameter type 'Class?'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
+  c2 == ''; // ok or error?
+        ^" in "" as{TypeError,ForNonNullableByDefault} self::Class?);
+  c2.{self::Class::==}(c1);
+  ({o: core::Object}) → core::String toStringTearOff2 = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:59:53: Error: A value of type 'String Function()' can't be assigned to a variable of type 'String Function({Object o})'.
  - 'Object' is from 'dart:core'.
   String Function({Object o}) toStringTearOff2 = c2.toString; // error
                                                     ^" in c2.{core::Object::toString} as{TypeError,ForNonNullableByDefault} ({o: core::Object}) → core::String;
   () → core::String toStringTearOffVariable2 = c2.{core::Object::toString};
-  let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:59:6: Error: Method 'toString' cannot be called on 'Class?' because it is potentially null.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
-Try calling using ?. instead.
+  let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:62:15: Error: No named parameter with the name 'o'.
   c2.toString(o: c1); // error
-     ^^^^^^^^" in c2.{self::Class::toString}(o: c1);
+              ^" in c2.{core::Object::toString}(o: c1);
 }
 
 constants  {

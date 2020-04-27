@@ -168,6 +168,8 @@ nnbd/issue41180: RuntimeError
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/never_opt_out: TypeCheckError
+nnbd/nullable_object_access: TypeCheckError
+nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError

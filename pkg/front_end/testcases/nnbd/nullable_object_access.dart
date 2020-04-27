@@ -50,7 +50,10 @@ void test(Class c1, Class? c2, Invocation invocation,
   int noSuchMethod2 = c2.noSuchMethod(invocation); // ok
   var noSuchMethodVariable2 = c2.noSuchMethod(invocation);
 
-  c2 == ''; // ok
+  // TODO(johnniwinther): Awaiting spec update about `==`. Before NNBD this
+  // would cause an error but with the current (insufficient) specification for
+  // `==` it is ok (even though `c1 == ''` is an error).
+  c2 == ''; // ok or error?
   c2 == c1; // ok
 
   String Function({Object o}) toStringTearOff2 = c2.toString; // error

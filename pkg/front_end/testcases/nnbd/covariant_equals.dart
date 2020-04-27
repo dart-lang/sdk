@@ -69,43 +69,46 @@ testNullable(
 
   a == a; // ok
   a == b; // ok
-  a == c_dynamic; // ok
-  a == c_int; // ok
-  a == c_string; // ok
-  a == d; // ok
+  // TODO(johnniwinther): Awaiting spec update about `==`. Before NNBD these
+  // would cause an error but with the current (insufficient) specification for
+  // `==` it is ok.
+  a == c_dynamic; // ok or error ?
+  a == c_int; // ok or error ?
+  a == c_string; // ok or error ?
+  a == d; // ok or error ?
 
   b == a; // ok
   b == b; // ok
-  b == c_dynamic; // ok
-  b == c_int; // ok
-  b == c_string; // ok
-  b == d; // ok
+  b == c_dynamic; // ok or error ?
+  b == c_int; // ok or error ?
+  b == c_string; // ok or error ?
+  b == d; // ok or error ?
 
-  c_dynamic == a; // ok
-  c_dynamic == b; // ok
+  c_dynamic == a; // ok or error ?
+  c_dynamic == b; // ok or error ?
   c_dynamic == c_dynamic; // ok
   c_dynamic == c_int; // ok
   c_dynamic == c_string; // ok
   c_dynamic == d; // ok
 
-  c_int == a; // ok
-  c_int == b; // ok
-  c_int == c_dynamic; // ok
+  c_int == a; // ok or error ?
+  c_int == b; // ok or error ?
+  c_int == c_dynamic; // ok or error ?
   c_int == c_int; // ok
-  c_int == c_string; // ok
+  c_int == c_string; // ok or error ?
   c_int == d; // ok}
 
-  c_string == a; // ok
-  c_string == b; // ok
-  c_string == c_dynamic; // ok
-  c_string == c_int; // ok
+  c_string == a; // ok or error ?
+  c_string == b; // ok or error ?
+  c_string == c_dynamic; // ok or error ?
+  c_string == c_int; // ok or error ?
   c_string == c_string; // ok
-  c_string == d; // ok
+  c_string == d; // ok or error ?
 
-  d == a; // ok
-  d == b; // ok
-  d == c_dynamic; // ok
+  d == a; // ok or error ?
+  d == b; // ok or error ?
+  d == c_dynamic; // ok or error ?
   d == c_int; // ok
-  d == c_string; // ok
+  d == c_string; // ok or error ?
   d == d; // ok
 }

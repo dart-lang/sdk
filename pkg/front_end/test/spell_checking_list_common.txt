@@ -1170,6 +1170,7 @@ fixed
 fixes
 fixing
 flag
+flagged
 flags
 flat
 flatten
