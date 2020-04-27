@@ -22,13 +22,6 @@ main() {
   });
 }
 
-class _FakeAnsi implements Ansi {
-  @override
-  String emphasized(String message) => message;
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 class _MigrationCli extends MigrationCli {
   Completer<void> _previewServerStartedCompleter;
 
@@ -235,7 +228,7 @@ class _TestLogger implements Logger {
   _TestLogger(this.isVerbose);
 
   @override
-  Ansi get ansi => _FakeAnsi();
+  Ansi get ansi => Ansi(false);
 
   @override
   void flush() {
