@@ -5,9 +5,11 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_test.dart' as completion;
+import 'fixes_test.dart' as fixes;
 
 void main() {
   defineReflectiveSuite(() {
     completion.main();
+    fixes.main();
   });
 }

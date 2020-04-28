@@ -5,16 +5,16 @@
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptions;
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptions;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
 class MicroAnalysisContextImpl implements AnalysisContext {
@@ -33,11 +33,6 @@ class MicroAnalysisContextImpl implements AnalysisContext {
 
   Workspace _workspace;
 
-  @override
-  Workspace get workspace {
-    return _workspace ??= _buildWorkspace();
-  }
-
   MicroAnalysisContextImpl(
       this.fileResolver,
       this.contextRoot,
@@ -53,15 +48,20 @@ class MicroAnalysisContextImpl implements AnalysisContext {
     return _AnalysisSessionImpl(this, declaredVariables, sourceFactory);
   }
 
+  @override
+  Workspace get workspace {
+    return _workspace ??= _buildWorkspace();
+  }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
   Workspace _buildWorkspace() {
     String path = contextRoot.root.path;
     ContextBuilder builder = ContextBuilder(
         resourceProvider, null /* sdkManager */, null /* contentCache */);
     return ContextBuilder.createWorkspace(resourceProvider, path, builder);
   }
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _AnalysisSessionImpl extends AnalysisSessionImpl {
@@ -79,9 +79,18 @@ class _AnalysisSessionImpl extends AnalysisSessionImpl {
     this.declaredVariables,
     this.sourceFactory,
   ) : super(null);
+
   @override
   ResourceProvider get resourceProvider =>
       analysisContext.contextRoot.resourceProvider;
+
+  @override
+  UriConverter get uriConverter {
+    return _UriConverterImpl(
+      analysisContext.contextRoot.resourceProvider,
+      sourceFactory,
+    );
+  }
 
   @override
   FileResult getFile(String path) {
@@ -95,16 +104,20 @@ class _AnalysisSessionImpl extends AnalysisSessionImpl {
   }
 
   @override
-  Future<ResolvedUnitResult> getResolvedUnit(String path) async {
-    return analysisContext.fileResolver.resolve(path);
+  Future<ResolvedLibraryResult> getResolvedLibrary(String path) async {
+    var resolvedUnit = await getResolvedUnit(path);
+    return ResolvedLibraryResultImpl(
+      this,
+      path,
+      resolvedUnit.uri,
+      resolvedUnit.libraryElement,
+      [resolvedUnit],
+    );
   }
 
   @override
-  UriConverter get uriConverter {
-    return _UriConverterImpl(
-      analysisContext.contextRoot.resourceProvider,
-      sourceFactory,
-    );
+  Future<ResolvedUnitResult> getResolvedUnit(String path) async {
+    return analysisContext.fileResolver.resolve(path);
   }
 
   @override
