@@ -472,7 +472,7 @@ class Assembler : public AssemblerBase {
   void Drop(intptr_t stack_elements) {
     ASSERT(stack_elements >= 0);
     if (stack_elements > 0) {
-      add(SP, SP, Operand(stack_elements * target::kWordSize));
+      AddImmediate(SP, SP, stack_elements * target::kWordSize);
     }
   }
 
@@ -1578,7 +1578,8 @@ class Assembler : public AssemblerBase {
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
-  void SetupDartSP();
+  // Reserve specifies how much space to reserve for the Dart stack.
+  void SetupDartSP(intptr_t reserve = 4096);
   void SetupCSPFromThread(Register thr);
   void RestoreCSP();
 

@@ -4556,6 +4556,29 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ ret();
 }
 
+// Push numbers from kMaxPushedNumber to 0 to the stack then drop top
+// kMaxPushedNumber elements. This should leave just kMaxPushedNumber on the
+// stack.
+const intptr_t kMaxPushedNumber = 913;
+
+ASSEMBLER_TEST_GENERATE(Drop, assembler) {
+  __ SetupDartSP((kMaxPushedNumber + 1) * target::kWordSize);
+  for (intptr_t i = kMaxPushedNumber; i >= 0; i--) {
+    __ PushImmediate(i);
+  }
+  __ Drop(kMaxPushedNumber);
+  __ PopRegister(R0);
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Drop, test) {
+  EXPECT(test != NULL);
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMaxPushedNumber,
+            EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
 }  // namespace compiler
 }  // namespace dart
 
