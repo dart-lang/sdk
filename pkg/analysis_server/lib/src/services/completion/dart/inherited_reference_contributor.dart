@@ -39,7 +39,7 @@ class InheritedReferenceContributor extends DartCompletionContributor {
     if (classOrMixin is ClassOrMixinDeclaration &&
         classOrMixin.declaredElement != null) {
       memberBuilder = MemberSuggestionBuilder(request, builder);
-      return _computeSuggestionsForClass(classOrMixin.declaredElement, request);
+      _computeSuggestionsForClass(classOrMixin.declaredElement, request);
     }
     return const <CompletionSuggestion>[];
   }
@@ -87,7 +87,7 @@ class InheritedReferenceContributor extends DartCompletionContributor {
     }
   }
 
-  List<CompletionSuggestion> _computeSuggestionsForClass(
+  void _computeSuggestionsForClass(
       ClassElement classElement, DartCompletionRequest request) {
     var isFunctionalArgument = request.target.isFunctionalArgument();
     kind = isFunctionalArgument
@@ -102,7 +102,6 @@ class InheritedReferenceContributor extends DartCompletionContributor {
       _addSuggestionsForType(type, request, inheritanceDistance,
           isFunctionalArgument: isFunctionalArgument);
     }
-    return memberBuilder.suggestions.toList();
   }
 
   /// Return the class member containing the target or `null` if the target is

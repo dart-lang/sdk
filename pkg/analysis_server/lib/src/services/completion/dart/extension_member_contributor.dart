@@ -64,7 +64,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         }
       }
 
-      return memberBuilder.suggestions.toList();
+      return const <CompletionSuggestion>[];
     }
 
     if (expression.isSynthetic) {
@@ -97,7 +97,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       _addExtensionMembers(containingLibrary, type);
       expression.staticType;
     }
-    return memberBuilder.suggestions.toList();
+    return const <CompletionSuggestion>[];
   }
 
   void _addExtensionMembers(LibraryElement containingLibrary, DartType type) {
