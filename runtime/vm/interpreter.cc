@@ -272,18 +272,17 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
   ASSERT(instance_size > 0);
   ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
 
-  const TLAB tlab = thread->tlab();
 #ifndef PRODUCT
   auto table = thread->isolate_group()->shared_class_table();
   if (UNLIKELY(table->TraceAllocationFor(class_id))) {
     return false;
   }
 #endif
-  const intptr_t remaining = tlab.RemainingSize();
+  const uword top = thread->top();
+  const intptr_t remaining = thread->end() - top;
   if (LIKELY(remaining >= instance_size)) {
-    const uword old_top = tlab.top;
-    thread->set_tlab(tlab.BumpAllocate(instance_size));
-    *result = InitializeHeader(old_top, class_id, instance_size);
+    thread->set_top(top + instance_size);
+    *result = InitializeHeader(top, class_id, instance_size);
     return true;
   }
   return false;
