@@ -342,6 +342,16 @@ abstract class _F {
     visitSubexpression(findNode.assignment('??='), '_C?');
   }
 
+  Future<void> test_assignmentExpression_null_aware_simple_promoted() async {
+    await analyze('''
+_f(bool/*?*/ x, bool/*?*/ y) => x != null && (x ??= y) != null;
+''');
+    // On the RHS of the `&&`, `x` is promoted to non-nullable, but it is still
+    // considered to be a nullable assignment target, so no null check is
+    // generated for `y`.
+    visitSubexpression(findNode.binary('&&'), 'bool');
+  }
+
   Future<void>
       test_assignmentExpression_simple_nonNullable_to_nonNullable() async {
     await analyze('''
@@ -374,7 +384,6 @@ _f(int/*?*/ x, int/*?*/ y) => x = y;
     visitSubexpression(findNode.assignment('= '), 'int?');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39641')
   Future<void> test_assignmentExpression_simple_promoted() async {
     await analyze('''
 _f(bool/*?*/ x, bool/*?*/ y) => x != null && (x = y) != null;

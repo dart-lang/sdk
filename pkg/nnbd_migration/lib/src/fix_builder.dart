@@ -438,8 +438,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
         }
         if (type.isDynamic) return type;
         var ancestor = _findNullabilityContextAncestor(node);
-        var context =
-            InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
+        DartType context = _getNullabilityContext(ancestor);
         if (!_fixBuilder._typeSystem.isSubtypeOf(type, context)) {
           // Either a cast or a null check is needed.  We prefer to do a null
           // check if we can.
@@ -518,6 +517,35 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       }
       return node;
     }
+  }
+
+  DartType _getNullabilityContext(Expression node) {
+    var parent = node.parent;
+    if (parent is AssignmentExpression) {
+      var lhs = parent.leftHandSide;
+      if (lhs is SimpleIdentifier) {
+        var lhsElement = lhs.staticElement;
+        if (lhsElement is PromotableElement) {
+          var operatorType = parent.operator.type;
+          switch (operatorType) {
+            case TokenType.EQ:
+            case TokenType.QUESTION_QUESTION_EQ:
+              // When visiting an assignment to a local variable, if the
+              // variable type is promoted, the resolver uses the promoted type
+              // of the variable as the inference context, but it's ok to assign
+              // a different type to the variable (un-doing the promotion).  So
+              // for migration purposes, we need to consider the context type to
+              // be the unpromoted type.  See
+              // https://github.com/dart-lang/sdk/issues/41411.
+              return lhsElement.type;
+            default:
+              break;
+          }
+        }
+      }
+    }
+    var context = InferenceContext.getContext(node) ?? DynamicTypeImpl.instance;
+    return context;
   }
 
   bool _needsNullCheckDueToStructure(Expression node) {

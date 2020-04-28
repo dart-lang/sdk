@@ -269,6 +269,36 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_assignment_to_promoted_var_can_undo_promotion() async {
+    var content = '''
+abstract class C {
+  void test() {
+    var x = f();
+    while (x != null) {
+      x = f();
+    }
+  }
+  int/*?*/ f();
+}
+''';
+    var expected = '''
+abstract class C {
+  void test() {
+    var x = f();
+    while (x != null) {
+      x = f();
+    }
+  }
+  int? f();
+}
+''';
+    // Prior to the fix for https://github.com/dart-lang/sdk/issues/41411,
+    // migration would consider the LHS of `x = f()` to have context type
+    // non-nullable `int`, so it would add a null check to the value returned
+    // from `f`.
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void>
       test_back_propagation_stops_at_implicitly_typed_variables() async {
     var content = '''
