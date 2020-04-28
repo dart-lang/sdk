@@ -232,7 +232,7 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
   };
 
   if ($isNnbd) {
-    sdk.dart.strictSubtypeChecks($isNnbdStrong);
+    sdk.dart.nullSafety($isNnbdStrong);
   }
 
   dartMainRunner(function testMainWrapper() {

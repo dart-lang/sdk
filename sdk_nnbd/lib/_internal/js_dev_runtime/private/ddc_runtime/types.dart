@@ -6,13 +6,22 @@
 part of dart._runtime;
 
 @notNull
-bool _strictSubtypeChecks = false;
+bool _setNullSafety = false;
+
+@notNull
+bool strictNullSafety = false;
 
 /// Sets the mode of the runtime subtype checks.
 ///
-/// Changing the mode after any calls to dart.isSubtype() is not supported.
-void strictSubtypeChecks(bool flag) {
-  _strictSubtypeChecks = flag;
+/// Changing the mode after the application has started running is not
+/// supported.
+void nullSafety(bool flag) {
+  if (_setNullSafety) {
+    throw UnsupportedError('The Null Safety mode can only be set once.');
+  }
+
+  strictNullSafety = flag;
+  _setNullSafety = true;
 }
 
 final metadata = JS('', 'Symbol("metadata")');
@@ -845,7 +854,7 @@ class GenericFunctionTypeIdentifier extends AbstractFunctionType {
       var bound = typeBounds[i];
       if (_equalType(bound, dynamic) ||
           JS<bool>('!', '# === #', bound, nullable(unwrapType(Object))) ||
-          (!_strictSubtypeChecks && _equalType(bound, Object))) {
+          (!strictNullSafety && _equalType(bound, Object))) {
         // Do not print the bound when it is a top type. In weak mode the bounds
         // of Object and Object* will also be elided.
         continue;
@@ -944,7 +953,7 @@ class GenericFunctionType extends AbstractFunctionType {
       // difference is rare.
       if (_equalType(type, dynamic)) return true;
       if (_jsInstanceOf(type, NullableType) ||
-          (!_strictSubtypeChecks && _jsInstanceOf(type, LegacyType))) {
+          (!strictNullSafety && _jsInstanceOf(type, LegacyType))) {
         return _equalType(JS('!', '#.type', type), Object);
       }
       return false;
@@ -1236,7 +1245,7 @@ bool isSubtypeOf(@notNull Object t1, @notNull Object t2) {
   if (JS('!', '# !== void 0', result)) return result;
 
   var validSubtype = _isSubtype(t1, t2, true);
-  if (!validSubtype && !_strictSubtypeChecks) {
+  if (!validSubtype && !strictNullSafety) {
     validSubtype = _isSubtype(t1, t2, false);
     if (validSubtype) {
       // TODO(nshahan) Need more information to be helpful here.
@@ -1692,7 +1701,7 @@ class _TypeInferrer {
     var supertypeRequiredNamed = supertype.getRequiredNamedParameters();
     var subtypeNamed = supertype.getNamedParameters();
     var subtypeRequiredNamed = supertype.getRequiredNamedParameters();
-    if (!_strictSubtypeChecks) {
+    if (!strictNullSafety) {
       // In weak mode, treat required named params as optional named params.
       supertypeNamed = {...supertypeNamed, ...supertypeRequiredNamed};
       subtypeNamed = {...subtypeNamed, ...subtypeRequiredNamed};

@@ -244,7 +244,7 @@ class RunD8 implements IOModularStep {
     var runjs = '''
     import { dart, _isolate_helper } from 'dart_sdk.js';
     import { main } from 'main.js';
-    dart.strictSubtypeChecks(false);
+    dart.nullSafety(false);
     _isolate_helper.startRootIsolate(() => {}, []);
     main.main();
     ''';
