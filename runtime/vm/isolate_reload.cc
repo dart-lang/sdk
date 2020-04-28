@@ -688,8 +688,6 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     kernel::KernelLoader::FindModifiedLibraries(
         kernel_program.get(), first_isolate_, modified_libs_, force_reload,
         &skip_reload, p_num_received_classes, p_num_received_procedures);
-    modified_libs_transitive_ = new (Z) BitVector(Z, num_old_libs_);
-    BuildModifiedLibrariesClosure(modified_libs_);
 
     ASSERT(num_saved_libs_ == -1);
     num_saved_libs_ = 0;
@@ -748,7 +746,6 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   });
   // Renumbering the libraries has invalidated this.
   modified_libs_ = nullptr;
-  modified_libs_transitive_ = nullptr;
 
   if (FLAG_gc_during_reload) {
     // We use kLowMemory to force the GC to compact, which is more likely to
@@ -961,104 +958,6 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   });
 
   return success;
-}
-
-/// Copied in from https://dart-review.googlesource.com/c/sdk/+/77722.
-static void PropagateLibraryModified(
-    const ZoneGrowableArray<ZoneGrowableArray<intptr_t>*>* imported_by,
-    intptr_t lib_index,
-    BitVector* modified_libs) {
-  ZoneGrowableArray<intptr_t>* dep_libs = (*imported_by)[lib_index];
-  for (intptr_t i = 0; i < dep_libs->length(); i++) {
-    intptr_t dep_lib_index = (*dep_libs)[i];
-    if (!modified_libs->Contains(dep_lib_index)) {
-      modified_libs->Add(dep_lib_index);
-      PropagateLibraryModified(imported_by, dep_lib_index, modified_libs);
-    }
-  }
-}
-
-/// Copied in from https://dart-review.googlesource.com/c/sdk/+/77722.
-void IsolateGroupReloadContext::BuildModifiedLibrariesClosure(
-    BitVector* modified_libs) {
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(first_isolate_->object_store()->libraries());
-  Library& lib = Library::Handle();
-  intptr_t num_libs = libs.Length();
-
-  // Construct the imported-by graph.
-  ZoneGrowableArray<ZoneGrowableArray<intptr_t>*>* imported_by = new (zone_)
-      ZoneGrowableArray<ZoneGrowableArray<intptr_t>*>(zone_, num_libs);
-  imported_by->SetLength(num_libs);
-  for (intptr_t i = 0; i < num_libs; i++) {
-    (*imported_by)[i] = new (zone_) ZoneGrowableArray<intptr_t>(zone_, 0);
-  }
-  Array& ports = Array::Handle();
-  Namespace& ns = Namespace::Handle();
-  Library& target = Library::Handle();
-
-  for (intptr_t lib_idx = 0; lib_idx < num_libs; lib_idx++) {
-    lib ^= libs.At(lib_idx);
-    ASSERT(lib_idx == lib.index());
-    if (lib.is_dart_scheme()) {
-      // We don't care about imports among dart scheme libraries.
-      continue;
-    }
-
-    // Add imports to the import-by graph.
-    ports = lib.imports();
-    for (intptr_t import_idx = 0; import_idx < ports.Length(); import_idx++) {
-      ns ^= ports.At(import_idx);
-      if (!ns.IsNull()) {
-        target = ns.library();
-        (*imported_by)[target.index()]->Add(lib.index());
-      }
-    }
-
-    // Add exports to the import-by graph.
-    ports = lib.exports();
-    for (intptr_t export_idx = 0; export_idx < ports.Length(); export_idx++) {
-      ns ^= ports.At(export_idx);
-      if (!ns.IsNull()) {
-        target = ns.library();
-        (*imported_by)[target.index()]->Add(lib.index());
-      }
-    }
-
-    // Add prefixed imports to the import-by graph.
-    DictionaryIterator entries(lib);
-    Object& entry = Object::Handle();
-    LibraryPrefix& prefix = LibraryPrefix::Handle();
-    while (entries.HasNext()) {
-      entry = entries.GetNext();
-      if (entry.IsLibraryPrefix()) {
-        prefix ^= entry.raw();
-        ports = prefix.imports();
-        for (intptr_t import_idx = 0; import_idx < ports.Length();
-             import_idx++) {
-          ns ^= ports.At(import_idx);
-          if (!ns.IsNull()) {
-            target = ns.library();
-            (*imported_by)[target.index()]->Add(lib.index());
-          }
-        }
-      }
-    }
-  }
-
-  for (intptr_t lib_idx = 0; lib_idx < num_libs; lib_idx++) {
-    lib ^= libs.At(lib_idx);
-    if (lib.is_dart_scheme() || modified_libs_transitive_->Contains(lib_idx)) {
-      // We don't consider dart scheme libraries during reload.  If
-      // the modified libs set already contains this library, then we
-      // have already visited it.
-      continue;
-    }
-    if (modified_libs->Contains(lib_idx)) {
-      modified_libs_transitive_->Add(lib_idx);
-      PropagateLibraryModified(imported_by, lib_idx, modified_libs_transitive_);
-    }
-  }
 }
 
 void IsolateGroupReloadContext::GetRootLibUrl(const char* root_script_url) {
@@ -1482,9 +1381,6 @@ void IsolateReloadContext::CheckpointLibraries() {
   Library& lib = Library::Handle();
   UnorderedHashSet<LibraryMapTraits> old_libraries_set(
       old_libraries_set_storage_);
-
-  group_reload_context_->saved_libs_transitive_updated_ = new (Z)
-      BitVector(Z, group_reload_context_->modified_libs_transitive_->length());
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     if (group_reload_context_->modified_libs_->Contains(i)) {
@@ -1494,11 +1390,6 @@ void IsolateReloadContext::CheckpointLibraries() {
       // We are preserving this library across the reload, assign its new index
       lib.set_index(new_libs.Length());
       new_libs.Add(lib, Heap::kOld);
-
-      if (group_reload_context_->modified_libs_transitive_->Contains(i)) {
-        // Remember the new index.
-        group_reload_context_->saved_libs_transitive_updated_->Add(lib.index());
-      }
     }
     // Add old library to old libraries set.
     bool already_present = old_libraries_set.Insert(lib);
@@ -1678,10 +1569,7 @@ void IsolateReloadContext::CommitBeforeInstanceMorphing() {
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib = Library::RawCast(libs.At(i));
       // Mark the library dirty if it comes after the libraries we saved.
-      library_infos_[i].dirty =
-          i >= group_reload_context_->num_saved_libs_ ||
-          group_reload_context_->saved_libs_transitive_updated_->Contains(
-              lib.index());
+      library_infos_[i].dirty = i >= group_reload_context_->num_saved_libs_;
     }
   }
 }
