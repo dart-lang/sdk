@@ -163,7 +163,7 @@ def diffResults(results, configuration_name):
 
 # Create a log entry for a test that has diffs. Concatenate all the log records
 # and include which tests failed.
-def makeLog(diffs, results, logRecords):
+def makeLog(diffs, results, logRecords, configuration_name):
     result = pickOne(results)
     logs = ["%s: %s" % (str(v), l['log']) for v, l in logRecords.items()]
     return {
@@ -190,7 +190,9 @@ def diffAllResults(tests, flags):
                 if diffs:
                     logRecords = allLogs[name] if name in allLogs else []
                     logFile.write(
-                        json.dumps(makeLog(diffs, results, logRecords)) + '\n')
+                        json.dumps(
+                            makeLog(diffs, results, logRecords, flags.
+                                    configuration_name)) + '\n')
     print('Log files emitted to %s and %s' % (resultFileName, logFileName))
 
 
