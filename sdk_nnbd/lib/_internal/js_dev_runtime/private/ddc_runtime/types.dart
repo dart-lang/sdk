@@ -793,15 +793,10 @@ class FunctionType extends AbstractFunctionType {
 
   @JSExportName('as')
   as_T(obj) {
-    if (JS('!', 'typeof # == "function"', obj)) {
-      var actual = JS('', '#[#]', obj, _runtimeType);
-      // If there's no actual type, it's a JS function.
-      // Allow them to subtype all Dart function types.
-      if (actual == null || isSubtypeOf(actual, this)) {
-        return obj;
-      }
-    }
-    return castError(obj, this);
+    if (is_T(obj)) return obj;
+    // TODO(nshahan) This could directly call castError after we no longer allow
+    // a cast of null to succeed in weak mode.
+    return cast(obj, this);
   }
 }
 
@@ -1044,7 +1039,9 @@ class GenericFunctionType extends AbstractFunctionType {
   @JSExportName('as')
   as_T(obj) {
     if (is_T(obj)) return obj;
-    return castError(obj, this);
+    // TODO(nshahan) This could directly call castError after we no longer allow
+    // a cast of null to succeed in weak mode.
+    return cast(obj, this);
   }
 }
 
