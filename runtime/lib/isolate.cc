@@ -390,7 +390,7 @@ static const char* String2UTF8(const String& str) {
   return result;
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, script_uri, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(2));
@@ -399,9 +399,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
   GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(5));
   GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(6));
   GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(7));
-  GET_NATIVE_ARGUMENT(String, packageRoot, arguments->NativeArgAt(8));
-  GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(9));
-  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(10));
+  GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(8));
+  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(9));
 
   if (closure.IsClosure()) {
     Function& func = Function::Handle();
@@ -482,26 +481,19 @@ static const char* CanonicalizeUri(Thread* thread,
   return result;
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(1));
-
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, args, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(3));
-
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, paused, arguments->NativeArgAt(4));
   GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(5));
   GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(6));
-
   GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(7));
   GET_NATIVE_ARGUMENT(Bool, checked, arguments->NativeArgAt(8));
-
   GET_NATIVE_ARGUMENT(Array, environment, arguments->NativeArgAt(9));
-
-  GET_NATIVE_ARGUMENT(String, packageRoot, arguments->NativeArgAt(10));
-  GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(11));
-
-  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(12));
+  GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(10));
+  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(11));
 
   if (Dart::vm_snapshot_kind() == Snapshot::kFullAOT) {
     const Array& args = Array::Handle(Array::New(1));

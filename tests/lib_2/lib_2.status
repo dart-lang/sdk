@@ -24,6 +24,9 @@ html/indexeddb_1_test/functional: Skip # Times out. Issue 21433
 html/indexeddb_3_test: Skip # Times out 1 out of 10.
 html/worker_api_test: Skip # Issue 13221
 
+[ $runtime != vm ]
+isolate/spawn_uri__package_uri__test: SkipByDesign # This test uses Isolate.spawnUri and only works in JIT mode.
+
 [ $system == windows ]
 html/xhr_test/xhr: Skip # Times out.  Issue 21527
 
