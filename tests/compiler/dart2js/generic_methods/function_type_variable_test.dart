@@ -73,7 +73,6 @@ main() {
 
     String printType(DartType type) => type.toStructuredText(
         printLegacyStars: options.printLegacyStars,
-        useNullSafety: options.useNullSafety,
         useLegacySubtyping: options.useLegacySubtyping);
 
     List<String> printTypes(List<DartType> types) =>

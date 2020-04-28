@@ -1778,7 +1778,7 @@ class _Universe {
       Object? universe, Rti baseType, String key, bool normalize) {
     if (normalize) {
       int baseKind = Rti._getKind(baseType);
-      if (isTopType(baseType) ||
+      if (isStrongTopType(baseType) ||
           isNullType(baseType) ||
           baseKind == Rti.kindQuestion ||
           baseKind == Rti.kindStar) {
@@ -2980,7 +2980,10 @@ bool isNullable(Rti t) {
       kind == Rti.kindFutureOr && isNullable(Rti._getFutureOrArgument(t));
 }
 
-bool isTopType(Rti t) => isStrongTopType(t) || isLegacyObjectType(t);
+bool isTopType(Rti t) =>
+    isStrongTopType(t) ||
+    isLegacyObjectType(t) ||
+    JS_GET_FLAG('LEGACY') && isObjectType(t);
 
 bool isStrongTopType(Rti t) {
   int kind = Rti._getKind(t);
@@ -2988,7 +2991,6 @@ bool isStrongTopType(Rti t) {
       kind == Rti.kindVoid ||
       kind == Rti.kindAny ||
       kind == Rti.kindErased ||
-      !JS_GET_FLAG('NNBD') && isObjectType(t) ||
       isNullableObjectType(t);
 }
 

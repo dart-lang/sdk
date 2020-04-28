@@ -92,15 +92,15 @@ abstract class DartType {
   DartType get withoutNullability => this;
 
   /// Is `true` if this type is a top type but not a legacy top type.
-  bool _isStrongTop(bool useNullSafety) => false;
+  bool _isStrongTop(bool useLegacySubtyping) => false;
 
   /// Is `true` if this type is a top type.
-  bool _isTop(bool useNullSafety) => _isStrongTop(useNullSafety);
+  bool _isTop(bool useLegacySubtyping) => _isStrongTop(useLegacySubtyping);
 
   /// Is `true` if every type argument of this type is a top type.
   // TODO(fishythefish): Should we instead check if each type argument is at its
   // bound?
-  bool _treatAsRaw(bool useNullSafety) => true;
+  bool _treatAsRaw(bool useLegacySubtyping) => true;
 
   /// Whether this type contains a type variable.
   bool get containsTypeVariables => false;
@@ -131,12 +131,8 @@ abstract class DartType {
   String toString() => toStructuredText();
 
   String toStructuredText(
-          {bool printLegacyStars = true,
-          bool useNullSafety = true,
-          bool useLegacySubtyping = false}) =>
-      _DartTypeToStringVisitor(
-              printLegacyStars, useNullSafety, useLegacySubtyping)
-          .run(this);
+          {bool printLegacyStars = true, bool useLegacySubtyping = false}) =>
+      _DartTypeToStringVisitor(printLegacyStars, useLegacySubtyping).run(this);
 }
 
 /// Pairs of [FunctionTypeVariable]s that are currently assumed to be
@@ -237,10 +233,11 @@ class LegacyType extends DartType {
   DartType get withoutNullability => baseType;
 
   @override
-  bool _isTop(bool useNullSafety) => baseType.isObject;
+  bool _isTop(bool useLegacySubtyping) => baseType.isObject;
 
   @override
-  bool _treatAsRaw(bool useNullSafety) => baseType._treatAsRaw(useNullSafety);
+  bool _treatAsRaw(bool useLegacySubtyping) =>
+      baseType._treatAsRaw(useLegacySubtyping);
 
   @override
   bool get containsTypeVariables => baseType.containsTypeVariables;
@@ -298,10 +295,11 @@ class NullableType extends DartType {
   DartType get withoutNullability => baseType;
 
   @override
-  bool _isStrongTop(bool isLegacy) => baseType.isObject;
+  bool _isStrongTop(bool useLegacySubtyping) => baseType.isObject;
 
   @override
-  bool _treatAsRaw(bool useNullSafety) => baseType._treatAsRaw(useNullSafety);
+  bool _treatAsRaw(bool useLegacySubtyping) =>
+      baseType._treatAsRaw(useLegacySubtyping);
 
   @override
   bool get containsTypeVariables => baseType.containsTypeVariables;
@@ -359,7 +357,7 @@ class InterfaceType extends DartType {
   }
 
   @override
-  bool _isStrongTop(bool useNullSafety) => useNullSafety ? false : isObject;
+  bool _isTop(bool useLegacySubtyping) => useLegacySubtyping && isObject;
 
   @override
   bool get isObject =>
@@ -380,9 +378,9 @@ class InterfaceType extends DartType {
   }
 
   @override
-  bool _treatAsRaw(bool useNullSafety) {
+  bool _treatAsRaw(bool useLegacySubtyping) {
     for (DartType type in typeArguments) {
-      if (!type._isTop(useNullSafety)) return false;
+      if (!type._isTop(useLegacySubtyping)) return false;
     }
     return true;
   }
@@ -567,7 +565,7 @@ class VoidType extends DartType {
   }
 
   @override
-  bool _isStrongTop(bool useNullSafety) => true;
+  bool _isStrongTop(bool useLegacySubtyping) => true;
 
   @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
@@ -597,7 +595,7 @@ class DynamicType extends DartType {
   }
 
   @override
-  bool _isStrongTop(bool useNullSafety) => true;
+  bool _isStrongTop(bool useLegacySubtyping) => true;
 
   @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
@@ -627,7 +625,7 @@ class ErasedType extends DartType {
   }
 
   @override
-  bool _isStrongTop(bool useNullSafety) => true;
+  bool _isStrongTop(bool useLegacySubtyping) => true;
 
   @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
@@ -668,7 +666,7 @@ class AnyType extends DartType {
   }
 
   @override
-  bool _isStrongTop(bool useNullSafety) => true;
+  bool _isStrongTop(bool useLegacySubtyping) => true;
 
   @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
@@ -1507,7 +1505,6 @@ class _DeferredName {
 
 class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
   final bool _printLegacyStars;
-  final bool _useNullSafety;
   final bool _useLegacySubtyping;
   final List _fragments = []; // Strings and _DeferredNames
   bool _lastIsIdentifier = false;
@@ -1515,8 +1512,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
   Map<FunctionTypeVariable, _DeferredName> _variableToName;
   Set<FunctionType> _genericFunctions;
 
-  _DartTypeToStringVisitor(
-      this._printLegacyStars, this._useNullSafety, this._useLegacySubtyping);
+  _DartTypeToStringVisitor(this._printLegacyStars, this._useLegacySubtyping);
 
   String run(DartType type) {
     _visit(type);
@@ -1668,7 +1664,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
         needsComma = _comma(needsComma);
         _visit(typeVariable);
         DartType bound = typeVariable.bound;
-        if (!bound._isTop(_useNullSafety) &&
+        if (!bound._isTop(_useLegacySubtyping) &&
             (!_useLegacySubtyping || !bound.isObject)) {
           _token(' extends ');
           _visit(bound);
@@ -1749,7 +1745,7 @@ abstract class DartTypes {
 
   DartType legacyType(DartType baseType) {
     DartType result;
-    if (isTopType(baseType) ||
+    if (isStrongTopType(baseType) ||
         baseType.isNull ||
         baseType is LegacyType ||
         baseType is NullableType) {
@@ -1893,12 +1889,12 @@ abstract class DartTypes {
   /// Returns `true` if every type argument of [t] is a top type.
   // TODO(fishythefish): Should we instead check if each type argument is at its
   // bound?
-  bool treatAsRawType(DartType t) => t._treatAsRaw(useNullSafety);
+  bool treatAsRawType(DartType t) => t._treatAsRaw(useLegacySubtyping);
 
   /// Returns `true` if [t] is a top type, that is, a supertype of every type.
-  bool isTopType(DartType t) => t._isTop(useNullSafety);
+  bool isTopType(DartType t) => t._isTop(useLegacySubtyping);
 
-  bool isStrongTopType(DartType t) => t._isStrongTop(useNullSafety);
+  bool isStrongTopType(DartType t) => t._isStrongTop(useLegacySubtyping);
 
   /// Returns `true` if [s] is a subtype of [t].
   bool isSubtype(DartType s, DartType t) => _subtypeHelper(s, t);
