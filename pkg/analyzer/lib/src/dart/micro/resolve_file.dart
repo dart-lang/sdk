@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -69,15 +70,7 @@ class FileResolver {
 
   final Workspace workspace;
 
-  /// If not `null`, the library context will be reset after the specified
-  /// interval of inactivity. Keeping library context with loaded elements
-  /// significantly improves performance of resolution, because we don't have
-  /// to resynthesize elements, build export scopes for libraries, etc.
-  /// However keeping elements that we don't need anymore, or when the user
-  /// does not work with files, is wasteful.
-  ///
-  /// TODO(scheglov) use it
-  final Duration libraryContextResetDuration;
+  _LibraryContextReset _libraryContextReset;
 
   /// This field gets value only during testing.
   FileResolverTestView testView;
@@ -96,8 +89,13 @@ class FileResolver {
     this.getFileDigest,
     this.prefetchFiles, {
     @required Workspace workspace,
-    this.libraryContextResetDuration,
-  }) : this.workspace = workspace;
+    Duration libraryContextResetTimeout = const Duration(seconds: 60),
+  }) : this.workspace = workspace {
+    _libraryContextReset = _LibraryContextReset(
+      fileResolver: this,
+      resetTimeout: libraryContextResetTimeout,
+    );
+  }
 
   FeatureSet get defaultFeatureSet => FeatureSet.fromEnableFlags([]);
 
@@ -123,50 +121,56 @@ class FileResolver {
     }
   }
 
+  void dispose() {
+    _libraryContextReset.dispose();
+  }
+
   ErrorsResult getErrors(String path) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    return logger.run('Get errors for $path', () {
-      var fileContext = getFileContext(path, withLog: true);
-      var file = fileContext.file;
+    return _withLibraryContextReset(() {
+      return logger.run('Get errors for $path', () {
+        var fileContext = getFileContext(path, withLog: true);
+        var file = fileContext.file;
 
-      var errorsSignatureBuilder = ApiSignature();
-      errorsSignatureBuilder.addBytes(file.libraryCycle.signature);
-      errorsSignatureBuilder.addBytes(file.digest);
-      var errorsSignature = errorsSignatureBuilder.toByteList();
+        var errorsSignatureBuilder = ApiSignature();
+        errorsSignatureBuilder.addBytes(file.libraryCycle.signature);
+        errorsSignatureBuilder.addBytes(file.digest);
+        var errorsSignature = errorsSignatureBuilder.toByteList();
 
-      var errorsKey = file.path + '.errors';
-      var bytes = byteStore.get(errorsKey);
+        var errorsKey = file.path + '.errors';
+        var bytes = byteStore.get(errorsKey);
 
-      List<AnalysisError> errors;
-      if (bytes != null) {
-        var data = CiderUnitErrors.fromBuffer(bytes);
-        if (const ListEquality().equals(data.signature, errorsSignature)) {
-          errors = data.errors.map((error) {
-            return ErrorEncoding.decode(file.source, error);
-          }).toList();
+        List<AnalysisError> errors;
+        if (bytes != null) {
+          var data = CiderUnitErrors.fromBuffer(bytes);
+          if (const ListEquality().equals(data.signature, errorsSignature)) {
+            errors = data.errors.map((error) {
+              return ErrorEncoding.decode(file.source, error);
+            }).toList();
+          }
         }
-      }
 
-      if (errors == null) {
-        var unitResult = resolve(path);
-        errors = unitResult.errors;
+        if (errors == null) {
+          var unitResult = resolve(path);
+          errors = unitResult.errors;
 
-        bytes = CiderUnitErrorsBuilder(
-          signature: errorsSignature,
-          errors: errors.map((ErrorEncoding.encode)).toList(),
-        ).toBuffer();
-        byteStore.put(errorsKey, bytes);
-      }
+          bytes = CiderUnitErrorsBuilder(
+            signature: errorsSignature,
+            errors: errors.map((ErrorEncoding.encode)).toList(),
+          ).toBuffer();
+          byteStore.put(errorsKey, bytes);
+        }
 
-      return ErrorsResultImpl(
-        libraryContext.analysisSession,
-        path,
-        file.uri,
-        file.lineInfo,
-        false, // isPart
-        errors,
-      );
+        return ErrorsResultImpl(
+          libraryContext.analysisSession,
+          path,
+          file.uri,
+          file.lineInfo,
+          false, // isPart
+          errors,
+        );
+      });
     });
   }
 
@@ -204,49 +208,51 @@ class FileResolver {
   ResolvedUnitResult resolve(String path) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    return logger.run('Resolve $path', () {
-      var fileContext = getFileContext(path, withLog: true);
-      var file = fileContext.file;
+    return _withLibraryContextReset(() {
+      return logger.run('Resolve $path', () {
+        var fileContext = getFileContext(path, withLog: true);
+        var file = fileContext.file;
 
-      libraryContext.load2(file);
+        libraryContext.load2(file);
 
-      testView?.addResolvedFile(path);
+        testView?.addResolvedFile(path);
 
-      var errorListener = RecordingErrorListener();
-      var content = resourceProvider.getFile(path).readAsStringSync();
-      var unit = file.parse(errorListener, content);
+        var errorListener = RecordingErrorListener();
+        var content = resourceProvider.getFile(path).readAsStringSync();
+        var unit = file.parse(errorListener, content);
 
-      Map<FileState, UnitAnalysisResult> results;
-      logger.run('Compute analysis results', () {
-        var libraryAnalyzer = LibraryAnalyzer(
-          fileContext.analysisOptions,
-          analysisContext.declaredVariables,
-          sourceFactory,
-          (_) => true,
-          // _isLibraryUri
-          libraryContext.analysisContext,
-          libraryContext.elementFactory,
-          libraryContext.inheritanceManager,
-          file,
-          resourceProvider,
-          (String path) => resourceProvider.getFile(path).readAsStringSync(),
+        Map<FileState, UnitAnalysisResult> results;
+        logger.run('Compute analysis results', () {
+          var libraryAnalyzer = LibraryAnalyzer(
+            fileContext.analysisOptions,
+            analysisContext.declaredVariables,
+            sourceFactory,
+            (_) => true,
+            // _isLibraryUri
+            libraryContext.analysisContext,
+            libraryContext.elementFactory,
+            libraryContext.inheritanceManager,
+            file,
+            resourceProvider,
+            (String path) => resourceProvider.getFile(path).readAsStringSync(),
+          );
+
+          results = libraryAnalyzer.analyzeSync();
+        });
+        UnitAnalysisResult fileResult = results[file];
+
+        return ResolvedUnitResultImpl(
+          analysisContext.currentSession,
+          path,
+          file.uri,
+          file.exists,
+          content,
+          unit.lineInfo,
+          false, // isPart
+          fileResult.unit,
+          fileResult.errors,
         );
-
-        results = libraryAnalyzer.analyzeSync();
       });
-      UnitAnalysisResult fileResult = results[file];
-
-      return ResolvedUnitResultImpl(
-        analysisContext.currentSession,
-        path,
-        file.uri,
-        file.exists,
-        content,
-        unit.lineInfo,
-        false, // isPart
-        fileResult.unit,
-        fileResult.errors,
-      );
     });
   }
 
@@ -392,6 +398,19 @@ class FileResolver {
       throw ArgumentError(
         'Only normalized paths are supported: $path',
       );
+    }
+  }
+
+  /// Run the [operation] that uses the library context, by locking it first,
+  /// so that it is not reset while the operating is still running, and
+  /// unlocking after the operation is done, so that the library context
+  /// will be reset after some timeout.
+  T _withLibraryContextReset<T>(T Function() operation) {
+    _libraryContextReset.lock();
+    try {
+      return operation();
+    } finally {
+      _libraryContextReset.unlock();
     }
   }
 
@@ -606,5 +625,62 @@ class _LibraryContext {
       signature: signature,
       bundle: linkResult.bundle,
     );
+  }
+}
+
+/// The helper to reset the library context will be reset after the specified
+/// interval of inactivity. Keeping library context with loaded elements
+/// significantly improves performance of resolution, because we don't have
+/// to resynthesize elements, build export scopes for libraries, etc.
+/// However keeping elements that we don't need anymore, or when the user
+/// does not work with files, is wasteful.
+class _LibraryContextReset {
+  final FileResolver fileResolver;
+  final Duration resetTimeout;
+
+  /// The lock level, incremented by [lock], and decremented by [unlock].
+  /// The timeout timer is started when the level reaches zero.
+  int _lockLevel = 0;
+  Timer _timer;
+
+  _LibraryContextReset({
+    @required this.fileResolver,
+    @required this.resetTimeout,
+  });
+
+  void dispose() {
+    _stop();
+  }
+
+  /// Stop the timeout timer, and increment the lock level. The library context
+  /// will be not reset until [unlock] will bring the lock level back to zero.
+  void lock() {
+    _stop();
+    _lockLevel++;
+  }
+
+  /// Unlock the timer, the library context will be reset after the timeout.
+  void unlock() {
+    assert(_lockLevel > 0);
+    _lockLevel--;
+
+    if (_lockLevel == 0) {
+      _stop();
+      if (resetTimeout != null) {
+        _timer = Timer(resetTimeout, () {
+          _timer = null;
+          if (fileResolver.libraryContext != null) {
+            fileResolver.libraryContext = null;
+          }
+        });
+      }
+    }
+  }
+
+  void _stop() {
+    if (_timer != null) {
+      _timer.cancel();
+      _timer = null;
+    }
   }
 }

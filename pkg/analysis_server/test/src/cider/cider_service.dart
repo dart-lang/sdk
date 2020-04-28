@@ -43,6 +43,7 @@ class CiderServiceTest with ResourceProviderMixin {
       (String path) => _getDigest(path),
       null,
       workspace: workspace,
+      libraryContextResetTimeout: null,
     );
     fileResolver.testView = FileResolverTestView();
   }
