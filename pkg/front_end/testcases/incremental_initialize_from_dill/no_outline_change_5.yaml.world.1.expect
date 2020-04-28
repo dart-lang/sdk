@@ -30,8 +30,8 @@ library from "org-dartlang-test:///main.dart" as main {
         dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, dart.core::StackTrace* :stack_trace) {
-        :async_completer.{dart.async::Completer::completeError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(exception, stack_trace);
       }
     :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
     :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
@@ -60,8 +60,8 @@ library from "org-dartlang-test:///main.dart" as main {
         dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, dart.core::StackTrace* :stack_trace) {
-        :async_completer.{dart.async::Completer::completeError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(exception, stack_trace);
       }
     :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
     :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);

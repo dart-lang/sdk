@@ -39,8 +39,8 @@ static method main() → dynamic {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-        :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -49,32 +49,36 @@ static method main() → dynamic {
     return :async_completer.{asy::Completer::future};
   }
   function c() → core::Iterable<(core::int*) →* core::int*>* /* originally sync* */ {
-    core::int* :await_jump_var = 0;
-    dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<(core::int*) →* core::int*>* :iterator) → core::bool* yielding {
-      {
+    function :sync_op_gen() → (core::_SyncIterator<(core::int*) →* core::int*>*) →* core::bool* {
+      core::int* :await_jump_var = 0;
+      dynamic :await_ctx_var;
+      return (core::_SyncIterator<(core::int*) →* core::int*>* :iterator) → core::bool* yielding {
         {
-          :iterator.{core::_SyncIterator::_current} = (core::int* x) → core::int* => x;
-          [yield] true;
+          {
+            :iterator.{core::_SyncIterator::_current} = (core::int* x) → core::int* => x;
+            [yield] true;
+          }
         }
-      }
-      return false;
+        return false;
+      };
     }
-    return new core::_SyncIterable::•<(core::int*) →* core::int*>(:sync_op);
+    return new core::_SyncIterable::•<(core::int*) →* core::int*>(:sync_op_gen);
   }
   function d() → core::Iterable<(core::int*) →* core::int*>* /* originally sync* */ {
-    core::int* :await_jump_var = 0;
-    dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<(core::int*) →* core::int*>* :iterator) → core::bool* yielding {
-      {
+    function :sync_op_gen() → (core::_SyncIterator<(core::int*) →* core::int*>*) →* core::bool* {
+      core::int* :await_jump_var = 0;
+      dynamic :await_ctx_var;
+      return (core::_SyncIterator<(core::int*) →* core::int*>* :iterator) → core::bool* yielding {
         {
-          :iterator.{core::_SyncIterator::_yieldEachIterable} = <(core::int*) →* core::int*>[(core::int* x) → core::int* => x];
-          [yield] true;
+          {
+            :iterator.{core::_SyncIterator::_yieldEachIterable} = <(core::int*) →* core::int*>[(core::int* x) → core::int* => x];
+            [yield] true;
+          }
         }
-      }
-      return false;
+        return false;
+      };
     }
-    return new core::_SyncIterable::•<(core::int*) →* core::int*>(:sync_op);
+    return new core::_SyncIterable::•<(core::int*) →* core::int*>(:sync_op_gen);
   }
   function e() → asy::Stream<(core::int*) →* core::int*>* /* originally async* */ {
     asy::_AsyncStarStreamController<(core::int*) →* core::int*>* :controller;
@@ -98,8 +102,8 @@ static method main() → dynamic {
           }
           return;
         }
-        on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-          :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+        on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+          :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
         }
       finally {
         :controller.{asy::_AsyncStarStreamController::close}();
@@ -133,8 +137,8 @@ static method main() → dynamic {
           }
           return;
         }
-        on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-          :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+        on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+          :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
         }
       finally {
         :controller.{asy::_AsyncStarStreamController::close}();
