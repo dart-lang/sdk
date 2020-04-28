@@ -342,6 +342,8 @@ class SuggestionBuilder {
           var featureComputer = request.featureComputer;
           var contextType = featureComputer.contextTypeFeature(
               request.contextType, variable.type);
+          var elementKind = featureComputer.elementKindFeature(
+              variable, request.opType.completionLocation);
           var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
           var startsWithDollar =
               featureComputer.startsWithDollarFeature(accessor.name);
@@ -349,6 +351,7 @@ class SuggestionBuilder {
               containingMemberName, accessor.name);
           relevance = _computeMemberRelevance(
               contextType: contextType,
+              elementKind: elementKind,
               hasDeprecated: hasDeprecated,
               inheritanceDistance: inheritanceDistance,
               startsWithDollar: startsWithDollar,
@@ -366,6 +369,8 @@ class SuggestionBuilder {
         var featureComputer = request.featureComputer;
         var contextType =
             featureComputer.contextTypeFeature(request.contextType, type);
+        var elementKind = featureComputer.elementKindFeature(
+            accessor, request.opType.completionLocation);
         var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
         var startsWithDollar =
             featureComputer.startsWithDollarFeature(accessor.name);
@@ -373,6 +378,7 @@ class SuggestionBuilder {
             containingMemberName, accessor.name);
         relevance = _computeMemberRelevance(
             contextType: contextType,
+            elementKind: elementKind,
             hasDeprecated: hasDeprecated,
             inheritanceDistance: inheritanceDistance,
             startsWithDollar: startsWithDollar,
@@ -558,6 +564,8 @@ class SuggestionBuilder {
       var featureComputer = request.featureComputer;
       var contextType = featureComputer.contextTypeFeature(
           request.contextType, method.returnType);
+      var elementKind = featureComputer.elementKindFeature(
+          method, request.opType.completionLocation);
       var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
       var startsWithDollar =
           featureComputer.startsWithDollarFeature(method.name);
@@ -565,6 +573,7 @@ class SuggestionBuilder {
           containingMemberName, method.name);
       relevance = _computeMemberRelevance(
           contextType: contextType,
+          elementKind: elementKind,
           hasDeprecated: hasDeprecated,
           inheritanceDistance: inheritanceDistance,
           startsWithDollar: startsWithDollar,
@@ -674,18 +683,21 @@ class SuggestionBuilder {
   ///   and the element's name matches the name of the enclosing method.
   int _computeMemberRelevance(
       {@required double contextType,
+      @required double elementKind,
       @required double hasDeprecated,
       @required double inheritanceDistance,
       @required double startsWithDollar,
       @required double superMatches}) {
     var score = weightedAverage([
       contextType,
+      elementKind,
       hasDeprecated,
       inheritanceDistance,
       startsWithDollar,
       superMatches
     ], [
       1.0,
+      0.75,
       0.5,
       1.0,
       0.5,
@@ -728,7 +740,7 @@ class SuggestionBuilder {
     var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
     return toRelevance(
         weightedAverage(
-            [contextTypeFeature, elementKind, hasDeprecated], [0.8, 0.8, 0.2]),
+            [contextTypeFeature, elementKind, hasDeprecated], [1.0, 0.75, 0.2]),
         defaultRelevance);
   }
 
