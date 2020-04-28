@@ -711,6 +711,8 @@ class Assembler : public AssemblerBase {
             CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void CallToRuntime();
 
+  void Call(Address target) { call(target); }
+
   void Jmp(const Code& code);
   void J(Condition condition, const Code& code);
 
@@ -745,6 +747,13 @@ class Assembler : public AssemblerBase {
                                            Register array,
                                            Register index,
                                            intptr_t extra_disp = 0);
+
+  void LoadFieldAddressForRegOffset(Register address,
+                                    Register instance,
+                                    Register offset_in_words_as_smi) {
+    static_assert(kSmiTagShift == 1, "adjust scale factor");
+    leal(address, FieldAddress(instance, offset_in_words_as_smi, TIMES_2, 0));
+  }
 
   static Address VMTagAddress() {
     return Address(THR, target::Thread::vm_tag_offset());

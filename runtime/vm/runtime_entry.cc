@@ -3166,6 +3166,11 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   ThrowIfError(result);
 }
 
+DEFINE_RUNTIME_ENTRY(LateInitializationError, 1) {
+  const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
+  Exceptions::ThrowLateInitializationError(String::Handle(field.name()));
+}
+
 // Print the stop message.
 DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
   OS::PrintErr("Stop message: %s\n", message);

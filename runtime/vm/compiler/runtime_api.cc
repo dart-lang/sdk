@@ -127,6 +127,10 @@ const Object& NullObject() {
   return Object::null_object();
 }
 
+const Object& SentinelObject() {
+  return Object::sentinel();
+}
+
 const Bool& TrueObject() {
   return dart::Bool::True();
 }

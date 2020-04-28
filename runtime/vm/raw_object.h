@@ -1152,6 +1152,11 @@ class FieldLayout : public ObjectLayout {
                      // where this field is defined or original field.
   AbstractTypePtr type_;
   FunctionPtr initializer_function_;  // Static initializer function.
+
+  // - for instance fields: offset in words to the value in the class instance.
+  // - for static fields: index into field_table.
+  SmiPtr host_offset_or_field_id_;
+
   // When generating APPJIT snapshots after running the application it is
   // necessary to save the initial value of static fields so that we can
   // restore the value back to the original initial value.
@@ -1161,9 +1166,7 @@ class FieldLayout : public ObjectLayout {
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->guarded_list_length_);
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->dependent_code_);
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&ptr()->initializer_function_);
       case Snapshot::kMessage:
@@ -1203,10 +1206,6 @@ class FieldLayout : public ObjectLayout {
   int8_t static_type_exactness_state_;
 
   uint16_t kind_bits_;  // static, final, const, has initializer....
-
-  // - for instance fields: offset in words to the value in the class instance.
-  // - for static fields: index into field_table.
-  intptr_t host_offset_or_field_id_;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // for instance fields, the offset in words in the target architecture

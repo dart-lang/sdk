@@ -1840,6 +1840,15 @@ void Assembler::ComputeElementAddressForRegIndex(Register address,
   }
 }
 
+void Assembler::LoadFieldAddressForRegOffset(Register address,
+                                             Register instance,
+                                             Register offset_in_words_as_smi) {
+  add(address, instance,
+      Operand(offset_in_words_as_smi, LSL,
+              target::kWordSizeLog2 - kSmiTagShift));
+  AddImmediate(address, -kHeapObjectTag);
+}
+
 void Assembler::PushRegisters(const RegisterSet& regs) {
   const intptr_t fpu_regs_count = regs.FpuRegisterCount();
   if (fpu_regs_count > 0) {

@@ -38,6 +38,72 @@ void StubCodeCompiler::GenerateInitInstanceFieldStub(Assembler* assembler) {
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
+                                                         bool is_final) {
+  __ EnterStubFrame();
+  // Save for later.
+  __ PushRegisterPair(InitInstanceFieldABI::kInstanceReg,
+                      InitInstanceFieldABI::kFieldReg);
+
+  // Call initializer function.
+  __ PushRegister(InitInstanceFieldABI::kInstanceReg);
+
+  const Register kFunctionReg = InitLateInstanceFieldInternalRegs::kFunctionReg;
+  const Register kInitializerResultReg =
+      InitLateInstanceFieldInternalRegs::kInitializerResultReg;
+  const Register kInstanceReg = InitLateInstanceFieldInternalRegs::kInstanceReg;
+  const Register kFieldReg = InitLateInstanceFieldInternalRegs::kFieldReg;
+  const Register kAddressReg = InitLateInstanceFieldInternalRegs::kAddressReg;
+  const Register kScratchReg = InitLateInstanceFieldInternalRegs::kScratchReg;
+
+  __ LoadField(kFunctionReg,
+               FieldAddress(InitInstanceFieldABI::kFieldReg,
+                            target::Field::initializer_function_offset()));
+  if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+    __ LoadField(CODE_REG,
+                 FieldAddress(kFunctionReg, target::Function::code_offset()));
+  }
+  __ Call(FieldAddress(kFunctionReg, target::Function::entry_point_offset()));
+  __ Drop(1);  // Drop argument.
+
+  __ PopRegisterPair(kInstanceReg, kFieldReg);
+  __ LoadField(
+      kScratchReg,
+      FieldAddress(kFieldReg, target::Field::host_offset_or_field_id_offset()));
+  __ LoadFieldAddressForRegOffset(kAddressReg, kInstanceReg, kScratchReg);
+
+  Label throw_exception;
+  if (is_final) {
+    __ LoadMemoryValue(kScratchReg, kAddressReg, 0);
+    __ CompareObject(kScratchReg, SentinelObject());
+    __ BranchIf(NOT_EQUAL, &throw_exception);
+  }
+
+  __ StoreIntoObject(kInstanceReg, Address(kAddressReg, 0),
+                     kInitializerResultReg);
+
+  __ LeaveStubFrame();
+  __ Ret();
+
+  if (is_final) {
+    __ Bind(&throw_exception);
+    __ PushObject(NullObject());  // Make room for (unused) result.
+    __ PushRegister(kFieldReg);
+    __ CallRuntime(kLateInitializationErrorRuntimeEntry,
+                   /*argument_count=*/1);
+    __ Breakpoint();
+  }
+}
+
+void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler) {
+  GenerateInitLateInstanceFieldStub(assembler, /*is_final=*/false);
+}
+
+void StubCodeCompiler::GenerateInitLateFinalInstanceFieldStub(
+    Assembler* assembler) {
+  GenerateInitLateInstanceFieldStub(assembler, /*is_final=*/true);
+}
+
 void StubCodeCompiler::GenerateThrowStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for (unused) result.

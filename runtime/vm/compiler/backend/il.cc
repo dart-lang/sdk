@@ -4110,8 +4110,30 @@ void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ LoadObject(InitInstanceFieldABI::kFieldReg,
                 Field::ZoneHandle(field().Original()));
-  const auto& stub = Code::ZoneHandle(
-      compiler->isolate()->object_store()->init_instance_field_stub());
+
+  auto object_store = compiler->isolate()->object_store();
+  auto& stub = Code::ZoneHandle(compiler->zone());
+  if (field().needs_load_guard()) {
+    stub = object_store->init_instance_field_stub();
+  } else if (field().is_late()) {
+    if (!field().has_nontrivial_initializer()) {
+      // Common stub calls runtime which will throw an exception.
+      stub = object_store->init_instance_field_stub();
+    } else {
+      // Stubs for late field initialization call initializer
+      // function directly, so make sure one is created.
+      field().EnsureInitializerFunction();
+
+      if (field().is_final()) {
+        stub = object_store->init_late_final_instance_field_stub();
+      } else {
+        stub = object_store->init_late_instance_field_stub();
+      }
+    }
+  } else {
+    UNREACHABLE();
+  }
+
   // Instruction inputs are popped from the stack at this point,
   // so deoptimization environment has to be adjusted.
   // This adjustment is done in FlowGraph::AttachEnvironment.

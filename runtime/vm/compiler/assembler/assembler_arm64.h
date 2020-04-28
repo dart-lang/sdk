@@ -1412,6 +1412,11 @@ class Assembler : public AssemblerBase {
       const Object& equivalence,
       CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
+  void Call(Address target) {
+    ldr(LR, target);
+    blr(LR);
+  }
+
   void AddImmediate(Register dest, int64_t imm) {
     AddImmediate(dest, dest, imm);
   }
@@ -1711,6 +1716,10 @@ class Assembler : public AssemblerBase {
                                         bool index_unboxed,
                                         Register array,
                                         Register index);
+
+  void LoadFieldAddressForRegOffset(Register address,
+                                    Register instance,
+                                    Register offset_in_words_as_smi);
 
   // Returns object data offset for address calculation; for heap objects also
   // accounts for the tag.

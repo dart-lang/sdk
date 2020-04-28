@@ -733,6 +733,8 @@ class Assembler : public AssemblerBase {
                            const Object& equivalence,
                            CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
+  void Call(Address target) { call(target); }
+
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   // TODO(koda): Add StackAddress/HeapAddress types to prevent misuse.
   void StoreObject(const Address& dst, const Object& obj);
@@ -976,6 +978,13 @@ class Assembler : public AssemblerBase {
                                            bool index_unboxed,
                                            Register array,
                                            Register index);
+
+  void LoadFieldAddressForRegOffset(Register address,
+                                    Register instance,
+                                    Register offset_in_words_as_smi) {
+    static_assert(kSmiTagShift == 1, "adjust scale factor");
+    leaq(address, FieldAddress(instance, offset_in_words_as_smi, TIMES_4, 0));
+  }
 
   static Address VMTagAddress();
 

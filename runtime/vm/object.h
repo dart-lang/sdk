@@ -3958,14 +3958,18 @@ class Field : public Object {
                         intptr_t target_offset_in_bytes) const;
 
   inline intptr_t HostOffset() const;
+  static intptr_t host_offset_or_field_id_offset() {
+    return OFFSET_OF(FieldLayout, host_offset_or_field_id_);
+  }
 
   inline intptr_t TargetOffset() const;
+  static inline intptr_t TargetOffsetOf(FieldPtr field);
 
   inline InstancePtr StaticValue() const;
   void SetStaticValue(const Instance& value,
                       bool save_initial_value = false) const;
 
-  intptr_t field_id() const { return raw_ptr()->host_offset_or_field_id_; }
+  inline intptr_t field_id() const;
   inline void set_field_id(intptr_t field_id) const;
 
 #ifndef DART_PRECOMPILED_RUNTIME
@@ -4072,14 +4076,6 @@ class Field : public Object {
 
   static intptr_t static_type_exactness_state_offset() {
     return OFFSET_OF(FieldLayout, static_type_exactness_state_);
-  }
-
-  static inline intptr_t TargetOffsetOf(const FieldPtr field) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    return field->ptr()->target_offset_;
-#else
-    return field->ptr()->host_offset_or_field_id_;
-#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   }
 
   // Return class id that any non-null value read from this field is guaranteed
@@ -4229,6 +4225,9 @@ class Field : public Object {
   }
   void SetInitializerFunction(const Function& initializer) const;
   bool HasInitializerFunction() const;
+  static intptr_t initializer_function_offset() {
+    return OFFSET_OF(FieldLayout, initializer_function_);
+  }
 
   // For static fields only. Constructs a closure that gets/sets the
   // field value.
@@ -10889,7 +10888,7 @@ bool Function::HasBytecode(FunctionPtr function) {
 
 intptr_t Field::HostOffset() const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
-  return (raw_ptr()->host_offset_or_field_id_ * kWordSize);
+  return (Smi::Value(raw_ptr()->host_offset_or_field_id_) * kWordSize);
 }
 
 intptr_t Field::TargetOffset() const {
@@ -10901,12 +10900,20 @@ intptr_t Field::TargetOffset() const {
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
 }
 
+inline intptr_t Field::TargetOffsetOf(const FieldPtr field) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  return field->ptr()->target_offset_;
+#else
+  return Smi::Value(field->ptr()->host_offset_or_field_id_);
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+}
+
 void Field::SetOffset(intptr_t host_offset_in_bytes,
                       intptr_t target_offset_in_bytes) const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
   ASSERT(kWordSize != 0);
-  StoreNonPointer(&raw_ptr()->host_offset_or_field_id_,
-                  host_offset_in_bytes / kWordSize);
+  StoreSmi(&raw_ptr()->host_offset_or_field_id_,
+           Smi::New(host_offset_in_bytes / kWordSize));
 #if !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(compiler::target::kWordSize != 0);
   StoreNonPointer(&raw_ptr()->target_offset_,
@@ -10919,13 +10926,17 @@ void Field::SetOffset(intptr_t host_offset_in_bytes,
 InstancePtr Field::StaticValue() const {
   ASSERT(is_static());  // Valid only for static dart fields.
   return Isolate::Current()->field_table()->At(
-      raw_ptr()->host_offset_or_field_id_);
+      Smi::Value(raw_ptr()->host_offset_or_field_id_));
+}
+
+inline intptr_t Field::field_id() const {
+  return Smi::Value(raw_ptr()->host_offset_or_field_id_);
 }
 
 void Field::set_field_id(intptr_t field_id) const {
   ASSERT(is_static());
   ASSERT(Thread::Current()->IsMutatorThread());
-  StoreNonPointer(&raw_ptr()->host_offset_or_field_id_, field_id);
+  StoreSmi(&raw_ptr()->host_offset_or_field_id_, Smi::New(field_id));
 }
 
 #ifndef DART_PRECOMPILED_RUNTIME

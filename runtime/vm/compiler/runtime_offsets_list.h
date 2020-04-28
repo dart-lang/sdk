@@ -83,6 +83,8 @@
   FIELD(ExternalTwoByteString, external_data_offset)                           \
   FIELD(Float32x4, value_offset)                                               \
   FIELD(Float64x2, value_offset)                                               \
+  FIELD(Field, initializer_function_offset)                                    \
+  FIELD(Field, host_offset_or_field_id_offset)                                 \
   PRECOMP_NO_CHECK(FIELD(Field, guarded_cid_offset))                           \
   PRECOMP_NO_CHECK(FIELD(Field, guarded_list_length_in_object_offset_offset))  \
   PRECOMP_NO_CHECK(FIELD(Field, guarded_list_length_offset))                   \

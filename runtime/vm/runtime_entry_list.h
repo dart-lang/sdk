@@ -53,6 +53,7 @@ namespace dart {
   V(UpdateFieldCid)                                                            \
   V(InitInstanceField)                                                         \
   V(InitStaticField)                                                           \
+  V(LateInitializationError)                                                   \
   V(CompileFunction)                                                           \
   V(CompileInterpretedFunction)                                                \
   V(SwitchableCallMiss)

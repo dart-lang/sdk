@@ -322,7 +322,8 @@ const char* StubCode::NameOfStub(uword entry_point) {
 
   auto object_store = Isolate::Current()->object_store();
 #define DO(member, name)                                                       \
-  if (entry_point == Code::EntryPointOf(object_store->member())) {             \
+  if (object_store->member() != Code::null() &&                                \
+      entry_point == Code::EntryPointOf(object_store->member())) {             \
     return "_iso_stub_" #name "Stub";                                          \
   }
   OBJECT_STORE_STUB_CODE_LIST(DO)

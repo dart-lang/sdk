@@ -188,6 +188,16 @@ struct InitInstanceFieldABI {
   static const Register kFieldReg = R1;
 };
 
+// Registers used inside the implementation of InitLateInstanceFieldStub.
+struct InitLateInstanceFieldInternalRegs {
+  static const Register kFunctionReg = R0;
+  static const Register kInitializerResultReg = R0;
+  static const Register kInstanceReg = R1;
+  static const Register kFieldReg = R2;
+  static const Register kAddressReg = R3;
+  static const Register kScratchReg = R4;
+};
+
 // ABI for ThrowStub.
 struct ThrowABI {
   static const Register kExceptionReg = R0;
