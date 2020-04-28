@@ -12,12 +12,12 @@ namespace dart {
 #if !defined(PRODUCT)
 
 DART_EXPORT
-void _printRawObject(RawObject* object) {
+void _printRawObject(ObjectPtr object) {
   OS::PrintErr("%s\n", Object::Handle(object).ToCString());
 }
 
 DART_EXPORT
-Object* _handle(RawObject* object) {
+Object* _handle(ObjectPtr object) {
   return &Object::Handle(object);
 }
 
@@ -57,15 +57,15 @@ void _printGeneratedStackTrace(uword fp, uword sp, uword pc) {
 // Must be called with the current interpreter fp, sp, and pc.
 // Note that sp[0] is not modified, but sp[1] will be trashed.
 DART_EXPORT
-void _printInterpreterStackTrace(RawObject** fp,
-                                 RawObject** sp,
+void _printInterpreterStackTrace(ObjectPtr* fp,
+                                 ObjectPtr* sp,
                                  const KBCInstr* pc) {
   Thread* thread = Thread::Current();
   sp[1] = Function::null();
   sp[2] = Bytecode::null();
-  sp[3] = reinterpret_cast<RawObject*>(reinterpret_cast<uword>(pc));
-  sp[4] = reinterpret_cast<RawObject*>(fp);
-  RawObject** exit_fp = sp + 1 + kKBCDartFrameFixedSize;
+  sp[3] = static_cast<ObjectPtr>(reinterpret_cast<uword>(pc));
+  sp[4] = static_cast<ObjectPtr>(reinterpret_cast<uword>(fp));
+  ObjectPtr* exit_fp = sp + 1 + kKBCDartFrameFixedSize;
   thread->set_top_exit_frame_info(reinterpret_cast<uword>(exit_fp));
   thread->set_execution_state(Thread::kThreadInVM);
   _printDartStackTrace();
@@ -78,8 +78,8 @@ class PrintObjectPointersVisitor : public ObjectPointerVisitor {
   PrintObjectPointersVisitor()
       : ObjectPointerVisitor(IsolateGroup::Current()) {}
 
-  void VisitPointers(RawObject** first, RawObject** last) {
-    for (RawObject** p = first; p <= last; p++) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+    for (ObjectPtr* p = first; p <= last; p++) {
       Object& obj = Object::Handle(*p);
       OS::PrintErr("%p: %s\n", p, obj.ToCString());
     }

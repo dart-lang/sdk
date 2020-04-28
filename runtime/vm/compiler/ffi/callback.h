@@ -19,9 +19,9 @@ namespace compiler {
 
 namespace ffi {
 
-RawFunction* NativeCallbackFunction(const Function& c_signature,
-                                    const Function& dart_target,
-                                    const Instance& exceptional_return);
+FunctionPtr NativeCallbackFunction(const Function& c_signature,
+                                   const Function& dart_target,
+                                   const Instance& exceptional_return);
 
 }  // namespace ffi
 

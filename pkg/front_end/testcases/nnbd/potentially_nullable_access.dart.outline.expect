@@ -1,0 +1,51 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int property;
+  field core::Function functionField;
+  field () → void functionTypeField;
+  synthetic constructor •() → self::Class
+    ;
+  method method() → core::int
+    ;
+  get functionGetter() → core::Function
+    ;
+  get functionTypeGetter() → () → void
+    ;
+}
+static field core::int? topLevelBinary;
+static field core::int topLevelUnary;
+static field dynamic topLevelIndexGet;
+static field core::int topLevelIndexSet;
+static field dynamic topLevelIndexGetSet;
+static field core::int topLevelPropertyGet;
+static field core::int topLevelPropertySet;
+static field core::int topLevelPropertyGetSet;
+static field core::int topLevelMethodInvocation;
+static field () → core::int topLevelMethodTearOff;
+static field dynamic topLevelFunctionImplicitCall;
+static field dynamic topLevelFunctionExplicitCall;
+static field core::Function? topLevelFunctionTearOff;
+static field void topLevelFunctionTypeImplicitCall;
+static field void topLevelFunctionTypeExplicitCall;
+static field () →? void topLevelFunctionTypeTearOff;
+static field dynamic topLevelFunctionField;
+static field void topLevelFunctionTypeField;
+static field dynamic topLevelFunctionGetter;
+static field void topLevelFunctionTypeGetter;
+static get nullableFunction() → core::Function?
+  ;
+static get nullableFunctionType() → () →? void
+  ;
+static get nullableInt() → core::int?
+  ;
+static get nullableMap() → core::Map<dynamic, dynamic>?
+  ;
+static get nullableClass() → self::Class?
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

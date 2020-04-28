@@ -85,12 +85,12 @@ DEFINE_NATIVE_ENTRY(TypedDataView_typedData, 0, 1) {
 }
 
 template <typename DstType, typename SrcType>
-static RawBool* CopyData(const Instance& dst,
-                         const Instance& src,
-                         const Smi& dst_start,
-                         const Smi& src_start,
-                         const Smi& length,
-                         bool clamped) {
+static BoolPtr CopyData(const Instance& dst,
+                        const Instance& src,
+                        const Smi& dst_start,
+                        const Smi& src_start,
+                        const Smi& length,
+                        bool clamped) {
   const DstType& dst_array = DstType::Cast(dst);
   const SrcType& src_array = SrcType::Cast(src);
   const intptr_t dst_offset_in_bytes = dst_start.Value();

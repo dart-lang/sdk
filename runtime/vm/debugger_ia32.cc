@@ -19,7 +19,7 @@ namespace dart {
 
 #ifndef PRODUCT
 
-RawCode* CodeBreakpoint::OrigStubAddress() const {
+CodePtr CodeBreakpoint::OrigStubAddress() const {
   return saved_value_;
 }
 
@@ -33,15 +33,15 @@ void CodeBreakpoint::PatchCode() {
   thread->isolate_group()->RunWithStoppedMutators([&]() {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
     switch (breakpoint_kind_) {
-      case RawPcDescriptors::kIcCall: {
+      case PcDescriptorsLayout::kIcCall: {
         stub_target = StubCode::ICCallBreakpoint().raw();
         break;
       }
-      case RawPcDescriptors::kUnoptStaticCall: {
+      case PcDescriptorsLayout::kUnoptStaticCall: {
         stub_target = StubCode::UnoptStaticCallBreakpoint().raw();
         break;
       }
-      case RawPcDescriptors::kRuntimeCall: {
+      case PcDescriptorsLayout::kRuntimeCall: {
         saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
         stub_target = StubCode::RuntimeCallBreakpoint().raw();
         break;
@@ -64,9 +64,9 @@ void CodeBreakpoint::RestoreCode() {
   thread->isolate_group()->RunWithStoppedMutators([&]() {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
     switch (breakpoint_kind_) {
-      case RawPcDescriptors::kIcCall:
-      case RawPcDescriptors::kUnoptStaticCall:
-      case RawPcDescriptors::kRuntimeCall: {
+      case PcDescriptorsLayout::kIcCall:
+      case PcDescriptorsLayout::kUnoptStaticCall:
+      case PcDescriptorsLayout::kRuntimeCall: {
         CodePatcher::PatchStaticCallAt(pc_, code, Code::Handle(saved_value_));
         break;
       }

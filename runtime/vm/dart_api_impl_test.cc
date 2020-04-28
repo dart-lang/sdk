@@ -4495,7 +4495,7 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
   // (1 + 2) * kWordSize + size of object header.
   // We check to make sure the instance size computed by the VM matches
   // our expectations.
-  intptr_t header_size = sizeof(RawObject);
+  intptr_t header_size = sizeof(ObjectLayout);
   EXPECT_EQ(
       Utils::RoundUp(((1 + 2) * kWordSize) + header_size, kObjectAlignment),
       cls.host_instance_size());

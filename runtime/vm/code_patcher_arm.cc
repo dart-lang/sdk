@@ -12,8 +12,8 @@
 
 namespace dart {
 
-RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
-                                            const Code& code) {
+CodePtr CodePatcher::GetStaticCallTargetAt(uword return_address,
+                                           const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
   CallPattern call(return_address, code);
   return call.TargetCode();
@@ -31,9 +31,9 @@ void CodePatcher::InsertDeoptimizationCallAt(uword start) {
   UNREACHABLE();
 }
 
-RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
-                                        const Code& caller_code,
-                                        Object* data) {
+CodePtr CodePatcher::GetInstanceCallAt(uword return_address,
+                                       const Code& caller_code,
+                                       Object* data) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   ICCallPattern call(return_address, caller_code);
   if (data != NULL) {
@@ -65,9 +65,9 @@ void CodePatcher::PatchInstanceCallAtWithMutatorsStopped(
   call.SetTargetCode(target);
 }
 
-RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
-                                                     const Code& caller_code,
-                                                     ICData* ic_data_result) {
+FunctionPtr CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
+                                                    const Code& caller_code,
+                                                    ICData* ic_data_result) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   ICCallPattern static_call(return_address, caller_code);
   ICData& ic_data = ICData::Handle();
@@ -108,8 +108,8 @@ void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
   }
 }
 
-RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
-                                                const Code& caller_code) {
+CodePtr CodePatcher::GetSwitchableCallTargetAt(uword return_address,
+                                               const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     BareSwitchableCallPattern call(return_address, caller_code);
@@ -120,8 +120,8 @@ RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
   }
 }
 
-RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
-                                                const Code& caller_code) {
+ObjectPtr CodePatcher::GetSwitchableCallDataAt(uword return_address,
+                                               const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     BareSwitchableCallPattern call(return_address, caller_code);
@@ -144,9 +144,9 @@ void CodePatcher::PatchNativeCallAt(uword return_address,
   });
 }
 
-RawCode* CodePatcher::GetNativeCallAt(uword return_address,
-                                      const Code& code,
-                                      NativeFunction* target) {
+CodePtr CodePatcher::GetNativeCallAt(uword return_address,
+                                     const Code& code,
+                                     NativeFunction* target) {
   ASSERT(code.ContainsInstructionAt(return_address));
   NativeCallPattern call(return_address, code);
   *target = call.native_function();

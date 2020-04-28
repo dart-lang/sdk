@@ -40,7 +40,7 @@ class InheritedReferenceContributor extends DartCompletionContributor {
     var classOrMixin = member.parent;
     if (classOrMixin is ClassOrMixinDeclaration &&
         classOrMixin.declaredElement != null) {
-      memberBuilder = MemberSuggestionBuilder(request);
+      memberBuilder = MemberSuggestionBuilder(request, builder);
       return _computeSuggestionsForClass(classOrMixin.declaredElement, request);
     }
     return const <CompletionSuggestion>[];

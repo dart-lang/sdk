@@ -1510,9 +1510,9 @@ class RegExpEngine : public AllStatic {
                                            bool sticky,
                                            Zone* zone);
 
-  static RawRegExp* CreateRegExp(Thread* thread,
-                                 const String& pattern,
-                                 RegExpFlags flags);
+  static RegExpPtr CreateRegExp(Thread* thread,
+                                const String& pattern,
+                                RegExpFlags flags);
 
   static void DotPrint(const char* label, RegExpNode* node, bool ignore_case);
 };

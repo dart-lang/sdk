@@ -362,8 +362,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 0, 3) {
     }
     String& string = String::Handle(OneByteString::New(length, space));
     for (int i = 0; i < length; i++) {
-      intptr_t value =
-          Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
+      intptr_t value = Smi::Value(static_cast<SmiPtr>(array.At(start + i)));
       OneByteString::SetCharAt(string, i, value);
     }
     return string.raw();
@@ -376,8 +375,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 0, 3) {
     }
     String& string = String::Handle(OneByteString::New(length, space));
     for (int i = 0; i < length; i++) {
-      intptr_t value =
-          Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
+      intptr_t value = Smi::Value(static_cast<SmiPtr>(array.At(start + i)));
       OneByteString::SetCharAt(string, i, value);
     }
     return string.raw();
@@ -458,8 +456,7 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 0, 3) {
     const String& string =
         String::Handle(zone, TwoByteString::New(length, space));
     for (int i = 0; i < length; i++) {
-      intptr_t value =
-          Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
+      intptr_t value = Smi::Value(static_cast<SmiPtr>(array.At(start + i)));
       TwoByteString::SetCharAt(string, i, value);
     }
     return string.raw();
@@ -471,8 +468,7 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 0, 3) {
     const String& string =
         String::Handle(zone, TwoByteString::New(length, space));
     for (int i = 0; i < length; i++) {
-      intptr_t value =
-          Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
+      intptr_t value = Smi::Value(static_cast<SmiPtr>(array.At(start + i)));
       TwoByteString::SetCharAt(string, i, value);
     }
     return string.raw();

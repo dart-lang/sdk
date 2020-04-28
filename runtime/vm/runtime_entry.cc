@@ -115,8 +115,8 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
       Class::New(lib, class_name, script, TokenPosition::kNoSource));
   const String& function_name = String::ZoneHandle(Symbols::New(thread, name));
   const Function& function = Function::ZoneHandle(Function::New(
-      function_name, RawFunction::kRegularFunction, true, false, false, false,
-      false, owner_class, TokenPosition::kMinSource));
+      function_name, FunctionLayout::kRegularFunction, true, false, false,
+      false, false, owner_class, TokenPosition::kMinSource));
   const Array& functions = Array::Handle(Array::New(1));
   functions.SetAt(0, function);
   owner_class.SetFunctions(functions);
@@ -323,14 +323,15 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
   }
 }
 
-DEFINE_LEAF_RUNTIME_ENTRY(RawObject*,
+DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
                           AddAllocatedObjectToRememberedSet,
                           2,
-                          RawObject* object,
+                          uword /*ObjectPtr*/ object_in,
                           Thread* thread) {
+  ObjectPtr object = static_cast<ObjectPtr>(object_in);
   // The allocation stubs in will call this leaf method for newly allocated
   // old space objects.
-  RELEASE_ASSERT(object->IsOldObject() && !object->IsRemembered());
+  RELEASE_ASSERT(object->IsOldObject() && !object->ptr()->IsRemembered());
 
   // If we eliminate a generational write barriers on allocations of an object
   // we need to ensure it's either a new-space object or it has been added to
@@ -343,20 +344,19 @@ DEFINE_LEAF_RUNTIME_ENTRY(RawObject*,
   // in a long time).
   bool add_to_remembered_set = true;
   if (object->IsArray()) {
-    const intptr_t length =
-        Array::LengthOf(reinterpret_cast<RawArray*>(object));
+    const intptr_t length = Array::LengthOf(static_cast<ArrayPtr>(object));
     add_to_remembered_set =
         compiler::target::WillAllocateNewOrRememberedArray(length);
   } else if (object->IsContext()) {
     const intptr_t num_context_variables =
-        Context::NumVariables(reinterpret_cast<RawContext*>(object));
+        Context::NumVariables(static_cast<ContextPtr>(object));
     add_to_remembered_set =
         compiler::target::WillAllocateNewOrRememberedContext(
             num_context_variables);
   }
 
   if (add_to_remembered_set) {
-    object->AddToRememberedSet(thread);
+    object->ptr()->AddToRememberedSet(thread);
   }
 
   // For incremental write barrier elimination, we need to ensure that the
@@ -366,7 +366,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(RawObject*,
     thread->DeferredMarkingStackAddObject(object);
   }
 
-  return object;
+  return static_cast<uword>(object);
 }
 END_LEAF_RUNTIME_ENTRY
 
@@ -718,27 +718,36 @@ static void UpdateTypeTestCache(
           const auto& instance_class_name =
               String::Handle(zone, instance_class.Name());
           OS::PrintErr(
-              "  Updated test cache %p ix: %" Pd
-              " with "
-              "(cid-or-fun: %p, type-args: %p, i-type-args: %p, f-type-args: "
-              "%p, "
-              "p-type-args: %p, d-type-args: %p, result: %s)\n"
-              "    instance  [class: (%p '%s' cid: %" Pd
-              "),    type-args: %p %s]\n"
-              "    test-type [class: (%p '%s' cid: %" Pd
-              "), i-type-args: %p %s, f-type-args: %p %s]\n",
-              new_cache.raw(), len, instance_class_id_or_function.raw(),
-              instance_type_arguments.raw(), instantiator_type_arguments.raw(),
-              function_type_arguments.raw(),
-              instance_parent_function_type_arguments.raw(),
-              instance_delayed_type_arguments.raw(), result.ToCString(),
-              instance_class.raw(), instance_class_name.ToCString(),
-              instance_class.id(), instance_type_arguments.raw(),
-              instance_type_arguments.ToCString(), type_class.raw(),
+              "  Updated test cache %#" Px " ix: %" Pd
+              " with (cid-or-fun:"
+              " %#" Px ", type-args: %#" Px ", i-type-args: %#" Px
+              ", "
+              "f-type-args: %#" Px ", p-type-args: %#" Px
+              ", "
+              "d-type-args: %#" Px
+              ", result: %s)\n"
+              "    instance  [class: (%#" Px " '%s' cid: %" Pd
+              "),    type-args: %#" Px
+              " %s]\n"
+              "    test-type [class: (%#" Px " '%s' cid: %" Pd
+              "), i-type-args: %#" Px " %s, f-type-args: %#" Px " %s]\n",
+              static_cast<uword>(new_cache.raw()), len,
+              static_cast<uword>(instance_class_id_or_function.raw()),
+              static_cast<uword>(instance_type_arguments.raw()),
+              static_cast<uword>(instantiator_type_arguments.raw()),
+              static_cast<uword>(function_type_arguments.raw()),
+              static_cast<uword>(instance_parent_function_type_arguments.raw()),
+              static_cast<uword>(instance_delayed_type_arguments.raw()),
+              result.ToCString(), static_cast<uword>(instance_class.raw()),
+              instance_class_name.ToCString(), instance_class.id(),
+              static_cast<uword>(instance_type_arguments.raw()),
+              instance_type_arguments.ToCString(),
+              static_cast<uword>(type_class.raw()),
               String::Handle(zone, type_class.Name()).ToCString(),
-              type_class.id(), instantiator_type_arguments.raw(),
+              type_class.id(),
+              static_cast<uword>(instantiator_type_arguments.raw()),
               instantiator_type_arguments.ToCString(),
-              function_type_arguments.raw(),
+              static_cast<uword>(function_type_arguments.raw()),
               function_type_arguments.ToCString());
         }
       },
@@ -1102,7 +1111,7 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
   const Function& target_function =
       Function::Handle(receiver_class.GetInvocationDispatcher(
           target_name, arguments_descriptor,
-          RawFunction::kInvokeFieldDispatcher, FLAG_lazy_dispatchers));
+          FunctionLayout::kInvokeFieldDispatcher, FLAG_lazy_dispatchers));
   ASSERT(!target_function.IsNull() || !FLAG_lazy_dispatchers);
   if (FLAG_trace_ic) {
     OS::PrintErr(
@@ -1115,9 +1124,9 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
 }
 
 // Handle other invocations (implicit closures, noSuchMethod).
-RawFunction* InlineCacheMissHelper(const Class& receiver_class,
-                                   const Array& args_descriptor,
-                                   const String& target_name) {
+FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
+                                  const Array& args_descriptor,
+                                  const String& target_name) {
   // Handle noSuchMethod for dyn:methodName by getting a noSuchMethod dispatcher
   // (or a call-through getter for methodName).
   if (Function::IsDynamicInvocationForwarderName(target_name)) {
@@ -1132,8 +1141,8 @@ RawFunction* InlineCacheMissHelper(const Class& receiver_class,
     ArgumentsDescriptor desc(args_descriptor);
     const Function& target_function =
         Function::Handle(receiver_class.GetInvocationDispatcher(
-            target_name, args_descriptor, RawFunction::kNoSuchMethodDispatcher,
-            FLAG_lazy_dispatchers));
+            target_name, args_descriptor,
+            FunctionLayout::kNoSuchMethodDispatcher, FLAG_lazy_dispatchers));
     if (FLAG_trace_ic) {
       OS::PrintErr(
           "NoSuchMethod IC miss: adding <%s> id:%" Pd " -> <%s>\n",
@@ -1245,9 +1254,9 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
 }
 
 // Perform the subtype and return constant function based on the result.
-static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
-                                           const AbstractType& type,
-                                           const ArgumentsDescriptor& desc) {
+static FunctionPtr ComputeTypeCheckTarget(const Instance& receiver,
+                                          const AbstractType& type,
+                                          const ArgumentsDescriptor& desc) {
   const bool result = receiver.IsInstanceOf(type, Object::null_type_arguments(),
                                             Object::null_type_arguments());
   const ObjectStore* store = Isolate::Current()->object_store();
@@ -1258,7 +1267,7 @@ static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
   return target.raw();
 }
 
-static RawFunction* InlineCacheMissHandler(
+static FunctionPtr InlineCacheMissHandler(
     const GrowableArray<const Instance*>& args,  // Checked arguments only.
     const ICData& ic_data,
     intptr_t count = 1) {
@@ -1502,10 +1511,10 @@ static void SaveUnlinkedCall(Zone* zone,
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-static RawUnlinkedCall* LoadUnlinkedCall(Zone* zone,
-                                         Isolate* isolate,
-                                         uword pc,
-                                         bool is_monomorphic_hit) {
+static UnlinkedCallPtr LoadUnlinkedCall(Zone* zone,
+                                        Isolate* isolate,
+                                        uword pc,
+                                        bool is_monomorphic_hit) {
   IsolateGroup* isolate_group = isolate->group();
   ASSERT(isolate_group->saved_unlinked_calls() != Array::null());
 
@@ -1546,9 +1555,9 @@ class SwitchableCallHandler {
   void HandleMiss(const Object& old_data, const Code& old_target);
 
  private:
-  RawFunction* ResolveAndAddReceiverCheck(const String& name,
-                                          const Array& descriptor,
-                                          const ICData& ic_data);
+  FunctionPtr ResolveAndAddReceiverCheck(const String& name,
+                                         const Array& descriptor,
+                                         const ICData& ic_data);
   void DoUnlinkedCall(const UnlinkedCall& unlinked);
   bool CanExtendSingleTargetRange(const String& name,
                                   const Function& old_target,
@@ -1570,7 +1579,7 @@ class SwitchableCallHandler {
   const Function& caller_function_;
 };
 
-RawFunction* SwitchableCallHandler::ResolveAndAddReceiverCheck(
+FunctionPtr SwitchableCallHandler::ResolveAndAddReceiverCheck(
     const String& name,
     const Array& descriptor,
     const ICData& ic_data) {
@@ -1691,13 +1700,13 @@ bool SwitchableCallHandler::CanExtendSingleTargetRange(
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-static RawICData* FindICDataForInstanceCall(Zone* zone,
-                                            const Code& code,
-                                            uword pc) {
+static ICDataPtr FindICDataForInstanceCall(Zone* zone,
+                                           const Code& code,
+                                           uword pc) {
   uword pc_offset = pc - code.PayloadStart();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(zone, code.pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kIcCall);
+  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kIcCall);
   intptr_t deopt_id = -1;
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
@@ -2235,8 +2244,8 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromPrologue, 4) {
   const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(3));
 
   String& orig_function_name = String::Handle(zone);
-  if ((function.kind() == RawFunction::kClosureFunction) ||
-      (function.kind() == RawFunction::kImplicitClosureFunction)) {
+  if ((function.kind() == FunctionLayout::kClosureFunction) ||
+      (function.kind() == FunctionLayout::kImplicitClosureFunction)) {
     // For closure the function name is always 'call'. Replace it with the
     // name of the closurized function so that exception contains more
     // relevant information.
@@ -2600,10 +2609,10 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
-  OS::PrintErr("IC call @%#" Px ": ICData: %p cnt:%" Pd " nchecks: %" Pd
-               " %s\n",
-               frame->pc(), ic_data.raw(), function.usage_counter(),
-               ic_data.NumberOfChecks(), function.ToFullyQualifiedCString());
+  OS::PrintErr(
+      "IC call @%#" Px ": ICData: %#" Px " cnt:%" Pd " nchecks: %" Pd " %s\n",
+      frame->pc(), static_cast<uword>(ic_data.raw()), function.usage_counter(),
+      ic_data.NumberOfChecks(), function.ToFullyQualifiedCString());
 }
 
 // This is called from interpreter when function usage counter reached
@@ -3247,27 +3256,20 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     true /* is_float */,
     reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&atan)));
 
-uword RuntimeEntry::InterpretCallEntry() {
-  uword entry = reinterpret_cast<uword>(RuntimeEntry::InterpretCall);
-#if defined(USING_SIMULATOR)
-  entry = Simulator::RedirectExternalReference(entry,
-                                               Simulator::kLeafRuntimeCall, 5);
-#endif
-  return entry;
-}
-
 // Interpret a function call. Should be called only for non-jitted functions.
 // argc indicates the number of arguments, including the type arguments.
 // argv points to the first argument.
 // If argc < 0, arguments are passed at decreasing memory addresses from argv.
-RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
-                                       RawArray* argdesc,
-                                       intptr_t argc,
-                                       RawObject** argv,
-                                       Thread* thread) {
+extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
+                                             uword /*ArrayPtr*/ argdesc_in,
+                                             intptr_t argc,
+                                             ObjectPtr* argv,
+                                             Thread* thread) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
+  FunctionPtr function = static_cast<FunctionPtr>(function_in);
+  ArrayPtr argdesc = static_cast<ArrayPtr>(argdesc_in);
   ASSERT(FLAG_enable_interpreter);
   Interpreter* interpreter = Interpreter::Current();
 #if defined(DEBUG)
@@ -3283,11 +3285,11 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
 #endif
   // Tell MemorySanitizer 'argv' is initialized by generated code.
   if (argc < 0) {
-    MSAN_UNPOISON(argv - argc, -argc * sizeof(RawObject*));
+    MSAN_UNPOISON(argv - argc, -argc * sizeof(ObjectPtr));
   } else {
-    MSAN_UNPOISON(argv, argc * sizeof(RawObject*));
+    MSAN_UNPOISON(argv, argc * sizeof(ObjectPtr));
   }
-  RawObject* result = interpreter->Call(function, argdesc, argc, argv, thread);
+  ObjectPtr result = interpreter->Call(function, argdesc, argc, argv, thread);
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
   if (IsErrorClassId(result->GetClassIdMayBeSmi())) {
     // Must not leak handles in the caller's zone.
@@ -3300,8 +3302,17 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
     TransitionGeneratedToVM transition(thread);
     Exceptions::PropagateError(error);
   }
-  return result;
+  return static_cast<uword>(result);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+uword RuntimeEntry::InterpretCallEntry() {
+  uword entry = reinterpret_cast<uword>(InterpretCall);
+#if defined(USING_SIMULATOR)
+  entry = Simulator::RedirectExternalReference(entry,
+                                               Simulator::kLeafRuntimeCall, 5);
+#endif
+  return entry;
 }
 
 extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {

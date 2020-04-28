@@ -18,7 +18,7 @@ class WorklistElement : public ZoneAllocated {
   WorklistElement(Zone* zone, const Object& object)
       : object_(Object::Handle(zone, object.raw())), next_(nullptr) {}
 
-  RawObject* value() const { return object_.raw(); }
+  ObjectPtr value() const { return object_.raw(); }
 
   void set_next(WorklistElement* elem) { next_ = elem; }
   WorklistElement* next() const { return next_; }
@@ -51,7 +51,7 @@ class Worklist : public ValueObject {
     ASSERT(first_ != nullptr && last_ != nullptr);
   }
 
-  RawObject* Remove() {
+  ObjectPtr Remove() {
     ASSERT(first_ != nullptr);
     WorklistElement* result = first_;
     first_ = first_->next();
@@ -174,15 +174,21 @@ class ProgramWalker : public ValueObject {
     ASSERT(visitor_->IsCodeVisitor());
     visitor_->AsCodeVisitor()->VisitCode(code);
 
-    // If the precompiler can drop function objects not needed at runtime,
-    // then some entries in the static calls table may need to be visited.
+    // In the precompiler, some entries in the static calls table may need
+    // to be visited as they may not be reachable from other sources.
+    //
+    // TODO(dartbug.com/41636): Figure out why walking the static calls table
+    // in JIT mode with the DedupInstructions visitor fails, so we can remove
+    // the check for AOT mode.
     static_calls_array_ = code.static_calls_target_table();
-    if (static_calls_array_.IsNull()) return;
-    StaticCallsTable static_calls(static_calls_array_);
-    for (auto& view : static_calls) {
-      static_calls_table_entry_ = view.Get<Code::kSCallTableCodeOrTypeTarget>();
-      if (static_calls_table_entry_.IsCode()) {
-        AddToWorklist(Code::Cast(static_calls_table_entry_));
+    if (FLAG_precompiled_mode && !static_calls_array_.IsNull()) {
+      StaticCallsTable static_calls(static_calls_array_);
+      for (auto& view : static_calls) {
+        static_calls_table_entry_ =
+            view.Get<Code::kSCallTableCodeOrTypeTarget>();
+        if (static_calls_table_entry_.IsCode()) {
+          AddToWorklist(Code::Cast(static_calls_table_entry_));
+        }
       }
     }
   }
@@ -316,7 +322,7 @@ class Dedupper : public ValueObject {
     }
   }
 
-  typename T::RawObjectType* Dedup(const T& obj) {
+  typename T::ObjectPtrType Dedup(const T& obj) {
     if (ShouldAdd(obj)) {
       if (auto const canonical = canonical_objects_.LookupValue(&obj)) {
         return canonical->raw();
@@ -577,7 +583,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
     // Creates a new global table of stack map information. Also adds the
     // offsets of encoded StackMapEntry objects to entry_offsets for use
     // when normalizing CompressedStackMaps.
-    RawCompressedStackMaps* CreateGlobalTable(
+    CompressedStackMapsPtr CreateGlobalTable(
         StackMapEntryIntMap* entry_offsets) {
       ASSERT(entry_offsets->IsEmpty());
       if (collected_entries_.length() == 0) return CompressedStackMaps::null();
@@ -671,7 +677,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
 
    private:
     // Creates a normalized CSM from the given non-normalized CSM.
-    RawCompressedStackMaps* NormalizeEntries(const CompressedStackMaps& maps) {
+    CompressedStackMapsPtr NormalizeEntries(const CompressedStackMaps& maps) {
       GrowableArray<uint8_t> new_payload;
       CompressedStackMapsIterator it(maps, old_global_table_);
       intptr_t last_offset = 0;
@@ -1027,7 +1033,7 @@ void ProgramVisitor::DedupLists(Zone* zone, Isolate* isolate) {
    private:
     bool IsCorrectType(const Object& obj) const { return obj.IsArray(); }
 
-    RawArray* PrepareParameterTypes(const Function& function) {
+    ArrayPtr PrepareParameterTypes(const Function& function) {
       list_ = function.parameter_types();
       // Preserve parameter types in the JIT. Needed in case of recompilation
       // in checked mode, or if available to mirrors, or for copied types to
@@ -1045,7 +1051,7 @@ void ProgramVisitor::DedupLists(Zone* zone, Isolate* isolate) {
       return list_.raw();
     }
 
-    RawArray* PrepareParameterNames(const Function& function) {
+    ArrayPtr PrepareParameterNames(const Function& function) {
       list_ = function.parameter_names();
       // Preserve parameter names in case of recompilation for the JIT. Also
       // avoid attempting to change read-only VM objects for de-duplication.
@@ -1158,7 +1164,7 @@ void ProgramVisitor::DedupInstructions(Zone* zone, Isolate* isolate) {
    public:
     explicit DedupInstructionsVisitor(Zone* zone)
         : Dedupper(zone),
-          function_(Function::Handle(zone)),
+          code_(Code::Handle(zone)),
           instructions_(Instructions::Handle(zone)) {
       if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
         // Prefer existing objects in the VM isolate.
@@ -1166,10 +1172,20 @@ void ProgramVisitor::DedupInstructions(Zone* zone, Isolate* isolate) {
       }
     }
 
-    void VisitObject(RawObject* obj) {
+    void VisitObject(ObjectPtr obj) {
       if (!obj->IsInstructions()) return;
       instructions_ = Instructions::RawCast(obj);
       AddCanonical(instructions_);
+    }
+
+    void VisitFunction(const Function& function) {
+      if (!function.HasCode()) return;
+      code_ = function.CurrentCode();
+      // This causes the code to be visited once here and once directly in the
+      // ProgramWalker, but as long as the deduplication process is idempotent,
+      // the cached entry points won't change during the second visit.
+      VisitCode(code_);
+      function.SetInstructions(code_);  // Update cached entry point.
     }
 
     void VisitCode(const Code& code) {
@@ -1182,33 +1198,32 @@ void ProgramVisitor::DedupInstructions(Zone* zone, Isolate* isolate) {
       }
       code.SetActiveInstructions(instructions_,
                                  code.UncheckedEntryPointOffset());
-      if (!code.IsFunctionCode()) return;
-      function_ = code.function();
-      if (function_.IsNull()) return;
-      function_.SetInstructions(code);  // Update cached entry point.
     }
 
    private:
-    Function& function_;
+    Code& code_;
     Instructions& instructions_;
   };
 
 #if defined(DART_PRECOMPILER)
   class DedupInstructionsWithSameMetadataVisitor
       : public CodeVisitor,
-        public Dedupper<Code, CodeKeyValueTrait>,
-        public ObjectVisitor {
+        public Dedupper<Code, CodeKeyValueTrait> {
    public:
     explicit DedupInstructionsWithSameMetadataVisitor(Zone* zone)
         : Dedupper(zone),
           canonical_(Code::Handle(zone)),
-          function_(Function::Handle(zone)),
+          code_(Code::Handle(zone)),
           instructions_(Instructions::Handle(zone)) {}
 
-    void VisitObject(RawObject* obj) {
-      if (!obj->IsCode()) return;
-      canonical_ = Code::RawCast(obj);
-      AddCanonical(canonical_);
+    void VisitFunction(const Function& function) {
+      if (!function.HasCode()) return;
+      code_ = function.CurrentCode();
+      // This causes the code to be visited once here and once directly in the
+      // ProgramWalker, but as long as the deduplication process is idempotent,
+      // the cached entry points won't change during the second visit.
+      VisitCode(code_);
+      function.SetInstructions(code_);  // Update cached entry point.
     }
 
     void VisitCode(const Code& code) {
@@ -1218,17 +1233,13 @@ void ProgramVisitor::DedupInstructions(Zone* zone, Isolate* isolate) {
       code.SetActiveInstructions(instructions_,
                                  code.UncheckedEntryPointOffset());
       code.set_instructions(instructions_);
-      if (!code.IsFunctionCode()) return;
-      function_ = code.function();
-      if (function_.IsNull()) return;
-      function_.SetInstructions(code);  // Update cached entry point.
     }
 
    private:
     bool CanCanonicalize(const Code& code) const { return !code.IsDisabled(); }
 
     Code& canonical_;
-    Function& function_;
+    Code& code_;
     Instructions& instructions_;
   };
 

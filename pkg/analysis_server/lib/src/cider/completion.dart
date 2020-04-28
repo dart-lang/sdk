@@ -9,11 +9,13 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
+import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 
@@ -23,6 +25,7 @@ import 'package:meta/meta.dart';
 /// example types and elements.
 class CiderCompletionCache {
   final Map<String, _CiderImportedLibrarySuggestions> _importedLibraries = {};
+  _LastCompletionResult _lastResult;
 }
 
 class CiderCompletionComputer {
@@ -31,22 +34,26 @@ class CiderCompletionComputer {
   final FileResolver _fileResolver;
 
   DartCompletionRequestImpl _dartCompletionRequest;
-  final List<String> _computedImportedLibraries = [];
+
+  /// Paths of imported libraries for which suggestions were (re)computed
+  /// during processing of this request. Does not include libraries that were
+  /// processed during previous requests, and reused from the cache now.
+  @visibleForTesting
+  final List<String> computedImportedLibraries = [];
 
   CiderCompletionComputer(this._logger, this._cache, this._fileResolver);
 
   @deprecated
   Future<List<CompletionSuggestion>> compute(String path, int offset) async {
-    var file = _fileResolver.resourceProvider.getFile(path);
-    var content = file.readAsStringSync();
+    var fileContext = _fileResolver.getFileContext(path);
+    var file = fileContext.file;
 
-    var lineInfo = LineInfo.fromContent(content);
-    var location = lineInfo.getLocation(offset);
+    var location = file.lineInfo.getLocation(offset);
 
     var result = await compute2(
       path: path,
       line: location.lineNumber - 1,
-      character: location.columnNumber - 1,
+      column: location.columnNumber - 1,
     );
 
     return result.suggestions;
@@ -58,19 +65,36 @@ class CiderCompletionComputer {
   ///
   /// The content of the file has already been updated.
   ///
-  /// The [line] and [character] are zero based.
+  /// The [line] and [column] are zero based.
   Future<CiderCompletionResult> compute2({
     @required String path,
     @required int line,
-    @required int character,
+    @required int column,
   }) async {
-    var file = _fileResolver.resourceProvider.getFile(path);
-    var content = file.readAsStringSync();
+    var fileContext = _logger.run('Get file $path', () {
+      return _fileResolver.getFileContext(path);
+    });
+
+    var file = fileContext.file;
+
+    var resolvedSignature = _logger.run('Get signature', () {
+      return file.resolvedSignature;
+    });
+
+    var lineInfo = file.lineInfo;
+    var offset = lineInfo.getOffsetOfLine(line) + column;
+
+    // If the same file, in the same state as the last time, reuse the result.
+    var lastResult = _cache._lastResult;
+    if (lastResult != null &&
+        lastResult.path == path &&
+        lastResult.signature == resolvedSignature &&
+        lastResult.offset == offset) {
+      _logger.writeln('Use the last completion result.');
+      return lastResult.result;
+    }
 
     var resolvedUnit = _fileResolver.resolve(path);
-
-    var lineInfo = LineInfo.fromContent(content);
-    var offset = lineInfo.getOffsetOfLine(line) + character;
 
     var completionRequest = CompletionRequestImpl(
       resolvedUnit,
@@ -100,18 +124,29 @@ class CiderCompletionComputer {
       dartdocDirectiveInfo,
     );
 
-    _logger.run('Add imported suggestions', () {
-      suggestions.addAll(
-        _importedLibrariesSuggestions(
-          resolvedUnit.libraryElement,
-        ),
-      );
+    if (_dartCompletionRequest.includeIdentifiers) {
+      _logger.run('Add imported suggestions', () {
+        suggestions.addAll(
+          _importedLibrariesSuggestions(
+            resolvedUnit.libraryElement,
+          ),
+        );
+      });
+    }
+
+    _logger.run('Filter suggestions', () {
+      suggestions = _FilterSort(
+        _dartCompletionRequest,
+        suggestions,
+      ).perform();
     });
 
-    return CiderCompletionResult._(
-      suggestions,
-      _computedImportedLibraries,
-    );
+    var result = CiderCompletionResult._(suggestions);
+
+    _cache._lastResult =
+        _LastCompletionResult(path, resolvedSignature, offset, result);
+
+    return result;
   }
 
   /// Return suggestions from libraries imported into the [target].
@@ -139,7 +174,7 @@ class CiderCompletionComputer {
 
     var cacheEntry = _cache._importedLibraries[path];
     if (cacheEntry == null || cacheEntry.signature != signature) {
-      _computedImportedLibraries.add(path);
+      computedImportedLibraries.add(path);
       var suggestions = _librarySuggestions(element);
       cacheEntry = _CiderImportedLibrarySuggestions(
         signature,
@@ -165,16 +200,7 @@ class CiderCompletionComputer {
 class CiderCompletionResult {
   final List<CompletionSuggestion> suggestions;
 
-  /// Paths of imported libraries for which suggestions were (re)computed
-  /// during processing of this request. Does not include libraries that were
-  /// processed during previous requests, and reused from the cache now.
-  @visibleForTesting
-  final List<String> computedImportedLibraries;
-
-  CiderCompletionResult._(
-    this.suggestions,
-    this.computedImportedLibraries,
-  );
+  CiderCompletionResult._(this.suggestions);
 }
 
 class _CiderImportedLibrarySuggestions {
@@ -182,4 +208,81 @@ class _CiderImportedLibrarySuggestions {
   final List<CompletionSuggestion> suggestions;
 
   _CiderImportedLibrarySuggestions(this.signature, this.suggestions);
+}
+
+class _FilterSort {
+  final DartCompletionRequestImpl _request;
+  final List<CompletionSuggestion> _suggestions;
+
+  FuzzyMatcher _matcher;
+
+  _FilterSort(this._request, this._suggestions);
+
+  List<CompletionSuggestion> perform() {
+    var pattern = _matchingPattern();
+    _matcher = FuzzyMatcher(pattern, matchStyle: MatchStyle.SYMBOL);
+
+    var scored = _suggestions
+        .map((e) => _FuzzyScoredSuggestion(e, _score(e)))
+        .where((e) => e.score > 0)
+        .toList();
+
+    scored.sort((a, b) {
+      // Prefer what the user requested by typing.
+      if (a.score > b.score) {
+        return -1;
+      } else if (a.score < b.score) {
+        return 1;
+      }
+
+      // Then prefer what is more relevant in the context.
+      if (a.suggestion.relevance != b.suggestion.relevance) {
+        return -(a.suggestion.relevance - b.suggestion.relevance);
+      }
+
+      // Other things being equal, sort by name.
+      return a.suggestion.completion.compareTo(b.suggestion.completion);
+    });
+
+    return scored.map((e) => e.suggestion).toList();
+  }
+
+  /// Return the pattern to match suggestions against, from the identifier
+  /// to the left of the caret. Return the empty string if cannot find the
+  /// identifier.
+  String _matchingPattern() {
+    SimpleIdentifier patternNode;
+    _request.target.containingNode.accept(
+      FunctionAstVisitor(simpleIdentifier: (node) {
+        if (node.end == _request.offset) {
+          patternNode = node;
+        }
+      }),
+    );
+
+    if (patternNode != null) {
+      return patternNode.name;
+    }
+
+    return '';
+  }
+
+  double _score(CompletionSuggestion e) => _matcher.score(e.completion);
+}
+
+/// [CompletionSuggestion] scored using [FuzzyMatcher].
+class _FuzzyScoredSuggestion {
+  final CompletionSuggestion suggestion;
+  final double score;
+
+  _FuzzyScoredSuggestion(this.suggestion, this.score);
+}
+
+class _LastCompletionResult {
+  final String path;
+  final String signature;
+  final int offset;
+  final CiderCompletionResult result;
+
+  _LastCompletionResult(this.path, this.signature, this.offset, this.result);
 }

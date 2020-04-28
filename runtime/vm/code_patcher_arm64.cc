@@ -24,8 +24,8 @@ class PoolPointerCall : public ValueObject {
 
   intptr_t pp_index() const { return index_; }
 
-  RawCode* Target() const {
-    return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(pp_index()));
+  CodePtr Target() const {
+    return static_cast<CodePtr>(object_pool_.ObjectAt(pp_index()));
   }
 
   void SetTarget(const Code& target) const {
@@ -42,8 +42,8 @@ class PoolPointerCall : public ValueObject {
   DISALLOW_IMPLICIT_CONSTRUCTORS(PoolPointerCall);
 };
 
-RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
-                                            const Code& code) {
+CodePtr CodePatcher::GetStaticCallTargetAt(uword return_address,
+                                           const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
   PoolPointerCall call(return_address, code);
   return call.Target();
@@ -67,9 +67,9 @@ void CodePatcher::InsertDeoptimizationCallAt(uword start) {
   UNREACHABLE();
 }
 
-RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
-                                        const Code& caller_code,
-                                        Object* data) {
+CodePtr CodePatcher::GetInstanceCallAt(uword return_address,
+                                       const Code& caller_code,
+                                       Object* data) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   ICCallPattern call(return_address, caller_code);
   if (data != NULL) {
@@ -101,9 +101,9 @@ void CodePatcher::PatchInstanceCallAtWithMutatorsStopped(
   call.SetTargetCode(target);
 }
 
-RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
-                                                     const Code& code,
-                                                     ICData* ic_data_result) {
+FunctionPtr CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
+                                                    const Code& code,
+                                                    ICData* ic_data_result) {
   ASSERT(code.ContainsInstructionAt(return_address));
   ICCallPattern static_call(return_address, code);
   ICData& ic_data = ICData::Handle();
@@ -144,8 +144,8 @@ void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
   }
 }
 
-RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
-                                                const Code& caller_code) {
+CodePtr CodePatcher::GetSwitchableCallTargetAt(uword return_address,
+                                               const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     BareSwitchableCallPattern call(return_address, caller_code);
@@ -156,8 +156,8 @@ RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
   }
 }
 
-RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
-                                                const Code& caller_code) {
+ObjectPtr CodePatcher::GetSwitchableCallDataAt(uword return_address,
+                                               const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     BareSwitchableCallPattern call(return_address, caller_code);
@@ -180,9 +180,9 @@ void CodePatcher::PatchNativeCallAt(uword return_address,
   });
 }
 
-RawCode* CodePatcher::GetNativeCallAt(uword return_address,
-                                      const Code& caller_code,
-                                      NativeFunction* target) {
+CodePtr CodePatcher::GetNativeCallAt(uword return_address,
+                                     const Code& caller_code,
+                                     NativeFunction* target) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   NativeCallPattern call(return_address, caller_code);
   *target = call.native_function();

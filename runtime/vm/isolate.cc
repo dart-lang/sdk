@@ -117,7 +117,7 @@ static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
   }
 }
 
-static RawInstance* DeserializeMessage(Thread* thread, Message* message) {
+static InstancePtr DeserializeMessage(Thread* thread, Message* message) {
   if (message == NULL) {
     return Instance::null();
   }
@@ -274,6 +274,9 @@ IsolateGroup::~IsolateGroup() {
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
   ASSERT(marking_stack_ == nullptr);
+
+  delete reverse_pc_lookup_cache_;
+  reverse_pc_lookup_cache_ = nullptr;
 }
 
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
@@ -645,6 +648,15 @@ NoReloadScope::~NoReloadScope() {
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
+Bequest::~Bequest() {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  NoSafepointScope no_safepoint_scope;
+  ApiState* state = isolate_group->api_state();
+  ASSERT(state != nullptr);
+  state->FreePersistentHandle(handle_);
+}
+
 void Isolate::RegisterClass(const Class& cls) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (group()->IsReloading()) {
@@ -755,7 +767,7 @@ class IsolateMessageHandler : public MessageHandler {
  private:
   // A result of false indicates that the isolate should terminate the
   // processing of further events.
-  RawError* HandleLibMessage(const Array& message);
+  ErrorPtr HandleLibMessage(const Array& message);
 
   MessageStatus ProcessUnhandledException(const Error& result);
   Isolate* isolate_;
@@ -773,7 +785,7 @@ const char* IsolateMessageHandler::name() const {
 // Isolate library OOB messages are fixed sized arrays which have the
 // following format:
 // [ OOB dispatch, Isolate library dispatch, <message specific data> ]
-RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
+ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
   if (message.Length() < 2) return Error::null();
   Zone* zone = T->zone();
   const Object& type = Object::Handle(zone, message.At(1));
@@ -1039,6 +1051,11 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     msg_obj = message->raw_obj();
     // We should only be sending RawObjects that can be converted to CObjects.
     ASSERT(ApiObjectConverter::CanConvert(msg_obj.raw()));
+  } else if (message->IsBequest()) {
+    Bequest* bequest = message->bequest();
+    PersistentHandle* handle = bequest->handle();
+    const Object& obj = Object::Handle(zone, handle->raw());
+    msg_obj = obj.raw();
   } else {
     MessageSnapshotReader reader(message.get(), thread);
     msg_obj = reader.ReadObject();
@@ -1247,7 +1264,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
       // exception.
       if (result.IsUnhandledException()) {
         const UnhandledException& error = UnhandledException::Cast(result);
-        RawInstance* exception = error.exception();
+        InstancePtr exception = error.exception();
         if ((exception == I->object_store()->out_of_memory()) ||
             (exception == I->object_store()->stack_overflow())) {
           // We didn't notify the debugger when the stack was full. Do it now.
@@ -1452,9 +1469,6 @@ Isolate::~Isolate() {
   // RELEASE_ASSERT(reload_context_ == NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-  delete reverse_pc_lookup_cache_;
-  reverse_pc_lookup_cache_ = nullptr;
-
   if (FLAG_enable_interpreter) {
     delete background_compiler_;
     background_compiler_ = nullptr;
@@ -1622,9 +1636,9 @@ Thread* Isolate::mutator_thread() const {
   return mutator_thread_;
 }
 
-RawObject* Isolate::CallTagHandler(Dart_LibraryTag tag,
-                                   const Object& arg1,
-                                   const Object& arg2) {
+ObjectPtr Isolate::CallTagHandler(Dart_LibraryTag tag,
+                                  const Object& arg1,
+                                  const Object& arg2) {
   Thread* thread = Thread::Current();
   Api::Scope api_scope(thread);
   Dart_Handle api_arg1 = Api::NewHandle(thread, arg1.raw());
@@ -1686,7 +1700,7 @@ bool Isolate::IsPaused() const {
 #endif  // !defined(PRODUCT)
 }
 
-RawError* Isolate::PausePostRequest() {
+ErrorPtr Isolate::PausePostRequest() {
 #if !defined(PRODUCT)
   if (debugger_ == nullptr) {
     return Error::null();
@@ -2172,7 +2186,7 @@ static void ShutdownIsolate(uword parameter) {
   Dart::ShutdownIsolate(isolate);
 }
 
-void Isolate::SetStickyError(RawError* sticky_error) {
+void Isolate::SetStickyError(ErrorPtr sticky_error) {
   ASSERT(
       ((sticky_error_ == Error::null()) || (sticky_error == Error::null())) &&
       (sticky_error != sticky_error_));
@@ -2199,8 +2213,8 @@ void Isolate::AddClosureFunction(const Function& function) const {
 // collisions with this simple hash value. However, iterating over
 // all closure functions becomes more difficult, especially when
 // the list/map changes while iterating over it.
-RawFunction* Isolate::LookupClosureFunction(const Function& parent,
-                                            TokenPosition token_pos) const {
+FunctionPtr Isolate::LookupClosureFunction(const Function& parent,
+                                           TokenPosition token_pos) const {
   const GrowableObjectArray& closures =
       GrowableObjectArray::Handle(object_store()->closure_functions());
   ASSERT(!closures.IsNull());
@@ -2228,7 +2242,7 @@ intptr_t Isolate::FindClosureIndex(const Function& needle) const {
   return -1;
 }
 
-RawFunction* Isolate::ClosureFunctionFromIndex(intptr_t idx) const {
+FunctionPtr Isolate::ClosureFunctionFromIndex(intptr_t idx) const {
   const GrowableObjectArray& closures_array =
       GrowableObjectArray::Handle(object_store()->closure_functions());
   if ((idx < 0) || (idx >= closures_array.Length())) {
@@ -2375,6 +2389,12 @@ void Isolate::Shutdown() {
   Isolate::UnMarkIsolateReady(this);
   LowLevelShutdown();
 
+  if (bequest_.get() != nullptr) {
+    auto beneficiary = bequest_->beneficiary();
+    PortMap::PostMessage(Message::New(beneficiary, bequest_.release(),
+                                      Message::kNormalPriority));
+  }
+
   // Now we can unregister from the thread, invoke cleanup callback, delete the
   // isolate (and possibly the isolate group).
   Isolate::LowLevelCleanup(this);
@@ -2472,30 +2492,29 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   visitor->clear_gc_root_type();
   // Visit the objects directly referenced from the isolate structure.
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&current_tag_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&default_tag_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&ic_miss_code_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&tag_table_));
-  visitor->VisitPointer(
-      reinterpret_cast<RawObject**>(&deoptimized_code_array_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&current_tag_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&default_tag_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ic_miss_code_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&deoptimized_code_array_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
   if (isolate_group_ != nullptr) {
     if (isolate_group_->source()->hot_reload_blobs_ != nullptr) {
-      visitor->VisitPointer(reinterpret_cast<RawObject**>(
+      visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(
           &(isolate_group_->source()->hot_reload_blobs_)));
     }
   }
 #if !defined(PRODUCT)
   visitor->VisitPointer(
-      reinterpret_cast<RawObject**>(&pending_service_extension_calls_));
+      reinterpret_cast<ObjectPtr*>(&pending_service_extension_calls_));
   visitor->VisitPointer(
-      reinterpret_cast<RawObject**>(&registered_service_extension_handlers_));
+      reinterpret_cast<ObjectPtr*>(&registered_service_extension_handlers_));
 #endif  // !defined(PRODUCT)
   // Visit the boxed_field_list_.
   // 'boxed_field_list_' access via mutator and background compilation threads
   // is guarded with a monitor. This means that we can visit it only
   // when at safepoint or the field_list_mutex_ lock has been taken.
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&boxed_field_list_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
 
   if (background_compiler() != nullptr) {
     background_compiler()->VisitPointers(visitor);
@@ -2637,7 +2656,7 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
   if (object_store() != nullptr) {
     object_store()->VisitObjectPointers(visitor);
   }
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&saved_unlinked_calls_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
   VisitStackPointers(visitor, validate_frames);
 }
 
@@ -2690,8 +2709,8 @@ void IsolateGroup::RememberLiveTemporaries() {
                  /*at_safepoint=*/true);
 }
 
-RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
-  RawClass* raw_class = nullptr;
+ClassPtr Isolate::GetClassForHeapWalkAt(intptr_t cid) {
+  ClassPtr raw_class = nullptr;
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (group()->IsReloading()) {
     raw_class = reload_context()->GetClassForHeapWalkAt(cid);
@@ -2961,9 +2980,9 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
   deoptimized_code.Add(code);
 }
 
-RawError* Isolate::StealStickyError() {
+ErrorPtr Isolate::StealStickyError() {
   NoSafepointScope no_safepoint;
-  RawError* return_value = sticky_error_;
+  ErrorPtr return_value = sticky_error_;
   sticky_error_ = Error::null();
   return return_value;
 }
@@ -2994,7 +3013,7 @@ void Isolate::AddDeoptimizingBoxedField(const Field& field) {
   array.Add(Field::Handle(field.Original()), Heap::kOld);
 }
 
-RawField* Isolate::GetDeoptimizingBoxedField() {
+FieldPtr Isolate::GetDeoptimizingBoxedField() {
   ASSERT(Thread::Current()->IsMutatorThread());
   SafepointMutexLocker ml(&field_list_mutex_);
   if (boxed_field_list_ == GrowableObjectArray::null()) {
@@ -3009,7 +3028,7 @@ RawField* Isolate::GetDeoptimizingBoxedField() {
 }
 
 #ifndef PRODUCT
-RawError* Isolate::InvokePendingServiceExtensionCalls() {
+ErrorPtr Isolate::InvokePendingServiceExtensionCalls() {
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(GetAndClearPendingServiceExtensionCalls());
   if (calls.IsNull()) {
@@ -3082,8 +3101,8 @@ RawError* Isolate::InvokePendingServiceExtensionCalls() {
   return Error::null();
 }
 
-RawGrowableObjectArray* Isolate::GetAndClearPendingServiceExtensionCalls() {
-  RawGrowableObjectArray* r = pending_service_extension_calls_;
+GrowableObjectArrayPtr Isolate::GetAndClearPendingServiceExtensionCalls() {
+  GrowableObjectArrayPtr r = pending_service_extension_calls_;
   pending_service_extension_calls_ = GrowableObjectArray::null();
   return r;
 }
@@ -3177,7 +3196,7 @@ void Isolate::RegisterServiceExtensionHandler(const String& name,
 // operation atomically in the face of random OOB messages. Do not port
 // to Dart code unless you can ensure that the operations will can be
 // done atomically.
-RawInstance* Isolate::LookupServiceExtensionHandler(const String& name) {
+InstancePtr Isolate::LookupServiceExtensionHandler(const String& name) {
   const GrowableObjectArray& handlers =
       GrowableObjectArray::Handle(registered_service_extension_handlers());
   if (handlers.IsNull()) {
@@ -3640,7 +3659,7 @@ IsolateSpawnState::~IsolateSpawnState() {
   delete[] debug_name_;
 }
 
-RawObject* IsolateSpawnState::ResolveFunction() {
+ObjectPtr IsolateSpawnState::ResolveFunction() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
@@ -3717,11 +3736,11 @@ RawObject* IsolateSpawnState::ResolveFunction() {
   return func.raw();
 }
 
-RawInstance* IsolateSpawnState::BuildArgs(Thread* thread) {
+InstancePtr IsolateSpawnState::BuildArgs(Thread* thread) {
   return DeserializeMessage(thread, serialized_args_.get());
 }
 
-RawInstance* IsolateSpawnState::BuildMessage(Thread* thread) {
+InstancePtr IsolateSpawnState::BuildMessage(Thread* thread) {
   return DeserializeMessage(thread, serialized_message_.get());
 }
 

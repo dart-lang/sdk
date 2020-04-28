@@ -156,10 +156,10 @@ class Api : AllStatic {
   };
 
   // Creates a new local handle.
-  static Dart_Handle NewHandle(Thread* thread, RawObject* raw);
+  static Dart_Handle NewHandle(Thread* thread, ObjectPtr raw);
 
   // Unwraps the raw object from the handle.
-  static RawObject* UnwrapHandle(Dart_Handle object);
+  static ObjectPtr UnwrapHandle(Dart_Handle object);
 
 // Unwraps a raw Type from the handle.  The handle will be null if
 // the object was not of the requested Type.
@@ -198,7 +198,7 @@ class Api : AllStatic {
   static bool IsSmi(Dart_Handle handle) {
     // Important: we do not require current thread to be in VM state because
     // we do not dereference the handle.
-    RawObject* raw = *(reinterpret_cast<RawObject**>(handle));
+    ObjectPtr raw = *(reinterpret_cast<ObjectPtr*>(handle));
     return !raw->IsHeapObject();
   }
 
@@ -206,8 +206,8 @@ class Api : AllStatic {
   static intptr_t SmiValue(Dart_Handle handle) {
     // Important: we do not require current thread to be in VM state because
     // we do not dereference the handle.
-    RawObject* value = *(reinterpret_cast<RawObject**>(handle));
-    return Smi::Value(static_cast<RawSmi*>(value));
+    ObjectPtr value = *(reinterpret_cast<ObjectPtr*>(handle));
+    return Smi::Value(static_cast<SmiPtr>(value));
   }
 
   // Returns true if the handle holds a Dart Instance.
@@ -224,7 +224,7 @@ class Api : AllStatic {
   }
 
   static intptr_t ClassId(Dart_Handle handle) {
-    RawObject* raw = UnwrapHandle(handle);
+    ObjectPtr raw = UnwrapHandle(handle);
     if (!raw->IsHeapObject()) {
       return kSmiCid;
     }
@@ -305,7 +305,7 @@ class Api : AllStatic {
   static void SetWeakHandleReturnValue(NativeArguments* args,
                                        Dart_WeakPersistentHandle retval);
 
-  static RawString* GetEnvironmentValue(Thread* thread, const String& name);
+  static StringPtr GetEnvironmentValue(Thread* thread, const String& name);
 
   static bool IsFfiEnabled() {
 #if defined(TAGET_OS_FUCHSIA)
@@ -316,9 +316,9 @@ class Api : AllStatic {
   }
 
  private:
-  static Dart_Handle InitNewHandle(Thread* thread, RawObject* raw);
+  static Dart_Handle InitNewHandle(Thread* thread, ObjectPtr raw);
 
-  static RawString* CallEnvironmentCallback(Thread* thread, const String& name);
+  static StringPtr CallEnvironmentCallback(Thread* thread, const String& name);
 
   // Thread local key used by the API. Currently holds the current
   // ApiNativeScope if any.

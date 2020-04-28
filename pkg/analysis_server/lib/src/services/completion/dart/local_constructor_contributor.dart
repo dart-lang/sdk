@@ -136,11 +136,12 @@ class _Visitor extends LocalDeclarationVisitor {
       if (name != null && name.isNotEmpty) {
         completion = '$completion.$name';
       }
+      if (!useNewRelevance && element.hasDeprecated) {
+        relevance = DART_RELEVANCE_LOW;
+      }
 
       var suggestion = createSuggestion(request, element,
-          completion: completion,
-          relevance: relevance,
-          useNewRelevance: useNewRelevance);
+          completion: completion, relevance: relevance);
       if (suggestion != null) {
         suggestions.add(suggestion);
       }

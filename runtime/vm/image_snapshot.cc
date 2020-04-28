@@ -4,6 +4,7 @@
 
 #include "vm/image_snapshot.h"
 
+#include "include/dart_api.h"
 #include "platform/assert.h"
 #include "vm/class_id.h"
 #include "vm/compiler/runtime_api.h"
@@ -40,11 +41,11 @@ DEFINE_FLAG(charp,
 #endif
 
 intptr_t ObjectOffsetTrait::Hashcode(Key key) {
-  RawObject* obj = key;
+  ObjectPtr obj = key;
   ASSERT(!obj->IsSmi());
 
-  uword body = RawObject::ToAddr(obj) + sizeof(RawObject);
-  uword end = RawObject::ToAddr(obj) + obj->HeapSize();
+  uword body = ObjectLayout::ToAddr(obj) + sizeof(ObjectLayout);
+  uword end = ObjectLayout::ToAddr(obj) + obj->ptr()->HeapSize();
 
   uint32_t hash = obj->GetClassId();
   // Don't include the header. Objects in the image are pre-marked, but objects
@@ -57,8 +58,8 @@ intptr_t ObjectOffsetTrait::Hashcode(Key key) {
 }
 
 bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
-  RawObject* a = pair.object;
-  RawObject* b = key;
+  ObjectPtr a = pair.object;
+  ObjectPtr b = key;
   ASSERT(!a->IsSmi());
   ASSERT(!b->IsSmi());
 
@@ -66,16 +67,16 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
     return false;
   }
 
-  intptr_t heap_size = a->HeapSize();
-  if (b->HeapSize() != heap_size) {
+  intptr_t heap_size = a->ptr()->HeapSize();
+  if (b->ptr()->HeapSize() != heap_size) {
     return false;
   }
 
   // Don't include the header. Objects in the image are pre-marked, but objects
   // in the current isolate are not.
-  uword body_a = RawObject::ToAddr(a) + sizeof(RawObject);
-  uword body_b = RawObject::ToAddr(b) + sizeof(RawObject);
-  uword body_size = heap_size - sizeof(RawObject);
+  uword body_a = ObjectLayout::ToAddr(a) + sizeof(ObjectLayout);
+  uword body_b = ObjectLayout::ToAddr(b) + sizeof(ObjectLayout);
+  uword body_size = heap_size - sizeof(ObjectLayout);
   return 0 == memcmp(reinterpret_cast<const void*>(body_a),
                      reinterpret_cast<const void*>(body_b), body_size);
 }
@@ -102,8 +103,8 @@ void ImageWriter::PrepareForSerialization(
       ASSERT((initial_offset + inst.expected_offset) == next_text_offset_);
       switch (inst.op) {
         case ImageWriterCommand::InsertInstructionOfCode: {
-          RawCode* code = inst.insert_instruction_of_code.code;
-          RawInstructions* instructions = Code::InstructionsOf(code);
+          CodePtr code = inst.insert_instruction_of_code.code;
+          InstructionsPtr instructions = Code::InstructionsOf(code);
           const intptr_t offset = next_text_offset_;
           instructions_.Add(InstructionsData(instructions, code, offset));
           next_text_offset_ += SizeInSnapshot(instructions);
@@ -127,8 +128,8 @@ void ImageWriter::PrepareForSerialization(
   }
 }
 
-int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
-                                      RawCode* code) {
+int32_t ImageWriter::GetTextOffsetFor(InstructionsPtr instructions,
+                                      CodePtr code) {
   intptr_t offset = heap_->GetObjectId(instructions);
   if (offset != 0) {
     return offset;
@@ -143,7 +144,7 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
   return offset;
 }
 
-static intptr_t InstructionsSizeInSnapshot(RawInstructions* raw) {
+static intptr_t InstructionsSizeInSnapshot(InstructionsPtr raw) {
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     // Currently, we align bare instruction payloads on 4 byte boundaries.
     //
@@ -158,7 +159,7 @@ static intptr_t InstructionsSizeInSnapshot(RawInstructions* raw) {
       compiler::target::Instructions::HeaderSize() + Instructions::Size(raw),
       compiler::target::ObjectAlignment::kObjectAlignment);
 #else
-  return raw->HeapSize();
+  return raw->ptr()->HeapSize();
 #endif
 }
 
@@ -196,32 +197,32 @@ static intptr_t PcDescriptorsSizeInSnapshot(intptr_t len) {
                         compiler::target::ObjectAlignment::kObjectAlignment);
 }
 
-intptr_t ImageWriter::SizeInSnapshot(RawObject* raw_object) {
+intptr_t ImageWriter::SizeInSnapshot(ObjectPtr raw_object) {
   const classid_t cid = raw_object->GetClassId();
 
   switch (cid) {
     case kCompressedStackMapsCid: {
-      RawCompressedStackMaps* raw_maps =
-          static_cast<RawCompressedStackMaps*>(raw_object);
+      CompressedStackMapsPtr raw_maps =
+          static_cast<CompressedStackMapsPtr>(raw_object);
       auto const payload_size = CompressedStackMaps::PayloadSizeOf(raw_maps);
       return CompressedStackMapsSizeInSnapshot(payload_size);
     }
     case kOneByteStringCid:
     case kTwoByteStringCid: {
-      RawString* raw_str = static_cast<RawString*>(raw_object);
+      StringPtr raw_str = static_cast<StringPtr>(raw_object);
       return StringSizeInSnapshot(Smi::Value(raw_str->ptr()->length_),
                                   cid == kOneByteStringCid);
     }
     case kCodeSourceMapCid: {
-      RawCodeSourceMap* raw_map = static_cast<RawCodeSourceMap*>(raw_object);
+      CodeSourceMapPtr raw_map = static_cast<CodeSourceMapPtr>(raw_object);
       return CodeSourceMapSizeInSnapshot(raw_map->ptr()->length_);
     }
     case kPcDescriptorsCid: {
-      RawPcDescriptors* raw_desc = static_cast<RawPcDescriptors*>(raw_object);
+      PcDescriptorsPtr raw_desc = static_cast<PcDescriptorsPtr>(raw_object);
       return PcDescriptorsSizeInSnapshot(raw_desc->ptr()->length_);
     }
     case kInstructionsCid: {
-      RawInstructions* raw_insns = static_cast<RawInstructions*>(raw_object);
+      InstructionsPtr raw_insns = static_cast<InstructionsPtr>(raw_object);
       return InstructionsSizeInSnapshot(raw_insns);
     }
     default: {
@@ -232,17 +233,17 @@ intptr_t ImageWriter::SizeInSnapshot(RawObject* raw_object) {
   }
 }
 #else   // defined(IS_SIMARM_X64)
-intptr_t ImageWriter::SizeInSnapshot(RawObject* raw) {
+intptr_t ImageWriter::SizeInSnapshot(ObjectPtr raw) {
   switch (raw->GetClassId()) {
     case kInstructionsCid:
-      return InstructionsSizeInSnapshot(static_cast<RawInstructions*>(raw));
+      return InstructionsSizeInSnapshot(static_cast<InstructionsPtr>(raw));
     default:
-      return raw->HeapSize();
+      return raw->ptr()->HeapSize();
   }
 }
 #endif  // defined(IS_SIMARM_X64)
 
-uint32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
+uint32_t ImageWriter::GetDataOffsetFor(ObjectPtr raw_object) {
   intptr_t snap_size = SizeInSnapshot(raw_object);
   intptr_t offset = next_data_offset_;
   next_data_offset_ += snap_size;
@@ -377,7 +378,7 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
     if (is_trampoline) continue;
 
     data.insns_ = &Instructions::Handle(zone, data.raw_insns_);
-    ASSERT(data.raw_code_ != NULL);
+    ASSERT(data.raw_code_ != nullptr);
     data.code_ = &Code::Handle(zone, data.raw_code_);
 
     // Reset object id as an isolate snapshot after a VM snapshot will not use
@@ -419,14 +420,15 @@ void ImageWriter::WriteROData(WriteStream* stream) {
     AutoTraceImage(obj, section_start, stream);
 
     NoSafepointScope no_safepoint;
-    uword start = reinterpret_cast<uword>(obj.raw()) - kHeapObjectTag;
+    uword start = static_cast<uword>(obj.raw()) - kHeapObjectTag;
 
     // Write object header with the mark and read-only bits set.
     uword marked_tags = obj.raw()->ptr()->tags_;
-    marked_tags = RawObject::OldBit::update(true, marked_tags);
-    marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
-    marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
-    marked_tags = RawObject::NewBit::update(false, marked_tags);
+    marked_tags = ObjectLayout::OldBit::update(true, marked_tags);
+    marked_tags = ObjectLayout::OldAndNotMarkedBit::update(false, marked_tags);
+    marked_tags =
+        ObjectLayout::OldAndNotRememberedBit::update(true, marked_tags);
+    marked_tags = ObjectLayout::NewBit::update(false, marked_tags);
 #if defined(HASH_IN_OBJECT_HEADER)
     marked_tags |= static_cast<uword>(obj.raw()->ptr()->hash_) << 32;
 #endif
@@ -456,9 +458,8 @@ void ImageWriter::WriteROData(WriteStream* stream) {
       marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
 
       stream->WriteTargetWord(marked_tags);
-      stream->WriteTargetWord(
-          reinterpret_cast<uword>(str.raw()->ptr()->length_));
-      stream->WriteTargetWord(reinterpret_cast<uword>(str.raw()->ptr()->hash_));
+      stream->WriteTargetWord(static_cast<uword>(str.raw()->ptr()->length_));
+      stream->WriteTargetWord(static_cast<uword>(str.raw()->ptr()->hash_));
       stream->WriteBytes(
           reinterpret_cast<const void*>(start + String::kSizeofRawString),
           StringPayloadSize(str.Length(), str.IsOneByteString()));
@@ -487,7 +488,7 @@ void ImageWriter::WriteROData(WriteStream* stream) {
       FATAL1("Unsupported class %s in rodata section.\n", clazz.ToCString());
     }
 #else   // defined(IS_SIMARM_X64)
-    const uword end = start + obj.raw()->HeapSize();
+    const uword end = start + obj.raw()->ptr()->HeapSize();
 
     stream->WriteWord(marked_tags);
     start += sizeof(uword);
@@ -624,8 +625,8 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   }
 #endif
 
-  const char* instructions_symbol =
-      vm ? "_kDartVmSnapshotInstructions" : "_kDartIsolateSnapshotInstructions";
+  const char* instructions_symbol = vm ? kVmSnapshotInstructionsAsmSymbol
+                                       : kIsolateSnapshotInstructionsAsmSymbol;
   assembly_stream_.Print(".text\n");
   assembly_stream_.Print(".globl %s\n", instructions_symbol);
 
@@ -660,12 +661,12 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     const intptr_t section_size = image_size - Image::kHeaderSize;
     // Add the RawInstructionsSection header.
     const compiler::target::uword marked_tags =
-        RawObject::OldBit::encode(true) |
-        RawObject::OldAndNotMarkedBit::encode(false) |
-        RawObject::OldAndNotRememberedBit::encode(true) |
-        RawObject::NewBit::encode(false) |
-        RawObject::SizeTag::encode(AdjustObjectSizeForTarget(section_size)) |
-        RawObject::ClassIdTag::encode(kInstructionsSectionCid);
+        ObjectLayout::OldBit::encode(true) |
+        ObjectLayout::OldAndNotMarkedBit::encode(false) |
+        ObjectLayout::OldAndNotRememberedBit::encode(true) |
+        ObjectLayout::NewBit::encode(false) |
+        ObjectLayout::SizeTag::encode(AdjustObjectSizeForTarget(section_size)) |
+        ObjectLayout::ClassIdTag::encode(kInstructionsSectionCid);
     WriteWordLiteralText(marked_tags);
     // Calculated using next_text_offset_, which doesn't include post-payload
     // padding to object alignment.
@@ -757,11 +758,12 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
       // Write Instructions with the mark and read-only bits set.
       uword marked_tags = insns.raw_ptr()->tags_;
-      marked_tags = RawObject::OldBit::update(true, marked_tags);
-      marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
+      marked_tags = ObjectLayout::OldBit::update(true, marked_tags);
       marked_tags =
-          RawObject::OldAndNotRememberedBit::update(true, marked_tags);
-      marked_tags = RawObject::NewBit::update(false, marked_tags);
+          ObjectLayout::OldAndNotMarkedBit::update(false, marked_tags);
+      marked_tags =
+          ObjectLayout::OldAndNotRememberedBit::update(true, marked_tags);
+      marked_tags = ObjectLayout::NewBit::update(false, marked_tags);
 #if defined(HASH_IN_OBJECT_HEADER)
       // Can't use GetObjectTagsAndHash because the update methods discard the
       // high bits.
@@ -813,7 +815,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
 #if defined(DART_PRECOMPILER)
       PcDescriptors::Iterator iterator(descriptors,
-                                       RawPcDescriptors::kBSSRelocation);
+                                       PcDescriptorsLayout::kBSSRelocation);
       uword next_reloc_offset = iterator.MoveNext() ? iterator.PcOffset() : -1;
 
       // We only generate BSS relocations that are word-sized and at
@@ -858,7 +860,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
         }
 
         ASSERT(kWordSize != compiler::target::kWordSize ||
-               (text_offset - instr_start) == insns.raw()->HeapSize());
+               (text_offset - instr_start) == insns.raw()->ptr()->HeapSize());
       }
     }
 
@@ -1067,8 +1069,8 @@ intptr_t BlobImageWriter::WriteByteSequence(uword start, uword end) {
 void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   const bool bare_instruction_payloads =
       FLAG_precompiled_mode && FLAG_use_bare_instructions;
-  const char* instructions_symbol =
-      vm ? "_kDartVmSnapshotInstructions" : "_kDartIsolateSnapshotInstructions";
+  const char* instructions_symbol = vm ? kVmSnapshotInstructionsAsmSymbol
+                                       : kIsolateSnapshotInstructionsAsmSymbol;
   auto const zone = Thread::Current()->zone();
 
 #if defined(DART_PRECOMPILER)
@@ -1107,12 +1109,12 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     const intptr_t section_size = image_size - Image::kHeaderSize;
     // Add the RawInstructionsSection header.
     const compiler::target::uword marked_tags =
-        RawObject::OldBit::encode(true) |
-        RawObject::OldAndNotMarkedBit::encode(false) |
-        RawObject::OldAndNotRememberedBit::encode(true) |
-        RawObject::NewBit::encode(false) |
-        RawObject::SizeTag::encode(AdjustObjectSizeForTarget(section_size)) |
-        RawObject::ClassIdTag::encode(kInstructionsSectionCid);
+        ObjectLayout::OldBit::encode(true) |
+        ObjectLayout::OldAndNotMarkedBit::encode(false) |
+        ObjectLayout::OldAndNotRememberedBit::encode(true) |
+        ObjectLayout::NewBit::encode(false) |
+        ObjectLayout::SizeTag::encode(AdjustObjectSizeForTarget(section_size)) |
+        ObjectLayout::ClassIdTag::encode(kInstructionsSectionCid);
     instructions_blob_stream_.WriteTargetWord(marked_tags);
     // Uses next_text_offset_ to avoid any post-payload padding.
     const intptr_t instructions_length =
@@ -1183,10 +1185,11 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
     // Write Instructions with the mark and read-only bits set.
     uword marked_tags = insns.raw_ptr()->tags_;
-    marked_tags = RawObject::OldBit::update(true, marked_tags);
-    marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
-    marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
-    marked_tags = RawObject::NewBit::update(false, marked_tags);
+    marked_tags = ObjectLayout::OldBit::update(true, marked_tags);
+    marked_tags = ObjectLayout::OldAndNotMarkedBit::update(false, marked_tags);
+    marked_tags =
+        ObjectLayout::OldAndNotRememberedBit::update(true, marked_tags);
+    marked_tags = ObjectLayout::NewBit::update(false, marked_tags);
 #if defined(HASH_IN_OBJECT_HEADER)
     // Can't use GetObjectTagsAndHash because the update methods discard the
     // high bits.
@@ -1258,7 +1261,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       descriptors = code.pc_descriptors();
 
       PcDescriptors::Iterator iterator(
-          descriptors, /*kind_mask=*/RawPcDescriptors::kBSSRelocation);
+          descriptors, /*kind_mask=*/PcDescriptorsLayout::kBSSRelocation);
 
       while (iterator.MoveNext()) {
         const intptr_t reloc_offset = iterator.PcOffset();
@@ -1322,7 +1325,7 @@ ImageReader::ImageReader(const uint8_t* data_image,
   ASSERT(instructions_image != NULL);
 }
 
-RawApiError* ImageReader::VerifyAlignment() const {
+ApiErrorPtr ImageReader::VerifyAlignment() const {
   if (!Utils::IsAligned(data_image_, kObjectAlignment) ||
       !Utils::IsAligned(instructions_image_, kMaxObjectAlignment)) {
     return ApiError::New(
@@ -1344,23 +1347,23 @@ uword ImageReader::GetBareInstructionsEnd() const {
 }
 #endif
 
-RawInstructions* ImageReader::GetInstructionsAt(uint32_t offset) const {
+InstructionsPtr ImageReader::GetInstructionsAt(uint32_t offset) const {
   ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
-  RawObject* result = RawObject::FromAddr(
+  ObjectPtr result = ObjectLayout::FromAddr(
       reinterpret_cast<uword>(instructions_image_) + offset);
   ASSERT(result->IsInstructions());
-  ASSERT(result->IsMarked());
+  ASSERT(result->ptr()->IsMarked());
 
   return Instructions::RawCast(result);
 }
 
-RawObject* ImageReader::GetObjectAt(uint32_t offset) const {
+ObjectPtr ImageReader::GetObjectAt(uint32_t offset) const {
   ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
-  RawObject* result =
-      RawObject::FromAddr(reinterpret_cast<uword>(data_image_) + offset);
-  ASSERT(result->IsMarked());
+  ObjectPtr result =
+      ObjectLayout::FromAddr(reinterpret_cast<uword>(data_image_) + offset);
+  ASSERT(result->ptr()->IsMarked());
 
   return result;
 }

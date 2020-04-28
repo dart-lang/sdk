@@ -588,9 +588,9 @@ SExpression* FlowGraphSerializer::FunctionToSExp(const Function& func) {
       AddExtraSymbol(sexp, "native_name", tmp_string_.ToCString());
     }
   }
-  if (func.kind() != RawFunction::Kind::kRegularFunction ||
+  if (func.kind() != FunctionLayout::Kind::kRegularFunction ||
       FLAG_verbose_flow_graph_serialization) {
-    AddExtraSymbol(sexp, "kind", RawFunction::KindToCString(func.kind()));
+    AddExtraSymbol(sexp, "kind", FunctionLayout::KindToCString(func.kind()));
   }
   function_type_args_ = func.type_parameters();
   if (auto const ta_sexp = NonEmptyTypeArgumentsToSExp(function_type_args_)) {
@@ -1061,9 +1061,9 @@ void DebugStepCheckInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
-  if (stub_kind_ != RawPcDescriptors::kAnyKind ||
+  if (stub_kind_ != PcDescriptorsLayout::kAnyKind ||
       FLAG_verbose_flow_graph_serialization) {
-    auto const stub_kind_name = RawPcDescriptors::KindToCString(stub_kind_);
+    auto const stub_kind_name = PcDescriptorsLayout::KindToCString(stub_kind_);
     ASSERT(stub_kind_name != nullptr);
     s->AddExtraSymbol(sexp, "stub_kind", stub_kind_name);
   }

@@ -28,7 +28,7 @@ const intptr_t kTrampolineSize = Utils::RoundUp(
     kObjectAlignment);
 
 CodeRelocator::CodeRelocator(Thread* thread,
-                             GrowableArray<RawCode*>* code_objects,
+                             GrowableArray<CodePtr>* code_objects,
                              GrowableArray<ImageWriterCommand>* commands)
     : StackResource(thread),
       thread_(thread),
@@ -175,8 +175,8 @@ void CodeRelocator::FindInstructionAndCallLimits() {
   }
 }
 
-bool CodeRelocator::AddInstructionsToText(RawCode* code) {
-  RawInstructions* instructions = Code::InstructionsOf(code);
+bool CodeRelocator::AddInstructionsToText(CodePtr code) {
+  InstructionsPtr instructions = Code::InstructionsOf(code);
 
   // If two [Code] objects point to the same [Instructions] object, we'll just
   // use the first one (they are equivalent for all practical purposes).
@@ -220,7 +220,7 @@ UnresolvedTrampoline* CodeRelocator::FindTrampolineFor(
   return nullptr;
 }
 
-void CodeRelocator::AddTrampolineToText(RawInstructions* destination,
+void CodeRelocator::AddTrampolineToText(InstructionsPtr destination,
                                         uint8_t* trampoline_bytes,
                                         intptr_t trampoline_length) {
   commands_->Add(ImageWriterCommand(next_text_offset_, trampoline_bytes,
@@ -296,7 +296,7 @@ void CodeRelocator::EnqueueUnresolvedCall(UnresolvedCall* unresolved_call) {
   all_unresolved_calls_.Append(unresolved_call);
 
   // Add it to callers of destination.
-  RawInstructions* destination = Code::InstructionsOf(unresolved_call->callee);
+  InstructionsPtr destination = Code::InstructionsOf(unresolved_call->callee);
   if (!unresolved_calls_by_destination_.HasKey(destination)) {
     unresolved_calls_by_destination_.Insert(
         {destination, new SameDestinationUnresolvedCallsList()});
@@ -330,7 +330,7 @@ bool CodeRelocator::TryResolveBackwardsCall(UnresolvedCall* unresolved_call) {
 }
 
 void CodeRelocator::ResolveUnresolvedCallsTargeting(
-    const RawInstructions* instructions) {
+    const InstructionsPtr instructions) {
   if (unresolved_calls_by_destination_.HasKey(instructions)) {
     SameDestinationUnresolvedCallsList* calls =
         unresolved_calls_by_destination_.LookupValue(instructions);
@@ -422,7 +422,7 @@ bool CodeRelocator::IsTargetInRangeFor(UnresolvedCall* unresolved_call,
   }
 }
 
-RawCode* CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
+CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
   // The precompiler should have already replaced all function entries
   // with code entries.
   ASSERT(call.Get<Code::kSCallTableFunctionTarget>() == Function::null());
@@ -472,15 +472,15 @@ static void MarkAsFreeListElement(uint8_t* trampoline_bytes,
   uint32_t tags = 0;
 #if defined(IS_SIMARM_X64)
   // Account for difference in kObjectAlignment between host and target.
-  tags = RawObject::SizeTag::update(trampoline_length * 2, tags);
+  tags = ObjectLayout::SizeTag::update(trampoline_length * 2, tags);
 #else
-  tags = RawObject::SizeTag::update(trampoline_length, tags);
+  tags = ObjectLayout::SizeTag::update(trampoline_length, tags);
 #endif
-  tags = RawObject::ClassIdTag::update(kFreeListElement, tags);
-  tags = RawObject::OldBit::update(true, tags);
-  tags = RawObject::OldAndNotMarkedBit::update(true, tags);
-  tags = RawObject::OldAndNotRememberedBit::update(true, tags);
-  tags = RawObject::NewBit::update(false, tags);
+  tags = ObjectLayout::ClassIdTag::update(kFreeListElement, tags);
+  tags = ObjectLayout::OldBit::update(true, tags);
+  tags = ObjectLayout::OldAndNotMarkedBit::update(true, tags);
+  tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
+  tags = ObjectLayout::NewBit::update(false, tags);
 
   auto header_word = reinterpret_cast<uintptr_t*>(trampoline_bytes);
   *header_word = tags;
@@ -563,9 +563,8 @@ void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
   }
 }
 
-intptr_t CodeRelocator::FindDestinationInText(
-    const RawInstructions* destination,
-    intptr_t offset_into_target) {
+intptr_t CodeRelocator::FindDestinationInText(const InstructionsPtr destination,
+                                              intptr_t offset_into_target) {
   auto const destination_offset = text_offsets_.LookupValue(destination);
   return destination_offset + AdjustPayloadOffset(offset_into_target);
 }

@@ -19,23 +19,23 @@ method1<T>(T o) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// A local function parameter type is captured in strong mode.
+/// A local function parameter type is captured in spec:nnbd-off mode.
 ////////////////////////////////////////////////////////////////////////////////
 
 method2<T>() {
-  /*strong.fields=[T],free=[T]*/
-  /*omit.*/
+  /*spec:nnbd-off|spec:nnbd-sdk.fields=[T],free=[T]*/
+  /*prod:nnbd-off.*/
   dynamic local(T t) => t;
   return local;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// A local function return type is captured in strong mode.
+/// A local function return type is captured in spec:nnbd-off mode.
 ////////////////////////////////////////////////////////////////////////////////
 
 method3<T>(dynamic o) {
-  /*strong.fields=[T,o],free=[T,o]*/
-  /*omit.fields=[o],free=[o]*/
+  /*spec:nnbd-off|spec:nnbd-sdk.fields=[T,o],free=[T,o]*/
+  /*prod:nnbd-off|prod:nnbd-sdk.fields=[o],free=[o]*/
   T local() => o;
   return local;
 }
@@ -65,8 +65,8 @@ T method5<T>(dynamic o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 method6<T>() {
-  /*strong.fields=[T],free=[T]*/
-  /*omit.*/
+  /*spec:nnbd-off|spec:nnbd-sdk.fields=[T],free=[T]*/
+  /*prod:nnbd-off.*/
   dynamic local(T t) {
     /*fields=[t],free=[t]*/
     dynamic inner() => t;
@@ -81,8 +81,8 @@ method6<T>() {
 ////////////////////////////////////////////////////////////////////////////////
 
 method7<T>(dynamic o) {
-  /*strong.fields=[T,o],free=[T,o]*/
-  /*omit.fields=[o],free=[o]*/
+  /*spec:nnbd-off|spec:nnbd-sdk.fields=[T,o],free=[T,o]*/
+  /*prod:nnbd-off|prod:nnbd-sdk.fields=[o],free=[o]*/
   T local() {
     /*fields=[o],free=[o]*/
     dynamic inner() => o;

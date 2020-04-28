@@ -281,9 +281,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             await userCode.buildComponent(verify: c.options.verify);
       }
       hierarchy ??= userCode.loader.hierarchy;
-      if (hierarchy != null && userCode.classesChangedStructure != null) {
-        hierarchy.applyMemberChanges(userCode.classesChangedStructure,
-            findDescendants: true);
+      if (hierarchy != null) {
+        if (userCode.classHierarchyChanges != null) {
+          hierarchy.applyTreeChanges([], [], userCode.classHierarchyChanges);
+        }
+        if (userCode.classMemberChanges != null) {
+          hierarchy.applyMemberChanges(userCode.classMemberChanges,
+              findDescendants: true);
+        }
       }
       recordNonFullComponentForTesting(componentWithDill);
 
@@ -789,7 +794,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Library lib = builder.library;
         removedLibraries.add(lib);
       }
-      hierarchy.applyTreeChanges(removedLibraries, const []);
+      hierarchy.applyTreeChanges(removedLibraries, const [], const []);
     }
   }
 
@@ -1380,7 +1385,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         incrementalSerializer?.invalidate(builder.fileUri);
       }
     }
-    hierarchy?.applyTreeChanges(removedLibraries, const []);
+    hierarchy?.applyTreeChanges(removedLibraries, const [], const []);
     if (removedDillBuilders) {
       makeDillLoaderLibrariesUpToDateWithBuildersMap();
     }
@@ -1923,7 +1928,9 @@ class ExperimentalInvalidation {
 
 class IncrementalKernelTarget extends KernelTarget
     implements ChangedStructureNotifier {
-  Set<Class> classesChangedStructure;
+  Set<Class> classHierarchyChanges;
+  Set<Class> classMemberChanges;
+
   IncrementalKernelTarget(FileSystem fileSystem, bool includeComments,
       DillTarget dillTarget, UriTranslator uriTranslator)
       : super(fileSystem, includeComments, dillTarget, uriTranslator);
@@ -1931,8 +1938,14 @@ class IncrementalKernelTarget extends KernelTarget
   ChangedStructureNotifier get changedStructureNotifier => this;
 
   @override
-  void forClass(Class c) {
-    classesChangedStructure ??= new Set<Class>();
-    classesChangedStructure.add(c);
+  void registerClassMemberChange(Class c) {
+    classMemberChanges ??= new Set<Class>();
+    classMemberChanges.add(c);
+  }
+
+  @override
+  void registerClassHierarchyChange(Class cls) {
+    classHierarchyChanges ??= <Class>{};
+    classHierarchyChanges.add(cls);
   }
 }

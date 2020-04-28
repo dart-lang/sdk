@@ -30,11 +30,19 @@ class _DartDevelopmentServiceClient {
   }
 
   /// Send a JSON RPC notification to the client.
-  void sendNotification(String method, [dynamic parameters]) async {
+  void sendNotification(String method, [dynamic parameters]) {
     if (_clientPeer.isClosed) {
       return;
     }
     _clientPeer.sendNotification(method, parameters);
+  }
+
+  /// Send a JSON RPC request to the client.
+  Future<dynamic> sendRequest(String method, [dynamic parameters]) async {
+    if (_clientPeer.isClosed) {
+      return null;
+    }
+    return await _clientPeer.sendRequest(method, parameters);
   }
 
   /// Registers handlers for JSON RPC methods which need to be intercepted by
@@ -52,7 +60,65 @@ class _DartDevelopmentServiceClient {
       return _success;
     });
 
+    _clientPeer.registerMethod('registerService', (parameters) async {
+      final serviceId = parameters['service'].asString;
+      final alias = parameters['alias'].asString;
+      if (services.containsKey(serviceId)) {
+        throw _RpcErrorCodes.buildRpcException(
+          _RpcErrorCodes.kServiceAlreadyRegistered,
+        );
+      }
+      services[serviceId] = alias;
+      // Notify other clients that a new service extension is available.
+      dds.streamManager.sendServiceRegisteredEvent(
+        this,
+        serviceId,
+        alias,
+      );
+      return _success;
+    });
+
+    // When invoked within a fallback, the next fallback will start executing.
+    // The final fallback forwards the request to the VM service directly.
+    @alwaysThrows
+    nextFallback() => throw json_rpc.RpcException.methodNotFound('');
+
+    // Handle service extension invocations.
+    _clientPeer.registerFallback((parameters) async {
+      hasNamespace(String method) => method.contains('.');
+      getMethod(String method) => method.split('.').last;
+      getNamespace(String method) => method.split('.').first;
+      if (!hasNamespace(parameters.method)) {
+        nextFallback();
+      }
+      // Lookup the client associated with the service extension's namespace.
+      // If the client exists and that client has registered the specified
+      // method, forward the request to that client.
+      final method = getMethod(parameters.method);
+      final namespace = getNamespace(parameters.method);
+      final serviceClient = dds._clients[namespace];
+      if (serviceClient != null && serviceClient.services.containsKey(method)) {
+        return await Future.any(
+          [
+            // Forward the request to the service client or...
+            serviceClient.sendRequest(method, parameters.asMap),
+            // if the service client closes, return an error response.
+            serviceClient._clientPeer.done.then(
+              (_) => throw _RpcErrorCodes.buildRpcException(
+                _RpcErrorCodes.kServiceDisappeared,
+              ),
+            ),
+          ],
+        );
+      }
+      throw json_rpc.RpcException(
+        _RpcErrorCodes.kMethodNotFound,
+        'Unknown service: ${parameters.method}',
+      );
+    });
+
     // Unless otherwise specified, the request is forwarded to the VM service.
+    // NOTE: This must be the last fallback registered.
     _clientPeer.registerFallback((parameters) async =>
         await _vmServicePeer.sendRequest(parameters.method, parameters.asMap));
   }
@@ -62,6 +128,7 @@ class _DartDevelopmentServiceClient {
   };
 
   final _DartDevelopmentService dds;
+  final Map<String, String> services = {};
   final json_rpc.Peer _vmServicePeer;
   final WebSocketChannel ws;
   json_rpc.Peer _clientPeer;

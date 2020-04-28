@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.4
+
+- Decoded Dart calls are now never considered internal, only VM stub calls.
+  This is due to a concurrent change in the Dart VM that no longer prints
+  non-symbolic frames for functions considered invisible, which matches the
+  symbolic frame printer and removes the need for the decoder to guess which
+  frames should be hidden.
+
+  This package still works on earlier versions of Dart, so the dependencies have
+  not changed. However, it may print more frame information than expected when
+  decoding stack frames from a Dart VM that does not include this change to
+  non-symbolic stack printing.
+
 ## 0.3.3
 
 - No externally visible changes.

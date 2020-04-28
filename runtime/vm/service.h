@@ -10,11 +10,12 @@
 #include "vm/allocation.h"
 #include "vm/object_id_ring.h"
 #include "vm/os_thread.h"
+#include "vm/tagged_pointer.h"
 
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 3
-#define SERVICE_PROTOCOL_MINOR_VERSION 30
+#define SERVICE_PROTOCOL_MINOR_VERSION 32
 
 class Array;
 class EmbedderServiceHandler;
@@ -27,8 +28,6 @@ class IsolateGroup;
 class JSONStream;
 class JSONObject;
 class Object;
-class RawInstance;
-class RawError;
 class ServiceEvent;
 class String;
 
@@ -90,14 +89,14 @@ class StreamInfo {
 class Service : public AllStatic {
  public:
   // Handles a message which is not directed to an isolate.
-  static RawError* HandleRootMessage(const Array& message);
+  static ErrorPtr HandleRootMessage(const Array& message);
 
   // Handles a message which is not directed to an isolate and also
   // expects the parameter keys and values to be actual dart objects.
-  static RawError* HandleObjectRootMessage(const Array& message);
+  static ErrorPtr HandleObjectRootMessage(const Array& message);
 
   // Handles a message which is directed to a particular isolate.
-  static RawError* HandleIsolateMessage(Isolate* isolate, const Array& message);
+  static ErrorPtr HandleIsolateMessage(Isolate* isolate, const Array& message);
 
   static void HandleEvent(ServiceEvent* event);
 
@@ -176,7 +175,7 @@ class Service : public AllStatic {
   static bool ListenStream(const char* stream_id);
   static void CancelStream(const char* stream_id);
 
-  static RawObject* RequestAssets();
+  static ObjectPtr RequestAssets();
 
   static Dart_ServiceStreamListenCallback stream_listen_callback() {
     return stream_listen_callback_;
@@ -206,9 +205,9 @@ class Service : public AllStatic {
   }
 
  private:
-  static RawError* InvokeMethod(Isolate* isolate,
-                                const Array& message,
-                                bool parameters_are_dart_objects = false);
+  static ErrorPtr InvokeMethod(Isolate* isolate,
+                               const Array& message,
+                               bool parameters_are_dart_objects = false);
 
   static void EmbedderHandleMessage(EmbedderServiceHandler* handler,
                                     JSONStream* js);
@@ -233,7 +232,7 @@ class Service : public AllStatic {
                         const char* kind,
                         JSONStream* event);
 
-  static RawError* MaybePause(Isolate* isolate, const Error& error);
+  static ErrorPtr MaybePause(Isolate* isolate, const Error& error);
 
   static EmbedderServiceHandler* isolate_service_handler_head_;
   static EmbedderServiceHandler* root_service_handler_head_;

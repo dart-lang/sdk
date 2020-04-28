@@ -12,7 +12,7 @@ typedef int Foo<T>(String x);
 typedef int Bar();
 
 class C {
-  Bar fun(Foo<int> x) => null;
+  Bar fun(Foo<int> x) => () => 123;
 }
 
 main() {

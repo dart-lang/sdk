@@ -32714,7 +32714,7 @@ class Window extends EventTarget
   @Returns('Window|=Object')
   dynamic get _get_top native;
 
-  VisualViewport get visualViewport native;
+  VisualViewport? get visualViewport native;
 
   /**
    * The current window.

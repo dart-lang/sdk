@@ -37,8 +37,6 @@ class DiagnosticDomainHandler implements RequestHandler {
 
   /// Answer the `diagnostic.getServerPort` request.
   Future handleGetServerPort(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     try {
       // Open a port (or return the existing one).
       var port = await server.diagnosticServer.getServerPort();

@@ -44,7 +44,7 @@ class CanonicalTypeTraits {
     return Type::Cast(key).Hash();
   }
   static uword Hash(const CanonicalTypeKey& key) { return key.Hash(); }
-  static RawObject* NewKey(const CanonicalTypeKey& obj) {
+  static ObjectPtr NewKey(const CanonicalTypeKey& obj) {
     return obj.key_.raw();
   }
 };
@@ -85,7 +85,7 @@ class CanonicalTypeArgumentsTraits {
     return TypeArguments::Cast(key).Hash();
   }
   static uword Hash(const CanonicalTypeArgumentsKey& key) { return key.Hash(); }
-  static RawObject* NewKey(const CanonicalTypeArgumentsKey& obj) {
+  static ObjectPtr NewKey(const CanonicalTypeArgumentsKey& obj) {
     return obj.key_.raw();
   }
 };

@@ -613,9 +613,6 @@ class Driver implements ServerStarter {
           serveResult = isolateAnalysisServer.serveIsolate(sendPort);
         }
         serveResult.then((_) async {
-          // TODO(brianwilkerson) Determine whether this await is necessary.
-          await null;
-
           if (serve_http) {
             httpServer.close();
           }

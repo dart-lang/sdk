@@ -58,6 +58,7 @@ namespace dart {
   V(SendPortImpl_get_id, 1)                                                    \
   V(SendPortImpl_get_hashcode, 1)                                              \
   V(SendPortImpl_sendInternal_, 2)                                             \
+  V(SendPortImpl_sendAndExitInternal_, 2)                                      \
   V(Smi_bitAndFromSmi, 2)                                                      \
   V(Smi_bitNegate, 1)                                                          \
   V(Smi_bitLength, 1)                                                          \
@@ -487,8 +488,8 @@ class BootstrapNatives : public AllStatic {
   static const uint8_t* Symbol(Dart_NativeFunction* nf);
 
 #define DECLARE_BOOTSTRAP_NATIVE(name, ignored)                                \
-  static RawObject* DN_##name(Thread* thread, Zone* zone,                      \
-                              NativeArguments* arguments);
+  static ObjectPtr DN_##name(Thread* thread, Zone* zone,                       \
+                             NativeArguments* arguments);
 
   BOOTSTRAP_NATIVE_LIST(DECLARE_BOOTSTRAP_NATIVE)
 #if !defined(DART_PRECOMPILED_RUNTIME)

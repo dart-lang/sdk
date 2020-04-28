@@ -1324,12 +1324,12 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
     if (_isStringElement(object)) {
       var strings = _strings;
       if (strings == null) return false;
-      _LinkedHashSetCell cell = _getTableEntry(strings, object);
+      _LinkedHashSetCell? cell = _getTableEntry(strings, object);
       return cell != null;
     } else if (_isNumericElement(object)) {
       var nums = _nums;
       if (nums == null) return false;
-      _LinkedHashSetCell cell = _getTableEntry(nums, object);
+      _LinkedHashSetCell? cell = _getTableEntry(nums, object);
       return cell != null;
     } else {
       return _contains(object);
@@ -1474,7 +1474,7 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
   }
 
   bool _addHashTableEntry(var table, E element) {
-    _LinkedHashSetCell cell = _getTableEntry(table, element);
+    _LinkedHashSetCell? cell = _getTableEntry(table, element);
     if (cell != null) return false;
     _setTableEntry(table, element, _newLinkedCell(element));
     return true;
@@ -1482,7 +1482,7 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
 
   bool _removeHashTableEntry(var table, Object? element) {
     if (table == null) return false;
-    _LinkedHashSetCell cell = _getTableEntry(table, element);
+    _LinkedHashSetCell? cell = _getTableEntry(table, element);
     if (cell == null) return false;
     _unlinkCell(cell);
     _deleteTableEntry(table, element);

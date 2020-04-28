@@ -49,11 +49,25 @@ abstract class AbstractLspAnalysisServerTest
   @override
   Stream<Message> get serverToClient => channel.serverToClient;
 
-  void configureTestPlugin({plugin.ResponseResult respondWith}) {
-    PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
-    pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-      info: Future.value(respondWith.toResponse('-', 1))
-    };
+  DiscoveredPluginInfo configureTestPlugin({
+    plugin.ResponseResult respondWith,
+    plugin.Notification notification,
+  }) {
+    final info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
+    pluginManager.plugins.add(info);
+
+    if (respondWith != null) {
+      pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
+        info: Future.value(respondWith.toResponse('-', 1))
+      };
+    }
+
+    if (notification != null) {
+      server.notificationManager
+          .handlePluginNotification(info.pluginId, notification);
+    }
+
+    return info;
   }
 
   /// Sends a request to the server and unwraps the result. Throws if the

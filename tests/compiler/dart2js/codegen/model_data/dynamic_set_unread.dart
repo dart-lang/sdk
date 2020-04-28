@@ -26,27 +26,51 @@ method1(dynamic c) {
 }
 
 class Class2a<T> {
-  /*strong.member: Class2a.field2:checked,elided*/
-  /*omit.member: Class2a.field2:elided*/
+  /*spec:nnbd-sdk.member: Class2a.field2:
+   checked,
+   elided
+  */
+  /*spec:nnbd-off.member: Class2a.field2:checked,elided*/
+  /*prod:nnbd-off|prod:nnbd-sdk.member: Class2a.field2:elided*/
   T field2;
 }
 
-/*strong.member: method2:calls=[set$field2(1)],params=1*/
-/*omit.member: method2:params=1*/
+/*spec:nnbd-off.member: method2:calls=[set$field2(1)],params=1*/
+/*prod:nnbd-off|prod:nnbd-sdk.member: method2:params=1*/
 @pragma('dart2js:noInline')
+/*spec:nnbd-sdk.member: method2:
+ calls=[set$field2(1)],
+ params=1
+*/
 method2(dynamic c) {
   c.field2 = 42;
 }
 
 class Class3a {
-  /*strong.member: Class3a.field3:checked,elided*/
-  /*omit.member: Class3a.field3:elided,set=simple*/
+  /*spec:nnbd-sdk.member: Class3a.field3:
+   checked,
+   elided
+  */
+  /*prod:nnbd-sdk.member: Class3a.field3:
+   elided,
+   set=simple
+  */
+  /*spec:nnbd-off.member: Class3a.field3:checked,elided*/
+  /*prod:nnbd-off.member: Class3a.field3:elided,set=simple*/
   int field3;
 }
 
 class Class3b {
-  /*strong.member: Class3b.field3:checked,elided*/
-  /*omit.member: Class3b.field3:elided,set=simple*/
+  /*spec:nnbd-sdk.member: Class3b.field3:
+   checked,
+   elided
+  */
+  /*prod:nnbd-sdk.member: Class3b.field3:
+   elided,
+   set=simple
+  */
+  /*spec:nnbd-off.member: Class3b.field3:checked,elided*/
+  /*prod:nnbd-off.member: Class3b.field3:elided,set=simple*/
   int field3;
 }
 
@@ -57,15 +81,31 @@ method3(dynamic c) {
 }
 
 class Class4a {
-  /*strong.member: Class4a.field4:checked,elided*/
-  /*omit.member: Class4a.field4:elided,set=simple*/
+  /*spec:nnbd-sdk.member: Class4a.field4:
+   checked,
+   elided
+  */
+  /*prod:nnbd-sdk.member: Class4a.field4:
+   elided,
+   set=simple
+  */
+  /*spec:nnbd-off.member: Class4a.field4:checked,elided*/
+  /*prod:nnbd-off.member: Class4a.field4:elided,set=simple*/
   int field4;
 }
 
 class Class4b implements Class4a {
-  /*strong.member: Class4b.field4:checked,elided*/
-  /*omit.member: Class4b.field4:elided,set=simple*/
+  /*spec:nnbd-off.member: Class4b.field4:checked,elided*/
+  /*prod:nnbd-off.member: Class4b.field4:elided,set=simple*/
   @override
+  /*spec:nnbd-sdk.member: Class4b.field4:
+   checked,
+   elided
+  */
+  /*prod:nnbd-sdk.member: Class4b.field4:
+   elided,
+   set=simple
+  */
   int field4;
 }
 

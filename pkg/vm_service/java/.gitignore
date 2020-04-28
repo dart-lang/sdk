@@ -10,6 +10,7 @@ src/org/dartlang/vm/service/consumer/EvaluateConsumer.java
 src/org/dartlang/vm/service/consumer/EvaluateInFrameConsumer.java
 src/org/dartlang/vm/service/consumer/FlagListConsumer.java
 src/org/dartlang/vm/service/consumer/GetAllocationProfileConsumer.java
+src/org/dartlang/vm/service/consumer/GetClassListConsumer.java
 src/org/dartlang/vm/service/consumer/GetCpuSamplesConsumer.java
 src/org/dartlang/vm/service/consumer/GetInboundReferencesConsumer.java
 src/org/dartlang/vm/service/consumer/GetInstancesConsumer.java

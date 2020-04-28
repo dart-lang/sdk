@@ -744,7 +744,7 @@ void ConstantPropagator::VisitOneByteStringFromCharCode(
     const intptr_t ch_code = Smi::Cast(o).Value();
     ASSERT(ch_code >= 0);
     if (ch_code < Symbols::kMaxOneCharCodeSymbol) {
-      RawString** table = Symbols::PredefinedAddress();
+      StringPtr* table = Symbols::PredefinedAddress();
       SetValue(instr, String::ZoneHandle(Z, table[ch_code]));
     } else {
       SetValue(instr, non_constant_);

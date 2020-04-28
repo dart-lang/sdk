@@ -31,7 +31,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
         if (containingLibrary != null) {
           var imports = containingLibrary.imports;
           if (imports != null) {
-            return _buildSuggestions(request, elem, imports);
+            return _buildSuggestions(request, builder, elem, imports);
           }
         }
       }
@@ -39,35 +39,50 @@ class LibraryMemberContributor extends DartCompletionContributor {
     return const <CompletionSuggestion>[];
   }
 
-  List<CompletionSuggestion> _buildSuggestions(DartCompletionRequest request,
-      PrefixElement elem, List<ImportElement> imports) {
+  List<CompletionSuggestion> _buildSuggestions(
+      DartCompletionRequest request,
+      SuggestionBuilder builder,
+      PrefixElement elem,
+      List<ImportElement> imports) {
     var parent = request.target.containingNode.parent;
-    var isConstructor = parent.parent is ConstructorName;
     var typesOnly = parent is TypeName;
-    var instCreation = typesOnly && isConstructor;
-    var builder = LibraryElementSuggestionBuilder(
-        request, CompletionSuggestionKind.INVOCATION, typesOnly, instCreation);
+    var isConstructor = parent.parent is ConstructorName;
     for (var importElem in imports) {
       if (importElem.prefix?.name == elem.name) {
         var library = importElem.importedLibrary;
         if (library != null) {
-          // Suggest elements from the imported library.
           for (var element in importElem.namespace.definedNames.values) {
-            element.accept(builder);
+            if (typesOnly && isConstructor) {
+              // Suggest constructors from the imported libraries.
+              if (element is ClassElement) {
+                for (var constructor in element.constructors) {
+                  if (!constructor.isPrivate) {
+                    builder.suggestConstructor(constructor,
+                        kind: CompletionSuggestionKind.INVOCATION);
+                  }
+                }
+              }
+            } else {
+              if (element is ClassElement ||
+                  element is ExtensionElement ||
+                  element is FunctionTypeAliasElement) {
+                builder.suggestElement(element,
+                    kind: CompletionSuggestionKind.INVOCATION);
+              } else if (!typesOnly &&
+                  (element is FunctionElement ||
+                      element is PropertyAccessorElement)) {
+                builder.suggestElement(element,
+                    kind: CompletionSuggestionKind.INVOCATION);
+              }
+            }
           }
-          // If the import is 'deferred' then suggest 'loadLibrary'.
-          if (importElem.isDeferred) {
-            var function = library.loadLibraryFunction;
-            var useNewRelevance = request.useNewRelevance;
-            var relevance = useNewRelevance
-                ? Relevance.loadLibrary
-                : DART_RELEVANCE_DEFAULT;
-            builder.suggestions.add(createSuggestion(request, function,
-                relevance: relevance, useNewRelevance: useNewRelevance));
+          // If the import is `deferred` then suggest `loadLibrary`.
+          if (!typesOnly && importElem.isDeferred) {
+            builder.suggestLoadLibraryFunction(library.loadLibraryFunction);
           }
         }
       }
     }
-    return builder.suggestions;
+    return const <CompletionSuggestion>[];
   }
 }

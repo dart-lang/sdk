@@ -299,11 +299,11 @@ bool IRRegExpMacroAssembler::CanReadUnaligned() {
   return kEnableUnalignedAccesses && !slow_safe();
 }
 
-RawArray* IRRegExpMacroAssembler::Execute(const RegExp& regexp,
-                                          const String& input,
-                                          const Smi& start_offset,
-                                          bool sticky,
-                                          Zone* zone) {
+ArrayPtr IRRegExpMacroAssembler::Execute(const RegExp& regexp,
+                                         const String& input,
+                                         const Smi& start_offset,
+                                         bool sticky,
+                                         Zone* zone) {
   const intptr_t cid = input.GetClassId();
   const Function& fun = Function::Handle(regexp.function(cid, sticky));
   ASSERT(!fun.IsNull());

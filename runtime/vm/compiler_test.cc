@@ -220,7 +220,7 @@ TEST_CASE(EvalExpression) {
   if (!KernelIsolate::IsRunning()) {
     UNREACHABLE();
   } else {
-    RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(lib));
+    LibraryPtr raw_library = Library::RawCast(Api::UnwrapHandle(lib));
     Library& lib_handle = Library::ZoneHandle(raw_library);
 
     Dart_KernelCompilationResult compilation_result =

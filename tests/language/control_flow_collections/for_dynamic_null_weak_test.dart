@@ -14,8 +14,10 @@ void main() {
 
   // Null iterable.
   dynamic nullIterable = null;
-  Expect.throwsAssertionError(() => <int>[for (var i in nullIterable) 1]);
-  Expect.throwsAssertionError(
-      () => <int, int>{for (var i in nullIterable) 1: 1});
-  Expect.throwsAssertionError(() => <int>{for (var i in nullIterable) 1});
+  // The current behavior is inconsistent across the backends. The VM currently
+  // tries calling .iterable and throws a NoSuchMethodError. DDC throws a
+  // TypeError.
+  Expect.throws(() => <int>[for (var i in nullIterable) 1]);
+  Expect.throws(() => <int, int>{for (var i in nullIterable) 1: 1});
+  Expect.throws(() => <int>{for (var i in nullIterable) 1});
 }

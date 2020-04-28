@@ -4,11 +4,11 @@
 
 // @dart = 2.7
 
-/*strong.class: A:direct,explicit=[A.T],needsArgs*/
-/*omit.class: A:*/
+/*spec:nnbd-off.class: A:direct,explicit=[A.T],needsArgs*/
+/*prod:nnbd-off.class: A:*/
 class A<T> {
-  /*strong.member: A.m:*/
-  /*omit.member: A.m:*/
+  /*spec:nnbd-off.member: A.m:*/
+  /*prod:nnbd-off.member: A.m:*/
   void m(T t) {}
 
   /*member: A.f:*/

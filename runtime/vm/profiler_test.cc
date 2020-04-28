@@ -155,7 +155,7 @@ TEST_CASE(Profiler_AllocationSampleTest) {
   delete sample_buffer;
 }
 
-static RawLibrary* LoadTestScript(const char* script) {
+static LibraryPtr LoadTestScript(const char* script) {
   Dart_Handle api_lib;
   {
     TransitionVMToNative transition(Thread::Current());
@@ -167,7 +167,7 @@ static RawLibrary* LoadTestScript(const char* script) {
   return lib.raw();
 }
 
-static RawClass* GetClass(const Library& lib, const char* name) {
+static ClassPtr GetClass(const Library& lib, const char* name) {
   Thread* thread = Thread::Current();
   const Class& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
@@ -175,7 +175,7 @@ static RawClass* GetClass(const Library& lib, const char* name) {
   return cls.raw();
 }
 
-static RawFunction* GetFunction(const Library& lib, const char* name) {
+static FunctionPtr GetFunction(const Library& lib, const char* name) {
   Thread* thread = Thread::Current();
   const Function& func = Function::Handle(lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(thread, name))));

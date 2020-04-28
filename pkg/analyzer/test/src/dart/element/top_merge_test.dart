@@ -233,6 +233,10 @@ class TopMergeTest extends _Base {
     );
   }
 
+  test_never() {
+    _check(neverNone, neverNone, neverNone);
+  }
+
   test_null() {
     // NNBD_TOP_MERGE(Never*, Null) = Null
     // NNBD_TOP_MERGE(Null, Never*) = Null

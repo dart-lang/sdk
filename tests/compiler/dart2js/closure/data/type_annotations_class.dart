@@ -43,30 +43,30 @@ class Class1b<T> {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// A local function parameter type is only captured in strong mode.
+/// A local function parameter type is only captured in spec:nnbd-off mode.
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: Class2.:hasThis*/
 class Class2<T> {
   /*member: Class2.method2:hasThis*/
   method2() {
-    /*omit.hasThis*/
-    /*strong.fields=[this],free=[this],hasThis*/
+    /*prod:nnbd-off|prod:nnbd-sdk.hasThis*/
+    /*spec:nnbd-off|spec:nnbd-sdk.fields=[this],free=[this],hasThis*/
     dynamic local(T t) => t;
     return local;
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// A local function return type is only captured in strong mode.
+/// A local function return type is only captured in spec:nnbd-off mode.
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: Class3.:hasThis*/
 class Class3<T> {
   /*member: Class3.method3:hasThis*/
   method3(dynamic o) {
-    /*omit.fields=[o],free=[o],hasThis*/
-    /*strong.fields=[o,this],free=[o,this],hasThis*/
+    /*prod:nnbd-off|prod:nnbd-sdk.fields=[o],free=[o],hasThis*/
+    /*spec:nnbd-off|spec:nnbd-sdk.fields=[o,this],free=[o,this],hasThis*/
     T local() => o;
     return local;
   }
@@ -108,8 +108,8 @@ class Class5<T> {
 class Class6<T> {
   /*member: Class6.method6:hasThis*/
   method6() {
-    /*omit.hasThis*/
-    /*strong.fields=[this],free=[this],hasThis*/
+    /*prod:nnbd-off|prod:nnbd-sdk.hasThis*/
+    /*spec:nnbd-off|spec:nnbd-sdk.fields=[this],free=[this],hasThis*/
     dynamic local(T t) {
       /*fields=[t],free=[t],hasThis*/
       dynamic inner() => t;
@@ -128,8 +128,8 @@ class Class6<T> {
 class Class7<T> {
   /*member: Class7.method7:hasThis*/
   method7(dynamic o) {
-    /*omit.fields=[o],free=[o],hasThis*/
-    /*strong.fields=[o,this],free=[o,this],hasThis*/
+    /*prod:nnbd-off|prod:nnbd-sdk.fields=[o],free=[o],hasThis*/
+    /*spec:nnbd-off|spec:nnbd-sdk.fields=[o,this],free=[o,this],hasThis*/
     T local() {
       /*fields=[o],free=[o],hasThis*/
       dynamic inner() => o;

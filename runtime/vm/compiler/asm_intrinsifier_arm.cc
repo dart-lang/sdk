@@ -127,10 +127,10 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* R1: new object end address. */                                            \
   /* R2: allocation size. */                                                   \
   {                                                                            \
-    __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);            \
+    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);         \
     __ mov(R3,                                                                 \
            Operand(R2, LSL,                                                    \
-                   target::RawObject::kTagBitsSizeTagPos -                     \
+                   target::ObjectLayout::kTagBitsSizeTagPos -                  \
                        target::ObjectAlignment::kObjectAlignmentLog2),         \
            LS);                                                                \
     __ mov(R3, Operand(0), HI);                                                \
@@ -2060,10 +2060,10 @@ static void TryAllocateOneByteString(Assembler* assembler,
   // R1: new object end address.
   // R2: allocation size.
   {
-    const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
+    const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
 
-    __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);
+    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
     __ mov(R3, Operand(R2, LSL, shift), LS);
     __ mov(R3, Operand(0), HI);
 

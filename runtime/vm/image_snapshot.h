@@ -28,10 +28,6 @@ class Dwarf;
 class Elf;
 class Instructions;
 class Object;
-class RawApiError;
-class RawCode;
-class RawInstructions;
-class RawObject;
 
 class Image : ValueObject {
  public:
@@ -67,12 +63,12 @@ class ImageReader : public ZoneAllocated {
  public:
   ImageReader(const uint8_t* data_image, const uint8_t* instructions_image);
 
-  RawApiError* VerifyAlignment() const;
+  ApiErrorPtr VerifyAlignment() const;
 
   ONLY_IN_PRECOMPILED(uword GetBareInstructionsAt(uint32_t offset) const);
   ONLY_IN_PRECOMPILED(uword GetBareInstructionsEnd() const);
-  RawInstructions* GetInstructionsAt(uint32_t offset) const;
-  RawObject* GetObjectAt(uint32_t offset) const;
+  InstructionsPtr GetInstructionsAt(uint32_t offset) const;
+  ObjectPtr GetObjectAt(uint32_t offset) const;
 
  private:
   const uint8_t* data_image_;
@@ -84,16 +80,16 @@ class ImageReader : public ZoneAllocated {
 struct ObjectOffsetPair {
  public:
   ObjectOffsetPair() : ObjectOffsetPair(NULL, 0) {}
-  ObjectOffsetPair(RawObject* obj, int32_t off) : object(obj), offset(off) {}
+  ObjectOffsetPair(ObjectPtr obj, int32_t off) : object(obj), offset(off) {}
 
-  RawObject* object;
+  ObjectPtr object;
   int32_t offset;
 };
 
 class ObjectOffsetTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
-  typedef RawObject* Key;
+  typedef ObjectPtr Key;
   typedef int32_t Value;
   typedef ObjectOffsetPair Pair;
 
@@ -119,7 +115,7 @@ struct ImageWriterCommand {
     InsertBytesOfTrampoline,
   };
 
-  ImageWriterCommand(intptr_t expected_offset, RawCode* code)
+  ImageWriterCommand(intptr_t expected_offset, CodePtr code)
       : expected_offset(expected_offset),
         op(ImageWriterCommand::InsertInstructionOfCode),
         insert_instruction_of_code({code}) {}
@@ -138,7 +134,7 @@ struct ImageWriterCommand {
   Opcode op;
   union {
     struct {
-      RawCode* code;
+      CodePtr code;
     } insert_instruction_of_code;
     struct {
       uint8_t* buffer;
@@ -172,8 +168,8 @@ class ImageWriter : public ValueObject {
            offset_space_ == V8SnapshotProfileWriter::kIsolateData ||
            offset_space_ == V8SnapshotProfileWriter::kIsolateText;
   }
-  int32_t GetTextOffsetFor(RawInstructions* instructions, RawCode* code);
-  uint32_t GetDataOffsetFor(RawObject* raw_object);
+  int32_t GetTextOffsetFor(InstructionsPtr instructions, CodePtr code);
+  uint32_t GetDataOffsetFor(ObjectPtr raw_object);
 
   void Write(WriteStream* clustered_stream, bool vm);
   intptr_t data_size() const { return next_data_offset_; }
@@ -191,7 +187,7 @@ class ImageWriter : public ValueObject {
 
   void TraceInstructions(const Instructions& instructions);
 
-  static intptr_t SizeInSnapshot(RawObject* object);
+  static intptr_t SizeInSnapshot(ObjectPtr object);
   static const intptr_t kBareInstructionsAlignment = 4;
 
   static_assert(
@@ -200,9 +196,9 @@ class ImageWriter : public ValueObject {
       "Target object alignment is larger than the host object alignment");
 
   // Converts the target object size (in bytes) to an appropriate argument for
-  // RawObject::SizeTag methods on the host machine.
+  // ObjectLayout::SizeTag methods on the host machine.
   //
-  // RawObject::SizeTag expects a size divisible by kObjectAlignment and
+  // ObjectLayout::SizeTag expects a size divisible by kObjectAlignment and
   // checks this in debug mode, but the size on the target machine may not be
   // divisible by the host machine's object alignment if they differ.
   //
@@ -219,8 +215,8 @@ class ImageWriter : public ValueObject {
 
   static UNLESS_DEBUG(constexpr) compiler::target::uword
       UpdateObjectSizeForTarget(intptr_t size, uword marked_tags) {
-    return RawObject::SizeTag::update(AdjustObjectSizeForTarget(size),
-                                      marked_tags);
+    return ObjectLayout::SizeTag::update(AdjustObjectSizeForTarget(size),
+                                         marked_tags);
   }
 
   // Returns nullptr if there is no profile writer.
@@ -235,9 +231,7 @@ class ImageWriter : public ValueObject {
   void DumpInstructionsSizes();
 
   struct InstructionsData {
-    InstructionsData(RawInstructions* insns,
-                     RawCode* code,
-                     intptr_t text_offset)
+    InstructionsData(InstructionsPtr insns, CodePtr code, intptr_t text_offset)
         : raw_insns_(insns),
           raw_code_(code),
           text_offset_(text_offset),
@@ -254,11 +248,11 @@ class ImageWriter : public ValueObject {
           trampoline_length(trampoline_length) {}
 
     union {
-      RawInstructions* raw_insns_;
+      InstructionsPtr raw_insns_;
       const Instructions* insns_;
     };
     union {
-      RawCode* raw_code_;
+      CodePtr raw_code_;
       const Code* code_;
     };
     intptr_t text_offset_;
@@ -268,10 +262,10 @@ class ImageWriter : public ValueObject {
   };
 
   struct ObjectData {
-    explicit ObjectData(RawObject* raw_obj) : raw_obj_(raw_obj) {}
+    explicit ObjectData(ObjectPtr raw_obj) : raw_obj_(raw_obj) {}
 
     union {
-      RawObject* raw_obj_;
+      ObjectPtr raw_obj_;
       const Object* obj_;
     };
   };

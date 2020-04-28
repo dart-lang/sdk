@@ -18,8 +18,8 @@ DECLARE_FLAG(bool, show_invisible_frames);
 
 static const intptr_t kDefaultStackAllocation = 8;
 
-static RawStackTrace* CurrentSyncStackTraceLazy(Thread* thread,
-                                                intptr_t skip_frames = 1) {
+static StackTracePtr CurrentSyncStackTraceLazy(Thread* thread,
+                                               intptr_t skip_frames = 1) {
   Zone* zone = thread->zone();
 
   const auto& code_array = GrowableObjectArray::ZoneHandle(
@@ -39,8 +39,8 @@ static RawStackTrace* CurrentSyncStackTraceLazy(Thread* thread,
   return StackTrace::New(code_array_fixed, pc_offset_array_fixed);
 }
 
-static RawStackTrace* CurrentSyncStackTrace(Thread* thread,
-                                            intptr_t skip_frames = 1) {
+static StackTracePtr CurrentSyncStackTrace(Thread* thread,
+                                           intptr_t skip_frames = 1) {
   Zone* zone = thread->zone();
   const Function& null_function = Function::ZoneHandle(zone);
 
@@ -63,7 +63,7 @@ static RawStackTrace* CurrentSyncStackTrace(Thread* thread,
   return StackTrace::New(code_array, pc_offset_array);
 }
 
-static RawStackTrace* CurrentStackTrace(
+static StackTracePtr CurrentStackTrace(
     Thread* thread,
     bool for_async_function,
     intptr_t skip_frames = 1,
@@ -128,7 +128,7 @@ static RawStackTrace* CurrentStackTrace(
   return result.raw();
 }
 
-RawStackTrace* GetStackTraceForException() {
+StackTracePtr GetStackTraceForException() {
   Thread* thread = Thread::Current();
   return CurrentStackTrace(thread, false, 0);
 }

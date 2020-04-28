@@ -25,7 +25,6 @@ class Error;
 class Field;
 class Function;
 class GrowableObjectArray;
-class RawError;
 class SequenceNode;
 class String;
 class ParsedJSONObject;
@@ -192,12 +191,12 @@ typedef DirectChainedHashMap<InstanceKeyValueTrait> InstanceSet;
 
 class Precompiler : public ValueObject {
  public:
-  static RawError* CompileAll();
+  static ErrorPtr CompileAll();
 
-  static RawError* CompileFunction(Precompiler* precompiler,
-                                   Thread* thread,
-                                   Zone* zone,
-                                   const Function& function);
+  static ErrorPtr CompileFunction(Precompiler* precompiler,
+                                  Thread* thread,
+                                  Zone* zone,
+                                  const Function& function);
 
   // Returns true if get:runtimeType is not overloaded by any class.
   bool get_runtime_type_is_unique() const {
@@ -269,7 +268,7 @@ class Precompiler : public ValueObject {
   void DropClasses();
   void DropLibraries();
 
-  DEBUG_ONLY(RawFunction* FindUnvisitedRetainedFunction());
+  DEBUG_ONLY(FunctionPtr FindUnvisitedRetainedFunction());
 
   void Obfuscate();
 
@@ -348,7 +347,7 @@ class FunctionsTraits {
       return String::Cast(obj).Hash();
     }
   }
-  static RawObject* NewKey(const Function& function) { return function.raw(); }
+  static ObjectPtr NewKey(const Function& function) { return function.raw(); }
 };
 
 typedef UnorderedHashSet<FunctionsTraits> UniqueFunctionsSet;
@@ -406,7 +405,7 @@ class Obfuscator : public ValueObject {
   //
   // This method is guaranteed to return the same value for the same
   // input and it always preserves leading '_' even for atomic renames.
-  RawString* Rename(const String& name, bool atomic = false) {
+  StringPtr Rename(const String& name, bool atomic = false) {
     if (state_ == NULL) {
       return name.raw();
     }
@@ -444,13 +443,13 @@ class Obfuscator : public ValueObject {
   static const intptr_t kSavedStateRenamesIndex = 1;
   static const intptr_t kSavedStateSize = 2;
 
-  static RawArray* GetRenamesFromSavedState(const Array& saved_state) {
+  static ArrayPtr GetRenamesFromSavedState(const Array& saved_state) {
     Array& renames = Array::Handle();
     renames ^= saved_state.At(kSavedStateRenamesIndex);
     return renames.raw();
   }
 
-  static RawString* GetNameFromSavedState(const Array& saved_state) {
+  static StringPtr GetNameFromSavedState(const Array& saved_state) {
     String& name = String::Handle();
     name ^= saved_state.At(kSavedStateNameIndex);
     return name.raw();
@@ -494,7 +493,7 @@ class Obfuscator : public ValueObject {
     //
     // This method is guaranteed to return the same value for the same
     // input.
-    RawString* RenameImpl(const String& name, bool atomic);
+    StringPtr RenameImpl(const String& name, bool atomic);
 
     // Register an identity (name -> name) mapping in the renaming map.
     //
@@ -511,11 +510,11 @@ class Obfuscator : public ValueObject {
     // For non-atomic renames BuildRename ensures that private mangled
     // identifiers (_ident@key) are renamed consistently with non-mangled
     // counterparts (_ident).
-    RawString* BuildRename(const String& name, bool atomic);
+    StringPtr BuildRename(const String& name, bool atomic);
 
     // Generate a new rename. If |should_be_private| is set to true
     // then we prefix returned identifier with '_'.
-    RawString* NewAtomicRename(bool should_be_private);
+    StringPtr NewAtomicRename(bool should_be_private);
 
     // Update next_ to generate the next free rename.
     void NextName();
@@ -549,7 +548,7 @@ class Obfuscator {
   Obfuscator(Thread* thread, const String& private_key) {}
   ~Obfuscator() {}
 
-  RawString* Rename(const String& name, bool atomic = false) {
+  StringPtr Rename(const String& name, bool atomic = false) {
     return name.raw();
   }
 

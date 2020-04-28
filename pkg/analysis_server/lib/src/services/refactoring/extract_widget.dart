@@ -94,8 +94,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = RefactoringStatus();
     result.addStatus(validateClassName(name));
     return result;
@@ -103,8 +101,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = RefactoringStatus();
 
     result.addStatus(_checkSelection());
@@ -146,8 +142,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var changeBuilder = DartChangeBuilder(sessionHelper.session);
     await changeBuilder.addFileEdit(resolveResult.path, (builder) {
       if (_expression != null) {
@@ -241,13 +235,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   }
 
   Future<RefactoringStatus> _initializeClasses() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = RefactoringStatus();
 
     Future<ClassElement> getClass(String name) async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       var element = await sessionHelper.getClass(flutter.widgetsUri, name);
       if (element == null) {
         result.addFatalError(
@@ -258,8 +248,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     }
 
     Future<PropertyAccessorElement> getAccessor(String uri, String name) async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       var element = await sessionHelper.getTopLevelPropertyAccessor(uri, name);
       if (element == null) {
         result.addFatalError("Unable to find 'required' in $uri");
@@ -280,8 +268,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   /// Prepare referenced local variables and fields, that should be turned
   /// into the widget class fields and constructor parameters.
   Future<RefactoringStatus> _initializeParameters() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _ParametersCollector collector;
     if (_expression != null) {
       var localRange = range.node(_expression);

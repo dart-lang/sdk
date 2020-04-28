@@ -380,7 +380,9 @@ class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T>
     if (_isEmpty) return;
     if (_hasOneListener) {
       _state |= _BroadcastStreamController._STATE_FIRING;
-      (_firstSubscription as _BroadcastSubscription<T>)._add(data);
+      _BroadcastSubscription<T> firstSubscription =
+          _firstSubscription as dynamic;
+      firstSubscription._add(data);
       _state &= ~_BroadcastStreamController._STATE_FIRING;
       if (_isEmpty) {
         _callOnCancel();

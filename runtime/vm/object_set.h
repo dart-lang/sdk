@@ -63,8 +63,8 @@ class ObjectSet : public ZoneAllocated {
     sorted_ = true;
   }
 
-  bool Contains(RawObject* raw_obj) const {
-    uword raw_addr = RawObject::ToAddr(raw_obj);
+  bool Contains(ObjectPtr raw_obj) const {
+    uword raw_addr = ObjectLayout::ToAddr(raw_obj);
     ObjectSetRegion* region;
     if (FindRegion(raw_addr, &region)) {
       return region->ContainsObject(raw_addr);
@@ -72,8 +72,8 @@ class ObjectSet : public ZoneAllocated {
     return false;
   }
 
-  void Add(RawObject* raw_obj) {
-    uword raw_addr = RawObject::ToAddr(raw_obj);
+  void Add(ObjectPtr raw_obj) {
+    uword raw_addr = ObjectLayout::ToAddr(raw_obj);
     ObjectSetRegion* region;
     if (FindRegion(raw_addr, &region)) {
       return region->AddObject(raw_addr);

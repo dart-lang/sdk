@@ -20,7 +20,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('kdata'));
     await checkTests(dataDir, const KAllocatorAnalysisDataComputer(),
-        args: args, testedConfigs: allStrongConfigs);
+        args: args, testedConfigs: allSpecConfigs);
   });
 }
 

@@ -16,6 +16,31 @@
 *   Class `OSError` now implements `Exception`. This change means `OSError` will
     now be caught in catch clauses catching `Exception`s.
 
+### Tools
+
+#### dartfmt
+
+* Add `--fix-single-cascade-statements`.
+* Correctly handle `var` in `--fix-function-typedefs`.
+* Preserve leading indentation in fixed doc comments.
+* Split outer nested control flow elements.
+* Always place a blank line after script tags.
+* Don't add unneeded splits on if elements near comments.
+* Indent blocks in initializers of multiple-variable declarations.
+* Update the null-aware subscript syntax from `?.[]` to `?[]`.
+
+#### Linter
+
+Updated the Linter to `0.1.115`, which includes:
+
+* Updated `avoid_types_as_parameter_names` to check catch-clauses.
+* Fixed `unsafe_html` to check attributes and methods on extensions.
+* Extended `unsafe_html` to include `Window.open`, `Element.html` and
+  `DocumentFragment.html` in unsafe API checks.
+* Improved docs for `sort_child_properties_last`.
+* (internal) `package:analyzer` API updates.
+* New lint: `sized_box_for_whitespace`.
+
 ### Dart VM
 
 
@@ -694,6 +719,13 @@ The Linter was updated to `0.1.101`, which includes:
 * fixed `avoid_print` to catch tear-off usage
 * new lint: `avoid_web_libraries_in_flutter` (experimental)
 * (internal) prepare `unnecessary_lambdas` for coming `MethodInvocation` vs. `FunctionExpressionInvocation` changes
+
+## 2.5.2 - 2019-10-08
+
+This is a patch release with properly signed binaries required for macOS
+Catalina (Issue [38765][]).
+
+[38765]: https://github.com/dart-lang/sdk/issues/38765
 
 ## 2.5.1 - 2019-09-27
 

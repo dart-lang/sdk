@@ -55,15 +55,16 @@ class Heap {
   };
 
   enum GCReason {
-    kNewSpace,   // New space is full.
-    kPromotion,  // Old space limit crossed after a scavenge.
-    kOldSpace,   // Old space limit crossed.
-    kFinalize,   // Concurrent marking finished.
-    kFull,       // Heap::CollectAllGarbage
-    kExternal,   // Dart_NewWeakPersistentHandle
-    kIdle,       // Dart_NotifyIdle
-    kLowMemory,  // Dart_NotifyLowMemory
-    kDebugging,  // service request, etc.
+    kNewSpace,     // New space is full.
+    kPromotion,    // Old space limit crossed after a scavenge.
+    kOldSpace,     // Old space limit crossed.
+    kFinalize,     // Concurrent marking finished.
+    kFull,         // Heap::CollectAllGarbage
+    kExternal,     // Dart_NewWeakPersistentHandle
+    kIdle,         // Dart_NotifyIdle
+    kLowMemory,    // Dart_NotifyLowMemory
+    kDebugging,    // service request, etc.
+    kSendAndExit,  // SendPort.sendAndExit
   };
 
   // Pattern for unused new space and swept old space.
@@ -114,10 +115,10 @@ class Heap {
   // The 'visitor' function should return false if the object is not found,
   // traversal through the heap space continues.
   // Returns null object if nothing is found.
-  RawInstructions* FindObjectInCodeSpace(FindObjectVisitor* visitor) const;
-  RawObject* FindOldObject(FindObjectVisitor* visitor) const;
-  RawObject* FindNewObject(FindObjectVisitor* visitor);
-  RawObject* FindObject(FindObjectVisitor* visitor);
+  InstructionsPtr FindObjectInCodeSpace(FindObjectVisitor* visitor) const;
+  ObjectPtr FindOldObject(FindObjectVisitor* visitor) const;
+  ObjectPtr FindNewObject(FindObjectVisitor* visitor);
+  ObjectPtr FindObject(FindObjectVisitor* visitor);
 
   void NotifyIdle(int64_t deadline);
   void NotifyLowMemory();
@@ -198,10 +199,10 @@ class Heap {
   static const char* GCReasonToString(GCReason reason);
 
   // Associate a peer with an object.  A non-existent peer is equal to NULL.
-  void SetPeer(RawObject* raw_obj, void* peer) {
+  void SetPeer(ObjectPtr raw_obj, void* peer) {
     SetWeakEntry(raw_obj, kPeers, reinterpret_cast<intptr_t>(peer));
   }
-  void* GetPeer(RawObject* raw_obj) const {
+  void* GetPeer(ObjectPtr raw_obj) const {
     return reinterpret_cast<void*>(GetWeakEntry(raw_obj, kPeers));
   }
   int64_t PeerCount() const;
@@ -209,37 +210,37 @@ class Heap {
 #if !defined(HASH_IN_OBJECT_HEADER)
   // Associate an identity hashCode with an object. An non-existent hashCode
   // is equal to 0.
-  void SetHash(RawObject* raw_obj, intptr_t hash) {
+  void SetHash(ObjectPtr raw_obj, intptr_t hash) {
     SetWeakEntry(raw_obj, kIdentityHashes, hash);
   }
-  intptr_t GetHash(RawObject* raw_obj) const {
+  intptr_t GetHash(ObjectPtr raw_obj) const {
     return GetWeakEntry(raw_obj, kIdentityHashes);
   }
 #endif
 
-  void SetCanonicalHash(RawObject* raw_obj, intptr_t hash) {
+  void SetCanonicalHash(ObjectPtr raw_obj, intptr_t hash) {
     SetWeakEntry(raw_obj, kCanonicalHashes, hash);
   }
-  intptr_t GetCanonicalHash(RawObject* raw_obj) const {
+  intptr_t GetCanonicalHash(ObjectPtr raw_obj) const {
     return GetWeakEntry(raw_obj, kCanonicalHashes);
   }
   void ResetCanonicalHashTable();
 
   // Associate an id with an object (used when serializing an object).
   // A non-existant id is equal to 0.
-  void SetObjectId(RawObject* raw_obj, intptr_t object_id) {
+  void SetObjectId(ObjectPtr raw_obj, intptr_t object_id) {
     ASSERT(Thread::Current()->IsMutatorThread());
     SetWeakEntry(raw_obj, kObjectIds, object_id);
   }
-  intptr_t GetObjectId(RawObject* raw_obj) const {
+  intptr_t GetObjectId(ObjectPtr raw_obj) const {
     ASSERT(Thread::Current()->IsMutatorThread());
     return GetWeakEntry(raw_obj, kObjectIds);
   }
   void ResetObjectIdTable();
 
   // Used by the GC algorithms to propagate weak entries.
-  intptr_t GetWeakEntry(RawObject* raw_obj, WeakSelector sel) const;
-  void SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val);
+  intptr_t GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const;
+  void SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val);
 
   WeakTable* GetWeakTable(Space space, WeakSelector selector) const {
     if (space == kNew) {
@@ -257,7 +258,7 @@ class Heap {
     }
   }
 
-  void ForwardWeakEntries(RawObject* before_object, RawObject* after_object);
+  void ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object);
   void ForwardWeakTables(ObjectPointerVisitor* visitor);
 
   // Stats collection.

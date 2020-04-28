@@ -148,6 +148,12 @@ class TestPluginManager implements PluginManager {
   Map<PluginInfo, Future<plugin.Response>> broadcastResults;
 
   @override
+  List<PluginInfo> plugins = [];
+
+  StreamController<void> pluginsChangedController =
+      StreamController.broadcast();
+
+  @override
   String get byteStorePath {
     fail('Unexpected invocation of byteStorePath');
   }
@@ -163,9 +169,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  List<PluginInfo> get plugins {
-    fail('Unexpected invocation of plugins');
-  }
+  Stream<void> get pluginsChanged => pluginsChangedController.stream;
 
   @override
   ResourceProvider get resourceProvider {

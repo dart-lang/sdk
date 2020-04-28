@@ -31,7 +31,23 @@ class _DartDevelopmentService implements DartDevelopmentService {
 
     // Start the DDS server.
     _server = await io.serve(_handlers().handler, host, port);
-    _uri = Uri(scheme: 'http', host: host, port: _server.port);
+
+    final tmpUri = Uri(scheme: 'http', host: host, port: _server.port);
+
+    // Notify the VM service that this client is DDS and that it should close
+    // and refuse connections from other clients. DDS is now acting in place of
+    // the VM service.
+    try {
+      await _vmServiceClient.sendRequest('_yieldControlToDDS', {
+        'uri': tmpUri.toString(),
+      });
+    } on json_rpc.RpcException catch (e) {
+      await _server.close(force: true);
+      // _yieldControlToDDS fails if DDS is not the only VM service client.
+      throw DartDevelopmentServiceException._(e.data['details']);
+    }
+
+    _uri = tmpUri;
   }
 
   /// Stop accepting requests after gracefully handling existing requests.
@@ -91,6 +107,9 @@ class _DartDevelopmentService implements DartDevelopmentService {
     return uri.replace(scheme: 'ws', pathSegments: pathSegments);
   }
 
+  String _getNamespace(_DartDevelopmentServiceClient client) =>
+      _clients.keyOf(client);
+
   Uri get remoteVmServiceUri => _remoteVmServiceUri;
   Uri get remoteVmServiceWsUri => _toWebSocket(_remoteVmServiceUri);
   Uri _remoteVmServiceUri;
@@ -107,7 +126,11 @@ class _DartDevelopmentService implements DartDevelopmentService {
   _StreamManager get streamManager => _streamManager;
   _StreamManager _streamManager;
 
-  final List<_DartDevelopmentServiceClient> _clients = [];
+  // Handles namespace generation for service extensions.
+  static const _kServicePrologue = 's';
+  final NamedLookup<_DartDevelopmentServiceClient> _clients = NamedLookup(
+    prologue: _kServicePrologue,
+  );
 
   json_rpc.Peer _vmServiceClient;
   WebSocketChannel _vmServiceSocket;

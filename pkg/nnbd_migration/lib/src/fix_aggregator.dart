@@ -707,8 +707,12 @@ class NodeChangeForVariableDeclarationList
   /// that should be added.  Otherwise `null`.
   DartType addExplicitType;
 
-  /// If a "late" annotation should be added to this variable  declaration, the
-  /// hint that caused it.  Otherwise `null`.
+  /// Indicates whether a "late" annotation should be added to this variable
+  /// declaration, caused by inference.
+  bool addLate = false;
+
+  /// If a "late" annotation should be added to this variable declaration, and
+  /// the cause is a "late" hint, the hint that caused it.  Otherwise `null`.
   HintComment lateHint;
 
   NodeChangeForVariableDeclarationList() : super._();
@@ -716,6 +720,13 @@ class NodeChangeForVariableDeclarationList
   @override
   EditPlan _apply(VariableDeclarationList node, FixAggregator aggregator) {
     List<EditPlan> innerPlans = [];
+    if (addLate) {
+      var info = AtomicEditInfo(NullabilityFixDescription.addLate, {});
+      innerPlans.add(aggregator.planner.insertText(
+          node,
+          node.firstTokenAfterCommentAndMetadata.offset,
+          [AtomicEdit.insert('late', info: info), AtomicEdit.insert(' ')]));
+    }
     if (addExplicitType != null) {
       var typeText = addExplicitType.getDisplayString(withNullability: true);
       if (node.keyword?.keyword == Keyword.VAR) {

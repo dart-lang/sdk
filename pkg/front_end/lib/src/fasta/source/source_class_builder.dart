@@ -799,15 +799,25 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member bestSoFar = members.first;
       DartType bestSoFarType =
           forSetters ? bestSoFar.setterType : bestSoFar.getterType;
-      bestSoFarType = Substitution.fromSupertype(
-              hierarchy.getClassAsInstanceOf(cls, bestSoFar.enclosingClass))
-          .substituteType(bestSoFarType);
+      Supertype supertype =
+          hierarchy.getClassAsInstanceOf(cls, bestSoFar.enclosingClass);
+      assert(
+          supertype != null,
+          "No supertype of enclosing class ${bestSoFar.enclosingClass} for "
+          "$bestSoFar found for $cls.");
+      bestSoFarType =
+          Substitution.fromSupertype(supertype).substituteType(bestSoFarType);
       for (int i = 1; i < members.length; ++i) {
         Member candidate = members[i];
         DartType candidateType =
             forSetters ? candidate.setterType : candidate.getterType;
-        Substitution substitution = Substitution.fromSupertype(
-            hierarchy.getClassAsInstanceOf(cls, candidate.enclosingClass));
+        Supertype supertype =
+            hierarchy.getClassAsInstanceOf(cls, candidate.enclosingClass);
+        assert(
+            supertype != null,
+            "No supertype of enclosing class ${candidate.enclosingClass} for "
+            "$candidate found for $cls.");
+        Substitution substitution = Substitution.fromSupertype(supertype);
         candidateType = substitution.substituteType(candidateType);
         memberTypes.add(candidateType);
         bool isMoreSpecific = forSetters

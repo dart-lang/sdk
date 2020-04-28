@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.30.0';
+const String vmServiceVersion = '3.32.0';
 
 /// @optional
 const String optional = 'optional';
@@ -194,6 +194,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'evaluate': const ['InstanceRef', 'ErrorRef'],
   'evaluateInFrame': const ['InstanceRef', 'ErrorRef'],
   'getAllocationProfile': const ['AllocationProfile'],
+  'getClassList': const ['ClassList'],
   'getClientName': const ['ClientName'],
   'getCpuSamples': const ['CpuSamples'],
   'getFlagList': const ['FlagList'],
@@ -496,6 +497,18 @@ abstract class VmServiceInterface {
   /// returned.
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool reset, bool gc});
+
+  /// The `getClassList` RPC is used to retrieve a `ClassList` containing all
+  /// classes for an isolate based on the isolate's `isolateId`.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// See [ClassList].
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<ClassList> getClassList(String isolateId);
 
   /// The `getClientName` RPC is used to retrieve the name associated with the
   /// currently connected VM service client. If no name was previously set
@@ -1257,6 +1270,11 @@ class VmServerConnection {
             gc: params['gc'],
           );
           break;
+        case 'getClassList':
+          response = await _serviceImplementation.getClassList(
+            params['isolateId'],
+          );
+          break;
         case 'getClientName':
           response = await _serviceImplementation.getClientName();
           break;
@@ -1701,6 +1719,10 @@ class VmService implements VmServiceInterface {
         if (reset != null && reset) 'reset': reset,
         if (gc != null && gc) 'gc': gc,
       });
+
+  @override
+  Future<ClassList> getClassList(String isolateId) =>
+      _call('getClassList', {'isolateId': isolateId});
 
   @override
   Future<ClientName> getClientName() => _call('getClientName');
@@ -6356,7 +6378,9 @@ class Timeline extends Response {
   static Timeline parse(Map<String, dynamic> json) =>
       json == null ? null : Timeline._fromJson(json);
 
-  /// A list of timeline events.
+  /// A list of timeline events. No order is guarenteed for these events; in
+  /// particular, these events may be unordered with respect to their
+  /// timestamps.
   List<TimelineEvent> traceEvents;
 
   /// The start of the period of time in which traceEvents were collected.

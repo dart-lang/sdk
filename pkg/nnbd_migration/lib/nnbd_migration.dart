@@ -17,6 +17,10 @@ export 'package:nnbd_migration/src/utilities/hint_utils.dart' show HintComment;
 
 /// Description of fixes that might be performed by nullability migration.
 class NullabilityFixDescription {
+  /// A variable declaration needs to be marked as "late".
+  static const addLate = const NullabilityFixDescription._(
+      appliedMessage: 'Added a late keyword', kind: NullabilityFixKind.addLate);
+
   /// A variable declaration needs to be marked as "late" due to the presence of
   /// a `/*late*/` hint.
   static const addLateDueToHint = const NullabilityFixDescription._(
@@ -200,6 +204,7 @@ class NullabilityFixDescription {
 
 /// An enumeration of the various kinds of nullability fixes.
 enum NullabilityFixKind {
+  addLate,
   addLateDueToHint,
   addRequired,
   addType,

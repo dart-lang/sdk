@@ -106,6 +106,7 @@ bit2
 bj
 blob
 blocking
+bmp
 bn
 bo
 bodied
@@ -239,6 +240,7 @@ cwd
 cyclically
 d
 d11e
+d7c
 dag
 dangerous
 dangling
@@ -595,6 +597,7 @@ maintaining
 mangled
 manipulation
 markdown
+masking
 matcher
 mb
 md
@@ -925,6 +928,7 @@ shadowed
 shallow
 shas
 shelf
+shifts
 showing
 shrinking
 shru
@@ -1199,6 +1203,7 @@ wn
 worthwhile
 writeln
 wrt
+wtf
 www
 x
 x0
@@ -1239,6 +1244,7 @@ xm
 xn
 xnon
 xor
+xor's
 xpotentially
 xs
 xss

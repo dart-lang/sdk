@@ -369,7 +369,7 @@ class KernelTextSerialization
       for (Library library in component.libraries) {
         if (library.importUri.scheme != "dart" &&
             library.importUri.scheme != "package") {
-          library.accept(verifier);
+          verifier.verify(library);
         }
       }
       for (TextSerializationVerificationFailure failure in verifier.failures) {

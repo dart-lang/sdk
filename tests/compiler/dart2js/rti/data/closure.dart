@@ -4,8 +4,8 @@
 
 // @dart = 2.7
 
-/*omit.class: A:needsArgs*/
-/*strong.class: A:direct,explicit=[A.T],needsArgs*/
+/*prod:nnbd-off.class: A:needsArgs*/
+/*spec:nnbd-off.class: A:direct,explicit=[A.T],needsArgs*/
 class A<T> {
   m() {
     return /*needsSignature*/ (T t) {};
@@ -16,8 +16,8 @@ class A<T> {
     // TODO(johnniwinther): Optimize local function type signature need.
     return
 
-        /*strong.needsSignature*/
-        /*omit.needsSignature*/
+        /*spec:nnbd-off.needsSignature*/
+        /*prod:nnbd-off.needsSignature*/
         (int t) {};
   }
 }

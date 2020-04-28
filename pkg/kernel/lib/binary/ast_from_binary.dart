@@ -4,7 +4,6 @@
 library kernel.ast_from_binary;
 
 import 'dart:core' hide MapEntry;
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:typed_data';
 
@@ -171,36 +170,74 @@ class BinaryBuilder {
     return _doubleBuffer[0];
   }
 
-  List<int> readBytes(int length) {
-    List<int> bytes = new Uint8List(length);
+  Uint8List readBytes(int length) {
+    Uint8List bytes = new Uint8List(length);
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
     _byteOffset += bytes.length;
     return bytes;
   }
 
-  List<int> readByteList() {
+  Uint8List readByteList() {
     return readBytes(readUInt());
   }
 
+  String readString() {
+    return readStringEntry(readUInt());
+  }
+
   String readStringEntry(int numBytes) {
-    // Utf8Decoder will skip leading BOM characters, but we must preserve them.
-    // Collect leading BOMs before passing the bytes onto Utf8Decoder.
-    int numByteOrderMarks = 0;
-    while (_byteOffset + 2 < _bytes.length &&
-        _bytes[_byteOffset] == 0xef &&
-        _bytes[_byteOffset + 1] == 0xbb &&
-        _bytes[_byteOffset + 2] == 0xbf) {
-      ++numByteOrderMarks;
-      _byteOffset += 3;
-      numBytes -= 3;
+    int start = _byteOffset;
+    int end = start + numBytes;
+    _byteOffset = end;
+    for (int i = start; i < end; i++) {
+      if (_bytes[i] > 127) {
+        return _decodeWtf8(start, end);
+      }
     }
-    String string = const Utf8Decoder()
-        .convert(_bytes, _byteOffset, _byteOffset + numBytes);
-    _byteOffset += numBytes;
-    if (numByteOrderMarks > 0) {
-      return '\ufeff' * numByteOrderMarks + string;
+    return new String.fromCharCodes(_bytes, start, end);
+  }
+
+  String _decodeWtf8(int start, int end) {
+    // WTF-8 decoder that trusts its input, meaning that the correctness of
+    // the code depends on the bytes from start to end being valid and
+    // complete WTF-8. Instead of masking off the control bits from every
+    // byte, it simply xor's the byte values together at their appropriate
+    // bit shifts, and then xor's out all of the control bits at once.
+    Uint16List charCodes = new Uint16List(end - start);
+    int i = start;
+    int j = 0;
+    while (i < end) {
+      int byte = _bytes[i++];
+      if (byte < 0x80) {
+        // ASCII.
+        charCodes[j++] = byte;
+      } else if (byte < 0xE0) {
+        // Two-byte sequence (11-bit unicode value).
+        int byte2 = _bytes[i++];
+        int value = (byte << 6) ^ byte2 ^ 0x3080;
+        assert(value >= 0x80 && value < 0x800);
+        charCodes[j++] = value;
+      } else if (byte < 0xF0) {
+        // Three-byte sequence (16-bit unicode value).
+        int byte2 = _bytes[i++];
+        int byte3 = _bytes[i++];
+        int value = (byte << 12) ^ (byte2 << 6) ^ byte3 ^ 0xE2080;
+        assert(value >= 0x800 && value < 0x10000);
+        charCodes[j++] = value;
+      } else {
+        // Four-byte sequence (non-BMP unicode value).
+        int byte2 = _bytes[i++];
+        int byte3 = _bytes[i++];
+        int byte4 = _bytes[i++];
+        int value =
+            (byte << 18) ^ (byte2 << 12) ^ (byte3 << 6) ^ byte4 ^ 0x3C82080;
+        assert(value >= 0x10000 && value < 0x110000);
+        charCodes[j++] = 0xD7C0 + (value >> 10);
+        charCodes[j++] = 0xDC00 + (value & 0x3FF);
+      }
     }
-    return string;
+    assert(i == end);
+    return new String.fromCharCodes(charCodes, 0, j);
   }
 
   /// Read metadataMappings section from the binary.
@@ -222,7 +259,7 @@ class BinaryBuilder {
     for (int i = 0; i < length; ++i) {
       endOffsets[i] = readUInt();
     }
-    // Read the UTF-8 encoded strings.
+    // Read the WTF-8 encoded strings.
     table.length = length;
     int startOffset = 0;
     for (int i = 0; i < length; ++i) {
@@ -756,7 +793,7 @@ class BinaryBuilder {
     List<String> strings =
         new List<String>.filled(length, null, growable: true);
     for (int i = 0; i < length; i++) {
-      String s = const Utf8Decoder().convert(readByteList());
+      String s = readString();
       strings[i] = s;
     }
     return strings;
@@ -769,12 +806,10 @@ class BinaryBuilder {
     _sourceUriTable.length = length;
     Map<Uri, Source> uriToSource = <Uri, Source>{};
     for (int i = 0; i < length; ++i) {
-      List<int> uriBytes = readByteList();
-      Uri uri = uriBytes.isEmpty
-          ? null
-          : Uri.parse(const Utf8Decoder().convert(uriBytes));
+      String uriString = readString();
+      Uri uri = uriString.isEmpty ? null : Uri.parse(uriString);
       _sourceUriTable[i] = uri;
-      List<int> sourceCode = readByteList();
+      Uint8List sourceCode = readByteList();
       int lineCount = readUInt();
       List<int> lineStarts = new List<int>(lineCount);
       int previousLineStart = 0;
@@ -783,10 +818,9 @@ class BinaryBuilder {
         lineStarts[j] = lineStart;
         previousLineStart = lineStart;
       }
-      List<int> importUriBytes = readByteList();
-      Uri importUri = importUriBytes.isEmpty
-          ? null
-          : Uri.parse(const Utf8Decoder().convert(importUriBytes));
+      String importUriString = readString();
+      Uri importUri =
+          importUriString.isEmpty ? null : Uri.parse(importUriString);
       uriToSource[uri] = new Source(lineStarts, sourceCode, importUri, uri);
     }
 

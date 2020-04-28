@@ -6,10 +6,10 @@
 
 import 'package:expect/expect.dart';
 
-/*strong.member: method:implicit=[method.T],indirect,needsArgs*/
-/*omit.member: method:needsArgs*/
-/*strong.class: global#JSArray:deps=[ArrayIterator,List],direct,explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs*/
-/*omit.class: global#JSArray:deps=[List],explicit=[JSArray],needsArgs*/
+/*spec:nnbd-off.member: method:implicit=[method.T],indirect,needsArgs*/
+/*prod:nnbd-off.member: method:needsArgs*/
+/*spec:nnbd-off.class: global#JSArray:deps=[ArrayIterator,List],direct,explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs*/
+/*prod:nnbd-off.class: global#JSArray:deps=[List],explicit=[JSArray],needsArgs*/
 
 @pragma('dart2js:noInline')
 method<T>() {

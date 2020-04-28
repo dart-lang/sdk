@@ -21,8 +21,6 @@ import 'package:analyzer/src/generated/source.dart';
 
 Future<void> scheduleImplementedNotification(
     AnalysisServer server, Iterable<String> files) async {
-  // TODO(brianwilkerson) Determine whether this await is necessary.
-  await null;
   var searchEngine = server.searchEngine;
   if (searchEngine == null) {
     return;

@@ -331,8 +331,8 @@ bool WriteBarrierElimination::SlotEligibleForWBE(const Slot& slot) {
 
 #define FOR_EACH_NATIVE_SLOT(class, underlying_type, field, type, modifiers)   \
   case Slot::Kind::k##class##_##field:                                         \
-    return std::is_base_of<RawInstance, underlying_type>::value ||             \
-           std::is_base_of<RawContext, underlying_type>::value;
+    return std::is_base_of<InstanceLayout, underlying_type>::value ||          \
+           std::is_base_of<ContextLayout, underlying_type>::value;
 
       NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
 #undef FOR_EACH_NATIVE_SLOT

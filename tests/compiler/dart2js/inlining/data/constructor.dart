@@ -51,7 +51,8 @@ forceInlineConstructorBody() {
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class3<T> {
-  /*member: Class3.:[forceInlineGenericConstructor:Class3<int>]*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class3.:[forceInlineGenericConstructor:Class3<int>]*/
+  /*spec:nnbd-sdk|prod:nnbd-sdk.member: Class3.:[forceInlineGenericConstructor:Class3<int*>]*/
   @pragma('dart2js:tryInline')
   Class3();
 }
@@ -67,13 +68,15 @@ forceInlineGenericConstructor() {
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class4a<T> implements Class4b<T> {
-  /*member: Class4a.:[forceInlineGenericFactory:Class4a<int>]*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class4a.:[forceInlineGenericFactory:Class4a<int>]*/
+  /*spec:nnbd-sdk|prod:nnbd-sdk.member: Class4a.:[forceInlineGenericFactory:Class4a<int*>]*/
   @pragma('dart2js:tryInline')
   Class4a();
 }
 
 class Class4b<T> {
-  /*member: Class4b.:[forceInlineGenericFactory:Class4b<int>]*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class4b.:[forceInlineGenericFactory:Class4b<int>]*/
+  /*spec:nnbd-sdk|prod:nnbd-sdk.member: Class4b.:[forceInlineGenericFactory:Class4b<int*>]*/
   @pragma('dart2js:tryInline')
   factory Class4b() => new Class4a<T>();
 }

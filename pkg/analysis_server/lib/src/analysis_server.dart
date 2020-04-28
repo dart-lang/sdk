@@ -26,7 +26,6 @@ import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/domain_kythe.dart';
 import 'package:analysis_server/src/domain_server.dart';
-import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
@@ -59,6 +58,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
+import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
@@ -597,8 +597,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   }
 
   Future<void> _scheduleAnalysisImplementedNotification() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var files = analysisServices[AnalysisService.IMPLEMENTED];
     if (files != null) {
       scheduleImplementedNotification(this, files);

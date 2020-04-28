@@ -1107,10 +1107,10 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // R3: new object end address.
     // R9: allocation size.
     {
-      const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
+      const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2;
 
-      __ CompareImmediate(R9, target::RawObject::kSizeTagMaxSizeTag);
+      __ CompareImmediate(R9, target::ObjectLayout::kSizeTagMaxSizeTag);
       __ mov(R8, Operand(R9, LSL, shift), LS);
       __ mov(R8, Operand(0), HI);
 
@@ -1535,9 +1535,9 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
   // R1: number of context variables.
   // R2: object size.
   // R3: next object start.
-  const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
+  const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2;
-  __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);
+  __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
   // If no size tag overflow, shift R2 left, else set R2 to zero.
   __ mov(R9, Operand(R2, LSL, shift), LS);
   __ mov(R9, Operand(0), HI);
@@ -1733,13 +1733,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   if (cards) {
     __ ldr(TMP, FieldAddress(R1, target::Object::tags_offset()));
-    __ tst(TMP, Operand(1 << target::RawObject::kCardRememberedBit));
+    __ tst(TMP, Operand(1 << target::ObjectLayout::kCardRememberedBit));
     __ b(&remember_card, NOT_ZERO);
   } else {
 #if defined(DEBUG)
     Label ok;
     __ ldr(TMP, FieldAddress(R1, target::Object::tags_offset()));
-    __ tst(TMP, Operand(1 << target::RawObject::kCardRememberedBit));
+    __ tst(TMP, Operand(1 << target::ObjectLayout::kCardRememberedBit));
     __ b(&ok, ZERO);
     __ Stop("Wrong barrier");
     __ Bind(&ok);
@@ -1756,7 +1756,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   Label retry;
   __ Bind(&retry);
   __ ldrex(R2, R3);
-  __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotRememberedBit));
+  __ bic(R2, R2, Operand(1 << target::ObjectLayout::kOldAndNotRememberedBit));
   __ strex(R4, R2, R3);
   __ cmp(R4, Operand(1));
   __ b(&retry, EQ);
@@ -1804,9 +1804,9 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // R3: Untagged address of header word (ldrex/strex do not support offsets).
   __ Bind(&marking_retry);
   __ ldrex(R2, R3);
-  __ tst(R2, Operand(1 << target::RawObject::kOldAndNotMarkedBit));
+  __ tst(R2, Operand(1 << target::ObjectLayout::kOldAndNotMarkedBit));
   __ b(&lost_race, ZERO);
-  __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotMarkedBit));
+  __ bic(R2, R2, Operand(1 << target::ObjectLayout::kOldAndNotMarkedBit));
   __ strex(R4, R2, R3);
   __ cmp(R4, Operand(1));
   __ b(&marking_retry, EQ);
@@ -3177,7 +3177,7 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ ldrb(kTmp, FieldAddress(TypeTestABI::kDstTypeReg,
                              target::Type::type_state_offset()));
   __ cmp(kTmp,
-         Operand(target::RawAbstractType::kTypeStateFinalizedInstantiated));
+         Operand(target::AbstractTypeLayout::kTypeStateFinalizedInstantiated));
   __ BranchIf(NOT_EQUAL, &is_complex_case);
 
   // Check whether this [Type] is a function type.

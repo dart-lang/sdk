@@ -11,7 +11,7 @@ import 'package:dds/dds.dart';
 import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 import 'service_test_common.dart';
-export 'service_test_common.dart' show IsolateTest, VMTest;
+export 'service_test_common.dart' show DDSTest, IsolateTest, VMTest;
 
 /// Whether to use causal async stacks (if not we use lazy async stacks).
 const bool useCausalAsyncStacks =
@@ -337,8 +337,9 @@ class _ServiceTesterRunner {
     List<String> mainArgs,
     List<String> extraArgs,
     List<String> executableArgs,
-    List<VMTest> vmTests,
+    List<DDSTest> ddsTests,
     List<IsolateTest> isolateTests,
+    List<VMTest> vmTests,
     bool pause_on_start: false,
     bool pause_on_exit: false,
     bool verbose_vm: false,
@@ -460,11 +461,11 @@ class _ServiceTesterRunner {
       );
     }
 
-    if (useDds && !enableDds) {
+    if ((useDds && !enableDds) || (!useDds && ddsTests != null)) {
       print('Skipping DDS run for $name');
-    } else {
-      runTest(name);
+      return;
     }
+    runTest(name);
   }
 
   Future<Isolate> getFirstIsolate(WebSocketVM vm) async {
@@ -581,7 +582,7 @@ void runIsolateTestsSynchronous(List<String> mainArgs, List<IsolateTest> tests,
   }
 }
 
-/// Runs [tests] in sequence, each of which should take an [Isolate] and
+/// Runs [tests] in sequence, each of which should take a [VM] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether
 /// to run tests or testee in this invocation of the script.
@@ -615,6 +616,45 @@ Future runVMTests(List<String> mainArgs, List<VMTest> tests,
       pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
       enable_service_port_fallback: enable_service_port_fallback,
       enableDds: enableDds,
+      port: port,
+    );
+  }
+}
+
+/// Runs [tests] in sequence, each of which should take a [VM] and
+/// [DartDevelopmentService] and return a [Future]. Code for setting up state
+/// can run before and/or concurrently with the tests. Uses [mainArgs] to
+/// determine whether to run tests or testee in this invocation of the
+/// script.
+Future runDDSTests(List<String> mainArgs, List<DDSTest> tests,
+    {testeeBefore(),
+    testeeConcurrent(),
+    bool pause_on_start: false,
+    bool pause_on_exit: false,
+    bool verbose_vm: false,
+    bool pause_on_unhandled_exceptions: false,
+    bool enable_service_port_fallback: false,
+    int port = 0,
+    List<String> extraArgs,
+    List<String> executableArgs}) async {
+  if (_isTestee()) {
+    new _ServiceTesteeRunner().run(
+        testeeBefore: testeeBefore,
+        testeeConcurrent: testeeConcurrent,
+        pause_on_start: pause_on_start,
+        pause_on_exit: pause_on_exit);
+  } else {
+    new _ServiceTesterRunner().run(
+      mainArgs: mainArgs,
+      extraArgs: extraArgs,
+      executableArgs: executableArgs,
+      ddsTests: tests,
+      pause_on_start: pause_on_start,
+      pause_on_exit: pause_on_exit,
+      verbose_vm: verbose_vm,
+      pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
+      enable_service_port_fallback: enable_service_port_fallback,
+      enableDds: true,
       port: port,
     );
   }

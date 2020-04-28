@@ -12,20 +12,20 @@ T method1a<T>() => null;
 /*member: method1b:*/
 T method1b<T>() => null;
 
-/*strong.member: method2:direct,explicit=[method2.T],needsArgs*/
-/*omit.member: method2:*/
+/*spec:nnbd-off.member: method2:direct,explicit=[method2.T],needsArgs*/
+/*prod:nnbd-off.member: method2:*/
 T method2<T>(T t, String s) => t;
 
-/*strong.class: Class:*/
-/*omit.class: Class:*/
+/*spec:nnbd-off.class: Class:*/
+/*prod:nnbd-off.class: Class:*/
 class Class<T> {
-  /*strong.member: Class.:*/
-  /*omit.member: Class.:*/
+  /*spec:nnbd-off.member: Class.:*/
+  /*prod:nnbd-off.member: Class.:*/
   Class();
 }
 
-/*strong.member: main:*/
-/*omit.member: main:*/
+/*spec:nnbd-off.member: main:*/
+/*prod:nnbd-off.member: main:*/
 main() {
   Expect.isTrue(method1a.runtimeType == method1b.runtimeType);
   Expect.isFalse(method1a.runtimeType == method2.runtimeType);

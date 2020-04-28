@@ -24,6 +24,15 @@ class ClassHierarchy {
     _map.remove(element);
   }
 
+  /// Remove hierarchies for classes defined in specified libraries.
+  void removeOfLibraries(Iterable<String> uriStrIterable) {
+    var uriStrSet = uriStrIterable.toSet();
+    _map.removeWhere((element, _) {
+      var uriStr = '${element.librarySource.uri}';
+      return uriStrSet.contains(uriStr);
+    });
+  }
+
   _Hierarchy _getHierarchy(ClassElement element) {
     var hierarchy = _map[element];
 

@@ -2,14 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+
 #include "platform/globals.h"
 
 #include "platform/assert.h"
+#include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
 #include "vm/globals.h"
 #include "vm/heap/become.h"
 #include "vm/heap/heap.h"
+#include "vm/message_handler.h"
 #include "vm/object_graph.h"
+#include "vm/port.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
 
@@ -82,7 +90,7 @@ TEST_CASE(LargeSweep) {
 }
 
 #ifndef PRODUCT
-static RawClass* GetClass(const Library& lib, const char* name) {
+static ClassPtr GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
@@ -200,24 +208,24 @@ TEST_CASE(ClassHeapStats) {
 
 class FindOnly : public FindObjectVisitor {
  public:
-  explicit FindOnly(RawObject* target) : target_(target) {
+  explicit FindOnly(ObjectPtr target) : target_(target) {
 #if defined(DEBUG)
     EXPECT_GT(Thread::Current()->no_safepoint_scope_depth(), 0);
 #endif
   }
   virtual ~FindOnly() {}
 
-  virtual bool FindObject(RawObject* obj) const { return obj == target_; }
+  virtual bool FindObject(ObjectPtr obj) const { return obj == target_; }
 
  private:
-  RawObject* target_;
+  ObjectPtr target_;
 };
 
 class FindNothing : public FindObjectVisitor {
  public:
   FindNothing() {}
   virtual ~FindNothing() {}
-  virtual bool FindObject(RawObject* obj) const { return false; }
+  virtual bool FindObject(ObjectPtr obj) const { return false; }
 };
 
 ISOLATE_UNIT_TEST_CASE(FindObject) {
@@ -249,11 +257,11 @@ ISOLATE_UNIT_TEST_CASE(IterateReadOnly) {
   GCTestHelper::WaitForGCTasks();
 
   Heap* heap = Thread::Current()->isolate()->heap();
-  EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
+  EXPECT(heap->Contains(ObjectLayout::ToAddr(obj.raw())));
   heap->WriteProtect(true);
-  EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
+  EXPECT(heap->Contains(ObjectLayout::ToAddr(obj.raw())));
   heap->WriteProtect(false);
-  EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
+  EXPECT(heap->Contains(ObjectLayout::ToAddr(obj.raw())));
 }
 
 void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
@@ -325,8 +333,8 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   const Array& after_obj = Array::Handle(Array::New(1, Heap::kOld));
   before_obj.SetAt(0, new_element);
   after_obj.SetAt(0, old_element);
-  EXPECT(before_obj.raw()->IsRemembered());
-  EXPECT(!after_obj.raw()->IsRemembered());
+  EXPECT(before_obj.raw()->ptr()->IsRemembered());
+  EXPECT(!after_obj.raw()->ptr()->IsRemembered());
 
   EXPECT(before_obj.raw() != after_obj.raw());
 
@@ -338,7 +346,7 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   Become::ElementsForwardIdentity(before, after);
 
   EXPECT(before_obj.raw() == after_obj.raw());
-  EXPECT(!after_obj.raw()->IsRemembered());
+  EXPECT(!after_obj.raw()->ptr()->IsRemembered());
 
   GCTestHelper::CollectAllGarbage();
 
@@ -606,6 +614,131 @@ class HeapTestHelper {
     thread->heap()->WaitForSweeperTasks(thread);
   }
 };
+
+class MergeIsolatesHeapsHandler : public MessageHandler {
+ public:
+  explicit MergeIsolatesHeapsHandler(Isolate* owner)
+      : msg_(Utils::CreateCStringUniquePtr(nullptr)), owner_(owner) {}
+
+  const char* name() const { return "merge-isolates-heaps-handler"; }
+
+  ~MergeIsolatesHeapsHandler() { PortMap::ClosePorts(this); }
+
+  MessageStatus HandleMessage(std::unique_ptr<Message> message) {
+    // Parse the message.
+    Object& response_obj = Object::Handle();
+    if (message->IsRaw()) {
+      response_obj = message->raw_obj();
+    } else if (message->IsBequest()) {
+      Bequest* bequest = message->bequest();
+      PersistentHandle* handle = bequest->handle();
+      // Object in the receiving isolate's heap.
+      EXPECT(isolate()->heap()->Contains(ObjectLayout::ToAddr(handle->raw())));
+      response_obj = handle->raw();
+      isolate()->group()->api_state()->FreePersistentHandle(handle);
+    } else {
+      Thread* thread = Thread::Current();
+      MessageSnapshotReader reader(message.get(), thread);
+      response_obj = reader.ReadObject();
+    }
+    if (response_obj.IsString()) {
+      String& response = String::Handle();
+      response ^= response_obj.raw();
+      msg_.reset(strdup(response.ToCString()));
+    } else {
+      ASSERT(response_obj.IsArray());
+      Array& response_array = Array::Handle();
+      response_array ^= response_obj.raw();
+      ASSERT(response_array.Length() == 1);
+      ExternalTypedData& response = ExternalTypedData::Handle();
+      response ^= response_array.At(0);
+      msg_.reset(strdup(reinterpret_cast<char*>(response.DataAddr(0))));
+    }
+
+    return kOK;
+  }
+
+  const char* msg() const { return msg_.get(); }
+
+  virtual Isolate* isolate() const { return owner_; }
+
+ private:
+  Utils::CStringUniquePtr msg_;
+  Isolate* owner_;
+};
+
+VM_UNIT_TEST_CASE(CleanupBequestNeverReceived) {
+  const char* TEST_MESSAGE = "hello, world";
+  Dart_Isolate parent = TestCase::CreateTestIsolate("parent");
+  EXPECT_EQ(parent, Dart_CurrentIsolate());
+  {
+    MergeIsolatesHeapsHandler handler(Isolate::Current());
+    Dart_Port port_id = PortMap::CreatePort(&handler);
+    EXPECT_EQ(PortMap::GetIsolate(port_id), Isolate::Current());
+    Dart_ExitIsolate();
+
+    Dart_Isolate worker = TestCase::CreateTestIsolateInGroup("worker", parent);
+    EXPECT_EQ(worker, Dart_CurrentIsolate());
+    {
+      Thread* thread = Thread::Current();
+      TransitionNativeToVM transition(thread);
+      StackZone zone(thread);
+      HANDLESCOPE(thread);
+
+      String& string = String::Handle(String::New(TEST_MESSAGE));
+      PersistentHandle* handle =
+          Isolate::Current()->group()->api_state()->AllocatePersistentHandle();
+      handle->set_raw(string.raw());
+
+      reinterpret_cast<Isolate*>(worker)->bequeath(
+          std::unique_ptr<Bequest>(new Bequest(handle, port_id)));
+    }
+  }
+  Dart_ShutdownIsolate();
+  Dart_EnterIsolate(parent);
+  Dart_ShutdownIsolate();
+}
+
+VM_UNIT_TEST_CASE(ReceivesSendAndExitMessage) {
+  const char* TEST_MESSAGE = "hello, world";
+  Dart_Isolate parent = TestCase::CreateTestIsolate("parent");
+  EXPECT_EQ(parent, Dart_CurrentIsolate());
+  MergeIsolatesHeapsHandler handler(Isolate::Current());
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  EXPECT_EQ(PortMap::GetIsolate(port_id), Isolate::Current());
+  Dart_ExitIsolate();
+
+  Dart_Isolate worker = TestCase::CreateTestIsolateInGroup("worker", parent);
+  EXPECT_EQ(worker, Dart_CurrentIsolate());
+  {
+    Thread* thread = Thread::Current();
+    TransitionNativeToVM transition(thread);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+
+    String& string = String::Handle(String::New(TEST_MESSAGE));
+
+    PersistentHandle* handle =
+        Isolate::Current()->group()->api_state()->AllocatePersistentHandle();
+    handle->set_raw(string.raw());
+
+    reinterpret_cast<Isolate*>(worker)->bequeath(
+        std::unique_ptr<Bequest>(new Bequest(handle, port_id)));
+  }
+
+  Dart_ShutdownIsolate();
+  Dart_EnterIsolate(parent);
+  {
+    Thread* thread = Thread::Current();
+    TransitionNativeToVM transition(thread);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+
+    EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
+  }
+  EXPECT_STREQ(handler.msg(), TEST_MESSAGE);
+  Dart_ShutdownIsolate();
+}
 
 ISOLATE_UNIT_TEST_CASE(ExternalAllocationStats) {
   Isolate* isolate = thread->isolate();

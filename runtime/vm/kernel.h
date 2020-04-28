@@ -203,9 +203,9 @@ class KernelLineStartsReader {
 
 void CollectTokenPositionsFor(const Script& script);
 
-RawObject* EvaluateMetadata(const Field& metadata_field,
-                            bool is_annotations_offset);
-RawObject* BuildParameterDescriptor(const Function& function);
+ObjectPtr EvaluateMetadata(const Field& metadata_field,
+                           bool is_annotations_offset);
+ObjectPtr BuildParameterDescriptor(const Function& function);
 
 // Fills in [is_covariant] and [is_generic_covariant_impl] vectors
 // according to covariance attributes of [function] parameters.
@@ -225,7 +225,7 @@ bool NeedsDynamicInvocationForwarder(const Function& function);
 // Returns a list of ParameterTypeChecks needed by a dynamic invocation
 // forwarder that targets [function]. Indices in these checks correspond to
 // bytecode frame indices.
-RawArray* CollectDynamicInvocationChecks(const Function& function);
+ArrayPtr CollectDynamicInvocationChecks(const Function& function);
 
 ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone);

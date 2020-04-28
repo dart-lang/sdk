@@ -657,7 +657,7 @@ void DispatchTableGenerator::ComputeSelectorOffsets() {
   table_size_ = fitter.TableSize();
 }
 
-RawArray* DispatchTableGenerator::BuildCodeArray() {
+ArrayPtr DispatchTableGenerator::BuildCodeArray() {
   auto& entries = Array::Handle(zone_, Array::New(table_size_, Heap::kOld));
   for (intptr_t i = 0; i < table_rows_.length(); i++) {
     table_rows_[i]->FillTable(classes_, entries);

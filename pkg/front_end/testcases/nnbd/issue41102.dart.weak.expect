@@ -43,14 +43,10 @@ library /*isNonNullableByDefault*/;
 // final s10 = s7.length;
 //                ^^^^^^
 //
-// pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: The setter 'length' isn't defined for the class 'int?'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'length'.
-// final s11 = s5.length = 0;
-//                ^^^^^^
-//
-// pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: Property 'length' cannot be accessed on 'int?' because it is potentially null.
+// pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: Property 'length' cannot be accessed on 'List<dynamic>?' because it is potentially null.
+//  - 'List' is from 'dart:core'.
 // Try accessing using ?. instead.
-// final s11 = s5.length = 0;
+// final s11 = s7.length = 0;
 //                ^^^^^^
 //
 // pkg/front_end/testcases/nnbd/issue41102.dart:43:13: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
@@ -111,13 +107,11 @@ static final field core::int s10 = let final<BottomType> #t10 = invalid-expressi
 Try accessing using ?. instead.
 final s10 = s7.length;
                ^^^^^^" in self::s7.{core::List::length};
-static final field core::int s11 = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: Property 'length' cannot be accessed on 'int?' because it is potentially null.
+static final field core::int s11 = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: Property 'length' cannot be accessed on 'List<dynamic>?' because it is potentially null.
+ - 'List' is from 'dart:core'.
 Try accessing using ?. instead.
-final s11 = s5.length = 0;
-               ^^^^^^" in invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: The setter 'length' isn't defined for the class 'int?'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'length'.
-final s11 = s5.length = 0;
-               ^^^^^^";
+final s11 = s7.length = 0;
+               ^^^^^^" in self::s7.{core::List::length} = 0;
 static final field core::int s12 = let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:43:13: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
 final s12 = -s5;
             ^" in self::s5.{core::int::unary-}();

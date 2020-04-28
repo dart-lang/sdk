@@ -945,8 +945,8 @@ class Assembler : public AssemblerBase {
   // before the code can be used.
   //
   // The neccessary information for the "linker" (i.e. the relocation
-  // information) is stored in [RawCode::static_calls_target_table_]: an entry
-  // of the form
+  // information) is stored in [CodeLayout::static_calls_target_table_]: an
+  // entry of the form
   //
   //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
   //

@@ -56,7 +56,7 @@ Dart_Port PortMap::AllocatePort() {
       continue;
     }
 
-    ASSERT(!reinterpret_cast<RawObject*>(result)->IsWellFormed());
+    ASSERT(!static_cast<ObjectPtr>(static_cast<uword>(result))->IsWellFormed());
   } while (ports_->Contains(result));
 
   ASSERT(result != 0);
@@ -221,6 +221,14 @@ Isolate* PortMap::GetIsolate(Dart_Port id) {
 
   MessageHandler* handler = (*it).handler;
   return handler->isolate();
+}
+
+bool PortMap::IsReceiverInThisIsolateGroup(Dart_Port receiver,
+                                           IsolateGroup* group) {
+  MutexLocker ml(mutex_);
+  auto it = ports_->TryLookup(receiver);
+  if (it == ports_->end()) return false;
+  return (*it).handler->isolate()->group() == group;
 }
 
 void PortMap::Init() {

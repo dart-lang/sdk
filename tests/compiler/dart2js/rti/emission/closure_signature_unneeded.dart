@@ -12,8 +12,7 @@ class A<T> {
     // potential subtype of the checked function types.
     return
 
-        /*strong.checks=[],instance*/
-        /*omit.checks=[],instance*/
+        /*checks=[],instance*/
         (T t, String s) {};
   }
 }

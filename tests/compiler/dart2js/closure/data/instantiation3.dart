@@ -10,8 +10,8 @@ typedef int F<R>(R a);
 
 method<S>() {
   return
-      /*strong.fields=[S],free=[S]*/
-      /*omit.*/
+      /*spec:nnbd-off|spec:nnbd-sdk.fields=[S],free=[S]*/
+      /*prod:nnbd-off.*/
       () {
     F<S> c = f;
     return c;

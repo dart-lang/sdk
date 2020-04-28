@@ -41,6 +41,13 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
+class FileContext {
+  final AnalysisOptionsImpl analysisOptions;
+  final FileState file;
+
+  FileContext(this.analysisOptions, this.file);
+}
+
 class FileResolver {
   final PerformanceLog logger;
   final ResourceProvider resourceProvider;
@@ -62,6 +69,16 @@ class FileResolver {
 
   final Workspace workspace;
 
+  /// If not `null`, the library context will be reset after the specified
+  /// interval of inactivity. Keeping library context with loaded elements
+  /// significantly improves performance of resolution, because we don't have
+  /// to resynthesize elements, build export scopes for libraries, etc.
+  /// However keeping elements that we don't need anymore, or when the user
+  /// does not work with files, is wasteful.
+  ///
+  /// TODO(scheglov) use it
+  final Duration libraryContextResetDuration;
+
   /// This field gets value only during testing.
   FileResolverTestView testView;
 
@@ -71,20 +88,46 @@ class FileResolver {
 
   _LibraryContext libraryContext;
 
-  FileResolver(this.logger, this.resourceProvider, this.byteStore,
-      this.sourceFactory, this.getFileDigest, this.prefetchFiles,
-      {@required Workspace workspace})
-      : this.workspace = workspace;
+  FileResolver(
+    this.logger,
+    this.resourceProvider,
+    this.byteStore,
+    this.sourceFactory,
+    this.getFileDigest,
+    this.prefetchFiles, {
+    @required Workspace workspace,
+    this.libraryContextResetDuration,
+  }) : this.workspace = workspace;
 
   FeatureSet get defaultFeatureSet => FeatureSet.fromEnableFlags([]);
+
+  /// Update the resolver to reflect the fact that the file with the given
+  /// [path] was changed. We need to make sure that when this file, of any file
+  /// that directly or indirectly referenced it, is resolved, we used the new
+  /// state of the file.
+  void changeFile(String path) {
+    if (fsState == null) {
+      return;
+    }
+
+    // Remove this file and all files that transitively depend on it.
+    var removedFiles = <FileState>[];
+    fsState.changeFile(path, removedFiles);
+
+    // Remove libraries represented by removed files.
+    // If we need these libraries later, we will relink and reattach them.
+    if (libraryContext != null) {
+      libraryContext.elementFactory.removeLibraries(
+        removedFiles.map((e) => e.uriStr).toList(),
+      );
+    }
+  }
 
   ErrorsResult getErrors(String path) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     return logger.run('Get errors for $path', () {
-      var fileContext = logger.run('Get file $path', () {
-        return _createFileContext(path);
-      });
+      var fileContext = getFileContext(path, withLog: true);
       var file = fileContext.file;
 
       var errorsSignatureBuilder = ApiSignature();
@@ -127,10 +170,33 @@ class FileResolver {
     });
   }
 
+  FileContext getFileContext(String path, {bool withLog = false}) {
+    FileContext perform() {
+      var analysisOptions = _getAnalysisOptions(path);
+
+      _createContext(analysisOptions);
+
+      var file = fsState.getFileForPath(path);
+      return FileContext(analysisOptions, file);
+    }
+
+    if (withLog) {
+      return logger.run('Get file $path', () {
+        try {
+          return getFileContext(path);
+        } finally {
+          fsState.logStatistics();
+        }
+      });
+    } else {
+      return perform();
+    }
+  }
+
   String getLibraryLinkedSignature(String path) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    var fileContext = _createFileContext(path);
+    var fileContext = getFileContext(path);
     var file = fileContext.file;
     return file.libraryCycle.signatureStr;
   }
@@ -139,9 +205,7 @@ class FileResolver {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     return logger.run('Resolve $path', () {
-      var fileContext = logger.run('Get file $path', () {
-        return _createFileContext(path);
-      });
+      var fileContext = getFileContext(path, withLog: true);
       var file = fileContext.file;
 
       libraryContext.load2(file);
@@ -234,22 +298,23 @@ class FileResolver {
     }
 
     if (analysisContext == null) {
-      logger.run('Create AnalysisContext', () {
-        var root = ContextRootImpl(
-          resourceProvider,
-          resourceProvider.getFolder(workspace.root),
-        );
+      var rootFolder = resourceProvider.getFolder(workspace.root);
+      var root = ContextRootImpl(
+        resourceProvider,
+        rootFolder,
+      );
 
-        analysisContext = MicroAnalysisContextImpl(
-          this,
-          root,
-          analysisOptions,
-          DeclaredVariables(),
-          sourceFactory,
-          resourceProvider,
-          workspace: workspace,
-        );
-      });
+      root.included.add(rootFolder);
+
+      analysisContext = MicroAnalysisContextImpl(
+        this,
+        root,
+        analysisOptions,
+        DeclaredVariables(),
+        sourceFactory,
+        resourceProvider,
+        workspace: workspace,
+      );
     }
 
     if (libraryContext == null) {
@@ -263,15 +328,6 @@ class FileResolver {
         analysisContext.declaredVariables,
       );
     }
-  }
-
-  _FileContext _createFileContext(String path) {
-    var analysisOptions = _getAnalysisOptions(path);
-
-    _createContext(analysisOptions);
-
-    var file = fsState.getFileForPath(path);
-    return _FileContext(analysisOptions, file);
   }
 
   File _findOptionsFile(Folder folder) {
@@ -357,13 +413,6 @@ class FileResolverTestView {
   void addResolvedFile(String path) {
     resolvedFiles.add(path);
   }
-}
-
-class _FileContext {
-  final AnalysisOptionsImpl analysisOptions;
-  final FileState file;
-
-  _FileContext(this.analysisOptions, this.file);
 }
 
 class _LibraryContext {

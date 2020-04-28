@@ -230,7 +230,8 @@ const char* OffsetsTable::FieldNameForOffset(intptr_t class_id,
 }
 
 #define DEFINE_OFFSETS_TABLE_ENTRY(class_name, field_name)                     \
-  {class_name::kClassId, #field_name, OFFSET_OF(Raw##class_name, field_name)},
+  {class_name::kClassId, #field_name,                                          \
+   OFFSET_OF(class_name##Layout, field_name)},
 
 // clang-format off
 OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {

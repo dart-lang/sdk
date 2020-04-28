@@ -11,7 +11,6 @@ main() {
   test(/*checks=[$signature],instance*/ () {});
   test(
 
-      /*strong.checks=[],instance*/
-      /*omit.checks=[],instance*/
+      /*checks=[],instance*/
       (a) {});
 }

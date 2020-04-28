@@ -17,7 +17,6 @@ namespace dart {
 // Forward declarations.
 class IsolateGroup;
 class ObjectSet;
-class RawObject;
 
 enum MarkExpectation { kForbidMarked, kAllowMarked, kRequireMarked };
 
@@ -30,7 +29,7 @@ class VerifyObjectVisitor : public ObjectVisitor {
         allocated_set_(allocated_set),
         mark_expectation_(mark_expectation) {}
 
-  virtual void VisitObject(RawObject* obj);
+  virtual void VisitObject(ObjectPtr obj);
 
  private:
   IsolateGroup* isolate_group_;
@@ -48,7 +47,7 @@ class VerifyPointersVisitor : public ObjectPointerVisitor {
                                  ObjectSet* allocated_set)
       : ObjectPointerVisitor(isolate_group), allocated_set_(allocated_set) {}
 
-  virtual void VisitPointers(RawObject** first, RawObject** last);
+  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last);
 
   static void VerifyPointers(MarkExpectation mark_expectation = kForbidMarked);
 
@@ -77,7 +76,7 @@ class VerifyWeakPointersVisitor : public HandleVisitor {
 class VerifyCanonicalVisitor : public ObjectVisitor {
  public:
   explicit VerifyCanonicalVisitor(Thread* thread);
-  virtual void VisitObject(RawObject* obj);
+  virtual void VisitObject(ObjectPtr obj);
 
  private:
   Thread* thread_;

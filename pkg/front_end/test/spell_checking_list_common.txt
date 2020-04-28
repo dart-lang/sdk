@@ -1054,8 +1054,8 @@ exit
 exited
 exits
 expand
-expands
 expanding
+expands
 expansion
 expect
 expectation
@@ -1411,6 +1411,7 @@ include
 included
 includes
 including
+inclusion
 inclusive
 incoming
 incompatible
@@ -1706,6 +1707,7 @@ logger
 logging
 logic
 logical
+lone
 long
 longer
 longest
@@ -1768,6 +1770,7 @@ mathematical
 matter
 maturity
 max
+maximal
 maximum
 may
 maybe
@@ -1843,6 +1846,7 @@ modules
 modulo
 moment
 mongolian
+monotonous
 more
 moreover
 most
@@ -1944,6 +1948,7 @@ object's
 objects
 oblivious
 observation
+observations
 observed
 obtain
 obtained
@@ -2247,6 +2252,7 @@ promotes
 promotion
 promotions
 propagate
+propagates
 propagating
 propagation
 proper
@@ -2327,6 +2333,8 @@ recognized
 recognizes
 recommend
 recommendations
+recomputation
+recomputes
 record
 recorded
 recording
@@ -2991,6 +2999,7 @@ translated
 translates
 translating
 translator
+traveling
 traversed
 treat
 treated
@@ -3017,6 +3026,8 @@ true
 truly
 truncate
 truncating
+trust
+trusts
 truth
 try
 trying

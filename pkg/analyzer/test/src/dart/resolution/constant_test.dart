@@ -347,6 +347,6 @@ const b = a;
   }
 
   void _assertIntValue(VariableElement element, int value) {
-    expect(element.constantValue.toIntValue(), value);
+    expect(element.computeConstantValue().toIntValue(), value);
   }
 }

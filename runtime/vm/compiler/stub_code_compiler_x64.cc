@@ -1099,9 +1099,9 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // RDI: allocation size.
     {
       Label size_tag_overflow, done;
-      __ cmpq(RDI, Immediate(target::RawObject::kSizeTagMaxSizeTag));
+      __ cmpq(RDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shlq(RDI, Immediate(target::RawObject::kTagBitsSizeTagPos -
+      __ shlq(RDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2));
       __ jmp(&done, Assembler::kNearJump);
 
@@ -1539,9 +1539,9 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     Label size_tag_overflow, done;
     __ leaq(R13, Address(R10, TIMES_8, fixed_size_plus_alignment_padding));
     __ andq(R13, Immediate(-target::ObjectAlignment::kObjectAlignment));
-    __ cmpq(R13, Immediate(target::RawObject::kSizeTagMaxSizeTag));
+    __ cmpq(R13, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shlq(R13, Immediate(target::RawObject::kTagBitsSizeTagPos -
+    __ shlq(R13, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done);
 
@@ -1740,13 +1740,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   if (cards) {
     __ movl(TMP, FieldAddress(RDX, target::Object::tags_offset()));
-    __ testl(TMP, Immediate(1 << target::RawObject::kCardRememberedBit));
+    __ testl(TMP, Immediate(1 << target::ObjectLayout::kCardRememberedBit));
     __ j(NOT_ZERO, &remember_card, Assembler::kFarJump);
   } else {
 #if defined(DEBUG)
     Label ok;
     __ movl(TMP, FieldAddress(RDX, target::Object::tags_offset()));
-    __ testl(TMP, Immediate(1 << target::RawObject::kCardRememberedBit));
+    __ testl(TMP, Immediate(1 << target::ObjectLayout::kCardRememberedBit));
     __ j(ZERO, &ok, Assembler::kFarJump);
     __ Stop("Wrong barrier");
     __ Bind(&ok);
@@ -1761,7 +1761,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // lock+andl is an atomic read-modify-write.
   __ lock();
   __ andl(FieldAddress(RDX, target::Object::tags_offset()),
-          Immediate(~(1 << target::RawObject::kOldAndNotRememberedBit)));
+          Immediate(~(1 << target::ObjectLayout::kOldAndNotRememberedBit)));
 
   // Save registers being destroyed.
   __ pushq(RAX);
@@ -1813,9 +1813,9 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ movl(RAX, FieldAddress(TMP, target::Object::tags_offset()));
   __ Bind(&retry);
   __ movl(RCX, RAX);
-  __ testl(RCX, Immediate(1 << target::RawObject::kOldAndNotMarkedBit));
+  __ testl(RCX, Immediate(1 << target::ObjectLayout::kOldAndNotMarkedBit));
   __ j(ZERO, &lost_race);  // Marked by another thread.
-  __ andl(RCX, Immediate(~(1 << target::RawObject::kOldAndNotMarkedBit)));
+  __ andl(RCX, Immediate(~(1 << target::ObjectLayout::kOldAndNotMarkedBit)));
   __ LockCmpxchgl(FieldAddress(TMP, target::Object::tags_offset()), RCX);
   __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
 
@@ -2474,7 +2474,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ j(EQUAL, &call_target_function_through_unchecked_entry);
 
     // Check trivial exactness.
-    // Note: RawICData::receivers_static_type_ is guaranteed to be not null
+    // Note: ICDataLayout::receivers_static_type_ is guaranteed to be not null
     // because we only emit calls to this stub when it is not null.
     __ movq(RCX,
             FieldAddress(RBX, target::ICData::receivers_static_type_offset()));
@@ -3228,7 +3228,7 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   // Check whether this [Type] is instantiated/uninstantiated.
   __ cmpb(
       FieldAddress(TypeTestABI::kDstTypeReg, target::Type::type_state_offset()),
-      Immediate(target::RawAbstractType::kTypeStateFinalizedInstantiated));
+      Immediate(target::AbstractTypeLayout::kTypeStateFinalizedInstantiated));
   __ BranchIf(NOT_EQUAL, &is_complex_case);
 
   // Check whether this [Type] is a function type.

@@ -11,7 +11,6 @@ import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/computer/computer_signature.dart';
 import 'package:analysis_server/src/computer/imported_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
-import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
@@ -24,6 +23,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
+import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 
 // TODO(devoncarew): See #31456 for the tracking issue to remove this flag.
 final bool disableManageImportsOnPaste = true;
@@ -57,8 +57,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 
   /// Implement the `analysis.getHover` request.
   Future<void> getHover(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = AnalysisGetHoverParams.fromRequest(request);
     var file = params.file;
 
@@ -87,8 +85,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 
   /// Implement the `analysis.getImportedElements` request.
   Future<void> getImportedElements(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = AnalysisGetImportedElementsParams.fromRequest(request);
     var file = params.file;
 
@@ -147,8 +143,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 
   /// Implement the `analysis.getNavigation` request.
   Future<void> getNavigation(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = AnalysisGetNavigationParams.fromRequest(request);
     var file = params.file;
     var offset = params.offset;

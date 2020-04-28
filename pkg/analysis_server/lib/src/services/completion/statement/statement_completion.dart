@@ -132,8 +132,6 @@ class StatementCompletionProcessor {
       statementContext.resolveResult.unit.declaredElement;
 
   Future<StatementCompletion> compute() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     node = _selectedNode();
     if (node == null) {
       return NO_COMPLETION;

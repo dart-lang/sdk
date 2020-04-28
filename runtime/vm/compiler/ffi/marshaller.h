@@ -74,7 +74,7 @@ class BaseMarshaller : public NativeCallingConvention {
            kFfiVoidCid;
   }
 
-  RawString* function_name() const { return dart_signature_.name(); }
+  StringPtr function_name() const { return dart_signature_.name(); }
 
  protected:
   BaseMarshaller(Zone* zone, const Function& dart_signature)

@@ -58,11 +58,6 @@ class RuntimeEntry : public BaseRuntimeEntry {
                                intptr_t argument_count) const);
 
   static uword InterpretCallEntry();
-  static RawObject* InterpretCall(RawFunction* function,
-                                  RawArray* argdesc,
-                                  intptr_t argc,
-                                  RawObject** argv,
-                                  Thread* thread);
 
  protected:
   NOT_IN_PRECOMPILED(static void CallInternal(const RuntimeEntry* runtime_entry,

@@ -68,7 +68,7 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
 
     var fix = EditDartFix(server, request);
     final response = await fix.compute();
-    fix.nonNullableFixTask?.server?.close();
+    fix.nonNullableFixTask?.shutdownServer();
     expect(response.id, id);
     return response;
   }

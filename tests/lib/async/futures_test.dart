@@ -77,6 +77,15 @@ Future testWaitWithMultipleErrors() {
   });
 }
 
+// Regression test for https://github.com/dart-lang/sdk/issues/41656
+Future testWaitWithErrorAndNonErrorEager() {
+  return Future(() {
+    var f1 = Future(() => throw "Error");
+    var f2 = Future(() => 3);
+    return Future.wait([f1, f2], eagerError: true);
+  }).then((_) => 0, onError: (_) => -1);
+}
+
 Future testWaitWithMultipleErrorsEager() {
   final futures = <Future>[];
   final c1 = new Completer();
@@ -249,6 +258,7 @@ main() {
   futures.add(testWaitWithMultipleValues());
   futures.add(testWaitWithSingleError());
   futures.add(testWaitWithMultipleErrors());
+  futures.add(testWaitWithErrorAndNonErrorEager());
   futures.add(testWaitWithMultipleErrorsEager());
   futures.add(testWaitWithSingleErrorWithStackTrace());
   futures.add(testWaitWithMultipleErrorsWithStackTrace());
@@ -264,7 +274,7 @@ main() {
 
   asyncStart();
   Future.wait(futures).then((List list) {
-    Expect.equals(18, list.length);
+    Expect.equals(19, list.length);
     asyncEnd();
   });
 }

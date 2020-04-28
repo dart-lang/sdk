@@ -10,8 +10,8 @@ class A {}
 /*class: B:deps=[method],explicit=[B<A>],needsArgs*/
 class B<T> {}
 
-/*strong.member: method:needsArgs*/
-/*omit.member: method:needsArgs*/
+/*spec:nnbd-off.member: method:needsArgs*/
+/*prod:nnbd-off.member: method:needsArgs*/
 method<T>() => new B<T>();
 
 main() {

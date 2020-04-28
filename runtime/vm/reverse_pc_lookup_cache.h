@@ -43,21 +43,21 @@ class Isolate;
 // WARNING: This class cannot do memory allocation or handle allocation!
 class ReversePcLookupCache {
  public:
-  ReversePcLookupCache(Isolate* isolate,
+  ReversePcLookupCache(IsolateGroup* isolate_group,
                        uint32_t* pc_array,
                        intptr_t length,
                        uword first_absolute_pc,
                        uword last_absolute_pc)
-      : isolate_(isolate),
+      : isolate_group_(isolate_group),
         pc_array_(pc_array),
         length_(length),
         first_absolute_pc_(first_absolute_pc),
         last_absolute_pc_(last_absolute_pc) {}
   ~ReversePcLookupCache() { delete[] pc_array_; }
 
-  // Builds a [ReversePcLookupCache] and attaches it to the isolate (if
+  // Builds a [ReversePcLookupCache] and attaches it to the isolate group (if
   // `code_order_table` is non-`null`).
-  static void BuildAndAttachToIsolate(Isolate* isolate);
+  static void BuildAndAttachToIsolateGroup(IsolateGroup* isolate_group);
 
   // Returns `true` if the given [pc] contains can be mapped to a [Code] object
   // using this cache.
@@ -70,7 +70,7 @@ class ReversePcLookupCache {
   // If [is_return_address] is true, then the PC may be immediately after the
   // payload, if the last instruction is a call that is guaranteed not to
   // return. Otherwise, the PC must be within the payload.
-  inline RawCode* Lookup(uword pc, bool is_return_address = false) {
+  inline CodePtr Lookup(uword pc, bool is_return_address = false) {
     NoSafepointScope no_safepoint_scope;
 
     intptr_t left = 0;
@@ -98,8 +98,8 @@ class ReversePcLookupCache {
       }
     }
 
-    auto code_array = isolate_->object_store()->code_order_table();
-    auto raw_code = reinterpret_cast<RawCode*>(Array::DataOf(code_array)[left]);
+    auto code_array = isolate_group_->object_store()->code_order_table();
+    auto raw_code = static_cast<CodePtr>(Array::DataOf(code_array)[left]);
 
 #if defined(DEBUG)
     ASSERT(raw_code->GetClassIdMayBeSmi() == kCodeCid);
@@ -110,7 +110,7 @@ class ReversePcLookupCache {
   }
 
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   uint32_t* pc_array_;
   intptr_t length_;
   uword first_absolute_pc_;
@@ -124,11 +124,11 @@ class ReversePcLookupCache {
   ReversePcLookupCache() {}
   ~ReversePcLookupCache() {}
 
-  static void BuildAndAttachToIsolate(Isolate* isolate) {}
+  static void BuildAndAttachToIsolateGroup(IsolateGroup* isolate_group) {}
 
   inline bool Contains(uword pc) { return false; }
 
-  inline RawCode* Lookup(uword pc, bool is_return_address = false) {
+  inline CodePtr Lookup(uword pc, bool is_return_address = false) {
     UNREACHABLE();
   }
 };

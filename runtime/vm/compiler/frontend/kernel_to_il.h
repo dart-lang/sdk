@@ -70,7 +70,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                                  PrologueInfo* prologue_info);
 
   // Return names of optional named parameters of [function].
-  RawArray* GetOptionalParameterNames(const Function& function);
+  ArrayPtr GetOptionalParameterNames(const Function& function);
 
   // Generate fragment which pushes all explicit parameters of [function].
   Fragment PushExplicitParameters(
@@ -142,9 +142,10 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment InitInstanceField(const Field& field);
   Fragment InitStaticField(const Field& field);
   Fragment NativeCall(const String* name, const Function* function);
-  Fragment Return(TokenPosition position,
-                  bool omit_result_type_check = false,
-                  intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex);
+  Fragment Return(
+      TokenPosition position,
+      bool omit_result_type_check = false,
+      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
   void SetResultTypeForStaticCall(StaticCallInstr* call,
                                   const Function& target,
                                   intptr_t argument_count,

@@ -18,7 +18,7 @@ DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 
 void DeferredDouble::Materialize(DeoptContext* deopt_context) {
-  RawDouble** double_slot = reinterpret_cast<RawDouble**>(slot());
+  DoublePtr* double_slot = reinterpret_cast<DoublePtr*>(slot());
   *double_slot = Double::New(value());
 
   if (FLAG_trace_deoptimization_verbose) {
@@ -28,7 +28,7 @@ void DeferredDouble::Materialize(DeoptContext* deopt_context) {
 }
 
 void DeferredMint::Materialize(DeoptContext* deopt_context) {
-  RawMint** mint_slot = reinterpret_cast<RawMint**>(slot());
+  MintPtr* mint_slot = reinterpret_cast<MintPtr*>(slot());
   ASSERT(!Smi::IsValid(value()));
   Mint& mint = Mint::Handle();
   mint ^= Integer::New(value());
@@ -41,43 +41,43 @@ void DeferredMint::Materialize(DeoptContext* deopt_context) {
 }
 
 void DeferredFloat32x4::Materialize(DeoptContext* deopt_context) {
-  RawFloat32x4** float32x4_slot = reinterpret_cast<RawFloat32x4**>(slot());
-  RawFloat32x4* raw_float32x4 = Float32x4::New(value());
+  Float32x4Ptr* float32x4_slot = reinterpret_cast<Float32x4Ptr*>(slot());
+  Float32x4Ptr raw_float32x4 = Float32x4::New(value());
   *float32x4_slot = raw_float32x4;
 
   if (FLAG_trace_deoptimization_verbose) {
-    float x = raw_float32x4->x();
-    float y = raw_float32x4->y();
-    float z = raw_float32x4->z();
-    float w = raw_float32x4->w();
+    float x = raw_float32x4->ptr()->x();
+    float y = raw_float32x4->ptr()->y();
+    float z = raw_float32x4->ptr()->z();
+    float w = raw_float32x4->ptr()->w();
     OS::PrintErr("materializing Float32x4 at %" Px ": %g,%g,%g,%g\n",
                  reinterpret_cast<uword>(slot()), x, y, z, w);
   }
 }
 
 void DeferredFloat64x2::Materialize(DeoptContext* deopt_context) {
-  RawFloat64x2** float64x2_slot = reinterpret_cast<RawFloat64x2**>(slot());
-  RawFloat64x2* raw_float64x2 = Float64x2::New(value());
+  Float64x2Ptr* float64x2_slot = reinterpret_cast<Float64x2Ptr*>(slot());
+  Float64x2Ptr raw_float64x2 = Float64x2::New(value());
   *float64x2_slot = raw_float64x2;
 
   if (FLAG_trace_deoptimization_verbose) {
-    double x = raw_float64x2->x();
-    double y = raw_float64x2->y();
+    double x = raw_float64x2->ptr()->x();
+    double y = raw_float64x2->ptr()->y();
     OS::PrintErr("materializing Float64x2 at %" Px ": %g,%g\n",
                  reinterpret_cast<uword>(slot()), x, y);
   }
 }
 
 void DeferredInt32x4::Materialize(DeoptContext* deopt_context) {
-  RawInt32x4** int32x4_slot = reinterpret_cast<RawInt32x4**>(slot());
-  RawInt32x4* raw_int32x4 = Int32x4::New(value());
+  Int32x4Ptr* int32x4_slot = reinterpret_cast<Int32x4Ptr*>(slot());
+  Int32x4Ptr raw_int32x4 = Int32x4::New(value());
   *int32x4_slot = raw_int32x4;
 
   if (FLAG_trace_deoptimization_verbose) {
-    uint32_t x = raw_int32x4->x();
-    uint32_t y = raw_int32x4->y();
-    uint32_t z = raw_int32x4->z();
-    uint32_t w = raw_int32x4->w();
+    uint32_t x = raw_int32x4->ptr()->x();
+    uint32_t y = raw_int32x4->ptr()->y();
+    uint32_t z = raw_int32x4->ptr()->z();
+    uint32_t w = raw_int32x4->ptr()->w();
     OS::PrintErr("materializing Int32x4 at %" Px ": %x,%x,%x,%x\n",
                  reinterpret_cast<uword>(slot()), x, y, z, w);
   }
@@ -107,7 +107,7 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   const Code& code = Code::Handle(zone, function.unoptimized_code());
 
   uword continue_at_pc =
-      code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kDeopt);
+      code.GetPcForDeoptId(deopt_id_, PcDescriptorsLayout::kDeopt);
   if (continue_at_pc == 0) {
     FATAL2("Can't locate continuation PC for deoptid %" Pd " within %s\n",
            deopt_id_, function.ToFullyQualifiedCString());
@@ -120,7 +120,7 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
                  reinterpret_cast<uword>(slot()), continue_at_pc);
   }
 
-  uword pc = code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kIcCall);
+  uword pc = code.GetPcForDeoptId(deopt_id_, PcDescriptorsLayout::kIcCall);
   if (pc != 0) {
     // If the deoptimization happened at an IC call, update the IC data
     // to avoid repeated deoptimization at the same site next time around.
@@ -160,7 +160,7 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   const Code& code = Code::Handle(zone, function.unoptimized_code());
   ASSERT(!code.IsNull());
   ASSERT(function.HasCode());
-  *reinterpret_cast<RawObject**>(dest_addr) = code.raw();
+  *reinterpret_cast<ObjectPtr*>(dest_addr) = code.raw();
 
   if (FLAG_trace_deoptimization_verbose) {
     THR_Print("materializing pc marker at 0x%" Px ": %s, %s\n",
@@ -205,11 +205,11 @@ void DeferredPp::Materialize(DeoptContext* deopt_context) {
   if (FLAG_trace_deoptimization_verbose) {
     OS::PrintErr("materializing pp at 0x%" Px ": 0x%" Px "\n",
                  reinterpret_cast<uword>(slot()),
-                 reinterpret_cast<uword>(code.GetObjectPool()));
+                 static_cast<uword>(code.GetObjectPool()));
   }
 }
 
-RawObject* DeferredObject::object() {
+ObjectPtr DeferredObject::object() {
   if (object_ == NULL) {
     Create();
   }

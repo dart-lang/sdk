@@ -415,7 +415,7 @@ class Reader : public ValueObject {
   const uint8_t* raw_buffer() const { return raw_buffer_; }
   void set_raw_buffer(const uint8_t* raw_buffer) { raw_buffer_ = raw_buffer; }
 
-  RawExternalTypedData* ExternalDataFromTo(intptr_t start, intptr_t end) {
+  ExternalTypedDataPtr ExternalDataFromTo(intptr_t start, intptr_t end) {
     return ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
                                   const_cast<uint8_t*>(buffer() + start),
                                   end - start, Heap::kOld);
@@ -426,7 +426,7 @@ class Reader : public ValueObject {
     return &buffer()[offset];
   }
 
-  RawTypedData* ReadLineStartsData(intptr_t line_start_count);
+  TypedDataPtr ReadLineStartsData(intptr_t line_start_count);
 
  private:
   const uint8_t* buffer() const {

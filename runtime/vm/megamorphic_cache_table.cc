@@ -13,9 +13,9 @@
 
 namespace dart {
 
-RawMegamorphicCache* MegamorphicCacheTable::Lookup(Thread* thread,
-                                                   const String& name,
-                                                   const Array& descriptor) {
+MegamorphicCachePtr MegamorphicCacheTable::Lookup(Thread* thread,
+                                                  const String& name,
+                                                  const Array& descriptor) {
   Isolate* isolate = thread->isolate();
   // Multiple compilation threads could access this lookup.
   SafepointMutexLocker ml(isolate->megamorphic_mutex());
@@ -44,7 +44,7 @@ RawMegamorphicCache* MegamorphicCacheTable::Lookup(Thread* thread,
   return cache.raw();
 }
 
-RawFunction* MegamorphicCacheTable::miss_handler(Isolate* isolate) {
+FunctionPtr MegamorphicCacheTable::miss_handler(Isolate* isolate) {
   ASSERT(isolate->object_store()->megamorphic_call_miss_function() !=
          Function::null());
   return isolate->object_store()->megamorphic_call_miss_function();
@@ -70,7 +70,7 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   const Class& cls =
       Class::Handle(Type::Handle(Type::DartFunctionType()).type_class());
   const Function& function = Function::Handle(Function::New(
-      Symbols::MegamorphicCallMiss(), RawFunction::kRegularFunction,
+      Symbols::MegamorphicCallMiss(), FunctionLayout::kRegularFunction,
       true,   // Static, but called as a method.
       false,  // Not const.
       false,  // Not abstract.

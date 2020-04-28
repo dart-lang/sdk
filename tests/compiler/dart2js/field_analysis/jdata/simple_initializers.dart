@@ -178,10 +178,12 @@ class Class1 {
   /*member: Class1.field9b:constant=ListConstant([])*/
   var field9b = const [];
 
-  /*member: Class1.field9c:initial=ListConstant(<int>[IntConstant(0), IntConstant(1)])*/
+  /*spec:nnbd-off|prod:nnbd-off|prod:nnbd-sdk.member: Class1.field9c:initial=ListConstant(<int>[IntConstant(0), IntConstant(1)])*/
+  /*spec:nnbd-sdk.member: Class1.field9c:initial=ListConstant(<int*>[IntConstant(0), IntConstant(1)])*/
   var field9c = const [0, 1];
 
-  /*member: Class1.field9d:constant=ListConstant(<int>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
+  /*spec:nnbd-off|prod:nnbd-off|prod:nnbd-sdk.member: Class1.field9d:constant=ListConstant(<int>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
+  /*spec:nnbd-sdk.member: Class1.field9d:constant=ListConstant(<int*>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
   var field9d = const [0, 1, 2];
 
   /*member: Class1.field10a:initial=MapConstant({})*/
@@ -190,10 +192,12 @@ class Class1 {
   /*member: Class1.field10b:constant=MapConstant({})*/
   var field10b = const {};
 
-  /*member: Class1.field10c:initial=MapConstant(<int, int>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
+  /*spec:nnbd-off|prod:nnbd-off|prod:nnbd-sdk.member: Class1.field10c:initial=MapConstant(<int, int>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
+  /*spec:nnbd-sdk.member: Class1.field10c:initial=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
   var field10c = const {0: 1, 2: 3};
 
-  /*member: Class1.field10d:constant=MapConstant(<int, int>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
+  /*spec:nnbd-off|prod:nnbd-off|prod:nnbd-sdk.member: Class1.field10d:constant=MapConstant(<int, int>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
+  /*spec:nnbd-sdk.member: Class1.field10d:constant=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
   var field10d = const {0: 1, 2: 3, 4: 5};
 
   /*member: Class1.field11a:initial=ConstructedConstant(Symbol(_name=StringConstant("foo")))*/
@@ -270,10 +274,12 @@ class Class2 {
   /*member: Class2.field9b:constant=ListConstant([])*/
   var field9b;
 
-  /*member: Class2.field9c:initial=ListConstant(<int>[IntConstant(0), IntConstant(1)])*/
+  /*spec:nnbd-off|prod:nnbd-off|prod:nnbd-sdk.member: Class2.field9c:initial=ListConstant(<int>[IntConstant(0), IntConstant(1)])*/
+  /*spec:nnbd-sdk.member: Class2.field9c:initial=ListConstant(<int*>[IntConstant(0), IntConstant(1)])*/
   var field9c;
 
-  /*member: Class2.field9d:constant=ListConstant(<int>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
+  /*spec:nnbd-off|prod:nnbd-off|prod:nnbd-sdk.member: Class2.field9d:constant=ListConstant(<int>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
+  /*spec:nnbd-sdk.member: Class2.field9d:constant=ListConstant(<int*>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
   var field9d;
 
   /*member: Class2.field10a:initial=MapConstant({})*/
@@ -282,10 +288,12 @@ class Class2 {
   /*member: Class2.field10b:constant=MapConstant({})*/
   var field10b;
 
-  /*member: Class2.field10c:initial=MapConstant(<int, int>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
+  /*spec:nnbd-off|prod:nnbd-off|prod:nnbd-sdk.member: Class2.field10c:initial=MapConstant(<int, int>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
+  /*spec:nnbd-sdk.member: Class2.field10c:initial=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
   var field10c;
 
-  /*member: Class2.field10d:constant=MapConstant(<int, int>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
+  /*spec:nnbd-off|prod:nnbd-off|prod:nnbd-sdk.member: Class2.field10d:constant=MapConstant(<int, int>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
+  /*spec:nnbd-sdk.member: Class2.field10d:constant=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
   var field10d;
 
   /*member: Class2.field11a:initial=ConstructedConstant(Symbol(_name=StringConstant("foo")))*/

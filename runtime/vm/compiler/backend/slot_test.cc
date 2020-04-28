@@ -48,8 +48,8 @@ TEST_CASE(SlotFromGuardedField) {
 
   const Function& dummy_function = Function::ZoneHandle(
       Function::New(String::Handle(Symbols::New(thread, "foo")),
-                    RawFunction::kRegularFunction, false, false, false, false,
-                    false, dummy_class, TokenPosition::kMinSource));
+                    FunctionLayout::kRegularFunction, false, false, false,
+                    false, false, dummy_class, TokenPosition::kMinSource));
 
   const Field& field = Field::Handle(
       Field::New(String::Handle(Symbols::New(thread, "field")),

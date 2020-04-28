@@ -131,7 +131,7 @@ abstract class CommonWebSocketVM extends VM {
     _notifyDisconnect(reason);
   }
 
-  Future<Map> invokeRpcRaw(String method, Map params) {
+  Future<Map> invokeRpcRaw(String method, Map params) async {
     if (!_hasInitiatedConnect) {
       _hasInitiatedConnect = true;
       try {
@@ -145,7 +145,7 @@ abstract class CommonWebSocketVM extends VM {
     }
     if (_disconnected.isCompleted) {
       // This connection was closed already.
-      var exception = new NetworkRpcException('WebSocket closed');
+      var exception = new NetworkRpcException(await onDisconnect);
       return new Future.error(exception);
     }
     String serial = (_requestSerial++).toString();

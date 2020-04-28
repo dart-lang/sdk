@@ -32,8 +32,7 @@ class NamedConstructorContributor extends DartCompletionContributor {
         if (type != null) {
           var element = type.element;
           if (element is ClassElement) {
-            return _buildSuggestions(
-                request, libraryElement, element, request.useNewRelevance);
+            return _buildSuggestions(request, libraryElement, element);
           }
         }
       }
@@ -42,20 +41,20 @@ class NamedConstructorContributor extends DartCompletionContributor {
   }
 
   List<CompletionSuggestion> _buildSuggestions(DartCompletionRequest request,
-      LibraryElement libElem, ClassElement classElem, bool useNewRelevance) {
+      LibraryElement libElem, ClassElement classElem) {
     var isLocalClassDecl = classElem.library == libElem;
     var suggestions = <CompletionSuggestion>[];
     for (var constructor in classElem.constructors) {
       if (isLocalClassDecl || !constructor.isPrivate) {
         var name = constructor.name;
         if (name != null) {
-          var relevance = useNewRelevance
+          var relevance = request.useNewRelevance
               ? Relevance.namedConstructor
-              : DART_RELEVANCE_DEFAULT;
+              : (constructor.hasDeprecated
+                  ? DART_RELEVANCE_LOW
+                  : DART_RELEVANCE_DEFAULT);
           var suggestion = createSuggestion(request, constructor,
-              completion: name,
-              relevance: relevance,
-              useNewRelevance: useNewRelevance);
+              completion: name, relevance: relevance);
           if (suggestion != null) {
             suggestions.add(suggestion);
           }

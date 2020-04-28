@@ -44,6 +44,11 @@ class TopMergeHelper {
       return DynamicTypeImpl.instance;
     }
 
+    if (identical(T, NeverTypeImpl.instance) &&
+        identical(S, NeverTypeImpl.instance)) {
+      return NeverTypeImpl.instance;
+    }
+
     // NNBD_TOP_MERGE(void, void) = void
     var T_isVoid = identical(T, VoidTypeImpl.instance);
     var S_isVoid = identical(S, VoidTypeImpl.instance);

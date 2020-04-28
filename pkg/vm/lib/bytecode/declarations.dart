@@ -781,6 +781,7 @@ class ParameterDeclaration {
   static const isCovariantFlag = 1 << 0;
   static const isGenericCovariantImplFlag = 1 << 1;
   static const isFinalFlag = 1 << 2;
+  static const isRequiredFlag = 1 << 3;
 
   final ObjectHandle name;
   final ObjectHandle type;
@@ -971,6 +972,7 @@ class ClosureDeclaration {
   static const isSyncStarFlag = 1 << 6;
   static const isDebuggableFlag = 1 << 7;
   static const hasAttributesFlag = 1 << 8;
+  static const hasParameterFlagsFlag = 1 << 9;
 
   int flags;
   final ObjectHandle parent;
@@ -981,6 +983,7 @@ class ClosureDeclaration {
   final int numRequiredParams;
   final int numNamedParams;
   final List<NameAndType> parameters;
+  final List<int> parameterFlags;
   final ObjectHandle returnType;
   ObjectHandle attributes;
   ClosureCode code;
@@ -995,6 +998,7 @@ class ClosureDeclaration {
       this.numRequiredParams,
       this.numNamedParams,
       this.parameters,
+      this.parameterFlags,
       this.returnType,
       [this.attributes]);
 
@@ -1026,6 +1030,12 @@ class ClosureDeclaration {
     for (var param in parameters) {
       writer.writePackedObject(param.name);
       writer.writePackedObject(param.type);
+    }
+    if ((flags & hasParameterFlagsFlag) != 0) {
+      writer.writePackedUInt30(parameterFlags.length);
+      for (var pf in parameterFlags) {
+        writer.writePackedUInt30(pf);
+      }
     }
     writer.writePackedObject(returnType);
     if ((flags & hasAttributesFlag) != 0) {
@@ -1069,6 +1079,14 @@ class ClosureDeclaration {
         numParams,
         (_) => new NameAndType(
             reader.readPackedObject(), reader.readPackedObject()));
+    List<int> parameterFlags;
+    if ((flags & hasParameterFlagsFlag) != 0) {
+      final int numParameterFlags = reader.readPackedUInt30();
+      new List<int>.generate(
+          numParameterFlags, (_) => reader.readPackedUInt30());
+    } else {
+      parameterFlags = const <int>[];
+    }
     final returnType = reader.readPackedObject();
     final attributes =
         ((flags & hasAttributesFlag) != 0) ? reader.readPackedObject() : null;
@@ -1082,6 +1100,7 @@ class ClosureDeclaration {
         numRequiredParams,
         numNamedParams,
         parameters,
+        parameterFlags,
         returnType,
         attributes);
   }

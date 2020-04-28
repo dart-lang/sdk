@@ -515,9 +515,9 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
   _PendingEvents<T>? get _pendingEvents {
     assert(_isInitialState);
     if (!_isAddingStream) {
-      return _varData as _PendingEvents<T>?;
+      return _varData as dynamic;
     }
-    var state = _varData as _StreamControllerAddStreamState<T>;
+    _StreamControllerAddStreamState<T> state = _varData as dynamic;
     return state.varData;
   }
 
@@ -526,17 +526,17 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     assert(_isInitialState);
     if (!_isAddingStream) {
       Object? events = _varData;
-      if (events is! _StreamImplEvents<T>) {
+      if (events == null) {
         _varData = events = _StreamImplEvents<T>();
       }
-      return events;
+      return events as dynamic;
     }
-    var state = _varData as _StreamControllerAddStreamState<T>;
+    _StreamControllerAddStreamState<T> state = _varData as dynamic;
     Object? events = state.varData;
-    if (events is! _StreamImplEvents<T>) {
+    if (events == null) {
       state.varData = events = _StreamImplEvents<T>();
     }
-    return events;
+    return events as dynamic;
   }
 
   // Get the current subscription.
@@ -546,9 +546,10 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     assert(hasListener);
     Object? varData = _varData;
     if (_isAddingStream) {
-      varData = (varData as _StreamControllerAddStreamState<Object?>).varData;
+      _StreamControllerAddStreamState<Object?> streamState = varData as dynamic;
+      varData = streamState.varData;
     }
-    return varData as _ControllerSubscription<T>;
+    return varData as dynamic;
   }
 
   /**
@@ -668,7 +669,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
   void _close() {
     // End of addStream stream.
     assert(_isAddingStream);
-    var addState = _varData as _StreamControllerAddStreamState<T>;
+    _StreamControllerAddStreamState<T> addState = _varData as dynamic;
     _varData = addState.varData;
     _state &= ~_STATE_ADDSTREAM;
     addState.complete();
@@ -687,7 +688,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     _PendingEvents<T>? pendingEvents = _pendingEvents;
     _state |= _STATE_SUBSCRIBED;
     if (_isAddingStream) {
-      var addState = _varData as _StreamControllerAddStreamState<T>;
+      _StreamControllerAddStreamState<T> addState = _varData as dynamic;
       addState.varData = subscription;
       addState.resume();
     } else {
@@ -712,7 +713,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     // returned future.
     Future<void>? result;
     if (_isAddingStream) {
-      var addState = _varData as _StreamControllerAddStreamState<T>;
+      _StreamControllerAddStreamState<T> addState = _varData as dynamic;
       result = addState.cancel();
     }
     _varData = null;
@@ -759,7 +760,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
 
   void _recordPause(StreamSubscription<T> subscription) {
     if (_isAddingStream) {
-      var addState = _varData as _StreamControllerAddStreamState<T>;
+      _StreamControllerAddStreamState<T> addState = _varData as dynamic;
       addState.pause();
     }
     _runGuarded(onPause);
@@ -767,7 +768,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
 
   void _recordResume(StreamSubscription<T> subscription) {
     if (_isAddingStream) {
-      var addState = _varData as _StreamControllerAddStreamState<T>;
+      _StreamControllerAddStreamState<T> addState = _varData as dynamic;
       addState.resume();
     }
     _runGuarded(onResume);

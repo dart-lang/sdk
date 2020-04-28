@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
+import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
@@ -97,10 +95,10 @@ void main() {
 
   test_await() async {
     await assertNoErrorsInCode('''
-main() async {
-  void x;
+main(void x) async {
   await x;
-}''');
+}
+''');
   }
 
   test_extensionApplication() async {
@@ -728,12 +726,17 @@ main(void x) sync* {
 }
 
 @reflectiveTest
-class UseOfVoidResultTest_NonNullable extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
+class UseOfVoidResultTest_NonNullable extends DriverResolutionTest
+    with WithNullSafetyMixin {
+  test_await() async {
+    await assertErrorsInCode('''
+main(void x) async {
+  await x;
+}
+''', [
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 29, 1),
+    ]);
+  }
 
   test_nullCheck() async {
     await assertErrorsInCode(r'''

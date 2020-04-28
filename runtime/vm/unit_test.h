@@ -540,8 +540,8 @@ class AssemblerTest {
     const bool fp_args = false;
     const bool fp_return = false;
     Simulator::Current()->Call(
-        bit_cast<intptr_t, uword>(entry()), reinterpret_cast<intptr_t>(arg1),
-        reinterpret_cast<intptr_t>(arg2), reinterpret_cast<intptr_t>(arg3), 0,
+        bit_cast<intptr_t, uword>(entry()), static_cast<intptr_t>(arg1),
+        static_cast<intptr_t>(arg2), reinterpret_cast<intptr_t>(arg3), 0,
         fp_return, fp_args);
   }
 #else

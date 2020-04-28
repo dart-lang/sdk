@@ -122,7 +122,7 @@ returnDyn5() {
   return a;
 }
 
-/*member: returnInt6:[subclass=JSInt]*/
+/*spec:nnbd-off|prod:nnbd-off.member: returnInt6:[subclass=JSInt]*/
 returnInt6() {
   try {
     throw 42;

@@ -97,9 +97,9 @@ void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
   uword obj_addr = object_start();
   uword end_addr = object_end();
   while (obj_addr < end_addr) {
-    RawObject* raw_obj = RawObject::FromAddr(obj_addr);
+    ObjectPtr raw_obj = ObjectLayout::FromAddr(obj_addr);
     visitor->VisitObject(raw_obj);
-    obj_addr += raw_obj->HeapSize();
+    obj_addr += raw_obj->ptr()->HeapSize();
   }
   ASSERT(obj_addr == end_addr);
 }
@@ -111,8 +111,8 @@ void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   uword obj_addr = object_start();
   uword end_addr = object_end();
   while (obj_addr < end_addr) {
-    RawObject* raw_obj = RawObject::FromAddr(obj_addr);
-    obj_addr += raw_obj->VisitPointers(visitor);
+    ObjectPtr raw_obj = ObjectLayout::FromAddr(obj_addr);
+    obj_addr += raw_obj->ptr()->VisitPointers(visitor);
   }
   ASSERT(obj_addr == end_addr);
 }
@@ -128,19 +128,19 @@ void HeapPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
 
   bool table_is_empty = false;
 
-  RawArray* obj = static_cast<RawArray*>(RawObject::FromAddr(object_start()));
+  ArrayPtr obj = static_cast<ArrayPtr>(ObjectLayout::FromAddr(object_start()));
   ASSERT(obj->IsArray());
-  ASSERT(obj->IsCardRemembered());
-  RawObject** obj_from = obj->from();
-  RawObject** obj_to = obj->to(Smi::Value(obj->ptr()->length_));
+  ASSERT(obj->ptr()->IsCardRemembered());
+  ObjectPtr* obj_from = obj->ptr()->from();
+  ObjectPtr* obj_to = obj->ptr()->to(Smi::Value(obj->ptr()->length_));
 
   const intptr_t size = card_table_size();
   for (intptr_t i = 0; i < size; i++) {
     if (card_table_[i] != 0) {
-      RawObject** card_from =
-          reinterpret_cast<RawObject**>(this) + (i << kSlotsPerCardLog2);
-      RawObject** card_to = reinterpret_cast<RawObject**>(card_from) +
-                            (1 << kSlotsPerCardLog2) - 1;
+      ObjectPtr* card_from =
+          reinterpret_cast<ObjectPtr*>(this) + (i << kSlotsPerCardLog2);
+      ObjectPtr* card_to = reinterpret_cast<ObjectPtr*>(card_from) +
+                           (1 << kSlotsPerCardLog2) - 1;
       // Minus 1 because to is inclusive.
 
       if (card_from < obj_from) {
@@ -156,7 +156,7 @@ void HeapPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
       visitor->VisitPointers(card_from, card_to);
 
       bool has_new_target = false;
-      for (RawObject** slot = card_from; slot <= card_to; slot++) {
+      for (ObjectPtr* slot = card_from; slot <= card_to; slot++) {
         if ((*slot)->IsNewObjectMayBeSmi()) {
           has_new_target = true;
           break;
@@ -178,15 +178,15 @@ void HeapPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
   }
 }
 
-RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
+ObjectPtr HeapPage::FindObject(FindObjectVisitor* visitor) const {
   uword obj_addr = object_start();
   uword end_addr = object_end();
   if (visitor->VisitRange(obj_addr, end_addr)) {
     while (obj_addr < end_addr) {
-      RawObject* raw_obj = RawObject::FromAddr(obj_addr);
-      uword next_obj_addr = obj_addr + raw_obj->HeapSize();
+      ObjectPtr raw_obj = ObjectLayout::FromAddr(obj_addr);
+      uword next_obj_addr = obj_addr + raw_obj->ptr()->HeapSize();
       if (visitor->VisitRange(obj_addr, next_obj_addr) &&
-          raw_obj->FindObject(visitor)) {
+          raw_obj->ptr()->FindObject(visitor)) {
         return raw_obj;  // Found object, return it.
       }
       obj_addr = next_obj_addr;
@@ -837,12 +837,12 @@ void PageSpace::VisitRememberedCards(ObjectPointerVisitor* visitor) const {
   }
 }
 
-RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
-                                 HeapPage::PageType type) const {
+ObjectPtr PageSpace::FindObject(FindObjectVisitor* visitor,
+                                HeapPage::PageType type) const {
   if (type == HeapPage::kExecutable) {
     // Fast path executable pages.
     for (ExclusiveCodePageIterator it(this); !it.Done(); it.Advance()) {
-      RawObject* obj = it.page()->FindObject(visitor);
+      ObjectPtr obj = it.page()->FindObject(visitor);
       if (obj != Object::null()) {
         return obj;
       }
@@ -852,7 +852,7 @@ RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
 
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if (it.page()->type() == type) {
-      RawObject* obj = it.page()->FindObject(visitor);
+      ObjectPtr obj = it.page()->FindObject(visitor);
       if (obj != Object::null()) {
         return obj;
       }
@@ -902,8 +902,8 @@ void PageSpace::PrintToJSONObject(JSONObject* object) const {
 class HeapMapAsJSONVisitor : public ObjectVisitor {
  public:
   explicit HeapMapAsJSONVisitor(JSONArray* array) : array_(array) {}
-  virtual void VisitObject(RawObject* obj) {
-    array_->AddValue(obj->HeapSize() / kObjectAlignment);
+  virtual void VisitObject(ObjectPtr obj) {
+    array_->AddValue(obj->ptr()->HeapSize() / kObjectAlignment);
     array_->AddValue(obj->GetClassId());
   }
 
@@ -1405,8 +1405,8 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   image_pages_ = page;
 }
 
-bool PageSpace::IsObjectFromImagePages(dart::RawObject* object) {
-  uword object_addr = RawObject::ToAddr(object);
+bool PageSpace::IsObjectFromImagePages(dart::ObjectPtr object) {
+  uword object_addr = ObjectLayout::ToAddr(object);
   HeapPage* image_page = image_pages_;
   while (image_page != nullptr) {
     if (image_page->Contains(object_addr)) {

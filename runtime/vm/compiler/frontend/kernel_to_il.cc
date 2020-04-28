@@ -1722,8 +1722,7 @@ BlockEntryInstr* FlowGraphBuilder::BuildPrologue(BlockEntryInstr* normal_entry,
   return instruction_cursor;
 }
 
-RawArray* FlowGraphBuilder::GetOptionalParameterNames(
-    const Function& function) {
+ArrayPtr FlowGraphBuilder::GetOptionalParameterNames(const Function& function) {
   if (!function.HasOptionalNamedParameters()) {
     return Array::null();
   }

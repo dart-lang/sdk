@@ -232,7 +232,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   Object& obj = Object::Handle(zone);
   for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
     const uword addr = code.GetPointerOffsetAt(i) + code.PayloadStart();
-    obj = *reinterpret_cast<RawObject**>(addr);
+    obj = *reinterpret_cast<ObjectPtr*>(addr);
     THR_Print(" %d : %#" Px " '%s'\n", code.GetPointerOffsetAt(i), addr,
               obj.ToCString());
   }
@@ -301,20 +301,20 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     String& var_name = String::Handle(zone);
     for (intptr_t i = 0; i < var_desc_length; i++) {
       var_name = var_descriptors.GetName(i);
-      RawLocalVarDescriptors::VarInfo var_info;
+      LocalVarDescriptorsLayout::VarInfo var_info;
       var_descriptors.GetInfo(i, &var_info);
       const int8_t kind = var_info.kind();
-      if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
+      if (kind == LocalVarDescriptorsLayout::kSavedCurrentContext) {
         THR_Print("  saved current CTX reg offset %d\n", var_info.index());
       } else {
-        if (kind == RawLocalVarDescriptors::kContextLevel) {
+        if (kind == LocalVarDescriptorsLayout::kContextLevel) {
           THR_Print("  context level %d scope %d", var_info.index(),
                     var_info.scope_id);
-        } else if (kind == RawLocalVarDescriptors::kStackVar) {
+        } else if (kind == LocalVarDescriptorsLayout::kStackVar) {
           THR_Print("  stack var '%s' offset %d", var_name.ToCString(),
                     var_info.index());
         } else {
-          ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+          ASSERT(kind == LocalVarDescriptorsLayout::kContextVar);
           THR_Print("  context var '%s' level %d offset %d",
                     var_name.ToCString(), var_info.scope_id, var_info.index());
         }

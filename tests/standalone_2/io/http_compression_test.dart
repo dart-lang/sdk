@@ -11,8 +11,8 @@ import 'package:expect/expect.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
-void testServerCompress({bool clientAutoUncompress: true}) async {
-  void test(List<int> data) async {
+Future<void> testServerCompress({bool clientAutoUncompress: true}) async {
+  Future<void> test(List<int> data) async {
     final server = await HttpServer.bind("127.0.0.1", 0);
     server.autoCompress = true;
     server.listen((request) {
@@ -44,8 +44,8 @@ void testServerCompress({bool clientAutoUncompress: true}) async {
   await test(longBuffer);
 }
 
-void testAcceptEncodingHeader() async {
-  void test(String encoding, bool valid) async {
+Future<void> testAcceptEncodingHeader() async {
+  Future<void> test(String encoding, bool valid) async {
     final server = await HttpServer.bind("127.0.0.1", 0);
     server.autoCompress = true;
     server.listen((request) {
@@ -77,7 +77,7 @@ void testAcceptEncodingHeader() async {
   await test('gzipx;', false);
 }
 
-void testDisableCompressTest() async {
+Future<void> testDisableCompressTest() async {
   final server = await HttpServer.bind("127.0.0.1", 0);
   Expect.equals(false, server.autoCompress);
   server.listen((request) {

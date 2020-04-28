@@ -551,6 +551,10 @@ class _Future<T> implements Future<T> {
       _chainFuture(value);
       return;
     }
+    _asyncCompleteWithValue(value);
+  }
+
+  void _asyncCompleteWithValue(T value) {
     _setPendingComplete();
     _zone.scheduleMicrotask(() {
       _completeWithValue(value);

@@ -749,8 +749,8 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
     field = field.CloneFromOriginal();
   }
 
-  switch (
-      flow_graph()->CheckForInstanceCall(call, RawFunction::kImplicitGetter)) {
+  switch (flow_graph()->CheckForInstanceCall(call,
+                                             FunctionLayout::kImplicitGetter)) {
     case FlowGraph::ToCheck::kCheckNull:
       AddCheckNull(call->Receiver(), call->function_name(), call->deopt_id(),
                    call->env(), call);
@@ -795,7 +795,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     return false;
   }
   const Function& target = targets.FirstTarget();
-  if (target.kind() != RawFunction::kImplicitSetter) {
+  if (target.kind() != FunctionLayout::kImplicitSetter) {
     // Non-implicit setter are inlined like normal method calls.
     return false;
   }
@@ -805,8 +805,8 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     field = field.CloneFromOriginal();
   }
 
-  switch (
-      flow_graph()->CheckForInstanceCall(instr, RawFunction::kImplicitSetter)) {
+  switch (flow_graph()->CheckForInstanceCall(instr,
+                                             FunctionLayout::kImplicitSetter)) {
     case FlowGraph::ToCheck::kCheckNull:
       AddCheckNull(instr->Receiver(), instr->function_name(), instr->deopt_id(),
                    instr->env(), instr);
@@ -956,7 +956,7 @@ bool CallSpecializer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     return false;
   }
   const Function& target = targets.FirstTarget();
-  if (target.kind() != RawFunction::kImplicitGetter) {
+  if (target.kind() != FunctionLayout::kImplicitGetter) {
     // Non-implicit getters are inlined like normal methods by conventional
     // inlining in FlowGraphInliner.
     return false;
@@ -1063,7 +1063,7 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 // (ic_data.NumberOfChecks() * 2) entries
 // An instance-of test returning all same results can be converted to a class
 // check.
-RawBool* CallSpecializer::InstanceOfAsBool(
+BoolPtr CallSpecializer::InstanceOfAsBool(
     const ICData& ic_data,
     const AbstractType& type,
     ZoneGrowableArray<intptr_t>* results) const {

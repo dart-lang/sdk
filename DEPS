@@ -39,7 +39,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "929da300c553ebb8a9ff744746bcc1326613e1f9",
+  "co19_rev": "919e0b662aa4b392dcb791446d80f31e972f8635",
   "co19_2_rev": "368bfa9e877a2df003547f64bb17e30596af10c7",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -60,16 +60,16 @@ vars = {
   "async_tag": "2.4.1",
   "bazel_worker_tag": "v0.1.22",
   "benchmark_harness_tag": "81641290dea44c34138a109a37e215482f405f81",
-  "boolean_selector_tag" : "1.0.4",
+  "boolean_selector_tag": "1309eabed510cc3b7536fd4367d39b97ebee3d69",
   "boringssl_gen_rev": "b9e27cff1ff0803e97ab1f88764a83be4aa94a6d",
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
-  "charcode_tag": "v1.1.2",
+  "charcode_tag": "9085e6b6127f084d66c0a94810a808121459012a",
   "chrome_rev" : "19997",
   "cli_util_rev" : "4ad7ccbe3195fd2583b30f86a86697ef61e80f41",
-  "collection_tag": "1.14.11",
-  "convert_tag": "2.0.2",
+  "collection_tag": "7be42e03d427cc19571cd7f9fc628a5913a6b757",
+  "convert_tag": "49bde5b371eb5c2c8e721557cf762f17c75e49fc",
   "crypto_tag" : "2.0.6",
-  "csslib_tag" : "0.15.0",
+  "csslib_tag": "bf372d4fdc6dfa232ad93f77a0a3de0891edd04c",
   "dart2js_info_tag" : "0.6.0",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
@@ -84,30 +84,30 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.3.2",  # Please see the note above before updating.
+  "dart_style_tag": "1.3.6",  # Please see the note above before updating.
 
   "dartdoc_tag" : "v0.31.0",
   "ffi_tag": "ea88d71b043ee14b268c3aedff14e9eb32e20959",
-  "fixnum_tag": "0.10.9",
-  "glob_tag": "1.1.7",
+  "fixnum_tag": "eb3748663dc979271ff6a3d014fbe522543b1d91",
+  "glob_tag": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
   "html_tag" : "0.14.0+1",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev" : "ea269f79321d659208402088f3297e8920a88ee6",
   "http_parser_tag" : "3.1.3",
   "http_retry_tag": "0.1.1",
-  "http_tag" : "0.12.0+2",
+  "http_tag": "a131e563c09349f624d5421237183a06fb10552d",
   "http_throttle_tag" : "1.0.2",
   "icu_rev" : "5005010d694e16571b8dfbf07d70817841f80a69",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.16.1",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
-  "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.114",
-  "logging_tag": "0.11.3+2",
+  "json_rpc_2_tag": "eec10819a40e7bf2e401f2b97368776a90cc5550",
+  "linter_tag": "0.1.115",
+  "logging_tag": "9561ba016ae607747ae69b846c0e10958ca58ed4",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "markdown_tag": "2.1.1",
-  "matcher_tag": "0.12.5",
-  "mime_tag": "0.9.6+2",
+  "markdown_tag": "dd150bb64c5f3b41d31f20f399ae2a855f7f8c00",
+  "matcher_tag": "af4fe7daf8e94a46981e4f072872be550a6969e9",
+  "mime_tag": "179b5e6a88f4b63f36dc1b8fcbc1e83e5e0cd3a7",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache_tag" : "5e81b12215566dbe2473b2afd01a8a8aedd56ad9",
   "oauth2_tag": "1.2.1",
@@ -144,7 +144,7 @@ vars = {
   "tflite_native_rev": "3c777c40608a2a9f1427bfe0028ab48e7116b4c1",
   "typed_data_tag": "1.1.6",
   "usage_tag": "3.4.0",
-  "watcher_rev": "0.9.7+14",
+  "watcher_rev": "fc3c9aae5d31d707b3013b42634dde8d8a1161b4",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_tag": "1.1.0",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",

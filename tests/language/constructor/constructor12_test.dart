@@ -4,38 +4,7 @@
 
 import "package:expect/expect.dart";
 
-class B {
-  final z;
-  B(this.z);
-
-  foo() => this.z;
-}
-
-class A<T> extends B {
-  var captured, captured2;
-  var typedList;
-
-  // p must be inside a box (in dart2js).
-  A(p)
-      : captured = (() => p),
-        super(p++) {
-    // Make constructor body non-inlinable.
-    try {} catch (e) {}
-
-    captured2 = () => p++;
-
-    // In the current implementation of dart2js makes the generic type an
-    // argument to the body.
-    typedList = <T>[];
-  }
-
-  foo() => captured();
-  bar() => captured2();
-}
-
-@pragma('dart2js:noInline')
-@pragma('dart2js:assumeDynamic')
-confuse(x) => x;
+import 'constructor12_lib.dart';
 
 main() {
   var a = confuse(new A<int>(1));
@@ -51,7 +20,9 @@ main() {
   Expect.isFalse(a is A<String>);
   Expect.isFalse(a2 is A<int>);
   Expect.isFalse(a2 is A<String>);
-  Expect.isFalse(a2 is A<Object>);
+  // TODO(nshahan) Move back from constructor12_strong_test.dart after ending
+  // support for weak mode.
+  // Expect.isFalse(a2 is A<Object>);
   Expect.isTrue(a2 is A<Object?>);
   Expect.equals(2, a.bar());
   Expect.equals(3, a2.bar());

@@ -258,7 +258,7 @@ abstract class Future<T> {
    */
   @pragma("vm:entry-point")
   factory Future.value([FutureOr<T>? value]) {
-    return new _Future<T>.immediate(value as FutureOr<T>);
+    return new _Future<T>.immediate(value == null ? value as dynamic : value);
   }
 
   /**
@@ -311,7 +311,7 @@ abstract class Future<T> {
    * later time that isn't necessarily after a known fixed duration.
    */
   factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
-    if (computation == null && const <Null>[] is! List<T>) {
+    if (computation == null && !typeAcceptsNull<T>()) {
       throw ArgumentError.value(
           null, "computation", "The type parameter is not nullable");
     }
@@ -368,9 +368,7 @@ abstract class Future<T> {
     late StackTrace stackTrace; // The stackTrace that came with the error.
 
     // Handle an error from any of the futures.
-    // TODO(jmesserly): use `void` return type once it can be inferred for the
-    // `then` call below.
-    handleError(Object theError, StackTrace theStackTrace) {
+    void handleError(Object theError, StackTrace theStackTrace) {
       remaining--;
       List<T?>? valueList = values;
       if (valueList != null) {
@@ -411,8 +409,6 @@ abstract class Future<T> {
               result._completeWithValue(List<T>.from(valueList));
             }
           } else {
-            // Forced read of error to assert that it has occurred earlier.
-            assert(error != null);
             if (cleanUp != null && value != null) {
               // Ensure errors from cleanUp are uncaught.
               new Future.sync(() {
@@ -420,6 +416,8 @@ abstract class Future<T> {
               });
             }
             if (remaining == 0 && !eagerError) {
+              // If eagerError is false, and valueList is null, then
+              // error and stackTrace have been set in handleError above.
               result._completeError(error, stackTrace);
             }
           }
@@ -559,6 +557,7 @@ abstract class Future<T> {
           result.then(nextIteration, onError: doneSignal._completeError);
           return;
         }
+        // TODO(40014): Remove cast when type promotion works.
         keepGoing = result as bool;
       }
       doneSignal._complete(null);

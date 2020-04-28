@@ -149,9 +149,9 @@ static int GetScaleFactor(intptr_t size) {
   /* R1: new object end address. */                                            \
   /* R2: allocation size. */                                                   \
   {                                                                            \
-    __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);            \
+    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);         \
     __ LslImmediate(R2, R2,                                                    \
-                    target::RawObject::kTagBitsSizeTagPos -                    \
+                    target::ObjectLayout::kTagBitsSizeTagPos -                 \
                         target::ObjectAlignment::kObjectAlignmentLog2);        \
     __ csel(R2, ZR, R2, HI);                                                   \
                                                                                \
@@ -2131,10 +2131,10 @@ static void TryAllocateOneByteString(Assembler* assembler,
   // R1: new object end address.
   // R2: allocation size.
   {
-    const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
+    const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
 
-    __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);
+    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
     __ LslImmediate(R2, R2, shift);
     __ csel(R2, R2, ZR, LS);
 

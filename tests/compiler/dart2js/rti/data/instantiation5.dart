@@ -4,13 +4,13 @@
 
 // @dart = 2.7
 
-/*strong.member: f:deps=[method],direct,explicit=[f.T],needsArgs,needsInst=[<method.S>]*/
-/*omit.member: f:deps=[method]*/
+/*spec:nnbd-off.member: f:deps=[method],direct,explicit=[f.T],needsArgs,needsInst=[<method.S>]*/
+/*prod:nnbd-off.member: f:deps=[method]*/
 int f<T>(T a) => null;
 
 typedef int F<R>(R a);
 
-/*strong.member: method:indirect,needsArgs*/
+/*spec:nnbd-off.member: method:indirect,needsArgs*/
 method<S>() {
   F<S> c;
 

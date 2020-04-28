@@ -691,6 +691,7 @@ Future _processLoadRequest(request) async {
           prepend = ", ";
           if (sb.length > 256) break;
         }
+        sb.write("]");
         partToString = sb.toString();
       } else {
         partToString = part.toString();

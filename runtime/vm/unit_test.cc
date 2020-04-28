@@ -655,9 +655,9 @@ void AssemblerTest::Assemble() {
   const Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::ZoneHandle(
       Class::New(lib, function_name, script, TokenPosition::kMinSource));
-  Function& function = Function::ZoneHandle(
-      Function::New(function_name, RawFunction::kRegularFunction, true, false,
-                    false, false, false, cls, TokenPosition::kMinSource));
+  Function& function = Function::ZoneHandle(Function::New(
+      function_name, FunctionLayout::kRegularFunction, true, false, false,
+      false, false, cls, TokenPosition::kMinSource));
   code_ = Code::FinalizeCodeAndNotify(function, nullptr, assembler_,
                                       Code::PoolAttachment::kAttachPool);
   code_.set_owner(function);

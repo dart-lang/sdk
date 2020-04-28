@@ -22,27 +22,27 @@ const null_ = /*cfe.TypeLiteral(Null)*/ Null;
 main() {
   print(
       /*cfe|analyzer.TypeLiteral(dynamic Function())*/
-      /*dart2js.TypeLiteral(()->dynamic)*/
+      /*dart2js|dart2js:nnbd-sdk.TypeLiteral(()->dynamic)*/
       typedef);
 
   print(
       /*cfe|analyzer.TypeLiteral(void Function(dynamic))*/
-      /*dart2js.TypeLiteral((dynamic)->void)*/
+      /*dart2js|dart2js:nnbd-sdk.TypeLiteral((dynamic)->void)*/
       genericTypedef);
 
   print(
       /*cfe|analyzer.TypeLiteral(void Function<T>(T))*/
-      /*dart2js.TypeLiteral((0)->void)*/
+      /*dart2js|dart2js:nnbd-sdk.TypeLiteral((0)->void)*/
       genericFunctionTypedef);
 
   print(
       /*cfe|analyzer.TypeLiteral(void Function<T>(FutureOr<T>))*/
-      /*dart2js.TypeLiteral((FutureOr<0>)->void)*/
+      /*dart2js|dart2js:nnbd-sdk.TypeLiteral((FutureOr<0>)->void)*/
       typedefWithFutureOr);
 
   print(
       /*cfe|analyzer.TypeLiteral(FutureOr<dynamic>)*/
-      /*dart2js.TypeLiteral(dynamic)*/
+      /*dart2js|dart2js:nnbd-sdk.TypeLiteral(dynamic)*/
       futureOr);
 
   print(

@@ -68,7 +68,7 @@ void StubCode::Init() {
 #undef STUB_CODE_GENERATE
 #undef STUB_CODE_SET_OBJECT_POOL
 
-RawCode* StubCode::Generate(
+CodePtr StubCode::Generate(
     const char* name,
     compiler::ObjectPoolBuilder* object_pool_builder,
     void (*GenerateStub)(compiler::Assembler* assembler)) {
@@ -128,7 +128,7 @@ bool StubCode::InJumpToFrameStub(uword pc) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-RawArray* compiler::StubCodeCompiler::BuildStaticCallsTable(
+ArrayPtr compiler::StubCodeCompiler::BuildStaticCallsTable(
     Zone* zone,
     compiler::UnresolvedPcRelativeCalls* unresolved_calls) {
   if (unresolved_calls->length() == 0) {
@@ -156,7 +156,7 @@ RawArray* compiler::StubCodeCompiler::BuildStaticCallsTable(
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
+CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   Thread* thread = Thread::Current();
   auto object_store = thread->isolate()->object_store();
   Zone* zone = thread->zone();
@@ -258,7 +258,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 }
 
 #if !defined(TARGET_ARCH_IA32)
-RawCode* StubCode::GetBuildMethodExtractorStub(
+CodePtr StubCode::GetBuildMethodExtractorStub(
     compiler::ObjectPoolBuilder* pool) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   auto thread = Thread::Current();

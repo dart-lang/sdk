@@ -5515,7 +5515,7 @@ static void CreateSpecializedFunction(Thread* thread,
 
   Function& fn =
       Function::Handle(zone, Function::New(Symbols::ColonMatcher(),
-                                           RawFunction::kIrregexpFunction,
+                                           FunctionLayout::kIrregexpFunction,
                                            true,   // Static.
                                            false,  // Not const.
                                            false,  // Not abstract.
@@ -5552,9 +5552,9 @@ static void CreateSpecializedFunction(Thread* thread,
   // The function is compiled lazily during the first call.
 }
 
-RawRegExp* RegExpEngine::CreateRegExp(Thread* thread,
-                                      const String& pattern,
-                                      RegExpFlags flags) {
+RegExpPtr RegExpEngine::CreateRegExp(Thread* thread,
+                                     const String& pattern,
+                                     RegExpFlags flags) {
   Zone* zone = thread->zone();
   const RegExp& regexp = RegExp::Handle(RegExp::New());
 

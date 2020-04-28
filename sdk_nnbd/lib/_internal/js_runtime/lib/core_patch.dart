@@ -639,7 +639,7 @@ class StringBuffer {
     return string;
   }
 
-  static String _writeOne(String string, Object obj) {
+  static String _writeOne(String string, Object? obj) {
     return Primitives.stringConcatUnchecked(string, '$obj');
   }
 }

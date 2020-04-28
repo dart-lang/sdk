@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/exception/exception.dart';
@@ -44,7 +43,7 @@ class LibraryContext {
 
   final PerformanceLog logger;
   final ByteStore byteStore;
-  final AnalysisSession analysisSession;
+  final AnalysisSessionImpl analysisSession;
   final SummaryDataStore externalSummaries;
   final SummaryDataStore store = SummaryDataStore([]);
 
@@ -60,7 +59,7 @@ class LibraryContext {
   var loadedBundles = Set<LibraryCycle>.identity();
 
   LibraryContext({
-    @required AnalysisSession session,
+    @required AnalysisSessionImpl session,
     @required PerformanceLog logger,
     @required ByteStore byteStore,
     @required FileSystemState fsState,

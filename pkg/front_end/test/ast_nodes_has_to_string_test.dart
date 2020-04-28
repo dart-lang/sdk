@@ -18,7 +18,7 @@ main(List<String> args) async {
 
   {
     Uri input = Platform.script.resolve("../tool/_fasta/compile.dart");
-    CompilerOptions options = helper.getOptions(targetName: "VM");
+    CompilerOptions options = helper.getOptions();
     helper.TestIncrementalCompiler compiler =
         new helper.TestIncrementalCompiler(
             options,

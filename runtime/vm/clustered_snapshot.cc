@@ -54,7 +54,7 @@ DEFINE_FLAG(charp,
 
 static void RelocateCodeObjects(
     bool is_vm,
-    GrowableArray<RawCode*>* code_objects,
+    GrowableArray<CodePtr>* code_objects,
     GrowableArray<ImageWriterCommand>* image_writer_commands) {
   auto thread = Thread::Current();
   auto isolate = is_vm ? Dart::vm_isolate() : thread->isolate();
@@ -63,48 +63,48 @@ static void RelocateCodeObjects(
   CodeRelocator::Relocate(thread, code_objects, image_writer_commands, is_vm);
 }
 
-class RawCodeKeyValueTrait {
+class CodePtrKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
-  typedef const RawCode* Key;
-  typedef const RawCode* Value;
-  typedef const RawCode* Pair;
+  typedef const CodePtr Key;
+  typedef const CodePtr Value;
+  typedef CodePtr Pair;
 
   static Key KeyOf(Pair kv) { return kv; }
   static Value ValueOf(Pair kv) { return kv; }
   static inline intptr_t Hashcode(Key key) {
-    return reinterpret_cast<intptr_t>(key);
+    return static_cast<intptr_t>(key);
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) { return pair == key; }
 };
 
-typedef DirectChainedHashMap<RawCodeKeyValueTrait> RawCodeSet;
+typedef DirectChainedHashMap<CodePtrKeyValueTrait> RawCodeSet;
 
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
-static RawObject* AllocateUninitialized(PageSpace* old_space, intptr_t size) {
+static ObjectPtr AllocateUninitialized(PageSpace* old_space, intptr_t size) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword address = old_space->TryAllocateDataBumpLocked(size);
   if (address == 0) {
     OUT_OF_MEMORY();
   }
-  return RawObject::FromAddr(address);
+  return ObjectLayout::FromAddr(address);
 }
 
-void Deserializer::InitializeHeader(RawObject* raw,
+void Deserializer::InitializeHeader(ObjectPtr raw,
                                     intptr_t class_id,
                                     intptr_t size,
                                     bool is_canonical) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uint32_t tags = 0;
-  tags = RawObject::ClassIdTag::update(class_id, tags);
-  tags = RawObject::SizeTag::update(size, tags);
-  tags = RawObject::CanonicalBit::update(is_canonical, tags);
-  tags = RawObject::OldBit::update(true, tags);
-  tags = RawObject::OldAndNotMarkedBit::update(true, tags);
-  tags = RawObject::OldAndNotRememberedBit::update(true, tags);
-  tags = RawObject::NewBit::update(false, tags);
+  tags = ObjectLayout::ClassIdTag::update(class_id, tags);
+  tags = ObjectLayout::SizeTag::update(size, tags);
+  tags = ObjectLayout::CanonicalBit::update(is_canonical, tags);
+  tags = ObjectLayout::OldBit::update(true, tags);
+  tags = ObjectLayout::OldAndNotMarkedBit::update(true, tags);
+  tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
+  tags = ObjectLayout::NewBit::update(false, tags);
   raw->ptr()->tags_ = tags;
 #if defined(HASH_IN_OBJECT_HEADER)
   raw->ptr()->hash_ = 0;
@@ -152,8 +152,8 @@ class ClassSerializationCluster : public SerializationCluster {
         objects_(num_cids) {}
   ~ClassSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawClass* cls = Class::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    ClassPtr cls = Class::RawCast(object);
     intptr_t class_id = cls->ptr()->id_;
 
     // Classes expected to be dropped by the precompiler should not be traced.
@@ -175,7 +175,7 @@ class ClassSerializationCluster : public SerializationCluster {
     intptr_t count = predefined_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawClass* cls = predefined_[i];
+      ClassPtr cls = predefined_[i];
       s->AssignRef(cls);
       AutoTraceObject(cls);
       intptr_t class_id = cls->ptr()->id_;
@@ -184,7 +184,7 @@ class ClassSerializationCluster : public SerializationCluster {
     count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawClass* cls = objects_[i];
+      ClassPtr cls = objects_[i];
       s->AssignRef(cls);
     }
   }
@@ -200,7 +200,7 @@ class ClassSerializationCluster : public SerializationCluster {
     }
   }
 
-  void WriteClass(Serializer* s, RawClass* cls) {
+  void WriteClass(Serializer* s, ClassPtr cls) {
     AutoTraceObjectName(cls, cls->ptr()->name_);
     WriteFromTo(cls);
     intptr_t class_id = cls->ptr()->id_;
@@ -231,8 +231,8 @@ class ClassSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawClass*> predefined_;
-  GrowableArray<RawClass*> objects_;
+  GrowableArray<ClassPtr> predefined_;
+  GrowableArray<ClassPtr> objects_;
 
   UnboxedFieldBitmap CalculateTargetUnboxedFieldsBitmap(Serializer* s,
                                                         intptr_t class_id) {
@@ -267,7 +267,7 @@ class ClassSerializationCluster : public SerializationCluster {
     return unboxed_fields_bitmap;
   }
 
-  bool RequireLegacyErasureOfConstants(RawClass* cls) {
+  bool RequireLegacyErasureOfConstants(ClassPtr cls) {
     // Do not generate a core snapshot containing constants that would require
     // a legacy erasure of their types if loaded in an isolate running in weak
     // mode.
@@ -296,8 +296,8 @@ class ClassDeserializationCluster : public DeserializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       intptr_t class_id = d->ReadCid();
       ASSERT(table->HasValidClassAt(class_id));
-      RawClass* cls = table->At(class_id);
-      ASSERT(cls != NULL);
+      ClassPtr cls = table->At(class_id);
+      ASSERT(cls != nullptr);
       d->AssignRef(cls);
     }
     predefined_stop_index_ = d->next_index();
@@ -315,7 +315,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
 
     for (intptr_t id = predefined_start_index_; id < predefined_stop_index_;
          id++) {
-      RawClass* cls = reinterpret_cast<RawClass*>(d->Ref(id));
+      ClassPtr cls = static_cast<ClassPtr>(d->Ref(id));
       ReadFromTo(cls);
       intptr_t class_id = d->ReadCid();
       cls->ptr()->id_ = class_id;
@@ -358,7 +358,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
 
     auto shared_class_table = d->isolate()->group()->shared_class_table();
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawClass* cls = reinterpret_cast<RawClass*>(d->Ref(id));
+      ClassPtr cls = static_cast<ClassPtr>(d->Ref(id));
       Deserializer::InitializeHeader(cls, kClassCid, Class::InstanceSize());
       ReadFromTo(cls);
 
@@ -410,8 +410,8 @@ class TypeArgumentsSerializationCluster : public SerializationCluster {
   TypeArgumentsSerializationCluster() : SerializationCluster("TypeArguments") {}
   ~TypeArgumentsSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawTypeArguments* type_args = TypeArguments::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    TypeArgumentsPtr type_args = TypeArguments::RawCast(object);
     objects_.Add(type_args);
 
     s->Push(type_args->ptr()->instantiations_);
@@ -426,7 +426,7 @@ class TypeArgumentsSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawTypeArguments* type_args = objects_[i];
+      TypeArgumentsPtr type_args = objects_[i];
       s->AssignRef(type_args);
       AutoTraceObject(type_args);
       const intptr_t length = Smi::Value(type_args->ptr()->length_);
@@ -437,11 +437,11 @@ class TypeArgumentsSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawTypeArguments* type_args = objects_[i];
+      TypeArgumentsPtr type_args = objects_[i];
       AutoTraceObject(type_args);
       const intptr_t length = Smi::Value(type_args->ptr()->length_);
       s->WriteUnsigned(length);
-      s->Write<bool>(type_args->IsCanonical());
+      s->Write<bool>(type_args->ptr()->IsCanonical());
       intptr_t hash = Smi::Value(type_args->ptr()->hash_);
       s->Write<int32_t>(hash);
       const intptr_t nullability = Smi::Value(type_args->ptr()->nullability_);
@@ -454,7 +454,7 @@ class TypeArgumentsSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawTypeArguments*> objects_;
+  GrowableArray<TypeArgumentsPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -477,8 +477,7 @@ class TypeArgumentsDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawTypeArguments* type_args =
-          reinterpret_cast<RawTypeArguments*>(d->Ref(id));
+      TypeArgumentsPtr type_args = static_cast<TypeArgumentsPtr>(d->Ref(id));
       const intptr_t length = d->ReadUnsigned();
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(type_args, kTypeArgumentsCid,
@@ -487,11 +486,10 @@ class TypeArgumentsDeserializationCluster : public DeserializationCluster {
       type_args->ptr()->length_ = Smi::New(length);
       type_args->ptr()->hash_ = Smi::New(d->Read<int32_t>());
       type_args->ptr()->nullability_ = Smi::New(d->ReadUnsigned());
-      type_args->ptr()->instantiations_ =
-          reinterpret_cast<RawArray*>(d->ReadRef());
+      type_args->ptr()->instantiations_ = static_cast<ArrayPtr>(d->ReadRef());
       for (intptr_t j = 0; j < length; j++) {
         type_args->ptr()->types()[j] =
-            reinterpret_cast<RawAbstractType*>(d->ReadRef());
+            static_cast<AbstractTypePtr>(d->ReadRef());
       }
     }
   }
@@ -503,8 +501,8 @@ class PatchClassSerializationCluster : public SerializationCluster {
   PatchClassSerializationCluster() : SerializationCluster("PatchClass") {}
   ~PatchClassSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawPatchClass* cls = PatchClass::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    PatchClassPtr cls = PatchClass::RawCast(object);
     objects_.Add(cls);
     PushFromTo(cls);
   }
@@ -514,7 +512,7 @@ class PatchClassSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawPatchClass* cls = objects_[i];
+      PatchClassPtr cls = objects_[i];
       s->AssignRef(cls);
     }
   }
@@ -522,7 +520,7 @@ class PatchClassSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawPatchClass* cls = objects_[i];
+      PatchClassPtr cls = objects_[i];
       AutoTraceObject(cls);
       WriteFromTo(cls);
       if (s->kind() != Snapshot::kFullAOT) {
@@ -532,7 +530,7 @@ class PatchClassSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawPatchClass*> objects_;
+  GrowableArray<PatchClassPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -554,7 +552,7 @@ class PatchClassDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawPatchClass* cls = reinterpret_cast<RawPatchClass*>(d->Ref(id));
+      PatchClassPtr cls = static_cast<PatchClassPtr>(d->Ref(id));
       Deserializer::InitializeHeader(cls, kPatchClassCid,
                                      PatchClass::InstanceSize());
       ReadFromTo(cls);
@@ -573,9 +571,9 @@ class FunctionSerializationCluster : public SerializationCluster {
   FunctionSerializationCluster() : SerializationCluster("Function") {}
   ~FunctionSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
+  void Trace(Serializer* s, ObjectPtr object) {
     Snapshot::Kind kind = s->kind();
-    RawFunction* func = Function::RawCast(object);
+    FunctionPtr func = Function::RawCast(object);
     objects_.Add(func);
 
     PushFromTo(func);
@@ -596,7 +594,7 @@ class FunctionSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawFunction* func = objects_[i];
+      FunctionPtr func = objects_[i];
       s->AssignRef(func);
     }
   }
@@ -605,7 +603,7 @@ class FunctionSerializationCluster : public SerializationCluster {
     Snapshot::Kind kind = s->kind();
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawFunction* func = objects_[i];
+      FunctionPtr func = objects_[i];
       AutoTraceObjectName(func, func->ptr()->name_);
       WriteFromTo(func);
       if (kind == Snapshot::kFull) {
@@ -631,7 +629,7 @@ class FunctionSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawFunction*> objects_;
+  GrowableArray<FunctionPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -654,23 +652,23 @@ class FunctionDeserializationCluster : public DeserializationCluster {
     Snapshot::Kind kind = d->kind();
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawFunction* func = reinterpret_cast<RawFunction*>(d->Ref(id));
+      FunctionPtr func = static_cast<FunctionPtr>(d->Ref(id));
       Deserializer::InitializeHeader(func, kFunctionCid,
                                      Function::InstanceSize());
       ReadFromTo(func);
 
       if (kind == Snapshot::kFull) {
         NOT_IN_PRECOMPILED(func->ptr()->bytecode_ =
-                               reinterpret_cast<RawBytecode*>(d->ReadRef()));
+                               static_cast<BytecodePtr>(d->ReadRef()));
       } else if (kind == Snapshot::kFullAOT) {
-        func->ptr()->code_ = reinterpret_cast<RawCode*>(d->ReadRef());
+        func->ptr()->code_ = static_cast<CodePtr>(d->ReadRef());
       } else if (kind == Snapshot::kFullJIT) {
         NOT_IN_PRECOMPILED(func->ptr()->unoptimized_code_ =
-                               reinterpret_cast<RawCode*>(d->ReadRef()));
+                               static_cast<CodePtr>(d->ReadRef()));
         NOT_IN_PRECOMPILED(func->ptr()->bytecode_ =
-                               reinterpret_cast<RawBytecode*>(d->ReadRef()));
-        func->ptr()->code_ = reinterpret_cast<RawCode*>(d->ReadRef());
-        func->ptr()->ic_data_array_ = reinterpret_cast<RawArray*>(d->ReadRef());
+                               static_cast<BytecodePtr>(d->ReadRef()));
+        func->ptr()->code_ = static_cast<CodePtr>(d->ReadRef());
+        func->ptr()->ic_data_array_ = static_cast<ArrayPtr>(d->ReadRef());
       }
 
 #if defined(DEBUG)
@@ -746,8 +744,8 @@ class ClosureDataSerializationCluster : public SerializationCluster {
   ClosureDataSerializationCluster() : SerializationCluster("ClosureData") {}
   ~ClosureDataSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawClosureData* data = ClosureData::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    ClosureDataPtr data = ClosureData::RawCast(object);
     objects_.Add(data);
 
     if (s->kind() != Snapshot::kFullAOT) {
@@ -763,7 +761,7 @@ class ClosureDataSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawClosureData* data = objects_[i];
+      ClosureDataPtr data = objects_[i];
       s->AssignRef(data);
     }
   }
@@ -771,7 +769,7 @@ class ClosureDataSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawClosureData* data = objects_[i];
+      ClosureDataPtr data = objects_[i];
       AutoTraceObject(data);
       if (s->kind() != Snapshot::kFullAOT) {
         WriteField(data, context_scope_);
@@ -783,7 +781,7 @@ class ClosureDataSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawClosureData*> objects_;
+  GrowableArray<ClosureDataPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -805,18 +803,18 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawClosureData* data = reinterpret_cast<RawClosureData*>(d->Ref(id));
+      ClosureDataPtr data = static_cast<ClosureDataPtr>(d->Ref(id));
       Deserializer::InitializeHeader(data, kClosureDataCid,
                                      ClosureData::InstanceSize());
       if (d->kind() == Snapshot::kFullAOT) {
         data->ptr()->context_scope_ = ContextScope::null();
       } else {
         data->ptr()->context_scope_ =
-            static_cast<RawContextScope*>(d->ReadRef());
+            static_cast<ContextScopePtr>(d->ReadRef());
       }
-      data->ptr()->parent_function_ = static_cast<RawFunction*>(d->ReadRef());
-      data->ptr()->signature_type_ = static_cast<RawType*>(d->ReadRef());
-      data->ptr()->closure_ = static_cast<RawInstance*>(d->ReadRef());
+      data->ptr()->parent_function_ = static_cast<FunctionPtr>(d->ReadRef());
+      data->ptr()->signature_type_ = static_cast<TypePtr>(d->ReadRef());
+      data->ptr()->closure_ = static_cast<InstancePtr>(d->ReadRef());
     }
   }
 };
@@ -827,8 +825,8 @@ class SignatureDataSerializationCluster : public SerializationCluster {
   SignatureDataSerializationCluster() : SerializationCluster("SignatureData") {}
   ~SignatureDataSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawSignatureData* data = SignatureData::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    SignatureDataPtr data = SignatureData::RawCast(object);
     objects_.Add(data);
     PushFromTo(data);
   }
@@ -838,7 +836,7 @@ class SignatureDataSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawSignatureData* data = objects_[i];
+      SignatureDataPtr data = objects_[i];
       s->AssignRef(data);
     }
   }
@@ -846,14 +844,14 @@ class SignatureDataSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawSignatureData* data = objects_[i];
+      SignatureDataPtr data = objects_[i];
       AutoTraceObject(data);
       WriteFromTo(data);
     }
   }
 
  private:
-  GrowableArray<RawSignatureData*> objects_;
+  GrowableArray<SignatureDataPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -875,7 +873,7 @@ class SignatureDataDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawSignatureData* data = reinterpret_cast<RawSignatureData*>(d->Ref(id));
+      SignatureDataPtr data = static_cast<SignatureDataPtr>(d->Ref(id));
       Deserializer::InitializeHeader(data, kSignatureDataCid,
                                      SignatureData::InstanceSize());
       ReadFromTo(data);
@@ -890,8 +888,8 @@ class FfiTrampolineDataSerializationCluster : public SerializationCluster {
       : SerializationCluster("FfiTrampolineData") {}
   ~FfiTrampolineDataSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawFfiTrampolineData* data = FfiTrampolineData::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    FfiTrampolineDataPtr data = FfiTrampolineData::RawCast(object);
     objects_.Add(data);
     PushFromTo(data);
   }
@@ -908,7 +906,7 @@ class FfiTrampolineDataSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawFfiTrampolineData* const data = objects_[i];
+      FfiTrampolineDataPtr const data = objects_[i];
       AutoTraceObject(data);
       WriteFromTo(data);
 
@@ -922,7 +920,7 @@ class FfiTrampolineDataSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawFfiTrampolineData*> objects_;
+  GrowableArray<FfiTrampolineDataPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -944,8 +942,7 @@ class FfiTrampolineDataDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawFfiTrampolineData* data =
-          reinterpret_cast<RawFfiTrampolineData*>(d->Ref(id));
+      FfiTrampolineDataPtr data = static_cast<FfiTrampolineDataPtr>(d->Ref(id));
       Deserializer::InitializeHeader(data, kFfiTrampolineDataCid,
                                      FfiTrampolineData::InstanceSize());
       ReadFromTo(data);
@@ -962,8 +959,8 @@ class RedirectionDataSerializationCluster : public SerializationCluster {
       : SerializationCluster("RedirectionData") {}
   ~RedirectionDataSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawRedirectionData* data = RedirectionData::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    RedirectionDataPtr data = RedirectionData::RawCast(object);
     objects_.Add(data);
     PushFromTo(data);
   }
@@ -973,7 +970,7 @@ class RedirectionDataSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawRedirectionData* data = objects_[i];
+      RedirectionDataPtr data = objects_[i];
       s->AssignRef(data);
     }
   }
@@ -981,14 +978,14 @@ class RedirectionDataSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawRedirectionData* data = objects_[i];
+      RedirectionDataPtr data = objects_[i];
       AutoTraceObject(data);
       WriteFromTo(data);
     }
   }
 
  private:
-  GrowableArray<RawRedirectionData*> objects_;
+  GrowableArray<RedirectionDataPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -1010,8 +1007,7 @@ class RedirectionDataDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawRedirectionData* data =
-          reinterpret_cast<RawRedirectionData*>(d->Ref(id));
+      RedirectionDataPtr data = static_cast<RedirectionDataPtr>(d->Ref(id));
       Deserializer::InitializeHeader(data, kRedirectionDataCid,
                                      RedirectionData::InstanceSize());
       ReadFromTo(data);
@@ -1025,8 +1021,8 @@ class FieldSerializationCluster : public SerializationCluster {
   FieldSerializationCluster() : SerializationCluster("Field") {}
   ~FieldSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawField* field = Field::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    FieldPtr field = Field::RawCast(object);
     objects_.Add(field);
 
     Snapshot::Kind kind = s->kind();
@@ -1071,7 +1067,7 @@ class FieldSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawField* field = objects_[i];
+      FieldPtr field = objects_[i];
       s->AssignRef(field);
     }
   }
@@ -1080,7 +1076,7 @@ class FieldSerializationCluster : public SerializationCluster {
     Snapshot::Kind kind = s->kind();
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawField* field = objects_[i];
+      FieldPtr field = objects_[i];
       AutoTraceObjectName(field, field->ptr()->name_);
 
       WriteField(field, name_);
@@ -1135,7 +1131,7 @@ class FieldSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawField*> objects_;
+  GrowableArray<FieldPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -1158,7 +1154,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
     Snapshot::Kind kind = d->kind();
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawField* field = reinterpret_cast<RawField*>(d->Ref(id));
+      FieldPtr field = static_cast<FieldPtr>(d->Ref(id));
       Deserializer::InitializeHeader(field, kFieldCid, Field::InstanceSize());
       ReadFromTo(field);
       if (kind != Snapshot::kFullAOT) {
@@ -1173,11 +1169,11 @@ class FieldDeserializationCluster : public DeserializationCluster {
       }
       field->ptr()->kind_bits_ = d->Read<uint16_t>();
 
-      RawObject* value_or_offset = d->ReadRef();
+      ObjectPtr value_or_offset = d->ReadRef();
       if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
         intptr_t field_id = d->ReadUnsigned();
-        d->field_table()->SetAt(
-            field_id, reinterpret_cast<RawInstance*>(value_or_offset));
+        d->field_table()->SetAt(field_id,
+                                static_cast<InstancePtr>(value_or_offset));
         field->ptr()->host_offset_or_field_id_ = field_id;
       } else {
         field->ptr()->host_offset_or_field_id_ =
@@ -1221,8 +1217,8 @@ class ScriptSerializationCluster : public SerializationCluster {
   ScriptSerializationCluster() : SerializationCluster("Script") {}
   ~ScriptSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawScript* script = Script::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    ScriptPtr script = Script::RawCast(object);
     objects_.Add(script);
     PushFromTo(script);
   }
@@ -1232,7 +1228,7 @@ class ScriptSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawScript* script = objects_[i];
+      ScriptPtr script = objects_[i];
       s->AssignRef(script);
     }
   }
@@ -1240,7 +1236,7 @@ class ScriptSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawScript* script = objects_[i];
+      ScriptPtr script = objects_[i];
       AutoTraceObjectName(script, script->ptr()->url_);
       WriteFromTo(script);
       s->Write<int32_t>(script->ptr()->line_offset_);
@@ -1251,7 +1247,7 @@ class ScriptSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawScript*> objects_;
+  GrowableArray<ScriptPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -1272,7 +1268,7 @@ class ScriptDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawScript* script = reinterpret_cast<RawScript*>(d->Ref(id));
+      ScriptPtr script = static_cast<ScriptPtr>(d->Ref(id));
       Deserializer::InitializeHeader(script, kScriptCid,
                                      Script::InstanceSize());
       ReadFromTo(script);
@@ -1291,8 +1287,8 @@ class LibrarySerializationCluster : public SerializationCluster {
   LibrarySerializationCluster() : SerializationCluster("Library") {}
   ~LibrarySerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawLibrary* lib = Library::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    LibraryPtr lib = Library::RawCast(object);
     objects_.Add(lib);
     PushFromTo(lib);
   }
@@ -1302,7 +1298,7 @@ class LibrarySerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawLibrary* lib = objects_[i];
+      LibraryPtr lib = objects_[i];
       s->AssignRef(lib);
     }
   }
@@ -1310,7 +1306,7 @@ class LibrarySerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawLibrary* lib = objects_[i];
+      LibraryPtr lib = objects_[i];
       AutoTraceObjectName(lib, lib->ptr()->url_);
       WriteFromTo(lib);
       s->Write<int32_t>(lib->ptr()->index_);
@@ -1324,7 +1320,7 @@ class LibrarySerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawLibrary*> objects_;
+  GrowableArray<LibraryPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -1345,7 +1341,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawLibrary* lib = reinterpret_cast<RawLibrary*>(d->Ref(id));
+      LibraryPtr lib = static_cast<LibraryPtr>(d->Ref(id));
       Deserializer::InitializeHeader(lib, kLibraryCid, Library::InstanceSize());
       ReadFromTo(lib);
       lib->ptr()->native_entry_resolver_ = NULL;
@@ -1354,7 +1350,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       lib->ptr()->num_imports_ = d->Read<uint16_t>();
       lib->ptr()->load_state_ = d->Read<int8_t>();
       lib->ptr()->flags_ =
-          RawLibrary::InFullSnapshotBit::update(true, d->Read<uint8_t>());
+          LibraryLayout::InFullSnapshotBit::update(true, d->Read<uint8_t>());
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() != Snapshot::kFullAOT) {
         lib->ptr()->binary_declaration_ = d->Read<uint32_t>();
@@ -1370,8 +1366,8 @@ class NamespaceSerializationCluster : public SerializationCluster {
   NamespaceSerializationCluster() : SerializationCluster("Namespace") {}
   ~NamespaceSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawNamespace* ns = Namespace::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    NamespacePtr ns = Namespace::RawCast(object);
     objects_.Add(ns);
     PushFromTo(ns);
   }
@@ -1381,7 +1377,7 @@ class NamespaceSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawNamespace* ns = objects_[i];
+      NamespacePtr ns = objects_[i];
       s->AssignRef(ns);
     }
   }
@@ -1389,14 +1385,14 @@ class NamespaceSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawNamespace* ns = objects_[i];
+      NamespacePtr ns = objects_[i];
       AutoTraceObject(ns);
       WriteFromTo(ns);
     }
   }
 
  private:
-  GrowableArray<RawNamespace*> objects_;
+  GrowableArray<NamespacePtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -1417,7 +1413,7 @@ class NamespaceDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawNamespace* ns = reinterpret_cast<RawNamespace*>(d->Ref(id));
+      NamespacePtr ns = static_cast<NamespacePtr>(d->Ref(id));
       Deserializer::InitializeHeader(ns, kNamespaceCid,
                                      Namespace::InstanceSize());
       ReadFromTo(ns);
@@ -1433,8 +1429,8 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
       : SerializationCluster("KernelProgramInfo") {}
   ~KernelProgramInfoSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawKernelProgramInfo* info = KernelProgramInfo::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    KernelProgramInfoPtr info = KernelProgramInfo::RawCast(object);
     objects_.Add(info);
     PushFromTo(info);
   }
@@ -1444,7 +1440,7 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawKernelProgramInfo* info = objects_[i];
+      KernelProgramInfoPtr info = objects_[i];
       s->AssignRef(info);
     }
   }
@@ -1452,7 +1448,7 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawKernelProgramInfo* info = objects_[i];
+      KernelProgramInfoPtr info = objects_[i];
       AutoTraceObject(info);
       WriteFromTo(info);
       s->Write<uint32_t>(info->ptr()->kernel_binary_version_);
@@ -1460,7 +1456,7 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawKernelProgramInfo*> objects_;
+  GrowableArray<KernelProgramInfoPtr> objects_;
 };
 
 // Since KernelProgramInfo objects are not written into full AOT snapshots,
@@ -1483,8 +1479,7 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawKernelProgramInfo* info =
-          reinterpret_cast<RawKernelProgramInfo*>(d->Ref(id));
+      KernelProgramInfoPtr info = static_cast<KernelProgramInfoPtr>(d->Ref(id));
       Deserializer::InitializeHeader(info, kKernelProgramInfoCid,
                                      KernelProgramInfo::InstanceSize());
       ReadFromTo(info);
@@ -1510,8 +1505,8 @@ class CodeSerializationCluster : public SerializationCluster {
   CodeSerializationCluster() : SerializationCluster("Code") {}
   ~CodeSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawCode* code = Code::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    CodePtr code = Code::RawCast(object);
     objects_.Add(code);
 
     if (!(s->kind() == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
@@ -1560,7 +1555,7 @@ class CodeSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawCode* code = objects_[i];
+      CodePtr code = objects_[i];
       s->AssignRef(code);
     }
   }
@@ -1569,7 +1564,7 @@ class CodeSerializationCluster : public SerializationCluster {
     Snapshot::Kind kind = s->kind();
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawCode* code = objects_[i];
+      CodePtr code = objects_[i];
       AutoTraceObject(code);
 
       intptr_t pointer_offsets_length =
@@ -1603,7 +1598,7 @@ class CodeSerializationCluster : public SerializationCluster {
                  code->ptr()->object_pool_ != ObjectPool::null()) {
         // If we are writing V8 snapshot profile then attribute references
         // going through the object pool to the code object itself.
-        RawObjectPool* pool = code->ptr()->object_pool_;
+        ObjectPoolPtr pool = code->ptr()->object_pool_;
 
         for (intptr_t i = 0; i < pool->ptr()->length_; i++) {
           uint8_t bits = pool->ptr()->entry_bits()[i];
@@ -1640,10 +1635,10 @@ class CodeSerializationCluster : public SerializationCluster {
     }
   }
 
-  GrowableArray<RawCode*>* discovered_objects() { return &objects_; }
+  GrowableArray<CodePtr>* discovered_objects() { return &objects_; }
 
  private:
-  GrowableArray<RawCode*> objects_;
+  GrowableArray<CodePtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -1661,10 +1656,10 @@ class CodeDeserializationCluster : public DeserializationCluster {
     // [Code]'s instructions will be located in memory.
     const bool build_code_order =
         FLAG_precompiled_mode && FLAG_use_bare_instructions;
-    RawArray* code_order = nullptr;
+    ArrayPtr code_order = nullptr;
     const intptr_t code_order_length = d->code_order_length();
     if (build_code_order) {
-      code_order = static_cast<RawArray*>(AllocateUninitialized(
+      code_order = static_cast<ArrayPtr>(AllocateUninitialized(
           old_space, Array::InstanceSize(code_order_length)));
       Deserializer::InitializeHeader(code_order, kArrayCid,
                                      Array::InstanceSize(code_order_length),
@@ -1691,7 +1686,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      auto const code = reinterpret_cast<RawCode*>(d->Ref(id));
+      auto const code = static_cast<CodePtr>(d->Ref(id));
       Deserializer::InitializeHeader(code, kCodeCid, Code::InstanceSize(0));
 
       d->ReadInstructions(code, id, start_index_);
@@ -1699,30 +1694,28 @@ class CodeDeserializationCluster : public DeserializationCluster {
       // There would be a single global pool if this is a full AOT snapshot
       // with bare instructions.
       if (!(d->kind() == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
-        code->ptr()->object_pool_ =
-            reinterpret_cast<RawObjectPool*>(d->ReadRef());
+        code->ptr()->object_pool_ = static_cast<ObjectPoolPtr>(d->ReadRef());
       } else {
         code->ptr()->object_pool_ = ObjectPool::null();
       }
       code->ptr()->owner_ = d->ReadRef();
       code->ptr()->exception_handlers_ =
-          reinterpret_cast<RawExceptionHandlers*>(d->ReadRef());
+          static_cast<ExceptionHandlersPtr>(d->ReadRef());
       code->ptr()->pc_descriptors_ =
-          reinterpret_cast<RawPcDescriptors*>(d->ReadRef());
+          static_cast<PcDescriptorsPtr>(d->ReadRef());
       code->ptr()->catch_entry_ = d->ReadRef();
       code->ptr()->compressed_stackmaps_ =
-          reinterpret_cast<RawCompressedStackMaps*>(d->ReadRef());
+          static_cast<CompressedStackMapsPtr>(d->ReadRef());
       code->ptr()->inlined_id_to_function_ =
-          reinterpret_cast<RawArray*>(d->ReadRef());
+          static_cast<ArrayPtr>(d->ReadRef());
       code->ptr()->code_source_map_ =
-          reinterpret_cast<RawCodeSourceMap*>(d->ReadRef());
+          static_cast<CodeSourceMapPtr>(d->ReadRef());
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() == Snapshot::kFullJIT) {
-        code->ptr()->deopt_info_array_ =
-            reinterpret_cast<RawArray*>(d->ReadRef());
+        code->ptr()->deopt_info_array_ = static_cast<ArrayPtr>(d->ReadRef());
         code->ptr()->static_calls_target_table_ =
-            reinterpret_cast<RawArray*>(d->ReadRef());
+            static_cast<ArrayPtr>(d->ReadRef());
       }
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -1730,7 +1723,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->ptr()->return_address_metadata_ = d->ReadRef();
       code->ptr()->var_descriptors_ = LocalVarDescriptors::null();
       code->ptr()->comments_ = FLAG_code_comments
-                                   ? reinterpret_cast<RawArray*>(d->ReadRef())
+                                   ? static_cast<ArrayPtr>(d->ReadRef())
                                    : Array::null();
       code->ptr()->compile_timestamp_ = 0;
 #endif
@@ -1775,8 +1768,8 @@ class BytecodeSerializationCluster : public SerializationCluster {
   BytecodeSerializationCluster() : SerializationCluster("Bytecode") {}
   virtual ~BytecodeSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawBytecode* bytecode = Bytecode::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    BytecodePtr bytecode = Bytecode::RawCast(object);
     objects_.Add(bytecode);
     PushFromTo(bytecode);
   }
@@ -1786,7 +1779,7 @@ class BytecodeSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawBytecode* bytecode = objects_[i];
+      BytecodePtr bytecode = objects_[i];
       s->AssignRef(bytecode);
     }
   }
@@ -1795,7 +1788,7 @@ class BytecodeSerializationCluster : public SerializationCluster {
     ASSERT(s->kind() != Snapshot::kFullAOT);
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawBytecode* bytecode = objects_[i];
+      BytecodePtr bytecode = objects_[i];
       s->Write<int32_t>(bytecode->ptr()->instructions_size_);
       WriteFromTo(bytecode);
       s->Write<int32_t>(bytecode->ptr()->instructions_binary_offset_);
@@ -1805,7 +1798,7 @@ class BytecodeSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawBytecode*> objects_;
+  GrowableArray<BytecodePtr> objects_;
 };
 
 class BytecodeDeserializationCluster : public DeserializationCluster {
@@ -1827,7 +1820,7 @@ class BytecodeDeserializationCluster : public DeserializationCluster {
     ASSERT(d->kind() != Snapshot::kFullAOT);
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawBytecode* bytecode = reinterpret_cast<RawBytecode*>(d->Ref(id));
+      BytecodePtr bytecode = static_cast<BytecodePtr>(d->Ref(id));
       Deserializer::InitializeHeader(bytecode, kBytecodeCid,
                                      Bytecode::InstanceSize());
       bytecode->ptr()->instructions_ = 0;
@@ -1857,8 +1850,8 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
   ObjectPoolSerializationCluster() : SerializationCluster("ObjectPool") {}
   ~ObjectPoolSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawObjectPool* pool = ObjectPool::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    ObjectPoolPtr pool = ObjectPool::RawCast(object);
     objects_.Add(pool);
 
     const intptr_t length = pool->ptr()->length_;
@@ -1877,7 +1870,7 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawObjectPool* pool = objects_[i];
+      ObjectPoolPtr pool = objects_[i];
       s->AssignRef(pool);
       AutoTraceObject(pool);
       const intptr_t length = pool->ptr()->length_;
@@ -1888,14 +1881,14 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawObjectPool* pool = objects_[i];
+      ObjectPoolPtr pool = objects_[i];
       AutoTraceObject(pool);
       const intptr_t length = pool->ptr()->length_;
       s->WriteUnsigned(length);
       uint8_t* entry_bits = pool->ptr()->entry_bits();
       for (intptr_t j = 0; j < length; j++) {
         s->Write<uint8_t>(entry_bits[j]);
-        RawObjectPool::Entry& entry = pool->ptr()->data()[j];
+        ObjectPoolLayout::Entry& entry = pool->ptr()->data()[j];
         switch (ObjectPool::TypeBits::decode(entry_bits[j])) {
           case ObjectPool::EntryType::kTaggedObject: {
             if ((entry.raw_obj_ == StubCode::CallNoScopeNative().raw()) ||
@@ -1914,8 +1907,8 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
             break;
           }
           case ObjectPool::EntryType::kNativeEntryData: {
-            RawObject* raw = entry.raw_obj_;
-            RawTypedData* raw_data = reinterpret_cast<RawTypedData*>(raw);
+            ObjectPtr raw = entry.raw_obj_;
+            TypedDataPtr raw_data = static_cast<TypedDataPtr>(raw);
             // kNativeEntryData object pool entries are for linking natives for
             // the interpreter. Before writing these entries into the snapshot,
             // we need to unlink them by nulling out the 'trampoline' and
@@ -1942,7 +1935,7 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawObjectPool*> objects_;
+  GrowableArray<ObjectPoolPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -1966,14 +1959,14 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id += 1) {
       const intptr_t length = d->ReadUnsigned();
-      RawObjectPool* pool = reinterpret_cast<RawObjectPool*>(d->Ref(id + 0));
+      ObjectPoolPtr pool = static_cast<ObjectPoolPtr>(d->Ref(id + 0));
       Deserializer::InitializeHeader(pool, kObjectPoolCid,
                                      ObjectPool::InstanceSize(length));
       pool->ptr()->length_ = length;
       for (intptr_t j = 0; j < length; j++) {
         const uint8_t entry_bits = d->Read<uint8_t>();
         pool->ptr()->entry_bits()[j] = entry_bits;
-        RawObjectPool::Entry& entry = pool->ptr()->data()[j];
+        ObjectPoolLayout::Entry& entry = pool->ptr()->data()[j];
         switch (ObjectPool::TypeBits::decode(entry_bits)) {
           case ObjectPool::EntryType::kNativeEntryData:
           case ObjectPool::EntryType::kTaggedObject:
@@ -2008,7 +2001,7 @@ class WeakSerializationReferenceSerializationCluster
         canonical_wsr_map_(zone) {}
   ~WeakSerializationReferenceSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
+  void Trace(Serializer* s, ObjectPtr object) {
     ASSERT(s->kind() == Snapshot::kFullAOT);
     // Make sure we don't trace again after choosing canonical WSRs.
     ASSERT(!have_canonicalized_wsrs_);
@@ -2095,14 +2088,14 @@ class WeakSerializationReferenceSerializationCluster
   // Returns whether a WSR should be dropped due to its target being reachable
   // via strong references. WSRs only wrap heap objects, so we can just retrieve
   // the object ID from the heap directly.
-  bool ShouldDrop(RawWeakSerializationReference* ref) const {
+  bool ShouldDrop(WeakSerializationReferencePtr ref) const {
     auto const target = WeakSerializationReference::TargetOf(ref);
     return Serializer::IsReachableReference(heap_->GetObjectId(target));
   }
 
   Heap* const heap_;
-  GrowableArray<RawWeakSerializationReference*> objects_;
-  GrowableArray<RawWeakSerializationReference*> canonical_wsrs_;
+  GrowableArray<WeakSerializationReferencePtr> objects_;
+  GrowableArray<WeakSerializationReferencePtr> canonical_wsrs_;
   IntMap<intptr_t> canonical_wsr_map_;
   bool have_canonicalized_wsrs_ = false;
 };
@@ -2131,8 +2124,7 @@ class WeakSerializationReferenceDeserializationCluster
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      auto const ref =
-          reinterpret_cast<RawWeakSerializationReference*>(d->Ref(id));
+      auto const ref = static_cast<WeakSerializationReferencePtr>(d->Ref(id));
       Deserializer::InitializeHeader(
           ref, kWeakSerializationReferenceCid,
           WeakSerializationReference::InstanceSize());
@@ -2148,8 +2140,8 @@ class PcDescriptorsSerializationCluster : public SerializationCluster {
   PcDescriptorsSerializationCluster() : SerializationCluster("PcDescriptors") {}
   ~PcDescriptorsSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawPcDescriptors* desc = PcDescriptors::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    PcDescriptorsPtr desc = PcDescriptors::RawCast(object);
     objects_.Add(desc);
   }
 
@@ -2158,7 +2150,7 @@ class PcDescriptorsSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawPcDescriptors* desc = objects_[i];
+      PcDescriptorsPtr desc = objects_[i];
       s->AssignRef(desc);
       AutoTraceObject(desc);
       const intptr_t length = desc->ptr()->length_;
@@ -2169,7 +2161,7 @@ class PcDescriptorsSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawPcDescriptors* desc = objects_[i];
+      PcDescriptorsPtr desc = objects_[i];
       AutoTraceObject(desc);
       const intptr_t length = desc->ptr()->length_;
       s->WriteUnsigned(length);
@@ -2179,7 +2171,7 @@ class PcDescriptorsSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawPcDescriptors*> objects_;
+  GrowableArray<PcDescriptorsPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -2203,7 +2195,7 @@ class PcDescriptorsDeserializationCluster : public DeserializationCluster {
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id += 1) {
       const intptr_t length = d->ReadUnsigned();
-      RawPcDescriptors* desc = reinterpret_cast<RawPcDescriptors*>(d->Ref(id));
+      PcDescriptorsPtr desc = static_cast<PcDescriptorsPtr>(d->Ref(id));
       Deserializer::InitializeHeader(desc, kPcDescriptorsCid,
                                      PcDescriptors::InstanceSize(length));
       desc->ptr()->length_ = length;
@@ -2224,12 +2216,12 @@ class RODataSerializationCluster : public SerializationCluster {
         type_(type) {}
   ~RODataSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
+  void Trace(Serializer* s, ObjectPtr object) {
     // A string's hash must already be computed when we write it because it
     // will be loaded into read-only memory. Extra bytes due to allocation
     // rounding need to be deterministically set for reliable deduplication in
     // shared images.
-    if (object->InVMIsolateHeap() ||
+    if (object->ptr()->InVMIsolateHeap() ||
         s->isolate()->heap()->old_space()->IsObjectFromImagePages(object)) {
       // This object is already read-only.
     } else {
@@ -2246,7 +2238,7 @@ class RODataSerializationCluster : public SerializationCluster {
     s->WriteUnsigned(count);
     uint32_t running_offset = 0;
     for (intptr_t i = 0; i < count; i++) {
-      RawObject* object = objects_[i];
+      ObjectPtr object = objects_[i];
       s->AssignRef(object);
       if (cid_ == kOneByteStringCid || cid_ == kTwoByteStringCid) {
         s->TraceStartWritingObject(type_, object, String::RawCast(object));
@@ -2271,7 +2263,7 @@ class RODataSerializationCluster : public SerializationCluster {
 
  private:
   const intptr_t cid_;
-  GrowableArray<RawObject*> objects_;
+  GrowableArray<ObjectPtr> objects_;
   const char* const type_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -2302,8 +2294,8 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
       : SerializationCluster("ExceptionHandlers") {}
   ~ExceptionHandlersSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawExceptionHandlers* handlers = ExceptionHandlers::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    ExceptionHandlersPtr handlers = ExceptionHandlers::RawCast(object);
     objects_.Add(handlers);
 
     s->Push(handlers->ptr()->handled_types_data_);
@@ -2314,7 +2306,7 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawExceptionHandlers* handlers = objects_[i];
+      ExceptionHandlersPtr handlers = objects_[i];
       s->AssignRef(handlers);
       AutoTraceObject(handlers);
       const intptr_t length = handlers->ptr()->num_entries_;
@@ -2325,7 +2317,7 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawExceptionHandlers* handlers = objects_[i];
+      ExceptionHandlersPtr handlers = objects_[i];
       AutoTraceObject(handlers);
       const intptr_t length = handlers->ptr()->num_entries_;
       s->WriteUnsigned(length);
@@ -2342,7 +2334,7 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawExceptionHandlers*> objects_;
+  GrowableArray<ExceptionHandlersPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -2365,14 +2357,14 @@ class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawExceptionHandlers* handlers =
-          reinterpret_cast<RawExceptionHandlers*>(d->Ref(id));
+      ExceptionHandlersPtr handlers =
+          static_cast<ExceptionHandlersPtr>(d->Ref(id));
       const intptr_t length = d->ReadUnsigned();
       Deserializer::InitializeHeader(handlers, kExceptionHandlersCid,
                                      ExceptionHandlers::InstanceSize(length));
       handlers->ptr()->num_entries_ = length;
       handlers->ptr()->handled_types_data_ =
-          reinterpret_cast<RawArray*>(d->ReadRef());
+          static_cast<ArrayPtr>(d->ReadRef());
       for (intptr_t j = 0; j < length; j++) {
         ExceptionHandlerInfo& info = handlers->ptr()->data()[j];
         info.handler_pc_offset = d->Read<uint32_t>();
@@ -2391,8 +2383,8 @@ class ContextSerializationCluster : public SerializationCluster {
   ContextSerializationCluster() : SerializationCluster("Context") {}
   ~ContextSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawContext* context = Context::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    ContextPtr context = Context::RawCast(object);
     objects_.Add(context);
 
     s->Push(context->ptr()->parent_);
@@ -2407,7 +2399,7 @@ class ContextSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawContext* context = objects_[i];
+      ContextPtr context = objects_[i];
       s->AssignRef(context);
       AutoTraceObject(context);
       const intptr_t length = context->ptr()->num_variables_;
@@ -2418,7 +2410,7 @@ class ContextSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawContext* context = objects_[i];
+      ContextPtr context = objects_[i];
       AutoTraceObject(context);
       const intptr_t length = context->ptr()->num_variables_;
       s->WriteUnsigned(length);
@@ -2430,7 +2422,7 @@ class ContextSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawContext*> objects_;
+  GrowableArray<ContextPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -2453,12 +2445,12 @@ class ContextDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawContext* context = reinterpret_cast<RawContext*>(d->Ref(id));
+      ContextPtr context = static_cast<ContextPtr>(d->Ref(id));
       const intptr_t length = d->ReadUnsigned();
       Deserializer::InitializeHeader(context, kContextCid,
                                      Context::InstanceSize(length));
       context->ptr()->num_variables_ = length;
-      context->ptr()->parent_ = reinterpret_cast<RawContext*>(d->ReadRef());
+      context->ptr()->parent_ = static_cast<ContextPtr>(d->ReadRef());
       for (intptr_t j = 0; j < length; j++) {
         context->ptr()->data()[j] = d->ReadRef();
       }
@@ -2472,8 +2464,8 @@ class ContextScopeSerializationCluster : public SerializationCluster {
   ContextScopeSerializationCluster() : SerializationCluster("ContextScope") {}
   ~ContextScopeSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawContextScope* scope = ContextScope::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    ContextScopePtr scope = ContextScope::RawCast(object);
     objects_.Add(scope);
 
     const intptr_t length = scope->ptr()->num_variables_;
@@ -2485,7 +2477,7 @@ class ContextScopeSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawContextScope* scope = objects_[i];
+      ContextScopePtr scope = objects_[i];
       s->AssignRef(scope);
       AutoTraceObject(scope);
       const intptr_t length = scope->ptr()->num_variables_;
@@ -2496,7 +2488,7 @@ class ContextScopeSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawContextScope* scope = objects_[i];
+      ContextScopePtr scope = objects_[i];
       AutoTraceObject(scope);
       const intptr_t length = scope->ptr()->num_variables_;
       s->WriteUnsigned(length);
@@ -2506,7 +2498,7 @@ class ContextScopeSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawContextScope*> objects_;
+  GrowableArray<ContextScopePtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -2529,7 +2521,7 @@ class ContextScopeDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawContextScope* scope = reinterpret_cast<RawContextScope*>(d->Ref(id));
+      ContextScopePtr scope = static_cast<ContextScopePtr>(d->Ref(id));
       const intptr_t length = d->ReadUnsigned();
       Deserializer::InitializeHeader(scope, kContextScopeCid,
                                      ContextScope::InstanceSize(length));
@@ -2547,8 +2539,8 @@ class ParameterTypeCheckSerializationCluster : public SerializationCluster {
       : SerializationCluster("ParameterTypeCheck") {}
   ~ParameterTypeCheckSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawParameterTypeCheck* unlinked = ParameterTypeCheck::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    ParameterTypeCheckPtr unlinked = ParameterTypeCheck::RawCast(object);
     objects_.Add(unlinked);
     PushFromTo(unlinked);
   }
@@ -2558,7 +2550,7 @@ class ParameterTypeCheckSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawParameterTypeCheck* check = objects_[i];
+      ParameterTypeCheckPtr check = objects_[i];
       s->AssignRef(check);
     }
   }
@@ -2566,14 +2558,14 @@ class ParameterTypeCheckSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawParameterTypeCheck* check = objects_[i];
+      ParameterTypeCheckPtr check = objects_[i];
       s->Write<intptr_t>(check->ptr()->index_);
       WriteFromTo(check);
     }
   }
 
  private:
-  GrowableArray<RawParameterTypeCheck*> objects_;
+  GrowableArray<ParameterTypeCheckPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -2595,8 +2587,8 @@ class ParameterTypeCheckDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawParameterTypeCheck* check =
-          reinterpret_cast<RawParameterTypeCheck*>(d->Ref(id));
+      ParameterTypeCheckPtr check =
+          static_cast<ParameterTypeCheckPtr>(d->Ref(id));
       Deserializer::InitializeHeader(check, kParameterTypeCheckCid,
                                      ParameterTypeCheck::InstanceSize());
       check->ptr()->index_ = d->Read<intptr_t>();
@@ -2611,8 +2603,8 @@ class UnlinkedCallSerializationCluster : public SerializationCluster {
   UnlinkedCallSerializationCluster() : SerializationCluster("UnlinkedCall") {}
   ~UnlinkedCallSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawUnlinkedCall* unlinked = UnlinkedCall::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    UnlinkedCallPtr unlinked = UnlinkedCall::RawCast(object);
     objects_.Add(unlinked);
     PushFromTo(unlinked);
   }
@@ -2622,7 +2614,7 @@ class UnlinkedCallSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawUnlinkedCall* unlinked = objects_[i];
+      UnlinkedCallPtr unlinked = objects_[i];
       s->AssignRef(unlinked);
     }
   }
@@ -2630,7 +2622,7 @@ class UnlinkedCallSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawUnlinkedCall* unlinked = objects_[i];
+      UnlinkedCallPtr unlinked = objects_[i];
       AutoTraceObjectName(unlinked, unlinked->ptr()->target_name_);
       WriteFromTo(unlinked);
       s->Write<bool>(unlinked->ptr()->can_patch_to_monomorphic_);
@@ -2638,7 +2630,7 @@ class UnlinkedCallSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawUnlinkedCall*> objects_;
+  GrowableArray<UnlinkedCallPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -2660,8 +2652,7 @@ class UnlinkedCallDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawUnlinkedCall* unlinked =
-          reinterpret_cast<RawUnlinkedCall*>(d->Ref(id));
+      UnlinkedCallPtr unlinked = static_cast<UnlinkedCallPtr>(d->Ref(id));
       Deserializer::InitializeHeader(unlinked, kUnlinkedCallCid,
                                      UnlinkedCall::InstanceSize());
       ReadFromTo(unlinked);
@@ -2676,8 +2667,8 @@ class ICDataSerializationCluster : public SerializationCluster {
   ICDataSerializationCluster() : SerializationCluster("ICData") {}
   ~ICDataSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawICData* ic = ICData::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    ICDataPtr ic = ICData::RawCast(object);
     objects_.Add(ic);
     PushFromTo(ic);
   }
@@ -2687,7 +2678,7 @@ class ICDataSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawICData* ic = objects_[i];
+      ICDataPtr ic = objects_[i];
       s->AssignRef(ic);
     }
   }
@@ -2696,7 +2687,7 @@ class ICDataSerializationCluster : public SerializationCluster {
     Snapshot::Kind kind = s->kind();
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawICData* ic = objects_[i];
+      ICDataPtr ic = objects_[i];
       AutoTraceObjectName(ic, ic->ptr()->target_name_);
       WriteFromTo(ic);
       if (kind != Snapshot::kFullAOT) {
@@ -2707,7 +2698,7 @@ class ICDataSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawICData*> objects_;
+  GrowableArray<ICDataPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -2728,7 +2719,7 @@ class ICDataDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawICData* ic = reinterpret_cast<RawICData*>(d->Ref(id));
+      ICDataPtr ic = static_cast<ICDataPtr>(d->Ref(id));
       Deserializer::InitializeHeader(ic, kICDataCid, ICData::InstanceSize());
       ReadFromTo(ic);
       NOT_IN_PRECOMPILED(ic->ptr()->deopt_id_ = d->Read<int32_t>());
@@ -2744,8 +2735,8 @@ class MegamorphicCacheSerializationCluster : public SerializationCluster {
       : SerializationCluster("MegamorphicCache") {}
   ~MegamorphicCacheSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawMegamorphicCache* cache = MegamorphicCache::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    MegamorphicCachePtr cache = MegamorphicCache::RawCast(object);
     objects_.Add(cache);
     PushFromTo(cache);
   }
@@ -2755,7 +2746,7 @@ class MegamorphicCacheSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawMegamorphicCache* cache = objects_[i];
+      MegamorphicCachePtr cache = objects_[i];
       s->AssignRef(cache);
     }
   }
@@ -2763,7 +2754,7 @@ class MegamorphicCacheSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawMegamorphicCache* cache = objects_[i];
+      MegamorphicCachePtr cache = objects_[i];
       AutoTraceObjectName(cache, cache->ptr()->target_name_);
       WriteFromTo(cache);
       s->Write<int32_t>(cache->ptr()->filled_entry_count_);
@@ -2771,7 +2762,7 @@ class MegamorphicCacheSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawMegamorphicCache*> objects_;
+  GrowableArray<MegamorphicCachePtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -2793,8 +2784,7 @@ class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawMegamorphicCache* cache =
-          reinterpret_cast<RawMegamorphicCache*>(d->Ref(id));
+      MegamorphicCachePtr cache = static_cast<MegamorphicCachePtr>(d->Ref(id));
       Deserializer::InitializeHeader(cache, kMegamorphicCacheCid,
                                      MegamorphicCache::InstanceSize());
       ReadFromTo(cache);
@@ -2836,8 +2826,8 @@ class SubtypeTestCacheSerializationCluster : public SerializationCluster {
       : SerializationCluster("SubtypeTestCache") {}
   ~SubtypeTestCacheSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawSubtypeTestCache* cache = SubtypeTestCache::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    SubtypeTestCachePtr cache = SubtypeTestCache::RawCast(object);
     objects_.Add(cache);
     s->Push(cache->ptr()->cache_);
   }
@@ -2847,7 +2837,7 @@ class SubtypeTestCacheSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawSubtypeTestCache* cache = objects_[i];
+      SubtypeTestCachePtr cache = objects_[i];
       s->AssignRef(cache);
     }
   }
@@ -2855,14 +2845,14 @@ class SubtypeTestCacheSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawSubtypeTestCache* cache = objects_[i];
+      SubtypeTestCachePtr cache = objects_[i];
       AutoTraceObject(cache);
       WriteField(cache, cache_);
     }
   }
 
  private:
-  GrowableArray<RawSubtypeTestCache*> objects_;
+  GrowableArray<SubtypeTestCachePtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -2884,11 +2874,10 @@ class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawSubtypeTestCache* cache =
-          reinterpret_cast<RawSubtypeTestCache*>(d->Ref(id));
+      SubtypeTestCachePtr cache = static_cast<SubtypeTestCachePtr>(d->Ref(id));
       Deserializer::InitializeHeader(cache, kSubtypeTestCacheCid,
                                      SubtypeTestCache::InstanceSize());
-      cache->ptr()->cache_ = reinterpret_cast<RawArray*>(d->ReadRef());
+      cache->ptr()->cache_ = static_cast<ArrayPtr>(d->ReadRef());
     }
   }
 };
@@ -2899,8 +2888,8 @@ class LanguageErrorSerializationCluster : public SerializationCluster {
   LanguageErrorSerializationCluster() : SerializationCluster("LanguageError") {}
   ~LanguageErrorSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawLanguageError* error = LanguageError::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    LanguageErrorPtr error = LanguageError::RawCast(object);
     objects_.Add(error);
     PushFromTo(error);
   }
@@ -2910,7 +2899,7 @@ class LanguageErrorSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawLanguageError* error = objects_[i];
+      LanguageErrorPtr error = objects_[i];
       s->AssignRef(error);
     }
   }
@@ -2918,7 +2907,7 @@ class LanguageErrorSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawLanguageError* error = objects_[i];
+      LanguageErrorPtr error = objects_[i];
       AutoTraceObject(error);
       WriteFromTo(error);
       s->WriteTokenPosition(error->ptr()->token_pos_);
@@ -2928,7 +2917,7 @@ class LanguageErrorSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawLanguageError*> objects_;
+  GrowableArray<LanguageErrorPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -2950,7 +2939,7 @@ class LanguageErrorDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawLanguageError* error = reinterpret_cast<RawLanguageError*>(d->Ref(id));
+      LanguageErrorPtr error = static_cast<LanguageErrorPtr>(d->Ref(id));
       Deserializer::InitializeHeader(error, kLanguageErrorCid,
                                      LanguageError::InstanceSize());
       ReadFromTo(error);
@@ -2968,8 +2957,8 @@ class UnhandledExceptionSerializationCluster : public SerializationCluster {
       : SerializationCluster("UnhandledException") {}
   ~UnhandledExceptionSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawUnhandledException* exception = UnhandledException::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    UnhandledExceptionPtr exception = UnhandledException::RawCast(object);
     objects_.Add(exception);
     PushFromTo(exception);
   }
@@ -2979,7 +2968,7 @@ class UnhandledExceptionSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawUnhandledException* exception = objects_[i];
+      UnhandledExceptionPtr exception = objects_[i];
       s->AssignRef(exception);
     }
   }
@@ -2987,14 +2976,14 @@ class UnhandledExceptionSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawUnhandledException* exception = objects_[i];
+      UnhandledExceptionPtr exception = objects_[i];
       AutoTraceObject(exception);
       WriteFromTo(exception);
     }
   }
 
  private:
-  GrowableArray<RawUnhandledException*> objects_;
+  GrowableArray<UnhandledExceptionPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -3016,8 +3005,8 @@ class UnhandledExceptionDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawUnhandledException* exception =
-          reinterpret_cast<RawUnhandledException*>(d->Ref(id));
+      UnhandledExceptionPtr exception =
+          static_cast<UnhandledExceptionPtr>(d->Ref(id));
       Deserializer::InitializeHeader(exception, kUnhandledExceptionCid,
                                      UnhandledException::InstanceSize());
       ReadFromTo(exception);
@@ -3030,7 +3019,7 @@ class InstanceSerializationCluster : public SerializationCluster {
  public:
   explicit InstanceSerializationCluster(intptr_t cid)
       : SerializationCluster("Instance"), cid_(cid) {
-    RawClass* cls = Isolate::Current()->class_table()->At(cid);
+    ClassPtr cls = Isolate::Current()->class_table()->At(cid);
     host_next_field_offset_in_words_ =
         cls->ptr()->host_next_field_offset_in_words_;
     ASSERT(host_next_field_offset_in_words_ > 0);
@@ -3044,8 +3033,8 @@ class InstanceSerializationCluster : public SerializationCluster {
   }
   ~InstanceSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawInstance* instance = Instance::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    InstancePtr instance = Instance::RawCast(object);
     objects_.Add(instance);
     const intptr_t next_field_offset = host_next_field_offset_in_words_
                                        << kWordSizeLog2;
@@ -3056,7 +3045,7 @@ class InstanceSerializationCluster : public SerializationCluster {
     while (offset < next_field_offset) {
       // Skips unboxed fields
       if (!unboxed_fields_bitmap.Get(offset / kWordSize)) {
-        RawObject* raw_obj = *reinterpret_cast<RawObject**>(
+        ObjectPtr raw_obj = *reinterpret_cast<ObjectPtr*>(
             reinterpret_cast<uword>(instance->ptr()) + offset);
         s->Push(raw_obj);
       }
@@ -3077,7 +3066,7 @@ class InstanceSerializationCluster : public SerializationCluster {
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
 
     for (intptr_t i = 0; i < count; i++) {
-      RawInstance* instance = objects_[i];
+      InstancePtr instance = objects_[i];
       s->AssignRef(instance);
     }
   }
@@ -3090,9 +3079,9 @@ class InstanceSerializationCluster : public SerializationCluster {
         s->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
             cid_);
     for (intptr_t i = 0; i < count; i++) {
-      RawInstance* instance = objects_[i];
+      InstancePtr instance = objects_[i];
       AutoTraceObject(instance);
-      s->Write<bool>(instance->IsCanonical());
+      s->Write<bool>(instance->ptr()->IsCanonical());
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
         if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
@@ -3101,7 +3090,7 @@ class InstanceSerializationCluster : public SerializationCluster {
               reinterpret_cast<uword>(instance->ptr()) + offset);
           s->WriteWordWith32BitWrites(value);
         } else {
-          RawObject* raw_obj = *reinterpret_cast<RawObject**>(
+          ObjectPtr raw_obj = *reinterpret_cast<ObjectPtr*>(
               reinterpret_cast<uword>(instance->ptr()) + offset);
           s->WriteElementRef(raw_obj, offset);
         }
@@ -3117,7 +3106,7 @@ class InstanceSerializationCluster : public SerializationCluster {
   intptr_t target_next_field_offset_in_words_;
   intptr_t target_instance_size_in_words_;
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
-  GrowableArray<RawInstance*> objects_;
+  GrowableArray<InstancePtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -3149,7 +3138,7 @@ class InstanceDeserializationCluster : public DeserializationCluster {
         d->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
             cid_);
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawInstance* instance = reinterpret_cast<RawInstance*>(d->Ref(id));
+      InstancePtr instance = static_cast<InstancePtr>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(instance, cid_, instance_size,
                                      is_canonical);
@@ -3161,14 +3150,14 @@ class InstanceDeserializationCluster : public DeserializationCluster {
           // Reads 32 bits of the unboxed value at a time
           *p = d->ReadWordWith32BitReads();
         } else {
-          RawObject** p = reinterpret_cast<RawObject**>(
+          ObjectPtr* p = reinterpret_cast<ObjectPtr*>(
               reinterpret_cast<uword>(instance->ptr()) + offset);
           *p = d->ReadRef();
         }
         offset += kWordSize;
       }
       if (offset < instance_size) {
-        RawObject** p = reinterpret_cast<RawObject**>(
+        ObjectPtr* p = reinterpret_cast<ObjectPtr*>(
             reinterpret_cast<uword>(instance->ptr()) + offset);
         *p = Object::null();
         offset += kWordSize;
@@ -3189,8 +3178,8 @@ class LibraryPrefixSerializationCluster : public SerializationCluster {
   LibraryPrefixSerializationCluster() : SerializationCluster("LibraryPrefix") {}
   ~LibraryPrefixSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawLibraryPrefix* prefix = LibraryPrefix::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    LibraryPrefixPtr prefix = LibraryPrefix::RawCast(object);
     objects_.Add(prefix);
     PushFromTo(prefix);
   }
@@ -3200,7 +3189,7 @@ class LibraryPrefixSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawLibraryPrefix* prefix = objects_[i];
+      LibraryPrefixPtr prefix = objects_[i];
       s->AssignRef(prefix);
     }
   }
@@ -3208,7 +3197,7 @@ class LibraryPrefixSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawLibraryPrefix* prefix = objects_[i];
+      LibraryPrefixPtr prefix = objects_[i];
       AutoTraceObject(prefix);
       WriteFromTo(prefix);
       s->Write<uint16_t>(prefix->ptr()->num_imports_);
@@ -3217,7 +3206,7 @@ class LibraryPrefixSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawLibraryPrefix*> objects_;
+  GrowableArray<LibraryPrefixPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -3239,8 +3228,7 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawLibraryPrefix* prefix =
-          reinterpret_cast<RawLibraryPrefix*>(d->Ref(id));
+      LibraryPrefixPtr prefix = static_cast<LibraryPrefixPtr>(d->Ref(id));
       Deserializer::InitializeHeader(prefix, kLibraryPrefixCid,
                                      LibraryPrefix::InstanceSize());
       ReadFromTo(prefix);
@@ -3256,9 +3244,9 @@ class TypeSerializationCluster : public SerializationCluster {
   TypeSerializationCluster() : SerializationCluster("Type") {}
   ~TypeSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawType* type = Type::RawCast(object);
-    if (type->IsCanonical()) {
+  void Trace(Serializer* s, ObjectPtr object) {
+    TypePtr type = Type::RawCast(object);
+    if (type->ptr()->IsCanonical()) {
       canonical_objects_.Add(type);
     } else {
       objects_.Add(type);
@@ -3271,8 +3259,8 @@ class TypeSerializationCluster : public SerializationCluster {
       UNREACHABLE();
     }
 
-    RawSmi* raw_type_class_id = Smi::RawCast(type->ptr()->type_class_id_);
-    RawClass* type_class =
+    SmiPtr raw_type_class_id = Smi::RawCast(type->ptr()->type_class_id_);
+    ClassPtr type_class =
         s->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
     s->Push(type_class);
   }
@@ -3282,13 +3270,13 @@ class TypeSerializationCluster : public SerializationCluster {
     intptr_t count = canonical_objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawType* type = canonical_objects_[i];
+      TypePtr type = canonical_objects_[i];
       s->AssignRef(type);
     }
     count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawType* type = objects_[i];
+      TypePtr type = objects_[i];
       s->AssignRef(type);
     }
   }
@@ -3296,7 +3284,7 @@ class TypeSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     intptr_t count = canonical_objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawType* type = canonical_objects_[i];
+      TypePtr type = canonical_objects_[i];
       AutoTraceObject(type);
       WriteFromTo(type);
       s->WriteTokenPosition(type->ptr()->token_pos_);
@@ -3308,7 +3296,7 @@ class TypeSerializationCluster : public SerializationCluster {
     }
     count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawType* type = objects_[i];
+      TypePtr type = objects_[i];
       AutoTraceObject(type);
       WriteFromTo(type);
       s->WriteTokenPosition(type->ptr()->token_pos_);
@@ -3321,8 +3309,8 @@ class TypeSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawType*> canonical_objects_;
-  GrowableArray<RawType*> objects_;
+  GrowableArray<TypePtr> canonical_objects_;
+  GrowableArray<TypePtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -3351,7 +3339,7 @@ class TypeDeserializationCluster : public DeserializationCluster {
   void ReadFill(Deserializer* d) {
     for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
          id++) {
-      RawType* type = reinterpret_cast<RawType*>(d->Ref(id));
+      TypePtr type = static_cast<TypePtr>(d->Ref(id));
       bool is_canonical = true;
       Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
                                      is_canonical);
@@ -3363,7 +3351,7 @@ class TypeDeserializationCluster : public DeserializationCluster {
     }
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawType* type = reinterpret_cast<RawType*>(d->Ref(id));
+      TypePtr type = static_cast<TypePtr>(d->Ref(id));
       bool is_canonical = false;
       Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
                                      is_canonical);
@@ -3417,8 +3405,8 @@ class TypeRefSerializationCluster : public SerializationCluster {
   TypeRefSerializationCluster() : SerializationCluster("TypeRef") {}
   ~TypeRefSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawTypeRef* type = TypeRef::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    TypeRefPtr type = TypeRef::RawCast(object);
     objects_.Add(type);
     PushFromTo(type);
   }
@@ -3428,7 +3416,7 @@ class TypeRefSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawTypeRef* type = objects_[i];
+      TypeRefPtr type = objects_[i];
       s->AssignRef(type);
     }
   }
@@ -3436,14 +3424,14 @@ class TypeRefSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawTypeRef* type = objects_[i];
+      TypeRefPtr type = objects_[i];
       AutoTraceObject(type);
       WriteFromTo(type);
     }
   }
 
  private:
-  GrowableArray<RawTypeRef*> objects_;
+  GrowableArray<TypeRefPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -3464,7 +3452,7 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawTypeRef* type = reinterpret_cast<RawTypeRef*>(d->Ref(id));
+      TypeRefPtr type = static_cast<TypeRefPtr>(d->Ref(id));
       Deserializer::InitializeHeader(type, kTypeRefCid,
                                      TypeRef::InstanceSize());
       ReadFromTo(type);
@@ -3499,10 +3487,10 @@ class TypeParameterSerializationCluster : public SerializationCluster {
 
   ~TypeParameterSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawTypeParameter* type = TypeParameter::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    TypeParameterPtr type = TypeParameter::RawCast(object);
     objects_.Add(type);
-    ASSERT(!type->IsCanonical());
+    ASSERT(!type->ptr()->IsCanonical());
     PushFromTo(type);
   }
 
@@ -3511,7 +3499,7 @@ class TypeParameterSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawTypeParameter* type = objects_[i];
+      TypeParameterPtr type = objects_[i];
       s->AssignRef(type);
     }
   }
@@ -3519,7 +3507,7 @@ class TypeParameterSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawTypeParameter* type = objects_[i];
+      TypeParameterPtr type = objects_[i];
       AutoTraceObject(type);
       WriteFromTo(type);
       s->Write<int32_t>(type->ptr()->parameterized_class_id_);
@@ -3534,7 +3522,7 @@ class TypeParameterSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawTypeParameter*> objects_;
+  GrowableArray<TypeParameterPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -3556,7 +3544,7 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawTypeParameter* type = reinterpret_cast<RawTypeParameter*>(d->Ref(id));
+      TypeParameterPtr type = static_cast<TypeParameterPtr>(d->Ref(id));
       Deserializer::InitializeHeader(type, kTypeParameterCid,
                                      TypeParameter::InstanceSize());
       ReadFromTo(type);
@@ -3596,8 +3584,8 @@ class ClosureSerializationCluster : public SerializationCluster {
   ClosureSerializationCluster() : SerializationCluster("Closure") {}
   ~ClosureSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawClosure* closure = Closure::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    ClosurePtr closure = Closure::RawCast(object);
     objects_.Add(closure);
     PushFromTo(closure);
   }
@@ -3607,7 +3595,7 @@ class ClosureSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawClosure* closure = objects_[i];
+      ClosurePtr closure = objects_[i];
       s->AssignRef(closure);
     }
   }
@@ -3615,15 +3603,15 @@ class ClosureSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawClosure* closure = objects_[i];
+      ClosurePtr closure = objects_[i];
       AutoTraceObject(closure);
-      s->Write<bool>(closure->IsCanonical());
+      s->Write<bool>(closure->ptr()->IsCanonical());
       WriteFromTo(closure);
     }
   }
 
  private:
-  GrowableArray<RawClosure*> objects_;
+  GrowableArray<ClosurePtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -3644,7 +3632,7 @@ class ClosureDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawClosure* closure = reinterpret_cast<RawClosure*>(d->Ref(id));
+      ClosurePtr closure = static_cast<ClosurePtr>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(closure, kClosureCid,
                                      Closure::InstanceSize(), is_canonical);
@@ -3659,12 +3647,12 @@ class MintSerializationCluster : public SerializationCluster {
   MintSerializationCluster() : SerializationCluster("int") {}
   ~MintSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
+  void Trace(Serializer* s, ObjectPtr object) {
     if (!object->IsHeapObject()) {
-      RawSmi* smi = Smi::RawCast(object);
+      SmiPtr smi = Smi::RawCast(object);
       smis_.Add(smi);
     } else {
-      RawMint* mint = Mint::RawCast(object);
+      MintPtr mint = Mint::RawCast(object);
       mints_.Add(mint);
     }
   }
@@ -3674,17 +3662,17 @@ class MintSerializationCluster : public SerializationCluster {
 
     s->WriteUnsigned(smis_.length() + mints_.length());
     for (intptr_t i = 0; i < smis_.length(); i++) {
-      RawSmi* smi = smis_[i];
+      SmiPtr smi = smis_[i];
       s->AssignRef(smi);
       AutoTraceObject(smi);
       s->Write<bool>(true);
       s->Write<int64_t>(Smi::Value(smi));
     }
     for (intptr_t i = 0; i < mints_.length(); i++) {
-      RawMint* mint = mints_[i];
+      MintPtr mint = mints_[i];
       s->AssignRef(mint);
       AutoTraceObject(mint);
-      s->Write<bool>(mint->IsCanonical());
+      s->Write<bool>(mint->ptr()->IsCanonical());
       s->Write<int64_t>(mint->ptr()->value_);
     }
   }
@@ -3692,8 +3680,8 @@ class MintSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {}
 
  private:
-  GrowableArray<RawSmi*> smis_;
-  GrowableArray<RawMint*> mints_;
+  GrowableArray<SmiPtr> smis_;
+  GrowableArray<MintPtr> mints_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -3713,7 +3701,7 @@ class MintDeserializationCluster : public DeserializationCluster {
       if (Smi::IsValid(value)) {
         d->AssignRef(Smi::New(value));
       } else {
-        RawMint* mint = static_cast<RawMint*>(
+        MintPtr mint = static_cast<MintPtr>(
             AllocateUninitialized(old_space, Mint::InstanceSize()));
         Deserializer::InitializeHeader(mint, kMintCid, Mint::InstanceSize(),
                                        is_canonical);
@@ -3746,8 +3734,8 @@ class DoubleSerializationCluster : public SerializationCluster {
   DoubleSerializationCluster() : SerializationCluster("double") {}
   ~DoubleSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawDouble* dbl = Double::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    DoublePtr dbl = Double::RawCast(object);
     objects_.Add(dbl);
   }
 
@@ -3756,7 +3744,7 @@ class DoubleSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawDouble* dbl = objects_[i];
+      DoublePtr dbl = objects_[i];
       s->AssignRef(dbl);
     }
   }
@@ -3764,15 +3752,15 @@ class DoubleSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawDouble* dbl = objects_[i];
+      DoublePtr dbl = objects_[i];
       AutoTraceObject(dbl);
-      s->Write<bool>(dbl->IsCanonical());
+      s->Write<bool>(dbl->ptr()->IsCanonical());
       s->Write<double>(dbl->ptr()->value_);
     }
   }
 
  private:
-  GrowableArray<RawDouble*> objects_;
+  GrowableArray<DoublePtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -3793,7 +3781,7 @@ class DoubleDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawDouble* dbl = reinterpret_cast<RawDouble*>(d->Ref(id));
+      DoublePtr dbl = static_cast<DoublePtr>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(dbl, kDoubleCid, Double::InstanceSize(),
                                      is_canonical);
@@ -3809,8 +3797,8 @@ class GrowableObjectArraySerializationCluster : public SerializationCluster {
       : SerializationCluster("GrowableObjectArray") {}
   ~GrowableObjectArraySerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawGrowableObjectArray* array = GrowableObjectArray::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    GrowableObjectArrayPtr array = GrowableObjectArray::RawCast(object);
     objects_.Add(array);
     PushFromTo(array);
   }
@@ -3820,7 +3808,7 @@ class GrowableObjectArraySerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawGrowableObjectArray* array = objects_[i];
+      GrowableObjectArrayPtr array = objects_[i];
       s->AssignRef(array);
     }
   }
@@ -3828,15 +3816,15 @@ class GrowableObjectArraySerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawGrowableObjectArray* array = objects_[i];
+      GrowableObjectArrayPtr array = objects_[i];
       AutoTraceObject(array);
-      s->Write<bool>(array->IsCanonical());
+      s->Write<bool>(array->ptr()->IsCanonical());
       WriteFromTo(array);
     }
   }
 
  private:
-  GrowableArray<RawGrowableObjectArray*> objects_;
+  GrowableArray<GrowableObjectArrayPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -3859,8 +3847,8 @@ class GrowableObjectArrayDeserializationCluster
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawGrowableObjectArray* list =
-          reinterpret_cast<RawGrowableObjectArray*>(d->Ref(id));
+      GrowableObjectArrayPtr list =
+          static_cast<GrowableObjectArrayPtr>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(list, kGrowableObjectArrayCid,
                                      GrowableObjectArray::InstanceSize(),
@@ -3877,8 +3865,8 @@ class TypedDataSerializationCluster : public SerializationCluster {
       : SerializationCluster("TypedData"), cid_(cid) {}
   ~TypedDataSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawTypedData* data = TypedData::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    TypedDataPtr data = TypedData::RawCast(object);
     objects_.Add(data);
   }
 
@@ -3887,7 +3875,7 @@ class TypedDataSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawTypedData* data = objects_[i];
+      TypedDataPtr data = objects_[i];
       s->AssignRef(data);
       AutoTraceObject(data);
       const intptr_t length = Smi::Value(data->ptr()->length_);
@@ -3899,11 +3887,11 @@ class TypedDataSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     intptr_t element_size = TypedData::ElementSizeInBytes(cid_);
     for (intptr_t i = 0; i < count; i++) {
-      RawTypedData* data = objects_[i];
+      TypedDataPtr data = objects_[i];
       AutoTraceObject(data);
       const intptr_t length = Smi::Value(data->ptr()->length_);
       s->WriteUnsigned(length);
-      s->Write<bool>(data->IsCanonical());
+      s->Write<bool>(data->ptr()->IsCanonical());
       uint8_t* cdata = reinterpret_cast<uint8_t*>(data->ptr()->data());
       s->WriteBytes(cdata, length * element_size);
     }
@@ -3911,7 +3899,7 @@ class TypedDataSerializationCluster : public SerializationCluster {
 
  private:
   const intptr_t cid_;
-  GrowableArray<RawTypedData*> objects_;
+  GrowableArray<TypedDataPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -3937,14 +3925,14 @@ class TypedDataDeserializationCluster : public DeserializationCluster {
     intptr_t element_size = TypedData::ElementSizeInBytes(cid_);
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawTypedData* data = reinterpret_cast<RawTypedData*>(d->Ref(id));
+      TypedDataPtr data = static_cast<TypedDataPtr>(d->Ref(id));
       const intptr_t length = d->ReadUnsigned();
       bool is_canonical = d->Read<bool>();
       const intptr_t length_in_bytes = length * element_size;
       Deserializer::InitializeHeader(
           data, cid_, TypedData::InstanceSize(length_in_bytes), is_canonical);
       data->ptr()->length_ = Smi::New(length);
-      data->RecomputeDataField();
+      data->ptr()->RecomputeDataField();
       uint8_t* cdata = reinterpret_cast<uint8_t*>(data->ptr()->data());
       d->ReadBytes(cdata, length_in_bytes);
     }
@@ -3961,8 +3949,8 @@ class TypedDataViewSerializationCluster : public SerializationCluster {
       : SerializationCluster("TypedDataView"), cid_(cid) {}
   ~TypedDataViewSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawTypedDataView* view = TypedDataView::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    TypedDataViewPtr view = TypedDataView::RawCast(object);
     objects_.Add(view);
 
     PushFromTo(view);
@@ -3973,7 +3961,7 @@ class TypedDataViewSerializationCluster : public SerializationCluster {
     s->WriteCid(cid_);
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawTypedDataView* view = objects_[i];
+      TypedDataViewPtr view = objects_[i];
       s->AssignRef(view);
     }
   }
@@ -3981,16 +3969,16 @@ class TypedDataViewSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawTypedDataView* view = objects_[i];
+      TypedDataViewPtr view = objects_[i];
       AutoTraceObject(view);
-      s->Write<bool>(view->IsCanonical());
+      s->Write<bool>(view->ptr()->IsCanonical());
       WriteFromTo(view);
     }
   }
 
  private:
   const intptr_t cid_;
-  GrowableArray<RawTypedDataView*> objects_;
+  GrowableArray<TypedDataViewPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -4012,7 +4000,7 @@ class TypedDataViewDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawTypedDataView* view = reinterpret_cast<RawTypedDataView*>(d->Ref(id));
+      TypedDataViewPtr view = static_cast<TypedDataViewPtr>(d->Ref(id));
       const bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(view, cid_, TypedDataView::InstanceSize(),
                                      is_canonical);
@@ -4039,10 +4027,10 @@ class ExternalTypedDataSerializationCluster : public SerializationCluster {
       : SerializationCluster("ExternalTypedData"), cid_(cid) {}
   ~ExternalTypedDataSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawExternalTypedData* data = ExternalTypedData::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    ExternalTypedDataPtr data = ExternalTypedData::RawCast(object);
     objects_.Add(data);
-    ASSERT(!data->IsCanonical());
+    ASSERT(!data->ptr()->IsCanonical());
   }
 
   void WriteAlloc(Serializer* s) {
@@ -4050,7 +4038,7 @@ class ExternalTypedDataSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawExternalTypedData* data = objects_[i];
+      ExternalTypedDataPtr data = objects_[i];
       s->AssignRef(data);
     }
   }
@@ -4059,7 +4047,7 @@ class ExternalTypedDataSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     intptr_t element_size = ExternalTypedData::ElementSizeInBytes(cid_);
     for (intptr_t i = 0; i < count; i++) {
-      RawExternalTypedData* data = objects_[i];
+      ExternalTypedDataPtr data = objects_[i];
       AutoTraceObject(data);
       const intptr_t length = Smi::Value(data->ptr()->length_);
       s->WriteUnsigned(length);
@@ -4071,7 +4059,7 @@ class ExternalTypedDataSerializationCluster : public SerializationCluster {
 
  private:
   const intptr_t cid_;
-  GrowableArray<RawExternalTypedData*> objects_;
+  GrowableArray<ExternalTypedDataPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -4095,8 +4083,7 @@ class ExternalTypedDataDeserializationCluster : public DeserializationCluster {
     intptr_t element_size = ExternalTypedData::ElementSizeInBytes(cid_);
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawExternalTypedData* data =
-          reinterpret_cast<RawExternalTypedData*>(d->Ref(id));
+      ExternalTypedDataPtr data = static_cast<ExternalTypedDataPtr>(d->Ref(id));
       const intptr_t length = d->ReadUnsigned();
       Deserializer::InitializeHeader(data, cid_,
                                      ExternalTypedData::InstanceSize());
@@ -4118,8 +4105,8 @@ class StackTraceSerializationCluster : public SerializationCluster {
   StackTraceSerializationCluster() : SerializationCluster("StackTrace") {}
   ~StackTraceSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawStackTrace* trace = StackTrace::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    StackTracePtr trace = StackTrace::RawCast(object);
     objects_.Add(trace);
     PushFromTo(trace);
   }
@@ -4129,7 +4116,7 @@ class StackTraceSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawStackTrace* trace = objects_[i];
+      StackTracePtr trace = objects_[i];
       s->AssignRef(trace);
     }
   }
@@ -4137,14 +4124,14 @@ class StackTraceSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawStackTrace* trace = objects_[i];
+      StackTracePtr trace = objects_[i];
       AutoTraceObject(trace);
       WriteFromTo(trace);
     }
   }
 
  private:
-  GrowableArray<RawStackTrace*> objects_;
+  GrowableArray<StackTracePtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -4166,7 +4153,7 @@ class StackTraceDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawStackTrace* trace = reinterpret_cast<RawStackTrace*>(d->Ref(id));
+      StackTracePtr trace = static_cast<StackTracePtr>(d->Ref(id));
       Deserializer::InitializeHeader(trace, kStackTraceCid,
                                      StackTrace::InstanceSize());
       ReadFromTo(trace);
@@ -4180,8 +4167,8 @@ class RegExpSerializationCluster : public SerializationCluster {
   RegExpSerializationCluster() : SerializationCluster("RegExp") {}
   ~RegExpSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawRegExp* regexp = RegExp::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    RegExpPtr regexp = RegExp::RawCast(object);
     objects_.Add(regexp);
     PushFromTo(regexp);
   }
@@ -4191,7 +4178,7 @@ class RegExpSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawRegExp* regexp = objects_[i];
+      RegExpPtr regexp = objects_[i];
       s->AssignRef(regexp);
     }
   }
@@ -4199,7 +4186,7 @@ class RegExpSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawRegExp* regexp = objects_[i];
+      RegExpPtr regexp = objects_[i];
       AutoTraceObject(regexp);
       WriteFromTo(regexp);
       s->Write<int32_t>(regexp->ptr()->num_one_byte_registers_);
@@ -4209,7 +4196,7 @@ class RegExpSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawRegExp*> objects_;
+  GrowableArray<RegExpPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -4230,7 +4217,7 @@ class RegExpDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawRegExp* regexp = reinterpret_cast<RawRegExp*>(d->Ref(id));
+      RegExpPtr regexp = static_cast<RegExpPtr>(d->Ref(id));
       Deserializer::InitializeHeader(regexp, kRegExpCid,
                                      RegExp::InstanceSize());
       ReadFromTo(regexp);
@@ -4247,8 +4234,8 @@ class WeakPropertySerializationCluster : public SerializationCluster {
   WeakPropertySerializationCluster() : SerializationCluster("WeakProperty") {}
   ~WeakPropertySerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawWeakProperty* property = WeakProperty::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    WeakPropertyPtr property = WeakProperty::RawCast(object);
     objects_.Add(property);
     PushFromTo(property);
   }
@@ -4258,7 +4245,7 @@ class WeakPropertySerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawWeakProperty* property = objects_[i];
+      WeakPropertyPtr property = objects_[i];
       s->AssignRef(property);
     }
   }
@@ -4266,14 +4253,14 @@ class WeakPropertySerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawWeakProperty* property = objects_[i];
+      WeakPropertyPtr property = objects_[i];
       AutoTraceObject(property);
       WriteFromTo(property);
     }
   }
 
  private:
-  GrowableArray<RawWeakProperty*> objects_;
+  GrowableArray<WeakPropertyPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -4295,8 +4282,7 @@ class WeakPropertyDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawWeakProperty* property =
-          reinterpret_cast<RawWeakProperty*>(d->Ref(id));
+      WeakPropertyPtr property = static_cast<WeakPropertyPtr>(d->Ref(id));
       Deserializer::InitializeHeader(property, kWeakPropertyCid,
                                      WeakProperty::InstanceSize());
       ReadFromTo(property);
@@ -4310,19 +4296,19 @@ class LinkedHashMapSerializationCluster : public SerializationCluster {
   LinkedHashMapSerializationCluster() : SerializationCluster("LinkedHashMap") {}
   ~LinkedHashMapSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawLinkedHashMap* map = LinkedHashMap::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    LinkedHashMapPtr map = LinkedHashMap::RawCast(object);
     objects_.Add(map);
 
     s->Push(map->ptr()->type_arguments_);
 
     intptr_t used_data = Smi::Value(map->ptr()->used_data_);
-    RawArray* data_array = map->ptr()->data_;
-    RawObject** data_elements = data_array->ptr()->data();
+    ArrayPtr data_array = map->ptr()->data_;
+    ObjectPtr* data_elements = data_array->ptr()->data();
     for (intptr_t i = 0; i < used_data; i += 2) {
-      RawObject* key = data_elements[i];
+      ObjectPtr key = data_elements[i];
       if (key != data_array) {
-        RawObject* value = data_elements[i + 1];
+        ObjectPtr value = data_elements[i + 1];
         s->Push(key);
         s->Push(value);
       }
@@ -4334,7 +4320,7 @@ class LinkedHashMapSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawLinkedHashMap* map = objects_[i];
+      LinkedHashMapPtr map = objects_[i];
       s->AssignRef(map);
     }
   }
@@ -4342,9 +4328,9 @@ class LinkedHashMapSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawLinkedHashMap* map = objects_[i];
+      LinkedHashMapPtr map = objects_[i];
       AutoTraceObject(map);
-      s->Write<bool>(map->IsCanonical());
+      s->Write<bool>(map->ptr()->IsCanonical());
 
       WriteField(map, type_arguments_);
 
@@ -4355,12 +4341,12 @@ class LinkedHashMapSerializationCluster : public SerializationCluster {
       // Write out the number of (not deleted) key/value pairs that will follow.
       s->Write<int32_t>((used_data >> 1) - deleted_keys);
 
-      RawArray* data_array = map->ptr()->data_;
-      RawObject** data_elements = data_array->ptr()->data();
+      ArrayPtr data_array = map->ptr()->data_;
+      ObjectPtr* data_elements = data_array->ptr()->data();
       for (intptr_t i = 0; i < used_data; i += 2) {
-        RawObject* key = data_elements[i];
+        ObjectPtr key = data_elements[i];
         if (key != data_array) {
-          RawObject* value = data_elements[i + 1];
+          ObjectPtr value = data_elements[i + 1];
           s->WriteElementRef(key, i);
           s->WriteElementRef(value, i + 1);
         }
@@ -4369,7 +4355,7 @@ class LinkedHashMapSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawLinkedHashMap*> objects_;
+  GrowableArray<LinkedHashMapPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -4393,13 +4379,12 @@ class LinkedHashMapDeserializationCluster : public DeserializationCluster {
     PageSpace* old_space = d->heap()->old_space();
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawLinkedHashMap* map = reinterpret_cast<RawLinkedHashMap*>(d->Ref(id));
+      LinkedHashMapPtr map = static_cast<LinkedHashMapPtr>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(
           map, kLinkedHashMapCid, LinkedHashMap::InstanceSize(), is_canonical);
 
-      map->ptr()->type_arguments_ =
-          reinterpret_cast<RawTypeArguments*>(d->ReadRef());
+      map->ptr()->type_arguments_ = static_cast<TypeArgumentsPtr>(d->ReadRef());
 
       // TODO(rmacnak): Reserve ref ids and co-allocate in ReadAlloc.
       intptr_t pairs = d->Read<int32_t>();
@@ -4408,7 +4393,7 @@ class LinkedHashMapDeserializationCluster : public DeserializationCluster {
           Utils::RoundUpToPowerOfTwo(used_data),
           static_cast<uintptr_t>(LinkedHashMap::kInitialIndexSize));
 
-      RawArray* data = reinterpret_cast<RawArray*>(
+      ArrayPtr data = static_cast<ArrayPtr>(
           AllocateUninitialized(old_space, Array::InstanceSize(data_size)));
       data->ptr()->type_arguments_ = TypeArguments::null();
       data->ptr()->length_ = Smi::New(data_size);
@@ -4436,8 +4421,8 @@ class ArraySerializationCluster : public SerializationCluster {
       : SerializationCluster("Array"), cid_(cid) {}
   ~ArraySerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawArray* array = Array::RawCast(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    ArrayPtr array = Array::RawCast(object);
     objects_.Add(array);
 
     s->Push(array->ptr()->type_arguments_);
@@ -4452,7 +4437,7 @@ class ArraySerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawArray* array = objects_[i];
+      ArrayPtr array = objects_[i];
       s->AssignRef(array);
       AutoTraceObject(array);
       const intptr_t length = Smi::Value(array->ptr()->length_);
@@ -4463,11 +4448,11 @@ class ArraySerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawArray* array = objects_[i];
+      ArrayPtr array = objects_[i];
       AutoTraceObject(array);
       const intptr_t length = Smi::Value(array->ptr()->length_);
       s->WriteUnsigned(length);
-      s->Write<bool>(array->IsCanonical());
+      s->Write<bool>(array->ptr()->IsCanonical());
       WriteField(array, type_arguments_);
       for (intptr_t j = 0; j < length; j++) {
         s->WriteElementRef(array->ptr()->data()[j], j);
@@ -4477,7 +4462,7 @@ class ArraySerializationCluster : public SerializationCluster {
 
  private:
   intptr_t cid_;
-  GrowableArray<RawArray*> objects_;
+  GrowableArray<ArrayPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -4500,13 +4485,13 @@ class ArrayDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawArray* array = reinterpret_cast<RawArray*>(d->Ref(id));
+      ArrayPtr array = static_cast<ArrayPtr>(d->Ref(id));
       const intptr_t length = d->ReadUnsigned();
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(array, cid_, Array::InstanceSize(length),
                                      is_canonical);
       array->ptr()->type_arguments_ =
-          reinterpret_cast<RawTypeArguments*>(d->ReadRef());
+          static_cast<TypeArgumentsPtr>(d->ReadRef());
       array->ptr()->length_ = Smi::New(length);
       for (intptr_t j = 0; j < length; j++) {
         array->ptr()->data()[j] = d->ReadRef();
@@ -4524,8 +4509,8 @@ class OneByteStringSerializationCluster : public SerializationCluster {
   OneByteStringSerializationCluster() : SerializationCluster("OneByteString") {}
   ~OneByteStringSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawOneByteString* str = reinterpret_cast<RawOneByteString*>(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    OneByteStringPtr str = static_cast<OneByteStringPtr>(object);
     objects_.Add(str);
   }
 
@@ -4534,7 +4519,7 @@ class OneByteStringSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawOneByteString* str = objects_[i];
+      OneByteStringPtr str = objects_[i];
       s->AssignRef(str);
       AutoTraceObject(str);
       const intptr_t length = Smi::Value(str->ptr()->length_);
@@ -4545,11 +4530,11 @@ class OneByteStringSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawOneByteString* str = objects_[i];
+      OneByteStringPtr str = objects_[i];
       AutoTraceObject(str);
       const intptr_t length = Smi::Value(str->ptr()->length_);
       s->WriteUnsigned(length);
-      s->Write<bool>(str->IsCanonical());
+      s->Write<bool>(str->ptr()->IsCanonical());
       intptr_t hash = String::GetCachedHash(str);
       s->Write<int32_t>(hash);
       s->WriteBytes(str->ptr()->data(), length);
@@ -4557,7 +4542,7 @@ class OneByteStringSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawOneByteString*> objects_;
+  GrowableArray<OneByteStringPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -4580,7 +4565,7 @@ class OneByteStringDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawOneByteString* str = reinterpret_cast<RawOneByteString*>(d->Ref(id));
+      OneByteStringPtr str = static_cast<OneByteStringPtr>(d->Ref(id));
       const intptr_t length = d->ReadUnsigned();
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(str, kOneByteStringCid,
@@ -4601,8 +4586,8 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
   TwoByteStringSerializationCluster() : SerializationCluster("TwoByteString") {}
   ~TwoByteStringSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) {
-    RawTwoByteString* str = reinterpret_cast<RawTwoByteString*>(object);
+  void Trace(Serializer* s, ObjectPtr object) {
+    TwoByteStringPtr str = static_cast<TwoByteStringPtr>(object);
     objects_.Add(str);
   }
 
@@ -4611,7 +4596,7 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawTwoByteString* str = objects_[i];
+      TwoByteStringPtr str = objects_[i];
       s->AssignRef(str);
       AutoTraceObject(str);
       const intptr_t length = Smi::Value(str->ptr()->length_);
@@ -4622,11 +4607,11 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawTwoByteString* str = objects_[i];
+      TwoByteStringPtr str = objects_[i];
       AutoTraceObject(str);
       const intptr_t length = Smi::Value(str->ptr()->length_);
       s->WriteUnsigned(length);
-      s->Write<bool>(str->IsCanonical());
+      s->Write<bool>(str->ptr()->IsCanonical());
       intptr_t hash = String::GetCachedHash(str);
       s->Write<int32_t>(hash);
       s->WriteBytes(reinterpret_cast<uint8_t*>(str->ptr()->data()), length * 2);
@@ -4634,7 +4619,7 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawTwoByteString*> objects_;
+  GrowableArray<TwoByteStringPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -4657,7 +4642,7 @@ class TwoByteStringDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawTwoByteString* str = reinterpret_cast<RawTwoByteString*>(d->Ref(id));
+      TwoByteStringPtr str = static_cast<TwoByteStringPtr>(d->Ref(id));
       const intptr_t length = d->ReadUnsigned();
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(str, kTwoByteStringCid,
@@ -4683,7 +4668,7 @@ class FakeSerializationCluster : public SerializationCluster {
   }
   ~FakeSerializationCluster() {}
 
-  void Trace(Serializer* s, RawObject* object) { UNREACHABLE(); }
+  void Trace(Serializer* s, ObjectPtr object) { UNREACHABLE(); }
   void WriteAlloc(Serializer* s) { UNREACHABLE(); }
   void WriteFill(Serializer* s) { UNREACHABLE(); }
 };
@@ -4741,8 +4726,8 @@ Serializer::~Serializer() {
 }
 
 void Serializer::TraceStartWritingObject(const char* type,
-                                         RawObject* obj,
-                                         RawString* name) {
+                                         ObjectPtr obj,
+                                         StringPtr name) {
   if (profile_writer_ == nullptr) return;
 
   intptr_t cid = -1;
@@ -4928,9 +4913,9 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void Serializer::WriteInstructions(RawInstructions* instr,
+void Serializer::WriteInstructions(InstructionsPtr instr,
                                    uint32_t unchecked_offset,
-                                   RawCode* code,
+                                   CodePtr code,
                                    intptr_t index) {
   ASSERT(code != Code::null());
 
@@ -5010,7 +4995,7 @@ void Serializer::TraceDataOffset(uint32_t offset) {
   }
 }
 
-uint32_t Serializer::GetDataOffset(RawObject* object) const {
+uint32_t Serializer::GetDataOffset(ObjectPtr object) const {
   return image_writer_->GetDataOffsetFor(object);
 }
 
@@ -5021,9 +5006,9 @@ intptr_t Serializer::GetDataSize() const {
   return image_writer_->data_size();
 }
 
-void Serializer::Push(RawObject* object) {
+void Serializer::Push(ObjectPtr object) {
   if (!object->IsHeapObject()) {
-    RawSmi* smi = Smi::RawCast(object);
+    SmiPtr smi = Smi::RawCast(object);
     if (smi_ids_.Lookup(smi) == NULL) {
       SmiObjectIdPair pair;
       pair.smi_ = smi;
@@ -5066,7 +5051,7 @@ void Serializer::Push(RawObject* object) {
   }
 }
 
-void Serializer::Trace(RawObject* object) {
+void Serializer::Trace(ObjectPtr object) {
   intptr_t cid;
   if (!object->IsHeapObject()) {
     // Smis are merged into the Mint cluster because Smis for the writer might
@@ -5097,27 +5082,27 @@ void Serializer::Trace(RawObject* object) {
 #endif
 }
 
-void Serializer::UnexpectedObject(RawObject* raw_object, const char* message) {
+void Serializer::UnexpectedObject(ObjectPtr raw_object, const char* message) {
   // Exit the no safepoint scope so we can allocate while printing.
   while (thread()->no_safepoint_scope_depth() > 0) {
     thread()->DecrementNoSafepointScopeDepth();
   }
   Object& object = Object::Handle(raw_object);
   OS::PrintErr("Unexpected object (%s, %s): 0x%" Px " %s\n", message,
-               Snapshot::KindToCString(kind_),
-               reinterpret_cast<uword>(object.raw()), object.ToCString());
+               Snapshot::KindToCString(kind_), static_cast<uword>(object.raw()),
+               object.ToCString());
 #if defined(SNAPSHOT_BACKTRACE)
   while (!object.IsNull()) {
     object = ParentOf(object);
     OS::PrintErr("referenced by 0x%" Px " %s\n",
-                 reinterpret_cast<uword>(object.raw()), object.ToCString());
+                 static_cast<uword>(object.raw()), object.ToCString());
   }
 #endif
   OS::Abort();
 }
 
 #if defined(SNAPSHOT_BACKTRACE)
-RawObject* Serializer::ParentOf(const Object& object) {
+ObjectPtr Serializer::ParentOf(const Object& object) {
   for (intptr_t i = 0; i < parent_pairs_.length(); i += 2) {
     if (parent_pairs_[i]->raw() == object.raw()) {
       return parent_pairs_[i + 1]->raw();
@@ -5172,18 +5157,18 @@ void Serializer::Serialize() {
     // We permute the code objects in the [CodeSerializationCluster] so they
     // will arrive in the order in which the [Code]'s instructions will be in
     // memory at AOT runtime.
-    GrowableArray<RawCode*> code_order;
+    GrowableArray<CodePtr> code_order;
     RawCodeSet code_set;
     for (auto& command : writer_commands) {
       if (command.op == ImageWriterCommand::InsertInstructionOfCode) {
-        RawCode* code = command.insert_instruction_of_code.code;
+        CodePtr code = command.insert_instruction_of_code.code;
         ASSERT(!code_set.HasKey(code));
         code_set.Insert(code);
         code_order.Add(code);
         code_order_length++;
       }
     }
-    for (RawCode* code : *code_objects) {
+    for (CodePtr code : *code_objects) {
       if (!code_set.HasKey(code)) {
         code_set.Insert(code);
         code_order.Add(code);
@@ -5320,8 +5305,8 @@ void Serializer::WriteDispatchTable(const Array& entries) {
   ASSERT(first_code_id <= compiler::target::kWordMax);
   WriteUnsigned(first_code_id);
 
-  RawCode* previous_code = nullptr;
-  RawCode* recent[kDispatchTableRecentCount] = {nullptr};
+  CodePtr previous_code = nullptr;
+  CodePtr recent[kDispatchTableRecentCount] = {nullptr};
   intptr_t recent_index = 0;
   intptr_t repeat_count = 0;
   for (intptr_t i = 0; i < table_length; i++) {
@@ -5444,7 +5429,6 @@ void Serializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::zero_array().raw(), "Array", "<zero_array>");
   AddBaseObject(Object::dynamic_type().raw(), "Type", "<dynamic type>");
   AddBaseObject(Object::void_type().raw(), "Type", "<void type>");
-  AddBaseObject(Object::never_type().raw(), "Type", "<never type>");
   AddBaseObject(Object::empty_type_arguments().raw(), "TypeArguments", "[]");
   AddBaseObject(Bool::True().raw(), "bool", "true");
   AddBaseObject(Bool::False().raw(), "bool", "false");
@@ -5498,7 +5482,6 @@ void Serializer::AddVMIsolateBaseObjects() {
   }
   AddBaseObject(table->At(kDynamicCid), "Class");
   AddBaseObject(table->At(kVoidCid), "Class");
-  AddBaseObject(table->At(kNeverCid), "Class");
 
   if (!Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
@@ -5569,9 +5552,9 @@ void Serializer::WriteProgramSnapshot(intptr_t num_base_objects,
   }
 
   // Push roots.
-  RawObject** from = object_store->from();
-  RawObject** to = object_store->to_snapshot(kind_);
-  for (RawObject** p = from; p <= to; p++) {
+  ObjectPtr* from = object_store->from();
+  ObjectPtr* to = object_store->to_snapshot(kind_);
+  for (ObjectPtr* p = from; p <= to; p++) {
     Push(*p);
   }
 
@@ -5595,7 +5578,7 @@ void Serializer::WriteProgramSnapshot(intptr_t num_base_objects,
   Serialize();
 
   // Write roots.
-  for (RawObject** p = from; p <= to; p++) {
+  for (ObjectPtr* p = from; p <= to; p++) {
     WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
   }
 
@@ -5652,7 +5635,7 @@ Deserializer::Deserializer(Thread* thread,
       kind_(kind),
       stream_(buffer, size),
       image_reader_(NULL),
-      refs_(NULL),
+      refs_(nullptr),
       next_ref_index_(1),
       clusters_(NULL),
       field_table_(thread->isolate()->field_table()) {
@@ -5848,7 +5831,7 @@ void Deserializer::ReadDispatchTable() {
 #endif
 }
 
-RawApiError* Deserializer::VerifyImageAlignment() {
+ApiErrorPtr Deserializer::VerifyImageAlignment() {
   if (image_reader_ != nullptr) {
     return image_reader_->VerifyAlignment();
   }
@@ -5953,7 +5936,7 @@ char* SnapshotHeaderReader::BuildError(const char* message) {
   return strdup(message);
 }
 
-RawApiError* FullSnapshotReader::ConvertToApiError(char* message) {
+ApiErrorPtr FullSnapshotReader::ConvertToApiError(char* message) {
   // This can also fail while bringing up the VM isolate, so make sure to
   // allocate the error message in old space.
   const String& msg = String::Handle(String::New(message, Heap::kOld));
@@ -5964,7 +5947,7 @@ RawApiError* FullSnapshotReader::ConvertToApiError(char* message) {
   return ApiError::New(msg, Heap::kOld);
 }
 
-void Deserializer::ReadInstructions(RawCode* code,
+void Deserializer::ReadInstructions(CodePtr code,
                                     intptr_t index,
                                     intptr_t start_index) {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -5979,7 +5962,7 @@ void Deserializer::ReadInstructions(RawCode* code,
       // object. Thus, retrieve the instructions-related information from there.
       ASSERT((index - start_index) >= code_order_length());
       const uint32_t source_id = (bare_offset >> 1) + start_index;
-      auto const source = reinterpret_cast<RawCode*>(Ref(source_id));
+      auto const source = static_cast<CodePtr>(Ref(source_id));
       code->ptr()->entry_point_ = source->ptr()->entry_point_;
       code->ptr()->unchecked_entry_point_ =
           source->ptr()->unchecked_entry_point_;
@@ -6021,7 +6004,7 @@ void Deserializer::ReadInstructions(RawCode* code,
     ASSERT((index - start_index) < code_order_length());
     const uword curr_payload_start = Code::PayloadStartOf(code);
     if (index > start_index) {
-      auto const prev = reinterpret_cast<RawCode*>(Ref(index - 1));
+      auto const prev = static_cast<CodePtr>(Ref(index - 1));
       const uword prev_payload_start = Code::PayloadStartOf(prev);
       prev->ptr()->instructions_length_ =
           curr_payload_start - prev_payload_start;
@@ -6038,7 +6021,7 @@ void Deserializer::ReadInstructions(RawCode* code,
 #endif
 
   const uint32_t offset = Read<uint32_t>();
-  RawInstructions* instr = image_reader_->GetInstructionsAt(offset);
+  InstructionsPtr instr = image_reader_->GetInstructionsAt(offset);
   uint32_t unchecked_offset = ReadUnsigned();
 
   code->ptr()->instructions_ = instr;
@@ -6056,7 +6039,7 @@ void Deserializer::ReadInstructions(RawCode* code,
   Code::InitializeCachedEntryPointsFrom(code, instr, unchecked_offset);
 }
 
-RawObject* Deserializer::GetObjectAt(uint32_t offset) const {
+ObjectPtr Deserializer::GetObjectAt(uint32_t offset) const {
   return image_reader_->GetObjectAt(offset);
 }
 
@@ -6129,7 +6112,6 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::zero_array().raw());
   AddBaseObject(Object::dynamic_type().raw());
   AddBaseObject(Object::void_type().raw());
-  AddBaseObject(Object::never_type().raw());
   AddBaseObject(Object::empty_type_arguments().raw());
   AddBaseObject(Bool::True().raw());
   AddBaseObject(Bool::False().raw());
@@ -6168,7 +6150,6 @@ void Deserializer::AddVMIsolateBaseObjects() {
   }
   AddBaseObject(table->At(kDynamicCid));
   AddBaseObject(table->At(kVoidCid));
-  AddBaseObject(table->At(kNeverCid));
 
   if (!Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
@@ -6244,9 +6225,9 @@ void Deserializer::ReadProgramSnapshot(ObjectStore* object_store) {
     Deserialize();
 
     // Read roots.
-    RawObject** from = object_store->from();
-    RawObject** to = object_store->to_snapshot(kind_);
-    for (RawObject** p = from; p <= to; p++) {
+    ObjectPtr* from = object_store->from();
+    ObjectPtr* to = object_store->to_snapshot(kind_);
+    for (ObjectPtr* p = from; p <= to; p++) {
       *p = ReadRef();
     }
 
@@ -6364,11 +6345,11 @@ void FullSnapshotWriter::WriteProgramSnapshot(intptr_t num_base_objects) {
   ASSERT(object_store != NULL);
 
   // These type arguments must always be retained.
-  ASSERT(object_store->type_argument_int()->IsCanonical());
-  ASSERT(object_store->type_argument_double()->IsCanonical());
-  ASSERT(object_store->type_argument_string()->IsCanonical());
-  ASSERT(object_store->type_argument_string_dynamic()->IsCanonical());
-  ASSERT(object_store->type_argument_string_string()->IsCanonical());
+  ASSERT(object_store->type_argument_int()->ptr()->IsCanonical());
+  ASSERT(object_store->type_argument_double()->ptr()->IsCanonical());
+  ASSERT(object_store->type_argument_string()->ptr()->IsCanonical());
+  ASSERT(object_store->type_argument_string_dynamic()->ptr()->IsCanonical());
+  ASSERT(object_store->type_argument_string_string()->ptr()->IsCanonical());
 
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(false);
@@ -6537,7 +6518,7 @@ char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(
   return nullptr;
 }
 
-RawApiError* FullSnapshotReader::ReadVMSnapshot() {
+ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
   SnapshotHeaderReader header_reader(kind_, buffer_, size_);
 
   intptr_t offset = 0;
@@ -6549,7 +6530,7 @@ RawApiError* FullSnapshotReader::ReadVMSnapshot() {
 
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
                             instructions_image_, offset);
-  RawApiError* api_error = deserializer.VerifyImageAlignment();
+  ApiErrorPtr api_error = deserializer.VerifyImageAlignment();
   if (api_error != ApiError::null()) {
     return api_error;
   }
@@ -6568,7 +6549,7 @@ RawApiError* FullSnapshotReader::ReadVMSnapshot() {
   return ApiError::null();
 }
 
-RawApiError* FullSnapshotReader::ReadProgramSnapshot() {
+ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
   SnapshotHeaderReader header_reader(kind_, buffer_, size_);
   intptr_t offset = 0;
   char* error =
@@ -6579,7 +6560,7 @@ RawApiError* FullSnapshotReader::ReadProgramSnapshot() {
 
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
                             instructions_image_, offset);
-  RawApiError* api_error = deserializer.VerifyImageAlignment();
+  ApiErrorPtr api_error = deserializer.VerifyImageAlignment();
   if (api_error != ApiError::null()) {
     return api_error;
   }

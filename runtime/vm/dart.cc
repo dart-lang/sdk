@@ -109,9 +109,9 @@ static void CheckOffsets() {
 
 #define CHECK_FIELD(Class, Name) CHECK_OFFSET(Class::Name(), Class##_##Name)
 #define CHECK_ARRAY(Class, Name)                                               \
-  CHECK_OFFSET(Class::ArrayLayout::elements_start_offset(),                    \
+  CHECK_OFFSET(Class::ArrayTraits::elements_start_offset(),                    \
                Class##_elements_start_offset)                                  \
-  CHECK_OFFSET(Class::ArrayLayout::kElementSize, Class##_element_size)
+  CHECK_OFFSET(Class::ArrayTraits::kElementSize, Class##_element_size)
 #define CHECK_ARRAY_STRUCTFIELD(Class, Name, ElementOffsetName, FieldOffset)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -269,6 +269,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     Object::InitNullAndBool(vm_isolate_);
     vm_isolate_->set_object_store(new ObjectStore());
     vm_isolate_->isolate_object_store()->Init();
+    vm_isolate_->isolate_group_->object_store_ =
+        vm_isolate_->object_store_shared_ptr_;
     TargetCPUFeatures::Init();
     Object::Init(vm_isolate_);
     ArgumentsDescriptor::Init();
@@ -314,7 +316,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         return strdup(error.ToErrorCString());
       }
 
-      ReversePcLookupCache::BuildAndAttachToIsolate(vm_isolate_);
+      ReversePcLookupCache::BuildAndAttachToIsolateGroup(vm_isolate_->group());
 
       Object::FinishInit(vm_isolate_);
 #if defined(SUPPORT_TIMELINE)
@@ -674,17 +676,16 @@ static bool CloneIntoChildIsolateAOT(Thread* T,
   I->set_saved_initial_field_table(
       donor_isolate->saved_initial_field_table_shareable());
 
-  ReversePcLookupCache::BuildAndAttachToIsolate(I);
   return true;
 }
 #endif
 
-RawError* Dart::InitIsolateFromSnapshot(Thread* T,
-                                        Isolate* I,
-                                        const uint8_t* snapshot_data,
-                                        const uint8_t* snapshot_instructions,
-                                        const uint8_t* kernel_buffer,
-                                        intptr_t kernel_buffer_size) {
+ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
+                                       Isolate* I,
+                                       const uint8_t* snapshot_data,
+                                       const uint8_t* snapshot_instructions,
+                                       const uint8_t* kernel_buffer,
+                                       intptr_t kernel_buffer_size) {
   Error& error = Error::Handle(T->zone());
   error = Object::Init(I, kernel_buffer, kernel_buffer_size);
   if (!error.IsNull()) {
@@ -718,7 +719,7 @@ RawError* Dart::InitIsolateFromSnapshot(Thread* T,
       return error.raw();
     }
 
-    ReversePcLookupCache::BuildAndAttachToIsolate(I);
+    ReversePcLookupCache::BuildAndAttachToIsolateGroup(I->group());
 
 #if defined(SUPPORT_TIMELINE)
     if (tbes.enabled()) {
@@ -789,12 +790,12 @@ static void PrintLLVMConstantPool(Thread* T, Isolate* I) {
 }
 #endif
 
-RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
-                                  const uint8_t* snapshot_instructions,
-                                  const uint8_t* kernel_buffer,
-                                  intptr_t kernel_buffer_size,
-                                  IsolateGroup* source_isolate_group,
-                                  void* isolate_data) {
+ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
+                                 const uint8_t* snapshot_instructions,
+                                 const uint8_t* kernel_buffer,
+                                 intptr_t kernel_buffer_size,
+                                 IsolateGroup* source_isolate_group,
+                                 void* isolate_data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();

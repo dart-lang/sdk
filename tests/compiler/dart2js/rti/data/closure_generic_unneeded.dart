@@ -4,8 +4,8 @@
 
 // @dart = 2.7
 
-/*omit.class: A:*/
-/*strong.class: A:direct,explicit=[A.T],needsArgs*/
+/*prod:nnbd-off.class: A:*/
+/*spec:nnbd-off.class: A:direct,explicit=[A.T],needsArgs*/
 class A<T> {
   @pragma('dart2js:noInline')
   m() {

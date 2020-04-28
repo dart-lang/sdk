@@ -31,7 +31,6 @@ class JSONStream;
 class Object;
 class ObjectPointerVisitor;
 class Isolate;
-class RawArray;
 class Thread;
 class TimelineEvent;
 class TimelineEventBlock;

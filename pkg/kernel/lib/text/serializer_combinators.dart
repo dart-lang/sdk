@@ -26,7 +26,7 @@ class DeserializationEnvironment<T extends Node> {
 
   T addBinder(String name, T node) {
     if (usedNames.contains(name)) {
-      throw StateError("name '$name' is already declared in this scope");
+      throw StateError("Name '${name}' is already declared in this scope.");
     }
     usedNames.add(name);
     return binders[name] = node;
@@ -115,7 +115,7 @@ class DartString extends TextSerializer<String> {
 
   String readFrom(Iterator<Object> stream, DeserializationState _) {
     if (stream.current is! String) {
-      throw StateError("expected an atom, found a list");
+      throw StateError("Expected an atom, found a list: '${stream.current}'.");
     }
     String result = json.decode(stream.current);
     stream.moveNext();
@@ -132,7 +132,7 @@ class DartInt extends TextSerializer<int> {
 
   int readFrom(Iterator<Object> stream, DeserializationState _) {
     if (stream.current is! String) {
-      throw StateError("expected an atom, found a list");
+      throw StateError("Expected an atom, found a list: '${stream.current}'.");
     }
     int result = int.parse(stream.current);
     stream.moveNext();
@@ -149,7 +149,7 @@ class DartDouble extends TextSerializer<double> {
 
   double readFrom(Iterator<Object> stream, DeserializationState _) {
     if (stream.current is! String) {
-      throw StateError("expected an atom, found a list");
+      throw StateError("Expected an atom, found a list: '${stream.current}'.");
     }
     double result = double.parse(stream.current);
     stream.moveNext();
@@ -166,7 +166,7 @@ class DartBool extends TextSerializer<bool> {
 
   bool readFrom(Iterator<Object> stream, DeserializationState _) {
     if (stream.current is! String) {
-      throw StateError("expected an atom, found a list");
+      throw StateError("Expected an atom, found a list: '${stream.current}'.");
     }
     bool result;
     if (stream.current == "true") {
@@ -174,7 +174,7 @@ class DartBool extends TextSerializer<bool> {
     } else if (stream.current == "false") {
       result = false;
     } else {
-      throw StateError("expected 'true' or 'false', found '${stream.current}'");
+      throw StateError("Expected 'true' or 'false', found '${stream.current}'");
     }
     stream.moveNext();
     return result;
@@ -223,12 +223,12 @@ class Case<T extends Node> extends TextSerializer<T> {
 
   T readFrom(Iterator<Object> stream, DeserializationState state) {
     if (stream.current is! Iterator) {
-      throw StateError("expected list, found atom");
+      throw StateError("Expected list, found atom: '${stream.current}'.");
     }
     Iterator nested = stream.current;
     nested.moveNext();
     if (nested.current is! String) {
-      throw StateError("expected atom, found list");
+      throw StateError("Expected atom, found list: '${nested.current}'.");
     }
     String tag = nested.current;
     for (int i = 0; i < _tags.length; ++i) {
@@ -236,13 +236,14 @@ class Case<T extends Node> extends TextSerializer<T> {
         nested.moveNext();
         T result = _serializers[i].readFrom(nested, state);
         if (nested.moveNext()) {
-          throw StateError("extra cruft in tagged '${tag}'");
+          throw StateError(
+              "Extra data in tagged '${tag}': '${nested.current}'.");
         }
         stream.moveNext();
         return result;
       }
     }
-    throw StateError("unrecognized tag '${tag}'");
+    throw StateError("Unrecognized tag '${tag}'.");
   }
 
   void writeTo(StringBuffer buffer, T object, SerializationState state) {
@@ -258,7 +259,7 @@ class Case<T extends Node> extends TextSerializer<T> {
         return;
       }
     }
-    throw StateError("unrecognized tag '${tag}'");
+    throw StateError("Unrecognized tag '${tag}'.");
   }
 }
 
@@ -401,7 +402,7 @@ class ListSerializer<T> extends TextSerializer<List<T>> {
 
   List<T> readFrom(Iterator<Object> stream, DeserializationState state) {
     if (stream.current is! Iterator) {
-      throw StateError("expected a list, found an atom");
+      throw StateError("Expected a list, found an atom: '${stream.current}'.");
     }
     Iterator<Object> list = stream.current;
     list.moveNext();

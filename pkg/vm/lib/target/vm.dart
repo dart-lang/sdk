@@ -119,7 +119,7 @@ class VmTarget extends Target {
       ChangedStructureNotifier changedStructureNotifier}) {
     super.performPreConstantEvaluationTransformations(
         component, coreTypes, libraries, diagnosticReporter,
-        logger: logger);
+        logger: logger, changedStructureNotifier: changedStructureNotifier);
     _patchVmConstants(coreTypes);
   }
 

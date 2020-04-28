@@ -23,6 +23,8 @@ class LintNames {
       'avoid_return_types_on_setters';
   static const String avoid_returning_null_for_future =
       'avoid_returning_null_for_future';
+  static const String avoid_types_as_parameter_names =
+      'avoid_types_as_parameter_names';
   static const String avoid_types_on_closure_parameters =
       'avoid_types_on_closure_parameters';
   static const String await_only_futures = 'await_only_futures';

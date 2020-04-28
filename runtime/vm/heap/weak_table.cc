@@ -29,18 +29,18 @@ intptr_t WeakTable::SizeFor(intptr_t count, intptr_t size) {
   return result;
 }
 
-void WeakTable::SetValueExclusive(RawObject* key, intptr_t val) {
+void WeakTable::SetValueExclusive(ObjectPtr key, intptr_t val) {
   intptr_t mask = size() - 1;
   intptr_t idx = Hash(key) & mask;
   intptr_t empty_idx = -1;
-  RawObject* obj = ObjectAtExclusive(idx);
+  ObjectPtr obj = ObjectAtExclusive(idx);
 
-  while (obj != NULL) {
+  while (obj != nullptr) {
     if (obj == key) {
       SetValueAt(idx, val);
       return;
     } else if ((empty_idx < 0) &&
-               (reinterpret_cast<intptr_t>(obj) == kDeletedEntry)) {
+               (static_cast<intptr_t>(obj) == kDeletedEntry)) {
       empty_idx = idx;  // Insert at this location if not found.
     }
     idx = (idx + 1) & mask;
@@ -109,16 +109,16 @@ void WeakTable::Rehash() {
   for (intptr_t i = 0; i < old_size; i++) {
     if (IsValidEntryAtExclusive(i)) {
       // Find the new hash location for this entry.
-      RawObject* key = ObjectAtExclusive(i);
+      ObjectPtr key = ObjectAtExclusive(i);
       intptr_t idx = Hash(key) & mask;
-      RawObject* obj = reinterpret_cast<RawObject*>(new_data[ObjectIndex(idx)]);
-      while (obj != NULL) {
+      ObjectPtr obj = static_cast<ObjectPtr>(new_data[ObjectIndex(idx)]);
+      while (obj != nullptr) {
         ASSERT(obj != key);  // Duplicate entry is not expected.
         idx = (idx + 1) & mask;
-        obj = reinterpret_cast<RawObject*>(new_data[ObjectIndex(idx)]);
+        obj = static_cast<ObjectPtr>(new_data[ObjectIndex(idx)]);
       }
 
-      new_data[ObjectIndex(idx)] = reinterpret_cast<intptr_t>(key);
+      new_data[ObjectIndex(idx)] = static_cast<intptr_t>(key);
       new_data[ValueIndex(idx)] = ValueAtExclusive(i);
       set_used(used() + 1);
     }

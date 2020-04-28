@@ -170,7 +170,7 @@ void dynamicUses() async {
   dyn.toString(); //# 124: ok
   dyn.hashCode; //# 125: ok
   dyn.runtimeType; //# 126: ok
-  dyn.noSuchMethod(null); //# 127: ok
+  dyn.noSuchMethod(Invocation.method(#toString, [])); //# 127: ok
   dyn + 1; //# 128: ok
   -dyn; //# 129: ok
   dyn++; //# 130: ok

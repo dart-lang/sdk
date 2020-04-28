@@ -20,10 +20,6 @@ class Instance;
 class Integer;
 class Library;
 class Object;
-class RawArray;
-class RawInstance;
-class RawObject;
-class RawString;
 class String;
 
 // An arguments descriptor array consists of the type argument vector length (0
@@ -45,11 +41,11 @@ class ArgumentsDescriptor : public ValueObject {
   intptr_t SizeWithTypeArgs() const { return FirstArgIndex() + Size(); }
   intptr_t PositionalCount() const;  // Excluding type arguments vector.
   intptr_t NamedCount() const { return Count() - PositionalCount(); }
-  RawString* NameAt(intptr_t i) const;
+  StringPtr NameAt(intptr_t i) const;
   intptr_t PositionAt(intptr_t i) const;
   bool MatchesNameAt(intptr_t i, const String& other) const;
   // Returns array of argument names in the arguments order.
-  RawArray* GetArgumentNames() const;
+  ArrayPtr GetArgumentNames() const;
 
   // Generated code support.
   static intptr_t type_args_len_offset() {
@@ -78,10 +74,10 @@ class ArgumentsDescriptor : public ValueObject {
   // Right now this is for example the case for all closure functions.
   // Functions marked as entry-points may also be created by NewUnboxed because
   // we rely that TFA will mark the arguments as nullable for such cases.
-  static RawArray* NewBoxed(intptr_t type_args_len,
-                            intptr_t num_arguments,
-                            const Array& optional_arguments_names,
-                            Heap::Space space = Heap::kOld) {
+  static ArrayPtr NewBoxed(intptr_t type_args_len,
+                           intptr_t num_arguments,
+                           const Array& optional_arguments_names,
+                           Heap::Space space = Heap::kOld) {
     return New(type_args_len, num_arguments, num_arguments,
                optional_arguments_names, space);
   }
@@ -91,19 +87,19 @@ class ArgumentsDescriptor : public ValueObject {
   // positional and the remaining ones are named optional arguments.
   // The presence of a type argument vector as first argument (not counted in
   // num_arguments) is indicated by a non-zero type_args_len.
-  static RawArray* New(intptr_t type_args_len,
-                       intptr_t num_arguments,
-                       intptr_t size_arguments,
-                       const Array& optional_arguments_names,
-                       Heap::Space space = Heap::kOld);
+  static ArrayPtr New(intptr_t type_args_len,
+                      intptr_t num_arguments,
+                      intptr_t size_arguments,
+                      const Array& optional_arguments_names,
+                      Heap::Space space = Heap::kOld);
 
   // Constructs an argument descriptor where all arguments are boxed and
   // therefore number of parameters equals parameter size.
   //
   // Right now this is for example the case for all closure functions.
-  static RawArray* NewBoxed(intptr_t type_args_len,
-                            intptr_t num_arguments,
-                            Heap::Space space = Heap::kOld) {
+  static ArrayPtr NewBoxed(intptr_t type_args_len,
+                           intptr_t num_arguments,
+                           Heap::Space space = Heap::kOld) {
     return New(type_args_len, num_arguments, num_arguments, space);
   }
 
@@ -111,10 +107,10 @@ class ArgumentsDescriptor : public ValueObject {
   // arguments. All arguments are positional. The presence of a type argument
   // vector as first argument (not counted in num_arguments) is indicated
   // by a non-zero type_args_len.
-  static RawArray* New(intptr_t type_args_len,
-                       intptr_t num_arguments,
-                       intptr_t size_arguments,
-                       Heap::Space space = Heap::kOld);
+  static ArrayPtr New(intptr_t type_args_len,
+                      intptr_t num_arguments,
+                      intptr_t size_arguments,
+                      Heap::Space space = Heap::kOld);
 
   // Initialize the preallocated fixed length arguments descriptors cache.
   static void Init();
@@ -152,11 +148,11 @@ class ArgumentsDescriptor : public ValueObject {
     return kFirstNamedEntryIndex + (kNamedEntrySize * num_named_arguments) + 1;
   }
 
-  static RawArray* NewNonCached(intptr_t type_args_len,
-                                intptr_t num_arguments,
-                                intptr_t size_arguments,
-                                bool canonicalize,
-                                Heap::Space space);
+  static ArrayPtr NewNonCached(intptr_t type_args_len,
+                               intptr_t num_arguments,
+                               intptr_t size_arguments,
+                               bool canonicalize,
+                               Heap::Space space);
 
   // Used by Simulator to parse argument descriptors.
   static intptr_t name_index(intptr_t index) {
@@ -170,7 +166,7 @@ class ArgumentsDescriptor : public ValueObject {
   const Array& array_;
 
   // A cache of VM heap allocated arguments descriptors.
-  static RawArray* cached_args_descriptors_[kCachedDescriptorCount];
+  static ArrayPtr cached_args_descriptors_[kCachedDescriptorCount];
 
   friend class SnapshotReader;
   friend class SnapshotWriter;
@@ -187,30 +183,24 @@ class ArgumentsDescriptor : public ValueObject {
 // and invoke them from C++.
 class DartEntry : public AllStatic {
  public:
-  // On success, returns a RawInstance.  On failure, a RawError.
-  typedef RawObject* (*invokestub)(const Code& target_code,
-                                   const Array& arguments_descriptor,
-                                   const Array& arguments,
-                                   Thread* thread);
-
   // Invokes the specified instance function or static function.
   // The first argument of an instance function is the receiver.
   // On success, returns a RawInstance.  On failure, a RawError.
   // This is used when there is no type argument vector and
   // no named arguments in the call.
-  static RawObject* InvokeFunction(const Function& function,
-                                   const Array& arguments);
+  static ObjectPtr InvokeFunction(const Function& function,
+                                  const Array& arguments);
 
   // Invokes the specified code as if it was a Dart function.
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeCode(const Code& code,
-                               const Array& arguments_descriptor,
-                               const Array& arguments,
-                               Thread* thread);
+  static ObjectPtr InvokeCode(const Code& code,
+                              const Array& arguments_descriptor,
+                              const Array& arguments,
+                              Thread* thread);
 
   // Invokes the specified instance, static, or closure function.
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeFunction(
+  static ObjectPtr InvokeFunction(
       const Function& function,
       const Array& arguments,
       const Array& arguments_descriptor,
@@ -220,19 +210,19 @@ class DartEntry : public AllStatic {
   // On success, returns a RawInstance.  On failure, a RawError.
   // This is used when there is no type argument vector and
   // no named arguments in the call.
-  static RawObject* InvokeClosure(const Array& arguments);
+  static ObjectPtr InvokeClosure(const Array& arguments);
 
   // Invokes the closure object given as the first argument.
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeClosure(const Array& arguments,
-                                  const Array& arguments_descriptor);
+  static ObjectPtr InvokeClosure(const Array& arguments,
+                                 const Array& arguments_descriptor);
 
   // Invokes the noSuchMethod instance function on the receiver.
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeNoSuchMethod(const Instance& receiver,
-                                       const String& target_name,
-                                       const Array& arguments,
-                                       const Array& arguments_descriptor);
+  static ObjectPtr InvokeNoSuchMethod(const Instance& receiver,
+                                      const String& target_name,
+                                      const Array& arguments,
+                                      const Array& arguments_descriptor);
 };
 
 // Utility functions to call from VM into Dart bootstrap libraries.
@@ -240,44 +230,44 @@ class DartEntry : public AllStatic {
 class DartLibraryCalls : public AllStatic {
  public:
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InstanceCreate(const Library& library,
-                                   const String& exception_name,
-                                   const String& constructor_name,
-                                   const Array& arguments);
+  static ObjectPtr InstanceCreate(const Library& library,
+                                  const String& exception_name,
+                                  const String& constructor_name,
+                                  const Array& arguments);
 
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* ToString(const Instance& receiver);
+  static ObjectPtr ToString(const Instance& receiver);
 
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* HashCode(const Instance& receiver);
+  static ObjectPtr HashCode(const Instance& receiver);
 
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* Equals(const Instance& left, const Instance& right);
+  static ObjectPtr Equals(const Instance& left, const Instance& right);
 
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* IdentityHashCode(const Instance& object);
+  static ObjectPtr IdentityHashCode(const Instance& object);
 
   // Returns the handler if one has been registered for this port id.
-  static RawObject* LookupHandler(Dart_Port port_id);
+  static ObjectPtr LookupHandler(Dart_Port port_id);
 
   // Returns null on success, a RawError on failure.
-  static RawObject* HandleMessage(const Object& handler,
-                                  const Instance& dart_message);
+  static ObjectPtr HandleMessage(const Object& handler,
+                                 const Instance& dart_message);
 
   // Returns null on success, a RawError on failure.
-  static RawObject* DrainMicrotaskQueue();
+  static ObjectPtr DrainMicrotaskQueue();
 
   // Ensures that the isolate's _pendingImmediateCallback is set to
   // _startMicrotaskLoop from dart:async.
   // Returns null on success, a RawError on failure.
-  static RawObject* EnsureScheduleImmediate();
+  static ObjectPtr EnsureScheduleImmediate();
 
   // map[key] = value;
   //
   // Returns null on success, a RawError on failure.
-  static RawObject* MapSetAt(const Instance& map,
-                             const Instance& key,
-                             const Instance& value);
+  static ObjectPtr MapSetAt(const Instance& map,
+                            const Instance& key,
+                            const Instance& value);
 };
 
 }  // namespace dart

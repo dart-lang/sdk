@@ -1995,7 +1995,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
     for (intptr_t i = 0; i < offsets_length; i++) {
       uword addr = code.GetPointerOffsetAt(i) + code.PayloadStart();
       if ((pc <= addr) && (addr < (pc + instruction_length))) {
-        *object = &Object::Handle(*reinterpret_cast<RawObject**>(addr));
+        *object = &Object::Handle(*reinterpret_cast<ObjectPtr*>(addr));
         break;
       }
     }

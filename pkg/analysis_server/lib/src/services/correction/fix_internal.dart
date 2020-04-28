@@ -12,14 +12,28 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
+import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_on_type.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
+import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
@@ -28,6 +42,9 @@ import 'package:analysis_server/src/services/correction/dart/remove_unused.dart'
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
+import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
+import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -396,9 +413,6 @@ class FixProcessor extends BaseProcessor {
     if (errorCode == ParserErrorCode.VAR_AS_TYPE_NAME) {
       await _addFix_replaceVarWithDynamic();
     }
-    if (errorCode == ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE) {
-      await _addFix_addTypeAnnotation();
-    }
     if (errorCode == StaticWarningCode.ASSIGNMENT_TO_FINAL) {
       await _addFix_makeFieldNotFinal();
     }
@@ -592,10 +606,6 @@ class FixProcessor extends BaseProcessor {
     // lints
     if (errorCode is LintCode) {
       var name = errorCode.name;
-      if (name == LintNames.always_specify_types ||
-          name == LintNames.type_annotate_public_apis) {
-        await _addFix_addTypeAnnotation();
-      }
       if (name == LintNames.always_require_non_null_named_parameters) {
         await _addFix_addRequiredAnnotation();
       }
@@ -614,9 +624,6 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.avoid_redundant_argument_values) {
         await _addFix_removeArgument();
       }
-      if (name == LintNames.avoid_relative_lib_imports) {
-        await _addFix_convertToPackageImport();
-      }
       if (name == LintNames.avoid_return_types_on_setters) {
         await _addFix_removeTypeAnnotation();
       }
@@ -628,12 +635,6 @@ class FixProcessor extends BaseProcessor {
       }
       if (name == LintNames.await_only_futures) {
         await _addFix_removeAwait();
-      }
-      if (name == LintNames.curly_braces_in_flow_control_structures) {
-        await _addFix_addCurlyBraces();
-      }
-      if (name == LintNames.diagnostic_describe_all_properties) {
-        await _addFix_addDiagnosticPropertyReference();
       }
       if (name == LintNames.directives_ordering) {
         await _addFix_sortDirectives();
@@ -659,9 +660,6 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.null_closures) {
         await _addFix_replaceNullWithClosure();
       }
-      if (name == LintNames.omit_local_variable_types) {
-        await _addFix_replaceWithVar();
-      }
       if (name == LintNames.prefer_adjacent_string_concatenation) {
         await _addFix_removeOperator();
       }
@@ -671,12 +669,6 @@ class FixProcessor extends BaseProcessor {
       if (errorCode.name == LintNames.prefer_const_declarations) {
         await _addFix_replaceFinalWithConst();
       }
-      if (errorCode.name == LintNames.prefer_expression_function_bodies) {
-        await _addFix_convertToExpressionBody();
-      }
-      if (errorCode.name == LintNames.prefer_for_elements_to_map_fromIterable) {
-        await _addFix_convertMapFromIterableToForLiteral();
-      }
       if (errorCode.name == LintNames.prefer_equal_for_default_values) {
         await _addFix_replaceColonWithEquals();
       }
@@ -685,19 +677,6 @@ class FixProcessor extends BaseProcessor {
       }
       if (name == LintNames.prefer_final_locals) {
         await _addFix_makeVariableFinal();
-      }
-      if (name == LintNames.prefer_generic_function_type_aliases) {
-        await _addFix_convertToGenericFunctionSyntax();
-      }
-      if (errorCode.name ==
-          LintNames.prefer_if_elements_to_conditional_expressions) {
-        await _addFix_convertConditionalToIfElement();
-      }
-      if (name == LintNames.prefer_inlined_adds) {
-        await _addFix_convertToInlineAdd();
-      }
-      if (name == LintNames.prefer_int_literals) {
-        await _addFix_convertToIntLiteral();
       }
       if (name == LintNames.prefer_is_empty) {
         await _addFix_replaceWithIsEmpty();
@@ -714,21 +693,6 @@ class FixProcessor extends BaseProcessor {
       }
       if (errorCode.name == LintNames.prefer_if_null_operators) {
         await _addFix_convertToIfNullOperator();
-      }
-      if (name == LintNames.prefer_relative_imports) {
-        await _addFix_convertToRelativeImport();
-      }
-      if (name == LintNames.prefer_single_quotes) {
-        await _addFix_convertSingleQuotes();
-      }
-      if (errorCode.name == LintNames.slash_for_doc_comments) {
-        await _addFix_convertDocumentationIntoLine();
-      }
-      if (name == LintNames.prefer_spread_collections) {
-        await _addFix_convertAddAllToSpread();
-      }
-      if (name == LintNames.sort_child_properties_last) {
-        await _addFix_sortChildPropertiesLast();
       }
       if (name == LintNames.type_init_formals) {
         await _addFix_removeTypeAnnotation();
@@ -753,9 +717,6 @@ class FixProcessor extends BaseProcessor {
       }
       if (name == LintNames.unnecessary_this) {
         await _addFix_removeThisExpression();
-      }
-      if (name == LintNames.use_function_type_syntax_for_parameters) {
-        await _addFix_convertToGenericFunctionSyntax();
       }
       if (name == LintNames.use_rethrow_when_possible) {
         await _addFix_replaceWithRethrow();
@@ -825,17 +786,6 @@ class FixProcessor extends BaseProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CONST);
     }
-  }
-
-  Future<void> _addFix_addCurlyBraces() async {
-    final changeBuilder = await createBuilder_useCurlyBraces();
-    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CURLY_BRACES);
-  }
-
-  Future<void> _addFix_addDiagnosticPropertyReference() async {
-    final changeBuilder = await createBuilder_addDiagnosticPropertyReference();
-    _addFixFromBuilder(
-        changeBuilder, DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE);
   }
 
   Future<void> _addFix_addExplicitCast() async {
@@ -1303,19 +1253,6 @@ class FixProcessor extends BaseProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_STATIC);
   }
 
-  Future<void> _addFix_addTypeAnnotation() async {
-    var changeBuilder =
-        await createBuilder_addTypeAnnotation_DeclaredIdentifier();
-    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_TYPE_ANNOTATION);
-
-    changeBuilder =
-        await createBuilder_addTypeAnnotation_SimpleFormalParameter();
-    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_TYPE_ANNOTATION);
-
-    changeBuilder = await createBuilder_addTypeAnnotation_VariableDeclaration();
-    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_TYPE_ANNOTATION);
-  }
-
   Future<void> _addFix_boolInsteadOfBoolean() async {
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -1447,27 +1384,6 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_convertAddAllToSpread() async {
-    final change = await createBuilder_convertAddAllToSpread();
-    if (change != null) {
-      final kind = change.isLineInvocation
-          ? DartFixKind.INLINE_INVOCATION
-          : DartFixKind.CONVERT_TO_SPREAD;
-      _addFixFromBuilder(change.builder, kind, args: change.args);
-    }
-  }
-
-  Future<void> _addFix_convertConditionalToIfElement() async {
-    final changeBuilder =
-        await createBuilder_convertConditionalExpressionToIfElement();
-    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_IF_ELEMENT);
-  }
-
-  Future<void> _addFix_convertDocumentationIntoLine() async {
-    final changeBuilder = await createBuilder_convertDocumentationIntoLine();
-    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_LINE_COMMENT);
-  }
-
   Future<void> _addFix_convertFlutterChild() async {
     var named = flutter.findNamedExpression(node, 'child');
     if (named == null) {
@@ -1533,29 +1449,6 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_convertMapFromIterableToForLiteral() async {
-    final changeBuilder =
-        await createBuilder_convertMapFromIterableToForLiteral();
-    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_FOR_ELEMENT);
-  }
-
-  Future<void> _addFix_convertSingleQuotes() async {
-    final changeBuilder = await createBuilder_convertQuotes(true);
-    _addFixFromBuilder(
-        changeBuilder, DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING);
-  }
-
-  Future<void> _addFix_convertToExpressionBody() async {
-    final changeBuilder = await createBuilder_convertToExpressionFunctionBody();
-    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_INTO_EXPRESSION_BODY);
-  }
-
-  Future<void> _addFix_convertToGenericFunctionSyntax() async {
-    var changeBuilder = await createBuilder_convertToGenericFunctionSyntax();
-    _addFixFromBuilder(
-        changeBuilder, DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX);
-  }
-
   Future<void> _addFix_convertToIfNullOperator() async {
     var conditional = node.thisOrAncestorOfType<ConditionalExpression>();
     if (conditional == null) {
@@ -1580,17 +1473,6 @@ class FixProcessor extends BaseProcessor {
       });
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_IF_NULL);
-  }
-
-  Future<void> _addFix_convertToInlineAdd() async {
-    final changeBuilder = await createBuilder_inlineAdd();
-    _addFixFromBuilder(changeBuilder, DartFixKind.INLINE_INVOCATION,
-        args: ['add']);
-  }
-
-  Future<void> _addFix_convertToIntLiteral() async {
-    final changeBuilder = await createBuilder_convertToIntLiteral();
-    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_INT_LITERAL);
   }
 
   Future<void> _addFix_convertToNamedArgument() async {
@@ -1667,16 +1549,6 @@ class FixProcessor extends BaseProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_NAMED_ARGUMENTS);
     }
-  }
-
-  Future<void> _addFix_convertToPackageImport() async {
-    final changeBuilder = await createBuilder_convertToPackageImport();
-    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_PACKAGE_IMPORT);
-  }
-
-  Future<void> _addFix_convertToRelativeImport() async {
-    final changeBuilder = await createBuilder_convertToRelativeImport();
-    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_RELATIVE_IMPORT);
   }
 
   Future<void> _addFix_createClass() async {
@@ -4115,16 +3987,6 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_replaceWithVar() async {
-    var changeBuilder = await createBuilder_replaceWithVar();
-    _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_VAR);
-  }
-
-  Future<void> _addFix_sortChildPropertiesLast() async {
-    final changeBuilder = await createBuilder_sortChildPropertyLast();
-    _addFixFromBuilder(changeBuilder, DartFixKind.SORT_CHILD_PROPERTY_LAST);
-  }
-
   Future<void> _addFix_sortDirectives() async {
     var organizer =
         DirectiveOrganizer(resolvedResult.content, unit, resolvedResult.errors);
@@ -4518,6 +4380,8 @@ class FixProcessor extends BaseProcessor {
       await compute(RemoveQuestionMark());
     } else if (errorCode == CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE) {
       await compute(RemoveQuestionMark());
+    } else if (errorCode == ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE) {
+      await compute(AddTypeAnnotation());
     } else if (errorCode == StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE) {
       await compute(WrapInText());
     } else if (errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION) {
@@ -4532,26 +4396,67 @@ class FixProcessor extends BaseProcessor {
       var name = errorCode.name;
       if (name == LintNames.always_declare_return_types) {
         await compute(AddReturnType());
+      } else if (name == LintNames.always_specify_types) {
+        await compute(AddTypeAnnotation());
       } else if (name == LintNames.avoid_private_typedef_functions) {
         await compute(InlineTypedef());
+      } else if (name == LintNames.avoid_relative_lib_imports) {
+        await compute(ConvertToPackageImport());
       } else if (name == LintNames.avoid_returning_null_for_future) {
         await compute(WrapInFuture());
+      } else if (name == LintNames.avoid_types_as_parameter_names) {
+        await compute(ConvertToOnType());
+      } else if (name == LintNames.curly_braces_in_flow_control_structures) {
+        await compute(UseCurlyBraces());
+      } else if (name == LintNames.diagnostic_describe_all_properties) {
+        await compute(AddDiagnosticPropertyReference());
+      } else if (name == LintNames.omit_local_variable_types) {
+        await compute(ReplaceWithVar());
       } else if (name == LintNames.prefer_collection_literals) {
         await compute(ConvertToListLiteral());
         await compute(ConvertToMapLiteral());
         await compute(ConvertToSetLiteral());
       } else if (name == LintNames.prefer_contains) {
         await compute(ConvertToContains());
+      } else if (errorCode.name ==
+          LintNames.prefer_expression_function_bodies) {
+        await compute(ConvertToExpressionFunctionBody());
+      } else if (errorCode.name ==
+          LintNames.prefer_for_elements_to_map_fromIterable) {
+        await compute(ConvertMapFromIterableToForLiteral());
+      } else if (name == LintNames.prefer_generic_function_type_aliases) {
+        await compute(ConvertToGenericFunctionSyntax());
+      } else if (errorCode.name ==
+          LintNames.prefer_if_elements_to_conditional_expressions) {
+        await compute(ConvertConditionalExpressionToIfElement());
+      } else if (name == LintNames.prefer_inlined_adds) {
+        await compute(InlineInvocation());
+      } else if (name == LintNames.prefer_int_literals) {
+        await compute(ConvertToIntLiteral());
       } else if (name == LintNames.prefer_interpolation_to_compose_strings) {
         await compute(ReplaceWithInterpolation());
       } else if (name == LintNames.prefer_iterable_whereType) {
         await compute(ConvertToWhereType());
       } else if (name == LintNames.prefer_null_aware_operators) {
         await compute(ConvertToNullAware());
+      } else if (name == LintNames.prefer_relative_imports) {
+        await compute(ConvertToRelativeImport());
+      } else if (name == LintNames.prefer_single_quotes) {
+        await compute(ConvertToSingleQuotes());
+      } else if (name == LintNames.prefer_spread_collections) {
+        await compute(ConvertAddAllToSpread());
+      } else if (errorCode.name == LintNames.slash_for_doc_comments) {
+        await compute(ConvertDocumentationIntoLine());
+      } else if (name == LintNames.sort_child_properties_last) {
+        await compute(SortChildPropertyLast());
+      } else if (name == LintNames.type_annotate_public_apis) {
+        await compute(AddTypeAnnotation());
       } else if (name == LintNames.unnecessary_null_in_if_null_operators) {
         await compute(RemoveIfNullOperator());
       } else if (name == LintNames.use_full_hex_values_for_flutter_colors) {
         await compute(ReplaceWithEightDigitHex());
+      } else if (name == LintNames.use_function_type_syntax_for_parameters) {
+        await compute(ConvertToGenericFunctionSyntax());
       }
     }
   }

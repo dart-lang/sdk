@@ -4,24 +4,24 @@
 
 // @dart = 2.7
 
-/*strong.class: Class1:needsArgs*/
-/*omit.class: Class1:*/
+/*spec:nnbd-off.class: Class1:needsArgs*/
+/*prod:nnbd-off.class: Class1:*/
 class Class1<T> {
-  /*strong.member: Class1.:*/
-  /*omit.member: Class1.:*/
+  /*spec:nnbd-off.member: Class1.:*/
+  /*prod:nnbd-off.member: Class1.:*/
   Class1();
 }
 
-/*strong.class: Class2:needsArgs*/
-/*omit.class: Class2:*/
+/*spec:nnbd-off.class: Class2:needsArgs*/
+/*prod:nnbd-off.class: Class2:*/
 class Class2<T> {
-  /*strong.member: Class2.:*/
-  /*omit.member: Class2.:*/
+  /*spec:nnbd-off.member: Class2.:*/
+  /*prod:nnbd-off.member: Class2.:*/
   Class2();
 }
 
-/*strong.member: main:*/
-/*omit.member: main:*/
+/*spec:nnbd-off.member: main:*/
+/*prod:nnbd-off.member: main:*/
 main() {
   dynamic cls1 = new Class1<int>();
   print('${cls1.runtimeType}');

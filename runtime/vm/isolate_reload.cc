@@ -72,7 +72,7 @@ class ObjectLocator : public ObjectVisitor {
   explicit ObjectLocator(IsolateGroupReloadContext* context)
       : context_(context), count_(0) {}
 
-  void VisitObject(RawObject* obj) {
+  void VisitObject(ObjectPtr obj) {
     InstanceMorpher* morpher =
         context_->instance_morpher_by_cid_.LookupValue(obj->GetClassId());
     if (morpher != NULL) {
@@ -186,13 +186,13 @@ InstanceMorpher::InstanceMorpher(
       before_(zone, 16),
       after_(zone, 16) {}
 
-void InstanceMorpher::AddObject(RawObject* object) {
+void InstanceMorpher::AddObject(ObjectPtr object) {
   ASSERT(object->GetClassId() == cid_);
   const Instance& instance = Instance::Cast(Object::Handle(Z, object));
   before_.Add(&instance);
 }
 
-RawInstance* InstanceMorpher::Morph(const Instance& instance) const {
+InstancePtr InstanceMorpher::Morph(const Instance& instance) const {
   // Code can reference constants / canonical objects either directly in the
   // instruction stream (ia32) or via an object pool.
   //
@@ -281,13 +281,13 @@ void ReasonForCancelling::Report(IsolateGroupReloadContext* context) {
   context->ReportError(error);
 }
 
-RawError* ReasonForCancelling::ToError() {
+ErrorPtr ReasonForCancelling::ToError() {
   // By default create the error returned from ToString.
   const String& message = String::Handle(ToString());
   return LanguageError::New(message);
 }
 
-RawString* ReasonForCancelling::ToString() {
+StringPtr ReasonForCancelling::ToString() {
   UNREACHABLE();
   return NULL;
 }
@@ -314,7 +314,7 @@ void ClassReasonForCancelling::AppendTo(JSONArray* array) {
   jsobj.AddProperty("message", message.ToCString());
 }
 
-RawError* IsolateGroupReloadContext::error() const {
+ErrorPtr IsolateGroupReloadContext::error() const {
   ASSERT(!reasons_to_cancel_reload_.is_empty());
   // Report the first error to the surroundings.
   return reasons_to_cancel_reload_.At(0)->ToError();
@@ -350,7 +350,7 @@ class ClassMapTraits {
 
   static uword Hash(const Object& obj) {
     uword class_name_hash = String::HashRawSymbol(Class::Cast(obj).Name());
-    RawLibrary* raw_library = Class::Cast(obj).library();
+    LibraryPtr raw_library = Class::Cast(obj).library();
     if (raw_library == Library::null()) {
       return class_name_hash;
     }
@@ -516,8 +516,8 @@ class Aborted : public ReasonForCancelling {
  private:
   const Error& error_;
 
-  RawError* ToError() { return error_.raw(); }
-  RawString* ToString() {
+  ErrorPtr ToError() { return error_.raw(); }
+  StringPtr ToString() {
     return String::NewFormatted("%s", error_.ToErrorCString());
   }
 };
@@ -1040,7 +1040,7 @@ void IsolateReloadContext::ReloadPhase1AllocateStorageMapsAndCheckpoint() {
   }
 }
 
-RawObject* IsolateReloadContext::ReloadPhase2LoadKernel(
+ObjectPtr IsolateReloadContext::ReloadPhase2LoadKernel(
     kernel::Program* program,
     const String& root_lib_url) {
   Thread* thread = Thread::Current();
@@ -1235,7 +1235,7 @@ void IsolateReloadContext::CheckpointClasses() {
 
   // Copy the class table for isolate.
   ClassTable* class_table = I->class_table();
-  RawClass** saved_class_table = nullptr;
+  ClassPtr* saved_class_table = nullptr;
   class_table->CopyBeforeHotReload(&saved_class_table, &saved_num_cids_);
 
   // Copy classes into saved_class_table_ first. Make sure there are no
@@ -1768,8 +1768,8 @@ void IsolateReloadContext::ValidateReload() {
   }
 }
 
-RawClass* IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
-  RawClass** class_table = saved_class_table_.load(std::memory_order_acquire);
+ClassPtr IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
+  ClassPtr* class_table = saved_class_table_.load(std::memory_order_acquire);
   if (class_table != NULL) {
     ASSERT(cid > 0);
     ASSERT(cid < saved_num_cids_);
@@ -1791,7 +1791,7 @@ intptr_t IsolateGroupReloadContext::GetClassSizeForHeapWalkAt(classid_t cid) {
 }
 
 void IsolateReloadContext::DiscardSavedClassTable(bool is_rollback) {
-  RawClass** local_saved_class_table =
+  ClassPtr* local_saved_class_table =
       saved_class_table_.load(std::memory_order_relaxed);
   I->class_table()->ResetAfterHotReload(local_saved_class_table,
                                         saved_num_cids_, is_rollback);
@@ -1813,10 +1813,10 @@ void IsolateGroupReloadContext::VisitObjectPointers(
 void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(from(), to());
 
-  RawClass** saved_class_table =
+  ClassPtr* saved_class_table =
       saved_class_table_.load(std::memory_order_relaxed);
   if (saved_class_table != NULL) {
-    auto class_table = reinterpret_cast<RawObject**>(&(saved_class_table[0]));
+    auto class_table = reinterpret_cast<ObjectPtr*>(&(saved_class_table[0]));
     visitor->VisitPointers(class_table, saved_num_cids_);
   }
 }
@@ -1883,22 +1883,22 @@ class InvalidationCollector : public ObjectVisitor {
         instances_(instances) {}
   virtual ~InvalidationCollector() {}
 
-  void VisitObject(RawObject* obj) {
+  void VisitObject(ObjectPtr obj) {
     intptr_t cid = obj->GetClassId();
     if (cid == kFunctionCid) {
       const Function& func =
-          Function::Handle(zone_, static_cast<RawFunction*>(obj));
+          Function::Handle(zone_, static_cast<FunctionPtr>(obj));
       if (!func.ForceOptimize()) {
         // Force-optimized functions cannot deoptimize.
         functions_->Add(&func);
       }
     } else if (cid == kKernelProgramInfoCid) {
       kernel_infos_->Add(&KernelProgramInfo::Handle(
-          zone_, static_cast<RawKernelProgramInfo*>(obj)));
+          zone_, static_cast<KernelProgramInfoPtr>(obj)));
     } else if (cid == kFieldCid) {
-      fields_->Add(&Field::Handle(zone_, static_cast<RawField*>(obj)));
+      fields_->Add(&Field::Handle(zone_, static_cast<FieldPtr>(obj)));
     } else if (cid > kNumPredefinedCids) {
-      instances_->Add(&Instance::Handle(zone_, static_cast<RawInstance*>(obj)));
+      instances_->Add(&Instance::Handle(zone_, static_cast<InstancePtr>(obj)));
     }
   }
 
@@ -2254,8 +2254,7 @@ void IsolateReloadContext::InvalidateWorld() {
   RunInvalidationVisitors();
 }
 
-RawClass* IsolateReloadContext::OldClassOrNull(
-    const Class& replacement_or_new) {
+ClassPtr IsolateReloadContext::OldClassOrNull(const Class& replacement_or_new) {
   UnorderedHashSet<ClassMapTraits> old_classes_set(old_classes_set_storage_);
   Class& cls = Class::Handle();
   cls ^= old_classes_set.GetOrNull(replacement_or_new);
@@ -2263,7 +2262,7 @@ RawClass* IsolateReloadContext::OldClassOrNull(
   return cls.raw();
 }
 
-RawString* IsolateReloadContext::FindLibraryPrivateKey(
+StringPtr IsolateReloadContext::FindLibraryPrivateKey(
     const Library& replacement_or_new) {
   const Library& old = Library::Handle(OldLibraryOrNull(replacement_or_new));
   if (old.IsNull()) {
@@ -2277,7 +2276,7 @@ RawString* IsolateReloadContext::FindLibraryPrivateKey(
   return old.private_key();
 }
 
-RawLibrary* IsolateReloadContext::OldLibraryOrNull(
+LibraryPtr IsolateReloadContext::OldLibraryOrNull(
     const Library& replacement_or_new) {
   UnorderedHashSet<LibraryMapTraits> old_libraries_set(
       old_libraries_set_storage_);
@@ -2295,7 +2294,7 @@ RawLibrary* IsolateReloadContext::OldLibraryOrNull(
 
 // Attempt to find the pair to |replacement_or_new| with the knowledge that
 // the base url prefix has moved.
-RawLibrary* IsolateReloadContext::OldLibraryOrNullBaseMoved(
+LibraryPtr IsolateReloadContext::OldLibraryOrNullBaseMoved(
     const Library& replacement_or_new) {
   const String& url_prefix =
       String::Handle(group_reload_context_->root_url_prefix_);
