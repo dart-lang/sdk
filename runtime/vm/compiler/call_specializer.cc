@@ -741,10 +741,6 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
   if (field.needs_load_guard()) {
     return false;
   }
-  if (field.is_late()) {
-    // TODO(http://dartbug.com/40447): Inline implicit getters for late fields.
-    return false;
-  }
   if (should_clone_fields_) {
     field = field.CloneFromOriginal();
   }
@@ -770,9 +766,19 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
 
 void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
                                                    const Field& field) {
+  ASSERT(field.is_instance());
+  Definition* receiver = call->ArgumentAt(0);
+
+  if (field.NeedsInitializationCheckOnLoad()) {
+    InsertBefore(call,
+                 new (Z) InitInstanceFieldInstr(new (Z) Value(receiver), field,
+                                                call->deopt_id()),
+                 call->env(), FlowGraph::kEffect);
+  }
+
   const Slot& slot = Slot::Get(field, &flow_graph()->parsed_function());
-  LoadFieldInstr* load = new (Z) LoadFieldInstr(
-      new (Z) Value(call->ArgumentAt(0)), slot, call->token_pos());
+  LoadFieldInstr* load =
+      new (Z) LoadFieldInstr(new (Z) Value(receiver), slot, call->token_pos());
 
   // Discard the environment from the original instruction because the load
   // can't deoptimize.
