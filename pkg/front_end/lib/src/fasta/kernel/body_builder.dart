@@ -1555,12 +1555,22 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             this, beginToken, name, typeArguments, arguments,
             isTypeArgumentsInForest: isInForest));
       }
+    } else if (receiver is ParserRecovery) {
+      push(new ParserErrorGenerator(this, null, fasta.messageSyntheticToken));
     } else if (arguments == null) {
       push(receiver);
     } else {
       push(finishSend(receiver, typeArguments, arguments, beginToken.charOffset,
           isTypeArgumentsInForest: isInForest));
     }
+    assert(checkState(beginToken, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Initializer,
+        ValueKinds.ProblemBuilder
+      ])
+    ]));
   }
 
   @override
@@ -1570,8 +1580,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (receiver is Generator) {
       return receiver.doInvocation(charOffset, typeArguments, arguments,
           isTypeArgumentsInForest: isTypeArgumentsInForest);
-    } else if (receiver is ParserRecovery) {
-      return new ParserErrorGenerator(this, null, fasta.messageSyntheticToken);
     } else {
       return forest.createExpressionInvocation(
           charOffset, toValue(receiver), arguments);
@@ -3086,20 +3094,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleNonNullAssertExpression(Token bang) {
     assert(checkState(bang, [
-      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator])
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Initializer,
+        ValueKinds.ProblemBuilder
+      ])
     ]));
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullAssertExpressionNotEnabled(bang);
     }
-    Object operand = pop();
-    Expression expression;
-    if (operand is Generator) {
-      expression = operand.buildSimpleRead();
-    } else {
-      assert(operand is Expression);
-      expression = operand;
-    }
-    push(forest.createNullCheck(offsetForToken(bang), expression));
+    Expression operand = popForValue();
+    push(forest.createNullCheck(offsetForToken(bang), operand));
   }
 
   @override
@@ -3701,6 +3707,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       unionOfKinds(<ValueKind>[
         ValueKinds.Expression,
         ValueKinds.Generator,
+        ValueKinds.ProblemBuilder
       ]),
     ]));
     debugEvent("UnaryPrefixExpression");
