@@ -7390,18 +7390,6 @@ class TypeArguments : public Instance {
   TypeArgumentsPtr ConcatenateTypeParameters(Zone* zone,
                                              const TypeArguments& other) const;
 
-  // Check if the subvector of length 'len' starting at 'from_index' of this
-  // type argument vector consists solely of DynamicType, (nullable) ObjectType,
-  // or VoidType.
-  bool IsTopTypes(intptr_t from_index, intptr_t len) const;
-
-  // Check the subtype relationship, considering only a subvector of length
-  // 'len' starting at 'from_index'.
-  bool IsSubtypeOf(const TypeArguments& other,
-                   intptr_t from_index,
-                   intptr_t len,
-                   Heap::Space space) const;
-
   // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
     return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(),

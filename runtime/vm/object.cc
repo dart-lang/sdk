@@ -5030,19 +5030,20 @@ bool Class::IsSubtypeOf(const Class& cls,
       // Since we do not truncate the type argument vector of a subclass (see
       // below), we only check a subvector of the proper length.
       // Check for covariance.
-      if (other_type_arguments.IsNull() ||
-          other_type_arguments.IsTopTypes(from_index, num_type_params)) {
+      if (other_type_arguments.IsNull()) {
         return true;
       }
-      if (type_arguments.IsNull() ||
-          type_arguments.IsRaw(from_index, num_type_params)) {
-        // Other type can't be more specific than this one because for that
-        // it would have to have all dynamic type arguments which is checked
-        // above.
-        return false;
+      AbstractType& type = AbstractType::Handle(zone);
+      AbstractType& other_type = AbstractType::Handle(zone);
+      for (intptr_t i = 0; i < num_type_params; ++i) {
+        type = type_arguments.TypeAtNullSafe(from_index + i);
+        other_type = other_type_arguments.TypeAt(from_index + i);
+        ASSERT(!type.IsNull() && !other_type.IsNull());
+        if (!type.IsSubtypeOf(other_type, space)) {
+          return false;
+        }
       }
-      return type_arguments.IsSubtypeOf(other_type_arguments, from_index,
-                                        num_type_params, space);
+      return true;
     }
     // Check for 'direct super type' specified in the implements clause
     // and check for transitivity at the same time.
@@ -5885,38 +5886,6 @@ bool TypeArguments::IsDynamicTypes(bool raw_instantiated,
     }
     type_class = type.type_class();
     if (!type_class.IsDynamicClass()) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool TypeArguments::IsTopTypes(intptr_t from_index, intptr_t len) const {
-  ASSERT(Length() >= (from_index + len));
-  AbstractType& type = AbstractType::Handle();
-  for (intptr_t i = 0; i < len; i++) {
-    type = TypeAt(from_index + i);
-    if (type.IsNull() || !type.IsTopType()) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool TypeArguments::IsSubtypeOf(const TypeArguments& other,
-                                intptr_t from_index,
-                                intptr_t len,
-                                Heap::Space space) const {
-  ASSERT(Length() >= (from_index + len));
-  ASSERT(!other.IsNull());
-  ASSERT(other.Length() >= (from_index + len));
-  AbstractType& type = AbstractType::Handle();
-  AbstractType& other_type = AbstractType::Handle();
-  for (intptr_t i = 0; i < len; i++) {
-    type = TypeAt(from_index + i);
-    other_type = other.TypeAt(from_index + i);
-    if (type.IsNull() || other_type.IsNull() ||
-        !type.IsSubtypeOf(other_type, space)) {
       return false;
     }
   }
@@ -17914,7 +17883,6 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     const TypeArguments& other_function_type_arguments) const {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
-  // Note that Object::sentinel() has Null class, but !IsNull().
   ASSERT(raw() != Object::sentinel().raw());
   // Instance may not have runtimeType dynamic, void, or Never.
   if (other.IsTopType()) {
@@ -18711,7 +18679,7 @@ bool AbstractType::IsTopTypeForAssignability() const {
   if (cid == kInstanceCid) {  // Object type.
     // NNBD weak mode uses LEGACY_SUBTYPE for assignability / 'as' tests,
     // and non-nullable Object is a top type according to LEGACY_SUBTYPE.
-    return !Isolate::Current()->null_safety() || !IsNonNullable();
+    return !IsNonNullable() || !Isolate::Current()->null_safety();
   }
   if (cid == kFutureOrCid) {
     // FutureOr<T> where T is a top type behaves as a top type.
@@ -18801,7 +18769,7 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     return true;
   }
   // Right top type.
-  if (other.IsTopType()) {
+  if (other.IsTopTypeForAssignability()) {
     return true;
   }
   // Left bottom type.
