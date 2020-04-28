@@ -36,6 +36,10 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
+  # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
+  # cipd package used to run Dart scripts in the build and test infrastructure.
+  "sdk_tag": "version:2.9.0-4.0.dev",
+
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
@@ -176,7 +180,7 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.8.0-dev.18.0",
+          "version": Var("sdk_tag"),
       }],
       "dep_type": "cipd",
   },

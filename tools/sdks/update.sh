@@ -9,8 +9,8 @@ if [ -z "$1" ]; then
 fi
 
 case "$1" in
-*-dev.*.0) channel="dev";;
-*-dev.*) channel="beta";;
+*-*.0.dev) channel="dev";;
+*-*.*.beta) channel="beta";;
 *) channel="stable";;
 esac
 
@@ -83,3 +83,5 @@ cipd create \
 rm -rf sdk
 
 popd
+
+gclient setdep --var="sdk_tag=version:$1"
