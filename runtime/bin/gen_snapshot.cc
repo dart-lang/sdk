@@ -670,7 +670,7 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
   }
 
   auto isolate_group_data = std::unique_ptr<IsolateGroupData>(
-      new IsolateGroupData(nullptr, nullptr, nullptr, false));
+      new IsolateGroupData(nullptr, nullptr, nullptr, nullptr, false));
   Dart_Isolate isolate;
   char* error = NULL;
 

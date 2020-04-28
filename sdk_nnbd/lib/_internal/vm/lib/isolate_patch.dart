@@ -272,7 +272,7 @@ void _startIsolate(
       // current isolate's control port and capabilities.
       //
       // TODO(floitsch): Send an error message if we can't find the entry point.
-      final readyMessage = List<Object?>.filled(2, null);
+      var readyMessage = new List<Object?>.filled(2, null);
       readyMessage[0] = controlPort.sendPort;
       readyMessage[1] = capabilities;
 
@@ -342,6 +342,7 @@ class Isolate {
   }
 
   static bool _packageSupported() =>
+      (VMLibraryHooks.packageRootUriFuture != null) &&
       (VMLibraryHooks.packageConfigUriFuture != null) &&
       (VMLibraryHooks.resolvePackageUriFuture != null);
 
@@ -375,8 +376,18 @@ class Isolate {
 
     final RawReceivePort readyPort = new RawReceivePort();
     try {
-      _spawnFunction(readyPort.sendPort, script.toString(), entryPoint, message,
-          paused, errorsAreFatal, onExit, onError, packageConfig, debugName);
+      _spawnFunction(
+          readyPort.sendPort,
+          script.toString(),
+          entryPoint,
+          message,
+          paused,
+          errorsAreFatal,
+          onExit,
+          onError,
+          null,
+          packageConfig,
+          debugName);
       return await _spawnCommon(readyPort);
     } catch (e, st) {
       readyPort.close();
@@ -419,17 +430,24 @@ class Isolate {
       }
     }
     // Resolve the uri against the current isolate's root Uri first.
-    final Uri spawnedUri = _rootUri!.resolveUri(uri);
+    var spawnedUri = _rootUri!.resolveUri(uri);
 
     // Inherit this isolate's package resolution setup if not overridden.
-    if (!automaticPackageResolution && packageConfig == null) {
+    if (!automaticPackageResolution &&
+        (packageRoot == null) &&
+        (packageConfig == null)) {
       if (Isolate._packageSupported()) {
+        packageRoot = await Isolate.packageRoot;
         packageConfig = await Isolate.packageConfig;
       }
     }
 
     // Ensure to resolve package: URIs being handed in as parameters.
-    if (packageConfig != null) {
+    if (packageRoot != null) {
+      // `packages/` directory is no longer supported. Force it null.
+      // TODO(mfairhurst) Should this throw an exception?
+      packageRoot = null;
+    } else if (packageConfig != null) {
       // Avoid calling resolvePackageUri if not strictly necessary in case
       // the API is not supported.
       if (packageConfig.isScheme("package")) {
@@ -438,7 +456,8 @@ class Isolate {
     }
 
     // The VM will invoke [_startIsolate] and not `main`.
-    final packageConfigString = packageConfig?.toString();
+    var packageRootString = packageRoot?.toString();
+    var packageConfigString = packageConfig?.toString();
 
     final RawReceivePort readyPort = new RawReceivePort();
     try {
@@ -454,6 +473,7 @@ class Isolate {
           checked,
           null,
           /* environment */
+          packageRootString,
           packageConfigString,
           debugName);
       return await _spawnCommon(readyPort);
@@ -509,6 +529,7 @@ class Isolate {
       bool errorsAreFatal,
       SendPort? onExit,
       SendPort? onError,
+      String? packageRoot,
       String? packageConfig,
       String? debugName) native "Isolate_spawnFunction";
 
@@ -523,6 +544,7 @@ class Isolate {
       bool errorsAreFatal,
       bool? checked,
       List? environment,
+      String? packageRoot,
       String? packageConfig,
       String? debugName) native "Isolate_spawnUri";
 
