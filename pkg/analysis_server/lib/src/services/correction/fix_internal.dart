@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
+import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
@@ -4370,6 +4371,9 @@ class FixProcessor extends BaseProcessor {
       await compute(RemoveUnusedField());
     } else if (errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
       await compute(RemoveUnusedLocalVariable());
+    } else if (errorCode ==
+        CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER) {
+      await compute(AddRequiredKeyword());
     } else if (errorCode ==
         CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE) {
       await compute(RemoveQuestionMark());
