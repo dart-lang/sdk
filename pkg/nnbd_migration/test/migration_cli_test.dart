@@ -31,7 +31,8 @@ class _MigrationCli extends MigrationCli {
       : super(
             binaryName: 'nnbd_migration',
             loggerFactory: (isVerbose) => test.logger = _TestLogger(isVerbose),
-            defaultSdkPathOverride: mock_sdk.sdkRoot,
+            defaultSdkPathOverride:
+                test.resourceProvider.convertPath(mock_sdk.sdkRoot),
             resourceProvider: test.resourceProvider);
 
   @override
@@ -325,14 +326,6 @@ class _MigrationCliTestWindows extends _MigrationCliTestBase
             context: path.style == path.Style.windows
                 ? null
                 : path.Context(style: path.Style.windows, current: 'C:\\'));
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40381')
-  @override
-  test_lifecycle_apply_changes() => super.test_lifecycle_apply_changes();
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40381')
-  @override
-  test_lifecycle_no_preview() => super.test_lifecycle_no_preview();
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40381')
   @override
