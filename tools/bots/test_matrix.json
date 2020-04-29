@@ -827,6 +827,11 @@
       }
     },
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {},
+    "dartk-linux-debug-(ia32|x64)-canary": {
+      "options": {
+        "builder-tag": "canary"
+      }
+    },
     "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-x64": {
       "options": {
         "enable-experiment": [
@@ -1308,14 +1313,14 @@
         {
           "name": "vm ia32 tests",
           "arguments": [
-            "-ndartk-linux-debug-ia32",
+            "-ndartk-linux-debug-ia32-canary",
             "vm"
           ]
         },
         {
           "name": "vm x64 tests",
           "arguments": [
-            "-ndartk-linux-debug-x64",
+            "-ndartk-linux-debug-x64-canary",
             "vm"
           ]
         }
