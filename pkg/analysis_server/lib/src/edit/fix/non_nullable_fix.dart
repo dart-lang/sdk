@@ -12,6 +12,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
 import 'package:nnbd_migration/api_for_analysis_server/http_preview_server.dart';
 import 'package:nnbd_migration/api_for_analysis_server/instrumentation_listener.dart';
@@ -35,6 +36,8 @@ class NonNullableFix extends FixCodeTask {
 
   static const String _intendedSdkVersionConstraint =
       '>=$_intendedMinimumSdkVersion <2.10.0';
+
+  static final List<HttpPreviewServer> _allServers = [];
 
   final int preferredPort;
 
@@ -104,6 +107,7 @@ class NonNullableFix extends FixCodeTask {
     if (enablePreview && _server == null) {
       _server = HttpPreviewServer(state, rerun, preferredPort);
       _server.serveHttp();
+      _allServers.add(_server);
       port = await _server.boundPort;
       authToken = await _server.authToken;
     }
@@ -261,6 +265,18 @@ environment:
 
   void shutdownServer() {
     _server?.close();
+  }
+
+  /// Allows unit tests to shut down any rogue servers that have been started,
+  /// so that unit testing can complete.
+  @visibleForTesting
+  static void shutdownAllServers() {
+    for (var server in _allServers) {
+      try {
+        server.close();
+      } catch (_) {}
+    }
+    _allServers.clear();
   }
 
   static void task(DartFixRegistrar registrar, DartFixListener listener,

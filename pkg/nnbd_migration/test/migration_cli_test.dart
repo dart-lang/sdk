@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart' as mock_sdk;
@@ -123,6 +124,10 @@ sdk: '>=2.6.0 <3.0.0'
 int${migrated ? '?' : ''} f() => null;
 '''
     };
+  }
+
+  void tearDown() {
+    NonNullableFix.shutdownAllServers();
   }
 
   test_default_logger() {
