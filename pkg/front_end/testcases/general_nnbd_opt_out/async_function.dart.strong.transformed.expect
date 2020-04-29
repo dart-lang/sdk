@@ -25,8 +25,8 @@ static method asyncString() → asy::Future<core::String*>* /* originally async 
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -52,8 +52,8 @@ static method asyncString2() → asy::Future<core::String*>* /* originally async
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -62,44 +62,40 @@ static method asyncString2() → asy::Future<core::String*>* /* originally async
   return :async_completer.{asy::Completer::future};
 }
 static method syncStarString() → core::Iterable<core::String*>* /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<core::String*>*) →* core::bool* {
-    core::int* :await_jump_var = 0;
-    dynamic :await_ctx_var;
-    return (core::_SyncIterator<core::String*>* :iterator) → core::bool* yielding {
+  core::int* :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :sync_op(core::_SyncIterator<core::String*>* :iterator) → core::bool* yielding {
+    {
       {
-        {
-          :iterator.{core::_SyncIterator::_current} = "foo";
-          [yield] true;
-        }
-        {
-          :iterator.{core::_SyncIterator::_yieldEachIterable} = self::syncStarString2();
-          [yield] true;
-        }
-        {
-          :iterator.{core::_SyncIterator::_yieldEachIterable} = self::stringList;
-          [yield] true;
-        }
+        :iterator.{core::_SyncIterator::_current} = "foo";
+        [yield] true;
       }
-      return false;
-    };
+      {
+        :iterator.{core::_SyncIterator::_yieldEachIterable} = self::syncStarString2();
+        [yield] true;
+      }
+      {
+        :iterator.{core::_SyncIterator::_yieldEachIterable} = self::stringList;
+        [yield] true;
+      }
+    }
+    return false;
   }
-  return new core::_SyncIterable::•<core::String*>(:sync_op_gen);
+  return new core::_SyncIterable::•<core::String*>(:sync_op);
 }
 static method syncStarString2() → core::Iterable<core::String*>* /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<core::String*>*) →* core::bool* {
-    core::int* :await_jump_var = 0;
-    dynamic :await_ctx_var;
-    return (core::_SyncIterator<core::String*>* :iterator) → core::bool* yielding {
+  core::int* :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :sync_op(core::_SyncIterator<core::String*>* :iterator) → core::bool* yielding {
+    {
       {
-        {
-          :iterator.{core::_SyncIterator::_current} = "foo";
-          [yield] true;
-        }
+        :iterator.{core::_SyncIterator::_current} = "foo";
+        [yield] true;
       }
-      return false;
-    };
+    }
+    return false;
   }
-  return new core::_SyncIterable::•<core::String*>(:sync_op_gen);
+  return new core::_SyncIterable::•<core::String*>(:sync_op);
 }
 static method asyncStarString() → asy::Stream<core::String*>* /* originally async* */ {
   asy::_AsyncStarStreamController<core::String*>* :controller;
@@ -132,8 +128,8 @@ static method asyncStarString() → asy::Stream<core::String*>* /* originally as
         }
         return;
       }
-      on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+      on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
       }
     finally {
       :controller.{asy::_AsyncStarStreamController::close}();
@@ -167,8 +163,8 @@ static method asyncStarString2() → asy::Stream<core::String*>* /* originally a
         }
         return;
       }
-      on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+      on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
       }
     finally {
       :controller.{asy::_AsyncStarStreamController::close}();
@@ -199,8 +195,8 @@ static method main() → dynamic /* originally async */ {
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
