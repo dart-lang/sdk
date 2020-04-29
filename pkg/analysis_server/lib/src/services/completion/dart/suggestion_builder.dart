@@ -489,6 +489,17 @@ class SuggestionBuilder {
         createSuggestion(request, extension, kind: kind, relevance: relevance));
   }
 
+  /// Add a suggestion to reference the [field] in a field formal parameter.
+  void suggestFieldFormalParameter(FieldElement field) {
+    // TODO(brianwilkerson) Add a parameter (`bool includePrefix`) indicating
+    //  whether to include the `this.` prefix in the completion.
+    var relevance = request.useNewRelevance
+        ? Relevance.fieldFormalParameter
+        : DART_RELEVANCE_LOCAL_FIELD;
+
+    _add(createSuggestion(request, field, relevance: relevance));
+  }
+
   /// Add a suggestion for the `call` method defined on functions.
   void suggestFunctionCall() {
     const callString = 'call()';
