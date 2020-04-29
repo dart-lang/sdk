@@ -10,13 +10,11 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol
     hide CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -28,24 +26,14 @@ class OverrideContributor implements DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
-    var target = request.target;
-    var containingNode = target.containingNode;
-    var classDecl =
-        containingNode.thisOrAncestorOfType<ClassOrMixinDeclaration>();
+    var targetId = _getTargetId(request.target);
+    if (targetId == null) {
+      return const <CompletionSuggestion>[];
+    }
+    var classDecl = targetId.thisOrAncestorOfType<ClassOrMixinDeclaration>();
     if (classDecl == null) {
       return const <CompletionSuggestion>[];
     }
-    if (containingNode.inClassMemberBody) {
-      return const <CompletionSuggestion>[];
-    }
-
-    var comment = containingNode.thisOrAncestorOfType<Comment>();
-    if (target.isCommentText || comment != null) {
-      return const <CompletionSuggestion>[];
-    }
-
-    var sourceRange = _getTargetSourceRange(target);
-    sourceRange ??= range.startOffsetEndOffset(request.offset, 0);
 
     var inheritance = InheritanceManager3();
 
@@ -65,7 +53,7 @@ class OverrideContributor implements DartCompletionContributor {
       if (element.returnType != null) {
         var invokeSuper = interface.isSuperImplemented(name);
         var suggestion =
-            await _buildSuggestion(request, sourceRange, element, invokeSuper);
+            await _buildSuggestion(request, targetId, element, invokeSuper);
         if (suggestion != null) {
           suggestions.add(suggestion);
         }
@@ -74,17 +62,17 @@ class OverrideContributor implements DartCompletionContributor {
     return suggestions;
   }
 
-  /// Build a suggestion to replace [sourceRange] in the given [request] with an
+  /// Build a suggestion to replace [targetId] in the given [request] with an
   /// override of the given [element].
   Future<CompletionSuggestion> _buildSuggestion(
       DartCompletionRequest request,
-      SourceRange sourceRange,
+      SimpleIdentifier targetId,
       ExecutableElement element,
       bool invokeSuper) async {
     var displayTextBuffer = StringBuffer();
     var builder = DartChangeBuilder(request.result.session);
     await builder.addFileEdit(request.result.path, (builder) {
-      builder.addReplacement(sourceRange, (builder) {
+      builder.addReplacement(range.node(targetId), (builder) {
         builder.writeOverride(
           element,
           displayTextBuffer: displayTextBuffer,
@@ -114,7 +102,7 @@ class OverrideContributor implements DartCompletionContributor {
     if (selectionRange == null) {
       return null;
     }
-    var offsetDelta = sourceRange.offset + replacement.indexOf(completion);
+    var offsetDelta = targetId.offset + replacement.indexOf(completion);
     var displayText =
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
     var suggestion = CompletionSuggestion(
@@ -128,6 +116,24 @@ class OverrideContributor implements DartCompletionContributor {
         displayText: displayText);
     suggestion.element = protocol.convertElement(element);
     return suggestion;
+  }
+
+  /// If the target looks like a partial identifier inside a class declaration
+  /// then return that identifier, otherwise return `null`.
+  SimpleIdentifier _getTargetId(CompletionTarget target) {
+    var node = target.containingNode;
+    if (node is ClassOrMixinDeclaration) {
+      var entity = target.entity;
+      if (entity is FieldDeclaration) {
+        return _getTargetIdFromVarList(entity.fields);
+      }
+    } else if (node is FieldDeclaration) {
+      var entity = target.entity;
+      if (entity is VariableDeclarationList) {
+        return _getTargetIdFromVarList(entity);
+      }
+    }
+    return null;
   }
 
   SimpleIdentifier _getTargetIdFromVarList(VariableDeclarationList fields) {
@@ -146,29 +152,6 @@ class OverrideContributor implements DartCompletionContributor {
           variable.initializer == null) {
         // fasta parser does not insert a synthetic identifier
         return targetId;
-      }
-    }
-    return null;
-  }
-
-  /// If the target looks like a partial identifier inside a class declaration
-  /// then return that identifier [SourceRange], otherwise return `null`.
-  SourceRange _getTargetSourceRange(CompletionTarget target) {
-    var containingNode = target.containingNode;
-    if (containingNode is ClassOrMixinDeclaration) {
-      if (target.entity is FieldDeclaration) {
-        var fieldDecl = target.entity as FieldDeclaration;
-        var simpleIdentifier = _getTargetIdFromVarList(fieldDecl.fields);
-        if (simpleIdentifier != null) {
-          return range.node(simpleIdentifier);
-        }
-      }
-    } else if (containingNode is FieldDeclaration) {
-      if (target.entity is VariableDeclarationList) {
-        var simpleIdentifier = _getTargetIdFromVarList(target.entity);
-        if (simpleIdentifier != null) {
-          return range.node(simpleIdentifier);
-        }
       }
     }
     return null;
