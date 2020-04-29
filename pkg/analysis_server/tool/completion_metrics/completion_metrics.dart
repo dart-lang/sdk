@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io' as io;
 
+import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -17,8 +18,10 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as err;
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:args/args.dart';
 
 import 'metrics_util.dart';
@@ -37,7 +40,9 @@ Future<void> main(List<String> args) async {
   print('Analyzing root: "$root"');
   var stopwatch = Stopwatch()..start();
   var code = await CompletionMetricsComputer(root,
-          verbose: result['verbose'], overlay: result['overlay'])
+          verbose: result['verbose'],
+          availableSuggestions: result[AVAILABLE_SUGGESTIONS],
+          overlay: result[OVERLAY])
       .compute();
   stopwatch.stop();
 
@@ -47,6 +52,10 @@ Future<void> main(List<String> args) async {
   return io.exit(code);
 }
 
+const String AVAILABLE_SUGGESTIONS = 'available-suggestions';
+
+const String OVERLAY = 'overlay';
+
 const String OVERLAY_NONE = 'none';
 
 const String OVERLAY_REMOVE_REST_OF_FILE = 'remove-rest-of-file';
@@ -55,30 +64,39 @@ const String OVERLAY_REMOVE_TOKEN = 'remove-token';
 
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
-  var parser = ArgParser();
-  parser.addOption(
-    'help',
-    abbr: 'h',
-    help: 'Print this help message.',
-  );
-  parser.addFlag(
-    'verbose',
-    abbr: 'v',
-    help: 'Print additional information about the analysis',
-    negatable: false,
-  );
-  parser.addOption('overlay',
-      allowed: [
-        OVERLAY_NONE,
-        OVERLAY_REMOVE_TOKEN,
-        OVERLAY_REMOVE_REST_OF_FILE
-      ],
-      defaultsTo: OVERLAY_NONE,
-      help: 'Before attempting a completion at the location of each token, the '
-          'token can be removed, or the rest of the file can be removed to test '
-          'code completion with diverse methods. The default mode is to '
-          'complete at the start of the token without modifying the file.');
-  return parser;
+  return ArgParser()
+    ..addOption(
+      'help',
+      abbr: 'h',
+      help: 'Print this help message.',
+    )
+    ..addFlag(
+      'verbose',
+      abbr: 'v',
+      help: 'Print additional information about the analysis',
+      negatable: false,
+    )
+    ..addFlag(AVAILABLE_SUGGESTIONS,
+        abbr: 'a',
+        help: 'Use the available suggestions feature in the Analysis Server '
+            'when computing the set of code completions. With this feature '
+            'enabled, completion will match the support in the Dart Plugin for '
+            'IntelliJ, without this enabled the completion support matches '
+            'the support in LSP.',
+        defaultsTo: false,
+        negatable: false)
+    ..addOption(OVERLAY,
+        allowed: [
+          OVERLAY_NONE,
+          OVERLAY_REMOVE_TOKEN,
+          OVERLAY_REMOVE_REST_OF_FILE
+        ],
+        defaultsTo: OVERLAY_NONE,
+        help:
+            'Before attempting a completion at the location of each token, the '
+            'token can be removed, or the rest of the file can be removed to test '
+            'code completion with diverse methods. The default mode is to '
+            'complete at the start of the token without modifying the file.');
 }
 
 /// Print usage information for this tool.
@@ -186,6 +204,8 @@ class CompletionMetricsComputer {
 
   final bool verbose;
 
+  final bool availableSuggestions;
+
   final String overlay;
 
   ResolvedUnitResult _resolvedUnitResult;
@@ -202,7 +222,8 @@ class CompletionMetricsComputer {
 
   int overlayModificationStamp = 0;
 
-  CompletionMetricsComputer(this.rootPath, {this.verbose, this.overlay})
+  CompletionMetricsComputer(this.rootPath,
+      {this.verbose, this.availableSuggestions, this.overlay})
       : assert(overlay == OVERLAY_NONE ||
             overlay == OVERLAY_REMOVE_TOKEN ||
             overlay == OVERLAY_REMOVE_REST_OF_FILE);
@@ -385,8 +406,10 @@ class CompletionMetricsComputer {
       ResolvedUnitResult resolvedUnitResult,
       int offset,
       CompletionMetrics metrics,
-      [bool useNewRelevance = false]) async {
-    var completionRequestImpl = CompletionRequestImpl(
+      [bool useNewRelevance = false,
+      DeclarationsTracker declarationsTracker,
+      CompletionAvailableSuggestionsParams availableSuggestionsParams]) async {
+    var completionRequest = CompletionRequestImpl(
       resolvedUnitResult,
       offset,
       useNewRelevance,
@@ -395,32 +418,72 @@ class CompletionMetricsComputer {
 
     var stopwatch = Stopwatch()..start();
 
-    // This gets all of the suggestions with relevances.
-    var suggestions =
-        await DartCompletionManager().computeSuggestions(completionRequestImpl);
+    var suggestions;
 
-//    // If a non-null declarationsTracker was passed, use it to call
-//    // computeIncludedSetList, this current implementation just adds the set of
-//    // included element names with relevance 0, future implementations should
-//    // compute out the relevance that clients will set to each value.
-//    if (declarationsTracker != null) {
-//      var includedSuggestionSets = <IncludedSuggestionSet>[];
-//      var includedElementNames = <String>{};
-//
-//      computeIncludedSetList(declarationsTracker, resolvedUnitResult,
-//          includedSuggestionSets, includedElementNames);
-//
-//      for (var eltName in includedElementNames) {
-//        suggestions.add(CompletionSuggestion(
-//            CompletionSuggestionKind.INVOCATION,
-//            0,
-//            eltName,
-//            0,
-//            eltName.length,
-//            false,
-//            false));
-//      }
-//    }
+    if (declarationsTracker == null) {
+      // available suggestions == false
+      suggestions =
+          await DartCompletionManager().computeSuggestions(completionRequest);
+    } else {
+      // available suggestions == true
+      var includedElementKinds = <ElementKind>{};
+      var includedElementNames = <String>{};
+      var includedSuggestionRelevanceTagList =
+          <IncludedSuggestionRelevanceTag>[];
+      var includedSuggestionSetList = <IncludedSuggestionSet>[];
+      suggestions = await DartCompletionManager(
+              includedElementKinds: includedElementKinds,
+              includedElementNames: includedElementNames,
+              includedSuggestionRelevanceTags:
+                  includedSuggestionRelevanceTagList)
+          .computeSuggestions(completionRequest);
+
+      computeIncludedSetList(declarationsTracker, resolvedUnitResult,
+          includedSuggestionSetList, includedElementNames);
+
+      var includedSuggestionSetMap = {
+        for (var includedSuggestionSet in includedSuggestionSetList)
+          includedSuggestionSet.id: includedSuggestionSet,
+      };
+
+      var includedSuggestionRelevanceTagMap = {
+        for (var includedSuggestionRelevanceTag
+            in includedSuggestionRelevanceTagList)
+          includedSuggestionRelevanceTag.tag:
+              includedSuggestionRelevanceTag.relevanceBoost,
+      };
+
+      for (var availableSuggestionSet
+          in availableSuggestionsParams.changedLibraries) {
+        var id = availableSuggestionSet.id;
+        for (var availableSuggestion in availableSuggestionSet.items) {
+          // Exclude available suggestions where this element kind doesn't match
+          // an element kind in includedElementKinds.
+          var elementKind = availableSuggestion.element?.kind;
+          if (elementKind != null &&
+              includedElementKinds.contains(elementKind)) {
+            if (includedSuggestionSetMap.containsKey(id)) {
+              var relevance = includedSuggestionSetMap[id].relevance;
+
+              // Search for any matching relevance tags to apply any boosts
+              if (includedSuggestionRelevanceTagList.isNotEmpty &&
+                  availableSuggestion.relevanceTags != null &&
+                  availableSuggestion.relevanceTags.isNotEmpty) {
+                for (var tag in availableSuggestion.relevanceTags) {
+                  if (includedSuggestionRelevanceTagMap.containsKey(tag)) {
+                    // apply the boost
+                    relevance += includedSuggestionRelevanceTagMap[tag];
+                  }
+                }
+              }
+              suggestions
+                  .add(availableSuggestion.toCompletionSuggestion(relevance));
+            }
+          }
+        }
+      }
+    }
+
     stopwatch.stop();
     metrics.meanCompletionMS.addValue(stopwatch.elapsedMilliseconds);
 
@@ -433,8 +496,6 @@ class CompletionMetricsComputer {
   /// should be captured in the [collector].
   Future<void> _computeInContext(ContextRoot root) async {
     // Create a new collection to avoid consuming large quantities of memory.
-    // TODO(brianwilkerson) Create an OverlayResourceProvider to allow the
-    //  content of the files to be modified before computing suggestions.
     final collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
       excludedPaths: root.excludedPaths.toList(),
@@ -442,16 +503,28 @@ class CompletionMetricsComputer {
     );
 
     var context = collection.contexts[0];
-//    // Set the DeclarationsTracker, only call doWork to build up the available
-//    // suggestions if doComputeCompletionsFromAnalysisServer is true.
-//    // TODO(brianwilkerson) Add a flag to control whether available suggestions
-//    //  are to be used.
-//    var declarationsTracker = DeclarationsTracker(
-//        MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
-//    declarationsTracker.addContext(context);
-//    while (declarationsTracker.hasWork) {
-//      declarationsTracker.doWork();
-//    }
+
+    // Set the DeclarationsTracker, only call doWork to build up the available
+    // suggestions if doComputeCompletionsFromAnalysisServer is true.
+    var declarationsTracker;
+    var availableSuggestionsParams;
+    if (availableSuggestions) {
+      declarationsTracker = DeclarationsTracker(
+          MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
+      declarationsTracker.addContext(context);
+      while (declarationsTracker.hasWork) {
+        declarationsTracker.doWork();
+      }
+
+      // Have the AvailableDeclarationsSet computed to use later.
+      availableSuggestionsParams = createCompletionAvailableSuggestions(
+          declarationsTracker.allLibraries.toList(), []);
+
+      // assert that this object is not null, throw if it is.
+      if (availableSuggestionsParams == null) {
+        throw Exception('availableSuggestionsParam not computable.');
+      }
+    }
 
     // Loop through each file, resolve the file and call
     // forEachExpectedCompletion
@@ -504,7 +577,9 @@ class CompletionMetricsComputer {
                 resolvedUnitResultWithOverlay,
                 expectedCompletion.offset,
                 metricsOldMode,
-                false);
+                false,
+                declarationsTracker,
+                availableSuggestionsParams);
 
             var successfulnessUseOldRelevance = forEachExpectedCompletion(
                 expectedCompletion, suggestions, metricsOldMode, false);
@@ -514,7 +589,9 @@ class CompletionMetricsComputer {
                 resolvedUnitResultWithOverlay,
                 expectedCompletion.offset,
                 metricsNewMode,
-                true);
+                true,
+                declarationsTracker,
+                availableSuggestionsParams);
 
             var successfulnessUseNewRelevance = forEachExpectedCompletion(
                 expectedCompletion, suggestions, metricsNewMode, verbose);
@@ -615,4 +692,13 @@ class CompletionResult {
   final ExpectedCompletion expectedCompletion;
 
   CompletionResult(this.place, this.suggestions, this.expectedCompletion);
+}
+
+extension AvailableSuggestionsExtension on AvailableSuggestion {
+  // TODO(jwren) I am not sure if we want CompletionSuggestionKind.INVOCATION in
+  // call cases here, to iterate I need to figure out why this algorithm is
+  // taking so much time.
+  CompletionSuggestion toCompletionSuggestion(int relevance) =>
+      CompletionSuggestion(CompletionSuggestionKind.INVOCATION, relevance,
+          label, label.length, 0, element.isDeprecated, false);
 }
