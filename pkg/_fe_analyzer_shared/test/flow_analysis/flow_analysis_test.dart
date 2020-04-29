@@ -2829,11 +2829,11 @@ main() {
     var intType = _Type('int');
     var intQType = _Type('int?');
     var stringType = _Type('String');
-    const emptyMap = <Null, VariableModel<Null>>{};
+    const emptyMap = const <_Var, VariableModel<_Var, _Type>>{};
 
-    VariableModel<_Type> model(List<_Type> promotionChain,
+    VariableModel<_Var, _Type> model(List<_Type> promotionChain,
             [List<_Type> typesOfInterest]) =>
-        VariableModel<_Type>(promotionChain,
+        VariableModel<_Var, _Type>(promotionChain,
             typesOfInterest ?? promotionChain ?? [], false, true, false);
 
     group('without input reuse', () {
@@ -2847,7 +2847,7 @@ main() {
           x: model(null),
           y: model([intType])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2), {
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), {
           x: _matchVariableModel(chain: null, ofInterest: ['int']),
           y: _matchVariableModel(chain: null, ofInterest: ['int'])
         });
@@ -2860,7 +2860,7 @@ main() {
           x: model([intType]),
           y: model([stringType])
         };
-        expect(FlowModel.joinVariableInfo(h, p, p), same(p));
+        expect(FlowModel.joinVariableInfo(h, p, p, emptyMap), same(p));
       });
 
       test('one input empty', () {
@@ -2869,9 +2869,9 @@ main() {
           x: model([intType]),
           y: model([stringType])
         };
-        var p2 = <_Var, VariableModel<_Type>>{};
-        expect(FlowModel.joinVariableInfo(h, p1, p2), same(emptyMap));
-        expect(FlowModel.joinVariableInfo(h, p2, p1), same(emptyMap));
+        var p2 = <_Var, VariableModel<_Var, _Type>>{};
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), same(emptyMap));
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), same(emptyMap));
       });
 
       test('promoted with unpromoted', () {
@@ -2883,8 +2883,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: null, ofInterest: ['int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
       });
 
       test('related type chains', () {
@@ -2898,8 +2898,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
       });
 
       test('unrelated type chains', () {
@@ -2913,8 +2913,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: null, ofInterest: ['String', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
       });
 
       test('sub-map', () {
@@ -2925,8 +2925,8 @@ main() {
           y: model([stringType])
         };
         var p2 = {x: xModel};
-        expect(FlowModel.joinVariableInfo(h, p1, p2), same(p2));
-        expect(FlowModel.joinVariableInfo(h, p2, p1), same(p2));
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), same(p2));
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), same(p2));
       });
 
       test('sub-map with matched subtype', () {
@@ -2941,8 +2941,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
       });
 
       test('sub-map with mismatched subtype', () {
@@ -2957,8 +2957,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
       });
 
       test('assigned', () {
@@ -2967,7 +2967,7 @@ main() {
         var writtenModel = intQModel.write(intQType, _Type('Object?'), h);
         var p1 = {x: writtenModel, y: writtenModel, z: intQModel, w: intQModel};
         var p2 = {x: writtenModel, y: intQModel, z: writtenModel, w: intQModel};
-        var joined = FlowModel.joinVariableInfo(h, p1, p2);
+        var joined = FlowModel.joinVariableInfo(h, p1, p2, emptyMap);
         expect(joined, {
           x: same(writtenModel),
           y: _matchVariableModel(
@@ -2994,7 +2994,7 @@ main() {
           z: writeCapturedModel,
           w: intQModel
         };
-        var joined = FlowModel.joinVariableInfo(h, p1, p2);
+        var joined = FlowModel.joinVariableInfo(h, p1, p2, emptyMap);
         expect(joined, {
           x: same(writeCapturedModel),
           y: same(writeCapturedModel),
@@ -3053,7 +3053,7 @@ Matcher _matchVariableModel(
   Matcher assignedMatcher = wrapMatcher(assigned);
   Matcher unassignedMatcher = wrapMatcher(unassigned);
   Matcher writeCapturedMatcher = wrapMatcher(writeCaptured);
-  return predicate((VariableModel<_Type> model) {
+  return predicate((VariableModel<_Var, _Type> model) {
     if (!chainMatcher.matches(model.promotedTypes, {})) return false;
     if (!ofInterestMatcher.matches(model.tested, {})) return false;
     if (!assignedMatcher.matches(model.assigned, {})) return false;
