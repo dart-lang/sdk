@@ -2086,11 +2086,8 @@ class FieldInvalidator {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     bool null_safety = isolate->null_safety();
+    HANDLESCOPE(thread);
     for (intptr_t i = 0; i < instances.length(); i++) {
-      // This handle scope does run very frequently, but is a net-win by
-      // preventing us from spending too much time in malloc for new handle
-      // blocks.
-      HANDLESCOPE(thread);
       CheckInstance(null_safety, *instances[i]);
     }
   }

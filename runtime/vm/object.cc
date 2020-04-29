@@ -2870,11 +2870,10 @@ void Class::InitEmptyFields() {
 }
 
 ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
-  Array& array = Array::Handle(raw_ptr()->offset_in_words_to_field_);
-  if (array.IsNull()) {
+  if (raw_ptr()->offset_in_words_to_field_ == Array::null()) {
     ASSERT(is_finalized());
     const intptr_t length = raw_ptr()->host_instance_size_in_words_;
-    array = Array::New(length, Heap::kOld);
+    const Array& array = Array::Handle(Array::New(length, Heap::kOld));
     Class& cls = Class::Handle(this->raw());
     Array& fields = Array::Handle();
     Field& f = Field::Handle();
@@ -2890,7 +2889,7 @@ ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
     }
     StorePointer(&raw_ptr()->offset_in_words_to_field_, array.raw());
   }
-  return array.raw();
+  return raw_ptr()->offset_in_words_to_field_;
 }
 
 bool Class::HasInstanceFields() const {
