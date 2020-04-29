@@ -134,6 +134,9 @@ bool validArguments(ArgParser parser, ArgResults result) {
 /// A wrapper for the collection of [Counter] and [MeanReciprocalRankComputer]
 /// objects for a run of [CompletionMetricsComputer].
 class CompletionMetrics {
+  /// The maximum number of longest results to collect.
+  static const maxLongestResults = 10;
+
   /// The maximum number of worst results to collect.
   static const maxWorstResults = 10;
 
@@ -182,10 +185,16 @@ class CompletionMetrics {
   /// (worst) ranks.
   List<CompletionResult> worstResults = [];
 
+  /// A list of the top [maxLongestResults] completion results with the highest
+  /// (worst) ranks.
+  List<CompletionResult> longestResults = [];
+
   CompletionMetrics(this.name);
 
-  /// If the [result] is worse than any previously recorded results, record it.
+  /// Record this completion result, this method handles the worst ranked items
+  /// as well as the longest sets of results to compute.
   void recordCompletionResult(CompletionResult result) {
+    // If the [result] is worse than any previously recorded results, record it.
     if (worstResults.length >= maxWorstResults) {
       if (result.place.rank <= worstResults.last.place.rank) {
         return;
@@ -194,6 +203,20 @@ class CompletionMetrics {
     }
     worstResults.add(result);
     worstResults.sort((first, second) => second.place.rank - first.place.rank);
+
+    // Record this elapsed ms count for the average ms count.
+    meanCompletionMS.addValue(result.elapsedMS);
+
+    // If the [result] is took longer than any previously recorded results,
+    // record it.
+    if (longestResults.length >= maxLongestResults) {
+      if (result.elapsedMS <= longestResults.last.elapsedMS) {
+        return;
+      }
+      longestResults.removeLast();
+    }
+    longestResults.add(result);
+    longestResults.sort((first, second) => second.elapsedMS - first.elapsedMS);
   }
 }
 
@@ -244,6 +267,7 @@ class CompletionMetricsComputer {
     printMetrics(metricsNewMode);
     if (verbose) {
       printWorstResults(metricsNewMode);
+      printLongestResults(metricsNewMode);
     }
     return resultCode;
   }
@@ -252,6 +276,7 @@ class CompletionMetricsComputer {
       ExpectedCompletion expectedCompletion,
       List<CompletionSuggestion> suggestions,
       CompletionMetrics metrics,
+      int elapsedMS,
       bool doPrintMissedCompletions) {
     assert(suggestions != null);
 
@@ -268,7 +293,7 @@ class CompletionMetricsComputer {
       metrics.completionCounter.count('successful');
 
       metrics.recordCompletionResult(
-          CompletionResult(place, suggestions, expectedCompletion));
+          CompletionResult(place, suggestions, expectedCompletion, elapsedMS));
 
       var element = getElement(expectedCompletion.syntacticEntity);
       if (isInstanceMember(element)) {
@@ -314,6 +339,22 @@ class CompletionMetricsComputer {
       }
     }
     return successfulCompletion;
+  }
+
+  void printLongestResults(CompletionMetrics metrics) {
+    print('');
+    print('====================');
+    print('The longest completion results to compute:');
+    for (var result in metrics.longestResults) {
+      var elapsedMS = result.elapsedMS;
+      var expected = result.expectedCompletion;
+      print('');
+      print('Elapsed ms: $elapsedMS');
+      print('Completion: ${expected.completion}');
+      print('Completion kind: ${expected.kind}');
+      print('Element kind: ${expected.elementKind}');
+      print('Location: ${expected.location}');
+    }
   }
 
   void printMetrics(CompletionMetrics metrics) {
@@ -378,7 +419,7 @@ class CompletionMetricsComputer {
       print('Completion: ${expected.completion}');
       print('Completion kind: ${expected.kind}');
       print('Element kind: ${expected.elementKind}');
-      print('Offset: ${expected.offset}');
+      print('Location: ${expected.location}');
       print('Preceeding: $preceeding');
       print('Suggestion: ${suggestions[rank - 1]}');
     }
@@ -416,8 +457,6 @@ class CompletionMetricsComputer {
       useNewRelevance,
       CompletionPerformance(),
     );
-
-    var stopwatch = Stopwatch()..start();
 
     var suggestions;
 
@@ -486,9 +525,6 @@ class CompletionMetricsComputer {
         }
       }
     }
-
-    stopwatch.stop();
-    metrics.meanCompletionMS.addValue(stopwatch.elapsedMilliseconds);
 
     suggestions.sort(completionComparator);
     return suggestions;
@@ -576,6 +612,7 @@ class CompletionMetricsComputer {
 
             // First we compute the completions useNewRelevance set to
             // false:
+            var stopwatch = Stopwatch()..start();
             var suggestions = await _computeCompletionSuggestions(
                 resolvedUnitResultWithOverlay,
                 expectedCompletion.offset,
@@ -583,11 +620,17 @@ class CompletionMetricsComputer {
                 false,
                 declarationsTracker,
                 availableSuggestionsParams);
+            stopwatch.stop();
 
             var successfulnessUseOldRelevance = forEachExpectedCompletion(
-                expectedCompletion, suggestions, metricsOldMode, false);
+                expectedCompletion,
+                suggestions,
+                metricsOldMode,
+                stopwatch.elapsedMilliseconds,
+                false);
 
             // And again here with useNewRelevance set to true:
+            stopwatch = Stopwatch()..start();
             suggestions = await _computeCompletionSuggestions(
                 resolvedUnitResultWithOverlay,
                 expectedCompletion.offset,
@@ -595,9 +638,14 @@ class CompletionMetricsComputer {
                 true,
                 declarationsTracker,
                 availableSuggestionsParams);
+            stopwatch.stop();
 
             var successfulnessUseNewRelevance = forEachExpectedCompletion(
-                expectedCompletion, suggestions, metricsNewMode, verbose);
+                expectedCompletion,
+                suggestions,
+                metricsNewMode,
+                stopwatch.elapsedMilliseconds,
+                verbose);
 
             if (verbose &&
                 successfulnessUseOldRelevance !=
@@ -694,7 +742,10 @@ class CompletionResult {
 
   final ExpectedCompletion expectedCompletion;
 
-  CompletionResult(this.place, this.suggestions, this.expectedCompletion);
+  final int elapsedMS;
+
+  CompletionResult(
+      this.place, this.suggestions, this.expectedCompletion, this.elapsedMS);
 }
 
 extension AvailableSuggestionsExtension on AvailableSuggestion {
