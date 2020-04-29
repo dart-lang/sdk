@@ -895,6 +895,7 @@ room
 rooted
 roughly
 rounding
+roundtrip
 rparen
 rpc
 rs
