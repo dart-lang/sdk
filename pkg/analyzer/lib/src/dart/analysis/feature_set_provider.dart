@@ -38,12 +38,8 @@ class FeatureSetProvider {
     var package = _packages.packageForPath(path);
     if (package != null) {
       var languageVersion = package.languageVersion;
-      if (languageVersion == null ||
-          languageVersion == ExperimentStatus.currentVersion) {
-        return _packageDefaultFeatureSet;
-      } else {
-        return _packageDefaultFeatureSet.restrictToVersion(languageVersion);
-      }
+      languageVersion ??= ExperimentStatus.currentVersion;
+      return _packageDefaultFeatureSet.restrictToVersion(languageVersion);
     }
 
     return _nonPackageDefaultFeatureSet;
