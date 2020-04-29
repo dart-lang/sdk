@@ -20,6 +20,7 @@ import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:args/args.dart';
@@ -422,8 +423,9 @@ class CompletionMetricsComputer {
 
     if (declarationsTracker == null) {
       // available suggestions == false
-      suggestions =
-          await DartCompletionManager().computeSuggestions(completionRequest);
+      suggestions = await DartCompletionManager(
+              dartdocDirectiveInfo: DartdocDirectiveInfo())
+          .computeSuggestions(completionRequest);
     } else {
       // available suggestions == true
       var includedElementKinds = <ElementKind>{};
@@ -432,6 +434,7 @@ class CompletionMetricsComputer {
           <IncludedSuggestionRelevanceTag>[];
       var includedSuggestionSetList = <IncludedSuggestionSet>[];
       suggestions = await DartCompletionManager(
+              dartdocDirectiveInfo: DartdocDirectiveInfo(),
               includedElementKinds: includedElementKinds,
               includedElementNames: includedElementNames,
               includedSuggestionRelevanceTags:
