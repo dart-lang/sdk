@@ -23,9 +23,7 @@ main() {
 }
 
 class _MigrationCli extends MigrationCli {
-  Completer<void> _previewServerStartedCompleter;
-
-  Completer<void> _signalInterruptCompleter;
+  Future<void> Function() _runWhilePreviewServerActive;
 
   _MigrationCli(_MigrationCliTest test)
       : super(
@@ -35,20 +33,18 @@ class _MigrationCli extends MigrationCli {
             resourceProvider: test.resourceProvider);
 
   @override
-  Future<void> blockUntilSignalInterrupt() {
-    _previewServerStartedCompleter.complete();
-    _signalInterruptCompleter = Completer<void>();
-    return _signalInterruptCompleter.future;
+  Future<void> blockUntilSignalInterrupt() async {
+    await _runWhilePreviewServerActive?.call();
+    _runWhilePreviewServerActive = null;
   }
 
   Future<void> runWithPreviewServer(
       List<String> args, Future<void> callback()) async {
-    _previewServerStartedCompleter = Completer<void>();
-    var done = run(args);
-    await _previewServerStartedCompleter.future;
-    await callback();
-    _signalInterruptCompleter.complete();
-    return done;
+    _runWhilePreviewServerActive = callback;
+    await run(args);
+    if (_runWhilePreviewServerActive != null) {
+      fail('Preview server never started');
+    }
   }
 }
 
