@@ -18,14 +18,15 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(_MigrationCliTest);
+    defineReflectiveTests(_MigrationCliTestPosix);
+    defineReflectiveTests(_MigrationCliTestWindows);
   });
 }
 
 class _MigrationCli extends MigrationCli {
   Future<void> Function() _runWhilePreviewServerActive;
 
-  _MigrationCli(_MigrationCliTest test)
+  _MigrationCli(_MigrationCliTestBase test)
       : super(
             binaryName: 'nnbd_migration',
             loggerFactory: (isVerbose) => test.logger = _TestLogger(isVerbose),
@@ -48,15 +49,19 @@ class _MigrationCli extends MigrationCli {
   }
 }
 
-@reflectiveTest
-class _MigrationCliTest {
+abstract class _MigrationCliTestBase {
+  void set logger(_TestLogger logger);
+
+  MemoryResourceProvider get resourceProvider;
+}
+
+mixin _MigrationCliTestMethods on _MigrationCliTestBase {
+  @override
   /*late*/ _TestLogger logger;
 
   final hasVerboseHelpMessage = contains('for verbose help output');
 
   final hasUsageText = contains('Usage: nnbd_migration');
-
-  final resourceProvider = MemoryResourceProvider();
 
   String assertErrorExit(MigrationCli cli) {
     expect(cli.exitCode, isNotNull);
@@ -291,6 +296,42 @@ int${migrated ? '?' : ''} f() => null;
     var helpText = logger.stderrBuffer.toString();
     return helpText;
   }
+}
+
+@reflectiveTest
+class _MigrationCliTestPosix extends _MigrationCliTestBase
+    with _MigrationCliTestMethods {
+  @override
+  final resourceProvider;
+
+  _MigrationCliTestPosix()
+      : resourceProvider = MemoryResourceProvider(
+            context: path.style == path.Style.posix ? null : path.posix);
+}
+
+@reflectiveTest
+class _MigrationCliTestWindows extends _MigrationCliTestBase
+    with _MigrationCliTestMethods {
+  @override
+  final resourceProvider;
+
+  _MigrationCliTestWindows()
+      : resourceProvider = MemoryResourceProvider(
+            context: path.style == path.Style.windows
+                ? null
+                : path.Context(style: path.Style.windows, current: 'C:\\'));
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40381')
+  @override
+  test_lifecycle_apply_changes() => super.test_lifecycle_apply_changes();
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40381')
+  @override
+  test_lifecycle_no_preview() => super.test_lifecycle_no_preview();
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40381')
+  @override
+  test_lifecycle_preview() => super.test_lifecycle_preview();
 }
 
 /// TODO(paulberry): move into cli_util
