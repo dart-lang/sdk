@@ -31,10 +31,10 @@ class NonNullableFix extends FixCodeTask {
 
   // TODO(srawlins): Refactor to use
   //  `Feature.non_nullable.firstSupportedVersion` when this becomes non-null.
-  static const String _intendedMinimumSdkVersion = '2.8.0';
+  static const String _intendedMinimumSdkVersion = '2.9.0';
 
   static const String _intendedSdkVersionConstraint =
-      '>=$_intendedMinimumSdkVersion <3.0.0';
+      '>=$_intendedMinimumSdkVersion <2.10.0';
 
   final int preferredPort;
 
@@ -193,7 +193,7 @@ environment:
         insertAfterParent(environmentOptions.span, content);
       } else if (sdk is YamlScalar) {
         var currentConstraint = VersionConstraint.parse(sdk.value);
-        var minimumVersion = Version.parse('2.8.0');
+        var minimumVersion = Version.parse(_intendedMinimumSdkVersion);
         if (currentConstraint is VersionRange &&
             currentConstraint.min >= minimumVersion) {
           // The current SDK version constraint already enables Null Safety.
