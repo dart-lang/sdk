@@ -145,6 +145,7 @@ main() {
               .parameterTypes
               .first;
         }
+        type = type.withoutNullability;
         Expect.isTrue(type is TypeVariableType,
             "Unexpected member type for $member: $type");
         TypeVariableType typeVariable = type;
