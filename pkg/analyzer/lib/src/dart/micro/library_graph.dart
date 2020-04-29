@@ -226,6 +226,11 @@ class FileState {
     directReferencedLibraries..addAll(importedFiles)..addAll(exportedFiles);
   }
 
+  @override
+  String toString() {
+    return path;
+  }
+
   FileState _fileForRelativeUri(String relativeUri) {
     if (relativeUri.isEmpty) {
       return _fsState.unresolvedFile;
@@ -415,7 +420,13 @@ class FileSystemState {
     removedFiles.add(file);
     _uriToFile.remove(file.uri);
 
-    for (var reference in file.referencingFiles) {
+    // The removed file does not reference other file anymore.
+    for (var referencedFile in file.directReferencedFiles) {
+      referencedFile.referencingFiles.remove(file);
+    }
+
+    // Recursively remove files that reference the removed file.
+    for (var reference in file.referencingFiles.toList()) {
       changeFile(reference.path, removedFiles);
     }
   }
