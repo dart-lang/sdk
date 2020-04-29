@@ -1935,7 +1935,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // ```dart
   // %uri="lib/optedOut.dart"
-  // // @dart = 2.9
+  // // @dart = 2.8
   // String s;
   // ```
   //

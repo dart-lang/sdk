@@ -1781,7 +1781,7 @@ of null safety.
 Given a library that is opted out of null safety:
 
 {% prettify dart %}
-// @dart = 2.9
+// @dart = 2.8
 String s;
 {% endprettify %}
 
@@ -5407,7 +5407,7 @@ class B implements A {
 
 ### redirect_to_invalid_return_type
 
-_The return type '{0}' of the redirected constructor isn't assignable to '{1}'._
+_The return type '{0}' of the redirected constructor isn't a subtype of '{1}'._
 
 #### Description
 
