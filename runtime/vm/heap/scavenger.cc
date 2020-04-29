@@ -1499,7 +1499,10 @@ void Scavenger::AbandonRemainingTLABForDebugging(Thread* thread) {
 void Scavenger::AbandonRemainingTLAB(Thread* thread) {
   if (thread->top() == 0) return;
   NewPage* page = NewPage::Of(thread->top() - 1);
-  page->Release(thread);
+  {
+    MutexLocker ml(&space_lock_);
+    page->Release(thread);
+  }
   ASSERT(thread->top() == 0);
 }
 
