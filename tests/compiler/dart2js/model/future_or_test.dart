@@ -8,7 +8,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
-import '../helpers/compiler_helper.dart';
+import '../helpers/memory_compiler.dart';
 import '../helpers/type_test_helper.dart';
 
 main() {

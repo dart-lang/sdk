@@ -61,7 +61,7 @@ Future<D8Result> runWithD8(
   }
 
   List<String> d8Args = [
-    'sdk/lib/_internal/js_runtime/lib/preambles/d8.js',
+    '$sdkPath/_internal/js_runtime/lib/preambles/d8.js',
     output
   ];
   if (printSteps) print('Running: d8 ${d8Args.join(' ')}');
