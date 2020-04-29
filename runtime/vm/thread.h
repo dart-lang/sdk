@@ -19,6 +19,7 @@
 #include "vm/globals.h"
 #include "vm/handles.h"
 #include "vm/heap/pointer_block.h"
+#include "vm/heap/tlab.h"
 #include "vm/os_thread.h"
 #include "vm/random.h"
 #include "vm/runtime_entry_list.h"
@@ -494,10 +495,13 @@ class Thread : public ThreadState {
   Heap* heap() const { return heap_; }
   static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
 
-  uword top() const { return top_; }
-  uword end() const { return end_; }
-  void set_top(uword top) { top_ = top; }
-  void set_end(uword end) { end_ = end; }
+  void set_tlab(TLAB tlab) {
+    top_ = tlab.top;
+    end_ = tlab.end;
+  }
+
+  TLAB tlab() { return TLAB(top_, end_); }
+
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
 

@@ -776,6 +776,9 @@ bool Heap::VerifyGC(MarkExpectation mark_expectation) {
   auto thread = Thread::Current();
   StackZone stack_zone(thread);
 
+  // Change the new space's top_ with the more up-to-date thread's view of top_
+  new_space_.MakeNewSpaceIterable();
+
   ObjectSet* allocated_set =
       CreateAllocatedObjectSet(stack_zone.GetZone(), mark_expectation);
   VerifyPointersVisitor visitor(isolate_group(), allocated_set);

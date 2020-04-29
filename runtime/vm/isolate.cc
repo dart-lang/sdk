@@ -422,6 +422,8 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     os_thread->set_thread(thread);
     Thread::SetCurrent(thread);
     os_thread->EnableThreadInterrupts();
+
+    thread->heap()->new_space()->TryAcquireCachedTLAB(thread);
   }
   return thread;
 }
@@ -430,7 +432,7 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
                                           Thread* thread,
                                           bool is_mutator,
                                           bool bypass_safepoint) {
-  thread->heap()->new_space()->AbandonRemainingTLAB(thread);
+  thread->heap()->new_space()->ReleaseAndCacheTLAB(thread);
 
   // Clear since GC will not visit the thread once it is unscheduled. Do this
   // under the thread lock to prevent races with the GC visiting thread roots.
