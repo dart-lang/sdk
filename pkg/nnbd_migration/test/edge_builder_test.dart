@@ -6921,6 +6921,140 @@ f() => A().s = null;
     assertEdge(string1.node, string2.node, hard: true);
   }
 
+  Future<void> test_setupAssignment_assignment_inDistantSetUp() async {
+    addTestCorePackage();
+    await analyze('''
+import 'package:test/test.dart';
+void main() {
+  int i;
+  // There could be tests here in which [i] is not certain to have been
+  // assigned.
+
+  group('g2', () {
+    setUp(() {
+      i = 1;
+    });
+  });
+}
+''');
+
+    assertNoEdge(graph.never, decoratedTypeAnnotation('int').node);
+  }
+
+  Future<void> test_setupAssignment_assignment_inSetUp() async {
+    addTestCorePackage();
+    await analyze('''
+import 'package:test/test.dart';
+void main() {
+  int i;
+    int j = 1;
+  setUp(() {
+    i = j;
+  });
+}
+''');
+
+    assertNullCheck(
+        checkExpression('j;'),
+        assertEdge(decoratedTypeAnnotation('int j').node,
+            decoratedTypeAnnotation('int i').node,
+            hard: false, isSetupAssignment: true));
+  }
+
+  Future<void> test_setupAssignment_assignment_inUnrelatedSetUp() async {
+    addTestCorePackage();
+    await analyze('''
+import 'package:test/test.dart';
+void main() {
+  group('g1', () {
+    int/*1*/ i;
+  });
+
+  group('g2', () {
+    int/*2*/ i;
+    int j = 1;
+    setUp(() {
+      i = j;
+    });
+  });
+}
+''');
+
+    assertNoEdge(graph.never, decoratedTypeAnnotation('int/*1*/').node);
+    assertNullCheck(
+        checkExpression('j;'),
+        assertEdge(decoratedTypeAnnotation('int j').node,
+            decoratedTypeAnnotation('int/*2*/').node,
+            hard: false, isSetupAssignment: true));
+  }
+
+  Future<void> test_setupAssignment_assignment_inWrongSetUp() async {
+    addTestCorePackage();
+    await analyze('''
+import 'package:test/test.dart' as t;
+void main() {
+  int i;
+  setUp(() {
+    i = 1;
+  });
+}
+void setUp(dynamic callback()) {}
+''');
+
+    assertNoEdge(graph.never, decoratedTypeAnnotation('int').node);
+  }
+
+  Future<void> test_setupAssignment_assignment_outsideSetUp() async {
+    addTestCorePackage();
+    await analyze('''
+import 'package:test/test.dart';
+void main() {
+  int i;
+  i = 1;
+}
+''');
+
+    assertNoEdge(graph.never, decoratedTypeAnnotation('int').node);
+  }
+
+  Future<void> test_setupAssignment_assignment_toField() async {
+    addTestCorePackage();
+    await analyze('''
+import 'package:test/test.dart';
+void main() {
+  setUp(() {
+    C c = C();
+    c.i = 1;
+  });
+}
+class C {
+  int i;
+}
+''');
+
+    assertNoEdge(graph.never, decoratedTypeAnnotation('int').node);
+  }
+
+  Future<void> test_setupAssignment_nullAwareAssignment_inSetUp() async {
+    addTestCorePackage();
+    await analyze('''
+import 'package:test/test.dart';
+void main() {
+  int i;
+    int j = 1;
+  setUp(() {
+    i ??= j;
+  });
+}
+''');
+
+    var iNullable = decoratedTypeAnnotation('int i').node;
+    assertNullCheck(
+        checkExpression('j;'),
+        assertEdge(decoratedTypeAnnotation('int j').node, iNullable,
+            hard: false, guards: [iNullable], isSetupAssignment: true));
+  }
+
   Future<void> test_simpleIdentifier_bangHint() async {
     await analyze('''
 int f1(int i1) => i1;

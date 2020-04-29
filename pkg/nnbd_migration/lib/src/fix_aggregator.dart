@@ -699,6 +699,17 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
   }
 }
 
+/// Reasons that a variable declaration is to be made late.
+enum LateAdditionReason {
+  /// It was inferred that the associated variable declaration is to be made
+  /// late through the late-inferring algorithm.
+  inference,
+
+  /// It was inferred that the associated variable declaration is to be made
+  /// late, because it is a test variable which is assigned during setup.
+  testVariableInference,
+}
+
 /// Implementation of [NodeChange] specialized for operating on
 /// [VariableDeclarationList] nodes.
 class NodeChangeForVariableDeclarationList
@@ -709,7 +720,7 @@ class NodeChangeForVariableDeclarationList
 
   /// Indicates whether a "late" annotation should be added to this variable
   /// declaration, caused by inference.
-  bool addLate = false;
+  LateAdditionReason lateAdditionReason;
 
   /// If a "late" annotation should be added to this variable declaration, and
   /// the cause is a "late" hint, the hint that caused it.  Otherwise `null`.
@@ -720,8 +731,11 @@ class NodeChangeForVariableDeclarationList
   @override
   EditPlan _apply(VariableDeclarationList node, FixAggregator aggregator) {
     List<EditPlan> innerPlans = [];
-    if (addLate) {
-      var info = AtomicEditInfo(NullabilityFixDescription.addLate, {});
+    if (lateAdditionReason != null) {
+      var description = lateAdditionReason == LateAdditionReason.inference
+          ? NullabilityFixDescription.addLate
+          : NullabilityFixDescription.addLateDueToTestSetup;
+      var info = AtomicEditInfo(description, {});
       innerPlans.add(aggregator.planner.insertText(
           node,
           node.firstTokenAfterCommentAndMetadata.offset,

@@ -5008,6 +5008,118 @@ void h() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_testVariable_hasInitializer() async {
+    addTestCorePackage();
+    var content = '''
+import 'package:test/test.dart';
+void main() {
+  int i = 1;
+  setUp(() {
+    i = 1;
+  });
+}
+''';
+    var expected = '''
+import 'package:test/test.dart';
+void main() {
+  int i = 1;
+  setUp(() {
+    i = 1;
+  });
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_testVariable_assignedNullableValue() async {
+    addTestCorePackage();
+    var content = '''
+import 'package:test/test.dart';
+void main() {
+  int i;
+  setUp(() {
+    i = null;
+  });
+  test('a', () {
+    i.isEven;
+  });
+}
+''';
+    var expected = '''
+import 'package:test/test.dart';
+void main() {
+  int? i;
+  setUp(() {
+    i = null;
+  });
+  test('a', () {
+    i!.isEven;
+  });
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_testVariable_downstreamAllNonNull() async {
+    addTestCorePackage();
+    var content = '''
+import 'package:test/test.dart';
+void main() {
+  int i;
+  setUp(() {
+    i = 1;
+  });
+  test('a', () {
+    i.isEven;
+  });
+}
+''';
+    var expected = '''
+import 'package:test/test.dart';
+void main() {
+  late int i;
+  setUp(() {
+    i = 1;
+  });
+  test('a', () {
+    i.isEven;
+  });
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_testVariable_usedAsNullable() async {
+    addTestCorePackage();
+    var content = '''
+import 'package:test/test.dart';
+void main() {
+  int i;
+  setUp(() {
+    i = 1;
+  });
+  test('a', () {
+    f(i);
+  });
+  f(int /*?*/ i) {}
+}
+''';
+    var expected = '''
+import 'package:test/test.dart';
+void main() {
+  late int i;
+  setUp(() {
+    i = 1;
+  });
+  test('a', () {
+    f(i);
+  });
+  f(int? i) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_topLevelFunction_parameterType_implicit_dynamic() async {
     var content = '''
 Object f(x) => x;

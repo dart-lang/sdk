@@ -9,6 +9,7 @@ import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../abstract_context.dart';
 import 'nnbd_migration_test_base.dart';
 
 void main() {
@@ -43,7 +44,8 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
     var response = renderRegion(3);
-    expect(response.path, equals(convertPath('/project/bin/test.dart')));
+    expect(response.path,
+        equals(convertPath('${AbstractContextTest.testsPath}/bin/test.dart')));
     expect(response.line, equals(1));
   }
 
@@ -58,7 +60,8 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     await buildInfoForSingleTestFile('f(int a) => a.isEven;',
         migratedContent: 'f(int  a) => a.isEven;');
     var response = renderRegion(5);
-    expect(response.path, equals(convertPath('/project/bin/test.dart')));
+    expect(response.path,
+        equals(convertPath('${AbstractContextTest.testsPath}/bin/test.dart')));
     expect(response.line, equals(1));
   }
 }

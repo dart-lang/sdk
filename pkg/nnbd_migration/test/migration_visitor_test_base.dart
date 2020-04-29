@@ -193,6 +193,7 @@ mixin EdgeTester {
     return {for (var edge in getEdges(anyNode, graph.never)) edge.sourceNode};
   }
 
+  /// Asserts that a dummy edge exists from [source] to always.
   NullabilityEdge assertDummyEdge(Object source) =>
       assertEdge(source, graph.always, hard: false, checkable: false);
 
@@ -201,10 +202,11 @@ mixin EdgeTester {
   ///
   /// [source] and [destination] are converted to [NodeMatcher] objects if they
   /// aren't already.  In practice this means that the caller can pass in either
-  //  /// a [NodeMatcher] or a [NullabilityNode].
+  /// a [NodeMatcher] or a [NullabilityNode].
   NullabilityEdge assertEdge(Object source, Object destination,
       {@required bool hard,
       bool checkable = true,
+      bool isSetupAssignment = false,
       Object guards = isEmpty,
       Object codeReference}) {
     var edges = getEdges(source, destination);
@@ -216,6 +218,7 @@ mixin EdgeTester {
       var edge = edges[0];
       expect(edge.isHard, hard);
       expect(edge.isCheckable, checkable);
+      expect(edge.isSetupAssignment, isSetupAssignment);
       expect(edge.guards, guards);
       if (codeReference != null) {
         expect(edge.codeReference, codeReference);
