@@ -253,6 +253,8 @@ void print(Object? object) {}
 
 class ArgumentError extends Error {
   ArgumentError([message]);
+  
+  static T checkNotNull<T>(T argument, [String, name]) => argument;
 }
 
 abstract class bool extends Object {

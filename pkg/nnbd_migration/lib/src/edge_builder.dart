@@ -1187,6 +1187,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _variables.recordDecoratedExpressionType(node, expressionType);
       }
     }
+    _handleArgumentErrorCheckNotNull(node);
     return expressionType;
   }
 
@@ -2090,6 +2091,30 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // bounds if applicable.
     return _variables
         .decoratedTypeParameterBound((type.type as TypeParameterType).element);
+  }
+
+  void _handleArgumentErrorCheckNotNull(MethodInvocation node) {
+    var callee = node.methodName.staticElement;
+    var calleeIsStatic = callee is ExecutableElement && callee.isStatic;
+    var target = node.realTarget;
+    bool targetIsArgumentError =
+        (target is SimpleIdentifier && target.name == 'ArgumentError') ||
+            (target is PrefixedIdentifier &&
+                target.identifier.name == 'ArgumentError');
+
+    if (calleeIsStatic &&
+        targetIsArgumentError &&
+        callee.name == 'checkNotNull' &&
+        node.argumentList.arguments.isNotEmpty) {
+      var argument = node.argumentList.arguments.first;
+      if (argument is SimpleIdentifier &&
+          _postDominatedLocals.isReferenceInScope(argument)) {
+        var argumentType =
+            _variables.decoratedElementType(argument.staticElement);
+        _graph.makeNonNullable(argumentType.node,
+            ArgumentErrorCheckNotNullOrigin(source, argument));
+      }
+    }
   }
 
   /// Creates the necessary constraint(s) for an assignment of the given

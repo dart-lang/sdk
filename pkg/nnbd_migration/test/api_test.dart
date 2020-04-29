@@ -5166,6 +5166,32 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_argumentError_checkNotNull_implies_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  ArgumentError.checkNotNull(i);
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  ArgumentError.checkNotNull(i);
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_topLevelVariable_uninitalized_used() async {
     var content = '''
 String s;

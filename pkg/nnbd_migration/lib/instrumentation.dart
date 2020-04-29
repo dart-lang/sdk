@@ -222,6 +222,7 @@ abstract class EdgeOriginInfo {
 enum EdgeOriginKind {
   alreadyMigratedType,
   alwaysNullableType,
+  argumentErrorCheckNotNull,
   compoundAssignment,
   // See [DummyOrigin].
   dummy,

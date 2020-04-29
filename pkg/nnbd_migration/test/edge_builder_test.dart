@@ -578,6 +578,42 @@ double f() => double.NAN;
         hard: false);
   }
 
+  Future<void> test_ArgumentError_checkNotNull_not_postDominating() async {
+    await analyze('''
+void f(bool b, int i, int j) {
+  ArgumentError.checkNotNull(j);
+  if (b) return;
+  ArgumentError.checkNotNull(i);
+}
+''');
+
+    // Asserts after ifs don't demonstrate non-null intent.
+    assertNoEdge(decoratedTypeAnnotation('int i').node, never);
+    // But asserts before ifs do
+    assertEdge(decoratedTypeAnnotation('int j').node, never, hard: true);
+  }
+
+  Future<void> test_ArgumentError_checkNotNull_postDominating() async {
+    await analyze('''
+void f(int i) {
+  ArgumentError.checkNotNull(i);
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
+  }
+
+  Future<void> test_ArgumentError_checkNotNull_prefixed() async {
+    await analyze('''
+import 'dart:core' as core;
+void f(core.int i) {
+  core.ArgumentError.checkNotNull(i);
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
+  }
+
   Future<void> test_as_dynamic() async {
     await analyze('''
 void f(Object o) {
