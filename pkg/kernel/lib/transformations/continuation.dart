@@ -467,6 +467,7 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
   }
 
   TreeNode visitVariableSet(VariableSet node) {
+    node.transformChildren(this);
     if (shadowedParameters.containsKey(node.variable)) {
       // Fill in placeholder.
       if (shadowedParameters[node.variable] == null) {
