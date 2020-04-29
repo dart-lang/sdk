@@ -101,9 +101,13 @@ main(List<String> args) async {
       'seconds');
   print('${listener.numTypesMadeNullable} types made nullable');
   print('${listener.numNullChecksAdded} null checks added');
+  print('${listener.numVariablesMarkedLate} variables marked late');
+  print('${listener.numInsertedCasts} casts inserted');
+  print('${listener.numInsertedParenthesis} parenthesis groupings inserted');
   print('${listener.numMetaImportsAdded} meta imports added');
   print('${listener.numRequiredAnnotationsAdded} required annotations added');
   print('${listener.numDeadCodeSegmentsFound} dead code segments found');
+  print('and ${listener.numOtherEdits} other edits not categorized');
   print('${listener.numExceptions} exceptions in '
       '${listener.groupedExceptions.length} categories');
 
@@ -123,25 +127,6 @@ main(List<String> args) async {
     print('\n(Note: to show stack traces & nodes for a particular failure,'
         ' rerun with a search string as an argument.)');
   }
-}
-
-class ExceptionCategory {
-  final String topOfStack;
-  final List<MapEntry<String, int>> exceptionCountPerPackage;
-
-  ExceptionCategory(this.topOfStack, Map<String, int> exceptions)
-      : this.exceptionCountPerPackage = exceptions.entries.toList()
-          ..sort((e1, e2) => e2.value.compareTo(e1.value));
-
-  int get count => exceptionCountPerPackage.length;
-
-  List<String> get packageNames =>
-      [for (var entry in exceptionCountPerPackage) entry.key];
-
-  Iterable<String> get packageNamesAndCounts =>
-      exceptionCountPerPackage.map((entry) => '${entry.key} x${entry.value}');
-
-  String toString() => '$topOfStack (${packageNamesAndCounts.join(', ')})';
 }
 
 ArgResults parseArguments(List<String> args) {
@@ -241,6 +226,25 @@ void warnOnNoSdkNnbd(Sdk sdk) {
       'SDK at ${sdk.sdkPath} not compiled with --nnbd, use --sdk option');
 }
 
+class ExceptionCategory {
+  final String topOfStack;
+  final List<MapEntry<String, int>> exceptionCountPerPackage;
+
+  ExceptionCategory(this.topOfStack, Map<String, int> exceptions)
+      : this.exceptionCountPerPackage = exceptions.entries.toList()
+          ..sort((e1, e2) => e2.value.compareTo(e1.value));
+
+  int get count => exceptionCountPerPackage.length;
+
+  List<String> get packageNames =>
+      [for (var entry in exceptionCountPerPackage) entry.key];
+
+  Iterable<String> get packageNamesAndCounts =>
+      exceptionCountPerPackage.map((entry) => '${entry.key} x${entry.value}');
+
+  String toString() => '$topOfStack (${packageNamesAndCounts.join(', ')})';
+}
+
 class _Listener implements NullabilityMigrationListener {
   /// Set this to `true` to cause just the exception nodes to be printed when
   /// `_Listener.categoryOfInterest` is non-null.  Set this to `false` to cause
@@ -258,6 +262,12 @@ class _Listener implements NullabilityMigrationListener {
 
   int numTypesMadeNullable = 0;
 
+  int numVariablesMarkedLate = 0;
+
+  int numInsertedCasts = 0;
+
+  int numInsertedParenthesis = 0;
+
   int numNullChecksAdded = 0;
 
   int numMetaImportsAdded = 0;
@@ -266,31 +276,50 @@ class _Listener implements NullabilityMigrationListener {
 
   int numDeadCodeSegmentsFound = 0;
 
+  int numOtherEdits = 0;
+
   String currentPackage;
 
   _Listener(this.categoryOfInterest, {this.printExceptionNodeOnly = false});
 
   @override
   void addEdit(Source source, SourceEdit edit) {
+    if (edit.replacement == '') {
+      return;
+    }
+
+    if (edit.replacement.contains('!')) {
+      ++numNullChecksAdded;
+    }
+
+    if (edit.replacement.contains('(')) {
+      ++numInsertedParenthesis;
+    }
+
     if (edit.replacement == '?' && edit.length == 0) {
       ++numTypesMadeNullable;
-    } else if (edit.replacement == '!' && edit.length == 0) {
-      ++numNullChecksAdded;
     } else if (edit.replacement == "import 'package:meta/meta.dart';\n" &&
         edit.length == 0) {
       ++numMetaImportsAdded;
     } else if (edit.replacement == 'required ' && edit.length == 0) {
       ++numRequiredAnnotationsAdded;
+    } else if (edit.replacement == 'late ' && edit.length == 0) {
+      ++numVariablesMarkedLate;
+    } else if (edit.replacement.startsWith(' as ') && edit.length == 0) {
+      ++numInsertedCasts;
     } else if ((edit.replacement == '/* ' ||
             edit.replacement == ' /*' ||
             edit.replacement == '; /*') &&
         edit.length == 0) {
       ++numDeadCodeSegmentsFound;
-    } else if ((edit.replacement == '*/ ' || edit.replacement == ' */') &&
+    } else if ((edit.replacement == '*/ ' ||
+            edit.replacement == ' */' ||
+            edit.replacement == ')' ||
+            edit.replacement == '!' ||
+            edit.replacement == '(') &&
         edit.length == 0) {
-      // Already counted
     } else {
-      print('addEdit($source, $edit)');
+      numOtherEdits++;
     }
   }
 
