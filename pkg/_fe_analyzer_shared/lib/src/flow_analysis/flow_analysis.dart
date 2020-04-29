@@ -1838,6 +1838,11 @@ class VariableModel<Variable, Type> {
   /// just written to.
   VariableModel<Variable, Type> write(Type declaredType, Type writtenType,
       TypeOperations<Variable, Type> typeOperations) {
+    if (writeCaptured) {
+      return new VariableModel<Variable, Type>(
+          promotedTypes, tested, true, false, writeCaptured);
+    }
+
     List<Type> newPromotedTypes;
     if (promotedTypes == null) {
       newPromotedTypes = null;
@@ -1890,10 +1895,7 @@ class VariableModel<Variable, Type> {
       Type declaredType,
       List<Type> promotedTypes,
       Type writtenType) {
-    if (writeCaptured) {
-      assert(promotedTypes == null);
-      return promotedTypes;
-    }
+    assert(!writeCaptured);
 
     // Figure out if we have any promotion candidates (types that are a
     // supertype of writtenType and a proper subtype of the currently-promoted
