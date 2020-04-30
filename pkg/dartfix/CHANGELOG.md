@@ -1,3 +1,6 @@
+# 0.1.7
+* Improve experimental non-nullable migration support.
+
 # 0.1.6
 * Improve experimental non-nullable migration support.
 
