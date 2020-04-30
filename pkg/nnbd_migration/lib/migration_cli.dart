@@ -10,12 +10,16 @@ import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/sdk.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    hide AnalysisError;
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
@@ -27,12 +31,17 @@ String _pluralize(int count, String single, {String multiple}) {
   return count == 1 ? single : (multiple ?? '${single}s');
 }
 
+String _removePeriod(String value) {
+  return value.endsWith('.') ? value.substring(0, value.length - 1) : value;
+}
+
 /// Data structure recording command-line options for the migration tool that
 /// have been passed in by the client.
 @visibleForTesting
 class CommandLineOptions {
   static const applyChangesFlag = 'apply-changes';
   static const helpFlag = 'help';
+  static const ignoreErrorsFlag = 'ignore-errors';
   static const previewPortOption = 'preview-port';
   static const sdkPathOption = 'sdk-path';
   static const verboseFlag = 'verbose';
@@ -41,6 +50,8 @@ class CommandLineOptions {
   final bool applyChanges;
 
   final String directory;
+
+  final bool ignoreErrors;
 
   final int previewPort;
 
@@ -51,6 +62,7 @@ class CommandLineOptions {
   CommandLineOptions(
       {@required this.applyChanges,
       @required this.directory,
+      @required this.ignoreErrors,
       @required this.previewPort,
       @required this.sdkPath,
       @required this.webPreview});
@@ -84,6 +96,10 @@ class MigrationCli {
   /// The exit code that should be used when the process terminates, or `null`
   /// if there is still more work to do.
   int exitCode;
+
+  final Map<String, List<AnalysisError>> fileErrors = {};
+
+  final Map<String, LineInfo> lineInfo = {};
 
   MigrationCli(
       {@required this.binaryName,
@@ -148,6 +164,7 @@ class MigrationCli {
       options = CommandLineOptions(
           applyChanges: applyChanges,
           directory: migratePath,
+          ignoreErrors: argResults[CommandLineOptions.ignoreErrorsFlag] as bool,
           previewPort: previewPort,
           sdkPath: argResults[CommandLineOptions.sdkPathOption] as String ??
               defaultSdkPathOverride ??
@@ -183,8 +200,6 @@ class MigrationCli {
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
 
-    // TODO(paulberry): analyze project and report about any errors found
-
     List<String> previewUrls;
     NonNullableFix nonNullableFix;
     _DartFixListener dartFixListener;
@@ -195,7 +210,7 @@ class MigrationCli {
           resourceProvider: resourceProvider,
           sdkPath: options.sdkPath);
       var context = contextCollection.contexts.single;
-      var fixCodeProcessor = _FixCodeProcessor(context);
+      var fixCodeProcessor = _FixCodeProcessor(context, this);
       dartFixListener = _DartFixListener(
           _DriverProvider(resourceProvider, context.currentSession));
       nonNullableFix = NonNullableFix(dartFixListener,
@@ -203,8 +218,12 @@ class MigrationCli {
           preferredPort: options.previewPort,
           enablePreview: options.webPreview);
       fixCodeProcessor.registerCodeTask(nonNullableFix);
-      previewUrls = await fixCodeProcessor.run();
+      await fixCodeProcessor.runFirstPhase();
+      _checkForErrors();
+      if (exitCode != null) return;
+      previewUrls = await fixCodeProcessor.runLaterPhases();
     });
+    if (exitCode != null) return;
 
     if (options.applyChanges) {
       logger.stdout(ansi.emphasized('Applying changes:'));
@@ -294,6 +313,46 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
     }
   }
 
+  void _checkForErrors() {
+    if (fileErrors.isEmpty) {
+      logger.stdout('No analysis issues found.');
+    } else {
+      logger.stdout('');
+
+      int issueCount =
+          fileErrors.values.map((list) => list.length).reduce((a, b) => a + b);
+      logger.stdout(
+          '$issueCount analysis ${_pluralize(issueCount, 'issue')} found:');
+      List<AnalysisError> allErrors = fileErrors.values
+          .fold(<AnalysisError>[], (list, element) => list..addAll(element));
+      _displayIssues(logger, options.directory, allErrors, lineInfo);
+      var importErrorCount = allErrors.where(_isUriError).length;
+
+      logger.stdout('');
+      logger.stdout(
+          'Note: analysis errors will result in erroneous migration suggestions.');
+
+      if (options.ignoreErrors) {
+        logger.stdout('Continuing with migration suggestions due to the use of '
+            '--${CommandLineOptions.ignoreErrorsFlag}.');
+      } else {
+        // Fail with how to continue.
+        logger.stdout('');
+        if (importErrorCount != 0) {
+          logger.stdout(
+              'Unresolved URIs found.  Did you forget to run "pub get"?');
+          logger.stdout('');
+        }
+        logger.stdout(
+            'Please fix the analysis issues (or, force generation of migration '
+            'suggestions by re-running with '
+            '--${CommandLineOptions.ignoreErrorsFlag}).');
+        exitCode = 1;
+        return;
+      }
+    }
+  }
+
   ArgParser _createParser({bool hide = true}) {
     var parser = ArgParser();
     parser.addFlag(CommandLineOptions.applyChangesFlag,
@@ -306,6 +365,13 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
             'Display this help message. Add --verbose to show hidden options.',
         defaultsTo: false,
         negatable: false);
+    parser.addFlag(
+      CommandLineOptions.ignoreErrorsFlag,
+      defaultsTo: false,
+      negatable: false,
+      help: 'Attempt to perform null safety analysis even if there are '
+          'analysis errors in the project.',
+    );
     parser.addOption(CommandLineOptions.previewPortOption,
         help:
             'Run the preview server on the specified port.  If not specified, '
@@ -358,6 +424,25 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
       }
     }
   }
+
+  void _displayIssues(Logger logger, String directory,
+      List<AnalysisError> issues, Map<String, LineInfo> lineInfo) {
+    issues.sort((AnalysisError one, AnalysisError two) {
+      if (one.source != two.source) {
+        return one.source.fullName.compareTo(two.source.fullName);
+      }
+      return one.offset - two.offset;
+    });
+
+    _IssueRenderer renderer =
+        _IssueRenderer(logger, directory, pathContext, lineInfo);
+    for (AnalysisError issue in issues) {
+      renderer.render(issue);
+    }
+  }
+
+  bool _isUriError(AnalysisError error) =>
+      error.errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST;
 
   void _showUsage(bool isVerbose) {
     logger.stderr('Usage: $binaryName [options...] [<package directory>]');
@@ -470,7 +555,9 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
 
   final Set<String> pathsToProcess;
 
-  _FixCodeProcessor(this.context)
+  final MigrationCli _migrationCli;
+
+  _FixCodeProcessor(this.context, this._migrationCli)
       : pathsToProcess = context.contextRoot
             .analyzedFiles()
             .where((s) => s.endsWith('.dart'))
@@ -515,14 +602,24 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
     }
   }
 
-  Future<List<String>> run() async {
+  Future<void> runFirstPhase() async {
     // TODO(paulberry): do more things from EditDartFix.runAllTasks
     await processResources((ResolvedUnitResult result) async {
-      // TODO(paulberry): check for errors
-      if (numPhases > 0) {
+      List<AnalysisError> errors = result.errors
+          .where((error) => error.severity == Severity.error)
+          .toList();
+      if (errors.isNotEmpty) {
+        _migrationCli.fileErrors[result.path] = errors;
+        _migrationCli.lineInfo[result.path] = result.lineInfo;
+      }
+      if (_migrationCli.options.ignoreErrors ||
+          _migrationCli.fileErrors.isEmpty) {
         await processCodeTasks(0, result);
       }
     });
+  }
+
+  Future<List<String>> runLaterPhases() async {
     for (var phase = 1; phase < numPhases; phase++) {
       await processResources((ResolvedUnitResult result) async {
         await processCodeTasks(phase, result);
@@ -531,5 +628,45 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
     await finishCodeTasks();
 
     return nonNullableFixTask.previewUrls;
+  }
+}
+
+/// Given a Logger and an analysis issue, render the issue to the logger.
+class _IssueRenderer {
+  final Logger logger;
+  final String rootDirectory;
+  final Context pathContext;
+  final Map<String, LineInfo> lineInfo;
+
+  _IssueRenderer(
+      this.logger, this.rootDirectory, this.pathContext, this.lineInfo);
+
+  void render(AnalysisError issue) {
+    // severity • Message ... at foo/bar.dart:6:1 • (error_code)
+    var lineInfoForThisFile = lineInfo[issue.source.fullName];
+    var location = lineInfoForThisFile.getLocation(issue.offset);
+
+    final Ansi ansi = logger.ansi;
+
+    logger.stdout(
+      '  ${ansi.error(_severityToString(issue.severity))} • '
+      '${ansi.emphasized(_removePeriod(issue.message))} '
+      'at ${pathContext.relative(issue.source.fullName, from: rootDirectory)}'
+      ':${location.lineNumber}:'
+      '${location.columnNumber} '
+      '• (${issue.errorCode.name.toLowerCase()})',
+    );
+  }
+
+  String _severityToString(Severity severity) {
+    switch (severity) {
+      case Severity.error:
+        return 'error';
+      case Severity.warning:
+        return 'warning';
+      case Severity.info:
+        return 'info';
+    }
+    return '???';
   }
 }
