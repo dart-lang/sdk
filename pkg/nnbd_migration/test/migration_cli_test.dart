@@ -37,7 +37,10 @@ class _MigrationCli extends MigrationCli {
 
   @override
   Future<void> blockUntilSignalInterrupt() async {
-    await _runWhilePreviewServerActive?.call();
+    if (_runWhilePreviewServerActive == null) {
+      fail('Preview server not expected to have been started');
+    }
+    await _runWhilePreviewServerActive.call();
     _runWhilePreviewServerActive = null;
   }
 
