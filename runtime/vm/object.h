@@ -4683,13 +4683,13 @@ class Library : public Object {
 
   // Resolving native methods for script loaded in the library.
   Dart_NativeEntryResolver native_entry_resolver() const {
-    return raw_ptr()->native_entry_resolver_;
+    return LoadNonPointer(&raw_ptr()->native_entry_resolver_);
   }
   void set_native_entry_resolver(Dart_NativeEntryResolver value) const {
     StoreNonPointer(&raw_ptr()->native_entry_resolver_, value);
   }
   Dart_NativeEntrySymbol native_entry_symbol_resolver() const {
-    return raw_ptr()->native_entry_symbol_resolver_;
+    return LoadNonPointer(&raw_ptr()->native_entry_symbol_resolver_);
   }
   void set_native_entry_symbol_resolver(
       Dart_NativeEntrySymbol native_symbol_resolver) const {
