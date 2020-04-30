@@ -1485,43 +1485,6 @@ set x(v) sync* {}
     ]);
   }
 
-  test_isInConstInstanceCreation_restored() async {
-    // If ErrorVerifier._isInConstInstanceCreation is not properly restored on
-    // exit from visitInstanceCreationExpression, the error at (1) will be
-    // treated as a warning rather than an error.
-    await assertErrorsInCode(r'''
-class Foo<T extends num> {
-  const Foo(x, y);
-}
-const x = const Foo<int>(const Foo<int>(0, 1),
-    const <Foo<String>>[]); // (1)
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 110, 6),
-    ]);
-  }
-
-  test_isInInstanceVariableInitializer_restored() async {
-    // If ErrorVerifier._isInInstanceVariableInitializer is not properly
-    // restored on exit from visitVariableDeclaration, the error at (1)
-    // won't be detected.
-    await assertErrorsInCode(r'''
-class Foo {
-  var bar;
-  Map foo = {
-    'bar': () {
-        var _bar;
-    },
-    'bop': _foo // (1)
-  };
-  _foo() {
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 4),
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 89, 4),
-    ]);
-  }
-
   test_length_of_erroneous_constant() async {
     // Attempting to compute the length of constant that couldn't be evaluated
     // (due to an error) should not crash the analyzer (see dartbug.com/23383)

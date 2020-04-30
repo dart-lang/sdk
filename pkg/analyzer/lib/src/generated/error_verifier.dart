@@ -124,12 +124,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   bool _isInComment = false;
 
-  /**
-   * A flag indicating whether the visitor is currently within an instance
-   * creation expression.
-   */
-  bool _isInConstInstanceCreation = false;
-
   /// The stack of flags, where `true` at the top (last) of the stack indicates
   /// that the visitor is in the initializer of a lazy local variable. When the
   /// top is `false`, we might be not in a local variable, or it is not `lazy`,
@@ -822,32 +816,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    bool wasInConstInstanceCreation = _isInConstInstanceCreation;
-    _isInConstInstanceCreation = node.isConst;
-    try {
-      ConstructorName constructorName = node.constructorName;
-      TypeName typeName = constructorName.type;
-      DartType type = typeName.type;
-      if (type is InterfaceType) {
-        _checkForConstOrNewWithAbstractClass(node, typeName, type);
-        _checkForConstOrNewWithEnum(node, typeName, type);
-        _checkForConstOrNewWithMixin(node, typeName, type);
-        _requiredParametersVerifier.visitInstanceCreationExpression(node);
-        if (_isInConstInstanceCreation) {
-          _checkForConstWithNonConst(node);
-          _checkForConstWithUndefinedConstructor(
-              node, constructorName, typeName);
-          _checkForConstDeferredClass(node, constructorName, typeName);
-        } else {
-          _checkForNewWithUndefinedConstructor(node, constructorName, typeName);
-        }
-        _checkForListConstructor(node, type);
+    ConstructorName constructorName = node.constructorName;
+    TypeName typeName = constructorName.type;
+    DartType type = typeName.type;
+    if (type is InterfaceType) {
+      _checkForConstOrNewWithAbstractClass(node, typeName, type);
+      _checkForConstOrNewWithEnum(node, typeName, type);
+      _checkForConstOrNewWithMixin(node, typeName, type);
+      _requiredParametersVerifier.visitInstanceCreationExpression(node);
+      if (node.isConst) {
+        _checkForConstWithNonConst(node);
+        _checkForConstWithUndefinedConstructor(node, constructorName, typeName);
+        _checkForConstDeferredClass(node, constructorName, typeName);
+      } else {
+        _checkForNewWithUndefinedConstructor(node, constructorName, typeName);
       }
-      _checkForImplicitDynamicType(typeName);
-      super.visitInstanceCreationExpression(node);
-    } finally {
-      _isInConstInstanceCreation = wasInConstInstanceCreation;
+      _checkForListConstructor(node, type);
     }
+    _checkForImplicitDynamicType(typeName);
+    super.visitInstanceCreationExpression(node);
   }
 
   @override
