@@ -1,1 +1,2 @@
-main() { } C(this.name);
+main() { }
+C(this.name);

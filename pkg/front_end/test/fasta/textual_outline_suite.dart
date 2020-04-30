@@ -70,7 +70,7 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) async {
     List<int> bytes = new File.fromUri(description.uri).readAsBytesSync();
-    String result = textualOutline(bytes);
+    String result = textualOutline(bytes, throwOnUnexpected: true);
     if (result == null) {
       return new Result(null, context.expectationSet["EmptyOutput"],
           description.uri, StackTrace.current);

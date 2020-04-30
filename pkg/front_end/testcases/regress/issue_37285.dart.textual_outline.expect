@@ -1,1 +1,4 @@
-class C { C() : super()[]; } main () { }
+class C {
+  C() : super()[];
+}
+main () { }

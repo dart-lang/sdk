@@ -1,1 +1,4 @@
-library test; List<T> f<T>(T g()) => <T>[g()]; var v = (f<int>)( () { return 1; }); main() {}
+library test;
+List<T> f<T>(T g()) => <T>[g()];
+var v = (f<int>)( () { return 1; });
+main() { }

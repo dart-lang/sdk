@@ -1,1 +1,3 @@
-extension Foo<U> (){}on List (){ } main() {}
+extension Foo<U> ( ){ }
+on List (){ }
+main() { }

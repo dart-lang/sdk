@@ -1,1 +1,3 @@
-extension E<U> (){}on String (){ } main() {}
+extension E<U> ( ){ }
+on String (){ }
+main() { }

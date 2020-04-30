@@ -1,1 +1,4 @@
-class A { Map<String, var> m; } main() { }
+class A {
+  Map<String, var> m;
+}
+main() { }

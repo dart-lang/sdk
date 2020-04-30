@@ -1,1 +1,3 @@
-main() {} type T = Map<A, B;>
+main() { }
+type T = Map<A, B;
+>

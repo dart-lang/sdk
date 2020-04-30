@@ -1,3 +1,4 @@
-class C {}
-
-main() {}
+class C {
+  C< >( ){ }
+}
+main() { }

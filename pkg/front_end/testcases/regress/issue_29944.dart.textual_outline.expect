@@ -1,1 +1,5 @@
-class C { C(); var C; } main() { }
+class C {
+  C();
+  var C;
+}
+main() { }

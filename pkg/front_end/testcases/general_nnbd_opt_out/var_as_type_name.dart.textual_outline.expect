@@ -1,2 +1,5 @@
 // @dart = 2.6
-class A { Map<String, var> m; } main() { }
+class A {
+  Map<String, var> m;
+}
+main() { }

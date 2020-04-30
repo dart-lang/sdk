@@ -1,1 +1,6 @@
-class A { const A() : x = 'foo' {}: x = 'foo' ; } main() { }
+class A {
+  const A() : x = 'foo' { }
+  :
+  x = 'foo' ;
+}
+main() { }

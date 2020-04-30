@@ -20,6 +20,8 @@ regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
+rasta/issue_000032: FormatterCrash
+regress/issue_34614: FormatterCrash
 extensions/ambiguous: FormatterCrash
 extensions/annotations: FormatterCrash
 extensions/builtin_identifiers: FormatterCrash

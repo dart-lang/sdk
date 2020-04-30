@@ -1,1 +1,2 @@
-typedef void T(C<C>); T main() => null;
+typedef void T(C<C>);
+T main() => null;

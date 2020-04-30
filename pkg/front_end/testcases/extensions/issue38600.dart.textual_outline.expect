@@ -1,1 +1,6 @@
-class Class<T> {} extension ;try<T> (){}on Class<T> (){} main() {}
+class Class<T> {
+}
+extension ;
+try<T> ( ){ }
+on Class<T> (){ }
+main() { }

@@ -1,1 +1,2 @@
-void Function({obj: Object}) x; main() {}
+void Function({obj: Object}) x;
+main() { }

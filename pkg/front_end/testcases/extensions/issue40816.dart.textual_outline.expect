@@ -1,1 +1,7 @@
-class A {} class B {} extension on ;A (){ } void main() { }
+class A {
+}
+class B {
+}
+extension on ;
+A (){ }
+void main() { }

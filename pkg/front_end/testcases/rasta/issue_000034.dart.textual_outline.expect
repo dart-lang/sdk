@@ -1,1 +1,4 @@
-class C { const C() : =this.x; } main() { }
+class C {
+  const C() : =this.x;
+}
+main() { }

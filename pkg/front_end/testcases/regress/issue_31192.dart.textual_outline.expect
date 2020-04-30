@@ -1,1 +1,5 @@
-class Increment { int x; Increment() : =x++ {} } main() {}
+class Increment {
+  int x;
+  Increment() : =x++ { }
+}
+main() { }

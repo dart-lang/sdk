@@ -1,1 +1,4 @@
-extension Extension ;on String (){ } main() {} errors() { }
+extension Extension ;
+on String (){ }
+main() { }
+errors() { }

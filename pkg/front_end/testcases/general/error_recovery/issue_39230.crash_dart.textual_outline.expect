@@ -1,1 +1,4 @@
-class C { C() {}operator/ (): super(); }
+class C {
+  C() { }
+  operator/ (): super();
+}

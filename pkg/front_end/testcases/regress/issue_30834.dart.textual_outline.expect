@@ -1,1 +1,4 @@
-class A { set A(v) {} } main() { }
+class A {
+  set A(v) { }
+}
+main() { }

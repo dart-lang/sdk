@@ -1,1 +1,11 @@
-set b(); set c(x, y); class A { set a(); set d(x, y); } abstract class B { set a(); set d(x, y); } main() { }
+set b();
+set c(x, y);
+class A {
+  set a();
+  set d(x, y);
+}
+abstract class B {
+  set a();
+  set d(x, y);
+}
+main() { }

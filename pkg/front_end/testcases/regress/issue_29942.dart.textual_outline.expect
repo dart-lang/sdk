@@ -1,1 +1,2 @@
-main() { } f() = h() => null;
+main() { }
+f() = h() => null;
