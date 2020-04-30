@@ -1,0 +1,3 @@
+foo() {}
+bar() async {}
+main() {}

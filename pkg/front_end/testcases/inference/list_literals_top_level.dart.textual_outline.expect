@@ -1,0 +1,7 @@
+library test;
+
+var x1 = [1, 2, 3];
+test1() {}
+var x2 = [1, 2.0, 3];
+test2() {}
+main() {}

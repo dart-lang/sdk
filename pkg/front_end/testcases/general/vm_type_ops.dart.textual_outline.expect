@@ -1,0 +1,38 @@
+class A<T> {}
+
+class B extends A<String> {}
+
+class C<T1, T2, T3> extends B {}
+
+foo1(x) {}
+
+class D<P, Q> extends C<int, Q, P> {
+  Map<P, Q> foo;
+  D(tt) : foo = tt;
+  foo2(y) {}
+  foo3<T1, T2>(z) {}
+  Map<P, Q> foo4(w) {}
+}
+
+List<Iterable> globalVar;
+void foo5(x) {}
+
+class E<P extends String> {
+  factory E() => null;
+  void foo6<T extends P, U extends List<T>>(Map<T, U> map) {}
+}
+
+abstract class F<T> {
+  void foo7<Q extends T>(Q a, covariant num b, T c);
+  void foo8<Q extends T>(Q a, covariant num b, T c);
+}
+
+class G<T> {
+  void foo7<Q extends T>(Q a, int b, T c) {}
+}
+
+class H<T> extends G<T> implements F<T> {
+  void foo8<Q extends T>(Q a, int b, T c) {}
+}
+
+main() {}

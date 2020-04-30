@@ -1,0 +1,8 @@
+class A {
+  dynamic call(dynamic a, dynamic b) {}
+}
+
+typedef S Reducer<S>(S a, dynamic b);
+void foo<S>(Reducer<S> v) {}
+void test() {}
+main() {}

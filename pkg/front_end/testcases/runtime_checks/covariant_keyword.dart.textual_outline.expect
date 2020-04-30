@@ -1,0 +1,20 @@
+library test;
+
+typedef F<T>(T x);
+
+class C {
+  void f(num x) {}
+}
+
+class D extends C {
+  void f(covariant int x) {}
+}
+
+class E extends D {
+  void f(int x) {}
+}
+
+void g1(C c) {}
+F<num> g2(C c) {}
+test() {}
+main() {}

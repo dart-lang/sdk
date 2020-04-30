@@ -1,0 +1,9 @@
+abstract class A {
+  void set x(Object y);
+}
+
+class B implements A {
+  int x;
+}
+
+main() {}

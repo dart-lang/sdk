@@ -1,0 +1,1 @@
+class Struct {} class StructA extends Struct {} class StructB extends Struct {} class NonStruct {} extension Extension<T extends Struct> (){}on T (){ } main() { } testNonStruct() { }

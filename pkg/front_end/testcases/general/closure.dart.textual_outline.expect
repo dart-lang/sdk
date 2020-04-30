@@ -1,0 +1,8 @@
+class Foo {
+  var _field = new Bar();
+}
+
+class Bar {}
+
+useCallback(callback) {}
+main() {}

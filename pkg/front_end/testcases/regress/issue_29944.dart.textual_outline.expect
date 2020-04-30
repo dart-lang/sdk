@@ -1,0 +1,1 @@
+class C { C(); var C; } main() { }

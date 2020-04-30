@@ -1,0 +1,8 @@
+// @dart = 2.6
+library foo;
+
+import 'part_part_of_differently_named_library_lib2.dart';
+@override
+part 'part_part_of_differently_named_library_lib1.dart';
+
+main() {}

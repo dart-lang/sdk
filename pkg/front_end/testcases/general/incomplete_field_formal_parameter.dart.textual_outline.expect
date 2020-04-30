@@ -1,0 +1,1 @@
+class C { C.a(this.); C.b(this.); C.c(this., p); C.d(this., p); }

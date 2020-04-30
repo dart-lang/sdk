@@ -1,0 +1,11 @@
+// @dart = 2.6
+import 'dart:async';
+
+Future<String> asyncString() async {}
+Future<String> asyncString2() async {}
+Iterable<String> syncStarString() sync* {}
+Iterable<String> syncStarString2() sync* {}
+Stream<String> asyncStarString() async* {}
+Stream<String> asyncStarString2() async* {}
+List<String> stringList = ["bar"];
+main() async {}

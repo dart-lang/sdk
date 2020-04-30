@@ -1,0 +1,13 @@
+import 'package:expect/expect.dart';
+
+class A {
+  const factory A() = B<String>;
+  const A.empty();
+}
+
+class B<T> extends A {
+  const B() : super.empty();
+  toString() => '${T}';
+}
+
+void main() {}

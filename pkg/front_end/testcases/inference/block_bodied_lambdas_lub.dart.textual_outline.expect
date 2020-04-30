@@ -1,0 +1,6 @@
+library test;
+
+import 'dart:math' show Random;
+
+test2() {}
+main() {}

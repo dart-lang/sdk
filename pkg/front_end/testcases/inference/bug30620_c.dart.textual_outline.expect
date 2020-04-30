@@ -1,0 +1,9 @@
+library test;
+
+class A {
+  final String foo;
+  A(this.foo);
+  bool operator ==(Object other) {}
+}
+
+main() {}

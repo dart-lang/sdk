@@ -1,0 +1,17 @@
+library test;
+
+class B {
+  Object _x;
+  void f([num x = 10]) {}
+  void g({num x = 20}) {}
+  void check(Object expectedValue) {}
+}
+
+abstract class I<T> {
+  void f([T x]);
+  void g({T x});
+}
+
+class C extends B implements I<num> {}
+
+main() {}

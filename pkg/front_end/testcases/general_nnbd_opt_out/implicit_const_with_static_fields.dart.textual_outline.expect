@@ -1,0 +1,9 @@
+// @dart = 2.6
+const constTopLevelField = 42;
+
+class C {
+  const C(x);
+  static const constField = 87;
+}
+
+main() {}

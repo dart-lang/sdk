@@ -1,0 +1,5 @@
+library test;
+
+T f<T>(List<T> s) => null;
+test() {}
+main() {}

@@ -1,0 +1,12 @@
+library test;
+
+class A {
+  int x = 2;
+}
+
+class B extends A {
+  get x => 3;
+}
+
+foo() {}
+main() {}

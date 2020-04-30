@@ -1,0 +1,9 @@
+library test;
+
+class C {
+  bool operator -() => true;
+}
+
+C c = new C();
+var x = -c;
+main() {}

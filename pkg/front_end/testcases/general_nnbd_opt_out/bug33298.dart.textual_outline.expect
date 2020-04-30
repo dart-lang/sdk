@@ -1,0 +1,15 @@
+// @dart = 2.6
+class A {
+  String call(String s) => '$s$s';
+}
+
+class B<T> {
+  T call(T t) => t;
+}
+
+class C {
+  T call<T>(T t) => t;
+}
+
+test() {}
+main() {}

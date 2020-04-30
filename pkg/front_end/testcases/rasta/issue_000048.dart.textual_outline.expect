@@ -1,0 +1,12 @@
+class A {
+  bool v1;
+  num v2;
+  A(bool this.v1, num this.v2);
+}
+
+class M1 {
+  num v2 = 0;
+}
+
+class C = A with M1;
+main() {}

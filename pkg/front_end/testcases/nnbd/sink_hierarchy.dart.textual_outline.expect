@@ -1,0 +1,18 @@
+// @dart = 2.6
+abstract class Sink<T> {
+  void close();
+}
+
+abstract class EventSink<T> implements Sink<T> {
+  void close();
+}
+
+abstract class StreamConsumer<S> {
+  Future close();
+}
+
+abstract class StreamSink<S> implements EventSink<S>, StreamConsumer<S> {
+  Future close();
+}
+
+main() {}

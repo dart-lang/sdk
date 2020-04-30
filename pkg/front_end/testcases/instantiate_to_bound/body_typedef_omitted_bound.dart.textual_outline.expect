@@ -1,0 +1,7 @@
+typedef A<T>(T p);
+
+class C {
+  foo() {}
+}
+
+main() {}

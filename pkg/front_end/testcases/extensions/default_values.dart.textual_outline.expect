@@ -1,0 +1,1 @@
+class Class {} extension Extension ;on Class (){ } main() { } expect(expected, actual) { }

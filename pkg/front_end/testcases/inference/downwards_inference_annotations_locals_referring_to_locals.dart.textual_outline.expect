@@ -1,0 +1,8 @@
+library test;
+
+class Foo {
+  const Foo(dynamic l);
+}
+
+void test() {}
+main() {}

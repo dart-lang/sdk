@@ -1,0 +1,15 @@
+// @dart = 2.6
+abstract class I {
+  interfaceMethod();
+}
+
+class C implements I {
+  noSuchMethod(_) => "C";
+}
+
+class D extends C {
+  noSuchMethod(_) => "D";
+  dMethod() => super.interfaceMethod();
+}
+
+main() {}

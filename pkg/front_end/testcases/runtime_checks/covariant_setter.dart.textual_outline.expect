@@ -1,0 +1,12 @@
+library test;
+
+typedef void F<T>(T x);
+
+class C<T> {
+  T x;
+  void set y(T value) {}
+  void f(T value) {}
+}
+
+void g(C<num> c) {}
+void main() {}

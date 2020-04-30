@@ -1,0 +1,1 @@
+class Class { var field; } extension Extension ;on Class (){ } class GenericClass<T> { T field; } extension GenericExtension<T> (){}on GenericClass<T> (){ } main() {}

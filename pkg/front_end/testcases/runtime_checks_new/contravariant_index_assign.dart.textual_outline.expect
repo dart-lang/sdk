@@ -1,0 +1,15 @@
+library test;
+
+typedef void F<T>(T x);
+
+class B<T> {
+  B<T> operator +(B<T> other) => null;
+}
+
+class C<T> {
+  B<F<T>> operator [](int i) => null;
+  void operator []=(int i, B<F<T>> x) {}
+}
+
+void test(C<num> c) {}
+main() {}

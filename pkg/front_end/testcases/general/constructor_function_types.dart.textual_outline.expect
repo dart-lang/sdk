@@ -1,0 +1,17 @@
+class A {
+  A();
+}
+
+class B {
+  B(int x, double y, String s);
+}
+
+class C<T> {
+  C();
+}
+
+class D<T, S> {
+  D(T x, S y);
+}
+
+void main() {}

@@ -1,0 +1,29 @@
+library test;
+
+void expectTypeError(void callback()) {}
+void expect(Object value, Object expected) {}
+
+class B {
+  int get x {}
+  void set x(int value) {}
+  int get y {}
+  void set y(int value) {}
+}
+
+abstract class I<T> {
+  T get x;
+  void set x(T value);
+  Object get y;
+  void set y(covariant Object value);
+}
+
+class M {
+  int get x => 1;
+  void set x(int value) {}
+  int get y => 3;
+  void set y(int value) {}
+}
+
+class C = B with M implements I<int>;
+void test(I<Object> i) {}
+void main() {}

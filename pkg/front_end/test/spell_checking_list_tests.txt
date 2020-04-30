@@ -179,6 +179,7 @@ epoch
 err
 everytime
 evicting
+excess
 exe
 execute
 exercised
@@ -449,6 +450,7 @@ sdkroot
 sdks
 secondary
 segment
+sensitive
 severe
 sheets
 shipped

@@ -1,0 +1,4 @@
+class A<T extends A<T>> {}
+
+A a;
+main() {}

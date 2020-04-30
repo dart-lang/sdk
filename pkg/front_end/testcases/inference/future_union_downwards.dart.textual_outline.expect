@@ -1,0 +1,17 @@
+library test;
+
+import 'dart:async';
+
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value([x]) {}
+  dynamic noSuchMethod(invocation) => null;
+  MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
+}
+
+MyFuture f;
+Future<int> t1 = f.then((_) => new Future.value('hi'));
+Future<List<int>> t2 = f.then((_) => [3]);
+Future<List<int>> g2() async {}
+Future<List<int>> g3() async {}
+main() {}

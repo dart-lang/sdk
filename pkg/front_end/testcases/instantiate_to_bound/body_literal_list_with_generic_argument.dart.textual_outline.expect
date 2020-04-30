@@ -1,0 +1,7 @@
+class A<T> {}
+
+class B<U> {
+  fun() {}
+}
+
+main() {}

@@ -1,0 +1,11 @@
+class A extends B with M {}
+
+class B {
+  final Object m = null;
+}
+
+class M {
+  static Object m() => null;
+}
+
+main() {}

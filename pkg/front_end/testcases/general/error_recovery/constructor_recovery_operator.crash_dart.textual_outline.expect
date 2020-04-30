@@ -1,0 +1,1 @@
+class Foo { Foo() {}operator/ (): super() { } Foo(){}.operator/ (): super() { } foo() {}operator/ (): super() { } foo(){}.operator/ (): super() { } }

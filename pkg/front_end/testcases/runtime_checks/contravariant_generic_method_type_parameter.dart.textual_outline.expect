@@ -1,0 +1,11 @@
+library test;
+
+typedef void F<T>(T t);
+
+class C<T> {
+  void f<U extends F<T>>(U x) {}
+}
+
+void g(C<num> c) {}
+void test() {}
+void main() {}

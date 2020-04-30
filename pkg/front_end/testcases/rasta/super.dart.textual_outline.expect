@@ -1,0 +1,34 @@
+class A {
+  var a;
+  var b;
+  var c;
+  var d;
+  get e => null;
+  final f;
+  set g(_) {}
+  get h => null;
+  set h(_) {}
+  get i => null;
+  operator [](_) => null;
+  operator []=(a, b) {}
+  operator ~() => 117;
+  operator -() => 117;
+  operator ==(other) => true;
+  void m() {}
+  void n() {}
+  set n(_) {}
+}
+
+class B extends A {
+  get b => null;
+  set c(x) {}
+  final d;
+  set i(x) {}
+}
+
+class C extends B {
+  test() {}
+}
+
+use(x) {}
+main() {}

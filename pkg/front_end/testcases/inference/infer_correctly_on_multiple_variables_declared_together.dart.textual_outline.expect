@@ -1,0 +1,12 @@
+library test;
+
+class A {
+  var x, y = 2, z = "hi";
+}
+
+class B implements A {
+  var x = 2, y = 3, z, w = 2;
+}
+
+foo() {}
+main() {}

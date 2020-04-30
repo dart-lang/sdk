@@ -1,0 +1,11 @@
+foo<T extends Object?, S extends List<T>>(T t) => null;
+bar<T extends Object?, S extends List<T?>>(T t) => null;
+baz(int? x, int y) {}
+
+class A<T extends Object?, S extends Object> {
+  hest<X extends T, Y extends List<X>, Z extends List<X?>>() => null;
+  fisk<X extends S, Y extends List<X>, Z extends List<X?>>() => null;
+  mus<X extends Object?, Y extends List<X>, Z extends List<X?>>() => null;
+}
+
+main() {}

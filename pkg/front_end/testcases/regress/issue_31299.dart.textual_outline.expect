@@ -1,0 +1,9 @@
+class A {
+  int m;
+  A() : m = 1;
+  A.foo() : m = 2;
+  int foo(int a, int b) => a + b * m;
+}
+
+test() {}
+main() {}
