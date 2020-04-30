@@ -74,6 +74,56 @@ void testConstructor() {
   Expect.throwsArgumentError(() => new InternetAddress("::FFFF::1"));
 }
 
+void testTryParse() {
+  var loopback4 = InternetAddress.tryParse("127.0.0.1")!;
+  Expect.equals(InternetAddressType.IPv4, loopback4.type);
+  Expect.equals("127.0.0.1", loopback4.host);
+  Expect.equals("127.0.0.1", loopback4.address);
+  Expect.isFalse(loopback4.isMulticast);
+
+  var loopback6 = InternetAddress.tryParse("::1")!;
+  Expect.equals(InternetAddressType.IPv6, loopback6.type);
+  Expect.equals("::1", loopback6.host);
+  Expect.equals("::1", loopback6.address);
+  Expect.isFalse(loopback6.isMulticast);
+
+  var ip4 = InternetAddress.tryParse("10.20.30.40")!;
+  Expect.equals(InternetAddressType.IPv4, ip4.type);
+  Expect.equals("10.20.30.40", ip4.host);
+  Expect.equals("10.20.30.40", ip4.address);
+  Expect.isFalse(ip4.isMulticast);
+
+  var ip6 = InternetAddress.tryParse("10:20::30:40")!;
+  Expect.equals(InternetAddressType.IPv6, ip6.type);
+  Expect.equals("10:20::30:40", ip6.host);
+  Expect.equals("10:20::30:40", ip6.address);
+  Expect.isFalse(ip6.isMulticast);
+
+  var multicast4 = InternetAddress.tryParse("224.1.2.3")!;
+  Expect.equals(InternetAddressType.IPv4, multicast4.type);
+  Expect.isTrue(multicast4.isMulticast);
+
+  var multicast6 = InternetAddress.tryParse("FF00::1:2:3")!;
+  Expect.equals(InternetAddressType.IPv6, multicast6.type);
+  Expect.isTrue(multicast6.isMulticast);
+
+  var lowercase = InternetAddress.tryParse("ff00::1:2:3")!;
+  Expect.equals(InternetAddressType.IPv6, lowercase.type);
+  Expect.equals("ff00::1:2:3", lowercase.host);
+  Expect.equals("ff00::1:2:3", lowercase.address);
+
+  Expect.isNull(InternetAddress.tryParse("1.2.3"));
+  Expect.isNull(InternetAddress.tryParse("1.2.3.4.5"));
+  Expect.isNull(InternetAddress.tryParse("192.168.256.0"));
+  Expect.isNull(InternetAddress.tryParse("192.168.999.0"));
+  Expect.isNull(InternetAddress.tryParse("1.-2.3.4"));
+  Expect.isNull(InternetAddress.tryParse("01.02.03.04"));
+  Expect.isNull(InternetAddress.tryParse(""));
+  Expect.isNull(InternetAddress.tryParse("FFFG::0"));
+  Expect.isNull(InternetAddress.tryParse("FFF@::0"));
+  Expect.isNull(InternetAddress.tryParse("::FFFF::1"));
+}
+
 void testEquality() {
   Expect.equals(
       new InternetAddress("127.0.0.1"), new InternetAddress("127.0.0.1"));
@@ -163,6 +213,7 @@ void testRawPath() {
 void main() {
   testDefaultAddresses();
   testConstructor();
+  testTryParse();
   testEquality();
   testLookup();
   testReverseLookup();

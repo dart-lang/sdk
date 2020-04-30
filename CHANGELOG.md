@@ -15,6 +15,7 @@
 
 *   Class `OSError` now implements `Exception`. This change means `OSError` will
     now be caught in catch clauses catching `Exception`s.
+*   Added `InternetAddress.tryParse`.
 
 ### Tools
 

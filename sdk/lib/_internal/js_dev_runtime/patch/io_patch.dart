@@ -427,6 +427,11 @@ class InternetAddress {
       InternetAddress address, String host) {
     throw UnsupportedError("InternetAddress._cloneWithNewHost");
   }
+
+  @patch
+  static InternetAddress tryParse(String address) {
+    throw UnsupportedError("InternetAddress.tryParse");
+  }
 }
 
 @patch

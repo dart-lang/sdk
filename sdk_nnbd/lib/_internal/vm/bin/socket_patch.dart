@@ -89,6 +89,11 @@ class InternetAddress {
       InternetAddress address, String host) {
     return (address as _InternetAddress)._cloneWithNewHost(host);
   }
+
+  @patch
+  static InternetAddress? tryParse(String address) {
+    return _InternetAddress.tryParse(address);
+  }
 }
 
 @patch
@@ -253,6 +258,16 @@ class _InternetAddress implements InternetAddress {
       return _InternetAddress(
           InternetAddressType._from(type), address, null, rawAddress);
     }
+  }
+
+  static _InternetAddress? tryParse(String address) {
+    checkNotNullable(address, "address");
+    var addressBytes = _parse(address);
+    if (addressBytes == null) return null;
+    var type = addressBytes.length == _IPv4AddrLength
+        ? InternetAddressType.IPv4
+        : InternetAddressType.IPv6;
+    return _InternetAddress(type, address, null, addressBytes);
   }
 
   factory _InternetAddress.fixed(int id) {
