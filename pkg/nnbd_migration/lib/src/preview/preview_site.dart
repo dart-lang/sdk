@@ -201,7 +201,9 @@ class PreviewSite extends Site
   /// Perform the migration.
   void performApply() {
     if (migrationState.hasBeenApplied) {
-      throw StateError('Cannot reapply migration.');
+      throw StateError(
+          'It looks like this migration has already been applied. Try'
+          ' restarting the migration tool if this is not the case.');
     }
 
     final edits = migrationState.listener.sourceChange.edits;
@@ -214,7 +216,9 @@ class PreviewSite extends Site
       }
       var code = file.exists ? file.readAsStringSync() : '';
       if (!unitInfoMap[file.path].hadDiskContent(code)) {
-        throw StateError('${file.path} has changed, rerun migration to apply.');
+        throw StateError('Cannot apply migration. Files on disk do not match'
+            ' the expected pre-migration state. Press the "rerun from sources"'
+            ' button and then try again. (Changed file path is ${file.path})');
       }
     }
 
@@ -241,8 +245,9 @@ class PreviewSite extends Site
     var file = pathMapper.provider.getFile(path);
     var diskContent = file.readAsStringSync();
     if (!unitInfoMap[path].hadDiskContent(diskContent)) {
-      throw StateError(
-          'Cannot add hint, $path has changed. Rerun migration and try again.');
+      throw StateError('Cannot perform edit. This file has been changed since'
+          ' last migration run. Press the "rerun from sources" button and then'
+          ' try again. (Changed file path is ${file.path})');
     }
     final unitInfo = unitInfoMap[path];
     final diskMapper = unitInfo.diskChangesOffsetMapper;
