@@ -1,4 +1,4 @@
-## 2.8.0
+## 2.8.1 - 2020-05-06
 
 Much of the changes in this release are in preparation for non-nullable types,
 which will arrive in a future version. In anticipation of that, we have made a
