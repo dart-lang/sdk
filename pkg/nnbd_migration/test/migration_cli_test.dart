@@ -159,6 +159,29 @@ int${migrated ? '?' : ''} f() => null;
     expect(MigrationCli(binaryName: 'nnbd_migration').logger, isNotNull);
   }
 
+  test_detect_old_sdk() async {
+    var cli = _createCli();
+    // Alter the mock SDK, changing the signature of Object.operator== to match
+    // the signature that was present prior to NNBD.  (This is what the
+    // migration tool uses to detect an old SDK).
+    var coreLib = resourceProvider.getFile(
+        resourceProvider.convertPath('${mock_sdk.sdkRoot}/lib/core/core.dart'));
+    var oldCoreLibText = coreLib.readAsStringSync();
+    var newCoreLibText = oldCoreLibText.replaceAll(
+        'external bool operator ==(Object other)',
+        'external bool operator ==(dynamic other)');
+    expect(newCoreLibText, isNot(oldCoreLibText));
+    coreLib.writeAsStringSync(newCoreLibText);
+    var projectDir = await createProjectDir(simpleProject());
+    await cli.run([projectDir]);
+    assertErrorExit(cli, withUsage: false);
+    var output = logger.stdoutBuffer.toString();
+    expect(
+        output,
+        contains(
+            'Bad state: Analysis seems to have an SDK without NNBD enabled'));
+  }
+
   test_flag_apply_changes_default() {
     expect(assertParseArgsSuccess([]).applyChanges, isFalse);
   }

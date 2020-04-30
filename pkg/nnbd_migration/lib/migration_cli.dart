@@ -218,8 +218,13 @@ class MigrationCli {
           preferredPort: options.previewPort,
           enablePreview: options.webPreview);
       fixCodeProcessor.registerCodeTask(nonNullableFix);
-      await fixCodeProcessor.runFirstPhase();
-      _checkForErrors();
+      try {
+        await fixCodeProcessor.runFirstPhase();
+        _checkForErrors();
+      } on StateError catch (e) {
+        logger.stdout(e.toString());
+        exitCode = 1;
+      }
       if (exitCode != null) return;
       previewUrls = await fixCodeProcessor.runLaterPhases();
     });
