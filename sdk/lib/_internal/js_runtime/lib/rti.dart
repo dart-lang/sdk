@@ -2559,11 +2559,7 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   if (isStrongTopType(s)) return false;
 
   // Left Bottom:
-  if (isLegacy) {
-    if (isNullType(s)) return true;
-  } else {
-    if (sKind == Rti.kindNever) return true;
-  }
+  if (isBottomType(s)) return true;
 
   // Left Type Variable Bound 1:
   bool leftTypeVariable = sKind == Rti.kindGenericFunctionParameter;
@@ -2896,6 +2892,9 @@ bool isStrongTopType(Rti t) {
       kind == Rti.kindErased ||
       isNullableObjectType(t);
 }
+
+bool isBottomType(Rti t) =>
+    Rti._getKind(t) == Rti.kindNever || JS_GET_FLAG('LEGACY') && isNullType(t);
 
 bool isObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object>());
 bool isLegacyObjectType(Rti t) =>
