@@ -7119,12 +7119,6 @@ class Instance : public Object {
   // [other] is a type parameter in NNBD strong mode).
   static bool NullIsAssignableTo(const AbstractType& other);
 
-  // Returns true if the type of this instance is a subtype of FutureOr<T>
-  // specified by instantiated type 'other'.
-  // Returns false if other type is not a FutureOr.
-  bool IsFutureOrInstanceOf(Zone* zone,
-                            const AbstractType& other) const;
-
   bool IsValidNativeIndex(int index) const {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
   }
@@ -7206,6 +7200,12 @@ class Instance : public Object {
       const AbstractType& other,
       const TypeArguments& other_instantiator_type_arguments,
       const TypeArguments& other_function_type_arguments) const;
+
+  // Returns true if the type of this instance is a subtype of FutureOr<T>
+  // specified by instantiated type 'other'.
+  // Returns false if other type is not a FutureOr.
+  bool RuntimeTypeIsSubtypeOfFutureOr(Zone* zone,
+                                      const AbstractType& other) const;
 
   // Return true if the null instance is an instance of other type.
   static bool NullIsInstanceOf(
@@ -7716,15 +7716,18 @@ class AbstractType : public Instance {
   // Check if this type represents the 'Object' type.
   bool IsObjectType() const { return type_class_id() == kInstanceCid; }
 
-  // Check if this type represents a top type.
-  bool IsTopType() const;
+  // Check if this type represents a top type for subtyping,
+  // assignability and 'as' type tests.
+  //
+  // Returns true if
+  //  - any type is a subtype of this type;
+  //  - any value can be assigned to a variable of this type;
+  //  - 'as' type test always succeeds for this type.
+  bool IsTopTypeForSubtyping() const;
 
-  // Check if this type represents a top type with respect to
-  // assignability and 'as' type tests, e.g. returns true if any value can be
-  // assigned to a variable of this type and 'as' type test always succeeds.
-  // Guaranteed to return true for top types according to IsTopType(), but
-  // may also return true for other types (non-nullable Object in weak mode).
-  bool IsTopTypeForAssignability() const;
+  // Check if this type represents a top type for 'is' type tests.
+  // Returns true if 'is' type test always returns true for this type.
+  bool IsTopTypeForInstanceOf() const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const { return type_class_id() == kBoolCid; }

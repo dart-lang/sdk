@@ -2949,7 +2949,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     instantiator_type_arguments()->BindTo(flow_graph->constant_null());
     function_type_arguments()->BindTo(flow_graph->constant_null());
 
-    if (new_dst_type.IsTopTypeForAssignability() ||
+    if (new_dst_type.IsTopTypeForSubtyping() ||
         (FLAG_eliminate_type_checks &&
          value()->Type()->IsAssignableTo(new_dst_type))) {
       return value()->definition();
@@ -3246,8 +3246,8 @@ static bool MayBeNumber(CompileType* type) {
   const AbstractType& unwrapped_type =
       AbstractType::Handle(type->ToAbstractType()->UnwrapFutureOr());
   // Note that type 'Number' is a subtype of itself.
-  return unwrapped_type.IsTopType() || unwrapped_type.IsObjectType() ||
-         unwrapped_type.IsTypeParameter() ||
+  return unwrapped_type.IsTopTypeForSubtyping() ||
+         unwrapped_type.IsObjectType() || unwrapped_type.IsTypeParameter() ||
          unwrapped_type.IsSubtypeOf(Type::Handle(Type::Number()), Heap::kOld);
 }
 

@@ -416,7 +416,7 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
       type = &(instance_of->type());
       left = instance_of->value()->definition();
     }
-    if (!type->IsTopType()) {
+    if (!type->IsTopTypeForInstanceOf()) {
       const bool is_nullable = (type->IsNullable() || type->IsTypeParameter() ||
                                 (type->IsNeverType() && type->IsLegacy()))
                                    ? CompileType::kNullable
@@ -804,7 +804,7 @@ bool CompileType::IsNotSmi() {
 }
 
 bool CompileType::IsSubtypeOf(const AbstractType& other) {
-  if (other.IsTopType()) {
+  if (other.IsTopTypeForSubtyping()) {
     return true;
   }
 
@@ -816,7 +816,7 @@ bool CompileType::IsSubtypeOf(const AbstractType& other) {
 }
 
 bool CompileType::IsAssignableTo(const AbstractType& other) {
-  if (other.IsTopTypeForAssignability()) {
+  if (other.IsTopTypeForSubtyping()) {
     return true;
   }
   if (IsNone()) {
@@ -829,7 +829,7 @@ bool CompileType::IsAssignableTo(const AbstractType& other) {
 }
 
 bool CompileType::IsInstanceOf(const AbstractType& other) {
-  if (other.IsTopType()) {
+  if (other.IsTopTypeForInstanceOf()) {
     return true;
   }
   if (IsNone() || !other.IsInstantiated()) {

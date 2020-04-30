@@ -106,7 +106,7 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     return Code::null();
   }
 
-  if (type.IsTopTypeForAssignability()) {
+  if (type.IsTopTypeForSubtyping()) {
     return StubCode::TopTypeTypeTest().raw();
   }
 
@@ -149,7 +149,7 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
         type, /*lazy_specialize=*/false);
   }
 
-  if (type.IsTopTypeForAssignability()) {
+  if (type.IsTopTypeForSubtyping()) {
     return StubCode::TopTypeTypeTest().raw();
   }
 
@@ -255,7 +255,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     const Type& type,
     const Class& type_class) {
   // These are handled via the TopTypeTypeTestStub!
-  ASSERT(!type.IsTopTypeForAssignability());
+  ASSERT(!type.IsTopTypeForSubtyping());
 
   // Fast case for 'int'.
   if (type.IsIntType()) {
@@ -420,7 +420,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     const AbstractType& type_arg,
     intptr_t type_param_value_offset_i,
     compiler::Label* check_failed) {
-  if (type_arg.IsTopType()) {
+  if (type_arg.IsTopTypeForSubtyping()) {
     return;
   }
 

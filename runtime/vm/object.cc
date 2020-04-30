@@ -4988,7 +4988,7 @@ bool Class::IsSubtypeOf(const Class& cls,
       const AbstractType& other_type_arg =
           AbstractType::Handle(zone, other_type_arguments.TypeAtNullSafe(0));
       // Check if S1 is a top type.
-      if (other_type_arg.IsTopType()) {
+      if (other_type_arg.IsTopTypeForSubtyping()) {
         return true;
       }
       // Check T0 <: Future<S1> when T0 is Future<S0>.
@@ -7959,7 +7959,7 @@ bool Function::IsContravariantParameter(intptr_t parameter_position,
                                         Heap::Space space) const {
   const AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
-  if (param_type.IsTopType()) {
+  if (param_type.IsTopTypeForSubtyping()) {
     return true;
   }
   const AbstractType& other_param_type =
@@ -8042,7 +8042,7 @@ bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
   const AbstractType& other_res_type =
       AbstractType::Handle(zone, other.result_type());
   // 'void Function()' is a subtype of 'Object Function()'.
-  if (!other_res_type.IsTopType()) {
+  if (!other_res_type.IsTopTypeForSubtyping()) {
     const AbstractType& res_type = AbstractType::Handle(zone, result_type());
     if (!res_type.IsSubtypeOf(other_res_type, space)) {
       return false;
@@ -17831,7 +17831,9 @@ bool Instance::NullIsInstanceOf(
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
   if (other.IsNullable()) {
-    // The type will remain nullable after instantiation.
+    // This case includes top types (void, dynamic, Object?).
+    // The uninstantiated nullable type will remain nullable after
+    // instantiation.
     return true;
   }
   if (other.IsFutureOrType()) {
@@ -17851,7 +17853,7 @@ bool Instance::NullIsInstanceOf(
     return Instance::NullIsInstanceOf(type, Object::null_type_arguments(),
                                       Object::null_type_arguments());
   }
-  return other.IsLegacy() && (other.IsTopType() || other.IsNeverType());
+  return other.IsLegacy() && (other.IsObjectType() || other.IsNeverType());
 }
 
 bool Instance::NullIsAssignableTo(const AbstractType& other) {
@@ -17884,7 +17886,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
   ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
   ASSERT(raw() != Object::sentinel().raw());
   // Instance may not have runtimeType dynamic, void, or Never.
-  if (other.IsTopType()) {
+  if (other.IsTopTypeForSubtyping()) {
     return true;
   }
   Thread* thread = Thread::Current();
@@ -17908,12 +17910,12 @@ bool Instance::RuntimeTypeIsSubtypeOf(
       if (instantiated_other.IsTypeRef()) {
         instantiated_other = TypeRef::Cast(instantiated_other).type();
       }
-      if (instantiated_other.IsTopType() ||
+      if (instantiated_other.IsTopTypeForSubtyping() ||
           instantiated_other.IsDartFunctionType()) {
         return true;
       }
     }
-    if (IsFutureOrInstanceOf(zone, instantiated_other)) {
+    if (RuntimeTypeIsSubtypeOfFutureOr(zone, instantiated_other)) {
       return true;
     }
     if (!instantiated_other.IsFunctionType()) {
@@ -17948,7 +17950,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     if (instantiated_other.IsTypeRef()) {
       instantiated_other = TypeRef::Cast(instantiated_other).type();
     }
-    if (instantiated_other.IsTopType()) {
+    if (instantiated_other.IsTopTypeForSubtyping()) {
       return true;
     }
   }
@@ -17960,7 +17962,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     if (instantiated_other.IsNullType()) {
       return true;
     }
-    if (IsFutureOrInstanceOf(zone, instantiated_other)) {
+    if (RuntimeTypeIsSubtypeOfFutureOr(zone, instantiated_other)) {
       return true;
     }
     return !instantiated_other.IsNonNullable();
@@ -17971,14 +17973,14 @@ bool Instance::RuntimeTypeIsSubtypeOf(
                             instantiated_other, Heap::kOld);
 }
 
-bool Instance::IsFutureOrInstanceOf(Zone* zone,
-                                    const AbstractType& other) const {
+bool Instance::RuntimeTypeIsSubtypeOfFutureOr(Zone* zone,
+                                              const AbstractType& other) const {
   if (other.IsFutureOrType()) {
     const TypeArguments& other_type_arguments =
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
         AbstractType::Handle(zone, other_type_arguments.TypeAtNullSafe(0));
-    if (other_type_arg.IsTopType()) {
+    if (other_type_arg.IsTopTypeForSubtyping()) {
       return true;
     }
     if (Class::Handle(zone, clazz()).IsFutureClass()) {
@@ -18654,8 +18656,7 @@ bool AbstractType::IsNeverType() const {
   return type_class_id() == kNeverCid;
 }
 
-// Caution: IsTopType() does not return true for non-nullable Object.
-bool AbstractType::IsTopType() const {
+bool AbstractType::IsTopTypeForInstanceOf() const {
   const classid_t cid = type_class_id();
   if (cid == kDynamicCid || cid == kVoidCid) {
     return true;
@@ -18665,12 +18666,12 @@ bool AbstractType::IsTopType() const {
   }
   if (cid == kFutureOrCid) {
     // FutureOr<T> where T is a top type behaves as a top type.
-    return AbstractType::Handle(UnwrapFutureOr()).IsTopType();
+    return AbstractType::Handle(UnwrapFutureOr()).IsTopTypeForInstanceOf();
   }
   return false;
 }
 
-bool AbstractType::IsTopTypeForAssignability() const {
+bool AbstractType::IsTopTypeForSubtyping() const {
   const classid_t cid = type_class_id();
   if (cid == kDynamicCid || cid == kVoidCid) {
     return true;
@@ -18682,7 +18683,7 @@ bool AbstractType::IsTopTypeForAssignability() const {
   }
   if (cid == kFutureOrCid) {
     // FutureOr<T> where T is a top type behaves as a top type.
-    return AbstractType::Handle(UnwrapFutureOr()).IsTopTypeForAssignability();
+    return AbstractType::Handle(UnwrapFutureOr()).IsTopTypeForSubtyping();
   }
   return false;
 }
@@ -18768,7 +18769,7 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     return true;
   }
   // Right top type.
-  if (other.IsTopTypeForAssignability()) {
+  if (other.IsTopTypeForSubtyping()) {
     return true;
   }
   // Left bottom type.
@@ -18881,7 +18882,7 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
         AbstractType::Handle(zone, other_type_arguments.TypeAtNullSafe(0));
-    if (other_type_arg.IsTopType()) {
+    if (other_type_arg.IsTopTypeForSubtyping()) {
       return true;
     }
     // Retry the IsSubtypeOf check after unwrapping type arg of FutureOr.

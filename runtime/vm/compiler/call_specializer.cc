@@ -867,7 +867,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 
   // Build an AssertAssignable if necessary.
   const AbstractType& dst_type = AbstractType::ZoneHandle(zone(), field.type());
-  if (I->argument_type_checks() && !dst_type.IsTopTypeForAssignability()) {
+  if (I->argument_type_checks() && !dst_type.IsTopTypeForSubtyping()) {
     // Compute if we need to type check the value. Always type check if
     // at a dynamic invocation.
     bool needs_check = true;
@@ -1115,7 +1115,8 @@ BoolPtr CallSpecializer::InstanceOfAsBool(
       const AbstractType& unwrapped_type =
           AbstractType::Handle(type.UnwrapFutureOr());
       ASSERT(unwrapped_type.IsInstantiated());
-      is_subtype = unwrapped_type.IsTopType() || unwrapped_type.IsNullable() ||
+      is_subtype = unwrapped_type.IsTopTypeForInstanceOf() ||
+                   unwrapped_type.IsNullable() ||
                    (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType());
     } else {
       is_subtype =
@@ -1183,7 +1184,8 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
       return false;
     }
   }
-  if (type.IsNullable() || type.IsTopType() || type.IsNeverType()) {
+  if (type.IsNullable() || type.IsTopTypeForInstanceOf() ||
+      type.IsNeverType()) {
     // A class id check is not sufficient, since a null instance also satisfies
     // the test against a nullable type.
     // TODO(regis): Add a null check in addition to the class id check?
