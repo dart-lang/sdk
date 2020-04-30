@@ -117,7 +117,6 @@ void testTryParse() {
   Expect.isNull(InternetAddress.tryParse("192.168.256.0"));
   Expect.isNull(InternetAddress.tryParse("192.168.999.0"));
   Expect.isNull(InternetAddress.tryParse("1.-2.3.4"));
-  Expect.isNull(InternetAddress.tryParse("01.02.03.04"));
   Expect.isNull(InternetAddress.tryParse(""));
   Expect.isNull(InternetAddress.tryParse("FFFG::0"));
   Expect.isNull(InternetAddress.tryParse("FFF@::0"));
