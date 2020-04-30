@@ -232,8 +232,10 @@ abstract class AbstractDataSource extends DataSourceMixin
             new List<ir.NamedType>(namedParameterCount);
         for (int index = 0; index < namedParameterCount; index++) {
           String name = readString();
+          bool isRequired = readBool();
           ir.DartType type = _readDartTypeNode(functionTypeVariables);
-          namedParameters[index] = new ir.NamedType(name, type);
+          namedParameters[index] =
+              new ir.NamedType(name, type, isRequired: isRequired);
         }
         ir.TypedefType typedefType = _readDartTypeNode(functionTypeVariables);
         end(functionTypeNodeTag);

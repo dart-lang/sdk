@@ -529,7 +529,7 @@ void forEachOrderedParameterByFunctionNode(
       position++) {
     ir.VariableDeclaration variable = node.positionalParameters[position];
     f(variable,
-        isOptional: position >= parameterStructure.requiredParameters,
+        isOptional: position >= parameterStructure.requiredPositionalParameters,
         isElided: position >= parameterStructure.positionalParameters);
   }
 

@@ -350,8 +350,6 @@ class Rti {
 }
 
 class _FunctionParameters {
-  // TODO(fishythefish): Support required named parameters.
-
   static _FunctionParameters allocate() => _FunctionParameters();
 
   Object? _requiredPositional;
@@ -370,21 +368,21 @@ class _FunctionParameters {
     parameters._optionalPositional = optionalPositional;
   }
 
-  /// These are alternating name/type pairs; that is, the optional named
-  /// parameters of the function
+  /// These are a sequence of name/bool/type triplets that correspond to named
+  /// parameters.
   ///
-  ///   void foo({int bar, double baz})
+  ///   void foo({int bar, required double baz})
   ///
-  /// would be encoded as ["bar", int, "baz", double], where the even indices are
-  /// the name [String]s and the odd indices are the type [Rti]s.
+  /// would be encoded as ["bar", false, int, "baz", true, double], where each
+  /// triplet consists of the name [String], a bool indicating whether or not
+  /// the parameter is required, and the [Rti].
   ///
-  /// Invariant: These pairs are sorted by name in lexicographically ascending order.
-  Object? _optionalNamed;
-  static JSArray _getOptionalNamed(_FunctionParameters parameters) =>
-      JS('JSUnmodifiableArray', '#', parameters._optionalNamed);
-  static void _setOptionalNamed(
-      _FunctionParameters parameters, Object? optionalNamed) {
-    parameters._optionalNamed = optionalNamed;
+  /// Invariant: These groups are sorted by name in lexicographically ascending order.
+  Object? _named;
+  static JSArray _getNamed(_FunctionParameters parameters) =>
+      JS('JSUnmodifiableArray', '#', parameters._named);
+  static void _setNamed(_FunctionParameters parameters, Object? named) {
+    parameters._named = named;
   }
 }
 
@@ -573,22 +571,23 @@ Object? _substituteNamed(
     Object? universe, Object? namedArray, Object? typeArguments, int depth) {
   bool changed = false;
   int length = _Utils.arrayLength(namedArray);
-  assert(length.isEven);
+  assert(length % 3 == 0);
   Object? result = JS('', '[]');
-  for (int i = 0; i < length; i += 2) {
+  for (int i = 0; i < length; i += 3) {
     String name = _Utils.asString(_Utils.arrayAt(namedArray, i));
-    Rti rti = _Utils.asRti(_Utils.arrayAt(namedArray, i + 1));
+    bool isRequired = _Utils.asBool(_Utils.arrayAt(namedArray, i + 1));
+    Rti rti = _Utils.asRti(_Utils.arrayAt(namedArray, i + 2));
     Rti substitutedRti = _substitute(universe, rti, typeArguments, depth);
     if (_Utils.isNotIdentical(substitutedRti, rti)) {
       changed = true;
     }
     _Utils.arrayPush(result, name);
+    _Utils.arrayPush(result, isRequired);
     _Utils.arrayPush(result, substitutedRti);
   }
   return changed ? result : namedArray;
 }
 
-// TODO(fishythefish): Support required named parameters.
 _FunctionParameters _substituteFunctionParameters(Object? universe,
     _FunctionParameters functionParameters, Object? typeArguments, int depth) {
   var requiredPositional =
@@ -599,19 +598,18 @@ _FunctionParameters _substituteFunctionParameters(Object? universe,
       _FunctionParameters._getOptionalPositional(functionParameters);
   var substitutedOptionalPositional =
       _substituteArray(universe, optionalPositional, typeArguments, depth);
-  var optionalNamed = _FunctionParameters._getOptionalNamed(functionParameters);
-  var substitutedOptionalNamed =
-      _substituteNamed(universe, optionalNamed, typeArguments, depth);
+  var named = _FunctionParameters._getNamed(functionParameters);
+  var substitutedNamed =
+      _substituteNamed(universe, named, typeArguments, depth);
   if (_Utils.isIdentical(substitutedRequiredPositional, requiredPositional) &&
       _Utils.isIdentical(substitutedOptionalPositional, optionalPositional) &&
-      _Utils.isIdentical(substitutedOptionalNamed, optionalNamed))
-    return functionParameters;
+      _Utils.isIdentical(substitutedNamed, named)) return functionParameters;
   _FunctionParameters result = _FunctionParameters.allocate();
   _FunctionParameters._setRequiredPositional(
       result, substitutedRequiredPositional);
   _FunctionParameters._setOptionalPositional(
       result, substitutedOptionalPositional);
-  _FunctionParameters._setOptionalNamed(result, substitutedOptionalNamed);
+  _FunctionParameters._setNamed(result, substitutedNamed);
   return result;
 }
 
@@ -1262,7 +1260,6 @@ String _functionRtiToString(Rti functionType, List<String>? genericContext,
     typeParametersText += '>';
   }
 
-  // TODO(fishythefish): Support required named parameters.
   Rti returnType = Rti._getReturnType(functionType);
   _FunctionParameters parameters = Rti._getFunctionParameters(functionType);
   var requiredPositional =
@@ -1271,9 +1268,9 @@ String _functionRtiToString(Rti functionType, List<String>? genericContext,
   var optionalPositional =
       _FunctionParameters._getOptionalPositional(parameters);
   int optionalPositionalLength = _Utils.arrayLength(optionalPositional);
-  var optionalNamed = _FunctionParameters._getOptionalNamed(parameters);
-  int optionalNamedLength = _Utils.arrayLength(optionalNamed);
-  assert(optionalPositionalLength == 0 || optionalNamedLength == 0);
+  var named = _FunctionParameters._getNamed(parameters);
+  int namedLength = _Utils.arrayLength(named);
+  assert(optionalPositionalLength == 0 || namedLength == 0);
 
   String returnTypeText = _rtiToString(returnType, genericContext);
 
@@ -1298,15 +1295,18 @@ String _functionRtiToString(Rti functionType, List<String>? genericContext,
     argumentsText += ']';
   }
 
-  if (optionalNamedLength > 0) {
+  if (namedLength > 0) {
     argumentsText += sep + '{';
     sep = '';
-    for (int i = 0; i < optionalNamedLength; i += 2) {
-      argumentsText += sep +
-          _rtiToString(_Utils.asRti(_Utils.arrayAt(optionalNamed, i + 1)),
-              genericContext) +
+    for (int i = 0; i < namedLength; i += 3) {
+      argumentsText += sep;
+      if (_Utils.asBool(_Utils.arrayAt(named, i + 1))) {
+        argumentsText += 'required ';
+      }
+      argumentsText += _rtiToString(
+              _Utils.asRti(_Utils.arrayAt(named, i + 2)), genericContext) +
           ' ' +
-          _Utils.asString(_Utils.arrayAt(optionalNamed, i));
+          _Utils.asString(_Utils.arrayAt(named, i));
       sep = ', ';
     }
     argumentsText += '}';
@@ -1410,7 +1410,6 @@ String _rtiArrayToDebugString(Object? array) {
 }
 
 String functionParametersToString(_FunctionParameters parameters) {
-  // TODO(fishythefish): Support required named parameters.
   String s = '(', sep = '';
   var requiredPositional =
       _FunctionParameters._getRequiredPositional(parameters);
@@ -1418,9 +1417,9 @@ String functionParametersToString(_FunctionParameters parameters) {
   var optionalPositional =
       _FunctionParameters._getOptionalPositional(parameters);
   int optionalPositionalLength = _Utils.arrayLength(optionalPositional);
-  var optionalNamed = _FunctionParameters._getOptionalNamed(parameters);
-  int optionalNamedLength = _Utils.arrayLength(optionalNamed);
-  assert(optionalPositionalLength == 0 || optionalNamedLength == 0);
+  var named = _FunctionParameters._getNamed(parameters);
+  int namedLength = _Utils.arrayLength(named);
+  assert(optionalPositionalLength == 0 || namedLength == 0);
 
   for (int i = 0; i < requiredPositionalLength; i++) {
     s += sep +
@@ -1440,15 +1439,17 @@ String functionParametersToString(_FunctionParameters parameters) {
     s += ']';
   }
 
-  if (optionalNamedLength > 0) {
+  if (namedLength > 0) {
     s += sep + '{';
     sep = '';
-    for (int i = 0; i < optionalNamedLength; i += 2) {
-      s += sep +
-          _rtiToDebugString(
-              _Utils.asRti(_Utils.arrayAt(optionalNamed, i + 1))) +
+    for (int i = 0; i < namedLength; i += 3) {
+      s += sep;
+      if (_Utils.asBool(_Utils.arrayAt(named, i + 1))) {
+        s += 'required ';
+      }
+      s += _rtiToDebugString(_Utils.asRti(_Utils.arrayAt(named, i + 2))) +
           ' ' +
-          _Utils.asString(_Utils.arrayAt(optionalNamed, i));
+          _Utils.asString(_Utils.arrayAt(named, i));
       sep = ', ';
     }
     s += '}';
@@ -1896,12 +1897,17 @@ class _Universe {
   static String _canonicalRecipeJoinNamed(Object? arguments) {
     String s = '', sep = '';
     int length = _Utils.arrayLength(arguments);
-    assert(length.isEven);
-    for (int i = 0; i < length; i += 2) {
+    assert(length % 3 == 0);
+    for (int i = 0; i < length; i += 3) {
+      s += sep;
       String name = _Utils.asString(_Utils.arrayAt(arguments, i));
-      Rti type = _Utils.asRti(_Utils.arrayAt(arguments, i + 1));
+      bool isRequired = _Utils.asBool(_Utils.arrayAt(arguments, i + 1));
+      String nameSep = isRequired
+          ? Recipe.requiredNameSeparatorString
+          : Recipe.nameSeparatorString;
+      Rti type = _Utils.asRti(_Utils.arrayAt(arguments, i + 2));
       String subrecipe = Rti._getCanonicalRecipe(type);
-      s += sep + name + Recipe.nameSeparatorString + subrecipe;
+      s += name + nameSep + subrecipe;
       sep = Recipe.separatorString;
     }
     return s;
@@ -1989,7 +1995,6 @@ class _Universe {
       Rti._getCanonicalRecipe(returnType) +
       _canonicalRecipeOfFunctionParameters(parameters);
 
-  // TODO(fishythefish): Support required named parameters.
   static String _canonicalRecipeOfFunctionParameters(
       _FunctionParameters parameters) {
     var requiredPositional =
@@ -1998,9 +2003,9 @@ class _Universe {
     var optionalPositional =
         _FunctionParameters._getOptionalPositional(parameters);
     int optionalPositionalLength = _Utils.arrayLength(optionalPositional);
-    var optionalNamed = _FunctionParameters._getOptionalNamed(parameters);
-    int optionalNamedLength = _Utils.arrayLength(optionalNamed);
-    assert(optionalPositionalLength == 0 || optionalNamedLength == 0);
+    var named = _FunctionParameters._getNamed(parameters);
+    int namedLength = _Utils.arrayLength(named);
+    assert(optionalPositionalLength == 0 || namedLength == 0);
 
     String recipe = Recipe.startFunctionArgumentsString +
         _canonicalRecipeJoin(requiredPositional);
@@ -2013,11 +2018,11 @@ class _Universe {
           Recipe.endOptionalGroupString;
     }
 
-    if (optionalNamedLength > 0) {
+    if (namedLength > 0) {
       String sep = requiredPositionalLength > 0 ? Recipe.separatorString : '';
       recipe += sep +
           Recipe.startNamedGroupString +
-          _canonicalRecipeJoinNamed(optionalNamed) +
+          _canonicalRecipeJoinNamed(named) +
           Recipe.endNamedGroupString;
     }
 
@@ -2276,6 +2281,11 @@ class _Parser {
             break;
 
           case Recipe.nameSeparator:
+            push(stack, false);
+            break;
+
+          case Recipe.requiredNameSeparator:
+            push(stack, true);
             break;
 
           case Recipe.toType:
@@ -2442,13 +2452,13 @@ class _Parser {
   }
 
   static const int optionalPositionalSentinel = -1;
-  static const int optionalNamedSentinel = -2;
+  static const int namedSentinel = -2;
 
   static void handleFunctionArguments(Object? parser, Object? stack) {
     var universe = _Parser.universe(parser);
     _FunctionParameters parameters = _FunctionParameters.allocate();
     Object? optionalPositional = _Universe.sharedEmptyArray(universe);
-    Object? optionalNamed = _Universe.sharedEmptyArray(universe);
+    Object? named = _Universe.sharedEmptyArray(universe);
 
     var head = pop(stack);
     if (_Utils.isNum(head)) {
@@ -2458,8 +2468,8 @@ class _Parser {
           optionalPositional = pop(stack);
           break;
 
-        case optionalNamedSentinel:
-          optionalNamed = pop(stack);
+        case namedSentinel:
+          named = pop(stack);
           break;
 
         default:
@@ -2473,7 +2483,7 @@ class _Parser {
     _FunctionParameters._setRequiredPositional(
         parameters, collectArray(parser, stack));
     _FunctionParameters._setOptionalPositional(parameters, optionalPositional);
-    _FunctionParameters._setOptionalNamed(parameters, optionalNamed);
+    _FunctionParameters._setNamed(parameters, named);
     Rti returnType = toType(universe, environment(parser), pop(stack));
     push(stack, _Universe._lookupFunctionRti(universe, returnType, parameters));
   }
@@ -2487,7 +2497,7 @@ class _Parser {
   static void handleNamedGroup(Object? parser, Object? stack) {
     var parameters = collectNamed(parser, stack);
     push(stack, parameters);
-    push(stack, optionalNamedSentinel);
+    push(stack, namedSentinel);
   }
 
   static void handleExtendedOperations(Object? parser, Object? stack) {
@@ -2542,8 +2552,8 @@ class _Parser {
 
   static void toTypesNamed(Object? universe, Rti environment, Object? items) {
     int length = _Utils.arrayLength(items);
-    assert(length.isEven);
-    for (int i = 1; i < length; i += 2) {
+    assert(length % 3 == 0);
+    for (int i = 2; i < length; i += 3) {
       var item = _Utils.arrayAt(items, i);
       Rti type = toType(universe, environment, item);
       _Utils.arraySetAt(items, i, type);
@@ -2794,7 +2804,6 @@ bool _isSubtype(Object? universe, Rti s, Object? sEnv, Rti t, Object? tEnv) {
   return false;
 }
 
-// TODO(fishythefish): Support required named parameters.
 bool _isFunctionSubtype(
     Object? universe, Rti s, Object? sEnv, Rti t, Object? tEnv) {
   assert(Rti._getKind(s) == Rti.kindFunction);
@@ -2854,25 +2863,36 @@ bool _isFunctionSubtype(
     }
   }
 
-  var sOptionalNamed = _FunctionParameters._getOptionalNamed(sParameters);
-  var tOptionalNamed = _FunctionParameters._getOptionalNamed(tParameters);
-  int sOptionalNamedLength = _Utils.arrayLength(sOptionalNamed);
-  int tOptionalNamedLength = _Utils.arrayLength(tOptionalNamed);
+  var sNamed = _FunctionParameters._getNamed(sParameters);
+  var tNamed = _FunctionParameters._getNamed(tParameters);
+  int sNamedLength = _Utils.arrayLength(sNamed);
+  int tNamedLength = _Utils.arrayLength(tNamed);
 
-  for (int i = 0, j = 0; j < tOptionalNamedLength; j += 2) {
-    String sName;
-    String tName = _Utils.asString(_Utils.arrayAt(tOptionalNamed, j));
-    do {
-      if (i >= sOptionalNamedLength) return false;
-      sName = _Utils.asString(_Utils.arrayAt(sOptionalNamed, i));
-      i += 2;
-    } while (_Utils.stringLessThan(sName, tName));
-    if (_Utils.stringLessThan(tName, sName)) return false;
-    Rti sType = _Utils.asRti(_Utils.arrayAt(sOptionalNamed, i - 1));
-    Rti tType = _Utils.asRti(_Utils.arrayAt(tOptionalNamed, j + 1));
-    if (!_isSubtype(universe, tType, tEnv, sType, sEnv)) return false;
+  int sIndex = 0;
+  for (int tIndex = 0; tIndex < tNamedLength; tIndex += 3) {
+    String tName = _Utils.asString(_Utils.arrayAt(tNamed, tIndex));
+    while (true) {
+      if (sIndex >= sNamedLength) return false;
+      String sName = _Utils.asString(_Utils.arrayAt(sNamed, sIndex));
+      sIndex += 3;
+      if (_Utils.stringLessThan(tName, sName)) return false;
+      bool sIsRequired = _Utils.asBool(_Utils.arrayAt(sNamed, sIndex - 2));
+      if (_Utils.stringLessThan(sName, tName)) {
+        if (sIsRequired) return false;
+        continue;
+      }
+      bool tIsRequired = _Utils.asBool(_Utils.arrayAt(tNamed, tIndex + 1));
+      if (sIsRequired && !tIsRequired) return false;
+      Rti sType = _Utils.asRti(_Utils.arrayAt(sNamed, sIndex - 1));
+      Rti tType = _Utils.asRti(_Utils.arrayAt(tNamed, tIndex + 2));
+      if (!_isSubtype(universe, tType, tEnv, sType, sEnv)) return false;
+      break;
+    }
   }
-
+  while (sIndex < sNamedLength) {
+    if (_Utils.asBool(_Utils.arrayAt(sNamed, sIndex + 1))) return false;
+    sIndex += 3;
+  }
   return true;
 }
 

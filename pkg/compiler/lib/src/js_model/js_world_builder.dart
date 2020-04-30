@@ -818,6 +818,7 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
         parameterTypes,
         optionalParameterTypes,
         type.namedParameters,
+        type.requiredNamedParameters,
         namedParameterTypes,
         typeVariables);
   }

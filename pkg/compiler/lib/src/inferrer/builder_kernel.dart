@@ -229,7 +229,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ParameterStructure parameterStructure = function.parameterStructure;
 
     return arguments.positional.length <
-            parameterStructure.requiredParameters ||
+            parameterStructure.requiredPositionalParameters ||
         arguments.positional.length > parameterStructure.positionalParameters ||
         arguments.named.keys
             .any((name) => !parameterStructure.namedParameters.contains(name));

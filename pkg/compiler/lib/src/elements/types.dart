@@ -5,7 +5,7 @@
 import '../common/names.dart';
 import '../common_elements.dart';
 import '../serialization/serialization.dart';
-import '../util/util.dart' show equalElements, identicalElements;
+import '../util/util.dart' show equalElements, equalSets, identicalElements;
 import 'entities.dart';
 
 /// Hierarchy to describe types in Dart.
@@ -687,8 +687,11 @@ class FunctionType extends DartType {
   final List<DartType> parameterTypes;
   final List<DartType> optionalParameterTypes;
 
-  /// The names of the named parameters ordered lexicographically.
+  /// The names of all named parameters ordered lexicographically.
   final List<String> namedParameters;
+
+  /// The names of the required named parameters.
+  final Set<String> requiredNamedParameters;
 
   /// The types of the named parameters in the order corresponding to the
   /// [namedParameters].
@@ -701,6 +704,7 @@ class FunctionType extends DartType {
       this.parameterTypes,
       this.optionalParameterTypes,
       this.namedParameters,
+      this.requiredNamedParameters,
       this.namedParameterTypes,
       this.typeVariables) {
     assert(returnType != null, "Invalid return type in $this.");
@@ -709,6 +713,8 @@ class FunctionType extends DartType {
         "Invalid optional parameter types in $this.");
     assert(
         !namedParameters.contains(null), "Invalid named parameters in $this.");
+    assert(!requiredNamedParameters.contains(null),
+        "Invalid required named parameters in $this.");
     assert(!namedParameterTypes.contains(null),
         "Invalid named parameter types in $this.");
     assert(!typeVariables.contains(null), "Invalid type variables in $this.");
@@ -735,11 +741,19 @@ class FunctionType extends DartType {
     List<DartType> namedParameterTypes =
         source._readDartTypes(functionTypeVariables);
     List<String> namedParameters = List<String>(namedParameterTypes.length);
+    var requiredNamedParameters = <String>{};
     for (int i = 0; i < namedParameters.length; i++) {
       namedParameters[i] = source.readString();
+      if (source.readBool()) requiredNamedParameters.add(namedParameters[i]);
     }
-    return FunctionType._(returnType, parameterTypes, optionalParameterTypes,
-        namedParameters, namedParameterTypes, typeVariables);
+    return FunctionType._(
+        returnType,
+        parameterTypes,
+        optionalParameterTypes,
+        namedParameters,
+        requiredNamedParameters,
+        namedParameterTypes,
+        typeVariables);
   }
 
   @override
@@ -758,6 +772,7 @@ class FunctionType extends DartType {
     sink._writeDartTypes(namedParameterTypes, functionTypeVariables);
     for (String namedParameter in namedParameters) {
       sink.writeString(namedParameter);
+      sink.writeBool(requiredNamedParameters.contains(namedParameter));
     }
   }
 
@@ -787,16 +802,19 @@ class FunctionType extends DartType {
   int get hashCode {
     int hash = 3 * returnType.hashCode;
     for (DartType parameter in parameterTypes) {
-      hash = 17 * hash + 5 * parameter.hashCode;
+      hash = 19 * hash + 5 * parameter.hashCode;
     }
     for (DartType parameter in optionalParameterTypes) {
-      hash = 19 * hash + 7 * parameter.hashCode;
+      hash = 23 * hash + 7 * parameter.hashCode;
     }
     for (String name in namedParameters) {
-      hash = 23 * hash + 11 * name.hashCode;
+      hash = 29 * hash + 11 * name.hashCode;
     }
     for (DartType parameter in namedParameterTypes) {
-      hash = 29 * hash + 13 * parameter.hashCode;
+      hash = 31 * hash + 13 * parameter.hashCode;
+    }
+    for (String name in requiredNamedParameters) {
+      hash = 37 * hash + 17 * name.hashCode;
     }
     return hash;
   }
@@ -832,6 +850,7 @@ class FunctionType extends DartType {
           _equalTypes(optionalParameterTypes, other.optionalParameterTypes,
               assumptions) &&
           equalElements(namedParameters, other.namedParameters) &&
+          equalSets(requiredNamedParameters, other.requiredNamedParameters) &&
           _equalTypes(
               namedParameterTypes, other.namedParameterTypes, assumptions);
     } finally {
@@ -1071,6 +1090,7 @@ class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
             parameterTypes,
             optionalParameterTypes,
             type.namedParameters,
+            type.requiredNamedParameters,
             namedParameterTypes,
             typeVariables));
   }
@@ -1208,6 +1228,7 @@ abstract class DartTypeSubstitutionVisitor<A>
             newParameterTypes,
             newOptionalParameterTypes,
             type.namedParameters,
+            type.requiredNamedParameters,
             newNamedParameterTypes,
             newTypeVariables));
   }
@@ -1815,6 +1836,7 @@ abstract class DartTypes {
       List<DartType> parameterTypes,
       List<DartType> optionalParameterTypes,
       List<String> namedParameters,
+      Set<String> requiredNamedParameters,
       List<DartType> namedParameterTypes,
       List<FunctionTypeVariable> typeVariables) {
     FunctionType type = FunctionType._(
@@ -1822,6 +1844,7 @@ abstract class DartTypes {
         parameterTypes,
         optionalParameterTypes,
         namedParameters,
+        requiredNamedParameters,
         namedParameterTypes,
         typeVariables);
     List<FunctionTypeVariable> normalizableVariables = typeVariables
@@ -1881,8 +1904,13 @@ abstract class DartTypes {
         t.optionalParameterTypes.map(_subst).toList();
     List<DartType> namedParameterTypes =
         t.namedParameterTypes.map(_subst).toList();
-    return functionType(returnType, parameterTypes, optionalParameterTypes,
-        t.namedParameters, namedParameterTypes, const []);
+    return functionType(
+        returnType,
+        parameterTypes,
+        optionalParameterTypes,
+        t.namedParameters,
+        t.requiredNamedParameters,
+        namedParameterTypes, const []);
   }
 
   /// Returns `true` if every type argument of [t] is a top type.
@@ -2059,8 +2087,6 @@ abstract class DartTypes {
 
             if (!_isSubtype(s.returnType, t.returnType, env)) return false;
 
-            // TODO(fishythefish): Support required named parameters.
-
             List<DartType> sRequiredPositional = s.parameterTypes;
             List<DartType> tRequiredPositional = t.parameterTypes;
             int sRequiredPositionalLength = sRequiredPositional.length;
@@ -2103,25 +2129,38 @@ abstract class DartTypes {
               }
             }
 
-            List<String> sOptionalNamed = s.namedParameters;
-            List<String> tOptionalNamed = t.namedParameters;
-            List<DartType> sOptionalNamedTypes = s.namedParameterTypes;
-            List<DartType> tOptionalNamedTypes = t.namedParameterTypes;
-            int sOptionalNamedLength = sOptionalNamed.length;
-            int tOptionalNamedLength = tOptionalNamed.length;
-            for (int i = 0, j = 0; j < tOptionalNamedLength; j++) {
-              String sName;
-              String tName = tOptionalNamed[j];
-              int comparison;
-              do {
-                if (i >= sOptionalNamedLength) return false;
-                sName = sOptionalNamed[i++];
-                comparison = sName.compareTo(tName);
-              } while (comparison < 0);
-              if (comparison > 0) return false;
-              if (!_isSubtype(
-                  tOptionalNamedTypes[j], sOptionalNamedTypes[i - 1], env))
-                return false;
+            List<String> sNamed = s.namedParameters;
+            List<String> tNamed = t.namedParameters;
+            Set<String> sRequiredNamed = s.requiredNamedParameters;
+            Set<String> tRequiredNamed = t.requiredNamedParameters;
+            List<DartType> sNamedTypes = s.namedParameterTypes;
+            List<DartType> tNamedTypes = t.namedParameterTypes;
+            int sNamedLength = sNamed.length;
+            int tNamedLength = tNamed.length;
+
+            int sIndex = 0;
+            for (int tIndex = 0; tIndex < tNamedLength; tIndex++) {
+              String tName = tNamed[tIndex];
+              while (true) {
+                if (sIndex >= sNamedLength) return false;
+                String sName = sNamed[sIndex++];
+                int comparison = sName.compareTo(tName);
+                if (comparison > 0) return false;
+                bool sIsRequired = sRequiredNamed.contains(sName);
+                if (comparison < 0) {
+                  if (sIsRequired) return false;
+                  continue;
+                }
+                bool tIsRequired = tRequiredNamed.contains(tName);
+                if (sIsRequired && !tIsRequired) return false;
+                if (!_isSubtype(
+                    tNamedTypes[tIndex], sNamedTypes[sIndex - 1], env))
+                  return false;
+                break;
+              }
+            }
+            while (sIndex < sNamedLength) {
+              if (sRequiredNamed.contains(sNamed[sIndex++])) return false;
             }
             return true;
           } finally {

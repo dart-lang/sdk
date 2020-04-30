@@ -147,9 +147,9 @@ class CallStructure {
   }
 
   bool signatureApplies(ParameterStructure parameters) {
-    int requiredParameterCount = parameters.requiredParameters;
+    int requiredParameterCount = parameters.requiredPositionalParameters;
     int optionalParameterCount = parameters.optionalParameters;
-    int parameterCount = requiredParameterCount + optionalParameterCount;
+    int parameterCount = parameters.totalParameters;
     if (argumentCount > parameterCount) return false;
     if (positionalArgumentCount < requiredParameterCount) return false;
     if (typeArgumentCount != 0) {
@@ -166,15 +166,22 @@ class CallStructure {
     } else {
       if (positionalArgumentCount > requiredParameterCount) return false;
       assert(positionalArgumentCount == requiredParameterCount);
-      if (namedArgumentCount > optionalParameterCount) return false;
+      if (namedArgumentCount >
+          optionalParameterCount + parameters.requiredNamedParameters.length)
+        return false;
 
       int nameIndex = 0;
       List<String> namedParameters = parameters.namedParameters;
+      int seenRequiredNamedParameters = 0;
+
       for (String name in getOrderedNamedArguments()) {
         bool found = false;
         // Note: we start at the existing index because arguments are sorted.
         while (nameIndex < namedParameters.length) {
-          if (name == namedParameters[nameIndex]) {
+          String parameterName = namedParameters[nameIndex];
+          if (name == parameterName) {
+            if (parameters.requiredNamedParameters.contains(name))
+              seenRequiredNamedParameters++;
             found = true;
             break;
           }
@@ -182,7 +189,8 @@ class CallStructure {
         }
         if (!found) return false;
       }
-      return true;
+      return seenRequiredNamedParameters ==
+          parameters.requiredNamedParameters.length;
     }
   }
 

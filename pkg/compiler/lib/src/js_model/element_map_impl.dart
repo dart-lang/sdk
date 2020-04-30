@@ -887,13 +887,17 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         parameterTypes.add(getParameterType(variable));
       }
     }
-    List<String> namedParameters = <String>[];
+    var namedParameters = <String>[];
+    var requiredNamedParameters = <String>{};
     List<DartType> namedParameterTypes = <DartType>[];
     List<ir.VariableDeclaration> sortedNamedParameters =
         node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
     for (ir.VariableDeclaration variable in sortedNamedParameters) {
       namedParameters.add(variable.name);
       namedParameterTypes.add(getParameterType(variable));
+      if (variable.isRequired && !options.useLegacySubtyping) {
+        requiredNamedParameters.add(variable.name);
+      }
     }
     List<FunctionTypeVariable> typeVariables;
     if (node.typeParameters.isNotEmpty) {
@@ -927,6 +931,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         parameterTypes,
         optionalParameterTypes,
         namedParameters,
+        requiredNamedParameters,
         namedParameterTypes,
         typeVariables);
   }
@@ -1779,13 +1784,24 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   ParameterStructure _getParameterStructureFromFunctionNode(
       ir.FunctionNode node) {
-    int requiredParameters = node.requiredParameterCount;
+    int requiredPositionalParameters = node.requiredParameterCount;
     int positionalParameters = node.positionalParameters.length;
     int typeParameters = node.typeParameters.length;
-    List<String> namedParameters =
-        node.namedParameters.map((p) => p.name).toList()..sort();
-    return new ParameterStructure(requiredParameters, positionalParameters,
-        namedParameters, typeParameters);
+    var namedParameters = <String>[];
+    var requiredNamedParameters = <String>{};
+    for (var p in node.namedParameters.toList()
+      ..sort((a, b) => a.name.compareTo(b.name))) {
+      namedParameters.add(p.name);
+      if (p.isRequired && !options.useLegacySubtyping) {
+        requiredNamedParameters.add(p.name);
+      }
+    }
+    return new ParameterStructure(
+        requiredPositionalParameters,
+        positionalParameters,
+        namedParameters,
+        requiredNamedParameters,
+        typeParameters);
   }
 
   KernelClosureClassInfo constructClosureClass(
