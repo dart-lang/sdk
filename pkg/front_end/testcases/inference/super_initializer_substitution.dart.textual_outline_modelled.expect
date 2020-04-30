@@ -1,0 +1,13 @@
+library test;
+
+T f<T>() => null;
+
+class B<T> {
+  B(T t);
+}
+
+class C<U> extends B<List<U>> {
+  C() : super(f());
+}
+
+main() {}

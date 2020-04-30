@@ -1,0 +1,6 @@
+library test;
+
+import 'dart:async';
+
+void foo(Stream<int> Function() values) {}
+void main() {}

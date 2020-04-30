@@ -1,0 +1,8 @@
+library test;
+
+const x1 = 1;
+final x2 = 1;
+final y1 = x1;
+final y2 = x2;
+foo() {}
+main() {}

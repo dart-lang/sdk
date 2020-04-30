@@ -1,0 +1,10 @@
+library test;
+
+class C<T> {
+  C(T x());
+}
+
+main() {}
+var v = new C<dynamic>(() {
+  return 1;
+});

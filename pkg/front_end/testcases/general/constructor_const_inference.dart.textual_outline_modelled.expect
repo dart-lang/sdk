@@ -1,0 +1,14 @@
+class A<T> {
+  A(this.x);
+  _Y<T> x;
+}
+
+class B<T> extends A<T> {
+  B() : super(const _Y());
+}
+
+class _Y<T> {
+  const _Y();
+}
+
+main() {}

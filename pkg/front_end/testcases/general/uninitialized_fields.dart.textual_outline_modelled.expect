@@ -1,0 +1,24 @@
+class Forwarding {
+  Forwarding(int arg) : this.initialize(arg);
+  Forwarding.initialize(this.x);
+  int x;
+}
+
+class Initialized {
+  Initialized(this.x);
+  int x;
+}
+
+class PartiallyInitialized {
+  PartiallyInitialized(this.x);
+  PartiallyInitialized.noInitializer();
+  int x;
+}
+
+class Uninitialized {
+  int x;
+}
+
+int initializedTopLevel = 4;
+int uninitializedTopLevel;
+main() {}

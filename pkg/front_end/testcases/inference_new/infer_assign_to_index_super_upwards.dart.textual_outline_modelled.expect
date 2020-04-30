@@ -1,0 +1,49 @@
+library test;
+
+abstract class Base<T, U> {
+  T getValue(String s);
+  T operator [](String s) => getValue(s);
+  void operator []=(String s, U v) => setValue(s, v);
+  void setValue(String s, U v);
+}
+
+abstract class Test1 extends Base<int, int> {
+  void test() {}
+}
+
+abstract class Test2 extends Base<int, num> {
+  void test() {}
+}
+
+abstract class Test3 extends Base<int, double> {
+  void test() {}
+}
+
+abstract class Test4 extends Base<num, int> {
+  void test() {}
+}
+
+abstract class Test5 extends Base<num, num> {
+  void test() {}
+}
+
+abstract class Test6 extends Base<num, double> {
+  void test() {}
+}
+
+abstract class Test7 extends Base<double, int> {
+  void test() {}
+}
+
+abstract class Test8 extends Base<double, num> {
+  void test() {}
+}
+
+abstract class Test9 extends Base<double, double> {
+  void test() {}
+}
+
+double getDouble() => 0.0;
+int getInt() => 0;
+main() {}
+num getNum() => 0;

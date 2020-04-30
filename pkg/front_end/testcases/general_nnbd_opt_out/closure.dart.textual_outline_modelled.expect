@@ -1,0 +1,9 @@
+// @dart = 2.6
+class Bar {}
+
+class Foo {
+  var _field = new Bar();
+}
+
+main() {}
+useCallback(callback) {}

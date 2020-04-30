@@ -1,0 +1,15 @@
+library test;
+
+G<num> g(C<num> c) {}
+
+class C<T> {
+  C(this._x);
+  F<T> _x;
+  F<T> f() => _x;
+}
+
+typedef F<T> G<T>();
+typedef void F<T>(T x);
+void h(int i) {}
+void main() {}
+void test() {}

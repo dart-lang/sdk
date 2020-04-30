@@ -1,0 +1,4 @@
+// @dart = 2.6
+library top_level_accessors;
+
+part 'top_level_accessors_part.dart';

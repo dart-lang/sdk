@@ -1,0 +1,7 @@
+library test;
+
+bool f() => null;
+main() {}
+var x = () => f() ? y : z;
+var y = () => x;
+var z = () => x;

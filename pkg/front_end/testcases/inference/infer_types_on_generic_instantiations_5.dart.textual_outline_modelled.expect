@@ -1,0 +1,23 @@
+library test;
+
+abstract class A<E> implements I<E> {
+  String m(a, String f(v, E e));
+  const A();
+}
+
+abstract class I<E> {
+  String m(a, String f(v, E e));
+}
+
+abstract class M {
+  final int y = 0;
+}
+
+class B<E> extends A<E> implements M {
+  const B();
+  int get y => 0;
+  m(a, f(v, E e)) {}
+}
+
+foo() {}
+main() {}

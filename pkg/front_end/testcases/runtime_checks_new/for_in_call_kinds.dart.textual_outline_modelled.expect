@@ -1,0 +1,13 @@
+library test;
+
+class C {
+  static var staticField;
+  static void set staticSetter(x) {}
+  var instanceField;
+  void set instanceSetter(x) {}
+  void test() {}
+}
+
+main() {}
+var topLevel;
+void set topLevelSetter(x) {}

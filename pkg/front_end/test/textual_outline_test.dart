@@ -74,4 +74,26 @@ class A {
 }""") {
     throw "Unexpected result: $result";
   }
+
+  // Has space between entries.
+  result = textualOutline(utf8.encode("""
+@a
+@A(2)
+typedef void F1();
+
+@a
+@A(3)
+int f1, f2;
+"""), throwOnUnexpected: true, performModelling: true);
+  if (result !=
+      """
+@a
+@A(2)
+typedef void F1();
+
+@a
+@A(3)
+int f1, f2;""") {
+    throw "Unexpected result: $result";
+  }
 }

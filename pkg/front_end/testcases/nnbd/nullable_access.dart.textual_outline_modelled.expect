@@ -1,0 +1,15 @@
+class A {
+  A get nonNullableProperty => this;
+  const A();
+}
+
+class Class {
+  A get nonNullableProperty => nonNullableField;
+  A nonNullableField = const A();
+  A nonNullableMethod() => nonNullableField;
+  void set nonNullableProperty(A value) {}
+}
+
+expect(expected, actual) {}
+main() {}
+throws(void Function() f) {}

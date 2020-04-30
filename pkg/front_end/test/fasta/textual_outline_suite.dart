@@ -70,38 +70,46 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) async {
     List<int> bytes = new File.fromUri(description.uri).readAsBytesSync();
-    String result = textualOutline(bytes, throwOnUnexpected: true);
-    if (result == null) {
-      return new Result(null, context.expectationSet["EmptyOutput"],
-          description.uri, StackTrace.current);
-    }
+    for (bool modelled in [false, true]) {
+      String result = textualOutline(bytes,
+          throwOnUnexpected: true, performModelling: modelled);
+      if (result == null) {
+        return new Result(null, context.expectationSet["EmptyOutput"],
+            description.uri, StackTrace.current);
+      }
 
-    // In an attempt to make it less sensitive to formatting first remove excess
-    // new lines, then format.
-    List<String> lines = result.split("\n");
-    StringBuffer sb = new StringBuffer();
-    for (String line in lines) {
-      if (line.trim() != "") sb.writeln(line);
-    }
-    result = sb.toString().trim();
+      // In an attempt to make it less sensitive to formatting first remove
+      // excess new lines, then format.
+      List<String> lines = result.split("\n");
+      StringBuffer sb = new StringBuffer();
+      for (String line in lines) {
+        if (line.trim() != "") sb.writeln(line);
+      }
+      result = sb.toString().trim();
 
-    // Try to format.
-    Exception formatterException;
-    StackTrace formatterExceptionSt;
-    try {
-      result = new DartFormatter().format(result);
-    } catch (e, st) {
-      formatterException = e;
-      formatterExceptionSt = st;
-    }
+      // Try to format.
+      Exception formatterException;
+      StackTrace formatterExceptionSt;
+      try {
+        result = new DartFormatter().format(result);
+      } catch (e, st) {
+        formatterException = e;
+        formatterExceptionSt = st;
+      }
 
-    Result expectMatch = await context.match<TestDescription>(
-        ".textual_outline.expect", result, description.uri, description);
-    if (expectMatch.outcome != Expectation.Pass) return expectMatch;
+      String filename = ".textual_outline.expect";
+      if (modelled) {
+        filename = ".textual_outline_modelled.expect";
+      }
 
-    if (formatterException != null) {
-      return new Result(null, context.expectationSet["FormatterCrash"],
-          formatterException, formatterExceptionSt);
+      Result expectMatch = await context.match<TestDescription>(
+          filename, result, description.uri, description);
+      if (expectMatch.outcome != Expectation.Pass) return expectMatch;
+
+      if (formatterException != null) {
+        return new Result(null, context.expectationSet["FormatterCrash"],
+            formatterException, formatterExceptionSt);
+      }
     }
 
     return new Result.pass(description);

@@ -1,0 +1,6 @@
+// @dart = 2.6
+import 'error_location_02_lib1.dart';
+import 'error_location_02_lib2.dart';
+import 'error_location_02_lib3.dart';
+
+main() {}

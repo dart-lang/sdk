@@ -1,0 +1,24 @@
+class ClassWithIndexGet {
+  int operator [](int index) => 42;
+}
+
+class ClassWithIndexSet {
+  operator []=(int index, int value) {}
+}
+
+class ClassWithProperty {
+  EmptyClass property;
+}
+
+class EmptyClass {}
+
+main() {}
+var classWithIndexGet = new ClassWithIndexGet();
+var classWithIndexSet = new ClassWithIndexSet();
+var classWithProperty = new ClassWithProperty();
+var emptyClass = new EmptyClass();
+var missingBinary = classWithProperty.property += 2;
+var missingIndexGet = classWithIndexSet[0] ??= 2;
+var missingIndexSet = classWithIndexGet[0] ??= 2;
+var missingPropertyGet = emptyClass.property;
+var missingPropertySet = emptyClass.property = 42;

@@ -1,0 +1,8 @@
+class Bar {
+  Bar get x native "Bar_get_x";
+  f() native "Bar_f";
+  factory Bar() native "Bar_constructor";
+  set x(Bar value) native "Bar_set_x";
+}
+
+foo() native "foo";

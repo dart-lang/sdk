@@ -1,0 +1,4 @@
+const a = <int>[];
+const b = <int?>[];
+const c = {a: 0, b: 1};
+main() {}

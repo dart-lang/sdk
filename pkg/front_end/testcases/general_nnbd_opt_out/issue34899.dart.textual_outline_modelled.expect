@@ -1,0 +1,21 @@
+// @dart = 2.6
+class Bar {
+  Foo<Baz> qux;
+  Future<void> quuz() =>
+      qux().then((baz) => corge(baz)).then((grault) => garply(grault));
+  Grault corge(Baz baz) => null;
+  void garply(Grault grault) {}
+}
+
+class Baz {}
+
+class Foo<T> {
+  Foo(this.quux, this.t);
+  Future<T> call() => quux().then<T>((_) => t);
+  T t;
+  final Future<dynamic> Function() quux;
+}
+
+class Grault {}
+
+main() {}

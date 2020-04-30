@@ -1,0 +1,21 @@
+library test;
+
+class Test1 {
+  int t;
+  void test() {}
+}
+
+class Test2 {
+  num t;
+  void test() {}
+}
+
+class Test3 {
+  double t;
+  void test3() {}
+}
+
+double getDouble() => 0.0;
+int getInt() => 0;
+main() {}
+num getNum() => 0;

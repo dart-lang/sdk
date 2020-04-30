@@ -1,0 +1,19 @@
+library test;
+
+class C<T> {
+  F<T> g4() => this.f;
+  void f(T x) {}
+  void g1(T x) {}
+  void g2(T x) {}
+  void g3(C<T> c, T x) {}
+}
+
+class D extends C<int> {}
+
+class E extends C<num> {
+  void f(covariant int x) {}
+}
+
+main() {}
+test() {}
+typedef F<T>(T x);

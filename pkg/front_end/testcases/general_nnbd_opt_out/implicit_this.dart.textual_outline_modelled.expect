@@ -1,0 +1,11 @@
+// @dart = 2.6
+class C {
+  m() {}
+  testC() {}
+}
+
+class D extends C {
+  testD() {}
+}
+
+main() {}

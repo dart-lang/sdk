@@ -1,0 +1,14 @@
+// @dart = 2.6
+class Foo<T> {
+  Callback<T> mutableCallbackField;
+  Foo(this.finalField, this.callbackField);
+  T mutableField;
+  final Callback<T> callbackField;
+  final T finalField;
+  set setter(T x) {}
+  void method(T x) {}
+  void withCallback(Callback<T> callback) {}
+}
+
+main() {}
+typedef void Callback<T>(T x);

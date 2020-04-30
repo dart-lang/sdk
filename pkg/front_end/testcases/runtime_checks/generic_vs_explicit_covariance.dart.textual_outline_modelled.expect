@@ -1,0 +1,17 @@
+library test;
+
+abstract class A {
+  void set x(covariant Object value);
+}
+
+class B implements A {
+  Object x;
+  void f(covariant Object x) {}
+}
+
+class C<T> implements B {
+  T x;
+  void f(T x) {}
+}
+
+main() {}

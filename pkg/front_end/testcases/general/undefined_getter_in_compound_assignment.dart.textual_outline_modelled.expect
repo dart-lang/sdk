@@ -1,0 +1,6 @@
+class C {
+  void set x(value) {}
+}
+
+main() {}
+void test(C c) {}

@@ -1,0 +1,20 @@
+library test;
+
+abstract class Test<T, U> {
+  T operator [](String s);
+  void operator []=(String s, U v);
+}
+
+double getDouble() => 0.0;
+int getInt() => 0;
+main() {}
+num getNum() => 0;
+void test1(Test<int, int> t) {}
+void test2(Test<int, num> t) {}
+void test3(Test<int, double> t) {}
+void test4(Test<num, int> t) {}
+void test5(Test<num, num> t) {}
+void test6(Test<num, double> t) {}
+void test7(Test<double, int> t) {}
+void test8(Test<double, num> t) {}
+void test9(Test<double, double> t) {}

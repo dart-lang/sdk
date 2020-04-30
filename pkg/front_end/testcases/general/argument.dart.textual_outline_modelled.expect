@@ -1,0 +1,14 @@
+abstract class Base {}
+
+class Bar extends Base {}
+
+class Baz extends Base {}
+
+class Foo extends Base {}
+
+main() {}
+void bar(x) {}
+void bar_escaped(x) {}
+void escape(fn) {}
+void foo(x) {}
+void foo_escaped(x) {}

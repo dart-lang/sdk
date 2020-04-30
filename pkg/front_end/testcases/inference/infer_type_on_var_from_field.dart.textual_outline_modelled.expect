@@ -1,0 +1,10 @@
+library test;
+
+class A {
+  final z = 42;
+  int x = 0;
+  int y;
+  test1() {}
+}
+
+main() {}

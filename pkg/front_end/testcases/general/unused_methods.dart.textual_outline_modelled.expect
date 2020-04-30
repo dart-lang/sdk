@@ -1,0 +1,36 @@
+abstract class UsedAsBaseClass {
+  void calledFromB() {}
+  void calledFromSubclass() {}
+  void usedInSubclass() {}
+}
+
+class ClassA extends UsedAsBaseClass
+    implements UsedAsInterface, InstantiatedButMethodsUnused {
+  void usedInSubclass() {}
+}
+
+class ClassB extends UsedAsBaseClass
+    implements UsedAsInterface, InstantiatedButMethodsUnused {
+  void calledFromSubclass() {}
+  void usedInSubclass() {}
+}
+
+class InstantiatedButMethodsUnused {
+  void usedInSubclass() {}
+}
+
+class UnusedClass {
+  UnusedClass() {}
+}
+
+class UsedAsInterface {
+  void usedInSubclass() {}
+}
+
+main() {}
+unusedTopLevel() {}
+usedTopLevel() {}
+void baseClassCall(UsedAsBaseClass object) {}
+void exactCallA(ClassA object) {}
+void exactCallB(ClassB object) {}
+void interfaceCall(UsedAsInterface object) {}

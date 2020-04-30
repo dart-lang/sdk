@@ -346,7 +346,8 @@ String _textualizeClass(TextualOutlineListener listener, Token beginToken,
 
 main(List<String> args) {
   File f = new File(args[0]);
-  String outline = textualOutline(f.readAsBytesSync(), throwOnUnexpected: true);
+  String outline = textualOutline(f.readAsBytesSync(),
+      throwOnUnexpected: true, performModelling: true);
   if (args.length > 1 && args[1] == "--overwrite") {
     f.writeAsStringSync(outline);
   } else {
@@ -408,9 +409,9 @@ class TextualOutlineListener extends DirectiveListener {
     elementStartToFinish[typedefKeyword] = endToken;
   }
 
-  // void endEnum(Token enumKeyword, Token leftBrace, int count) {
-  //   elementStartToFinish[enumKeyword] = leftBrace.endGroup;
-  // }
+  void endEnum(Token enumKeyword, Token leftBrace, int count) {
+    elementStartToFinish[enumKeyword] = leftBrace.endGroup;
+  }
 
   // @override
   // void endLibraryName(Token libraryKeyword, Token semicolon) {

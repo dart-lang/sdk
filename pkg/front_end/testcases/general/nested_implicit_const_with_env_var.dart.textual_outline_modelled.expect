@@ -1,0 +1,16 @@
+class A {
+  const A(this.bar);
+  final int bar;
+}
+
+class B {
+  const B(this.baz);
+  final A baz;
+}
+
+class C {
+  fun() {}
+}
+
+const int foo = const int.fromEnvironment("fisk");
+main() {}

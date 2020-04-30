@@ -1,0 +1,14 @@
+// @dart = 2.6
+class A {
+  A(this.y) : x = 42;
+  final int x;
+  final int y;
+  method() {}
+}
+
+class B extends A {
+  B(x) : super(x);
+  method() {}
+}
+
+main() {}

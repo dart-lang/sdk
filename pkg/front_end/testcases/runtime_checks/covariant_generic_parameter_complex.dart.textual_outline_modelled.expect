@@ -1,0 +1,14 @@
+library test;
+
+class C<T> {
+  void f1(List<T> x) {}
+  void f2(T callback()) {}
+  void f3(T callback(T x)) {}
+  void f4(void callback(T x)) {}
+}
+
+main() {}
+void g1(C<num> c, List<num> l) {}
+void g2(C<num> c, num callback()) {}
+void g3(C<num> c, num callback(num x)) {}
+void g4(C<num> c, void callback(num x)) {}

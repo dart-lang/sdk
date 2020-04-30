@@ -1,0 +1,5 @@
+class Fisk<TypeY extends Hest, TypeZ extends Hest> {}
+
+class Hest<TypeX extends Hest<TypeX>> {}
+
+main() {}

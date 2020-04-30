@@ -1,0 +1,18 @@
+class A {
+  dynamic field1;
+  int field2;
+}
+
+class B extends A implements I {
+  get field1 => null;
+  get field2 => null;
+  set field1(value) {}
+  set field2(value) {}
+}
+
+class I {
+  dynamic field2;
+  int field1;
+}
+
+main() {}

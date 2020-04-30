@@ -28,5 +28,7 @@ class Sub extends C {
 class C {
   C._();
 }
-enum Enum { Enum, a, a, b, } enum Enum { a, b, c, } enum AnotherEnum { a, b, c, _name, index, toString, values, }
+enum Enum { Enum, a, a, b, }
+enum Enum { a, b, c, }
+enum AnotherEnum { a, b, c, _name, index, toString, values, }
 useAnotherEnum() { }
