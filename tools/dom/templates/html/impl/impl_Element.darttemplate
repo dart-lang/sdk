@@ -350,7 +350,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * * [NodeValidator]
    *
    */
-  factory Element.html(String html,
+  factory Element.html(String$NULLABLE html,
       {NodeValidator$NULLABLE validator,
        NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     var fragment = document.body$NULLASSERT.createFragment(html,
@@ -1324,7 +1324,7 @@ $endif
    * * [NodeValidator]
    * * [NodeTreeSanitizer]
    */
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String$NULLABLE html,
       {NodeValidator$NULLABLE validator,
        NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     if (treeSanitizer == null) {
@@ -1374,7 +1374,7 @@ $endif
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
       _parseRange$NULLASSERT.selectNodeContents(contextElement);
-      fragment = _parseRange$NULLASSERT.createContextualFragment(html);
+      fragment = _parseRange$NULLASSERT.createContextualFragment(html$NULLASSERT);
     } else {
       contextElement._innerHtml = html;
 
@@ -1450,8 +1450,8 @@ $endif
     if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
       _innerHtml = html;
     } else {
-      append(createFragment(
-          html$NULLASSERT, validator: validator, treeSanitizer: treeSanitizer));
+      append(createFragment(html, validator: validator,
+          treeSanitizer: treeSanitizer));
     }
   }
   String get innerHtml => _innerHtml;
