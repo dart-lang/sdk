@@ -239,6 +239,32 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_argumentError_checkNotNull_implies_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  ArgumentError.checkNotNull(i);
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  ArgumentError.checkNotNull(i);
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_as_allows_null() async {
     var content = '''
 int f(Object o) => (o as int)?.gcd(1);
@@ -4701,6 +4727,35 @@ void g() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_quiver_checkNotNull_implies_non_null_intent() async {
+    addQuiverPackage();
+    var content = '''
+import 'package:quiver/check.dart';
+void f(int i) {
+  checkNotNull(i);
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+import 'package:quiver/check.dart';
+void f(int i) {
+  checkNotNull(i);
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_redirecting_constructor_factory() async {
     var content = '''
 class C {
@@ -5008,29 +5063,6 @@ void h() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_testVariable_hasInitializer() async {
-    addTestCorePackage();
-    var content = '''
-import 'package:test/test.dart';
-void main() {
-  int i = 1;
-  setUp(() {
-    i = 1;
-  });
-}
-''';
-    var expected = '''
-import 'package:test/test.dart';
-void main() {
-  int i = 1;
-  setUp(() {
-    i = 1;
-  });
-}
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
   Future<void> test_testVariable_assignedNullableValue() async {
     addTestCorePackage();
     var content = '''
@@ -5083,6 +5115,29 @@ void main() {
   });
   test('a', () {
     i.isEven;
+  });
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_testVariable_hasInitializer() async {
+    addTestCorePackage();
+    var content = '''
+import 'package:test/test.dart';
+void main() {
+  int i = 1;
+  setUp(() {
+    i = 1;
+  });
+}
+''';
+    var expected = '''
+import 'package:test/test.dart';
+void main() {
+  int i = 1;
+  setUp(() {
+    i = 1;
   });
 }
 ''';
@@ -5161,32 +5216,6 @@ int? f() => null;
 int? x = 1;
 void main() {
   x = f();
-}
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
-  Future<void> test_argumentError_checkNotNull_implies_non_null_intent() async {
-    var content = '''
-void f(int i) {
-  ArgumentError.checkNotNull(i);
-}
-void g(bool b, int i) {
-  if (b) f(i);
-}
-main() {
-  g(false, null);
-}
-''';
-    var expected = '''
-void f(int i) {
-  ArgumentError.checkNotNull(i);
-}
-void g(bool b, int? i) {
-  if (b) f(i!);
-}
-main() {
-  g(false, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

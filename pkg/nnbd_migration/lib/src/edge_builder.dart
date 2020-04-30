@@ -325,27 +325,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     return null;
   }
 
-  /// Returns whether [_currentFunctionExpression] is an argument to the test
-  /// package's `setUp` function.
-  bool _isCurrentFunctionExpressionFoundInTestSetUpCall() {
-    var parent = _currentFunctionExpression?.parent;
-    if (parent is ArgumentList) {
-      var grandParent = parent.parent;
-      if (grandParent is MethodInvocation) {
-        var enclosingInvocation = grandParent.methodName;
-        if (enclosingInvocation.name == 'setUp') {
-          var uri = enclosingInvocation.staticElement.library?.source?.uri;
-          if (uri != null &&
-              uri.scheme == 'package' &&
-              uri.path.startsWith('test_core/')) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
   @override
   DecoratedType visitAssignmentExpression(AssignmentExpression node) {
     bool isQuestionAssign = false;
@@ -1188,6 +1167,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     _handleArgumentErrorCheckNotNull(node);
+    _handleQuiverCheckNotNull(node);
     return expressionType;
   }
 
@@ -2699,6 +2679,30 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
+  /// Check whether [node] is a call to the quiver package's [`checkNotNull`],
+  /// and if so, potentially mark the first argument as non-nullable.
+  ///
+  /// [`checkNotNull`]: https://pub.dev/documentation/quiver/latest/quiver.check/checkNotNull.html
+  void _handleQuiverCheckNotNull(MethodInvocation node) {
+    var callee = node.methodName.staticElement;
+    var calleeUri = callee?.library?.source?.uri;
+    var isQuiverCheckNull = callee?.name == 'checkNotNull' &&
+        calleeUri != null &&
+        calleeUri.scheme == 'package' &&
+        calleeUri.path.startsWith('quiver/');
+
+    if (isQuiverCheckNull && node.argumentList.arguments.isNotEmpty) {
+      var argument = node.argumentList.arguments.first;
+      if (argument is SimpleIdentifier &&
+          _postDominatedLocals.isReferenceInScope(argument)) {
+        var argumentType =
+            _variables.decoratedElementType(argument.staticElement);
+        _graph.makeNonNullable(
+            argumentType.node, QuiverCheckNotNullOrigin(source, argument));
+      }
+    }
+  }
+
   DecoratedType _handleTarget(Expression target, String name, Element method) {
     if (isDeclaredOnObject(name)) {
       return _dispatch(target);
@@ -2720,6 +2724,27 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _graph.makeNullable(_variables.decoratedElementType(field).node,
           FieldNotInitializedOrigin(source, node));
     }
+  }
+
+  /// Returns whether [_currentFunctionExpression] is an argument to the test
+  /// package's `setUp` function.
+  bool _isCurrentFunctionExpressionFoundInTestSetUpCall() {
+    var parent = _currentFunctionExpression?.parent;
+    if (parent is ArgumentList) {
+      var grandParent = parent.parent;
+      if (grandParent is MethodInvocation) {
+        var enclosingInvocation = grandParent.methodName;
+        if (enclosingInvocation.name == 'setUp') {
+          var uri = enclosingInvocation.staticElement.library?.source?.uri;
+          if (uri != null &&
+              uri.scheme == 'package' &&
+              uri.path.startsWith('test_core/')) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   bool _isPrefix(Expression e) =>

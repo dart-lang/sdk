@@ -52,6 +52,18 @@ class Required {
     return newFile('$packagePath/lib/$pathInLib', content: content);
   }
 
+  /// Add the quiver package and a library with URI,
+  /// "package:quiver/check.dart".
+  ///
+  /// Then ensure that the package under test depends on the package.
+  void addQuiverPackage() {
+    addPackageFile('quiver', 'check.dart', r'''
+library quiver.check;
+
+T checkNotNull<T>(T reference, {dynamic message}) => T;
+''');
+  }
+
   Source addSource(String path, String content, [Uri uri]) {
     File file = newFile(path, content: content);
     Source source = file.createSource(uri);

@@ -6508,6 +6508,47 @@ void test(C c) {
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
+  Future<void> test_quiver_checkNotNull_not_postDominating() async {
+    addQuiverPackage();
+    await analyze('''
+import 'package:quiver/check.dart';
+void f(bool b, int i, int j) {
+  checkNotNull(j);
+  if (b) return;
+  checkNotNull(i);
+}
+''');
+
+    // Asserts after ifs don't demonstrate non-null intent.
+    assertNoEdge(decoratedTypeAnnotation('int i').node, never);
+    // But asserts before ifs do
+    assertEdge(decoratedTypeAnnotation('int j').node, never, hard: true);
+  }
+
+  Future<void> test_quiver_checkNotNull_postDominating() async {
+    addQuiverPackage();
+    await analyze('''
+import 'package:quiver/check.dart';
+void f(int i) {
+  checkNotNull(i);
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
+  }
+
+  Future<void> test_quiver_checkNotNull_prefixed() async {
+    addQuiverPackage();
+    await analyze('''
+import 'package:quiver/check.dart' as quiver;
+void f(int i) {
+  quiver.checkNotNull(i);
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
+  }
+
   Future<void> test_redirecting_constructor_factory() async {
     await analyze('''
 class C {

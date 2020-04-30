@@ -252,6 +252,7 @@ enum EdgeOriginKind {
   nullabilityComment,
   optionalFormalParameter,
   parameterInheritance,
+  quiverCheckNotNull,
   returnTypeInheritance,
   stackTraceTypeOrigin,
   thisOrSuper,
