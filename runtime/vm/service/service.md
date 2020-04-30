@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.33
+# Dart VM Service Protocol 3.32
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.33_ of the Dart VM Service Protocol. This
+This document describes of _version 3.32_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -726,9 +726,6 @@ See [ClassList](#classlist).
 
 ### getClientName
 
-_**Note**: This method is deprecated and will be removed in v4.0 of the protocol.
-An equivalent can be found in the Dart Development Service (DDS) protocol._
-
 ```
 ClientName getClientName()
 ```
@@ -1204,9 +1201,6 @@ _Collected_ [Sentinel](#sentinel) is returned.
 
 ### requirePermissionToResume
 
-_**Note**: This method is deprecated and will be removed in v4.0 of the protocol.
-An equivalent can be found in the Dart Development Service (DDS) protocol._
-
 ```
 Success requirePermissionToResume(bool onPauseStart [optional],
                                   bool onPauseReload[optional],
@@ -1239,6 +1233,7 @@ need to provide resume approval for this pause type have done so.
   already given approval. In the case that no other client requires resume
   approval for the current pause event, the isolate will be resumed if at
   least one other client has attempted to [resume](#resume) the isolate.
+
 
 ### resume
 
@@ -1275,9 +1270,6 @@ _Collected_ [Sentinel](#sentinel) is returned.
 See [Success](#success), [StepOption](#StepOption).
 
 ### setClientName
-
-_**Note**: This method is deprecated and will be removed in v4.0 of the protocol.
-An equivalent can be found in the Dart Development Service (DDS) protocol._
 
 ```
 Success setClientName(string name)
@@ -1424,7 +1416,7 @@ The _streamId_ parameter may have the following published values:
 streamId | event types provided
 -------- | -----------
 VM | VMUpdate, VMFlagUpdate
-Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, IsolateSpawn, ServiceExtensionAdded
+Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, ServiceExtensionAdded
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
 GC | GC
 Extension | Extension
@@ -1723,9 +1715,6 @@ class ClassList extends Response {
 ```
 
 ### ClientName
-
-_**Note**: This class is deprecated and will be removed in v4.0 of the protocol.
-An equivalent can be found in the Dart Development Service (DDS) protocol._
 
 ```
 class ClientName extends Response {
@@ -3767,6 +3756,5 @@ version | comments
 3.31 | Added single client mode, which allows for the Dart Development Service (DDS) to become the sole client of
 the VM service.
 3.32 | Added `getClassList` RPC and `ClassList` object.
-3.33 | Added deprecation notice for `getClientName`, `setClientName`, `requireResumeApproval`, and `ClientName`. These RPCs are moving to the DDS protocol and will be removed in v4.0 of the VM service protocol.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

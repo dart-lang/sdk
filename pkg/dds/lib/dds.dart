@@ -25,10 +25,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 part 'src/binary_compatible_peer.dart';
 part 'src/client.dart';
-part 'src/client_manager.dart';
-part 'src/constants.dart';
 part 'src/dds_impl.dart';
-part 'src/isolate_manager.dart';
 part 'src/named_lookup.dart';
 part 'src/rpc_error_codes.dart';
 part 'src/stream_manager.dart';

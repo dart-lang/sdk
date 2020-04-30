@@ -6,24 +6,18 @@ part of dds;
 
 class _DartDevelopmentService implements DartDevelopmentService {
   _DartDevelopmentService(this._remoteVmServiceUri, this._uri) {
-    _clientManager = _ClientManager(this);
-    _isolateManager = _IsolateManager(this);
     _streamManager = _StreamManager(this);
   }
 
   Future<void> startService() async {
-    // TODO(bkonyi): throw if we've already shutdown.
     // Establish the connection to the VM service.
     _vmServiceSocket = WebSocketChannel.connect(remoteVmServiceWsUri);
     _vmServiceClient = _BinaryCompatiblePeer(_vmServiceSocket, _streamManager);
     // Setup the JSON RPC client with the VM service.
-    unawaited(_vmServiceClient.listen().then((_) => shutdown()));
+    unawaited(_vmServiceClient.listen());
 
     // Setup stream event handling.
-    await streamManager.listen();
-
-    // Populate initial isolate state.
-    await _isolateManager.initialize();
+    streamManager.listen();
 
     // Once we have a connection to the VM service, we're ready to spawn the intermediary.
     await _startDDSServer();
@@ -58,16 +52,15 @@ class _DartDevelopmentService implements DartDevelopmentService {
 
   /// Stop accepting requests after gracefully handling existing requests.
   Future<void> shutdown() async {
-    if (_done.isCompleted || _shuttingDown) {
-      // Already shutdown.
-      return;
-    }
-    _shuttingDown = true;
     // Don't accept anymore HTTP requests.
     await _server.close();
 
-    // Close connections to clients.
-    await clientManager.shutdown();
+    // Close all incoming websocket connections.
+    final futures = <Future>[];
+    for (final client in _clients) {
+      futures.add(client.close());
+    }
+    await Future.wait(futures);
 
     // Close connection to VM service.
     await _vmServiceSocket.sink.close();
@@ -86,7 +79,8 @@ class _DartDevelopmentService implements DartDevelopmentService {
           ws,
           _vmServiceClient,
         );
-        clientManager.addClient(client);
+        _clients.add(client);
+        client.listen().then((_) => _clients.remove(client));
       });
 
   Handler _httpHandler() {
@@ -114,7 +108,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
   }
 
   String _getNamespace(_DartDevelopmentServiceClient client) =>
-      clientManager.clients.keyOf(client);
+      _clients.keyOf(client);
 
   Uri get remoteVmServiceUri => _remoteVmServiceUri;
   Uri get remoteVmServiceWsUri => _toWebSocket(_remoteVmServiceUri);
@@ -128,16 +122,15 @@ class _DartDevelopmentService implements DartDevelopmentService {
 
   Future<void> get done => _done.future;
   Completer _done = Completer<void>();
-  bool _shuttingDown = false;
-
-  _ClientManager get clientManager => _clientManager;
-  _ClientManager _clientManager;
-
-  _IsolateManager get isolateManager => _isolateManager;
-  _IsolateManager _isolateManager;
 
   _StreamManager get streamManager => _streamManager;
   _StreamManager _streamManager;
+
+  // Handles namespace generation for service extensions.
+  static const _kServicePrologue = 's';
+  final NamedLookup<_DartDevelopmentServiceClient> _clients = NamedLookup(
+    prologue: _kServicePrologue,
+  );
 
   json_rpc.Peer _vmServiceClient;
   WebSocketChannel _vmServiceSocket;
