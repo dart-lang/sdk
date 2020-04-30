@@ -8,9 +8,6 @@ import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
-/// Version to use if a package doesn't constrain the language version.
-final defaultVersion = Version(2, 7, 0);
-
 final repoRoot = p.dirname(p.dirname(p.fromUri(Platform.script)));
 final configFilePath = p.join(repoRoot, '.dart_tool/package_config.json');
 
@@ -75,18 +72,14 @@ Iterable<Map<String, String>> makePackageConfigs(
     List<String> packageDirs) sync* {
   for (var packageDir in packageDirs) {
     var version = pubspecLanguageVersion(packageDir);
-    if (version == null) {
-      print('Warning: Unknown language version for ${p.basename(packageDir)}.');
-      version = defaultVersion;
-    }
-
     var hasLibDirectory = Directory(p.join(packageDir, 'lib')).existsSync();
 
     yield {
       'name': p.basename(packageDir),
       'rootUri': p.relative(packageDir, from: p.dirname(configFilePath)),
       if (hasLibDirectory) 'packageUri': 'lib/',
-      'languageVersion': '${version.major}.${version.minor}'
+      if (version != null)
+        'languageVersion': '${version.major}.${version.minor}'
     };
   }
 }

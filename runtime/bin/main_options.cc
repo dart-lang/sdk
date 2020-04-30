@@ -442,10 +442,11 @@ int Options::ParseArguments(int argc,
 
   // Get the script name.
   if (i < argc) {
-    // If the script name isn't a valid file or a URL, this might be a DartDev
-    // command. Try to find the DartDev snapshot so we can forward the command
-    // and its arguments.
-    if (!DartDevUtils::ShouldParseCommand(argv[i])) {
+    if (Options::disable_dart_dev() ||
+        !DartDevUtils::ShouldParseCommand(argv[i])) {
+      // If the script name isn't a valid file or a URL, this might be a DartDev
+      // command. Try to find the DartDev snapshot so we can forward the command
+      // and its arguments.
       *script_name = strdup(argv[i]);
       i++;
     } else if (!DartDevUtils::TryResolveDartDevSnapshotPath(script_name)) {
@@ -454,6 +455,13 @@ int Options::ParseArguments(int argc,
           argv[i]);
       Platform::Exit(kErrorExitCode);
     }
+  } else if (!Options::disable_dart_dev() &&
+             ((Options::help_option() && !Options::verbose_option()) ||
+              (argc == 1)) &&
+             DartDevUtils::TryResolveDartDevSnapshotPath(script_name)) {
+    // Let DartDev handle the default help message.
+    dart_options->AddArgument("help");
+    return 0;
   } else {
     return -1;
   }

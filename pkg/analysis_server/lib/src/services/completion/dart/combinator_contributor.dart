@@ -26,12 +26,35 @@ class CombinatorContributor extends DartCompletionContributor {
     if (directive is NamespaceDirective) {
       var library = directive.uriElement as LibraryElement;
       if (library != null) {
+        var existingNames = _getCombinatorNames(directive);
         for (var element in library.exportNamespace.definedNames.values) {
-          builder.suggestElement(element,
-              kind: CompletionSuggestionKind.IDENTIFIER);
+          if (!existingNames.contains(element.name)) {
+            builder.suggestElement(element,
+                kind: CompletionSuggestionKind.IDENTIFIER);
+          }
         }
       }
     }
     return const <CompletionSuggestion>[];
+  }
+
+  List<String> _getCombinatorNames(NamespaceDirective directive) {
+    var combinatorNameList = <String>[];
+    for (var combinator in directive.combinators) {
+      if (combinator is ShowCombinator) {
+        for (var simpleId in combinator.shownNames) {
+          if (!simpleId.isSynthetic) {
+            combinatorNameList.add(simpleId.name);
+          }
+        }
+      } else if (combinator is HideCombinator) {
+        for (var simpleId in combinator.hiddenNames) {
+          if (!simpleId.isSynthetic) {
+            combinatorNameList.add(simpleId.name);
+          }
+        }
+      }
+    }
+    return combinatorNameList;
   }
 }

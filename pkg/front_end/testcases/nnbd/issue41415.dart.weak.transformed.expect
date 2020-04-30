@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static method main() → dynamic {
+  (core::Null?) → core::int f = (core::Object? x) → core::int => 1;
+  (Never) → core::int g = (core::Object? x) → core::int => 1;
+  (Never?) → core::int h = (core::Object? x) → core::int => 1;
+  (core::String) → core::int i = (core::String x) → core::int => 1;
+}

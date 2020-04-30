@@ -3,6 +3,9 @@ name: frontend_server
 # version: do-not-upload
 description: A resident kernel compiler
 
+environment:
+  sdk: "^2.7.0"
+
 dependencies:
   build_integration:
     path: ../build_integration

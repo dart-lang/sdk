@@ -6,6 +6,7 @@ abstract class FactorTypeTestMixin<Type> {
   Type futureNone(Type type);
   Type futureOrNone(Type type);
 
+  Type get dynamicType;
   Type get intNone;
   Type get intQuestion;
   Type get intStar;
@@ -19,6 +20,11 @@ abstract class FactorTypeTestMixin<Type> {
   Type get stringQuestion;
   Type get stringStar;
   Type get nullNone;
+  Type get voidType;
+
+  void test_dynamic() {
+    check(dynamicType, intNone, 'dynamic');
+  }
 
   void test_futureOr() {
     check(futureOrNone(intNone), intNone, 'Future<int>');
@@ -93,6 +99,10 @@ abstract class FactorTypeTestMixin<Type> {
     check(intNone, stringStar, 'int');
     check(intQuestion, stringStar, 'int');
     check(intStar, stringStar, 'int');
+  }
+
+  void test_void() {
+    check(voidType, intNone, 'void');
   }
 
   Type factor(Type T, Type S);

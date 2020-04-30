@@ -2387,13 +2387,16 @@ void Isolate::Shutdown() {
 
   // Then, proceed with low-level teardown.
   Isolate::UnMarkIsolateReady(this);
-  LowLevelShutdown();
 
+  // Post message before LowLevelShutdown that sends onExit message.
+  // This ensures that exit message comes last.
   if (bequest_.get() != nullptr) {
     auto beneficiary = bequest_->beneficiary();
     PortMap::PostMessage(Message::New(beneficiary, bequest_.release(),
                                       Message::kNormalPriority));
   }
+
+  LowLevelShutdown();
 
   // Now we can unregister from the thread, invoke cleanup callback, delete the
   // isolate (and possibly the isolate group).
@@ -2646,11 +2649,9 @@ void IsolateGroup::RunWithStoppedMutators(
 
 void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                        ValidationPolicy validate_frames) {
-  ForEachIsolate(
-      [&](Isolate* isolate) {
-        isolate->VisitObjectPointers(visitor, validate_frames);
-      },
-      /*at_safepoint=*/true);
+  for (Isolate* isolate : isolates_) {
+    isolate->VisitObjectPointers(visitor, validate_frames);
+  }
   api_state()->VisitObjectPointersUnlocked(visitor);
   // Visit objects in the object store.
   if (object_store() != nullptr) {
@@ -2668,18 +2669,23 @@ void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
   // for the mutator threads themselves.
   thread_registry()->VisitObjectPointers(this, visitor, validate_frames);
 
-  ForEachIsolate(
-      [&](Isolate* isolate) {
-        // Visit mutator thread, even if the isolate isn't entered/scheduled
-        // (there might be live API handles to visit).
-        if (isolate->mutator_thread_ != nullptr) {
-          isolate->mutator_thread_->VisitObjectPointers(visitor,
-                                                        validate_frames);
-        }
-      },
-      /*at_safepoint=*/true);
+  for (Isolate* isolate : isolates_) {
+    // Visit mutator thread, even if the isolate isn't entered/scheduled
+    // (there might be live API handles to visit).
+    if (isolate->mutator_thread_ != nullptr) {
+      isolate->mutator_thread_->VisitObjectPointers(visitor, validate_frames);
+    }
+  }
 
   visitor->clear_gc_root_type();
+}
+
+void IsolateGroup::VisitObjectIdRingPointers(ObjectPointerVisitor* visitor) {
+#if !defined(PRODUCT)
+  for (Isolate* isolate : isolates_) {
+    isolate->object_id_ring()->VisitPointers(visitor);
+  }
+#endif  // !defined(PRODUCT)
 }
 
 void IsolateGroup::VisitWeakPersistentHandles(HandleVisitor* visitor) {

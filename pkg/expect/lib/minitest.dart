@@ -26,7 +26,7 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 
 typedef dynamic _Action();
-typedef void _ExpectationFunction(Object actual);
+typedef void _ExpectationFunction(dynamic actual);
 
 final List<_Group> _groups = [new _Group()];
 
@@ -124,7 +124,7 @@ void tearDown(body()) {
   _groups.last.tearDownFunction = body;
 }
 
-void expect(Object actual, Object expected, {String reason = ""}) {
+void expect(dynamic actual, dynamic expected, {String reason = ""}) {
   // TODO(rnystrom): Do something useful with reason.
   if (expected is! _Expectation) {
     expected = equals(expected);
@@ -138,19 +138,19 @@ void fail(String message) {
   Expect.fail(message);
 }
 
-Object equals(Object value) => new _Expectation((actual) {
+Object equals(dynamic value) => new _Expectation((actual) {
       Expect.deepEquals(value, actual);
     });
 
-Object notEquals(Object value) => new _Expectation((actual) {
+Object notEquals(dynamic value) => new _Expectation((actual) {
       Expect.notEquals(value, actual);
     });
 
-Object unorderedEquals(Object value) => new _Expectation((actual) {
+Object unorderedEquals(dynamic value) => new _Expectation((actual) {
       Expect.setEquals(value as Iterable, actual as Iterable);
     });
 
-Object predicate(bool fn(Object value), [String description = ""]) =>
+Object predicate(bool fn(dynamic value), [String description = ""]) =>
     new _Expectation((actual) {
       Expect.isTrue(fn(actual), description);
     });
@@ -169,7 +169,7 @@ Object greaterThan(num value) => new _Expectation((actual) {
       }
     });
 
-Object same(Object value) => new _Expectation((actual) {
+Object same(dynamic value) => new _Expectation((actual) {
       Expect.identical(value, actual);
     });
 

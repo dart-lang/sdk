@@ -48,7 +48,7 @@ abstract class H extends core::Object implements self::D, self::E, self::F, self
   synthetic constructor •() → self::H
     : super core::Object::•()
     ;
-  abstract forwarding-stub member-signature method m(covariant core::num a) → void;
+  abstract forwarding-stub member-signature method m(covariant core::num a) → core::Object?;
 }
 abstract class I extends core::Object implements self::D {
   synthetic constructor •() → self::I
@@ -60,18 +60,18 @@ abstract class J extends core::Object implements self::H {
   synthetic constructor •() → self::J
     : super core::Object::•()
     ;
-  abstract method m(covariant core::num a) → void;
+  abstract method m(covariant core::num a) → core::Object?;
 }
 abstract class K extends core::Object implements self::I, self::E, self::G {
   synthetic constructor •() → self::K
     : super core::Object::•()
     ;
-  abstract forwarding-stub member-signature method m(covariant core::num a) → void;
+  abstract forwarding-stub member-signature method m(covariant core::num a) → core::Object?;
 }
 abstract class L extends core::Object implements self::K {
   synthetic constructor •() → self::L
     : super core::Object::•()
     ;
-  abstract method m(covariant core::num a) → void;
+  abstract method m(covariant core::num a) → core::Object?;
 }
 static method main() → dynamic {}

@@ -47,6 +47,9 @@ class NonNullableFix extends FixCodeTask {
   /// which all included paths share.
   final String includedRoot;
 
+  /// Indicates whether the web preview of migration results should be launched.
+  final bool enablePreview;
+
   /// The HTTP server that serves the preview tool.
   HttpPreviewServer _server;
 
@@ -70,7 +73,9 @@ class NonNullableFix extends FixCodeTask {
   Future<void> Function([List<String>]) rerunFunction;
 
   NonNullableFix(this.listener,
-      {List<String> included = const [], this.preferredPort})
+      {List<String> included = const [],
+      this.preferredPort,
+      this.enablePreview = true})
       : includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
     reset();
@@ -96,7 +101,7 @@ class NonNullableFix extends FixCodeTask {
         migration, includedRoot, listener, instrumentationListener);
     await state.refresh();
 
-    if (_server == null) {
+    if (enablePreview && _server == null) {
       _server = HttpPreviewServer(state, rerun, preferredPort);
       _server.serveHttp();
       port = await _server.boundPort;

@@ -859,14 +859,17 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (mask != null) return mask;
     // TODO(sigmund): ensure that this is only called once per node.
     DartType staticType = _getStaticType(receiver);
-    // TODO(sigmund): this needs to be adjusted when we enable non-nullable
-    // types to handle legacy and nullable wrappers.
+    bool includeNull =
+        _dartTypes.useLegacySubtyping || staticType is NullableType;
+    staticType = staticType.withoutNullability;
     if (staticType is InterfaceType) {
       ClassEntity cls = staticType.element;
       if (receiver is ir.ThisExpression && !_closedWorld.isUsedAsMixin(cls)) {
         mask = _closedWorld.abstractValueDomain.createNonNullSubclass(cls);
-      } else {
+      } else if (includeNull) {
         mask = _closedWorld.abstractValueDomain.createNullableSubtype(cls);
+      } else {
+        mask = _closedWorld.abstractValueDomain.createNonNullSubtype(cls);
       }
       data.setReceiverTypeMask(node, mask);
       return mask;
@@ -1706,7 +1709,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (exception != null) {
       TypeInformation mask;
       DartType type = node.guard != null
-          ? _elementMap.getDartType(node.guard)
+          ? _elementMap.getDartType(node.guard).withoutNullability
           : _dartTypes.dynamicType();
       if (type is InterfaceType) {
         InterfaceType interfaceType = type;

@@ -11,6 +11,19 @@ class Class {
   void Function() get functionTypeGetter => () {};
 }
 
+extension Extension on Class {
+  int operator +(int value) => 0;
+  int operator -() => 0;
+  int operator [](int index) => 0;
+  void operator []=(int index, int value) {}
+  int call() => 0;
+  int get extensionProperty => 0;
+  void set extensionProperty(int value) {}
+  int extensionMethod() => 0;
+  Function get extensionFunctionGetter => () {};
+  void Function() get extensionFunctionTypeGetter => () {};
+}
+
 Function? get nullableFunction => () {};
 
 void Function()? get nullableFunctionType => () {};
@@ -42,6 +55,23 @@ var topLevelFunctionTypeField = nullableClass.functionTypeField();
 var topLevelFunctionGetter = nullableClass.functionGetter();
 var topLevelFunctionTypeGetter = nullableClass.functionTypeGetter();
 
+var topLevelExtensionBinary = nullableClass + 0;
+var topLevelExtensionUnary = -nullableClass;
+var topLevelExtensionIndexGet = nullableClass[0];
+var topLevelExtensionIndexSet = nullableClass[0] = 1;
+var topLevelExtensionIndexGetSet = nullableClass[0] += 1;
+var topLevelExtensionPropertyGet = nullableClass.extensionProperty;
+var topLevelExtensionPropertySet = nullableClass.extensionProperty = 1;
+var topLevelExtensionPropertyGetSet = nullableClass.extensionProperty += 1;
+var topLevelExtensionMethodInvocation = nullableClass.extensionMethod();
+var topLevelExtensionMethodTearOff = nullableClass.extensionMethod;
+var topLevelExtensionFunctionTypeImplicitCall = nullableClass();
+var topLevelExtensionFunctionTypeExplicitCall = nullableClass.call();
+var topLevelExtensionFunctionTypeTearOff = nullableClass.call;
+var topLevelExtensionFunctionGetter = nullableClass.extensionFunctionGetter();
+var topLevelExtensionFunctionTypeGetter =
+    nullableClass.extensionFunctionTypeGetter();
+
 test() {
   var localBinary = nullableInt + 0;
   var localUnary = -nullableInt;
@@ -63,6 +93,23 @@ test() {
   var localFunctionTypeField = nullableClass.functionTypeField();
   var localFunctionGetter = nullableClass.functionGetter();
   var localFunctionTypeGetter = nullableClass.functionTypeGetter();
+
+  var localExtensionBinary = nullableClass + 0;
+  var localExtensionUnary = -nullableClass;
+  var localExtensionIndexGet = nullableClass[0];
+  var localExtensionIndexSet = nullableClass[0] = 1;
+  var localExtensionIndexGetSet = nullableClass[0] += 1;
+  var localExtensionPropertyGet = nullableClass.extensionProperty;
+  var localExtensionPropertySet = nullableClass.extensionProperty = 1;
+  var localExtensionPropertyGetSet = nullableClass.extensionProperty += 1;
+  var localExtensionMethodInvocation = nullableClass.extensionMethod();
+  var localExtensionMethodTearOff = nullableClass.extensionMethod;
+  var localExtensionFunctionTypeImplicitCall = nullableClass();
+  var localExtensionFunctionTypeExplicitCall = nullableClass.call();
+  var localExtensionFunctionTypeTearOff = nullableClass.call;
+  var localExtensionFunctionGetter = nullableClass.extensionFunctionGetter();
+  var localExtensionFunctionTypeGetter =
+      nullableClass.extensionFunctionTypeGetter();
 }
 
 main() {}

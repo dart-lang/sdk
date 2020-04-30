@@ -861,17 +861,6 @@ void Scavenger::Epilogue(SemiSpace* from) {
 
   // All objects in the to space have been copied from the from space at this
   // moment.
-
-  // Ensure the mutator thread will fail the next allocation. This will force
-  // mutator to allocate a new TLAB
-  heap_->isolate_group()->ForEachIsolate(
-      [&](Isolate* isolate) {
-        Thread* mutator_thread = isolate->mutator_thread();
-        ASSERT(mutator_thread == nullptr ||
-               mutator_thread->tlab().IsAbandoned());
-      },
-      /*at_safepoint=*/true);
-
   double avg_frac = stats_history_.Get(0).PromoCandidatesSuccessFraction();
   if (stats_history_.Size() >= 2) {
     // Previous scavenge is only given half as much weight.
@@ -1020,11 +1009,7 @@ void Scavenger::IterateRememberedCards(
 void Scavenger::IterateObjectIdTable(ObjectPointerVisitor* visitor) {
 #ifndef PRODUCT
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IterateObjectIdTable");
-  heap_->isolate_group()->ForEachIsolate(
-      [&](Isolate* isolate) {
-        isolate->object_id_ring()->VisitPointers(visitor);
-      },
-      /*at_safepoint=*/true);
+  heap_->isolate_group()->VisitObjectIdRingPointers(visitor);
 #endif  // !PRODUCT
 }
 
@@ -1331,18 +1316,6 @@ void Scavenger::MakeNewSpaceIterable() {
     current = current->next();
   }
 
-  // All unscheduled mutator threads should have already abnadoned their TLABs.
-  isolate_group->ForEachIsolate(
-      [&](Isolate* isolate) {
-        Thread* mutator_thread = isolate->mutator_thread();
-        if (mutator_thread != NULL) {
-          if (isolate->scheduled_mutator_thread_ == nullptr) {
-            RELEASE_ASSERT(mutator_thread->tlab().IsAbandoned());
-          }
-        }
-      },
-      /*at_safepoint=*/true);
-
   for (intptr_t i = 0; i < free_tlabs_.length(); ++i) {
     MakeTLABIterable(free_tlabs_[i]);
   }
@@ -1361,18 +1334,6 @@ void Scavenger::AbandonTLABsLocked() {
     current->set_tlab(TLAB());
     current = current->next();
   }
-  // All unscheduled mutator threads should have already abandoned their TLAB.
-  isolate_group->ForEachIsolate(
-      [&](Isolate* isolate) {
-        Thread* mutator_thread = isolate->mutator_thread();
-        if (mutator_thread != NULL) {
-          if (isolate->scheduled_mutator_thread_ == nullptr) {
-            RELEASE_ASSERT(mutator_thread->tlab().IsAbandoned());
-          }
-        }
-      },
-      /*at_safepoint=*/true);
-
   while (free_tlabs_.length() > 0) {
     const TLAB tlab = free_tlabs_.RemoveLast();
     AddAbandonedInBytesLocked(tlab.RemainingSize());

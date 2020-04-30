@@ -2,6 +2,8 @@
 # gardening by making it a package.
 name: gardening
 #version: do-not-upload
+environment:
+  sdk: "^2.7.0"
 dependencies:
   args:
   http:

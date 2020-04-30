@@ -2513,7 +2513,7 @@ class C {foo(){^} void bar() {}}''');
     assertNoSuggestions();
   }
 
-  Future<void> test_extendsClause() async {
+  Future<void> test_ExtendsClause() async {
     addTestSource('''
 class A {}
 mixin M {}
@@ -2522,6 +2522,35 @@ class B extends ^
     await computeSuggestions();
     assertSuggestClass('A');
     assertNotSuggested('M');
+  }
+
+  Future<void> test_ExtensionDeclaration_extendedType() async {
+    addTestSource('''
+class A {}
+extension E on ^
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('E');
+  }
+
+  Future<void> test_ExtensionDeclaration_extendedType2() async {
+    addTestSource('''
+class A {}
+extension E on ^ {}
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('E');
+  }
+
+  Future<void> test_ExtensionDeclaration_member() async {
+    addTestSource('''
+class A {}
+extension E on A { ^ }
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
   }
 
   Future<void> test_FieldDeclaration_name_typed() async {

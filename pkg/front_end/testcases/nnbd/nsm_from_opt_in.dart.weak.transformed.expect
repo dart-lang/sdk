@@ -1,10 +1,23 @@
 library;
 import self as self;
-import "nsm_from_opt_in_lib.dart" as nsm;
 import "dart:core" as core;
+import "nsm_from_opt_in_lib.dart" as nsm;
 
 import "org-dartlang-testcase:///nsm_from_opt_in_lib.dart";
 
+abstract class A2 extends core::Object implements nsm::A {
+  synthetic constructor •() → self::A2*
+    : super core::Object::•()
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation* invocation) → dynamic {
+    return super.{core::Object::noSuchMethod}(invocation);
+  }
+  abstract member-signature method method(core::int* i) → core::int*;
+  abstract member-signature method genericMethod1<T extends core::Object* = dynamic>(self::A2::genericMethod1::T* t) → self::A2::genericMethod1::T*;
+  abstract member-signature method genericMethod2<T extends core::Object* = core::Object*>(self::A2::genericMethod2::T* t) → self::A2::genericMethod2::T*;
+  abstract member-signature method genericMethod3<T extends core::Object* = core::Object*>(self::A2::genericMethod3::T* t) → self::A2::genericMethod3::T*;
+}
 abstract class B2 extends nsm::A implements self::C2 {
   synthetic constructor •() → self::B2*
     : super nsm::A::•()
@@ -14,12 +27,18 @@ abstract class B2 extends nsm::A implements self::C2 {
     return super.{core::Object::noSuchMethod}(invocation);
   }
   abstract forwarding-stub method method(core::int* i, {dynamic optional = #C2}) → core::int*;
+  abstract member-signature method genericMethod1<T extends core::Object* = dynamic>(self::B2::genericMethod1::T* t) → self::B2::genericMethod1::T*;
+  abstract member-signature method genericMethod2<T extends core::Object* = core::Object*>(self::B2::genericMethod2::T* t) → self::B2::genericMethod2::T*;
+  abstract member-signature method genericMethod3<T extends core::Object* = core::Object*>(self::B2::genericMethod3::T* t) → self::B2::genericMethod3::T*;
 }
 abstract class C2 extends core::Object {
   synthetic constructor •() → self::C2*
     : super core::Object::•()
     ;
   abstract method method(core::int* i, {dynamic optional = #C2}) → core::int*;
+  abstract method genericMethod1<T extends core::Object* = dynamic>(self::C2::genericMethod1::T* t) → self::C2::genericMethod1::T*;
+  abstract method genericMethod2<T extends core::Object* = core::Object*>(self::C2::genericMethod2::T* t) → self::C2::genericMethod2::T*;
+  abstract method genericMethod3<T extends core::Object* = core::Object*>(self::C2::genericMethod3::T* t) → self::C2::genericMethod3::T*;
 }
 static method main() → dynamic {}
 
@@ -33,6 +52,12 @@ class A extends core::Object {
     ;
   method method(core::int? i) → core::int
     return let final core::int? #t1 = i in #t1.{core::num::==}(null) ?{core::int} 0 : #t1{core::int};
+  method genericMethod1<T extends core::Object? = dynamic>(nsm::A::genericMethod1::T% t) → nsm::A::genericMethod1::T%
+    return t;
+  method genericMethod2<T extends core::Object? = core::Object?>(nsm::A::genericMethod2::T% t) → nsm::A::genericMethod2::T%
+    return t;
+  method genericMethod3<T extends core::Object = core::Object>(nsm::A::genericMethod3::T t) → nsm::A::genericMethod3::T
+    return t;
 }
 abstract class B1 extends nsm::A implements nsm::C1 {
   synthetic constructor •() → nsm::B1
@@ -49,6 +74,9 @@ abstract class C1 extends core::Object {
     : super core::Object::•()
     ;
   abstract method method(core::int? i, {dynamic optional = #C2}) → core::int;
+  abstract method genericMethod1<T extends core::Object? = dynamic>(nsm::C1::genericMethod1::T% t) → nsm::C1::genericMethod1::T%;
+  abstract method genericMethod2<T extends core::Object? = core::Object?>(nsm::C1::genericMethod2::T% t) → nsm::C1::genericMethod2::T%;
+  abstract method genericMethod3<T extends core::Object = core::Object>(nsm::C1::genericMethod3::T t) → nsm::C1::genericMethod3::T;
 }
 
 constants  {

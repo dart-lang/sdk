@@ -236,8 +236,8 @@ Encoding:
 
 ExperimentNotEnabled:
   index: 48
-  template: "This requires the '#string' experiment to be enabled."
-  tip: "Try enabling this experiment by adding it to the command line when compiling and running."
+  template: "This requires the '#string' language feature to be enabled."
+  tip: "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 EmptyNamedParameterList:

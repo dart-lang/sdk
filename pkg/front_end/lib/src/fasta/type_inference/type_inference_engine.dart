@@ -40,6 +40,8 @@ import '../kernel/kernel_builder.dart'
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
+import 'factor_type.dart';
+
 import 'type_inferrer.dart';
 
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
@@ -252,6 +254,11 @@ class TypeOperationsCfe
   final TypeEnvironment typeEnvironment;
 
   TypeOperationsCfe(this.typeEnvironment);
+
+  @override
+  DartType factor(DartType from, DartType what) {
+    return factorType(typeEnvironment, from, what);
+  }
 
   // TODO(dmitryas): Consider checking for mutual subtypes instead of ==.
   @override

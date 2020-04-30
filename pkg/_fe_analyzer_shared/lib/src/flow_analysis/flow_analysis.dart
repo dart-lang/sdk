@@ -1376,26 +1376,65 @@ class FlowModel<Variable, Type> {
     if (info.writeCaptured) {
       return new ExpressionInfo<Variable, Type>(this, this, this);
     }
+
     Type previousType = info.promotedTypes?.last;
     previousType ??= typeOperations.variableType(variable);
-    Type type = typeOperations.promoteToNonNull(previousType);
-    if (typeOperations.isSameType(type, previousType)) {
+
+    Type newType = typeOperations.promoteToNonNull(previousType);
+    if (typeOperations.isSameType(newType, previousType)) {
       return new ExpressionInfo<Variable, Type>(this, this, this);
     }
-    assert(typeOperations.isSubtypeOf(type, previousType));
-    return _finishTypeTest(typeOperations, variable, info, type);
+    assert(typeOperations.isSubtypeOf(newType, previousType));
+
+    FlowModel<Variable, Type> modelIfSuccessful =
+        _finishTypeTest(typeOperations, variable, info, null, newType);
+
+    FlowModel<Variable, Type> modelIfFailed = this;
+
+    return new ExpressionInfo<Variable, Type>(
+        this, modelIfSuccessful, modelIfFailed);
   }
 
-  /// Returns an [ExpressionInfo] indicating the result of checking whether the
-  /// given [variable] satisfies the given [type], e.g. as a consequence of an
-  /// `is` expression as the condition of an `if` statement.
+  /// Returns an [ExpressionInfo] indicating the result of casting the given
+  /// [variable] to the given [type], as a consequence of an `as` expression.
   ///
   /// Note that the state is only changed if [type] is a subtype of the
   /// variable's previous (possibly promoted) type.
   ///
   /// TODO(paulberry): if the type is non-nullable, should this method mark the
   /// variable as definitely assigned?  Does it matter?
-  ExpressionInfo<Variable, Type> tryPromote(
+  FlowModel<Variable, Type> tryPromoteForTypeCast(
+      TypeOperations<Variable, Type> typeOperations,
+      Variable variable,
+      Type type) {
+    VariableModel<Type> info = infoFor(variable);
+    if (info.writeCaptured) {
+      return this;
+    }
+
+    Type previousType = info.promotedTypes?.last;
+    previousType ??= typeOperations.variableType(variable);
+
+    Type newType = typeOperations.tryPromoteToType(type, previousType);
+    if (newType == null || typeOperations.isSameType(newType, previousType)) {
+      return this;
+    }
+
+    assert(typeOperations.isSubtypeOf(newType, previousType),
+        "Expected $newType to be a subtype of $previousType.");
+    return _finishTypeTest(typeOperations, variable, info, type, newType);
+  }
+
+  /// Returns an [ExpressionInfo] indicating the result of checking whether the
+  /// given [variable] satisfies the given [type], e.g. as a consequence of an
+  /// `is` expression as the condition of an `if` statement.
+  ///
+  /// Note that the "ifTrue" state is only changed if [type] is a subtype of
+  /// the variable's previous (possibly promoted) type.
+  ///
+  /// TODO(paulberry): if the type is non-nullable, should this method mark the
+  /// variable as definitely assigned?  Does it matter?
+  ExpressionInfo<Variable, Type> tryPromoteForTypeCheck(
       TypeOperations<Variable, Type> typeOperations,
       Variable variable,
       Type type) {
@@ -1403,16 +1442,29 @@ class FlowModel<Variable, Type> {
     if (info.writeCaptured) {
       return new ExpressionInfo<Variable, Type>(this, this, this);
     }
+
     Type previousType = info.promotedTypes?.last;
     previousType ??= typeOperations.variableType(variable);
 
-    Type newType = typeOperations.tryPromoteToType(type, previousType);
-    if (newType == null || typeOperations.isSameType(newType, previousType)) {
-      return new ExpressionInfo<Variable, Type>(this, this, this);
+    FlowModel<Variable, Type> modelIfSuccessful = this;
+    Type typeIfSuccess = typeOperations.tryPromoteToType(type, previousType);
+    if (typeIfSuccess != null &&
+        !typeOperations.isSameType(typeIfSuccess, previousType)) {
+      assert(typeOperations.isSubtypeOf(typeIfSuccess, previousType),
+          "Expected $typeIfSuccess to be a subtype of $previousType.");
+      modelIfSuccessful =
+          _finishTypeTest(typeOperations, variable, info, type, typeIfSuccess);
     }
-    assert(typeOperations.isSubtypeOf(newType, previousType),
-        "Expected $newType to be a subtype of $previousType.");
-    return _finishTypeTest(typeOperations, variable, info, newType);
+
+    Type factoredType = typeOperations.factor(previousType, type);
+    Type typeIfFailed = typeOperations.isSameType(factoredType, previousType)
+        ? null
+        : factoredType;
+    FlowModel<Variable, Type> modelIfFailed =
+        _finishTypeTest(typeOperations, variable, info, type, typeIfFailed);
+
+    return new ExpressionInfo<Variable, Type>(
+        this, modelIfSuccessful, modelIfFailed);
   }
 
   /// Updates the state to indicate that an assignment was made to the given
@@ -1431,38 +1483,43 @@ class FlowModel<Variable, Type> {
     return _updateVariableInfo(variable, newInfoForVar);
   }
 
-  /// Common algorithm for [tryMarkNonNullable] and [tryPromote].  Builds an
-  /// [ExpressionInfo] object describing the effect of trying to promote
-  /// [variable] to [testedType], under the following preconditions:
+  /// Common algorithm for [tryMarkNonNullable], [tryPromoteForTypeCast],
+  /// and [tryPromoteForTypeCheck].  Builds a [FlowModel] object describing the
+  /// effect of updating the [variable] by adding the [testedType] to the
+  /// list of tested types (if not `null`, and not there already), adding the
+  /// [promotedType] to the chain of promoted types.
+  ///
+  /// Preconditions:
   /// - [info] should be the result of calling `infoFor(variable)`
-  /// - [testedType] should be a subtype of the currently-promoted type (i.e.
+  /// - [promotedType] should be a subtype of the currently-promoted type (i.e.
   ///   no redundant or side-promotions)
   /// - The variable should not be write-captured.
-  ExpressionInfo<Variable, Type> _finishTypeTest(
-      TypeOperations<Variable, Type> typeOperations,
-      Variable variable,
-      VariableModel<Type> info,
-      Type testedType) {
-    List<Type> newPromotedTypes =
-        VariableModel._addToPromotedTypes(info.promotedTypes, testedType);
-    List<Type> newTested = VariableModel._addTypeToUniqueList(
-        info.tested, testedType, typeOperations);
-    FlowModel<Variable, Type> modelIfFailed = identical(newTested, info.tested)
+  FlowModel<Variable, Type> _finishTypeTest(
+    TypeOperations<Variable, Type> typeOperations,
+    Variable variable,
+    VariableModel<Type> info,
+    Type testedType,
+    Type promotedType,
+  ) {
+    List<Type> newTested = info.tested;
+    if (testedType != null) {
+      newTested = VariableModel._addTypeToUniqueList(
+          info.tested, testedType, typeOperations);
+    }
+
+    List<Type> newPromotedTypes = info.promotedTypes;
+    if (promotedType != null) {
+      newPromotedTypes =
+          VariableModel._addToPromotedTypes(info.promotedTypes, promotedType);
+    }
+
+    return identical(newTested, info.tested) &&
+            identical(newPromotedTypes, info.promotedTypes)
         ? this
         : _updateVariableInfo(
             variable,
-            new VariableModel<Type>(info.promotedTypes, newTested,
-                info.assigned, info.unassigned, info.writeCaptured));
-    FlowModel<Variable, Type> modelIfSuccessful =
-        identical(newPromotedTypes, info.promotedTypes) &&
-                identical(newTested, info.tested)
-            ? this
-            : _updateVariableInfo(
-                variable,
-                new VariableModel<Type>(newPromotedTypes, newTested,
-                    info.assigned, info.unassigned, info.writeCaptured));
-    return new ExpressionInfo<Variable, Type>(
-        this, modelIfSuccessful, modelIfFailed);
+            new VariableModel<Type>(newPromotedTypes, newTested, info.assigned,
+                info.unassigned, info.writeCaptured));
   }
 
   /// Returns a new [FlowModel] where the information for [variable] is replaced
@@ -1579,6 +1636,10 @@ class FlowModel<Variable, Type> {
 
 /// Operations on types, abstracted from concrete type interfaces.
 abstract class TypeOperations<Variable, Type> {
+  /// Returns the "remainder" of [from] when [what] has been removed from
+  /// consideration by an instance check.
+  Type factor(Type from, Type what);
+
   /// Returns `true` if [type1] and [type2] are the same type.
   bool isSameType(Type type1, Type type2);
 
@@ -2160,7 +2221,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     } else {
       return;
     }
-    _current = _current.tryPromote(typeOperations, variable, type).ifTrue;
+    _current = _current.tryPromoteForTypeCast(typeOperations, variable, type);
   }
 
   @override
@@ -2468,7 +2529,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
       return;
     }
     ExpressionInfo<Variable, Type> expressionInfo =
-        _current.tryPromote(typeOperations, variable, type);
+        _current.tryPromoteForTypeCheck(typeOperations, variable, type);
     _storeExpressionInfo(isExpression,
         isNot ? ExpressionInfo.invert(expressionInfo) : expressionInfo);
   }

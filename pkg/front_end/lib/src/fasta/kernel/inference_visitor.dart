@@ -2810,7 +2810,8 @@ class InferenceVisitor
   ExpressionInferenceResult visitSuperIndexSet(
       SuperIndexSet node, DartType typeContext) {
     ObjectAccessTarget indexSetTarget = node.setter != null
-        ? new ObjectAccessTarget.interfaceMember(node.setter)
+        ? new ObjectAccessTarget.interfaceMember(node.setter,
+            isPotentiallyNullable: false)
         : const ObjectAccessTarget.missing();
 
     DartType indexType =
@@ -3107,7 +3108,8 @@ class InferenceVisitor
   ExpressionInferenceResult visitIfNullSuperIndexSet(
       IfNullSuperIndexSet node, DartType typeContext) {
     ObjectAccessTarget readTarget = node.getter != null
-        ? new ObjectAccessTarget.interfaceMember(node.getter)
+        ? new ObjectAccessTarget.interfaceMember(node.getter,
+            isPotentiallyNullable: false)
         : const ObjectAccessTarget.missing();
 
     DartType readType = inferrer.getReturnType(readTarget, inferrer.thisType);
@@ -3121,7 +3123,8 @@ class InferenceVisitor
         .member;
 
     ObjectAccessTarget writeTarget = node.setter != null
-        ? new ObjectAccessTarget.interfaceMember(node.setter)
+        ? new ObjectAccessTarget.interfaceMember(node.setter,
+            isPotentiallyNullable: false)
         : const ObjectAccessTarget.missing();
 
     DartType writeIndexType =
@@ -3416,11 +3419,9 @@ class InferenceVisitor
       {bool isNot}) {
     assert(isNot != null);
     inferrer.flowAnalysis.equalityOp_rightBegin(left);
-    ObjectAccessTarget objectEqualsTarget =
-        inferrer.getObjectMemberIfNullableReceiver(leftType, equalsName);
-    ObjectAccessTarget equalsTarget = objectEqualsTarget ??
-        inferrer.findInterfaceMember(leftType, equalsName, fileOffset,
-            includeExtensionMethods: true);
+    ObjectAccessTarget equalsTarget = inferrer.findInterfaceMember(
+        leftType, equalsName, fileOffset,
+        includeExtensionMethods: true);
 
     bool typeNeeded = !inferrer.isTopLevel;
     ExpressionInferenceResult rightResult = inferrer.inferExpression(
@@ -3515,6 +3516,7 @@ class InferenceVisitor
             extensionAccessCandidates: binaryTarget.candidates);
         break;
       case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
         assert(binaryTarget.extensionMethodKind != ProcedureKind.Setter);
         binary = new StaticInvocation(
             binaryTarget.member,
@@ -3526,9 +3528,11 @@ class InferenceVisitor
           ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
         if (binaryTarget.isInstanceMember &&
@@ -3568,19 +3572,15 @@ class InferenceVisitor
         }
         break;
     }
-    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
-      if (leftType is! InvalidType &&
-          leftType is! DynamicType &&
-          isPotentiallyNullable(leftType, inferrer.coreTypes.futureOrClass)) {
-        return new ExpressionInferenceResult(
-            binaryType,
-            inferrer.helper.wrapInProblem(
-                binary,
-                templateNullableOperatorCallError.withArguments(
-                    binaryName.name, leftType, inferrer.isNonNullableByDefault),
-                binary.fileOffset,
-                binaryName.name.length));
-      }
+    if (!inferrer.isTopLevel && binaryTarget.isNullable) {
+      return new ExpressionInferenceResult(
+          binaryType,
+          inferrer.helper.wrapInProblem(
+              binary,
+              templateNullableOperatorCallError.withArguments(
+                  binaryName.name, leftType, inferrer.isNonNullableByDefault),
+              binary.fileOffset,
+              binaryName.name.length));
     }
     return new ExpressionInferenceResult(binaryType, binary);
   }
@@ -3614,6 +3614,7 @@ class InferenceVisitor
             extensionAccessCandidates: unaryTarget.candidates);
         break;
       case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
         assert(unaryTarget.extensionMethodKind != ProcedureKind.Setter);
         unary = new StaticInvocation(
             unaryTarget.member,
@@ -3624,9 +3625,11 @@ class InferenceVisitor
           ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
         if (unaryTarget.isInstanceMember &&
@@ -3662,22 +3665,17 @@ class InferenceVisitor
         }
         break;
     }
-    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
-      if (expressionType is! InvalidType &&
-          expressionType is! DynamicType &&
-          isPotentiallyNullable(
-              expressionType, inferrer.coreTypes.futureOrClass)) {
-        // TODO(johnniwinther): Special case 'unary-' in messages. It should
-        // probably be referred to as "Unary operator '-' ...".
-        return new ExpressionInferenceResult(
-            unaryType,
-            inferrer.helper.wrapInProblem(
-                unary,
-                templateNullableOperatorCallError.withArguments(unaryName.name,
-                    expressionType, inferrer.isNonNullableByDefault),
-                unary.fileOffset,
-                unaryName == unaryMinusName ? 1 : unaryName.name.length));
-      }
+    if (!inferrer.isTopLevel && unaryTarget.isNullable) {
+      // TODO(johnniwinther): Special case 'unary-' in messages. It should
+      // probably be referred to as "Unary operator '-' ...".
+      return new ExpressionInferenceResult(
+          unaryType,
+          inferrer.helper.wrapInProblem(
+              unary,
+              templateNullableOperatorCallError.withArguments(unaryName.name,
+                  expressionType, inferrer.isNonNullableByDefault),
+              unary.fileOffset,
+              unaryName == unaryMinusName ? 1 : unaryName.name.length));
     }
     return new ExpressionInferenceResult(unaryType, unary);
   }
@@ -3708,6 +3706,7 @@ class InferenceVisitor
             extensionAccessCandidates: readTarget.candidates);
         break;
       case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
         read = new StaticInvocation(
             readTarget.member,
             new Arguments(<Expression>[
@@ -3718,9 +3717,11 @@ class InferenceVisitor
           ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
         read = new MethodInvocation(
@@ -3748,22 +3749,15 @@ class InferenceVisitor
         }
         break;
     }
-    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
-      if (receiverType is! DynamicType &&
-          receiverType is! InvalidType &&
-          isPotentiallyNullable(
-              receiverType, inferrer.coreTypes.futureOrClass)) {
-        return new ExpressionInferenceResult(
-            readType,
-            inferrer.helper.wrapInProblem(
-                read,
-                templateNullableOperatorCallError.withArguments(
-                    indexGetName.name,
-                    receiverType,
-                    inferrer.isNonNullableByDefault),
-                read.fileOffset,
-                noLength));
-      }
+    if (!inferrer.isTopLevel && readTarget.isNullable) {
+      return new ExpressionInferenceResult(
+          readType,
+          inferrer.helper.wrapInProblem(
+              read,
+              templateNullableOperatorCallError.withArguments(indexGetName.name,
+                  receiverType, inferrer.isNonNullableByDefault),
+              read.fileOffset,
+              noLength));
     }
     return new ExpressionInferenceResult(readType, read);
   }
@@ -3796,6 +3790,7 @@ class InferenceVisitor
             extensionAccessCandidates: writeTarget.candidates);
         break;
       case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
         assert(writeTarget.extensionMethodKind != ProcedureKind.Setter);
         write = new StaticInvocation(
             writeTarget.member,
@@ -3805,9 +3800,11 @@ class InferenceVisitor
           ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
         write = new MethodInvocation(
@@ -3818,18 +3815,13 @@ class InferenceVisitor
           ..fileOffset = fileOffset;
         break;
     }
-    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
-      if (receiverType is! InvalidType &&
-          receiverType is! DynamicType &&
-          isPotentiallyNullable(
-              receiverType, inferrer.coreTypes.futureOrClass)) {
-        return inferrer.helper.wrapInProblem(
-            write,
-            templateNullableOperatorCallError.withArguments(indexSetName.name,
-                receiverType, inferrer.isNonNullableByDefault),
-            write.fileOffset,
-            noLength);
-      }
+    if (!inferrer.isTopLevel && writeTarget.isNullable) {
+      return inferrer.helper.wrapInProblem(
+          write,
+          templateNullableOperatorCallError.withArguments(
+              indexSetName.name, receiverType, inferrer.isNonNullableByDefault),
+          write.fileOffset,
+          noLength);
     }
     return write;
   }
@@ -3851,16 +3843,14 @@ class InferenceVisitor
       {bool isThisReceiver}) {
     assert(isThisReceiver != null);
 
-    ObjectAccessTarget objectReadTarget =
-        inferrer.getObjectMemberIfNullableReceiver(receiverType, propertyName);
-
-    ObjectAccessTarget readTarget = objectReadTarget ??
-        inferrer.findInterfaceMember(receiverType, propertyName, fileOffset,
-            includeExtensionMethods: true);
+    ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
+        receiverType, propertyName, fileOffset,
+        includeExtensionMethods: true);
 
     DartType readType = inferrer.getGetterType(readTarget, receiverType);
 
     Expression read;
+    ExpressionInferenceResult readResult;
     switch (readTarget.kind) {
       case ObjectAccessTargetKind.missing:
         read = inferrer.createMissingPropertyGet(
@@ -3872,6 +3862,7 @@ class InferenceVisitor
             extensionAccessCandidates: readTarget.candidates);
         break;
       case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
         switch (readTarget.extensionMethodKind) {
           case ProcedureKind.Getter:
             read = new StaticInvocation(
@@ -3890,7 +3881,9 @@ class InferenceVisitor
                 ], types: readTarget.inferredExtensionTypeArguments)
                   ..fileOffset = fileOffset)
               ..fileOffset = fileOffset;
-            return inferrer.instantiateTearOff(readType, typeContext, read);
+            readResult =
+                inferrer.instantiateTearOff(readType, typeContext, read);
+            break;
           case ProcedureKind.Setter:
           case ProcedureKind.Factory:
           case ProcedureKind.Operator:
@@ -3899,9 +3892,11 @@ class InferenceVisitor
         }
         break;
       case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
         if (readTarget.isInstanceMember &&
@@ -3945,30 +3940,20 @@ class InferenceVisitor
         }
         Member member = readTarget.member;
         if (member is Procedure && member.kind == ProcedureKind.Method) {
-          return inferrer.instantiateTearOff(readType, typeContext, read);
+          readResult = inferrer.instantiateTearOff(readType, typeContext, read);
         }
         break;
     }
-    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
-      if (receiverType is! DynamicType &&
-          receiverType is! InvalidType &&
-          isPotentiallyNullable(
-              receiverType, inferrer.coreTypes.futureOrClass) &&
-          !inferrer.matchesObjectMemberCall(
-              propertyName, const [], const [], const [])) {
-        return new ExpressionInferenceResult(
-            readType,
-            inferrer.helper.wrapInProblem(
-                read,
-                templateNullablePropertyAccessError.withArguments(
-                    propertyName.name,
-                    receiverType,
-                    inferrer.isNonNullableByDefault),
-                read.fileOffset,
-                propertyName.name.length));
-      }
+    readResult ??= new ExpressionInferenceResult(readType, read);
+    if (!inferrer.isTopLevel && readTarget.isNullable) {
+      readResult = inferrer.wrapExpressionInferenceResultInProblem(
+          readResult,
+          templateNullablePropertyAccessError.withArguments(
+              propertyName.name, receiverType, inferrer.isNonNullableByDefault),
+          read.fileOffset,
+          propertyName.name.length);
     }
-    return new ExpressionInferenceResult(readType, read);
+    return readResult;
   }
 
   /// Creates a property set operation of [writeTarget] on [receiver] using
@@ -4008,6 +3993,7 @@ class InferenceVisitor
             extensionAccessCandidates: writeTarget.candidates);
         break;
       case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
         if (forEffect) {
           write = new StaticInvocation(
               writeTarget.member,
@@ -4032,9 +4018,11 @@ class InferenceVisitor
         }
         break;
       case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
         write =
@@ -4042,17 +4030,13 @@ class InferenceVisitor
               ..fileOffset = fileOffset;
         break;
     }
-    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
-      if (receiverType is! DynamicType &&
-          isPotentiallyNullable(
-              receiverType, inferrer.coreTypes.futureOrClass)) {
-        return inferrer.helper.wrapInProblem(
-            write,
-            templateNullablePropertyAccessError.withArguments(propertyName.name,
-                receiverType, inferrer.isNonNullableByDefault),
-            write.fileOffset,
-            propertyName.name.length);
-      }
+    if (!inferrer.isTopLevel && writeTarget.isNullable) {
+      return inferrer.helper.wrapInProblem(
+          write,
+          templateNullablePropertyAccessError.withArguments(
+              propertyName.name, receiverType, inferrer.isNonNullableByDefault),
+          write.fileOffset,
+          propertyName.name.length);
     }
 
     return write;
@@ -4348,7 +4332,8 @@ class InferenceVisitor
   ExpressionInferenceResult visitCompoundSuperIndexSet(
       CompoundSuperIndexSet node, DartType typeContext) {
     ObjectAccessTarget readTarget = node.getter != null
-        ? new ObjectAccessTarget.interfaceMember(node.getter)
+        ? new ObjectAccessTarget.interfaceMember(node.getter,
+            isPotentiallyNullable: false)
         : const ObjectAccessTarget.missing();
 
     DartType readType = inferrer.getReturnType(readTarget, inferrer.thisType);
@@ -4400,7 +4385,8 @@ class InferenceVisitor
     DartType binaryType = binaryResult.inferredType;
 
     ObjectAccessTarget writeTarget = node.setter != null
-        ? new ObjectAccessTarget.interfaceMember(node.setter)
+        ? new ObjectAccessTarget.interfaceMember(node.setter,
+            isPotentiallyNullable: false)
         : const ObjectAccessTarget.missing();
 
     DartType writeIndexType =
@@ -5102,7 +5088,8 @@ class InferenceVisitor
         node,
         typeContext,
         node.interfaceTarget != null
-            ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget)
+            ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget,
+                isPotentiallyNullable: false)
             : const ObjectAccessTarget.unresolved());
   }
 
@@ -5120,7 +5107,8 @@ class InferenceVisitor
         node,
         typeContext,
         node.interfaceTarget != null
-            ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget)
+            ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget,
+                isPotentiallyNullable: false)
             : const ObjectAccessTarget.unresolved());
   }
 

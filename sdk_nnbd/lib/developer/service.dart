@@ -42,12 +42,12 @@ class Service {
   static Future<ServiceProtocolInfo> getInfo() async {
     // Port to receive response from service isolate.
     final RawReceivePort receivePort = new RawReceivePort();
-    final Completer<Uri> uriCompleter = new Completer<Uri>();
-    receivePort.handler = (Uri uri) => uriCompleter.complete(uri);
+    final Completer<Uri?> uriCompleter = new Completer<Uri?>();
+    receivePort.handler = (Uri? uri) => uriCompleter.complete(uri);
     // Request the information from the service isolate.
     _getServerInfo(receivePort.sendPort);
     // Await the response from the service isolate.
-    Uri uri = await uriCompleter.future;
+    Uri? uri = await uriCompleter.future;
     // Close the port.
     receivePort.close();
     return new ServiceProtocolInfo(uri);

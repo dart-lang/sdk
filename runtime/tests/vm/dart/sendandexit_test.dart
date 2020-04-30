@@ -77,9 +77,32 @@ verifyCanSendStaticMethod() async {
   port.close();
 }
 
+verifyExitMessageIsPostedLast() async {
+  final port = ReceivePort();
+  final inbox = new StreamIterator<dynamic>(port);
+  final isolate = await Isolate.spawn(worker, Message(port.sendPort, add),
+      onExit: port.sendPort);
+
+  final receivedData = Completer<dynamic>();
+  final isolateExited = Completer<bool>();
+  port.listen((dynamic resultData) {
+    if (receivedData.isCompleted) {
+      Expect.equals(
+          resultData, null); // exit message comes after data is receivedData
+      isolateExited.complete(true);
+    } else {
+      receivedData.complete(resultData);
+    }
+  });
+  Expect.equals(await isolateExited.future, true);
+  Expect.equals(await receivedData.future, 5);
+  port.close();
+}
+
 main() async {
   await verifyCantSendAnonymousClosure();
   await verifyCantSendNative();
   await verifyCantSendRegexp();
   await verifyCanSendStaticMethod();
+  await verifyExitMessageIsPostedLast();
 }
