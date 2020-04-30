@@ -39,6 +39,39 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/task/strong/checker.dart';
 
+class EnclosingExecutableContext {
+  final ExecutableElement element;
+  final bool isAsynchronous;
+  final bool isConstConstructor;
+  final bool isFactoryConstructor;
+  final bool isGenerator;
+  final bool isStaticMethod;
+
+  /// The return statements that have a value.
+  final List<ReturnStatement> _returnsWith = [];
+
+  /// The return statements that do not have a value.
+  final List<ReturnStatement> _returnsWithout = [];
+
+  EnclosingExecutableContext(this.element)
+      : isAsynchronous = element != null && element.isAsynchronous,
+        isConstConstructor = element is ConstructorElement && element.isConst,
+        isFactoryConstructor =
+            element is ConstructorElement && element.isFactory,
+        isGenerator = element != null && element.isGenerator,
+        isStaticMethod = _isStaticMethod(element);
+
+  EnclosingExecutableContext.empty() : this(null);
+
+  static bool _isStaticMethod(ExecutableElement element) {
+    var enclosing = element?.enclosingElement;
+    if (enclosing is ClassElement) {
+      return element.isStatic;
+    }
+    return false;
+  }
+}
+
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
  * warnings not covered by the parser and resolver.
@@ -78,26 +111,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * The manager for the inheritance mappings.
    */
   final InheritanceManager3 _inheritanceManager;
-
-  /**
-   * A flag indicating whether the visitor is currently within a constructor
-   * declaration that is 'const'.
-   *
-   * See [visitConstructorDeclaration].
-   */
-  bool _isEnclosingConstructorConst = false;
-
-  /**
-   * A flag indicating whether we are currently within a function body marked as
-   * being asynchronous.
-   */
-  bool _inAsync = false;
-
-  /**
-   * A flag indicating whether we are currently within a function body marked a
-   *  being a generator.
-   */
-  bool _inGenerator = false;
 
   /**
    * A flag indicating whether the visitor is currently within a catch clause.
@@ -154,20 +167,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   bool _isInFunctionTypedFormalParameter = false;
 
   /**
-   * A flag indicating whether the visitor is currently within a static method.
-   * By "method" here getter, setter and operator declarations are also implied
-   * since they are all represented with a [MethodDeclaration] in the AST
-   * structure.
-   */
-  bool _isInStaticMethod = false;
-
-  /**
-   * A flag indicating whether the visitor is currently within a factory
-   * constructor.
-   */
-  bool _isInFactory = false;
-
-  /**
    * A flag indicating whether the visitor is currently within code in the SDK.
    */
   bool _isInSystemLibrary = false;
@@ -197,22 +196,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   ExtensionElement _enclosingExtension;
 
   /**
-   * The method or function that we are currently visiting, or `null` if we are
-   * not inside a method or function.
+   * The context of the method or function that we are currently visiting, or
+   * `null` if we are not inside a method or function.
    */
-  ExecutableElement _enclosingFunction;
-
-  /**
-   * The return statements found in the method or function that we are currently
-   * visiting that have a return value.
-   */
-  List<ReturnStatement> _returnsWith = <ReturnStatement>[];
-
-  /**
-   * The return statements found in the method or function that we are currently
-   * visiting that do not have a return value.
-   */
-  List<ReturnStatement> _returnsWithout = <ReturnStatement>[];
+  EnclosingExecutableContext _enclosingExecutable =
+      EnclosingExecutableContext.empty();
 
   /// A table mapping name of the library to the export directive which export
   /// this library.
@@ -260,11 +248,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             DuplicateDefinitionVerifier(_currentLibrary, errorReporter) {
     this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
     this._hasExtUri = _currentLibrary.hasExtUri;
-    _isEnclosingConstructorConst = false;
     _isInCatchClause = false;
     _isInStaticVariableDeclaration = false;
     _isInConstructorInitializer = false;
-    _isInStaticMethod = false;
     _intType = _typeProvider.intType;
     _typeSystem = _currentLibrary.typeSystem;
     _options = _currentLibrary.context.analysisOptions;
@@ -297,7 +283,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     assert(classElement is ClassElementImpl);
     assert(_enclosingClass == null);
     assert(_enclosingEnum == null);
-    assert(_enclosingFunction == null);
+    assert(_enclosingExecutable == null);
     _enclosingClass = classElement;
   }
 
@@ -346,7 +332,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    if (!_inAsync) {
+    if (!_enclosingExecutable.isAsynchronous) {
       _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, node.awaitKeyword);
     }
@@ -390,26 +376,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       super.visitBlock(node);
     } finally {
       _hiddenElements = _hiddenElements.outerElements;
-    }
-  }
-
-  @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {
-    bool wasInAsync = _inAsync;
-    bool wasInGenerator = _inGenerator;
-    List<ReturnStatement> previousReturnsWith = _returnsWith;
-    List<ReturnStatement> previousReturnsWithout = _returnsWithout;
-    try {
-      _inAsync = node.isAsynchronous;
-      _inGenerator = node.isGenerator;
-      _returnsWith = <ReturnStatement>[];
-      _returnsWithout = <ReturnStatement>[];
-      super.visitBlockFunctionBody(node);
-    } finally {
-      _inAsync = wasInAsync;
-      _inGenerator = wasInGenerator;
-      _returnsWith = previousReturnsWith;
-      _returnsWithout = previousReturnsWithout;
     }
   }
 
@@ -511,31 +477,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    ExecutableElement outerFunction = _enclosingFunction;
-    try {
-      ConstructorElement constructorElement = node.declaredElement;
-      _enclosingFunction = constructorElement;
-      _isEnclosingConstructorConst = node.constKeyword != null;
-      _isInFactory = node.factoryKeyword != null;
+    ConstructorElement element = node.declaredElement;
+    _withEnclosingExecutable(element, () {
       _checkForInvalidModifierOnBody(
           node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
-      _checkForConstConstructorWithNonFinalField(node, constructorElement);
+      _checkForConstConstructorWithNonFinalField(node, element);
       _checkForConstConstructorWithNonConstSuper(node);
       _constructorFieldsVerifier.verify(node);
       _checkForRedirectingConstructorErrorCodes(node);
       _checkForMultipleSuperInitializers(node);
-      _checkForRecursiveConstructorRedirect(node, constructorElement);
-      if (!_checkForRecursiveFactoryRedirect(node, constructorElement)) {
+      _checkForRecursiveConstructorRedirect(node, element);
+      if (!_checkForRecursiveFactoryRedirect(node, element)) {
         _checkForAllRedirectConstructorErrorCodes(node);
       }
       _checkForUndefinedConstructorInInitializerImplicit(node);
       _checkForReturnInGenerativeConstructor(node);
       super.visitConstructorDeclaration(node);
-    } finally {
-      _isEnclosingConstructorConst = false;
-      _isInFactory = false;
-      _enclosingFunction = outerFunction;
-    }
+    });
   }
 
   @override
@@ -601,28 +559,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    bool wasInAsync = _inAsync;
-    bool wasInGenerator = _inGenerator;
-    try {
-      _inAsync = node.isAsynchronous;
-      _inGenerator = node.isGenerator;
-      FunctionType functionType = _enclosingFunction?.type;
-      DartType expectedReturnType = functionType == null
-          ? DynamicTypeImpl.instance
-          : functionType.returnType;
-      ExecutableElement function = _enclosingFunction;
-      bool isSetterWithImplicitReturn = function.hasImplicitReturnType &&
-          function is PropertyAccessorElement &&
-          function.isSetter;
-      if (!isSetterWithImplicitReturn) {
-        _checkForReturnOfInvalidType(node.expression, expectedReturnType,
-            isArrowFunction: true);
-      }
-      super.visitExpressionFunctionBody(node);
-    } finally {
-      _inAsync = wasInAsync;
-      _inGenerator = wasInGenerator;
+    ExecutableElement function = _enclosingExecutable.element;
+    FunctionType functionType = function?.type;
+    DartType expectedReturnType = functionType == null
+        ? DynamicTypeImpl.instance
+        : functionType.returnType;
+    bool isSetterWithImplicitReturn = function.hasImplicitReturnType &&
+        function is PropertyAccessorElement &&
+        function.isSetter;
+    if (!isSetterWithImplicitReturn) {
+      _checkForReturnOfInvalidType(node.expression, expectedReturnType,
+          isArrowFunction: true);
     }
+    super.visitExpressionFunctionBody(node);
   }
 
   @override
@@ -730,10 +679,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         functionElement.enclosingElement is! CompilationUnitElement) {
       _hiddenElements.declare(functionElement);
     }
-    ExecutableElement outerFunction = _enclosingFunction;
-    try {
+
+    _withEnclosingExecutable(functionElement, () {
       SimpleIdentifier identifier = node.name;
-      _enclosingFunction = functionElement;
       TypeAnnotation returnType = node.returnType;
       if (node.isGetter) {
         GetterSetterTypesVerifier(
@@ -755,27 +703,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForIllegalReturnType(returnType);
       _checkForImplicitDynamicReturn(node.name, node.declaredElement);
       super.visitFunctionDeclaration(node);
-    } finally {
-      _enclosingFunction = outerFunction;
-    }
+    });
   }
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
     _isInLateLocalVariable.add(false);
-    // If this function expression is wrapped in a function declaration, don't
-    // change the enclosingFunction field.
+
     if (node.parent is! FunctionDeclaration) {
-      ExecutableElement outerFunction = _enclosingFunction;
-      try {
-        _enclosingFunction = node.declaredElement;
+      _withEnclosingExecutable(node.declaredElement, () {
         super.visitFunctionExpression(node);
-      } finally {
-        _enclosingFunction = outerFunction;
-      }
+      });
     } else {
       super.visitFunctionExpression(node);
     }
+
     _isInLateLocalVariable.removeLast();
   }
 
@@ -937,10 +879,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    ExecutableElement previousFunction = _enclosingFunction;
-    try {
-      _isInStaticMethod = node.isStatic;
-      _enclosingFunction = node.declaredElement;
+    _withEnclosingExecutable(node.declaredElement, () {
       TypeAnnotation returnType = node.returnType;
       if (node.isStatic && node.isGetter) {
         GetterSetterTypesVerifier(
@@ -965,10 +904,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForMustCallSuper(node);
       _checkForWrongTypeParameterVarianceInMethod(node);
       super.visitMethodDeclaration(node);
-    } finally {
-      _enclosingFunction = previousFunction;
-      _isInStaticMethod = false;
-    }
+    });
   }
 
   @override
@@ -1107,9 +1043,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitReturnStatement(ReturnStatement node) {
     if (node.expression == null) {
-      _returnsWithout.add(node);
+      _enclosingExecutable._returnsWithout.add(node);
     } else {
-      _returnsWith.add(node);
+      _enclosingExecutable._returnsWith.add(node);
     }
     _checkForAllReturnStatementErrorCodes(node);
     super.visitReturnStatement(node);
@@ -1358,11 +1294,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   void _checkForAllEmptyReturnStatementErrorCodes(
       ReturnStatement statement, DartType expectedReturnType) {
-    if (_inGenerator) {
+    if (_enclosingExecutable.isGenerator) {
       return;
     }
-    var returnType =
-        _inAsync ? _typeSystem.flatten(expectedReturnType) : expectedReturnType;
+    var returnType = _enclosingExecutable.isAsynchronous
+        ? _typeSystem.flatten(expectedReturnType)
+        : expectedReturnType;
     if (returnType.isDynamic ||
         returnType.isDartCoreNull ||
         returnType.isVoid) {
@@ -1497,7 +1434,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * the enclosing method or function.
    */
   void _checkForAllReturnStatementErrorCodes(ReturnStatement statement) {
-    FunctionType functionType = _enclosingFunction?.type;
+    FunctionType functionType = _enclosingExecutable.element.type;
     DartType expectedReturnType = functionType == null
         ? DynamicTypeImpl.instance
         : functionType.returnType;
@@ -1506,7 +1443,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // RETURN_IN_GENERATIVE_CONSTRUCTOR
     bool isGenerativeConstructor(ExecutableElement element) =>
         element is ConstructorElement && !element.isFactory;
-    if (isGenerativeConstructor(_enclosingFunction)) {
+    if (isGenerativeConstructor(_enclosingExecutable.element)) {
       if (returnExpression == null) {
         return;
       }
@@ -1519,12 +1456,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (returnExpression == null) {
       _checkForAllEmptyReturnStatementErrorCodes(statement, expectedReturnType);
       return;
-    } else if (_inGenerator) {
+    } else if (_enclosingExecutable.isGenerator) {
       // RETURN_IN_GENERATOR
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.RETURN_IN_GENERATOR,
           statement,
-          [_inAsync ? "async*" : "sync*"]);
+          [_enclosingExecutable.isAsynchronous ? "async*" : "sync*"]);
       return;
     }
 
@@ -2009,7 +1946,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   void _checkForConstConstructorWithNonConstSuper(
       ConstructorDeclaration constructor) {
-    if (!_isEnclosingConstructorConst) {
+    if (!_enclosingExecutable.isConstConstructor) {
       return;
     }
     // OK, const factory, checked elsewhere
@@ -2079,7 +2016,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForConstConstructorWithNonFinalField(
       ConstructorDeclaration constructor,
       ConstructorElement constructorElement) {
-    if (!_isEnclosingConstructorConst) {
+    if (!_enclosingExecutable.isConstConstructor) {
       return;
     }
     // check if there is non-final field
@@ -2121,7 +2058,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION].
    */
   void _checkForConstEvalThrowsException(ThrowExpression expression) {
-    if (_isEnclosingConstructorConst) {
+    if (_enclosingExecutable.isConstConstructor) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, expression);
     }
@@ -2648,7 +2585,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     // report problem
-    if (_isEnclosingConstructorConst) {
+    if (_enclosingExecutable.isConstConstructor) {
       // TODO(paulberry): this error should be based on the actual type of the
       // constant, not the static type.  See dartbug.com/21119.
       _errorReporter.reportErrorForNode(
@@ -2810,8 +2747,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       // assignable to everything.
       return;
     }
-    if (_enclosingFunction.isAsynchronous) {
-      if (_enclosingFunction.isGenerator) {
+    if (_enclosingExecutable.isAsynchronous) {
+      if (_enclosingExecutable.isGenerator) {
         _checkForIllegalReturnTypeCode(
           returnType,
           _typeProvider.streamElement,
@@ -2824,7 +2761,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE,
         );
       }
-    } else if (_enclosingFunction.isGenerator) {
+    } else if (_enclosingExecutable.isGenerator) {
       _checkForIllegalReturnTypeCode(
         returnType,
         _typeProvider.iterableElement,
@@ -2936,8 +2873,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     if (!_isInConstructorInitializer &&
-        !_isInStaticMethod &&
-        !_isInFactory &&
+        !_enclosingExecutable.isStaticMethod &&
+        !_enclosingExecutable.isFactoryConstructor &&
         !_isInInstanceNotLateVariableDeclaration &&
         !_isInStaticVariableDeclaration) {
       return;
@@ -2978,10 +2915,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (_isInStaticMethod) {
+    if (_enclosingExecutable.isStaticMethod) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, identifier);
-    } else if (_isInFactory) {
+    } else if (_enclosingExecutable.isFactoryConstructor) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, identifier);
     } else {
@@ -4259,10 +4196,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForReturnOfInvalidType(
       Expression returnExpression, DartType expectedType,
       {bool isArrowFunction = false}) {
-    if (_enclosingFunction == null) {
+    if (_enclosingExecutable == null) {
       return;
     }
-    if (_inGenerator) {
+    if (_enclosingExecutable.isGenerator) {
       // "return expression;" is disallowed in generators, but this is checked
       // elsewhere.  Bare "return" is always allowed in generators regardless
       // of the return type.  So no need to do any further checking.
@@ -4276,7 +4213,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     var toType = expectedType;
     var fromType = expressionType;
-    if (_inAsync) {
+    if (_enclosingExecutable.isAsynchronous) {
       toType = _typeSystem.flatten(toType);
       fromType = _typeSystem.flatten(fromType);
       if (!_isLegalReturnType(_typeProvider.futureElement)) {
@@ -4289,14 +4226,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     void reportTypeError() {
-      String displayName = _enclosingFunction.displayName;
+      String displayName = _enclosingExecutable.element.displayName;
 
       if (displayName.isEmpty) {
         _errorReporter.reportErrorForNode(
             StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
             returnExpression,
             [fromType, toType]);
-      } else if (_enclosingFunction is MethodElement) {
+      } else if (_enclosingExecutable.element is MethodElement) {
         _errorReporter.reportErrorForNode(
             StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
             returnExpression,
@@ -4328,8 +4265,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
     if (!expectedType.isVoid && !fromType.isVoid) {
-      var checkWithType =
-          !_inAsync ? fromType : _typeProvider.futureType2(fromType);
+      var checkWithType = !_enclosingExecutable.isAsynchronous
+          ? fromType
+          : _typeProvider.futureType2(fromType);
       if (_typeSystem.isAssignableTo2(checkWithType, expectedType)) {
         return;
       }
@@ -4532,7 +4470,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForTypeParameterReferencedByStatic(SimpleIdentifier identifier) {
-    if (_isInStaticMethod || _isInStaticVariableDeclaration) {
+    if (_enclosingExecutable.isStaticMethod || _isInStaticVariableDeclaration) {
       var element = identifier.staticElement;
       if (element is TypeParameterElement &&
           element.enclosingElement is ClassElement) {
@@ -5436,7 +5374,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// Returns whether a value with the type of the the enclosing function's
   /// declared return type is assignable to [expectedElement].
   bool _isLegalReturnType(ClassElement expectedElement) {
-    DartType returnType = _enclosingFunction.returnType;
+    DartType returnType = _enclosingExecutable.element.returnType;
     //
     // When checking an async/sync*/async* method, we know the exact type
     // that will be returned (e.g. Future, Iterable, or Stream).
@@ -5530,6 +5468,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return parameter.parameter.identifier;
     }
     return null;
+  }
+
+  void _withEnclosingExecutable(
+    ExecutableElement element,
+    void Function() operation,
+  ) {
+    var current = _enclosingExecutable;
+    try {
+      _enclosingExecutable = EnclosingExecutableContext(element);
+      operation();
+    } finally {
+      _enclosingExecutable = current;
+    }
   }
 
   /**
