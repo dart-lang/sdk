@@ -71,7 +71,10 @@ library_for_all_configs("libdart_vm") {
     if (using_fuchsia_sdk) {
       extra_deps += [
         "$fuchsia_sdk_root/fidl:fuchsia.deprecatedtimezone",
+        "$fuchsia_sdk_root/pkg:inspect",
+        "$fuchsia_sdk_root/pkg:inspect_service_cpp",
         "$fuchsia_sdk_root/pkg:sys_cpp",
+        "$fuchsia_sdk_root/pkg:sys_inspect_cpp",
         "$fuchsia_sdk_root/pkg:trace-engine",
       ]
     } else {
@@ -216,9 +219,7 @@ executable("offsets_extractor") {
     "..:dart_maybe_product_config",
     ":libdart_vm_config",
   ]
-  sources = [
-    "compiler/offsets_extractor.cc",
-  ]
+  sources = [ "compiler/offsets_extractor.cc" ]
   include_dirs = [ ".." ]
 }
 
@@ -230,8 +231,6 @@ executable("offsets_extractor_precompiled_runtime") {
     "..:dart_maybe_product_config",
     ":libdart_vm_config",
   ]
-  sources = [
-    "compiler/offsets_extractor.cc",
-  ]
+  sources = [ "compiler/offsets_extractor.cc" ]
   include_dirs = [ ".." ]
 }
