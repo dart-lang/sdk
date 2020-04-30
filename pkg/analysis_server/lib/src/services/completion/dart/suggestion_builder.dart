@@ -41,7 +41,7 @@ CompletionSuggestion createSuggestion(
   }
   kind ??= CompletionSuggestionKind.INVOCATION;
   var suggestion = CompletionSuggestion(kind, relevance, completion,
-      completion.length, 0, element.hasDeprecated, false);
+      completion.length, 0, element.hasOrInheritsDeprecated, false);
 
   // Attach docs.
   var doc = DartUnitHoverComputer.computeDocumentation(
@@ -291,6 +291,13 @@ class SuggestionBuilder {
   final Map<String, CompletionSuggestion> _suggestionMap =
       <String, CompletionSuggestion>{};
 
+  /// A flag indicating whether a suggestion should replace any earlier
+  /// suggestions for the same completion (`true`) or whether earlier
+  /// suggestions should take priority over more recent suggestions.
+  // TODO(brianwilkerson) Attempt to convert the contributors so that a single
+  //  approach is followed.
+  bool laterReplacesEarlier = true;
+
   /// A flag indicating whether the [_cachedContextType] has been computed.
   bool _hasContextType = false;
 
@@ -398,11 +405,14 @@ class SuggestionBuilder {
     if (request.useNewRelevance) {
       relevance = _computeTopLevelRelevance(classElement,
           elementType: _instantiateClassElement(classElement));
-    } else if (classElement.hasDeprecated) {
+    } else if (classElement.hasOrInheritsDeprecated) {
       relevance = DART_RELEVANCE_LOW;
     } else {
       relevance = request.opType.typeNameSuggestionsFilter(
           _instantiateClassElement(classElement), DART_RELEVANCE_DEFAULT);
+      if (relevance == null) {
+        return;
+      }
     }
 
     _add(createSuggestion(request, classElement,
@@ -440,7 +450,7 @@ class SuggestionBuilder {
     if (request.useNewRelevance) {
       relevance = _computeTopLevelRelevance(constructor);
     } else {
-      relevance = constructor.hasDeprecated
+      relevance = constructor.hasOrInheritsDeprecated
           ? DART_RELEVANCE_LOW
           : DART_RELEVANCE_DEFAULT;
     }
@@ -472,6 +482,31 @@ class SuggestionBuilder {
     }
   }
 
+  /// Add a suggestion for the enum [constant].
+  void suggestEnumConstant(FieldElement constant) {
+    var constantName = constant.name;
+    var enumElement = constant.enclosingElement;
+    var enumName = enumElement.name;
+    var completion = '$enumName.$constantName';
+
+    int relevance;
+    if (request.useNewRelevance) {
+      relevance =
+          _computeTopLevelRelevance(constant, elementType: constant.type);
+    } else if (constant.hasOrInheritsDeprecated) {
+      relevance = DART_RELEVANCE_LOW;
+    } else {
+      relevance = request.opType.returnValueSuggestionsFilter(
+          _instantiateClassElement(enumElement), DART_RELEVANCE_DEFAULT);
+      if (relevance == null) {
+        return;
+      }
+    }
+
+    _add(createSuggestion(request, constant,
+        completion: completion, relevance: relevance));
+  }
+
   /// Add a suggestion for the [extension]. If a [kind] is provided it will be
   /// used as the kind for the suggestion.
   void suggestExtension(ExtensionElement extension,
@@ -481,8 +516,9 @@ class SuggestionBuilder {
       relevance = _computeTopLevelRelevance(extension,
           elementType: extension.extendedType);
     } else {
-      relevance =
-          extension.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
+      relevance = extension.hasOrInheritsDeprecated
+          ? DART_RELEVANCE_LOW
+          : DART_RELEVANCE_DEFAULT;
     }
 
     _add(
@@ -529,14 +565,15 @@ class SuggestionBuilder {
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
     int relevance;
     if (request.useNewRelevance) {
-      relevance =
-          _computeTopLevelRelevance(functionTypeAlias, defaultRelevance: 750);
+      relevance = _computeTopLevelRelevance(functionTypeAlias,
+          defaultRelevance: 750,
+          elementType: _instantiateFunctionTypeAlias(functionTypeAlias));
+    } else if (functionTypeAlias.hasOrInheritsDeprecated) {
+      relevance = DART_RELEVANCE_LOW;
     } else {
-      relevance = functionTypeAlias.hasDeprecated
-          ? DART_RELEVANCE_LOW
-          : (functionTypeAlias.library == request.libraryElement
-              ? DART_RELEVANCE_LOCAL_FUNCTION
-              : DART_RELEVANCE_DEFAULT);
+      relevance = functionTypeAlias.library == request.libraryElement
+          ? DART_RELEVANCE_LOCAL_FUNCTION
+          : DART_RELEVANCE_DEFAULT;
     }
     _add(createSuggestion(request, functionTypeAlias,
         kind: kind, relevance: relevance));
@@ -551,8 +588,9 @@ class SuggestionBuilder {
       //  than a fixed value.
       relevance = Relevance.loadLibrary;
     } else {
-      relevance =
-          function.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
+      relevance = function.hasOrInheritsDeprecated
+          ? DART_RELEVANCE_LOW
+          : DART_RELEVANCE_DEFAULT;
     }
 
     _add(createSuggestion(request, function, relevance: relevance));
@@ -634,12 +672,12 @@ class SuggestionBuilder {
     if (request.useNewRelevance) {
       relevance =
           _computeTopLevelRelevance(function, elementType: function.returnType);
+    } else if (function.hasOrInheritsDeprecated) {
+      relevance = DART_RELEVANCE_LOW;
     } else {
-      relevance = function.hasDeprecated
-          ? DART_RELEVANCE_LOW
-          : (function.library == request.libraryElement
-              ? DART_RELEVANCE_LOCAL_FUNCTION
-              : DART_RELEVANCE_DEFAULT);
+      relevance = function.library == request.libraryElement
+          ? DART_RELEVANCE_LOCAL_FUNCTION
+          : DART_RELEVANCE_DEFAULT;
     }
 
     _add(createSuggestion(request, function, kind: kind, relevance: relevance));
@@ -664,12 +702,12 @@ class SuggestionBuilder {
     if (request.useNewRelevance) {
       relevance =
           _computeTopLevelRelevance(variable, elementType: variable.type);
+    } else if (accessor.hasOrInheritsDeprecated) {
+      relevance = DART_RELEVANCE_LOW;
     } else {
-      relevance = accessor.hasDeprecated
-          ? DART_RELEVANCE_LOW
-          : (variable.library == request.libraryElement
-              ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
-              : DART_RELEVANCE_DEFAULT);
+      relevance = variable.library == request.libraryElement
+          ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
+          : DART_RELEVANCE_DEFAULT;
     }
 
     _add(createSuggestion(request, variable, kind: kind, relevance: relevance));
@@ -678,7 +716,11 @@ class SuggestionBuilder {
   /// Add the given [suggestion] if it isn't `null`.
   void _add(protocol.CompletionSuggestion suggestion) {
     if (suggestion != null) {
-      _suggestionMap[suggestion.completion] = suggestion;
+      if (laterReplacesEarlier) {
+        _suggestionMap[suggestion.completion] = suggestion;
+      } else {
+        _suggestionMap.putIfAbsent(suggestion.completion, () => suggestion);
+      }
     }
   }
 
@@ -720,7 +762,7 @@ class SuggestionBuilder {
   /// Compute the old relevance score for a member.
   int _computeOldMemberRelevance(Element member,
       {String containingMethodName}) {
-    if (member.hasDeprecated) {
+    if (member.hasOrInheritsDeprecated) {
       return DART_RELEVANCE_LOW;
     } else if (member.name == containingMethodName) {
       // Boost the relevance of a super expression calling a method of the
@@ -756,6 +798,24 @@ class SuggestionBuilder {
   }
 
   InterfaceType _instantiateClassElement(ClassElement element) {
+    var typeParameters = element.typeParameters;
+    var typeArguments = const <DartType>[];
+    if (typeParameters.isNotEmpty) {
+      var neverType = request.libraryElement.typeProvider.neverType;
+      typeArguments = List.filled(typeParameters.length, neverType);
+    }
+
+    var nullabilitySuffix = request.featureSet.isEnabled(Feature.non_nullable)
+        ? NullabilitySuffix.none
+        : NullabilitySuffix.star;
+
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  FunctionType _instantiateFunctionTypeAlias(FunctionTypeAliasElement element) {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {

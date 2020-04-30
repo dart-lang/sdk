@@ -119,7 +119,7 @@ class FeatureComputer {
 
   /// Return the value of the _has deprecated_ feature for the given [element].
   double hasDeprecatedFeature(Element element) {
-    return element.hasDeprecated ? 0.0 : 1.0;
+    return element.hasOrInheritsDeprecated ? 0.0 : 1.0;
   }
 
   /// Return the inheritance distance between the [subclass] and the
@@ -537,5 +537,21 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       return node.parent.accept(this);
     }
     return null;
+  }
+}
+
+/// Additional behavior for elements related to the computation of features.
+extension ElementExtension on Element {
+  /// Return `true` if this element, or any enclosing element, has been
+  /// annotated with the `@deprecated` annotation.
+  bool get hasOrInheritsDeprecated {
+    var element = this;
+    while (element != null) {
+      if (element.hasDeprecated) {
+        return true;
+      }
+      element = element.enclosingElement;
+    }
+    return false;
   }
 }
