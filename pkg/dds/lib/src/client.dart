@@ -51,13 +51,13 @@ class _DartDevelopmentServiceClient {
     _clientPeer.registerMethod('streamListen', (parameters) async {
       final streamId = parameters['streamId'].asString;
       await dds.streamManager.streamListen(this, streamId);
-      return _success;
+      return _RPCResponses.success;
     });
 
     _clientPeer.registerMethod('streamCancel', (parameters) async {
       final streamId = parameters['streamId'].asString;
       await dds.streamManager.streamCancel(this, streamId);
-      return _success;
+      return _RPCResponses.success;
     });
 
     _clientPeer.registerMethod('registerService', (parameters) async {
@@ -75,8 +75,29 @@ class _DartDevelopmentServiceClient {
         serviceId,
         alias,
       );
-      return _success;
+      return _RPCResponses.success;
     });
+
+    _clientPeer.registerMethod(
+      'getClientName',
+      (parameters) => {'type': 'ClientName', 'name': name},
+    );
+
+    _clientPeer.registerMethod(
+      'setClientName',
+      (parameters) => dds.clientManager.setClientName(this, parameters),
+    );
+
+    _clientPeer.registerMethod(
+      'requirePermissionToResume',
+      (parameters) =>
+          dds.clientManager.requirePermissionToResume(this, parameters),
+    );
+
+    _clientPeer.registerMethod(
+      'resume',
+      (parameters) => dds.isolateManager.resumeIsolate(this, parameters),
+    );
 
     // When invoked within a fallback, the next fallback will start executing.
     // The final fallback forwards the request to the VM service directly.
@@ -96,7 +117,7 @@ class _DartDevelopmentServiceClient {
       // method, forward the request to that client.
       final method = getMethod(parameters.method);
       final namespace = getNamespace(parameters.method);
-      final serviceClient = dds._clients[namespace];
+      final serviceClient = dds.clientManager.clients[namespace];
       if (serviceClient != null && serviceClient.services.containsKey(method)) {
         return await Future.any(
           [
@@ -123,9 +144,20 @@ class _DartDevelopmentServiceClient {
         await _vmServicePeer.sendRequest(parameters.method, parameters.asMap));
   }
 
-  static const _success = <String, dynamic>{
-    'type': 'Success',
-  };
+  static int _idCounter = 0;
+  final int _id = ++_idCounter;
+
+  /// The name given to the client upon its creation.
+  String get defaultClientName => 'client$_id';
+
+  /// The current name associated with this client.
+  String get name => _name;
+
+  // NOTE: this should not be called directly except from:
+  //   - `_ClientManager._clearClientName`
+  //   - `_ClientManager._setClientNameHelper`
+  set name(String n) => _name = n ?? defaultClientName;
+  String _name;
 
   final _DartDevelopmentService dds;
   final Map<String, String> services = {};
