@@ -540,7 +540,7 @@ _findPackagesConfiguration(bool traceLoading, Uri base) {
         return _loadPackagesFile(traceLoading, packagesFile);
       }
       final parentDir = currentDir.parent;
-      if (currentDir == parentDir) break;
+      if (dirUri == parentDir.uri) break;
       currentDir = parentDir;
     }
 

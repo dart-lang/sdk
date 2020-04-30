@@ -94,6 +94,7 @@ isolate/message_test: Skip # Isolate.spawnUri
 isolate/mint_maker_test: Skip # Isolate.spawnUri
 isolate/nested_spawn2_test: Skip # Isolate.spawnUri
 isolate/nested_spawn_test: Skip # Isolate.spawnUri
+isolate/no_package_test: Skip # Isolate.spawnUri
 isolate/raw_port_test: Skip # Isolate.spawnUri
 isolate/request_reply_test: Skip # Isolate.spawnUri
 isolate/spawn_function_custom_class_test: Skip # Isolate.spawnUri
