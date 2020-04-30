@@ -1189,7 +1189,11 @@ class Primitives {
       List keys = JS('JSArray', r'Object.keys(#)', defaultValues);
       if (namedArguments == null) {
         for (String key in keys) {
-          arguments.add(JS('var', '#[#]', defaultValues, key));
+          var defaultValue = JS('var', '#[#]', defaultValues, key);
+          if (isRequired(defaultValue)) {
+            return functionNoSuchMethod(function, arguments, namedArguments);
+          }
+          arguments.add(defaultValue);
         }
       } else {
         int used = 0;
@@ -1198,7 +1202,11 @@ class Primitives {
             used++;
             arguments.add(namedArguments[key]);
           } else {
-            arguments.add(JS('var', r'#[#]', defaultValues, key));
+            var defaultValue = JS('var', '#[#]', defaultValues, key);
+            if (isRequired(defaultValue)) {
+              return functionNoSuchMethod(function, arguments, namedArguments);
+            }
+            arguments.add(defaultValue);
           }
         }
         if (used != namedArguments.length) {
@@ -3550,3 +3558,12 @@ const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
 String testingGetPlatformEnvironmentVariable() {
   return testPlatformEnvironmentVariableValue;
 }
+
+// These are used to indicate that a named parameter is required when lazily
+// retrieving default values via [JsGetName.DEFAULT_VALUES_PROPERTY].
+class _Required {
+  const _Required();
+}
+
+const kRequiredSentinel = const _Required();
+bool isRequired(Object? value) => identical(kRequiredSentinel, value);

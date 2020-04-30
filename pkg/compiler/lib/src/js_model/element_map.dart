@@ -106,6 +106,13 @@ abstract class JsToElementMap {
       ir.Member memberContext, ir.Expression expression,
       {bool requireConstant: true, bool implicitNull: false});
 
+  /// Returns the [ConstantValue] for the sentinel used to indicate that a
+  /// parameter is required.
+  ///
+  /// These should only appear within the defaultValues object attached to
+  /// closures and tearoffs when emitting Function.apply.
+  ConstantValue getRequiredSentinelConstantValue();
+
   /// Return the [ImportEntity] corresponding to [node].
   ImportEntity getImport(ir.LibraryDependency node);
 

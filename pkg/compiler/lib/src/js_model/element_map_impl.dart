@@ -1492,6 +1492,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   @override
+  ConstantValue getRequiredSentinelConstantValue() {
+    return new ConstructedConstantValue(
+        _commonElements.requiredSentinelType, <FieldEntity, ConstantValue>{});
+  }
+
+  @override
   FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
     while (cls != null) {
       cls = elementEnvironment.getSuperClass(cls);
