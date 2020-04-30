@@ -6,46 +6,115 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptions;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:meta/meta.dart';
 
-class MicroAnalysisContextImpl implements AnalysisContext {
+MicroContextObjects createMicroContextObjects({
+  @required FileResolver fileResolver,
+  @required AnalysisOptionsImpl analysisOptions,
+  @required SourceFactory sourceFactory,
+  @required ContextRootImpl root,
+  @required ResourceProvider resourceProvider,
+  @required Workspace workspace,
+}) {
+  var declaredVariables = DeclaredVariables();
+  var synchronousSession = SynchronousSession(
+    analysisOptions,
+    declaredVariables,
+  );
+
+  var analysisContext = AnalysisContextImpl(
+    synchronousSession,
+    sourceFactory,
+  );
+
+  var analysisSession = _MicroAnalysisSessionImpl(
+    declaredVariables,
+    sourceFactory,
+  );
+
+  var analysisContext2 = _MicroAnalysisContextImpl(
+    fileResolver,
+    synchronousSession,
+    root,
+    declaredVariables,
+    sourceFactory,
+    resourceProvider,
+    workspace: workspace,
+  );
+
+  analysisContext2.currentSession = analysisSession;
+  analysisSession.analysisContext = analysisContext2;
+
+  return MicroContextObjects(
+    declaredVariables: declaredVariables,
+    synchronousSession: synchronousSession,
+    analysisSession: analysisSession,
+    analysisContext: analysisContext,
+    analysisContext2: analysisContext2,
+  );
+}
+
+class MicroContextObjects {
+  final DeclaredVariables declaredVariables;
+  final SynchronousSession synchronousSession;
+  final _MicroAnalysisSessionImpl analysisSession;
+  final AnalysisContextImpl analysisContext;
+  final _MicroAnalysisContextImpl analysisContext2;
+
+  MicroContextObjects({
+    @required this.declaredVariables,
+    @required this.synchronousSession,
+    @required this.analysisSession,
+    @required this.analysisContext,
+    @required this.analysisContext2,
+  });
+
+  set analysisOptions(AnalysisOptionsImpl analysisOptions) {
+    synchronousSession.analysisOptions = analysisOptions;
+  }
+}
+
+class _MicroAnalysisContextImpl implements AnalysisContext {
   final FileResolver fileResolver;
-
-  @override
-  final AnalysisOptions analysisOptions;
+  final SynchronousSession synchronousSession;
 
   final ResourceProvider resourceProvider;
 
   @override
   final ContextRoot contextRoot;
 
+  @override
+  _MicroAnalysisSessionImpl currentSession;
+
   final DeclaredVariables declaredVariables;
   final SourceFactory sourceFactory;
 
   Workspace _workspace;
 
-  MicroAnalysisContextImpl(
-      this.fileResolver,
-      this.contextRoot,
-      this.analysisOptions,
-      this.declaredVariables,
-      this.sourceFactory,
-      this.resourceProvider,
-      {Workspace workspace})
-      : this._workspace = workspace;
+  _MicroAnalysisContextImpl(
+    this.fileResolver,
+    this.synchronousSession,
+    this.contextRoot,
+    this.declaredVariables,
+    this.sourceFactory,
+    this.resourceProvider, {
+    Workspace workspace,
+  }) : this._workspace = workspace;
 
   @override
-  AnalysisSession get currentSession {
-    return _AnalysisSessionImpl(this, declaredVariables, sourceFactory);
+  AnalysisOptionsImpl get analysisOptions {
+    return synchronousSession.analysisOptions;
   }
 
   @override
@@ -64,9 +133,9 @@ class MicroAnalysisContextImpl implements AnalysisContext {
   }
 }
 
-class _AnalysisSessionImpl extends AnalysisSessionImpl {
+class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   @override
-  final MicroAnalysisContextImpl analysisContext;
+  _MicroAnalysisContextImpl analysisContext;
 
   @override
   final DeclaredVariables declaredVariables;
@@ -74,8 +143,7 @@ class _AnalysisSessionImpl extends AnalysisSessionImpl {
   @override
   SourceFactory sourceFactory;
 
-  _AnalysisSessionImpl(
-    this.analysisContext,
+  _MicroAnalysisSessionImpl(
     this.declaredVariables,
     this.sourceFactory,
   ) : super(null);

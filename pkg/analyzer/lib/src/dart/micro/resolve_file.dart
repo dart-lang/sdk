@@ -5,15 +5,12 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -21,7 +18,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
@@ -75,9 +71,9 @@ class FileResolver {
   /// This field gets value only during testing.
   FileResolverTestView testView;
 
-  MicroAnalysisContextImpl analysisContext;
-
   FileSystemState fsState;
+
+  MicroContextObjects contextObjects;
 
   _LibraryContext libraryContext;
 
@@ -163,7 +159,7 @@ class FileResolver {
         }
 
         return ErrorsResultImpl(
-          libraryContext.analysisSession,
+          contextObjects.analysisSession,
           path,
           file.uri,
           file.lineInfo,
@@ -178,7 +174,7 @@ class FileResolver {
     FileContext perform() {
       var analysisOptions = _getAnalysisOptions(path);
 
-      _createContext(analysisOptions);
+      _createContext(path, analysisOptions);
 
       var file = fsState.getFileForPath(path);
       return FileContext(analysisOptions, file);
@@ -225,11 +221,11 @@ class FileResolver {
         logger.run('Compute analysis results', () {
           var libraryAnalyzer = LibraryAnalyzer(
             fileContext.analysisOptions,
-            analysisContext.declaredVariables,
+            contextObjects.declaredVariables,
             sourceFactory,
             (_) => true,
             // _isLibraryUri
-            libraryContext.analysisContext,
+            contextObjects.analysisContext,
             libraryContext.elementFactory,
             libraryContext.inheritanceManager,
             file,
@@ -242,7 +238,7 @@ class FileResolver {
         UnitAnalysisResult fileResult = results[file];
 
         return ResolvedUnitResultImpl(
-          analysisContext.currentSession,
+          contextObjects.analysisSession,
           path,
           file.uri,
           file.exists,
@@ -256,26 +252,22 @@ class FileResolver {
     });
   }
 
-  /// Make sure that [analysisContext], [fsState] and [libraryContext] are
-  /// compatible with the given [fileAnalysisOptions].
+  /// Make sure that [fsState], [contextObjects], and [libraryContext] are
+  /// created and configured with the given [fileAnalysisOptions].
   ///
-  /// Specifically we check that `implicit-casts` and `strict-inference`
-  /// flags are the same, so the type systems would be the same.
-  void _createContext(AnalysisOptionsImpl fileAnalysisOptions) {
-    if (analysisContext != null) {
-      var analysisOptions = analysisContext.analysisOptions;
-      var analysisOptionsImpl = analysisOptions as AnalysisOptionsImpl;
-      if (analysisOptionsImpl.implicitCasts !=
-              fileAnalysisOptions.implicitCasts ||
-          analysisOptionsImpl.strictInference !=
-              fileAnalysisOptions.strictInference) {
-        logger.writeln(
-          'Reset the context, different type system affecting options.',
-        );
-        fsState = null; // TODO(scheglov) don't do this
-        analysisContext = null;
-        libraryContext = null;
-      }
+  /// The [fsState] is not affected by [fileAnalysisOptions].
+  ///
+  /// The [fileAnalysisOptions] only affect reported diagnostics, but not
+  /// elements and types. So, we really need to reconfigure only when we are
+  /// going to resolve some files using these new options.
+  ///
+  /// Specifically, "implicit casts" and "strict inference" affect the type
+  /// system. And there are lints that are enabled for one package, but not
+  /// for another.
+  void _createContext(String path, AnalysisOptionsImpl fileAnalysisOptions) {
+    if (contextObjects != null) {
+      contextObjects.analysisOptions = fileAnalysisOptions;
+      return;
     }
 
     var analysisOptions = AnalysisOptionsImpl()
@@ -296,42 +288,33 @@ class FileResolver {
         byteStore,
         sourceFactory,
         analysisOptions,
-        Uint32List(0), // linkedSalt
+        Uint32List(0),
+        // linkedSalt
         featureSetProvider,
         getFileDigest,
         prefetchFiles,
       );
     }
 
-    if (analysisContext == null) {
+    if (contextObjects == null) {
       var rootFolder = resourceProvider.getFolder(workspace.root);
-      var root = ContextRootImpl(
-        resourceProvider,
-        rootFolder,
-      );
-
+      var root = ContextRootImpl(resourceProvider, rootFolder);
       root.included.add(rootFolder);
 
-      analysisContext = MicroAnalysisContextImpl(
-        this,
-        root,
-        analysisOptions,
-        DeclaredVariables(),
-        sourceFactory,
-        resourceProvider,
+      contextObjects = createMicroContextObjects(
+        fileResolver: this,
+        analysisOptions: analysisOptions,
+        sourceFactory: sourceFactory,
+        root: root,
+        resourceProvider: resourceProvider,
         workspace: workspace,
       );
-    }
 
-    if (libraryContext == null) {
       libraryContext = _LibraryContext(
         logger,
         resourceProvider,
         byteStore,
-        analysisContext.currentSession,
-        analysisContext.analysisOptions,
-        sourceFactory,
-        analysisContext.declaredVariables,
+        contextObjects,
       );
     }
   }
@@ -350,7 +333,7 @@ class FileResolver {
 
   /// Return the analysis options.
   ///
-  /// If the [optionsFile] is not `null`, read it.
+  /// If the [path] is not `null`, read it.
   ///
   /// If the [workspace] is a [WorkspaceWithDefaultAnalysisOptions], get the
   /// default options, if the file exists.
@@ -438,9 +421,8 @@ class _LibraryContext {
   final PerformanceLog logger;
   final ResourceProvider resourceProvider;
   final MemoryByteStore byteStore;
-  final AnalysisSession analysisSession;
+  final MicroContextObjects contextObjects;
 
-  AnalysisContextImpl analysisContext;
   LinkedElementFactory elementFactory;
   InheritanceManager3 inheritanceManager;
 
@@ -450,18 +432,9 @@ class _LibraryContext {
     this.logger,
     this.resourceProvider,
     this.byteStore,
-    this.analysisSession,
-    AnalysisOptionsImpl analysisOptions,
-    SourceFactory sourceFactory,
-    DeclaredVariables declaredVariables,
+    this.contextObjects,
   ) {
-    var synchronousSession =
-        SynchronousSession(analysisOptions, declaredVariables);
-    analysisContext = AnalysisContextImpl(
-      synchronousSession,
-      sourceFactory,
-    );
-
+    // TODO(scheglov) remove it?
     _createElementFactory();
   }
 
@@ -560,7 +533,7 @@ class _LibraryContext {
       // linker might have set the type provider. So, clear it, and recreate
       // the element factory - it is empty anyway.
       if (!elementFactory.hasDartCore) {
-        analysisContext.clearTypeProvider();
+        contextObjects.analysisContext.clearTypeProvider();
         _createElementFactory();
       }
       var cBundle = CiderLinkedLibraryCycle.fromBuffer(bytes);
@@ -604,14 +577,15 @@ class _LibraryContext {
 
   void _createElementFactory() {
     elementFactory = LinkedElementFactory(
-      analysisContext,
-      analysisSession,
+      contextObjects.analysisContext,
+      contextObjects.analysisSession,
       Reference.root(),
     );
   }
 
   /// Ensure that type provider is created.
   void _createElementFactoryTypeProvider() {
+    var analysisContext = contextObjects.analysisContext;
     if (analysisContext.typeProviderNonNullableByDefault == null) {
       var dartCore = elementFactory.libraryOfUri('dart:core');
       var dartAsync = elementFactory.libraryOfUri('dart:async');
@@ -670,6 +644,7 @@ class _LibraryContextReset {
         _timer = Timer(resetTimeout, () {
           _timer = null;
           if (fileResolver.libraryContext != null) {
+            fileResolver.contextObjects = null;
             fileResolver.libraryContext = null;
           }
         });

@@ -216,7 +216,7 @@ class AnalysisSessionImpl implements AnalysisSession {
 /// Data structure containing information about the analysis session that is
 /// available synchronously.
 class SynchronousSession {
-  final AnalysisOptionsImpl analysisOptions;
+  AnalysisOptionsImpl _analysisOptions;
 
   final DeclaredVariables declaredVariables;
 
@@ -228,7 +228,23 @@ class SynchronousSession {
 
   InheritanceManager3 _inheritanceManager;
 
-  SynchronousSession(this.analysisOptions, this.declaredVariables);
+  SynchronousSession(this._analysisOptions, this.declaredVariables);
+
+  AnalysisOptionsImpl get analysisOptions => _analysisOptions;
+
+  set analysisOptions(AnalysisOptionsImpl analysisOptions) {
+    this._analysisOptions = analysisOptions;
+
+    _typeSystemLegacy?.updateOptions(
+      implicitCasts: analysisOptions.implicitCasts,
+      strictInference: analysisOptions.strictInference,
+    );
+
+    _typeSystemNonNullableByDefault?.updateOptions(
+      implicitCasts: analysisOptions.implicitCasts,
+      strictInference: analysisOptions.strictInference,
+    );
+  }
 
   InheritanceManager3 get inheritanceManager {
     return _inheritanceManager ??= InheritanceManager3();
@@ -281,16 +297,16 @@ class SynchronousSession {
     _typeProviderNonNullableByDefault = nonNullableByDefault;
 
     _typeSystemLegacy = TypeSystemImpl(
-      implicitCasts: analysisOptions.implicitCasts,
+      implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
-      strictInference: analysisOptions.strictInference,
+      strictInference: _analysisOptions.strictInference,
       typeProvider: _typeProviderLegacy,
     );
 
     _typeSystemNonNullableByDefault = TypeSystemImpl(
-      implicitCasts: analysisOptions.implicitCasts,
+      implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: true,
-      strictInference: analysisOptions.strictInference,
+      strictInference: _analysisOptions.strictInference,
       typeProvider: _typeProviderNonNullableByDefault,
     );
   }
