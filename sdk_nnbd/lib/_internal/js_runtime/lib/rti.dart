@@ -1253,8 +1253,7 @@ String _functionRtiToString(Rti functionType, List<String>? genericContext,
       typeParametersText += typeSep;
       typeParametersText += genericContext[genericContext.length - 1 - i];
       Rti boundRti = _Utils.asRti(_Utils.arrayAt(bounds, i));
-      if (!isTopType(boundRti) &&
-          (!JS_GET_FLAG('LEGACY') || !isObjectType(boundRti))) {
+      if (!isTopType(boundRti)) {
         typeParametersText +=
             ' extends ' + _rtiToString(boundRti, genericContext);
       }

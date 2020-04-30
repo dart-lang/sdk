@@ -1664,8 +1664,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
         needsComma = _comma(needsComma);
         _visit(typeVariable);
         DartType bound = typeVariable.bound;
-        if (!bound._isTop(_useLegacySubtyping) &&
-            (!_useLegacySubtyping || !bound.isObject)) {
+        if (!bound._isTop(_useLegacySubtyping)) {
           _token(' extends ');
           _visit(bound);
         }
