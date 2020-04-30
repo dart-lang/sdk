@@ -255,6 +255,12 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       }
       result.add(">");
     }
+    if (classNode.name == 'Null' &&
+        classNode.enclosingLibrary.importUri.scheme == 'dart' &&
+        classNode.enclosingLibrary.importUri.path == 'core') {
+      // Don't print nullability on `Null`.
+      return;
+    }
     addNullability(node.nullability);
   }
 

@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Null extends core::Object {
+  synthetic constructor •() → self::Null
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

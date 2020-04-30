@@ -6,11 +6,11 @@ library /*isNonNullableByDefault*/;
 // String returnImplicit() /*error*/ {
 //        ^
 //
-// pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: A value of type 'Null?' can't be assigned to a variable of type 'String'.
+// pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
 //   return null; // error
 //          ^
 //
-// pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: A value of type 'Null?' can't be assigned to a variable of type 'String'.
+// pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
 //     return null; // error
 //            ^
 //
@@ -31,11 +31,11 @@ library /*isNonNullableByDefault*/;
 //   String returnImplicit() /* error */ {
 //   ^
 //
-// pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: A value of type 'Null?' can't be assigned to a variable of type 'String'.
+// pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
 //     return null; // error
 //            ^
 //
-// pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: A value of type 'Null?' can't be assigned to a variable of type 'String'.
+// pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
 //       return null; // error
 //              ^
 //
@@ -82,14 +82,14 @@ String returnImplicit() /*error*/ {
 }
 static method returnExplicit() → core::String {
   core::print("foo");
-  return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: A value of type 'Null?' can't be assigned to a variable of type 'String'.
+  return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
   return null; // error
          ^" in null as{TypeError,ForNonNullableByDefault} core::String;
 }
 static method returnMixed(core::bool b) → core::String {
   if(b) {
     core::print("foo");
-    return let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: A value of type 'Null?' can't be assigned to a variable of type 'String'.
+    return let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
     return null; // error
            ^" in null as{TypeError,ForNonNullableByDefault} core::String;
   }
@@ -151,14 +151,14 @@ static method localFunctions() → dynamic {
   }
   function returnExplicit() → core::String {
     core::print("foo");
-    return let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: A value of type 'Null?' can't be assigned to a variable of type 'String'.
+    return let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
     return null; // error
            ^" in null as{TypeError,ForNonNullableByDefault} core::String;
   }
   function returnMixed(core::bool b) → core::String {
     if(b) {
       core::print("foo");
-      return let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: A value of type 'Null?' can't be assigned to a variable of type 'String'.
+      return let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
       return null; // error
              ^" in null as{TypeError,ForNonNullableByDefault} core::String;
     }
