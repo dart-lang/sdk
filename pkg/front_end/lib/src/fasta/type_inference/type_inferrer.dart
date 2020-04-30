@@ -306,8 +306,14 @@ class ClosureContext {
         statement.expression != null) {
       // If we are not inferring a type we can immediately check that the return
       // is valid.
+      DartType wrappedType = type;
+      if (isAsync) {
+        wrappedType = inferrer.typeSchemaEnvironment.futureType(
+            inferrer.typeSchemaEnvironment.unfutureType(type),
+            Nullability.nonNullable);
+      }
       Expression expression = inferrer.ensureAssignable(
-          returnOrYieldContext, type, statement.expression,
+          returnOrYieldContext, wrappedType, statement.expression,
           fileOffset: statement.fileOffset,
           isReturnFromAsync: isAsync,
           isVoidAllowed: true);
@@ -697,11 +703,8 @@ class TypeInferrerImpl implements TypeInferrer {
         typeContext.classNode == coreTypes.doubleClass;
   }
 
-  bool isAssignable(DartType contextType, DartType expressionType,
-      {bool isStrongNullabilityMode}) {
-    isStrongNullabilityMode ??=
-        isNonNullableByDefault && nnbdMode != NnbdMode.Weak;
-    if (isStrongNullabilityMode) {
+  bool isAssignable(DartType contextType, DartType expressionType) {
+    if (isNonNullableByDefault) {
       if (expressionType is DynamicType) return true;
       return typeSchemaEnvironment
           .performNullabilityAwareSubtypeCheck(expressionType, contextType)

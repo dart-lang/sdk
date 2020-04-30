@@ -19,7 +19,7 @@ foo3() async {
   return "String";
   //     ^^^^^^^^
   // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
-  // [cfe] A value of type 'String' can't be assigned to a variable of type 'FutureOr<int>'.
+  // [cfe] A value of type 'Future<String>' can't be assigned to a variable of type 'FutureOr<int>'.
 }
 
 Future<int, String>
