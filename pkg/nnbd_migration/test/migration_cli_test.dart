@@ -136,12 +136,11 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   }
 
   Map<String, String> simpleProject({bool migrated: false, String sourceText}) {
-    // TODO(paulberry): pubspec needs to be updated when migrating.
     return {
       'pubspec.yaml': '''
 name: test
 environment:
-sdk: '>=2.6.0 <3.0.0'
+  sdk: '${migrated ? '>=2.9.0 <2.10.0' : '>=2.6.0 <3.0.0'}'
 ''',
       'lib/test.dart': sourceText ??
           '''
@@ -224,8 +223,9 @@ int${migrated ? '?' : ''} f() => null;
     await cli.run(['--no-web-preview', '--apply-changes', projectDir]);
     // Check that a summary was printed
     expect(logger.stdoutBuffer.toString(), contains('Applying changes'));
-    // And that it refers to test.dart
+    // And that it refers to test.dart and pubspec.yaml
     expect(logger.stdoutBuffer.toString(), contains('test.dart'));
+    expect(logger.stdoutBuffer.toString(), contains('pubspec.yaml'));
     // And that it does not tell the user they can rerun with `--apply-changes`
     expect(logger.stdoutBuffer.toString(), isNot(contains('--apply-changes')));
     // Changes should have been made
@@ -279,8 +279,9 @@ int? f() => null
     await cli.run(['--no-web-preview', projectDir]);
     // Check that a summary was printed
     expect(logger.stdoutBuffer.toString(), contains('Summary'));
-    // And that it refers to test.dart
+    // And that it refers to test.dart and pubspec.yaml
     expect(logger.stdoutBuffer.toString(), contains('test.dart'));
+    expect(logger.stdoutBuffer.toString(), contains('pubspec.yaml'));
     // And that it tells the user they can rerun with `--apply-changes`
     expect(logger.stdoutBuffer.toString(), contains('--apply-changes'));
     // No changes should have been made

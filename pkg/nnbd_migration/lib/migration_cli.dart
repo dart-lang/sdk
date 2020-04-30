@@ -521,7 +521,10 @@ class _DartFixListener implements DartFixListenerInterface {
   @override
   void addSourceFileEdit(
       String description, Location location, SourceFileEdit fileEdit) {
-    throw UnimplementedError('TODO(paulberry)');
+    suggestions.add(_DartFixSuggestion(description, location: location));
+    for (var sourceEdit in fileEdit.edits) {
+      sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
+    }
   }
 
   @override
@@ -603,7 +606,10 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
   }
 
   Future<void> runFirstPhase() async {
-    // TODO(paulberry): do more things from EditDartFix.runAllTasks
+    // Process package
+    await processPackage(context.contextRoot.root);
+
+    // Process each source file.
     await processResources((ResolvedUnitResult result) async {
       List<AnalysisError> errors = result.errors
           .where((error) => error.severity == Severity.error)
