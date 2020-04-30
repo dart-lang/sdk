@@ -126,7 +126,7 @@ class FileResolver {
 
     return _withLibraryContextReset(() {
       return logger.run('Get errors for $path', () {
-        var fileContext = getFileContext(path, withLog: true);
+        var fileContext = getFileContext(path);
         var file = fileContext.file;
 
         var errorsSignatureBuilder = ApiSignature();
@@ -170,34 +170,18 @@ class FileResolver {
     });
   }
 
-  FileContext getFileContext(String path, {bool withLog = false}) {
-    FileContext perform() {
-      var analysisOptions = _getAnalysisOptions(path);
+  FileContext getFileContext(String path) {
+    var analysisOptions = _getAnalysisOptions(path);
+    _createContext(path, analysisOptions);
 
-      _createContext(path, analysisOptions);
-
-      var file = fsState.getFileForPath(path);
-      return FileContext(analysisOptions, file);
-    }
-
-    if (withLog) {
-      return logger.run('Get file $path', () {
-        try {
-          return getFileContext(path);
-        } finally {
-          fsState.logStatistics();
-        }
-      });
-    } else {
-      return perform();
-    }
+    var file = fsState.getFileForPath(path);
+    return FileContext(analysisOptions, file);
   }
 
   String getLibraryLinkedSignature(String path) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    var fileContext = getFileContext(path);
-    var file = fileContext.file;
+    var file = fsState.getFileForPath(path);
     return file.libraryCycle.signatureStr;
   }
 
@@ -206,7 +190,7 @@ class FileResolver {
 
     return _withLibraryContextReset(() {
       return logger.run('Resolve $path', () {
-        var fileContext = getFileContext(path, withLog: true);
+        var fileContext = getFileContext(path);
         var file = fileContext.file;
 
         libraryContext.load2(file);
@@ -223,8 +207,7 @@ class FileResolver {
             fileContext.analysisOptions,
             contextObjects.declaredVariables,
             sourceFactory,
-            (_) => true,
-            // _isLibraryUri
+            (_) => true, // _isLibraryUri
             contextObjects.analysisContext,
             libraryContext.elementFactory,
             libraryContext.inheritanceManager,
