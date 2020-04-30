@@ -373,6 +373,7 @@ def dart_builder(name,
                  dimensions=None,
                  executable=None,
                  execution_timeout=None,
+                 expiration_timeout=None,
                  goma_rbe=False,
                  fyi=False,
                  notifies="dart",
@@ -424,6 +425,7 @@ def dart_builder(name,
                 dimensions=dimensions,
                 executable=executable or dart_recipe(recipe),
                 execution_timeout=execution_timeout,
+                expiration_timeout=expiration_timeout,
                 priority=priority,
                 properties=properties,
                 notifies=[notifies]
@@ -495,6 +497,14 @@ def dart_vm_extra_builder(name, on_cq=False, location_regexp=None, **kwargs):
         on_cq=on_cq,
         location_regexp=location_regexp,
         **kwargs)
+
+
+LOW = 70
+
+
+def dart_vm_low_priority_builder(name, **kwargs):
+    dart_vm_extra_builder(
+        name, priority=LOW, expiration_timeout=time.day, **kwargs)
 
 
 # cfe
@@ -627,23 +637,22 @@ dart_vm_extra_builder(
     properties={"shard_timeout": 5400})  # 1.5h
 
 # vm|misc
-LOW = 70
 dart_vm_extra_builder(
     "vm-kernel-optcounter-threshold-linux-release-ia32", category="vm|misc|o32")
 dart_vm_extra_builder(
     "vm-kernel-optcounter-threshold-linux-release-x64", category="vm|misc|o64")
-dart_vm_extra_builder(
-    "vm-kernel-asan-linux-release-x64", category="vm|misc|a", priority=LOW)
-dart_vm_extra_builder(
-    "vm-kernel-msan-linux-release-x64", category="vm|misc|m", priority=LOW)
-dart_vm_extra_builder(
-    "vm-kernel-tsan-linux-release-x64", category="vm|misc|t", priority=LOW)
-dart_vm_extra_builder(
-    "vm-kernel-precomp-asan-linux-release-x64", category="vm|misc|aot|a", priority=LOW)
-dart_vm_extra_builder(
-    "vm-kernel-precomp-msan-linux-release-x64", category="vm|misc|aot|m", priority=LOW)
-dart_vm_extra_builder(
-    "vm-kernel-precomp-tsan-linux-release-x64", category="vm|misc|aot|t", priority=LOW)
+dart_vm_low_priority_builder(
+    "vm-kernel-asan-linux-release-x64", category="vm|misc|a")
+dart_vm_low_priority_builder(
+    "vm-kernel-msan-linux-release-x64", category="vm|misc|m")
+dart_vm_low_priority_builder(
+    "vm-kernel-tsan-linux-release-x64", category="vm|misc|t")
+dart_vm_low_priority_builder(
+    "vm-kernel-precomp-asan-linux-release-x64", category="vm|misc|aot|a")
+dart_vm_low_priority_builder(
+    "vm-kernel-precomp-msan-linux-release-x64", category="vm|misc|aot|m")
+dart_vm_low_priority_builder(
+    "vm-kernel-precomp-tsan-linux-release-x64", category="vm|misc|aot|t")
 
 # vm|product
 dart_vm_extra_builder(
