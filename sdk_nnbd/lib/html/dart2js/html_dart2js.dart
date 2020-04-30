@@ -40391,7 +40391,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       view = window;
     }
 
-    var eventObj;
+    dynamic eventObj;
 
     // Currently this works on everything but Safari. Safari throws an
     // "Attempting to change access mechanism for an unconfigurable property"

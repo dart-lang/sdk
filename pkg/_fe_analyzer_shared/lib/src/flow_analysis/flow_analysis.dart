@@ -1482,9 +1482,8 @@ class FlowModel<Variable, Type> {
     VariableModel<Variable, Type> infoForVar = variableInfo[variable];
     if (infoForVar == null) return this;
 
-    Type declaredType = typeOperations.variableType(variable);
     VariableModel<Variable, Type> newInfoForVar =
-        infoForVar.write(declaredType, writtenType, typeOperations);
+        infoForVar.write(variable, writtenType, typeOperations);
     if (identical(newInfoForVar, infoForVar)) return this;
 
     return _updateVariableInfo(variable, newInfoForVar);
@@ -1654,6 +1653,11 @@ abstract class TypeOperations<Variable, Type> {
   /// Returns the "remainder" of [from] when [what] has been removed from
   /// consideration by an instance check.
   Type factor(Type from, Type what);
+
+  /// Return `true` if the [variable] is a local variable (not a formal
+  /// parameter), and it has no declared type (no explicit type, and not
+  /// initializer).
+  bool isLocalVariableWithoutDeclaredType(Variable variable);
 
   /// Returns `true` if [type1] and [type2] are the same type.
   bool isSameType(Type type1, Type type2);
@@ -1836,11 +1840,16 @@ class VariableModel<Variable, Type> {
 
   /// Returns a new [VariableModel] reflecting the fact that the variable was
   /// just written to.
-  VariableModel<Variable, Type> write(Type declaredType, Type writtenType,
+  VariableModel<Variable, Type> write(Variable variable, Type writtenType,
       TypeOperations<Variable, Type> typeOperations) {
     if (writeCaptured) {
       return new VariableModel<Variable, Type>(
           promotedTypes, tested, true, false, writeCaptured);
+    }
+
+    if (_isPromotableViaInitialization(typeOperations, variable)) {
+      return new VariableModel<Variable, Type>(
+          [writtenType], tested, true, false, writeCaptured);
     }
 
     List<Type> newPromotedTypes;
@@ -1863,15 +1872,19 @@ class VariableModel<Variable, Type> {
         }
       }
     }
+
+    Type declaredType = typeOperations.variableType(variable);
     newPromotedTypes = _tryPromoteToTypeOfInterest(
         typeOperations, declaredType, newPromotedTypes, writtenType);
     if (identical(promotedTypes, newPromotedTypes) && assigned) return this;
+
     List<Type> newTested;
     if (newPromotedTypes == null && promotedTypes != null) {
       newTested = const [];
     } else {
       newTested = tested;
     }
+
     return new VariableModel<Variable, Type>(
         newPromotedTypes, newTested, true, false, writeCaptured);
   }
@@ -1881,6 +1894,26 @@ class VariableModel<Variable, Type> {
   VariableModel<Variable, Type> writeCapture() {
     return new VariableModel<Variable, Type>(
         null, const [], assigned, false, true);
+  }
+
+  /// We say that a variable `x` is promotable via initialization given
+  /// variable model `VM` if `x` is a local variable (not a formal parameter)
+  /// and:
+  /// * VM = VariableModel(declared, promoted, tested,
+  ///                      assigned, unassigned, captured)
+  /// * and `captured` is false
+  /// * and `promoted` is empty
+  /// * and `x` is declared with no explicit type and no initializer
+  /// * and `assigned` is false and `unassigned` is true
+  bool _isPromotableViaInitialization<Variable>(
+    TypeOperations<Variable, Type> typeOperations,
+    Variable variable,
+  ) {
+    return !writeCaptured &&
+        !assigned &&
+        unassigned &&
+        promotedTypes == null &&
+        typeOperations.isLocalVariableWithoutDeclaredType(variable);
   }
 
   /// Determines whether a variable with the given [promotedTypes] should be

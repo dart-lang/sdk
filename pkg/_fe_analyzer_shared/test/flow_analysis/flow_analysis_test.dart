@@ -2266,6 +2266,21 @@ main() {
           });
         });
       });
+
+      test('promote via initialization', () {
+        var h = _Harness();
+        var x = _Var('x', null, isLocalVariableWithoutDeclaredType: true);
+
+        var s1 = FlowModel<_Var, _Type>(true).declare(x, false);
+        expect(s1.variableInfo, {
+          x: _matchVariableModel(chain: null),
+        });
+
+        var s2 = s1.write(x, _Type('int'), h);
+        expect(s2.variableInfo, {
+          x: _matchVariableModel(chain: ['int']),
+        });
+      });
     });
 
     group('declare', () {
@@ -2832,9 +2847,14 @@ main() {
     const emptyMap = const <_Var, VariableModel<_Var, _Type>>{};
 
     VariableModel<_Var, _Type> model(List<_Type> promotionChain,
-            [List<_Type> typesOfInterest]) =>
-        VariableModel<_Var, _Type>(promotionChain,
-            typesOfInterest ?? promotionChain ?? [], false, true, false);
+            {List<_Type> typesOfInterest, bool assigned = false}) =>
+        VariableModel<_Var, _Type>(
+          promotionChain,
+          typesOfInterest ?? promotionChain ?? [],
+          assigned,
+          !assigned,
+          false,
+        );
 
     group('without input reuse', () {
       test('promoted with unpromoted', () {
@@ -2963,18 +2983,18 @@ main() {
 
       test('assigned', () {
         var h = _Harness();
-        var intQModel = model([intQType]);
-        var writtenModel = intQModel.write(intQType, _Type('Object?'), h);
-        var p1 = {x: writtenModel, y: writtenModel, z: intQModel, w: intQModel};
-        var p2 = {x: writtenModel, y: intQModel, z: writtenModel, w: intQModel};
+        var unassigned = model(null, assigned: false);
+        var assigned = model(null, assigned: true);
+        var p1 = {x: assigned, y: assigned, z: unassigned, w: unassigned};
+        var p2 = {x: assigned, y: unassigned, z: assigned, w: unassigned};
         var joined = FlowModel.joinVariableInfo(h, p1, p2, emptyMap);
         expect(joined, {
-          x: same(writtenModel),
+          x: same(assigned),
           y: _matchVariableModel(
               chain: null, assigned: false, unassigned: false),
           z: _matchVariableModel(
               chain: null, assigned: false, unassigned: false),
-          w: same(intQModel)
+          w: same(unassigned)
         });
       });
 
@@ -3322,6 +3342,11 @@ class _Harness implements TypeOperations<_Var, _Type> {
     if_(isNotType(variableRead(variable), type), ifTrue);
   }
 
+  @override
+  bool isLocalVariableWithoutDeclaredType(_Var variable) {
+    return variable.isLocalVariableWithoutDeclaredType;
+  }
+
   /// Creates a [LazyExpression] representing an `is!` check, checking whether
   /// [subExpression] has the given [type].
   LazyExpression isNotType(LazyExpression subExpression, String type) {
@@ -3475,10 +3500,14 @@ class _Type {
 
 class _Var {
   final String name;
-
   final _Type type;
+  final bool isLocalVariableWithoutDeclaredType;
 
-  _Var(this.name, this.type);
+  _Var(
+    this.name,
+    this.type, {
+    this.isLocalVariableWithoutDeclaredType = false,
+  });
 
   @override
   String toString() => '$type $name';

@@ -55,7 +55,6 @@
   },
   "org-dartlang-sdk:///sdk_nnbd/lib/_internal/js_runtime/lib/native_typed_data.dart": {
     "Dynamic invocation of '>'.": 1,
-    "Dynamic invocation of '|'.": 3,
     "Dynamic invocation of '>='.": 1
   },
   "org-dartlang-sdk:///sdk_nnbd/lib/_internal/js_runtime/lib/async_patch.dart": {
@@ -82,7 +81,6 @@
     "Dynamic invocation of 'remove'.": 2,
     "Dynamic update to 'dart.dom.html::_innerHtml'.": 1,
     "Dynamic access of 'firstChild'.": 2,
-    "Dynamic invocation of 'append'.": 1,
     "Dynamic access of 'tagName'.": 2,
     "Dynamic invocation of 'call'.": 2,
     "Dynamic invocation of 'dart.dom.html::_initKeyboardEvent'.": 1,
@@ -99,11 +97,6 @@
   },
   "org-dartlang-sdk:///sdk_nnbd/lib/html/html_common/filtered_element_list.dart": {
     "Dynamic invocation of 'remove'.": 1
-  },
-  "org-dartlang-sdk:///sdk_nnbd/lib/indexed_db/dart2js/indexed_db_dart2js.dart": {
-    "Dynamic access of 'onUpgradeNeeded'.": 1,
-    "Dynamic invocation of 'listen'.": 2,
-    "Dynamic access of 'onBlocked'.": 1
   },
   "org-dartlang-sdk:///sdk_nnbd/lib/io/directory_impl.dart": {
     "Dynamic invocation of '[]'.": 10

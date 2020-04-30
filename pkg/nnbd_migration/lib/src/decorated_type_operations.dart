@@ -26,6 +26,13 @@ class DecoratedTypeOperations
   }
 
   @override
+  bool isLocalVariableWithoutDeclaredType(PromotableElement variable) {
+    return variable is LocalVariableElement &&
+        variable.hasImplicitType &&
+        variable.initializer == null;
+  }
+
+  @override
   bool isSameType(DecoratedType type1, DecoratedType type2) {
     return type1 == type2;
   }
