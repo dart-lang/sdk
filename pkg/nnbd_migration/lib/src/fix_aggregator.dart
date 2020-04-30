@@ -194,6 +194,17 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   }
 }
 
+/// Reasons that a variable declaration is to be made late.
+enum LateAdditionReason {
+  /// It was inferred that the associated variable declaration is to be made
+  /// late through the late-inferring algorithm.
+  inference,
+
+  /// It was inferred that the associated variable declaration is to be made
+  /// late, because it is a test variable which is assigned during setup.
+  testVariableInference,
+}
+
 /// Base class representing a kind of change that [FixAggregator] might make to
 /// a particular AST node.
 abstract class NodeChange<N extends AstNode> {
@@ -697,17 +708,6 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
       }
     }
   }
-}
-
-/// Reasons that a variable declaration is to be made late.
-enum LateAdditionReason {
-  /// It was inferred that the associated variable declaration is to be made
-  /// late through the late-inferring algorithm.
-  inference,
-
-  /// It was inferred that the associated variable declaration is to be made
-  /// late, because it is a test variable which is assigned during setup.
-  testVariableInference,
 }
 
 /// Implementation of [NodeChange] specialized for operating on
