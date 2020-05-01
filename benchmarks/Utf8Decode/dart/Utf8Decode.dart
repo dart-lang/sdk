@@ -21,9 +21,7 @@ class Utf8Decode extends BenchmarkBase {
   final String text;
   final int size;
   final bool allowMalformed;
-  final Utf8Decoder decoder;
-  Uint8List data;
-  List<int> chunks;
+  List<Uint8List> chunks;
   int totalInputSize;
   int totalOutputSize;
 
@@ -37,27 +35,27 @@ class Utf8Decode extends BenchmarkBase {
   }
 
   Utf8Decode(this.language, this.text, this.size, this.allowMalformed)
-      : decoder = Utf8Decoder(allowMalformed: allowMalformed),
-        super(_makeName(language, size, allowMalformed));
+      : super(_makeName(language, size, allowMalformed));
 
   @override
   void setup() {
-    data = utf8.encode(text) as Uint8List;
+    Uint8List data = utf8.encode(text) as Uint8List;
     if (data.length != 10000) {
       throw "Expected input data of exactly 10000 bytes.";
     }
     if (size < data.length) {
       // Split into chunks.
-      chunks = <int>[];
-      chunks.add(0);
+      chunks = <Uint8List>[];
+      int startPos = 0;
       for (int pos = size; pos < data.length; pos += size) {
-        int chunkPos = pos;
-        while ((data[chunkPos] & 0xc0) == 0x80) {
-          chunkPos--;
+        int endPos = pos;
+        while ((data[endPos] & 0xc0) == 0x80) {
+          endPos--;
         }
-        chunks.add(chunkPos);
+        chunks.add(Uint8List.fromList(data.sublist(startPos, endPos)));
+        startPos = endPos;
       }
-      chunks.add(data.length);
+      chunks.add(Uint8List.fromList(data.sublist(startPos, data.length)));
       totalInputSize = data.length;
       totalOutputSize = text.length;
     } else if (size > data.length) {
@@ -66,13 +64,12 @@ class Utf8Decode extends BenchmarkBase {
       for (int i = 0; i < size; i++) {
         expanded[i] = data[i % data.length];
       }
-      chunks = <int>[0, size];
+      chunks = <Uint8List>[expanded];
       totalInputSize = size;
       totalOutputSize = text.length * size ~/ data.length;
-      data = expanded;
     } else {
       // Use data as is.
-      chunks = <int>[0, data.length];
+      chunks = <Uint8List>[data];
       totalInputSize = data.length;
       totalOutputSize = text.length;
     }
@@ -81,9 +78,8 @@ class Utf8Decode extends BenchmarkBase {
   @override
   void run() {
     int lengthSum = 0;
-    final int numChunks = chunks.length - 1;
-    for (int i = 0; i < numChunks; i++) {
-      final String s = decoder.convert(data, chunks[i], chunks[i + 1]);
+    for (int i = 0; i < chunks.length; i++) {
+      final String s = utf8.decode(chunks[i], allowMalformed: allowMalformed);
       lengthSum += s.length;
     }
     if (lengthSum != totalOutputSize) {
