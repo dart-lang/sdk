@@ -879,6 +879,7 @@ class DartTypeTagger extends DartTypeVisitor<String>
   String visitBottomType(BottomType _) => "bottom";
   String visitFunctionType(FunctionType _) => "->";
   String visitTypeParameterType(TypeParameterType _) => "par";
+  String visitInterfaceType(InterfaceType _) => "interface";
 }
 
 const TextSerializer<InvalidType> invalidTypeSerializer =
@@ -968,6 +969,21 @@ Tuple2<TypeParameter, DartType> unwrapTypeParameterType(
 
 TypeParameterType wrapTypeParameterType(Tuple2<TypeParameter, DartType> tuple) {
   return new TypeParameterType(tuple.first, Nullability.legacy, tuple.second);
+}
+
+TextSerializer<InterfaceType> interfaceTypeSerializer = new Wrapped(
+    unwrapInterfaceType,
+    wrapInterfaceType,
+    Tuple2Serializer(const CanonicalNameSerializer(),
+        new ListSerializer(dartTypeSerializer)));
+
+Tuple2<CanonicalName, List<DartType>> unwrapInterfaceType(InterfaceType node) {
+  return new Tuple2(node.className.canonicalName, node.typeArguments);
+}
+
+InterfaceType wrapInterfaceType(Tuple2<CanonicalName, List<DartType>> tuple) {
+  return new InterfaceType.byReference(
+      tuple.first.reference, Nullability.legacy, tuple.second);
 }
 
 Case<DartType> dartTypeSerializer =
@@ -1329,6 +1345,7 @@ void initializeSerializers() {
     "bottom": bottomTypeSerializer,
     "->": functionTypeSerializer,
     "par": typeParameterTypeSerializer,
+    "interface": interfaceTypeSerializer,
   });
   statementSerializer.registerTags({
     "expr": expressionStatementSerializer,
