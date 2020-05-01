@@ -83,13 +83,24 @@ class _StreamManager {
 
   /// Start listening for `streamNotify` events from the VM service and forward
   /// them to the clients which have subscribed to the stream.
-  void listen() => dds._vmServiceClient.registerMethod(
-        'streamNotify',
-        (parameters) {
-          final streamId = parameters['streamId'].asString;
-          streamNotify(streamId, parameters.value);
-        },
-      );
+  Future<void> listen() async {
+    // The _IsolateManager requires information from both the Debug and
+    // Isolate streams, so they must always be subscribed to by DDS.
+    for (final stream in ddsCoreStreams) {
+      await streamListen(null, stream);
+    }
+    dds._vmServiceClient.registerMethod(
+      'streamNotify',
+      (parameters) {
+        final streamId = parameters['streamId'].asString;
+        // Forward events from the streams _IsolateManager subscribes to.
+        if (isolateManagerStreams.contains(streamId)) {
+          dds.isolateManager.handleIsolateEvent(parameters);
+        }
+        streamNotify(streamId, parameters.value);
+      },
+    );
+  }
 
   /// Subscribes `client` to a stream.
   ///
@@ -112,7 +123,9 @@ class _StreamManager {
     if (streamListeners[stream].contains(client)) {
       throw kStreamAlreadySubscribedException;
     }
-    streamListeners[stream].add(client);
+    if (client != null) {
+      streamListeners[stream].add(client);
+    }
   }
 
   /// Unsubscribes `client` from a stream.
@@ -129,7 +142,8 @@ class _StreamManager {
       throw kStreamNotSubscribedException;
     }
     listeners.remove(client);
-    if (listeners.isEmpty) {
+    // Don't cancel streams DDS needs to function.
+    if (listeners.isEmpty && !ddsCoreStreams.contains(stream)) {
       streamListeners.remove(stream);
       final result = await dds._vmServiceClient.sendRequest('streamCancel', {
         'streamId': stream,
@@ -164,6 +178,21 @@ class _StreamManager {
   static final kStreamNotSubscribedException = _RpcErrorCodes.buildRpcException(
     _RpcErrorCodes.kStreamNotSubscribed,
   );
+
+  static const kDebugStream = 'Debug';
+  static const kIsolateStream = 'Isolate';
+
+  // Never cancel the Debug or Isolate stream as `_IsolateManager` requires
+  // them for isolate state notifications.
+  static const isolateManagerStreams = <String>{
+    kDebugStream,
+    kIsolateStream,
+  };
+
+  // The set of streams that DDS requires to function.
+  static final ddsCoreStreams = <String>{
+    ...isolateManagerStreams,
+  };
 
   final _DartDevelopmentService dds;
   final streamListeners = <String, List<_DartDevelopmentServiceClient>>{};
