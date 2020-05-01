@@ -1,0 +1,2633 @@
+Problems reported:
+
+parser/error_recovery/reserved_words_class_fields:2:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int assert = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:2:3: Expected ';' after this.
+  int assert = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:2:7: Expected a class member, but got 'assert'.
+  int assert = 42;
+      ^^^^^^
+
+parser/error_recovery/reserved_words_class_fields:2:14: Operator declarations must be preceded by the keyword 'operator'.
+  int assert = 42;
+             ^
+
+parser/error_recovery/reserved_words_class_fields:2:14: The string '=' isn't a user-definable operator.
+  int assert = 42;
+             ^
+
+parser/error_recovery/reserved_words_class_fields:2:14: A method declaration needs an explicit list of parameters.
+  int assert = 42;
+             ^
+
+parser/error_recovery/reserved_words_class_fields:2:16: Expected a function body, but got '42'.
+  int assert = 42;
+               ^^
+
+parser/error_recovery/reserved_words_class_fields:2:16: Expected a class member, but got '42'.
+  int assert = 42;
+               ^^
+
+parser/error_recovery/reserved_words_class_fields:2:18: Expected a class member, but got ';'.
+  int assert = 42;
+                 ^
+
+parser/error_recovery/reserved_words_class_fields:3:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int break = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:3:3: Expected ';' after this.
+  int break = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:3:7: Expected a class member, but got 'break'.
+  int break = 42;
+      ^^^^^
+
+parser/error_recovery/reserved_words_class_fields:3:13: Operator declarations must be preceded by the keyword 'operator'.
+  int break = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:3:13: The string '=' isn't a user-definable operator.
+  int break = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:3:13: A method declaration needs an explicit list of parameters.
+  int break = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:3:15: Expected a function body, but got '42'.
+  int break = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:3:15: Expected a class member, but got '42'.
+  int break = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:3:17: Expected a class member, but got ';'.
+  int break = 42;
+                ^
+
+parser/error_recovery/reserved_words_class_fields:4:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int case = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:4:3: Expected ';' after this.
+  int case = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:4:7: Expected a class member, but got 'case'.
+  int case = 42;
+      ^^^^
+
+parser/error_recovery/reserved_words_class_fields:4:12: Operator declarations must be preceded by the keyword 'operator'.
+  int case = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:4:12: The string '=' isn't a user-definable operator.
+  int case = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:4:12: A method declaration needs an explicit list of parameters.
+  int case = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:4:14: Expected a function body, but got '42'.
+  int case = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:4:14: Expected a class member, but got '42'.
+  int case = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:4:16: Expected a class member, but got ';'.
+  int case = 42;
+               ^
+
+parser/error_recovery/reserved_words_class_fields:5:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int catch = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:5:3: Expected ';' after this.
+  int catch = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:5:7: Expected a class member, but got 'catch'.
+  int catch = 42;
+      ^^^^^
+
+parser/error_recovery/reserved_words_class_fields:5:13: Operator declarations must be preceded by the keyword 'operator'.
+  int catch = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:5:13: The string '=' isn't a user-definable operator.
+  int catch = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:5:13: A method declaration needs an explicit list of parameters.
+  int catch = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:5:15: Expected a function body, but got '42'.
+  int catch = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:5:15: Expected a class member, but got '42'.
+  int catch = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:5:17: Expected a class member, but got ';'.
+  int catch = 42;
+                ^
+
+parser/error_recovery/reserved_words_class_fields:6:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int class = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:6:3: Expected ';' after this.
+  int class = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:6:7: Classes can't be declared inside other classes.
+  int class = 42;
+      ^^^^^
+
+parser/error_recovery/reserved_words_class_fields:6:13: Operator declarations must be preceded by the keyword 'operator'.
+  int class = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:6:13: The string '=' isn't a user-definable operator.
+  int class = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:6:13: A method declaration needs an explicit list of parameters.
+  int class = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:6:15: Expected a function body, but got '42'.
+  int class = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:6:15: Expected a class member, but got '42'.
+  int class = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:6:17: Expected a class member, but got ';'.
+  int class = 42;
+                ^
+
+parser/error_recovery/reserved_words_class_fields:7:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int const = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:7:3: Expected ';' after this.
+  int const = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:7:13: Operator declarations must be preceded by the keyword 'operator'.
+  int const = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:7:13: The string '=' isn't a user-definable operator.
+  int const = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:7:13: A method declaration needs an explicit list of parameters.
+  int const = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:7:15: Expected a function body, but got '42'.
+  int const = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:7:7: Getters, setters and methods can't be declared to be 'const'.
+  int const = 42;
+      ^^^^^
+
+parser/error_recovery/reserved_words_class_fields:7:15: Expected a class member, but got '42'.
+  int const = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:7:17: Expected a class member, but got ';'.
+  int const = 42;
+                ^
+
+parser/error_recovery/reserved_words_class_fields:8:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int continue = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:8:3: Expected ';' after this.
+  int continue = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:8:7: Expected a class member, but got 'continue'.
+  int continue = 42;
+      ^^^^^^^^
+
+parser/error_recovery/reserved_words_class_fields:8:16: Operator declarations must be preceded by the keyword 'operator'.
+  int continue = 42;
+               ^
+
+parser/error_recovery/reserved_words_class_fields:8:16: The string '=' isn't a user-definable operator.
+  int continue = 42;
+               ^
+
+parser/error_recovery/reserved_words_class_fields:8:16: A method declaration needs an explicit list of parameters.
+  int continue = 42;
+               ^
+
+parser/error_recovery/reserved_words_class_fields:8:18: Expected a function body, but got '42'.
+  int continue = 42;
+                 ^^
+
+parser/error_recovery/reserved_words_class_fields:8:18: Expected a class member, but got '42'.
+  int continue = 42;
+                 ^^
+
+parser/error_recovery/reserved_words_class_fields:8:20: Expected a class member, but got ';'.
+  int continue = 42;
+                   ^
+
+parser/error_recovery/reserved_words_class_fields:9:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int default = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:9:3: Expected ';' after this.
+  int default = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:9:7: Expected a class member, but got 'default'.
+  int default = 42;
+      ^^^^^^^
+
+parser/error_recovery/reserved_words_class_fields:9:15: Operator declarations must be preceded by the keyword 'operator'.
+  int default = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:9:15: The string '=' isn't a user-definable operator.
+  int default = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:9:15: A method declaration needs an explicit list of parameters.
+  int default = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:9:17: Expected a function body, but got '42'.
+  int default = 42;
+                ^^
+
+parser/error_recovery/reserved_words_class_fields:9:17: Expected a class member, but got '42'.
+  int default = 42;
+                ^^
+
+parser/error_recovery/reserved_words_class_fields:9:19: Expected a class member, but got ';'.
+  int default = 42;
+                  ^
+
+parser/error_recovery/reserved_words_class_fields:10:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int do = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:10:3: Expected ';' after this.
+  int do = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:10:7: Expected a class member, but got 'do'.
+  int do = 42;
+      ^^
+
+parser/error_recovery/reserved_words_class_fields:10:10: Operator declarations must be preceded by the keyword 'operator'.
+  int do = 42;
+         ^
+
+parser/error_recovery/reserved_words_class_fields:10:10: The string '=' isn't a user-definable operator.
+  int do = 42;
+         ^
+
+parser/error_recovery/reserved_words_class_fields:10:10: A method declaration needs an explicit list of parameters.
+  int do = 42;
+         ^
+
+parser/error_recovery/reserved_words_class_fields:10:12: Expected a function body, but got '42'.
+  int do = 42;
+           ^^
+
+parser/error_recovery/reserved_words_class_fields:10:12: Expected a class member, but got '42'.
+  int do = 42;
+           ^^
+
+parser/error_recovery/reserved_words_class_fields:10:14: Expected a class member, but got ';'.
+  int do = 42;
+             ^
+
+parser/error_recovery/reserved_words_class_fields:11:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int else = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:11:3: Expected ';' after this.
+  int else = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:11:7: Expected a class member, but got 'else'.
+  int else = 42;
+      ^^^^
+
+parser/error_recovery/reserved_words_class_fields:11:12: Operator declarations must be preceded by the keyword 'operator'.
+  int else = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:11:12: The string '=' isn't a user-definable operator.
+  int else = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:11:12: A method declaration needs an explicit list of parameters.
+  int else = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:11:14: Expected a function body, but got '42'.
+  int else = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:11:14: Expected a class member, but got '42'.
+  int else = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:11:16: Expected a class member, but got ';'.
+  int else = 42;
+               ^
+
+parser/error_recovery/reserved_words_class_fields:12:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int enum = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:12:3: Expected ';' after this.
+  int enum = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:12:7: Enums can't be declared inside classes.
+  int enum = 42;
+      ^^^^
+
+parser/error_recovery/reserved_words_class_fields:12:12: Operator declarations must be preceded by the keyword 'operator'.
+  int enum = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:12:12: The string '=' isn't a user-definable operator.
+  int enum = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:12:12: A method declaration needs an explicit list of parameters.
+  int enum = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:12:14: Expected a function body, but got '42'.
+  int enum = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:12:14: Expected a class member, but got '42'.
+  int enum = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:12:16: Expected a class member, but got ';'.
+  int enum = 42;
+               ^
+
+parser/error_recovery/reserved_words_class_fields:13:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int extends = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:13:3: Expected ';' after this.
+  int extends = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:13:7: Expected a class member, but got 'extends'.
+  int extends = 42;
+      ^^^^^^^
+
+parser/error_recovery/reserved_words_class_fields:13:15: Operator declarations must be preceded by the keyword 'operator'.
+  int extends = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:13:15: The string '=' isn't a user-definable operator.
+  int extends = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:13:15: A method declaration needs an explicit list of parameters.
+  int extends = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:13:17: Expected a function body, but got '42'.
+  int extends = 42;
+                ^^
+
+parser/error_recovery/reserved_words_class_fields:13:17: Expected a class member, but got '42'.
+  int extends = 42;
+                ^^
+
+parser/error_recovery/reserved_words_class_fields:13:19: Expected a class member, but got ';'.
+  int extends = 42;
+                  ^
+
+parser/error_recovery/reserved_words_class_fields:14:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int false = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:14:3: Expected ';' after this.
+  int false = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:14:7: Expected a class member, but got 'false'.
+  int false = 42;
+      ^^^^^
+
+parser/error_recovery/reserved_words_class_fields:14:13: Operator declarations must be preceded by the keyword 'operator'.
+  int false = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:14:13: The string '=' isn't a user-definable operator.
+  int false = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:14:13: A method declaration needs an explicit list of parameters.
+  int false = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:14:15: Expected a function body, but got '42'.
+  int false = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:14:15: Expected a class member, but got '42'.
+  int false = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:14:17: Expected a class member, but got ';'.
+  int false = 42;
+                ^
+
+parser/error_recovery/reserved_words_class_fields:15:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int final = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:15:3: Expected ';' after this.
+  int final = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:15:13: Operator declarations must be preceded by the keyword 'operator'.
+  int final = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:15:7: Can't have modifier 'final' here.
+  int final = 42;
+      ^^^^^
+
+parser/error_recovery/reserved_words_class_fields:15:13: The string '=' isn't a user-definable operator.
+  int final = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:15:13: A method declaration needs an explicit list of parameters.
+  int final = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:15:15: Expected a function body, but got '42'.
+  int final = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:15:15: Expected a class member, but got '42'.
+  int final = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:15:17: Expected a class member, but got ';'.
+  int final = 42;
+                ^
+
+parser/error_recovery/reserved_words_class_fields:16:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int finally = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:16:3: Expected ';' after this.
+  int finally = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:16:7: Expected a class member, but got 'finally'.
+  int finally = 42;
+      ^^^^^^^
+
+parser/error_recovery/reserved_words_class_fields:16:15: Operator declarations must be preceded by the keyword 'operator'.
+  int finally = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:16:15: The string '=' isn't a user-definable operator.
+  int finally = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:16:15: A method declaration needs an explicit list of parameters.
+  int finally = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:16:17: Expected a function body, but got '42'.
+  int finally = 42;
+                ^^
+
+parser/error_recovery/reserved_words_class_fields:16:17: Expected a class member, but got '42'.
+  int finally = 42;
+                ^^
+
+parser/error_recovery/reserved_words_class_fields:16:19: Expected a class member, but got ';'.
+  int finally = 42;
+                  ^
+
+parser/error_recovery/reserved_words_class_fields:17:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int for = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:17:3: Expected ';' after this.
+  int for = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:17:7: Expected a class member, but got 'for'.
+  int for = 42;
+      ^^^
+
+parser/error_recovery/reserved_words_class_fields:17:11: Operator declarations must be preceded by the keyword 'operator'.
+  int for = 42;
+          ^
+
+parser/error_recovery/reserved_words_class_fields:17:11: The string '=' isn't a user-definable operator.
+  int for = 42;
+          ^
+
+parser/error_recovery/reserved_words_class_fields:17:11: A method declaration needs an explicit list of parameters.
+  int for = 42;
+          ^
+
+parser/error_recovery/reserved_words_class_fields:17:13: Expected a function body, but got '42'.
+  int for = 42;
+            ^^
+
+parser/error_recovery/reserved_words_class_fields:17:13: Expected a class member, but got '42'.
+  int for = 42;
+            ^^
+
+parser/error_recovery/reserved_words_class_fields:17:15: Expected a class member, but got ';'.
+  int for = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:18:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int if = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:18:3: Expected ';' after this.
+  int if = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:18:7: Expected a class member, but got 'if'.
+  int if = 42;
+      ^^
+
+parser/error_recovery/reserved_words_class_fields:18:10: Operator declarations must be preceded by the keyword 'operator'.
+  int if = 42;
+         ^
+
+parser/error_recovery/reserved_words_class_fields:18:10: The string '=' isn't a user-definable operator.
+  int if = 42;
+         ^
+
+parser/error_recovery/reserved_words_class_fields:18:10: A method declaration needs an explicit list of parameters.
+  int if = 42;
+         ^
+
+parser/error_recovery/reserved_words_class_fields:18:12: Expected a function body, but got '42'.
+  int if = 42;
+           ^^
+
+parser/error_recovery/reserved_words_class_fields:18:12: Expected a class member, but got '42'.
+  int if = 42;
+           ^^
+
+parser/error_recovery/reserved_words_class_fields:18:14: Expected a class member, but got ';'.
+  int if = 42;
+             ^
+
+parser/error_recovery/reserved_words_class_fields:19:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int in = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:19:3: Expected ';' after this.
+  int in = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:19:7: Expected a class member, but got 'in'.
+  int in = 42;
+      ^^
+
+parser/error_recovery/reserved_words_class_fields:19:10: Operator declarations must be preceded by the keyword 'operator'.
+  int in = 42;
+         ^
+
+parser/error_recovery/reserved_words_class_fields:19:10: The string '=' isn't a user-definable operator.
+  int in = 42;
+         ^
+
+parser/error_recovery/reserved_words_class_fields:19:10: A method declaration needs an explicit list of parameters.
+  int in = 42;
+         ^
+
+parser/error_recovery/reserved_words_class_fields:19:12: Expected a function body, but got '42'.
+  int in = 42;
+           ^^
+
+parser/error_recovery/reserved_words_class_fields:19:12: Expected a class member, but got '42'.
+  int in = 42;
+           ^^
+
+parser/error_recovery/reserved_words_class_fields:19:14: Expected a class member, but got ';'.
+  int in = 42;
+             ^
+
+parser/error_recovery/reserved_words_class_fields:20:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int is = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:20:3: Expected ';' after this.
+  int is = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:20:7: Expected a class member, but got 'is'.
+  int is = 42;
+      ^^
+
+parser/error_recovery/reserved_words_class_fields:20:10: Operator declarations must be preceded by the keyword 'operator'.
+  int is = 42;
+         ^
+
+parser/error_recovery/reserved_words_class_fields:20:10: The string '=' isn't a user-definable operator.
+  int is = 42;
+         ^
+
+parser/error_recovery/reserved_words_class_fields:20:10: A method declaration needs an explicit list of parameters.
+  int is = 42;
+         ^
+
+parser/error_recovery/reserved_words_class_fields:20:12: Expected a function body, but got '42'.
+  int is = 42;
+           ^^
+
+parser/error_recovery/reserved_words_class_fields:20:12: Expected a class member, but got '42'.
+  int is = 42;
+           ^^
+
+parser/error_recovery/reserved_words_class_fields:20:14: Expected a class member, but got ';'.
+  int is = 42;
+             ^
+
+parser/error_recovery/reserved_words_class_fields:21:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int new = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:21:3: Expected ';' after this.
+  int new = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:21:7: Expected a class member, but got 'new'.
+  int new = 42;
+      ^^^
+
+parser/error_recovery/reserved_words_class_fields:21:11: Operator declarations must be preceded by the keyword 'operator'.
+  int new = 42;
+          ^
+
+parser/error_recovery/reserved_words_class_fields:21:11: The string '=' isn't a user-definable operator.
+  int new = 42;
+          ^
+
+parser/error_recovery/reserved_words_class_fields:21:11: A method declaration needs an explicit list of parameters.
+  int new = 42;
+          ^
+
+parser/error_recovery/reserved_words_class_fields:21:13: Expected a function body, but got '42'.
+  int new = 42;
+            ^^
+
+parser/error_recovery/reserved_words_class_fields:21:13: Expected a class member, but got '42'.
+  int new = 42;
+            ^^
+
+parser/error_recovery/reserved_words_class_fields:21:15: Expected a class member, but got ';'.
+  int new = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:22:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int null = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:22:3: Expected ';' after this.
+  int null = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:22:7: Expected a class member, but got 'null'.
+  int null = 42;
+      ^^^^
+
+parser/error_recovery/reserved_words_class_fields:22:12: Operator declarations must be preceded by the keyword 'operator'.
+  int null = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:22:12: The string '=' isn't a user-definable operator.
+  int null = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:22:12: A method declaration needs an explicit list of parameters.
+  int null = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:22:14: Expected a function body, but got '42'.
+  int null = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:22:14: Expected a class member, but got '42'.
+  int null = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:22:16: Expected a class member, but got ';'.
+  int null = 42;
+               ^
+
+parser/error_recovery/reserved_words_class_fields:23:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int rethrow = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:23:3: Expected ';' after this.
+  int rethrow = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:23:7: Expected a class member, but got 'rethrow'.
+  int rethrow = 42;
+      ^^^^^^^
+
+parser/error_recovery/reserved_words_class_fields:23:15: Operator declarations must be preceded by the keyword 'operator'.
+  int rethrow = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:23:15: The string '=' isn't a user-definable operator.
+  int rethrow = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:23:15: A method declaration needs an explicit list of parameters.
+  int rethrow = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:23:17: Expected a function body, but got '42'.
+  int rethrow = 42;
+                ^^
+
+parser/error_recovery/reserved_words_class_fields:23:17: Expected a class member, but got '42'.
+  int rethrow = 42;
+                ^^
+
+parser/error_recovery/reserved_words_class_fields:23:19: Expected a class member, but got ';'.
+  int rethrow = 42;
+                  ^
+
+parser/error_recovery/reserved_words_class_fields:24:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int return = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:24:3: Expected ';' after this.
+  int return = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:24:7: Expected a class member, but got 'return'.
+  int return = 42;
+      ^^^^^^
+
+parser/error_recovery/reserved_words_class_fields:24:14: Operator declarations must be preceded by the keyword 'operator'.
+  int return = 42;
+             ^
+
+parser/error_recovery/reserved_words_class_fields:24:14: The string '=' isn't a user-definable operator.
+  int return = 42;
+             ^
+
+parser/error_recovery/reserved_words_class_fields:24:14: A method declaration needs an explicit list of parameters.
+  int return = 42;
+             ^
+
+parser/error_recovery/reserved_words_class_fields:24:16: Expected a function body, but got '42'.
+  int return = 42;
+               ^^
+
+parser/error_recovery/reserved_words_class_fields:24:16: Expected a class member, but got '42'.
+  int return = 42;
+               ^^
+
+parser/error_recovery/reserved_words_class_fields:24:18: Expected a class member, but got ';'.
+  int return = 42;
+                 ^
+
+parser/error_recovery/reserved_words_class_fields:25:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int super = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:25:3: Expected ';' after this.
+  int super = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:25:7: Expected a class member, but got 'super'.
+  int super = 42;
+      ^^^^^
+
+parser/error_recovery/reserved_words_class_fields:25:13: Operator declarations must be preceded by the keyword 'operator'.
+  int super = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:25:13: The string '=' isn't a user-definable operator.
+  int super = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:25:13: A method declaration needs an explicit list of parameters.
+  int super = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:25:15: Expected a function body, but got '42'.
+  int super = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:25:15: Expected a class member, but got '42'.
+  int super = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:25:17: Expected a class member, but got ';'.
+  int super = 42;
+                ^
+
+parser/error_recovery/reserved_words_class_fields:26:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int switch = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:26:3: Expected ';' after this.
+  int switch = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:26:7: Expected a class member, but got 'switch'.
+  int switch = 42;
+      ^^^^^^
+
+parser/error_recovery/reserved_words_class_fields:26:14: Operator declarations must be preceded by the keyword 'operator'.
+  int switch = 42;
+             ^
+
+parser/error_recovery/reserved_words_class_fields:26:14: The string '=' isn't a user-definable operator.
+  int switch = 42;
+             ^
+
+parser/error_recovery/reserved_words_class_fields:26:14: A method declaration needs an explicit list of parameters.
+  int switch = 42;
+             ^
+
+parser/error_recovery/reserved_words_class_fields:26:16: Expected a function body, but got '42'.
+  int switch = 42;
+               ^^
+
+parser/error_recovery/reserved_words_class_fields:26:16: Expected a class member, but got '42'.
+  int switch = 42;
+               ^^
+
+parser/error_recovery/reserved_words_class_fields:26:18: Expected a class member, but got ';'.
+  int switch = 42;
+                 ^
+
+parser/error_recovery/reserved_words_class_fields:27:7: Expected an identifier, but got 'this'.
+  int this = 42;
+      ^^^^
+
+parser/error_recovery/reserved_words_class_fields:28:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int throw = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:28:3: Expected ';' after this.
+  int throw = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:28:7: Expected a class member, but got 'throw'.
+  int throw = 42;
+      ^^^^^
+
+parser/error_recovery/reserved_words_class_fields:28:13: Operator declarations must be preceded by the keyword 'operator'.
+  int throw = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:28:13: The string '=' isn't a user-definable operator.
+  int throw = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:28:13: A method declaration needs an explicit list of parameters.
+  int throw = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:28:15: Expected a function body, but got '42'.
+  int throw = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:28:15: Expected a class member, but got '42'.
+  int throw = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:28:17: Expected a class member, but got ';'.
+  int throw = 42;
+                ^
+
+parser/error_recovery/reserved_words_class_fields:29:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int true = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:29:3: Expected ';' after this.
+  int true = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:29:7: Expected a class member, but got 'true'.
+  int true = 42;
+      ^^^^
+
+parser/error_recovery/reserved_words_class_fields:29:12: Operator declarations must be preceded by the keyword 'operator'.
+  int true = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:29:12: The string '=' isn't a user-definable operator.
+  int true = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:29:12: A method declaration needs an explicit list of parameters.
+  int true = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:29:14: Expected a function body, but got '42'.
+  int true = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:29:14: Expected a class member, but got '42'.
+  int true = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:29:16: Expected a class member, but got ';'.
+  int true = 42;
+               ^
+
+parser/error_recovery/reserved_words_class_fields:30:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int try = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:30:3: Expected ';' after this.
+  int try = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:30:7: Expected a class member, but got 'try'.
+  int try = 42;
+      ^^^
+
+parser/error_recovery/reserved_words_class_fields:30:11: Operator declarations must be preceded by the keyword 'operator'.
+  int try = 42;
+          ^
+
+parser/error_recovery/reserved_words_class_fields:30:11: The string '=' isn't a user-definable operator.
+  int try = 42;
+          ^
+
+parser/error_recovery/reserved_words_class_fields:30:11: A method declaration needs an explicit list of parameters.
+  int try = 42;
+          ^
+
+parser/error_recovery/reserved_words_class_fields:30:13: Expected a function body, but got '42'.
+  int try = 42;
+            ^^
+
+parser/error_recovery/reserved_words_class_fields:30:13: Expected a class member, but got '42'.
+  int try = 42;
+            ^^
+
+parser/error_recovery/reserved_words_class_fields:30:15: Expected a class member, but got ';'.
+  int try = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:31:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int var = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:31:3: Expected ';' after this.
+  int var = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:31:11: Operator declarations must be preceded by the keyword 'operator'.
+  int var = 42;
+          ^
+
+parser/error_recovery/reserved_words_class_fields:31:7: The return type can't be 'var'.
+  int var = 42;
+      ^^^
+
+parser/error_recovery/reserved_words_class_fields:31:11: The string '=' isn't a user-definable operator.
+  int var = 42;
+          ^
+
+parser/error_recovery/reserved_words_class_fields:31:11: A method declaration needs an explicit list of parameters.
+  int var = 42;
+          ^
+
+parser/error_recovery/reserved_words_class_fields:31:13: Expected a function body, but got '42'.
+  int var = 42;
+            ^^
+
+parser/error_recovery/reserved_words_class_fields:31:13: Expected a class member, but got '42'.
+  int var = 42;
+            ^^
+
+parser/error_recovery/reserved_words_class_fields:31:15: Expected a class member, but got ';'.
+  int var = 42;
+              ^
+
+parser/error_recovery/reserved_words_class_fields:32:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int void = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:32:3: Expected ';' after this.
+  int void = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:32:12: Operator declarations must be preceded by the keyword 'operator'.
+  int void = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:32:12: The string '=' isn't a user-definable operator.
+  int void = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:32:12: A method declaration needs an explicit list of parameters.
+  int void = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:32:14: Expected a function body, but got '42'.
+  int void = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:32:14: Expected a class member, but got '42'.
+  int void = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:32:16: Expected a class member, but got ';'.
+  int void = 42;
+               ^
+
+parser/error_recovery/reserved_words_class_fields:33:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int while = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:33:3: Expected ';' after this.
+  int while = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:33:7: Expected a class member, but got 'while'.
+  int while = 42;
+      ^^^^^
+
+parser/error_recovery/reserved_words_class_fields:33:13: Operator declarations must be preceded by the keyword 'operator'.
+  int while = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:33:13: The string '=' isn't a user-definable operator.
+  int while = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:33:13: A method declaration needs an explicit list of parameters.
+  int while = 42;
+            ^
+
+parser/error_recovery/reserved_words_class_fields:33:15: Expected a function body, but got '42'.
+  int while = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:33:15: Expected a class member, but got '42'.
+  int while = 42;
+              ^^
+
+parser/error_recovery/reserved_words_class_fields:33:17: Expected a class member, but got ';'.
+  int while = 42;
+                ^
+
+parser/error_recovery/reserved_words_class_fields:34:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  int with = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:34:3: Expected ';' after this.
+  int with = 42;
+  ^^^
+
+parser/error_recovery/reserved_words_class_fields:34:7: Expected a class member, but got 'with'.
+  int with = 42;
+      ^^^^
+
+parser/error_recovery/reserved_words_class_fields:34:12: Operator declarations must be preceded by the keyword 'operator'.
+  int with = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:34:12: The string '=' isn't a user-definable operator.
+  int with = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:34:12: A method declaration needs an explicit list of parameters.
+  int with = 42;
+           ^
+
+parser/error_recovery/reserved_words_class_fields:34:14: Expected a function body, but got '42'.
+  int with = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:34:14: Expected a class member, but got '42'.
+  int with = 42;
+             ^^
+
+parser/error_recovery/reserved_words_class_fields:34:16: Expected a class member, but got ';'.
+  int with = 42;
+               ^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(WrapperClass, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, WrapperClass)
+      handleNoType(WrapperClass)
+      handleClassExtends(null)
+      handleClassNoWithClause()
+      handleClassOrMixinImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinBody(DeclarationKind.Class, {)
+        beginMetadataStar(int)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(MissingConstFinalVarOrType, int, int)
+          handleNoType({)
+          handleIdentifier(int, fieldDeclaration)
+          handleNoFieldInitializer(assert)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+        endClassFields(null, null, null, null, 1, int, ;)
+      endMember()
+      beginMetadataStar(assert)
+      endMetadataStar(0)
+      beginMember()
+        handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'assert'., null, {token: assert}], assert, assert)
+        handleInvalidMember(assert)
+      endMember()
+      beginMetadataStar(=)
+      endMetadataStar(0)
+      beginMember()
+        handleRecoverableError(MissingOperatorKeyword, =, =)
+        beginMethod(null, null, null, null, null, operator)
+          handleNoType(assert)
+          handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+          handleInvalidOperatorName(operator, =)
+          handleNoTypeVariables(42)
+          handleRecoverableError(MissingMethodParameters, =, =)
+          beginFormalParameters((, MemberKind.NonStaticMethod)
+          endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+          handleNoInitializers()
+          handleAsyncModifier(null, null)
+          handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+          handleInvalidFunctionBody({)
+        endClassMethod(null, operator, (, null, })
+      endMember()
+      beginMetadataStar(42)
+      endMetadataStar(0)
+      beginMember()
+        handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+        handleInvalidMember(42)
+      endMember()
+      beginMetadataStar(;)
+      endMetadataStar(0)
+      beginMember()
+        handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+        handleInvalidMember(;)
+      endMember()
+      beginMetadataStar(int)
+      endMetadataStar(0)
+      beginMember()
+        handleRecoverableError(MissingConstFinalVarOrType, int, int)
+        handleNoType(;)
+        handleIdentifier(int, fieldDeclaration)
+        handleNoFieldInitializer(break)
+        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+      endClassFields(null, null, null, null, 1, int, ;)
+    endMember()
+    beginMetadataStar(break)
+    endMetadataStar(0)
+    beginMember()
+      handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'break'., null, {token: break}], break, break)
+      handleInvalidMember(break)
+    endMember()
+    beginMetadataStar(=)
+    endMetadataStar(0)
+    beginMember()
+      handleRecoverableError(MissingOperatorKeyword, =, =)
+      beginMethod(null, null, null, null, null, operator)
+        handleNoType(break)
+        handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+        handleInvalidOperatorName(operator, =)
+        handleNoTypeVariables(42)
+        handleRecoverableError(MissingMethodParameters, =, =)
+        beginFormalParameters((, MemberKind.NonStaticMethod)
+        endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+        handleNoInitializers()
+        handleAsyncModifier(null, null)
+        handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+        handleInvalidFunctionBody({)
+      endClassMethod(null, operator, (, null, })
+    endMember()
+    beginMetadataStar(42)
+    endMetadataStar(0)
+    beginMember()
+      handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+      handleInvalidMember(42)
+    endMember()
+    beginMetadataStar(;)
+    endMetadataStar(0)
+    beginMember()
+      handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+      handleInvalidMember(;)
+    endMember()
+    beginMetadataStar(int)
+    endMetadataStar(0)
+    beginMember()
+      handleRecoverableError(MissingConstFinalVarOrType, int, int)
+      handleNoType(;)
+      handleIdentifier(int, fieldDeclaration)
+      handleNoFieldInitializer(case)
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+    endClassFields(null, null, null, null, 1, int, ;)
+  endMember()
+  beginMetadataStar(case)
+  endMetadataStar(0)
+  beginMember()
+    handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'case'., null, {token: case}], case, case)
+    handleInvalidMember(case)
+  endMember()
+  beginMetadataStar(=)
+  endMetadataStar(0)
+  beginMember()
+    handleRecoverableError(MissingOperatorKeyword, =, =)
+    beginMethod(null, null, null, null, null, operator)
+      handleNoType(case)
+      handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+      handleInvalidOperatorName(operator, =)
+      handleNoTypeVariables(42)
+      handleRecoverableError(MissingMethodParameters, =, =)
+      beginFormalParameters((, MemberKind.NonStaticMethod)
+      endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+      handleNoInitializers()
+      handleAsyncModifier(null, null)
+      handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+      handleInvalidFunctionBody({)
+    endClassMethod(null, operator, (, null, })
+  endMember()
+  beginMetadataStar(42)
+  endMetadataStar(0)
+  beginMember()
+    handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+    handleInvalidMember(42)
+  endMember()
+  beginMetadataStar(;)
+  endMetadataStar(0)
+  beginMember()
+    handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+    handleInvalidMember(;)
+  endMember()
+  beginMetadataStar(int)
+  endMetadataStar(0)
+  beginMember()
+    handleRecoverableError(MissingConstFinalVarOrType, int, int)
+    handleNoType(;)
+    handleIdentifier(int, fieldDeclaration)
+    handleNoFieldInitializer(catch)
+    handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+  endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(catch)
+endMetadataStar(0)
+beginMember()
+  handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'catch'., null, {token: catch}], catch, catch)
+  handleInvalidMember(catch)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+  handleRecoverableError(MissingOperatorKeyword, =, =)
+  beginMethod(null, null, null, null, null, operator)
+    handleNoType(catch)
+    handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+    handleInvalidOperatorName(operator, =)
+    handleNoTypeVariables(42)
+    handleRecoverableError(MissingMethodParameters, =, =)
+    beginFormalParameters((, MemberKind.NonStaticMethod)
+    endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+    handleNoInitializers()
+    handleAsyncModifier(null, null)
+    handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+    handleInvalidFunctionBody({)
+  endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+  handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+  handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+  handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+  handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+  handleRecoverableError(MissingConstFinalVarOrType, int, int)
+  handleNoType(;)
+  handleIdentifier(int, fieldDeclaration)
+  handleNoFieldInitializer(class)
+  handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(class)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(ClassInClass, class, class)
+handleInvalidMember(class)
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+  handleRecoverableError(MissingOperatorKeyword, =, =)
+  beginMethod(null, null, null, null, null, operator)
+    handleNoType(class)
+    handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+    handleInvalidOperatorName(operator, =)
+    handleNoTypeVariables(42)
+    handleRecoverableError(MissingMethodParameters, =, =)
+    beginFormalParameters((, MemberKind.NonStaticMethod)
+    endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+    handleNoInitializers()
+    handleAsyncModifier(null, null)
+    handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+    handleInvalidFunctionBody({)
+  endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+  handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+  handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+  handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+  handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+  handleRecoverableError(MissingConstFinalVarOrType, int, int)
+  handleNoType(;)
+  handleIdentifier(int, fieldDeclaration)
+  handleNoFieldInitializer(const)
+  handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(const)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, const, null, operator)
+  handleNoType(const)
+  handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+  handleInvalidOperatorName(operator, =)
+  handleNoTypeVariables(42)
+  handleRecoverableError(MissingMethodParameters, =, =)
+  beginFormalParameters((, MemberKind.NonStaticMethod)
+  endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+  handleNoInitializers()
+  handleAsyncModifier(null, null)
+  handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+  handleInvalidFunctionBody({)
+  handleRecoverableError(ConstMethod, const, const)
+endClassMethod(null, const, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(continue)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(continue)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'continue'., null, {token: continue}], continue, continue)
+handleInvalidMember(continue)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(continue)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(default)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(default)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'default'., null, {token: default}], default, default)
+handleInvalidMember(default)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(default)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(do)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(do)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'do'., null, {token: do}], do, do)
+handleInvalidMember(do)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(do)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(else)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(else)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'else'., null, {token: else}], else, else)
+handleInvalidMember(else)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(else)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(enum)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(enum)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(EnumInClass, enum, enum)
+handleInvalidMember(enum)
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(enum)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(extends)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(extends)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'extends'., null, {token: extends}], extends, extends)
+handleInvalidMember(extends)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(extends)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(false)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(false)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'false'., null, {token: false}], false, false)
+handleInvalidMember(false)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(false)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(final)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(final)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+handleRecoverableError(Message[ExtraneousModifier, Can't have modifier 'final' here., Try removing 'final'., {token: final}], final, final)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(final)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, final, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(finally)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(finally)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'finally'., null, {token: finally}], finally, finally)
+handleInvalidMember(finally)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(finally)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(for)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(for)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'for'., null, {token: for}], for, for)
+handleInvalidMember(for)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(for)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(if)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(if)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'if'., null, {token: if}], if, if)
+handleInvalidMember(if)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(if)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(in)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(in)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'in'., null, {token: in}], in, in)
+handleInvalidMember(in)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(in)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(is)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(is)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'is'., null, {token: is}], is, is)
+handleInvalidMember(is)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(is)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(new)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(new)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'new'., null, {token: new}], new, new)
+handleInvalidMember(new)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(new)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(null)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(null)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'null'., null, {token: null}], null, null)
+handleInvalidMember(null)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(null)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(rethrow)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(rethrow)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'rethrow'., null, {token: rethrow}], rethrow, rethrow)
+handleInvalidMember(rethrow)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(rethrow)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(return)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(return)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'return'., null, {token: return}], return, return)
+handleInvalidMember(return)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(return)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(super)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(super)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'super'., null, {token: super}], super, super)
+handleInvalidMember(super)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(super)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(switch)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(switch)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'switch'., null, {token: switch}], switch, switch)
+handleInvalidMember(switch)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(switch)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleIdentifier(int, typeReference)
+handleNoTypeArguments(this)
+handleType(int, null)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'this'., null, {token: this}], this, this)
+handleIdentifier(this, fieldDeclaration)
+beginFieldInitializer(=)
+handleLiteralInt(42)
+endFieldInitializer(=, ;)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(throw)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(throw)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'throw'., null, {token: throw}], throw, throw)
+handleInvalidMember(throw)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(throw)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(true)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(true)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'true'., null, {token: true}], true, true)
+handleInvalidMember(true)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(true)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(try)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(try)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'try'., null, {token: try}], try, try)
+handleInvalidMember(try)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(try)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(var)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(var)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+handleRecoverableError(VarReturnType, var, var)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(var)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, var, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(void)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(void)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleVoidKeyword(void)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, void, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(while)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(while)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'while'., null, {token: while}], while, while)
+handleInvalidMember(while)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(while)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+beginMetadataStar(int)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, int, int)
+handleNoType(;)
+handleIdentifier(int, fieldDeclaration)
+handleNoFieldInitializer(with)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], int, int)
+endClassFields(null, null, null, null, 1, int, ;)
+endMember()
+beginMetadataStar(with)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got 'with'., null, {token: with}], with, with)
+handleInvalidMember(with)
+endMember()
+beginMetadataStar(=)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingOperatorKeyword, =, =)
+beginMethod(null, null, null, null, null, operator)
+handleNoType(with)
+handleRecoverableError(Message[InvalidOperator, The string '=' isn't a user-definable operator., null, {token: =}], =, =)
+handleInvalidOperatorName(operator, =)
+handleNoTypeVariables(42)
+handleRecoverableError(MissingMethodParameters, =, =)
+beginFormalParameters((, MemberKind.NonStaticMethod)
+endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+handleNoInitializers()
+handleAsyncModifier(null, null)
+handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidFunctionBody({)
+endClassMethod(null, operator, (, null, })
+endMember()
+beginMetadataStar(42)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got '42'., null, {token: 42}], 42, 42)
+handleInvalidMember(42)
+endMember()
+beginMetadataStar(;)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(Message[ExpectedClassMember, Expected a class member, but got ';'., null, {token: ;}], ;, ;)
+handleInvalidMember(;)
+endMember()
+endClassOrMixinBody(DeclarationKind.Class, 157, {, })
+endClassDeclaration(class, })
+endTopLevelDeclaration()
+endCompilationUnit(1, )

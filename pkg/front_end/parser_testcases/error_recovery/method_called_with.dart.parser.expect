@@ -1,0 +1,23 @@
+NOTICE: Stream was rewritten by parser!
+
+class C {
+int ;with() => 7;
+int ;with operator= (){}7;
+int get ;with ()=> 7;
+void set ;with(int x) {}
+}
+
+int ;with() => 7;
+int ;with = 7;
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+int[StringToken] ;[SyntheticToken]with[KeywordToken][SyntheticStringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 7[StringToken];[SimpleToken]
+int[StringToken] ;[SyntheticToken]with[KeywordToken] operator[SyntheticKeywordToken]=[SimpleToken] ([SyntheticBeginToken])[SyntheticToken]{[SyntheticBeginToken]}[SyntheticToken]7[StringToken];[SimpleToken]
+int[StringToken] get[KeywordToken] ;[SyntheticToken]with[KeywordToken] [SyntheticStringToken]([SyntheticBeginToken])[SyntheticToken]=>[SimpleToken] 7[StringToken];[SimpleToken]
+void[KeywordToken] set[KeywordToken] ;[SyntheticToken]with[KeywordToken][SyntheticStringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] ;[SyntheticToken]with[KeywordToken]([BeginToken])[SimpleToken] =>[SimpleToken] 7[StringToken];[SimpleToken]
+int[StringToken] ;[SyntheticToken]with[KeywordToken] =[SimpleToken] 7[StringToken];[SimpleToken]
+[SimpleToken]
