@@ -1106,6 +1106,19 @@ _f(int/*?*/ x) {
         changes: {assignment: isCompoundAssignmentNullableSource});
   }
 
+  Future<void> test_compound_assignment_potentially_nullable_source() async {
+    await analyze('''
+class C<T extends num/*?*/> {
+  _f(T/*!*/ x) {
+    x += 1;
+  }
+}
+''');
+    var assignment = findNode.assignment('+=');
+    visitSubexpression(assignment, 'T',
+        changes: {assignment: isCompoundAssignmentNullableSource});
+  }
+
   Future<void> test_conditionalExpression_dead_else_remove() async {
     await analyze('_f(int x, int/*?*/ y) => x != null ? x + 1 : y + 1.0;');
     var expression = findNode.conditionalExpression('x != null');
