@@ -52,13 +52,6 @@ convert/utf85_test: Skip # Pass, Slow Issue 12644.
 [ $arch != x64 || $compiler == dartkb || $runtime != vm ]
 isolate/int32_length_overflow_test: SkipSlow
 
-[ $compiler != none || $runtime != vm ]
-isolate/package_config_test: SkipByDesign # Uses Isolate.packageConfig
-isolate/package_resolve_test: SkipByDesign # Uses Isolate.resolvePackageUri
-isolate/package_root_test: SkipByDesign # Uses Isolate.packageRoot
-isolate/scenarios/*: SkipByDesign # Use automatic package resolution, spawnFunction and .dart URIs.
-isolate/spawn_uri_fail_test: SkipByDesign # Uses dart:io.
-
 [ $mode == product || $runtime != vm ]
 isolate/checked_test: Skip # Unsupported.
 
@@ -111,6 +104,13 @@ isolate/spawn_uri_vm_test: Skip # Isolate.spawnUri
 isolate/stacktrace_message_test: Skip # Isolate.spawnUri
 isolate/static_function_test: Skip # Isolate.spawnUri
 isolate/unresolved_ports_test: Skip # Isolate.spawnUri
+
+[ $runtime != vm || $compiler != dartk && $compiler != none ]
+isolate/package_config_test: SkipByDesign # Uses Isolate.packageConfig
+isolate/package_resolve_test: SkipByDesign # Uses Isolate.resolvePackageUri
+isolate/package_root_test: SkipByDesign # Uses Isolate.packageRoot
+isolate/scenarios/*: SkipByDesign # Use automatic package resolution, spawnFunction and .dart URIs.
+isolate/spawn_uri_fail_test: SkipByDesign # Uses dart:io.
 
 [ $hot_reload || $hot_reload_rollback ]
 convert/chunked_conversion_utf88_test: SkipSlow

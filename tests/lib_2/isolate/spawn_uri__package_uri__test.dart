@@ -18,26 +18,30 @@ main() async {
     print('TEST runWithPackagesArg = $runWithPackagesArg ');
     for (final spawnWithPackageConfig in const [true, false]) {
       print('TEST spawnWithPackageConfig = $spawnWithPackageConfig ');
-      await runDotPackagesTest(runWithPackagesArg, spawnWithPackageConfig);
+      final bool checkForResolveUri =
+          runWithPackagesArg || !spawnWithPackageConfig;
+      await runDotPackagesTest(
+          runWithPackagesArg, spawnWithPackageConfig, checkForResolveUri);
       for (final optionalPackageUri in const [true, false]) {
         print('TEST optionalPackageUri = $optionalPackageUri');
-        await runPackageConfigTest(
-            runWithPackagesArg, spawnWithPackageConfig, optionalPackageUri);
+        await runPackageConfigTest(runWithPackagesArg, spawnWithPackageConfig,
+            optionalPackageUri, checkForResolveUri);
       }
     }
   }
 }
 
-Future runPackageConfigTest(
-    bool withPackagesArg, bool spawnWithArg, bool optionalPackageUri) async {
+Future runPackageConfigTest(bool withPackagesArg, bool spawnWithArg,
+    bool optionalPackageUri, bool checkForResolveUri) async {
   await withApplicationDirAndDotDartToolPackageConfig(
       (String tempDir, String packageJson, String mainFile) async {
     final args = [if (withPackagesArg) '--packages=$packageJson', mainFile];
     await run(executable, args);
-  }, spawnWithArg, optionalPackageUri);
+  }, spawnWithArg, optionalPackageUri, checkForResolveUri);
 }
 
-Future runDotPackagesTest(bool withPackagesArg, bool spawnWithArg) async {
+Future runDotPackagesTest(
+    bool withPackagesArg, bool spawnWithArg, bool checkForResolveUri) async {
   await withApplicationDirAndDotPackages(
       (String tempDir, String dotPackagesFile, String mainFile) async {
     final args = [
@@ -45,12 +49,13 @@ Future runDotPackagesTest(bool withPackagesArg, bool spawnWithArg) async {
       mainFile,
     ];
     await run(executable, args);
-  }, spawnWithArg);
+  }, spawnWithArg, checkForResolveUri);
 }
 
 Future withApplicationDirAndDotPackages(
     Future fn(String tempDir, String packagesDir, String mainFile),
-    bool spawnWithArg) async {
+    bool spawnWithArg,
+    bool checkForResolveUri) async {
   await withTempDir((String tempDir) async {
     // Setup ".packages"
     final dotPackagesFile =
@@ -61,8 +66,10 @@ Future withApplicationDirAndDotPackages(
     final childIsolateFile = path.join(tempDir, 'child_isolate.dart');
     final importUri = 'package:foo/child_isolate.dart';
     await File(childIsolateFile).writeAsString(buildChildIsolate());
-    await File(mainFile).writeAsString(
-        buildMainIsolate(importUri, spawnWithArg ? dotPackagesFile : null));
+    await File(mainFile).writeAsString(buildMainIsolate(
+        importUri,
+        spawnWithArg ? dotPackagesFile : null,
+        checkForResolveUri ? childIsolateFile : null));
 
     await fn(tempDir, dotPackagesFile, mainFile);
   });
@@ -71,7 +78,8 @@ Future withApplicationDirAndDotPackages(
 Future withApplicationDirAndDotDartToolPackageConfig(
     Future fn(String tempDir, String packageJson, String mainFile),
     bool spawnWithArg,
-    bool optionalPackageUri) async {
+    bool optionalPackageUri,
+    bool checkForResolveUri) async {
   await withTempDir((String tempDir) async {
     // Setup ".dart_tool/package_config.json"
     final dotDartToolDir = path.join(tempDir, '.dart_tool');
@@ -87,7 +95,9 @@ Future withApplicationDirAndDotDartToolPackageConfig(
     final importUri = 'package:foo/child_isolate.dart';
     await File(childIsolateFile).writeAsString(buildChildIsolate());
     await File(mainFile).writeAsString(buildMainIsolate(
-        importUri, spawnWithArg ? packageConfigJsonFile : null));
+        importUri,
+        spawnWithArg ? packageConfigJsonFile : null,
+        checkForResolveUri ? childIsolateFile : null));
 
     await fn(tempDir, packageConfigJsonFile, mainFile);
   });
@@ -138,15 +148,22 @@ String buildChildIsolate() => '''
   }
 ''';
 
-String buildMainIsolate(String spawnUri, String packageConfigUri) => '''
+String buildMainIsolate(
+        String spawnUri, String packageConfigUri, String childIsolatePath) =>
+    '''
   import 'dart:isolate';
   import 'dart:io' as io;
 
   main(List<String> args) async {
     io.exitCode = 1;
 
-    final rp = ReceivePort();
     final uri = Uri.parse('$spawnUri');
+    final resolvedUri = await Isolate.resolvePackageUri(uri);
+    if ("""\${resolvedUri?.toFilePath()}""" != r"""$childIsolatePath""") {
+      throw 'Could not Isolate.resolvePackageUri(uri).';
+    }
+
+    final rp = ReceivePort();
     final isolateArgs = <String>['a'];
     await Isolate.spawnUri(
         uri,
