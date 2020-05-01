@@ -5435,6 +5435,18 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
+  if (I->is_service_isolate() || I->is_kernel_isolate()) {
+    // For now the service isolate and kernel isolate will be running in
+    // weak mode and we assert for that here.
+    ASSERT(!I->null_safety());
+  } else {
+    // If null safety is not specified on the command line we use the value
+    // from the dill file that the CFE has computed based on how it was invoked.
+    if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
+      I->set_null_safety(program->compilation_mode() ==
+                         NNBDCompiledMode::kStrong);
+    }
+  }
   const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program.get());
   program.reset();
 
@@ -5735,6 +5747,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   StackZone zone(T);
+  Isolate* I = T->isolate();
 
   CHECK_CALLBACK_STATE(T);
 
@@ -5750,6 +5763,18 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
       kernel::Program::ReadFromTypedData(td, &error);
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
+  }
+  if (I->is_service_isolate() || I->is_kernel_isolate()) {
+    // For now the service isolate and kernel isolate will be running in
+    // weak mode and we assert for that here.
+    ASSERT(!I->null_safety());
+  } else {
+    // If null safety is not specified on the command line we use the value
+    // from the dill file that the CFE has computed based on how it was invoked.
+    if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
+      I->set_null_safety(program->compilation_mode() ==
+                         NNBDCompiledMode::kStrong);
+    }
   }
   const Object& result =
       kernel::KernelLoader::LoadEntireProgram(program.get(), false);

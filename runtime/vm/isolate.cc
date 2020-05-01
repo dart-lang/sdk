@@ -88,6 +88,16 @@ DEFINE_FLAG_HANDLER(DeterministicModeHandler,
                     deterministic,
                     "Enable deterministic mode.");
 
+int FLAG_null_safety = kNullSafetyOptionUnspecified;
+static void NullSafetyHandler(bool value) {
+  FLAG_null_safety = value ? kNullSafetyOptionStrong : kNullSafetyOptionWeak;
+}
+
+DEFINE_FLAG_HANDLER(
+    NullSafetyHandler,
+    null_safety,
+    "Respect the nullability of types in casts and instance checks.");
+
 // Quick access to the locally defined thread() and isolate() methods.
 #define T (thread())
 #define I (isolate())
@@ -1598,12 +1608,26 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   isolate_group->RegisterIsolate(result);
 
   if (ServiceIsolate::NameEquals(name_prefix)) {
+    // For now the service isolate always runs in weak mode.
+    result->set_null_safety(false);
     ASSERT(!ServiceIsolate::Exists());
     ServiceIsolate::SetServiceIsolate(result);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   } else if (KernelIsolate::NameEquals(name_prefix)) {
+    // For now the kernel isolate always runs in weak mode.
+    result->set_null_safety(false);
     ASSERT(!KernelIsolate::Exists());
     KernelIsolate::SetKernelIsolate(result);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  } else if (FLAG_null_safety != kNullSafetyOptionUnspecified) {
+    // If the null-safety option is specified on the command line then
+    // use the value specified on the command line, if the dill file being
+    // loaded is in a different mode than that specified on the command line
+    // we will get an error during kernel file loading.
+    result->set_null_safety(FLAG_null_safety == kNullSafetyOptionStrong);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  } else if (!KernelIsolate::GetExperimentalFlag("non-nullable")) {
+    result->set_null_safety(false);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 

@@ -94,6 +94,8 @@ isolate/message_test: Skip # Isolate.spawnUri
 isolate/mint_maker_test: Skip # Isolate.spawnUri
 isolate/nested_spawn2_test: Skip # Isolate.spawnUri
 isolate/nested_spawn_test: Skip # Isolate.spawnUri
+isolate/nnbd_spawn_autodetect_test: Skip # Auto detect not for precompiled.
+isolate/nnbd_spawnuri_autodetect_test: Skip # Auto detect not for precompiled.
 isolate/no_package_test: Skip # Isolate.spawnUri
 isolate/raw_port_test: Skip # Isolate.spawnUri
 isolate/request_reply_test: Skip # Isolate.spawnUri

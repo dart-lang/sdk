@@ -386,7 +386,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       languageVersion.version >= enableNonNullableVersion &&
       !isOptOutTest(library.importUri);
 
-  bool isOptOutTest(Uri uri) {
+  static bool isOptOutTest(Uri uri) {
     String path = uri.path;
     for (String testDir in ['/tests/', '/generated_tests/']) {
       int start = path.indexOf(testDir);

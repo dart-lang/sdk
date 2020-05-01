@@ -69,7 +69,6 @@ Dart_FileReadCallback Dart::file_read_callback_ = NULL;
 Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
 Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
 Dart_EntropySource Dart::entropy_source_callback_ = NULL;
-bool Dart::non_nullable_flag_ = false;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -234,9 +233,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
-
-    // Cache value of "non-nullable" experimental flag.
-    set_non_nullable_flag(KernelIsolate::GetExperimentalFlag("non-nullable"));
 
     // Setup default flags for the VM isolate.
     Dart_IsolateFlags api_flags;
@@ -970,12 +966,21 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #error What architecture?
 #endif
 
-    ADD_ISOLATE_FLAG(null_safety, null_safety, FLAG_null_safety);
+    if (isolate != NULL) {
+      if (isolate->null_safety()) {
+        buffer.AddString(" null-safety");
+      } else {
+        buffer.AddString(" no-null-safety");
+      }
+    } else {
+      if (FLAG_null_safety == kNullSafetyOptionStrong) {
+        buffer.AddString(" null-safety");
+      } else {
+        buffer.AddString(" no-null-safety");
+      }
+    }
   }
 
-  if (Dart::non_nullable_flag()) {
-    buffer.AddString(" nnbd-experiment");
-  }
 #undef ADD_ISOLATE_FLAG
 #undef ADD_D
 #undef ADD_C

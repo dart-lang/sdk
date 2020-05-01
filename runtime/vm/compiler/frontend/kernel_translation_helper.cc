@@ -3338,9 +3338,7 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
     type = klass.DeclarationType();
   } else {
     type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
-                     klass.token_pos(),
-                     Dart::non_nullable_flag() ? Nullability::kNonNullable
-                                               : Nullability::kLegacy);
+                     klass.token_pos(), Nullability::kNonNullable);
   }
   return type;
 }

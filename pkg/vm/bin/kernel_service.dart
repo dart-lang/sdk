@@ -28,8 +28,10 @@ import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:build_integration/file_system/multi_root.dart';
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart' as fe
     show CompilerResult;
+import 'package:front_end/src/api_prototype/language_version.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -77,13 +79,30 @@ const int kNotifyIsolateShutdownTag = 6;
 
 bool allowDartInternalImport = false;
 
+// Null Safety command line options
+//
+// Note: The values of these constants must match the
+// values of flag null_safety in ../../../../runtime/vm/flag_list.h.
+// 0 - No null_safety option specified on the command line.
+// 1 - '--no-null-safety' specified on the command line.
+// 2 - '--null-safety' option specified on the command line.
+const int kNullSafetyOptionUnspecified = 0;
+const int kNullSafetyOptionWeak = 1;
+const int kNullSafetyOptionStrong = 2;
+
+Future<void> autoDetectNullSafetyMode(
+    Uri script, CompilerOptions options) async {
+  var isLegacy = await uriUsesLegacyLanguageVersion(script, options);
+  options.nnbdMode = isLegacy ? NnbdMode.Weak : NnbdMode.Strong;
+}
+
 abstract class Compiler {
   final int isolateId;
   final FileSystem fileSystem;
   final Uri platformKernelPath;
   final bool suppressWarnings;
   final bool enableAsserts;
-  final bool nullSafety;
+  final int nullSafety;
   final List<String> experimentalFlags;
   final bool bytecode;
   final String packageConfig;
@@ -100,7 +119,7 @@ abstract class Compiler {
   Compiler(this.isolateId, this.fileSystem, this.platformKernelPath,
       {this.suppressWarnings: false,
       this.enableAsserts: false,
-      this.nullSafety: false,
+      this.nullSafety: kNullSafetyOptionUnspecified,
       this.experimentalFlags: null,
       this.bytecode: false,
       this.supportCodeCoverage: false,
@@ -139,7 +158,9 @@ abstract class Compiler {
           parseExperimentalArguments(expFlags),
           onError: (msg) => errors.add(msg))
       ..environmentDefines = new EnvironmentMap()
-      ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
+      ..nnbdMode = (nullSafety == kNullSafetyOptionStrong)
+          ? NnbdMode.Strong
+          : NnbdMode.Weak
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {
@@ -294,7 +315,7 @@ class IncrementalCompilerWrapper extends Compiler {
       int isolateId, FileSystem fileSystem, Uri platformKernelPath,
       {bool suppressWarnings: false,
       bool enableAsserts: false,
-      bool nullSafety: false,
+      int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
@@ -334,6 +355,10 @@ class IncrementalCompilerWrapper extends Compiler {
   @override
   Future<CompilerResult> compileInternal(Uri script) async {
     if (generator == null) {
+      if ((nullSafety == kNullSafetyOptionUnspecified) &&
+          options.experimentalFlags[ExperimentalFlag.nonNullable]) {
+        await autoDetectNullSafetyMode(script, options);
+      }
       generator = new IncrementalCompiler(options, script);
     }
     errors.clear();
@@ -381,7 +406,7 @@ class SingleShotCompilerWrapper extends Compiler {
       {this.requireMain: false,
       bool suppressWarnings: false,
       bool enableAsserts: false,
-      bool nullSafety: false,
+      int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
@@ -395,6 +420,10 @@ class SingleShotCompilerWrapper extends Compiler {
 
   @override
   Future<CompilerResult> compileInternal(Uri script) async {
+    if ((nullSafety == kNullSafetyOptionUnspecified) &&
+        options.experimentalFlags[ExperimentalFlag.nonNullable]) {
+      await autoDetectNullSafetyMode(script, options);
+    }
     fe.CompilerResult compilerResult = requireMain
         ? await kernelForProgram(script, options)
         : await kernelForModule([script], options);
@@ -423,7 +452,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
     {bool suppressWarnings: false,
     bool enableAsserts: false,
-    bool nullSafety: false,
+    int nullSafety: kNullSafetyOptionUnspecified,
     List<String> experimentalFlags: null,
     bool bytecode: false,
     String packageConfig: null,
@@ -725,7 +754,7 @@ Future _processLoadRequest(request) async {
   final Uri script =
       inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
   final bool incremental = request[4];
-  final bool nullSafety = request[5];
+  final int nullSafety = request[5];
   final int isolateId = request[6];
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
@@ -955,7 +984,7 @@ Future trainInternal(
     scriptUri,
     platformKernelPath,
     false /* incremental */,
-    false /* null safety */,
+    kNullSafetyOptionUnspecified /* null safety */,
     1 /* isolateId chosen randomly */,
     [] /* source files */,
     false /* suppress warnings */,

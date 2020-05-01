@@ -837,7 +837,13 @@
         "enable-experiment": [
           "non-nullable"
         ],
-        "enable-asserts": true
+	"gen-kernel-options": [
+          "--no-null-safety"
+        ],
+        "enable-asserts": true,
+	"vm-options": [
+          "--no-null-safety"
+        ]
       }
     },
     "dartkp-weak-asserts-win-(debug|product|release)-x64": {
@@ -845,8 +851,14 @@
         "enable-experiment": [
           "non-nullable"
         ],
+	"gen-kernel-options": [
+          "--no-null-safety"
+        ],
         "enable-asserts": true,
-        "use-elf": true
+        "use-elf": true,
+	"vm-options": [
+          "--no-null-safety"
+        ]
       }
     },
     "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-x64": {
@@ -854,16 +866,16 @@
         "enable-experiment": [
           "non-nullable"
         ],
-        "enable-asserts": true
+        "enable-asserts": true,
+	"vm-options": [
+          "--no-null-safety"
+        ]
       }
     },
     "dartk-strong-(linux|mac|win)-(debug|product|release)-x64": {
       "options": {
         "enable-experiment": [
           "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--null-safety"
         ],
         "vm-options": [
           "--null-safety"
