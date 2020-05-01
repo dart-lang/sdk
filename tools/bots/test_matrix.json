@@ -3056,6 +3056,15 @@
           ]
         },
         {
+          "name": "nnbd_migration unit tests",
+          "arguments": [
+            "-nanalyzer-unittest-asserts-${mode}-${system}",
+            "pkg/nnbd_migration"
+          ],
+          "shards": 2,
+          "fileset": "analyzer_unit_tests"
+        },
+        {
           "name": "analyze tests co19_2",
           "arguments": [
             "-nanalyzer-asserts-${system}",
@@ -3448,7 +3457,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {
@@ -3486,7 +3495,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {
