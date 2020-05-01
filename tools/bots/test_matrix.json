@@ -3137,6 +3137,13 @@
             "-nanalyzer-asserts-strong-${system}",
             "co19/LanguageFeatures/nnbd"
           ]
+        },
+        {
+          "name": "analyze nnbd weak co19 tests",
+          "arguments": [
+            "-nanalyzer-asserts-weak-${system}",
+            "co19/LanguageFeatures/nnbd"
+          ]
         }
       ]
     },
