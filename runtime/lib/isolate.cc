@@ -179,10 +179,10 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     switch (cid) {
       // List below matches the one in raw_object_snapshot.cc
 #define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
-  return Exceptions::CreateUnhandledException(                                 \
-      zone, Exceptions::kArgumentValue,                                        \
-      "Illegal argument in isolate message : (object is a " #type ")");        \
-  break;
+  case k##type##Cid:                                                           \
+    return Exceptions::CreateUnhandledException(                               \
+        zone, Exceptions::kArgumentValue,                                      \
+        "Illegal argument in isolate message : (object is a " #type ")");
 
       MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
       MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
