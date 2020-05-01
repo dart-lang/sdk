@@ -23,9 +23,12 @@ class UnitRenderer {
   /// "proposed edits" area, in the order in which they should be displayed.
   @visibleForTesting
   static const List<NullabilityFixKind> kindPriorityOrder = [
+    NullabilityFixKind.compoundAssignmentHasBadCombinedType,
+    NullabilityFixKind.compoundAssignmentHasNullableSource,
     NullabilityFixKind.removeDeadCode,
     NullabilityFixKind.conditionTrueInStrongMode,
     NullabilityFixKind.conditionFalseInStrongMode,
+    NullabilityFixKind.nullAwareAssignmentUnnecessaryInStrongMode,
     NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode,
     NullabilityFixKind.otherCastExpression,
     NullabilityFixKind.checkExpression,
@@ -265,6 +268,12 @@ class UnitRenderer {
         return '$count null check$s added';
       case NullabilityFixKind.checkExpressionDueToHint:
         return '$count null check hint$s converted to null check$s';
+      case NullabilityFixKind.compoundAssignmentHasBadCombinedType:
+        return '$count compound assignment$s could not be migrated (bad '
+            'combined type)';
+      case NullabilityFixKind.compoundAssignmentHasNullableSource:
+        return '$count compound assignment$s could not be migrated (nullable '
+            'source)';
       case NullabilityFixKind.conditionTrueInStrongMode:
         return '$count condition$s will be true in strong checking mode';
         break;
@@ -277,6 +286,9 @@ class UnitRenderer {
         return '$count nullability hint$s converted to ?$s';
       case NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode:
         return '$count null-aware access$es will be unnecessary in strong '
+            'checking mode';
+      case NullabilityFixKind.nullAwareAssignmentUnnecessaryInStrongMode:
+        return '$count null-aware assignment$s will be unnecessary in strong '
             'checking mode';
       case NullabilityFixKind.removeAs:
         return '$count cast$s now unnecessary';

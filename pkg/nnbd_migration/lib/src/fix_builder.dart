@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -288,6 +289,9 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   final Expando<bool> _shouldStayNullAware = Expando();
 
+  final Map<AssignmentExpression, _AssignmentExpressionHandler>
+      _assignmentExpressionHandlers = {};
+
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
 
@@ -423,37 +427,14 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   @override
   DartType modifyExpressionType(Expression node, DartType type) =>
       _wrapExceptions(node, () => type, () {
-        var hint =
-            _fixBuilder._variables.getNullCheckHint(_fixBuilder.source, node);
-        if (hint != null) {
-          type = _addNullCheck(node, type,
-              info: AtomicEditInfo(
-                  NullabilityFixDescription.checkExpressionDueToHint,
-                  {
-                    FixReasonTarget.root:
-                        FixReason_NullCheckHint(CodeReference.fromAstNode(node))
-                  },
-                  hintComment: hint),
-              hint: hint);
+        var parent = node.parent;
+        if (parent is AssignmentExpression) {
+          return (_assignmentExpressionHandlers[parent] ??=
+                  _AssignmentExpressionHandler(parent))
+              .modifySubexpressionType(this, node, type);
+        } else {
+          return _modifyRValueType(node, type);
         }
-        if (type.isDynamic) return type;
-        var ancestor = _findNullabilityContextAncestor(node);
-        DartType context = _getNullabilityContext(ancestor);
-        if (!_fixBuilder._typeSystem.isSubtypeOf(type, context)) {
-          // Either a cast or a null check is needed.  We prefer to do a null
-          // check if we can.
-          var nonNullType = _fixBuilder._typeSystem.promoteToNonNull(type);
-          if (_fixBuilder._typeSystem.isSubtypeOf(nonNullType, context)) {
-            return _addNullCheck(node, type);
-          } else {
-            return _addCast(node, type, context);
-          }
-        }
-        if (!_fixBuilder._typeSystem.isNullable(type)) return type;
-        if (_needsNullCheckDueToStructure(ancestor)) {
-          return _addNullCheck(node, type);
-        }
-        return type;
       });
 
   @override
@@ -519,33 +500,40 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     }
   }
 
-  DartType _getNullabilityContext(Expression node) {
-    var parent = node.parent;
-    if (parent is AssignmentExpression) {
-      var lhs = parent.leftHandSide;
-      if (lhs is SimpleIdentifier) {
-        var lhsElement = lhs.staticElement;
-        if (lhsElement is PromotableElement) {
-          var operatorType = parent.operator.type;
-          switch (operatorType) {
-            case TokenType.EQ:
-            case TokenType.QUESTION_QUESTION_EQ:
-              // When visiting an assignment to a local variable, if the
-              // variable type is promoted, the resolver uses the promoted type
-              // of the variable as the inference context, but it's ok to assign
-              // a different type to the variable (un-doing the promotion).  So
-              // for migration purposes, we need to consider the context type to
-              // be the unpromoted type.  See
-              // https://github.com/dart-lang/sdk/issues/41411.
-              return lhsElement.type;
-            default:
-              break;
-          }
-        }
+  DartType _modifyRValueType(Expression node, DartType type,
+      {DartType context}) {
+    var hint =
+        _fixBuilder._variables.getNullCheckHint(_fixBuilder.source, node);
+    if (hint != null) {
+      type = _addNullCheck(node, type,
+          info: AtomicEditInfo(
+              NullabilityFixDescription.checkExpressionDueToHint,
+              {
+                FixReasonTarget.root:
+                    FixReason_NullCheckHint(CodeReference.fromAstNode(node))
+              },
+              hintComment: hint),
+          hint: hint);
+    }
+    if (type.isDynamic) return type;
+    var ancestor = _findNullabilityContextAncestor(node);
+    context ??=
+        InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
+    if (!_fixBuilder._typeSystem.isSubtypeOf(type, context)) {
+      // Either a cast or a null check is needed.  We prefer to do a null
+      // check if we can.
+      var nonNullType = _fixBuilder._typeSystem.promoteToNonNull(type);
+      if (_fixBuilder._typeSystem.isSubtypeOf(nonNullType, context)) {
+        return _addNullCheck(node, type);
+      } else {
+        return _addCast(node, type, context);
       }
     }
-    var context = InferenceContext.getContext(node) ?? DynamicTypeImpl.instance;
-    return context;
+    if (!_fixBuilder._typeSystem.isNullable(type)) return type;
+    if (_needsNullCheckDueToStructure(ancestor)) {
+      return _addNullCheck(node, type);
+    }
+    return type;
   }
 
   bool _needsNullCheckDueToStructure(Expression node) {
@@ -638,6 +626,110 @@ class NonNullableUnnamedOptionalParameter implements Problem {
 
 /// Common supertype for problems reported by [FixBuilder._addProblem].
 abstract class Problem {}
+
+/// Data structure keeping track of intermediate results when the fix builder
+/// is handling an assignment expression.
+class _AssignmentExpressionHandler {
+  /// The assignment expression in question.
+  final AssignmentExpression node;
+
+  /// For compound and null-aware assignments, the type read from the LHS.
+  /*late final*/ DartType readType;
+
+  /// The type that may be written to the LHS.
+  /*late final*/ DartType writeType;
+
+  /// The type that should be used as a context type when inferring the RHS.
+  DartType rhsContextType;
+
+  _AssignmentExpressionHandler(this.node);
+
+  /// Called after visiting the RHS of the assignment, to verify that for
+  /// compound assignments, the return value of the assignment is assignable to
+  /// [writeType].
+  void handleAssignmentRhs(
+      MigrationResolutionHooksImpl hooks, DartType rhsType) {
+    MethodElement combiner = node.staticElement;
+    if (combiner != null) {
+      var fixBuilder = hooks._fixBuilder;
+      var combinerReturnType =
+          fixBuilder._typeSystem.refineBinaryExpressionType(
+        readType,
+        node.operator.type,
+        rhsType,
+        combiner.returnType,
+      );
+      if (!fixBuilder._typeSystem.isSubtypeOf(combinerReturnType, writeType)) {
+        (fixBuilder._getChange(node) as NodeChangeForAssignment)
+            .isCompoundAssignmentWithBadCombinedType = true;
+      }
+    }
+  }
+
+  /// Called after visiting the LHS of the assignment.  Records the [readType],
+  /// [writeType], and [rhsContextType].  Also verifies that for compound
+  /// assignments, the [readType] is non-nullable, and that for null-aware
+  /// assignments, the [readType] is nullable.
+  void handleLValueType(MigrationResolutionHooksImpl hooks,
+      TokenType operatorType, DartType resolvedType) {
+    assert(resolvedType.nullabilitySuffix != NullabilitySuffix.star);
+    // Provisionally store the resolved type as the type of the lhs, so that
+    // getReadType can fall back on it if necessary.
+    var lhs = node.leftHandSide;
+    lhs.staticType = resolvedType;
+    // The type passed in by the resolver for the LHS of an assignment is the
+    // "write type".
+    var writeType = resolvedType;
+    if (lhs is SimpleIdentifier) {
+      var element = lhs.staticElement;
+      if (element is PromotableElement) {
+        // However, if the LHS is a reference to a local variable that has
+        // been promoted, the resolver passes in the promoted type.  We
+        // want to use the variable element's type, so that we consider it
+        // ok to assign a value to the variable that un-does the
+        // promotion.  See https://github.com/dart-lang/sdk/issues/41411.
+        writeType = element.type;
+      }
+    }
+    assert(writeType.nullabilitySuffix != NullabilitySuffix.star);
+    this.writeType = writeType;
+    var fixBuilder = hooks._fixBuilder;
+    if (operatorType == TokenType.EQ) {
+      rhsContextType = writeType;
+    } else {
+      readType = getReadType(lhs);
+      assert(readType.nullabilitySuffix != NullabilitySuffix.star);
+      if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
+        rhsContextType = writeType;
+        if (fixBuilder._typeSystem.isNonNullable(readType)) {
+          (fixBuilder._getChange(node) as NodeChangeForAssignment)
+              .isWeakNullAware = true;
+        }
+      } else {
+        if (!readType.isDynamic &&
+            fixBuilder._typeSystem.isPotentiallyNullable(readType)) {
+          (fixBuilder._getChange(node) as NodeChangeForAssignment)
+              .isCompoundAssignmentWithNullableSource = true;
+        }
+      }
+    }
+  }
+
+  /// Called after visiting the LHS or the RHS of the assignment.
+  DartType modifySubexpressionType(MigrationResolutionHooksImpl hooks,
+      Expression subexpression, DartType type) {
+    if (identical(subexpression, node.leftHandSide)) {
+      handleLValueType(hooks, node.operator.type, type);
+      return type;
+    } else {
+      assert(identical(subexpression, node.rightHandSide));
+      type =
+          hooks._modifyRValueType(subexpression, type, context: rhsContextType);
+      handleAssignmentRhs(hooks, type);
+      return type;
+    }
+  }
+}
 
 /// Visitor that computes additional migrations on behalf of [FixBuilder] that
 /// should be run after resolution

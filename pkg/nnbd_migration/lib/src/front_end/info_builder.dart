@@ -186,12 +186,17 @@ class InfoBuilder {
         // We could add an edit to add a `/*?*/` hint, but the offset is a
         // little tricky.
         break;
-      case NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode:
-      case NullabilityFixKind.conditionTrueInStrongMode:
       case NullabilityFixKind.conditionFalseInStrongMode:
+      case NullabilityFixKind.conditionTrueInStrongMode:
+      case NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode:
+      case NullabilityFixKind.nullAwareAssignmentUnnecessaryInStrongMode:
         // We don't offer any edits around weak-only code.
         // TODO(paulberry): offer edits to delete the code that would be dead in
         // strong mode (https://github.com/dart-lang/sdk/issues/41554).
+        break;
+      case NullabilityFixKind.compoundAssignmentHasBadCombinedType:
+      case NullabilityFixKind.compoundAssignmentHasNullableSource:
+        // We don't offer any edits around bad compound assignments.
         break;
     }
     return edits;

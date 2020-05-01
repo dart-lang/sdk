@@ -302,6 +302,70 @@ class NodeChangeForAsExpression extends NodeChangeForExpression<AsExpression> {
 }
 
 /// Implementation of [NodeChange] specialized for operating on
+/// [AssignmentExpression] nodes.
+class NodeChangeForAssignment
+    extends NodeChangeForExpression<AssignmentExpression> {
+  /// Indicates whether the user should be warned that the assignment is a
+  /// compound assignment with a bad combined type (the return type of the
+  /// combiner isn't assignable to the the write type of the LHS).
+  bool isCompoundAssignmentWithBadCombinedType = false;
+
+  /// Indicates whether the user should be warned that the assignment is a
+  /// compound assignment with a nullable source type.
+  bool isCompoundAssignmentWithNullableSource = false;
+
+  /// Indicates whether the user should be warned that the assignment is a
+  /// null-aware assignment that will have no effect when strong checking is
+  /// enabled.
+  bool isWeakNullAware = false;
+
+  @override
+  Iterable<String> get _toStringParts => [
+        ...super._toStringParts,
+        if (isCompoundAssignmentWithBadCombinedType)
+          'isCompoundAssignmentWithBadCombinedType',
+        if (isCompoundAssignmentWithNullableSource)
+          'isCompoundAssignmentWithNullableSource',
+        if (isWeakNullAware) 'isWeakNullAware'
+      ];
+
+  @override
+  NodeProducingEditPlan _apply(
+      AssignmentExpression node, FixAggregator aggregator) {
+    var lhsPlan = aggregator.planForNode(node.leftHandSide);
+    EditPlan operatorPlan;
+    if (isCompoundAssignmentWithNullableSource) {
+      operatorPlan = aggregator.planner.informativeMessageForToken(
+          node, node.operator,
+          info: AtomicEditInfo(
+              NullabilityFixDescription.compoundAssignmentHasNullableSource,
+              const {}));
+    } else if (isCompoundAssignmentWithBadCombinedType) {
+      operatorPlan = aggregator.planner.informativeMessageForToken(
+          node, node.operator,
+          info: AtomicEditInfo(
+              NullabilityFixDescription.compoundAssignmentHasBadCombinedType,
+              const {}));
+    } else if (isWeakNullAware) {
+      operatorPlan = aggregator.planner.informativeMessageForToken(
+          node, node.operator,
+          info: AtomicEditInfo(
+              NullabilityFixDescription
+                  .nullAwareAssignmentUnnecessaryInStrongMode,
+              const {}));
+    }
+    var rhsPlan = aggregator.planForNode(node.rightHandSide);
+    var innerPlans = <EditPlan>[
+      lhsPlan,
+      if (operatorPlan != null) operatorPlan,
+      rhsPlan
+    ];
+    return _applyExpression(aggregator,
+        aggregator.planner.passThrough(node, innerPlans: innerPlans));
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on
 /// [CompilationUnit] nodes.
 class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
   bool removeLanguageVersionComment = false;
@@ -831,6 +895,10 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
   @override
   NodeChange visitAsExpression(AsExpression node) =>
       NodeChangeForAsExpression();
+
+  @override
+  NodeChange visitAssignmentExpression(AssignmentExpression node) =>
+      NodeChangeForAssignment();
 
   @override
   NodeChange visitCompilationUnit(CompilationUnit node) =>

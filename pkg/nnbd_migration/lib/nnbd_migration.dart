@@ -45,6 +45,21 @@ class NullabilityFixDescription {
     kind: NullabilityFixKind.checkExpressionDueToHint,
   );
 
+  /// A compound assignment's combiner operator returns a type that isn't
+  /// assignable to the LHS of the assignment.
+  static const compoundAssignmentHasBadCombinedType =
+      const NullabilityFixDescription._(
+    appliedMessage: 'Compound assignment has bad combined type',
+    kind: NullabilityFixKind.compoundAssignmentHasBadCombinedType,
+  );
+
+  /// A compound assignment's LHS has a nullable type.
+  static const compoundAssignmentHasNullableSource =
+      const NullabilityFixDescription._(
+    appliedMessage: 'Compound assignment has nullable source',
+    kind: NullabilityFixKind.compoundAssignmentHasNullableSource,
+  );
+
   /// Informative message: a condition of an if-test or conditional expression
   /// will always evaluate to `false` in strong checking mode.
   static const conditionFalseInStrongMode = const NullabilityFixDescription._(
@@ -98,6 +113,14 @@ class NullabilityFixDescription {
           appliedMessage:
               'Null-aware access will be unnecessary in strong checking mode',
           kind: NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode);
+
+  /// Informative message: a null-aware assignment won't be necessary in strong
+  /// checking mode.
+  static const nullAwareAssignmentUnnecessaryInStrongMode =
+      const NullabilityFixDescription._(
+          appliedMessage:
+              'Null-aware assignment will be unnecessary in strong checking mode',
+          kind: NullabilityFixKind.nullAwareAssignmentUnnecessaryInStrongMode);
 
   static const otherCastExpression = const NullabilityFixDescription._(
     appliedMessage: 'Added a cast to an expression (non-downcast)',
@@ -217,12 +240,15 @@ enum NullabilityFixKind {
   addType,
   checkExpression,
   checkExpressionDueToHint,
+  compoundAssignmentHasNullableSource,
+  compoundAssignmentHasBadCombinedType,
   conditionFalseInStrongMode,
   conditionTrueInStrongMode,
   downcastExpression,
   makeTypeNullable,
   makeTypeNullableDueToHint,
   nullAwarenessUnnecessaryInStrongMode,
+  nullAwareAssignmentUnnecessaryInStrongMode,
   otherCastExpression,
   removeAs,
   removeDeadCode,
