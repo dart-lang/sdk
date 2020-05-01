@@ -277,7 +277,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     assert(classElement is ClassElementImpl);
     assert(_enclosingClass == null);
     assert(_enclosingEnum == null);
-    assert(_enclosingExecutable == null);
+    assert(_enclosingExecutable.element == null);
     _enclosingClass = classElement;
   }
 
