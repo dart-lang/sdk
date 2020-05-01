@@ -319,12 +319,12 @@ class Isolate {
   String get debugName => _getDebugName(controlPort);
 
   @patch
-  static Future<Uri> get packageRoot {
+  static Future<Uri?> get packageRoot {
     return Future.value(null);
   }
 
   @patch
-  static Future<Uri> get packageConfig {
+  static Future<Uri?> get packageConfig {
     var hook = VMLibraryHooks.packageConfigUriFuture;
     if (hook == null) {
       throw new UnsupportedError("Isolate.packageConfig");

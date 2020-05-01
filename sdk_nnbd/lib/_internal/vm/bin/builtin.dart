@@ -713,7 +713,7 @@ _setupHooks() {
   VMLibraryHooks.resolvePackageUriFuture = _resolvePackageUriFuture;
 }
 
-Future<Uri> _getPackageConfigFuture() {
+Future<Uri?> _getPackageConfigFuture() {
   if (_traceLoading) {
     _log("Request for package config from user code.");
   }
