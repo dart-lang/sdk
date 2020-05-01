@@ -75,6 +75,9 @@ class NonNullableFix extends FixCodeTask {
 
   Future<void> Function([List<String>]) rerunFunction;
 
+  /// A list of the URLs corresponding to the included roots.
+  List<String> previewUrls;
+
   NonNullableFix(this.listener,
       {List<String> included = const [],
       this.preferredPort,
@@ -86,17 +89,6 @@ class NonNullableFix extends FixCodeTask {
 
   @override
   int get numPhases => 3;
-
-  /// Return a list of the URLs corresponding to the included roots.
-  List<String> get previewUrls => [
-        // TODO(jcollins-g): Change protocol to only return a single string.
-        Uri(
-            scheme: 'http',
-            host: 'localhost',
-            port: port,
-            path: includedRoot,
-            queryParameters: {'authToken': authToken}).toString()
-      ];
 
   @override
   Future<void> finish() async {
@@ -110,6 +102,16 @@ class NonNullableFix extends FixCodeTask {
       _allServers.add(_server);
       port = await _server.boundPort;
       authToken = await _server.authToken;
+
+      previewUrls = [
+        // TODO(jcollins-g): Change protocol to only return a single string.
+        Uri(
+            scheme: 'http',
+            host: 'localhost',
+            port: port,
+            path: state.pathMapper.map(includedRoot),
+            queryParameters: {'authToken': authToken}).toString()
+      ];
     }
   }
 

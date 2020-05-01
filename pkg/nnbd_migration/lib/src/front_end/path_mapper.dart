@@ -16,9 +16,17 @@ class PathMapper {
   /// Initialize a newly created path mapper.
   PathMapper(this.provider);
 
+  /// Gets the symbol used as a path separator on the local filesystem.
+  String get separator => provider.pathContext.separator;
+
   /// Return the path of the HTML file used to view the content of the analyzed
   /// file with the given [path].
   String map(String path) {
-    return Uri.file(path).path;
+    return provider.pathContext.toUri(path).path;
+  }
+
+  /// Returns the local filesystem path corresponding to the given [uri].
+  String reverseMap(Uri uri) {
+    return provider.pathContext.fromUri(uri);
   }
 }

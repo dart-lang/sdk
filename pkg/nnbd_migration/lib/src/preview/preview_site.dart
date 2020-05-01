@@ -8,8 +8,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analysis_server/src/status/pages.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
 import 'package:nnbd_migration/src/front_end/path_mapper.dart';
@@ -116,6 +116,7 @@ class PreviewSite extends Site
   Future<void> handleGetRequest(HttpRequest request) async {
     var uri = request.uri;
     var path = uri.path;
+    var decodedPath = pathMapper.reverseMap(uri);
     try {
       if (path == highlightCssPath) {
         // Note: `return await` needed due to
@@ -130,14 +131,15 @@ class PreviewSite extends Site
         // https://github.com/dart-lang/sdk/issues/39204
         return await respond(request, NavigationTreePage(this));
       } else if (path == '/' ||
-          path == migrationInfo.includedRoot ||
-          path == '${migrationInfo.includedRoot}/') {
+          decodedPath == migrationInfo.includedRoot ||
+          decodedPath ==
+              '${migrationInfo.includedRoot}${pathMapper.separator}') {
         // Note: `return await` needed due to
         // https://github.com/dart-lang/sdk/issues/39204
         return await respond(request, IndexFilePage(this));
       }
 
-      var unitInfo = unitInfoMap[path];
+      var unitInfo = unitInfoMap[decodedPath];
       if (unitInfo != null) {
         if (uri.queryParameters.containsKey('inline')) {
           // TODO(devoncarew): Ensure that we don't serve content outside of our
