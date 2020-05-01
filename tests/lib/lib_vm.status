@@ -139,6 +139,9 @@ isolate/non_fatal_exception_in_timer_callback_test/none: Skip # https://dartbug.
 isolate/non_fatal_exception_in_timer_callback_test/sleep: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/object_leak_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/ondone_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/package_config_test/0: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/package_resolve_test/0: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/package_root_test/0: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/pause_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/ping_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/port_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
@@ -147,6 +150,7 @@ isolate/regress_34752_test: Skip # https://dartbug.com/36097: Ongoing concurrenc
 isolate/regress_flutter_22796_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/request_reply_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/resolve_package_uri_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/scenarios/package_data_uri_spec/package_resolve_test/0: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/send_private_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/simple_message_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/spawn_function_custom_class_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
@@ -154,6 +158,7 @@ isolate/spawn_function_test: Skip # https://dartbug.com/36097: Ongoing concurren
 isolate/spawn_generic_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/spawn_uri__package_uri__test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/spawn_uri_exported_main_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/spawn_uri_fail_test/0: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/spawn_uri_missing_from_isolate_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/spawn_uri_missing_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/spawn_uri_multi_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.

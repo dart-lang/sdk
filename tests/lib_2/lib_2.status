@@ -87,8 +87,14 @@ isolate/message_test: Skip # Isolate.spawnUri
 isolate/mint_maker_test: Skip # Isolate.spawnUri
 isolate/nested_spawn2_test: Skip # Isolate.spawnUri
 isolate/nested_spawn_test: Skip # Isolate.spawnUri
+isolate/package_config_test/0: Skip # Isolate.spawnUri
+isolate/package_config_test/1: Skip # Isolate.spawnUri
+isolate/package_config_test/2: Skip # Isolate.spawnUri
 isolate/raw_port_test: Skip # Isolate.spawnUri
 isolate/request_reply_test: Skip # Isolate.spawnUri
+isolate/scenarios/automatic_resolution_spec/package_resolve_test: Skip # Isolate.spawnUri
+isolate/scenarios/package_relative_spec/package_relative_spec_test: Skip # Isolate.spawnUri
+isolate/scenarios/short_package/short_package_test: Skip # Isolate.spawnUri
 isolate/spawn_function_custom_class_test: Skip # Isolate.spawnUri
 isolate/spawn_function_test: Skip # Isolate.spawnUri
 isolate/spawn_uri_exported_main_test: Skip # Isolate.spawnUri
