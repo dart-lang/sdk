@@ -6547,6 +6547,12 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   // loader. See also Elf::WriteProgramTable().
   const intptr_t bss_base =
       elf->AddBSSData("_kDartBSSData", sizeof(compiler::target::uword));
+  // Add the BSS section to the separately saved debugging information, even
+  // though there will be no code in it to relocate, since it precedes the
+  // .text sections and thus affects their virtual addresses.
+  if (debug_dwarf != nullptr) {
+    debug_elf->AddBSSData("_kDartBSSData", sizeof(compiler::target::uword));
+  }
 
   BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions_buffer,
                                   ApiReallocate, kInitialSize, debug_dwarf,
