@@ -3739,7 +3739,16 @@ class B extends A {
 
   Future<void> test_MethodDeclaration_body_getters() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('class A {@deprecated X get f => 0; Z a() {^} get _g => 1;}');
+    addTestSource('''
+class A {
+  @deprecated
+  X get f => 0;
+  Z a() {^}
+  get _g => 1;
+}
+class X {}
+class Z {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -3804,7 +3813,15 @@ class A extends B {
 
   Future<void> test_MethodDeclaration_members() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('class A {@deprecated X f; Z _a() {^} var _g;}');
+    addTestSource('''
+class A {
+  @deprecated X f;
+  Z _a() {^}
+  var _g;
+}
+class X {}
+class Z {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -3835,13 +3852,22 @@ class A extends B {
 
   Future<void> test_MethodDeclaration_members_private() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('class A {@deprecated X f; Z _a() {_^} var _g;}');
+    addTestSource('''
+class A {
+  @deprecated
+  X f;
+  Z _a() {_^}
+  var _g;
+}
+class X {}
+class Z {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
-    var methodA = assertSuggestMethod('_a', 'A', 'Z',
-        relevance: DART_RELEVANCE_LOCAL_METHOD);
+    var methodA =
+        assertSuggestMethod('_a', 'A', 'Z', relevance: DART_RELEVANCE_DEFAULT);
     if (methodA != null) {
       expect(methodA.element.isDeprecated, isFalse);
       expect(methodA.element.isPrivate, isTrue);
@@ -3867,7 +3893,14 @@ class A extends B {
 
   Future<void> test_MethodDeclaration_parameters_named() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('class A {@deprecated Z a(X x, _, b, {y: boo}) {^}}');
+    addTestSource('''
+class A {
+  @deprecated
+  Z a(X x, _, b, {y: boo}) {^}
+}
+class X {}
+class Z {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -3890,7 +3923,12 @@ class A extends B {
     addTestSource('''
 foo() { }
 void bar() { }
-class A {Z a(X x, [int y=1]) {^}}''');
+class A {
+  Z a(X x, [int y=1]) {^}
+}
+class X {}
+class Z {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);

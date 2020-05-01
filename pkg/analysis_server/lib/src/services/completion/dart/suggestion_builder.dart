@@ -392,6 +392,13 @@ class SuggestionBuilder {
             superMatches: superMatches);
       } else {
         relevance = _computeOldMemberRelevance(accessor);
+        if (request.opType.includeReturnValueSuggestions) {
+          relevance =
+              request.opType.returnValueSuggestionsFilter(type, relevance);
+        }
+        if (relevance == null) {
+          return;
+        }
       }
       _add(createSuggestion(request, accessor, relevance: relevance));
     }
@@ -630,6 +637,13 @@ class SuggestionBuilder {
     } else {
       relevance = _computeOldMemberRelevance(method,
           containingMethodName: containingMemberName);
+      if (request.opType.includeReturnValueSuggestions) {
+        relevance = request.opType
+            .returnValueSuggestionsFilter(method.returnType, relevance);
+      }
+      if (relevance == null) {
+        return;
+      }
     }
 
     var suggestion =
@@ -705,9 +719,13 @@ class SuggestionBuilder {
     } else if (accessor.hasOrInheritsDeprecated) {
       relevance = DART_RELEVANCE_LOW;
     } else {
-      relevance = variable.library == request.libraryElement
-          ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
-          : DART_RELEVANCE_DEFAULT;
+      var type =
+          accessor.isGetter ? accessor.returnType : accessor.parameters[0].type;
+      relevance = _computeOldMemberRelevance(variable);
+      relevance = request.opType.returnValueSuggestionsFilter(type, relevance);
+      if (relevance == null) {
+        return;
+      }
     }
 
     _add(createSuggestion(request, variable, kind: kind, relevance: relevance));
@@ -774,6 +792,23 @@ class SuggestionBuilder {
       // Decrease relevance of suggestions starting with $
       // https://github.com/dart-lang/sdk/issues/27303
       return DART_RELEVANCE_LOW;
+    }
+    if (!member.name.startsWith('_') &&
+        member.library == request.libraryElement) {
+      // Locally declared elements sometimes have a special relevance.
+      if (member is PropertyAccessorElement) {
+        return DART_RELEVANCE_LOCAL_ACCESSOR;
+      } else if (member is FieldElement) {
+        return DART_RELEVANCE_LOCAL_FIELD;
+      } else if (member is FunctionElement) {
+        return DART_RELEVANCE_LOCAL_FUNCTION;
+      } else if (member is MethodElement) {
+        return DART_RELEVANCE_LOCAL_METHOD;
+      } else if (member is TopLevelVariableElement) {
+        return DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE;
+      } else if (member is LocalVariableElement) {
+        return DART_RELEVANCE_LOCAL_VARIABLE;
+      }
     }
     return DART_RELEVANCE_DEFAULT;
   }

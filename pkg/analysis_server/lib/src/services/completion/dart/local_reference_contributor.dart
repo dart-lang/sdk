@@ -299,49 +299,22 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if ((opType.includeReturnValueSuggestions ||
             opType.includeVoidReturnSuggestions) &&
         (!opType.inStaticMethodBody || declaration.isStatic)) {
-//      var method = declaration.declaredElement;
-//      // TODO(brianwilkerson) Use request.featureComputer.inheritanceDistance to
-//      //  compute the inheritance distance.
-//      var inheritanceDistance = -1.0;
-//      builder.suggestMethod(method, inheritanceDistance: inheritanceDistance, kind: _defaultKind);
-      protocol.ElementKind elemKind;
-      FormalParameterList param;
-      var typeName = declaration.returnType;
-      var relevance = DART_RELEVANCE_DEFAULT;
-      if (declaration.isGetter) {
-        elemKind = protocol.ElementKind.GETTER;
-        param = null;
-        relevance = DART_RELEVANCE_LOCAL_ACCESSOR;
-      } else if (declaration.isSetter) {
-        if (!opType.includeVoidReturnSuggestions) {
-          return;
-        }
-        elemKind = protocol.ElementKind.SETTER;
-        typeName = NO_RETURN_TYPE;
-        relevance = DART_RELEVANCE_LOCAL_ACCESSOR;
-      } else {
-        if (!opType.includeVoidReturnSuggestions && _isVoid(typeName)) {
-          return;
-        }
-        elemKind = protocol.ElementKind.METHOD;
-        param = declaration.parameters;
-        relevance = DART_RELEVANCE_LOCAL_METHOD;
+      var element = declaration.declaredElement;
+      var inheritanceDistance = -1.0;
+      var enclosingClass = request.target.containingNode
+          .thisOrAncestorOfType<ClassDeclaration>();
+      if (enclosingClass != null) {
+        inheritanceDistance = request.featureComputer
+            .inheritanceDistanceFeature(
+                enclosingClass.declaredElement, element.enclosingElement);
       }
-      if (useNewRelevance) {
-        relevance = _relevanceForType(declaration.declaredElement.returnType);
+      if (element is MethodElement) {
+        builder.suggestMethod(element,
+            inheritanceDistance: inheritanceDistance, kind: _defaultKind);
+      } else if (element is PropertyAccessorElement) {
+        builder.suggestAccessor(element,
+            inheritanceDistance: inheritanceDistance);
       }
-      _addLocalSuggestion_includeReturnValueSuggestions(
-        declaration.declaredElement,
-        declaration.name,
-        typeName,
-        elemKind,
-        isAbstract: declaration.isAbstract,
-        isDeprecated: isDeprecated(declaration),
-        classDecl: declaration.parent,
-        param: param,
-        relevance: relevance,
-        type: declaration.declaredElement.type,
-      );
     }
   }
 
@@ -378,23 +351,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       VariableDeclarationList varList, VariableDeclaration varDecl) {
     if (opType.includeReturnValueSuggestions) {
       var variableElement = varDecl.declaredElement;
-//      builder.suggestTopLevelPropertyAccessor((variableElement as TopLevelVariableElement).getter);
-      var variableType = variableElement.type;
-      int relevance;
-      if (useNewRelevance) {
-        relevance = _relevanceForType(variableType);
-      } else {
-        relevance = DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE;
-      }
-      _addLocalSuggestion_includeReturnValueSuggestions(
-        variableElement,
-        varDecl.name,
-        varList.type,
-        protocol.ElementKind.TOP_LEVEL_VARIABLE,
-        isDeprecated: isDeprecated(varList) || isDeprecated(varDecl),
-        relevance: relevance,
-        type: variableType,
-      );
+      builder.suggestTopLevelPropertyAccessor(
+          (variableElement as TopLevelVariableElement).getter);
     }
   }
 
