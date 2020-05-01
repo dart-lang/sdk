@@ -139,6 +139,23 @@ int b = a;
     ]);
   }
 
+  test_analysisOptions_file_inThirdParty() async {
+    newFile('/workspace/dart/analysis_options/lib/third_party.yaml',
+        content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: false
+''');
+
+    var aPath = '/workspace/third_party/dart/aaa/lib/a.dart';
+    await assertErrorsInFile(aPath, r'''
+num a = 0;
+int b = a;
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+    ]);
+  }
+
   test_analysisOptions_lints() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
 linter:
