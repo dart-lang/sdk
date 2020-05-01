@@ -1852,26 +1852,10 @@ class VariableModel<Variable, Type> {
           [writtenType], tested, true, false, writeCaptured);
     }
 
-    List<Type> newPromotedTypes;
-    if (promotedTypes == null) {
-      newPromotedTypes = null;
-    } else if (typeOperations.isSubtypeOf(writtenType, promotedTypes.last)) {
-      newPromotedTypes = promotedTypes;
-    } else {
-      int numChainElementsToKeep = promotedTypes.length - 1;
-      while (true) {
-        if (numChainElementsToKeep == 0) {
-          newPromotedTypes = null;
-          break;
-        } else if (typeOperations.isSubtypeOf(
-            writtenType, promotedTypes[numChainElementsToKeep - 1])) {
-          newPromotedTypes = promotedTypes.sublist(0, numChainElementsToKeep);
-          break;
-        } else {
-          numChainElementsToKeep--;
-        }
-      }
-    }
+    List<Type> newPromotedTypes = _demoteViaAssignment(
+      writtenType,
+      typeOperations,
+    );
 
     Type declaredType = typeOperations.variableType(variable);
     newPromotedTypes = _tryPromoteToTypeOfInterest(
@@ -1894,6 +1878,29 @@ class VariableModel<Variable, Type> {
   VariableModel<Variable, Type> writeCapture() {
     return new VariableModel<Variable, Type>(
         null, const [], assigned, false, true);
+  }
+
+  List<Type> _demoteViaAssignment(
+    Type writtenType,
+    TypeOperations<Variable, Type> typeOperations,
+  ) {
+    if (promotedTypes == null) {
+      return null;
+    }
+
+    int numElementsToKeep = promotedTypes.length;
+    for (;; numElementsToKeep--) {
+      if (numElementsToKeep == 0) {
+        return null;
+      }
+      Type promoted = promotedTypes[numElementsToKeep - 1];
+      if (typeOperations.isSubtypeOf(writtenType, promoted)) {
+        if (numElementsToKeep == promotedTypes.length) {
+          return promotedTypes;
+        }
+        return promotedTypes.sublist(0, numElementsToKeep);
+      }
+    }
   }
 
   /// We say that a variable `x` is promotable via initialization given
