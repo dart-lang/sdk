@@ -48,6 +48,7 @@ class VMLibraryHooks {
   // Implementation of package root/map provision.
   static var packageRootString;
   static var packageConfigString;
+  static var packageRootUriFuture;
   static var packageConfigUriFuture;
   static var resolvePackageUriFuture;
 

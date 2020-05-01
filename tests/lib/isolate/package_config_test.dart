@@ -8,26 +8,33 @@
 import 'dart:io';
 import 'dart:isolate';
 
-const String packageConfig = "foobar:///no/such/file/";
-const String errorString = "IsolateSpawnException: Unable to spawn isolate:";
-const String errorString2 = "Error when reading '$packageConfig'";
+final SPAWN_PACKAGE_CONFIG = "foobar:///no/such/file/";
 
-main([args, msg]) async {
-  if (msg != null) {
-    throw 'unreachable';
+main([args, port]) async {
+  if (port != null) {
+    testPackageConfig(port);
+    return;
   }
-  dynamic error;
-  try {
-    await Isolate.spawnUri(Platform.script, [], 'msg',
-        packageConfig: Uri.parse('foobar:///no/such/file/'));
-  } catch (e) {
-    error = e;
-  }
-  if (error == null) throw 'Expected a Spawning error.';
-  if (!'$error'.contains(errorString)) {
-    throw 'Epected: $errorString to contain "$errorString"';
-  }
-  if (!'$error'.contains(errorString2)) {
-    throw 'Epected: $errorString to contain "$errorString2"';
-  }
+  var p = new RawReceivePort();
+  Isolate.spawnUri(Platform.script, [], p.sendPort,
+      packageConfig: Uri.parse(SPAWN_PACKAGE_CONFIG));
+  p.handler = (msg) {
+    p.close();
+    if (msg[0] != SPAWN_PACKAGE_CONFIG) {
+      throw "Bad package config in child isolate: ${msg[0]}";
+    }
+    if (msg[1] != null) {
+      throw "Non-null loaded package config in isolate: ${msg[1]}";
+    }
+    print("SUCCESS");
+  };
+  print("Spawning isolate's package config: ${await Isolate.packageConfig}");
+}
+
+testPackageConfig(port) async {
+  var packageConfigStr = Platform.packageConfig;
+  var packageConfig = await Isolate.packageConfig;
+  print("Spawned isolate's package config flag: $packageConfigStr");
+  print("Spawned isolate's loaded package config: $packageConfig");
+  port.send([packageConfigStr, packageConfig.toString()]);
 }
