@@ -419,6 +419,24 @@ n(int x) {}
     ]);
   }
 
+  test_binary_eqEq_covariantParameterType() async {
+    await assertErrorsInCode(r'''
+class A {
+  bool operator==(covariant A other) => false;
+}
+
+main(A a, A? aq) {
+  a == 0;
+  aq == 1;
+  aq == aq;
+  aq == null;
+}
+''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 86, 1),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 97, 1),
+    ]);
+  }
+
   test_dynamicCast() async {
     await assertNoErrorsInCode(r'''
 m() {

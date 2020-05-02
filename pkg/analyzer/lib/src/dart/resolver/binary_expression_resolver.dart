@@ -129,12 +129,11 @@ class BinaryExpressionResolver {
     return _resolveTypeParameter(type);
   }
 
+  /// TODO(scheglov) inline?
   void _resolve1(BinaryExpressionImpl node) {
     Token operator = node.operator;
     if (operator.isUserDefinableOperator) {
       _resolveBinaryExpression(node, operator.lexeme);
-    } else if (operator.type == TokenType.BANG_EQ) {
-      _resolveBinaryExpression(node, TokenType.EQ_EQ.lexeme);
     }
   }
 
@@ -157,7 +156,11 @@ class BinaryExpressionResolver {
     _inferenceHelper.recordStaticType(node, staticType);
   }
 
-  void _resolveBinaryExpression(BinaryExpression node, String methodName) {
+  void _resolveBinaryExpression(
+    BinaryExpression node,
+    String methodName, {
+    bool promoteLeftTypeToNonNull = false,
+  }) {
     Expression leftOperand = node.leftOperand;
 
     if (leftOperand is ExtensionOverride) {
@@ -182,6 +185,10 @@ class BinaryExpressionResolver {
         leftOperand,
       );
       return;
+    }
+
+    if (promoteLeftTypeToNonNull) {
+      leftType = _typeSystem.promoteToNonNull(leftType);
     }
 
     ResolutionResult result = _typePropertyResolver.resolve(
@@ -213,15 +220,23 @@ class BinaryExpressionResolver {
 
   void _resolveEqual(BinaryExpressionImpl node, {@required bool notEqual}) {
     var left = node.leftOperand;
-    var right = node.rightOperand;
-    var flow = _flowAnalysis?.flow;
-
     left.accept(_resolver);
+    left = node.leftOperand;
+
+    var flow = _flowAnalysis?.flow;
     flow?.equalityOp_rightBegin(left);
+
+    var right = node.rightOperand;
     right.accept(_resolver);
-    _resolve1(node);
+    right = node.rightOperand;
+
     flow?.equalityOp_end(node, right, notEqual: notEqual);
 
+    _resolveBinaryExpression(
+      node,
+      TokenType.EQ_EQ.lexeme,
+      promoteLeftTypeToNonNull: true,
+    );
     _resolve2(node);
   }
 
