@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/completion/dart/feature_computer.da
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -298,12 +299,22 @@ class SuggestionBuilder {
   //  approach is followed.
   bool laterReplacesEarlier = true;
 
+  /// A flag indicating whether the [_cachedContainingMemberName] has been
+  /// computed.
+  bool _hasContainingMemberName = false;
+
+  /// The name of the member containing the completion location, or `null` if
+  /// either the completion location isn't within a member, the target of the
+  /// completion isn't `super`, or the name of the member hasn't yet been
+  /// computed. In the latter case, [_hasContainingMemberName] will be `false`.
+  String _cachedContainingMemberName;
+
   /// A flag indicating whether the [_cachedContextType] has been computed.
   bool _hasContextType = false;
 
   /// The context type associated with the completion location, or `null` if
-  /// either the location does not have a context type, or if the context type
-  /// has not yet been computed. In the latter case, [_hasContextType] will be
+  /// either the location doesn't have a context type, or the context type
+  /// hasn't yet been computed. In the latter case, [_hasContextType] will be
   /// `false`.
   DartType _cachedContextType;
 
@@ -323,6 +334,28 @@ class SuggestionBuilder {
   /// that have been built.
   Iterable<CompletionSuggestion> get suggestions => _suggestionMap.values;
 
+  /// Return the name of the member containing the completion location, or
+  /// `null` if the completion location isn't within a member or if the target
+  /// of the completion isn't `super`.
+  String get _containingMemberName {
+    if (!_hasContainingMemberName) {
+      _hasContainingMemberName = true;
+      if (request.dotTarget is SuperExpression) {
+        var containingMethod = request.target.containingNode
+            .thisOrAncestorOfType<MethodDeclaration>();
+        if (containingMethod != null) {
+          var id = containingMethod.name;
+          if (id != null) {
+            _cachedContainingMemberName = id.name;
+          }
+        }
+      }
+    }
+    return _cachedContainingMemberName;
+  }
+
+  /// Return the context type associated with the completion location, or `null`
+  /// if the location doesn't have a context type.
   DartType get _contextType {
     if (!_hasContextType) {
       _hasContextType = true;
@@ -332,41 +365,29 @@ class SuggestionBuilder {
     return _cachedContextType;
   }
 
-  /// Add a suggestion for the [accessor]. If the accessor is being invoked with
-  /// a target of `super`, then the [containingMemberName] should be the name of
-  /// the member containing the invocation. The [inheritanceDistance] is the
-  /// value of the inheritance distance feature computed for the method.
+  /// Add a suggestion for an [accessor] declared within a class or extension.
+  /// If the accessor is being invoked with a target of `super`, then the
+  /// [containingMemberName] should be the name of the member containing the
+  /// invocation. The [inheritanceDistance] is the value of the inheritance
+  /// distance feature computed for the accessor (or `-1.0` if the accessor is a
+  /// static accessor).
   void suggestAccessor(PropertyAccessorElement accessor,
       {String containingMemberName, @required double inheritanceDistance}) {
+    // TODO(brianwilkerson) Remove [containingMemberName].
+    containingMemberName ??= _containingMemberName;
+    assert(accessor.enclosingElement is ClassElement ||
+        accessor.enclosingElement is ExtensionElement);
     if (accessor.isSynthetic) {
       // Avoid visiting a field twice. All fields induce a getter, but only
       // non-final fields induce a setter, so we don't add a suggestion for a
       // synthetic setter.
       if (accessor.isGetter) {
         var variable = accessor.variable;
-        int relevance;
-        if (request.useNewRelevance) {
-          var featureComputer = request.featureComputer;
-          var contextType = featureComputer.contextTypeFeature(
-              request.contextType, variable.type);
-          var elementKind = featureComputer.elementKindFeature(
-              variable, request.opType.completionLocation);
-          var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
-          var startsWithDollar =
-              featureComputer.startsWithDollarFeature(accessor.name);
-          var superMatches = featureComputer.superMatchesFeature(
-              containingMemberName, accessor.name);
-          relevance = _computeMemberRelevance(
-              contextType: contextType,
-              elementKind: elementKind,
-              hasDeprecated: hasDeprecated,
-              inheritanceDistance: inheritanceDistance,
-              startsWithDollar: startsWithDollar,
-              superMatches: superMatches);
-        } else {
-          relevance = _computeOldMemberRelevance(accessor);
+        if (variable is FieldElement) {
+          suggestField(variable,
+              containingMemberName: containingMemberName,
+              inheritanceDistance: inheritanceDistance);
         }
-        _add(createSuggestion(request, variable, relevance: relevance));
       }
     } else {
       var type =
@@ -532,6 +553,47 @@ class SuggestionBuilder {
         createSuggestion(request, extension, kind: kind, relevance: relevance));
   }
 
+  /// Add a suggestion for a [field]. If the field is being referenced with a
+  /// target of `super`, then the [containingMemberName] should be the name of
+  /// the member containing the reference. The [inheritanceDistance] is the
+  /// value of the inheritance distance feature computed for the field (or
+  /// `-1.0` if the field is a static field).
+  void suggestField(FieldElement field,
+      {String containingMemberName, @required double inheritanceDistance}) {
+    // TODO(brianwilkerson) Remove [containingMemberName].
+    containingMemberName ??= _containingMemberName;
+    int relevance;
+    if (request.useNewRelevance) {
+      var featureComputer = request.featureComputer;
+      var contextType =
+          featureComputer.contextTypeFeature(request.contextType, field.type);
+      var elementKind = featureComputer.elementKindFeature(
+          field, request.opType.completionLocation);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(field);
+      var startsWithDollar =
+          featureComputer.startsWithDollarFeature(field.name);
+      var superMatches =
+          featureComputer.superMatchesFeature(containingMemberName, field.name);
+      relevance = _computeMemberRelevance(
+          contextType: contextType,
+          elementKind: elementKind,
+          hasDeprecated: hasDeprecated,
+          inheritanceDistance: inheritanceDistance,
+          startsWithDollar: startsWithDollar,
+          superMatches: superMatches);
+    } else {
+      relevance = _computeOldMemberRelevance(field);
+      if (request.opType.includeReturnValueSuggestions) {
+        relevance =
+            request.opType.returnValueSuggestionsFilter(field.type, relevance);
+      }
+      if (relevance == null) {
+        return;
+      }
+    }
+    _add(createSuggestion(request, field, relevance: relevance));
+  }
+
   /// Add a suggestion to reference the [field] in a field formal parameter.
   void suggestFieldFormalParameter(FieldElement field) {
     // TODO(brianwilkerson) Add a parameter (`bool includePrefix`) indicating
@@ -612,6 +674,8 @@ class SuggestionBuilder {
       {String containingMemberName,
       CompletionSuggestionKind kind,
       @required double inheritanceDistance}) {
+    // TODO(brianwilkerson) Remove [containingMemberName].
+    containingMemberName ??= _containingMemberName;
     // TODO(brianwilkerson) Refactor callers so that we're passing in the type
     //  of the target (assuming we don't already have that type available via
     //  the [request]) and compute the [inheritanceDistance] in this method.
@@ -692,6 +756,11 @@ class SuggestionBuilder {
       relevance = function.library == request.libraryElement
           ? DART_RELEVANCE_LOCAL_FUNCTION
           : DART_RELEVANCE_DEFAULT;
+      relevance =
+          request.opType.returnValueSuggestionsFilter(function.type, relevance);
+      if (relevance == null) {
+        return;
+      }
     }
 
     _add(createSuggestion(request, function, kind: kind, relevance: relevance));
@@ -701,26 +770,64 @@ class SuggestionBuilder {
   /// provided it will be used as the kind for the suggestion.
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
-    if (accessor.isSetter && accessor.isSynthetic) {
-      // TODO(brianwilkerson) Only discard the setter if a suggestion is built
-      //  for the corresponding getter. Currently that's always the case.
-      //  Handling this more generally will require the ability to build
-      //  suggestions for setters and then remove them later when the
-      //  corresponding getter is found.
-      return;
+    assert(accessor.enclosingElement is CompilationUnitElement);
+    if (accessor.isSynthetic) {
+      // Avoid visiting a field twice. All fields induce a getter, but only
+      // non-final fields induce a setter, so we don't add a suggestion for a
+      // synthetic setter.
+      if (accessor.isGetter) {
+        var variable = accessor.variable;
+        if (variable is TopLevelVariableElement) {
+          suggestTopLevelVariable(variable, kind: kind);
+        }
+      }
+    } else {
+      var type =
+          accessor.isGetter ? accessor.returnType : accessor.parameters[0].type;
+      int relevance;
+      if (request.useNewRelevance) {
+        var featureComputer = request.featureComputer;
+        var contextType =
+            featureComputer.contextTypeFeature(request.contextType, type);
+        var elementKind = featureComputer.elementKindFeature(
+            accessor, request.opType.completionLocation);
+        var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+        var startsWithDollar =
+            featureComputer.startsWithDollarFeature(accessor.name);
+        relevance = _computeMemberRelevance(
+            contextType: contextType,
+            elementKind: elementKind,
+            hasDeprecated: hasDeprecated,
+            inheritanceDistance: -1.0,
+            startsWithDollar: startsWithDollar,
+            superMatches: -1.0);
+      } else {
+        relevance = _computeOldMemberRelevance(accessor);
+        if (request.opType.includeReturnValueSuggestions) {
+          relevance =
+              request.opType.returnValueSuggestionsFilter(type, relevance);
+        }
+        if (relevance == null) {
+          return;
+        }
+      }
+      _add(createSuggestion(request, accessor, relevance: relevance));
     }
-    // TODO(brianwilkerson) Should we use the variable only when the [element]
-    //  is synthetic?
-    var variable = accessor.variable;
+  }
+
+  /// Add a suggestion for the top-level property [accessor]. If a [kind] is
+  /// provided it will be used as the kind for the suggestion.
+  void suggestTopLevelVariable(TopLevelVariableElement variable,
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+    assert(variable.enclosingElement is CompilationUnitElement);
     int relevance;
     if (request.useNewRelevance) {
       relevance =
           _computeTopLevelRelevance(variable, elementType: variable.type);
-    } else if (accessor.hasOrInheritsDeprecated) {
+    } else if (variable.hasOrInheritsDeprecated) {
       relevance = DART_RELEVANCE_LOW;
     } else {
-      var type =
-          accessor.isGetter ? accessor.returnType : accessor.parameters[0].type;
+      var type = variable.type;
       relevance = _computeOldMemberRelevance(variable);
       relevance = request.opType.returnValueSuggestionsFilter(type, relevance);
       if (relevance == null) {
@@ -780,6 +887,8 @@ class SuggestionBuilder {
   /// Compute the old relevance score for a member.
   int _computeOldMemberRelevance(Element member,
       {String containingMethodName}) {
+    // TODO(brianwilkerson) Remove [containingMethodName].
+    containingMethodName ??= _containingMemberName;
     if (member.hasOrInheritsDeprecated) {
       return DART_RELEVANCE_LOW;
     } else if (member.name == containingMethodName) {

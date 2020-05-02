@@ -614,7 +614,7 @@ class A { var isVisible;}
 main(A p) { var v1 = p.is^; }''');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'isVisible',
-        relevance: DART_RELEVANCE_LOCAL_ACCESSOR);
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
   Future<void> test_keyword() {

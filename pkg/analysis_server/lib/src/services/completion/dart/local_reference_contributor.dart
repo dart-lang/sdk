@@ -187,26 +187,16 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if ((opType.includeReturnValueSuggestions &&
             (!opType.inStaticMethodBody || fieldDecl.isStatic)) ||
         suggestLocalFields) {
-      var deprecated = isDeprecated(fieldDecl) || isDeprecated(varDecl);
-      var fieldElement = varDecl.declaredElement;
-      var fieldType = fieldElement.type;
-      var typeName = fieldDecl.fields.type;
-      int relevance;
-      if (useNewRelevance) {
-        relevance = _relevanceForType(fieldType);
-      } else {
-        relevance = DART_RELEVANCE_LOCAL_FIELD;
+      var field = varDecl.declaredElement;
+      var inheritanceDistance = -1.0;
+      var enclosingClass = request.target.containingNode
+          .thisOrAncestorOfType<ClassDeclaration>();
+      if (enclosingClass != null) {
+        inheritanceDistance = request.featureComputer
+            .inheritanceDistanceFeature(
+                enclosingClass.declaredElement, field.enclosingElement);
       }
-      _addLocalSuggestion_includeReturnValueSuggestions(
-        fieldElement,
-        varDecl.name,
-        typeName,
-        protocol.ElementKind.FIELD,
-        isDeprecated: deprecated,
-        relevance: relevance,
-        classDecl: fieldDecl.parent,
-        type: fieldType,
-      );
+      builder.suggestField(field, inheritanceDistance: inheritanceDistance);
     }
   }
 
@@ -214,39 +204,23 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredFunction(FunctionDeclaration declaration) {
     if (opType.includeReturnValueSuggestions ||
         opType.includeVoidReturnSuggestions) {
-      var typeName = declaration.returnType;
-      protocol.ElementKind elemKind;
-      var relevance = DART_RELEVANCE_DEFAULT;
-      if (declaration.isGetter) {
-        elemKind = protocol.ElementKind.GETTER;
-        relevance = DART_RELEVANCE_LOCAL_ACCESSOR;
-      } else if (declaration.isSetter) {
+      if (declaration.isSetter) {
         if (!opType.includeVoidReturnSuggestions) {
           return;
         }
-        elemKind = protocol.ElementKind.SETTER;
-        typeName = NO_RETURN_TYPE;
-        relevance = DART_RELEVANCE_LOCAL_ACCESSOR;
-      } else {
-        if (!opType.includeVoidReturnSuggestions && _isVoid(typeName)) {
+      } else if (!declaration.isGetter) {
+        if (!opType.includeVoidReturnSuggestions &&
+            _isVoid(declaration.returnType)) {
           return;
         }
-        elemKind = protocol.ElementKind.FUNCTION;
-        relevance = DART_RELEVANCE_LOCAL_FUNCTION;
       }
-      if (useNewRelevance) {
-        relevance = _relevanceForType(declaration.declaredElement.returnType);
+      var declaredElement = declaration.declaredElement;
+      if (declaredElement is FunctionElement) {
+        builder.suggestTopLevelFunction(declaredElement, kind: _defaultKind);
+      } else if (declaredElement is PropertyAccessorElement) {
+        builder.suggestTopLevelPropertyAccessor(declaredElement,
+            kind: _defaultKind);
       }
-      _addLocalSuggestion_includeReturnValueSuggestions(
-        declaration.declaredElement,
-        declaration.name,
-        typeName,
-        elemKind,
-        isDeprecated: isDeprecated(declaration),
-        param: declaration.functionExpression.parameters,
-        relevance: relevance,
-        type: declaration.declaredElement.type,
-      );
     }
   }
 

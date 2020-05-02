@@ -3070,7 +3070,15 @@ main() {
   Future<void> test_IfStatement() async {
     // SimpleIdentifier  IfStatement
     addTestSource('''
-        class A {var b; X _c; foo() {A a; if (true) ^}}''');
+class A {
+  var b;
+  X _c;
+  foo() {
+    A a; if (true) ^
+  }
+}
+class X {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -3101,7 +3109,16 @@ main(){var a; if (^)}''');
   Future<void> test_IfStatement_empty() async {
     // SimpleIdentifier  IfStatement
     addTestSource('''
-        class A {var b; X _c; foo() {A a; if (^) something}}''');
+class A {
+  var b;
+  X _c;
+  foo() {
+    A a;
+    if (^) something
+  }
+}
+class X {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -3116,13 +3133,22 @@ main(){var a; if (^)}''');
   Future<void> test_IfStatement_empty_private() async {
     // SimpleIdentifier  IfStatement
     addTestSource('''
-        class A {var b; X _c; foo() {A a; if (_^) something}}''');
+class A {
+  var b;
+  X _c;
+  foo() {
+    A a;
+    if (_^) something
+  }
+}
+class X {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertSuggestField('b', null, relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestField('_c', 'X', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestField('_c', 'X', relevance: DART_RELEVANCE_DEFAULT);
     assertNotSuggested('Object');
     assertSuggestClass('A');
     assertNotSuggested('==');
@@ -3882,7 +3908,7 @@ class Z {}
     // If user prefixed completion with '_' then suggestion of private members
     // should be the same as public members
     var getterG =
-        assertSuggestField('_g', null, relevance: DART_RELEVANCE_LOCAL_FIELD);
+        assertSuggestField('_g', null, relevance: DART_RELEVANCE_DEFAULT);
     if (getterG != null) {
       expect(getterG.element.isDeprecated, isFalse);
       expect(getterG.element.isPrivate, isTrue);
