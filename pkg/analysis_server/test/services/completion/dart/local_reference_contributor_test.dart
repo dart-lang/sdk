@@ -1552,7 +1552,18 @@ main() {A a; a^..b}''');
 
   Future<void> test_CatchClause_typed() async {
     // Block  CatchClause  TryStatement
-    addTestSource('class A {a() {try{var x;} on E catch (e) {^}}}');
+    addTestSource('''
+class A {
+  a() {
+    try {
+      var x;
+    } on E catch (e) {
+      ^
+    }
+  }
+}
+class E {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -3016,8 +3027,12 @@ class C2 { }
   Future<void> test_FunctionExpression_body_function() async {
     // Block  BlockFunctionBody  FunctionExpression
     addTestSource('''
-        void bar() { }
-        String foo(List args) {x.then((R b) {^});}''');
+void bar() { }
+String foo(List args) {
+  x.then((R b) {^});
+}
+class R {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -4647,7 +4662,7 @@ class X {foo(){A^.bar}}''');
     addTestSource('main() {var ab; var _ab; ^}');
     await computeSuggestions();
     assertSuggestLocalVariable('ab', null);
-    assertSuggestLocalVariable('_ab', null, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestLocalVariable('_ab', null);
   }
 
   Future<void> test_prioritization_private() async {
@@ -4661,7 +4676,7 @@ class X {foo(){A^.bar}}''');
     addTestSource('main() {var ab; var _ab; a^}');
     await computeSuggestions();
     assertSuggestLocalVariable('ab', null);
-    assertSuggestLocalVariable('_ab', null, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestLocalVariable('_ab', null);
   }
 
   Future<void> test_PropertyAccess_expression() async {

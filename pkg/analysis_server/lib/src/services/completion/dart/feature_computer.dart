@@ -12,7 +12,7 @@ import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, Element, FieldElement;
+    show ClassElement, CompilationUnitElement, Element, FieldElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -545,13 +545,17 @@ extension ElementExtension on Element {
   /// Return `true` if this element, or any enclosing element, has been
   /// annotated with the `@deprecated` annotation.
   bool get hasOrInheritsDeprecated {
-    var element = this;
-    while (element != null) {
+    if (hasDeprecated) {
+      return true;
+    }
+    var element = enclosingElement;
+    if (element is ClassElement) {
       if (element.hasDeprecated) {
         return true;
       }
       element = element.enclosingElement;
     }
-    return false;
+    return element is CompilationUnitElement &&
+        element.enclosingElement.hasDeprecated;
   }
 }

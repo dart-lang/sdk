@@ -27,6 +27,7 @@ import 'package:meta/meta.dart';
 CompletionSuggestion createSuggestion(
     DartCompletionRequest request, Element element,
     {String completion,
+    protocol.ElementKind elementKind,
     CompletionSuggestionKind kind,
     int relevance = DART_RELEVANCE_DEFAULT}) {
   if (element == null) {
@@ -53,6 +54,9 @@ CompletionSuggestion createSuggestion(
   }
 
   suggestion.element = protocol.convertElement(element);
+  if (elementKind != null) {
+    suggestion.element.kind = elementKind;
+  }
   var enclosingElement = element.enclosingElement;
   if (enclosingElement is ClassElement) {
     suggestion.declaringType = enclosingElement.displayName;
@@ -425,7 +429,28 @@ class SuggestionBuilder {
     }
   }
 
-  /// Add a suggestion for the [classElement]. If a [kind] is provided it will
+  /// Add a suggestion for a catch [parameter].
+  void suggestCatchParameter(LocalVariableElement parameter) {
+    var variableType = parameter.type;
+    int relevance;
+    if (request.useNewRelevance) {
+      var contextTypeFeature = request.featureComputer
+          .contextTypeFeature(_contextType, variableType);
+      relevance = toRelevance(contextTypeFeature, 800);
+    } else {
+      relevance = _computeOldMemberRelevance(parameter);
+      relevance =
+          request.opType.returnValueSuggestionsFilter(variableType, relevance);
+      if (relevance == null) {
+        return;
+      }
+    }
+
+    _add(createSuggestion(request, parameter,
+        elementKind: protocol.ElementKind.PARAMETER, relevance: relevance));
+  }
+
+  /// Add a suggestion for a [classElement]. If a [kind] is provided it will
   /// be used as the kind for the suggestion.
   void suggestClass(ClassElement classElement,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
@@ -447,7 +472,7 @@ class SuggestionBuilder {
         kind: kind, relevance: relevance));
   }
 
-  /// Add a suggestion for the [constructor]. If a [kind] is provided
+  /// Add a suggestion for a [constructor]. If a [kind] is provided
   /// it will be used as the kind for the suggestion.
   void suggestConstructor(ConstructorElement constructor,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
@@ -487,7 +512,7 @@ class SuggestionBuilder {
         completion: completion, kind: kind, relevance: relevance));
   }
 
-  /// Add a suggestion for the top-level [element]. If a [kind] is provided it
+  /// Add a suggestion for a top-level [element]. If a [kind] is provided it
   /// will be used as the kind for the suggestion.
   void suggestElement(Element element,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
@@ -510,7 +535,7 @@ class SuggestionBuilder {
     }
   }
 
-  /// Add a suggestion for the enum [constant].
+  /// Add a suggestion for an enum [constant].
   void suggestEnumConstant(FieldElement constant) {
     var constantName = constant.name;
     var enumElement = constant.enclosingElement;
@@ -535,7 +560,7 @@ class SuggestionBuilder {
         completion: completion, relevance: relevance));
   }
 
-  /// Add a suggestion for the [extension]. If a [kind] is provided it will be
+  /// Add a suggestion for an [extension]. If a [kind] is provided it will be
   /// used as the kind for the suggestion.
   void suggestExtension(ExtensionElement extension,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
@@ -594,7 +619,7 @@ class SuggestionBuilder {
     _add(createSuggestion(request, field, relevance: relevance));
   }
 
-  /// Add a suggestion to reference the [field] in a field formal parameter.
+  /// Add a suggestion to reference a [field] in a field formal parameter.
   void suggestFieldFormalParameter(FieldElement field) {
     // TODO(brianwilkerson) Add a parameter (`bool includePrefix`) indicating
     //  whether to include the `this.` prefix in the completion.
@@ -628,7 +653,7 @@ class SuggestionBuilder {
     ));
   }
 
-  /// Add a suggestion for the [functionTypeAlias]. If a [kind] is provided it
+  /// Add a suggestion for a [functionTypeAlias]. If a [kind] is provided it
   /// will be used as the kind for the suggestion.
   void suggestFunctionTypeAlias(FunctionTypeAliasElement functionTypeAlias,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
@@ -665,7 +690,29 @@ class SuggestionBuilder {
     _add(createSuggestion(request, function, relevance: relevance));
   }
 
-  /// Add a suggestion for the [method]. If the method is being invoked with a
+  /// Add a suggestion for a local [variable].
+  void suggestLocalVariable(LocalVariableElement variable) {
+    var variableType = variable.type;
+    int relevance;
+    if (request.useNewRelevance) {
+      // TODO(brianwilkerson) Use the distance to the local variable as
+      //  another feature.
+      var contextTypeFeature = request.featureComputer
+          .contextTypeFeature(_contextType, variableType);
+      relevance = toRelevance(contextTypeFeature, 800);
+    } else {
+      relevance = _computeOldMemberRelevance(variable);
+      relevance =
+          request.opType.returnValueSuggestionsFilter(variableType, relevance);
+      if (relevance == null) {
+        return;
+      }
+    }
+
+    _add(createSuggestion(request, variable, relevance: relevance));
+  }
+
+  /// Add a suggestion for a [method]. If the method is being invoked with a
   /// target of `super`, then the [containingMemberName] should be the name of
   /// the member containing the invocation. If a [kind] is provided it will be
   /// used as the kind for the suggestion. The [inheritanceDistance] is the
@@ -742,7 +789,29 @@ class SuggestionBuilder {
     }
   }
 
-  /// Add a suggestion for the top-level [function]. If a [kind] is provided it
+  /// Add a suggestion for a [parameter].
+  void suggestParameter(ParameterElement parameter) {
+    var variableType = parameter.type;
+    int relevance;
+    if (request.useNewRelevance) {
+      // TODO(brianwilkerson) Use the distance to the declaring function as
+      //  another feature.
+      var contextTypeFeature = request.featureComputer
+          .contextTypeFeature(_contextType, variableType);
+      relevance = toRelevance(contextTypeFeature, 800);
+    } else {
+      relevance = _computeOldMemberRelevance(parameter);
+      relevance =
+          request.opType.returnValueSuggestionsFilter(variableType, relevance);
+      if (relevance == null) {
+        return;
+      }
+    }
+
+    _add(createSuggestion(request, parameter, relevance: relevance));
+  }
+
+  /// Add a suggestion for a top-level [function]. If a [kind] is provided it
   /// will be used as the kind for the suggestion.
   void suggestTopLevelFunction(FunctionElement function,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
@@ -766,7 +835,7 @@ class SuggestionBuilder {
     _add(createSuggestion(request, function, kind: kind, relevance: relevance));
   }
 
-  /// Add a suggestion for the top-level property [accessor]. If a [kind] is
+  /// Add a suggestion for a top-level property [accessor]. If a [kind] is
   /// provided it will be used as the kind for the suggestion.
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
@@ -815,8 +884,8 @@ class SuggestionBuilder {
     }
   }
 
-  /// Add a suggestion for the top-level property [accessor]. If a [kind] is
-  /// provided it will be used as the kind for the suggestion.
+  /// Add a suggestion for a top-level [variable]. If a [kind] is provided it
+  /// will be used as the kind for the suggestion.
   void suggestTopLevelVariable(TopLevelVariableElement variable,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
     assert(variable.enclosingElement is CompilationUnitElement);
@@ -838,7 +907,21 @@ class SuggestionBuilder {
     _add(createSuggestion(request, variable, kind: kind, relevance: relevance));
   }
 
-  /// Add the given [suggestion] if it isn't `null`.
+  /// Add a suggestion for a type [parameter].
+  void suggestTypeParameter(TypeParameterElement parameter) {
+    int relevance;
+    if (request.useNewRelevance) {
+      relevance = Relevance.typeParameter;
+    } else {
+      relevance = _computeOldMemberRelevance(parameter);
+    }
+
+    _add(createSuggestion(request, parameter,
+        kind: CompletionSuggestionKind.IDENTIFIER, relevance: relevance));
+  }
+
+  /// Add the given [suggestion] if it isn't `null` and if it isn't shadowed by
+  /// a previously added suggestion.
   void _add(protocol.CompletionSuggestion suggestion) {
     if (suggestion != null) {
       if (laterReplacesEarlier) {
@@ -902,6 +985,9 @@ class SuggestionBuilder {
       // https://github.com/dart-lang/sdk/issues/27303
       return DART_RELEVANCE_LOW;
     }
+    if (member is LocalVariableElement) {
+      return DART_RELEVANCE_LOCAL_VARIABLE;
+    }
     if (!member.name.startsWith('_') &&
         member.library == request.libraryElement) {
       // Locally declared elements sometimes have a special relevance.
@@ -913,10 +999,12 @@ class SuggestionBuilder {
         return DART_RELEVANCE_LOCAL_FUNCTION;
       } else if (member is MethodElement) {
         return DART_RELEVANCE_LOCAL_METHOD;
+      } else if (member is ParameterElement) {
+        return DART_RELEVANCE_PARAMETER;
       } else if (member is TopLevelVariableElement) {
         return DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE;
-      } else if (member is LocalVariableElement) {
-        return DART_RELEVANCE_LOCAL_VARIABLE;
+      } else if (member is TypeParameterElement) {
+        return DART_RELEVANCE_TYPE_PARAMETER;
       }
     }
     return DART_RELEVANCE_DEFAULT;
