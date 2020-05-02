@@ -5494,6 +5494,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try redirecting to a different constructor.");
 
   /**
+   * A factory constructor can't redirect to a non-generative constructor of an
+   * abstract class.
+   */
+  static const CompileTimeErrorCode REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR =
+      CompileTimeErrorCode(
+          'REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
+          "The redirecting constructor '{0}' can't redirect to a constructor "
+              "of the abstract class '{1}'.",
+          correction: "Try redirecting to a constructor of a different class.");
+
+  /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with
    * the const modifier but <i>k'</i> is not a constant constructor.
    */
