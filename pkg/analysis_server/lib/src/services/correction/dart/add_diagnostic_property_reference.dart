@@ -208,4 +208,8 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
     }
     return false;
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static AddDiagnosticPropertyReference newInstance() =>
+      AddDiagnosticPropertyReference();
 }

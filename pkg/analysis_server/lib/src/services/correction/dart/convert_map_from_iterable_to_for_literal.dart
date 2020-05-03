@@ -169,6 +169,10 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
       });
     });
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static ConvertMapFromIterableToForLiteral newInstance() =>
+      ConvertMapFromIterableToForLiteral();
 }
 
 /// A visitor that can be used to find references to a parameter.

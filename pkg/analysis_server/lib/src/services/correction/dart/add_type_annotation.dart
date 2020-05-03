@@ -195,4 +195,7 @@ class AddTypeAnnotation extends CorrectionProducer {
   DartChangeBuilder _temporaryBuilder(DartChangeBuilder builder) =>
       DartChangeBuilderImpl.forWorkspace(
           (builder as DartChangeBuilderImpl).workspace);
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static AddTypeAnnotation newInstance() => AddTypeAnnotation();
 }

@@ -27,4 +27,7 @@ class RemoveQuestionMark extends CorrectionProducer {
       builder.addDeletion(range.token(questionMark));
     });
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static RemoveQuestionMark newInstance() => RemoveQuestionMark();
 }

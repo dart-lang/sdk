@@ -54,4 +54,7 @@ class SortChildPropertyLast extends CorrectionProducer {
       builder.setSelection(Position(file, last.end + 1));
     });
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static SortChildPropertyLast newInstance() => SortChildPropertyLast();
 }

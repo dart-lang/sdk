@@ -49,4 +49,8 @@ class ConvertConditionalExpressionToIfElement extends CorrectionProducer {
       });
     }
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static ConvertConditionalExpressionToIfElement newInstance() =>
+      ConvertConditionalExpressionToIfElement();
 }
