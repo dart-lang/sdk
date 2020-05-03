@@ -201,8 +201,7 @@ class BinaryExpressionResolver {
     InferenceContext.setType(left, _typeProvider.boolType);
     InferenceContext.setType(right, _typeProvider.boolType);
 
-    // TODO(scheglov) Do we need these checks for null?
-    left?.accept(_resolver);
+    left.accept(_resolver);
     left = node.leftOperand;
 
     if (_flowAnalysis != null) {
@@ -239,8 +238,7 @@ class BinaryExpressionResolver {
     InferenceContext.setType(left, _typeProvider.boolType);
     InferenceContext.setType(right, _typeProvider.boolType);
 
-    // TODO(scheglov) Do we need these checks for null?
-    left?.accept(_resolver);
+    left.accept(_resolver);
     left = node.leftOperand;
 
     flow?.logicalBinaryOp_rightBegin(left, isAnd: false);
@@ -270,11 +268,10 @@ class BinaryExpressionResolver {
   }
 
   void _resolveUserDefinable(BinaryExpressionImpl node) {
-    Expression left = node.leftOperand;
-    Expression right = node.rightOperand;
+    var left = node.leftOperand;
+    var right = node.rightOperand;
 
-    // TODO(scheglov) Do we need these checks for null?
-    left?.accept(_resolver);
+    left.accept(_resolver);
 
     var operator = node.operator;
     _resolveUserDefinableElement(node, operator.lexeme);
@@ -287,8 +284,7 @@ class BinaryExpressionResolver {
       InferenceContext.setType(right, rightParam.type);
     }
 
-    // TODO(scheglov) Do we need these checks for null?
-    right?.accept(_resolver);
+    right.accept(_resolver);
 
     _resolveUserDefinableType(node);
   }
