@@ -130,6 +130,13 @@ class _VisitorHelper extends RecursiveAstVisitor {
 
   _VisitorHelper(this.rule);
 
+  bool hasInferredType(VariableDeclaration node) {
+    var staticType = node.initializer?.staticType;
+    return staticType != null &&
+        !staticType.isDynamic &&
+        !staticType.isDartCoreNull;
+  }
+
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter param) {
     if (param.type == null && !isJustUnderscores(param.identifier.name)) {
@@ -139,7 +146,9 @@ class _VisitorHelper extends RecursiveAstVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (!isPrivate(node.name) && !node.isConst) {
+    if (!isPrivate(node.name) &&
+        !node.isConst &&
+        !(node.isFinal && hasInferredType(node))) {
       rule.reportLint(node.name);
     }
   }

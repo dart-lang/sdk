@@ -4,6 +4,19 @@
 
 // test w/ `pub run test -N type_annotate_public_apis`
 
+class AA {
+  final a = AA(); //OK
+  static final aa = AA(); //OK
+  final i = 0; //OK
+  static final ii = 0; //OK
+  final d = dyn(); //LINT
+  static final dd = dyn(); //LINT
+  final n = null; //LINT
+  static final nn = null; //LINT
+}
+
+dynamic dyn() => null;
+
 const X = ''; //OK
 
 f() {} //LINT
@@ -32,9 +45,8 @@ const _X = '';
 
 class A {
   var x; // LINT
-  final xx = 1; //LINT
   static const y = ''; //OK
-  static final z = 3; //LINT
+  static final z = 3; //OK
 
   int get xxx => 42; //OK: #151
 
