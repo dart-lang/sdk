@@ -472,10 +472,13 @@ class SuggestionBuilder {
         kind: kind, relevance: relevance));
   }
 
-  /// Add a suggestion for a [constructor]. If a [kind] is provided
-  /// it will be used as the kind for the suggestion.
+  /// Add a suggestion for a [constructor]. If a [kind] is provided it will be
+  /// used as the kind for the suggestion. The flag [hasClassName] should be
+  /// `true` if the completion is occurring after the name of the class and a
+  /// period, and hence should not include the name of the class.
   void suggestConstructor(ConstructorElement constructor,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      bool hasClassName = false}) {
     var classElement = constructor.enclosingElement;
     if (classElement == null) {
       return;
@@ -488,7 +491,7 @@ class SuggestionBuilder {
     }
 
     var completion = constructor.displayName;
-    if (prefix != null && prefix.isNotEmpty) {
+    if (!hasClassName && prefix != null && prefix.isNotEmpty) {
       if (completion == null || completion.isEmpty) {
         completion = prefix;
       } else {
