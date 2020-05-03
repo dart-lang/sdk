@@ -115,6 +115,7 @@ import 'rules/prefer_if_null_operators.dart';
 import 'rules/prefer_initializing_formals.dart';
 import 'rules/prefer_inlined_adds.dart';
 import 'rules/prefer_int_literals.dart';
+import 'rules/use_is_even_rather_than_modulo.dart';
 import 'rules/prefer_interpolation_to_compose_strings.dart';
 import 'rules/prefer_is_empty.dart';
 import 'rules/prefer_is_not_empty.dart';
@@ -337,6 +338,7 @@ void registerLintRules() {
     ..register(UnsafeHtml())
     ..register(UseFullHexValuesForFlutterColors())
     ..register(UseFunctionTypeSyntaxForParameters())
+    ..register(UseIsEvenRatherThanModuloCheck())
     ..register(UseKeyInWidgetConstructors())
     ..register(UseRethrowWhenPossible())
     ..register(UseRawStrings())
