@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../util/dart_type_utilities.dart';
 
 const _desc = r'Prefer using mixins.';
 
@@ -56,9 +57,20 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitWithClause(WithClause node) {
     for (var type in node.mixinTypes) {
       final element = type.name.staticElement;
-      if (element is ClassElement && !element.isMixin) {
+      if (element is ClassElement && !element.isMixin && !isAllowed(element)) {
         rule.reportLint(type);
       }
     }
   }
+
+  /// Check for "legacy"  classes that cannot easily be made `mixin`s for
+  /// compatibility reasons.
+  /// (See: https://github.com/dart-lang/linter/issues/2082)
+  static bool isAllowed(ClassElement element) =>
+      DartTypeUtilities.isClassElement(element, 'IterableMixin', 'dart.core') ||
+      DartTypeUtilities.isClassElement(element, 'ListMixin', 'dart.core') ||
+      DartTypeUtilities.isClassElement(element, 'MapMixin', 'dart.core') ||
+      DartTypeUtilities.isClassElement(element, 'SetMixin', 'dart.core') ||
+      DartTypeUtilities.isClassElement(
+          element, 'StringConversionSinkMixin', 'dart.convert');
 }

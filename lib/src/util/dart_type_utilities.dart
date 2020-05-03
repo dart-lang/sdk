@@ -12,48 +12,6 @@ import 'package:meta/meta.dart';
 typedef AstNodePredicate = bool Function(AstNode node);
 
 class DartTypeUtilities {
-  static bool extendsClass(DartType type, String className, String library) =>
-      _extendsClass(type, <ClassElement>{}, className, library);
-
-  static bool _extendsClass(DartType type, Set<ClassElement> seenTypes,
-          String className, String library) =>
-      type is InterfaceType &&
-      seenTypes.add(type.element) &&
-      (isClass(type, className, library) ||
-          _extendsClass(type.superclass, seenTypes, className, library));
-
-  static Element getCanonicalElement(Element element) {
-    if (element is PropertyAccessorElement) {
-      final variable = element.variable;
-      if (variable is FieldMember) {
-        // A field element defined in a parameterized type where the values of
-        // the type parameters are known.
-        //
-        // This concept should be invisible when comparing FieldElements, but a
-        // bug in the analyzer causes FieldElements to not evaluate as
-        // equivalent to equivalent FieldMembers. See
-        // https://github.com/dart-lang/sdk/issues/35343.
-        return variable.declaration;
-      } else {
-        return variable;
-      }
-    } else {
-      return element;
-    }
-  }
-
-  static Element getCanonicalElementFromIdentifier(AstNode rawNode) {
-    if (rawNode is Expression) {
-      final node = rawNode.unParenthesized;
-      if (node is Identifier) {
-        return getCanonicalElement(node.staticElement);
-      } else if (node is PropertyAccess) {
-        return getCanonicalElement(node.propertyName.staticElement);
-      }
-    }
-    return null;
-  }
-
   /// Return whether the canonical elements of two elements are equal.
   static bool canonicalElementsAreEqual(Element element1, Element element2) =>
       getCanonicalElement(element1) == getCanonicalElement(element2);
@@ -113,6 +71,41 @@ class DartTypeUtilities {
     }
 
     return false;
+  }
+
+  static bool extendsClass(DartType type, String className, String library) =>
+      _extendsClass(type, <ClassElement>{}, className, library);
+
+  static Element getCanonicalElement(Element element) {
+    if (element is PropertyAccessorElement) {
+      final variable = element.variable;
+      if (variable is FieldMember) {
+        // A field element defined in a parameterized type where the values of
+        // the type parameters are known.
+        //
+        // This concept should be invisible when comparing FieldElements, but a
+        // bug in the analyzer causes FieldElements to not evaluate as
+        // equivalent to equivalent FieldMembers. See
+        // https://github.com/dart-lang/sdk/issues/35343.
+        return variable.declaration;
+      } else {
+        return variable;
+      }
+    } else {
+      return element;
+    }
+  }
+
+  static Element getCanonicalElementFromIdentifier(AstNode rawNode) {
+    if (rawNode is Expression) {
+      final node = rawNode.unParenthesized;
+      if (node is Identifier) {
+        return getCanonicalElement(node.staticElement);
+      } else if (node is PropertyAccess) {
+        return getCanonicalElement(node.propertyName.staticElement);
+      }
+    }
+    return null;
   }
 
   static Iterable<InterfaceType> getImplementedInterfaces(InterfaceType type) {
@@ -175,11 +168,15 @@ class DartTypeUtilities {
         !element.isSynthetic && element.allSupertypes.any(predicate);
   }
 
-  // todo (pq): unify and  `isInterface` into a shared method: `isInterfaceType`
+  /// todo (pq): unify and  `isInterface` into a shared method: `isInterfaceType`
   static bool isClass(DartType type, String className, String library) =>
       type is InterfaceType &&
       type.element.name == className &&
       type.element.library?.name == library;
+
+  static bool isClassElement(
+          ClassElement element, String className, String library) =>
+      element.name == className && element.library?.name == library;
 
   static bool isConstructorElement(ConstructorElement element,
           {@required String uriStr,
@@ -429,6 +426,13 @@ class DartTypeUtilities {
     }
     return false;
   }
+
+  static bool _extendsClass(DartType type, Set<ClassElement> seenTypes,
+          String className, String library) =>
+      type is InterfaceType &&
+      seenTypes.add(type.element) &&
+      (isClass(type, className, library) ||
+          _extendsClass(type.superclass, seenTypes, className, library));
 
   static bool _isFunctionTypeUnrelatedToType(
       FunctionType type1, DartType type2) {
