@@ -953,16 +953,22 @@ class _JsonUtf8Stringifier extends _JsonStringifier {
       if (char <= 0x7f) {
         writeByte(char);
       } else {
-        if ((char & 0xFC00) == 0xD800 && i + 1 < end) {
-          // Lead surrogate.
-          var nextChar = string.codeUnitAt(i + 1);
-          if ((nextChar & 0xFC00) == 0xDC00) {
-            // Tail surrogate.
-            char = 0x10000 + ((char & 0x3ff) << 10) + (nextChar & 0x3ff);
-            writeFourByteCharCode(char);
-            i++;
-            continue;
+        if ((char & 0xF800) == 0xD800) {
+          // Surrogate.
+          if (char < 0xDC00 && i + 1 < end) {
+            // Lead surrogate.
+            var nextChar = string.codeUnitAt(i + 1);
+            if ((nextChar & 0xFC00) == 0xDC00) {
+              // Tail surrogate.
+              char = 0x10000 + ((char & 0x3ff) << 10) + (nextChar & 0x3ff);
+              writeFourByteCharCode(char);
+              i++;
+              continue;
+            }
           }
+          // Unpaired surrogate.
+          writeMultiByteCharCode(unicodeReplacementCharacterRune);
+          continue;
         }
         writeMultiByteCharCode(char);
       }

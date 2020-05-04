@@ -133,6 +133,13 @@ class _Utf8Encoder {
   /// Allow an implementation to pick the most efficient way of storing bytes.
   static Uint8List _createBuffer(int size) => Uint8List(size);
 
+  /// Write a replacement character (U+FFFD). Used for unpaired surrogates.
+  void _writeReplacementCharacter() {
+    _buffer[_bufferIndex++] = 0xEF;
+    _buffer[_bufferIndex++] = 0xBF;
+    _buffer[_bufferIndex++] = 0xBD;
+  }
+
   /// Tries to combine the given [leadingSurrogate] with the [nextCodeUnit] and
   /// writes it to [_buffer].
   ///
@@ -140,8 +147,8 @@ class _Utf8Encoder {
   /// [leadingSurrogate]. If it wasn't then nextCodeUnit was not a trailing
   /// surrogate and has not been written yet.
   ///
-  /// It is safe to pass 0 for [nextCodeUnit] in which case only the leading
-  /// surrogate is written.
+  /// It is safe to pass 0 for [nextCodeUnit] in which case a replacement
+  /// character is written to represent the unpaired lead surrogate.
   bool _writeSurrogate(int leadingSurrogate, int nextCodeUnit) {
     if (_isTailSurrogate(nextCodeUnit)) {
       var rune = _combineSurrogatePair(leadingSurrogate, nextCodeUnit);
@@ -155,14 +162,8 @@ class _Utf8Encoder {
       _buffer[_bufferIndex++] = 0x80 | (rune & 0x3f);
       return true;
     } else {
-      // TODO(floitsch): allow to throw on malformed strings.
-      // Encode the half-surrogate directly into UTF-8. This yields
-      // invalid UTF-8, but we started out with invalid UTF-16.
-
-      // Surrogates are always encoded in 3 bytes in UTF-8.
-      _buffer[_bufferIndex++] = 0xE0 | (leadingSurrogate >> 12);
-      _buffer[_bufferIndex++] = 0x80 | ((leadingSurrogate >> 6) & 0x3f);
-      _buffer[_bufferIndex++] = 0x80 | (leadingSurrogate & 0x3f);
+      // Unpaired lead surrogate.
+      _writeReplacementCharacter();
       return false;
     }
   }
@@ -188,12 +189,16 @@ class _Utf8Encoder {
         if (_bufferIndex >= _buffer.length) break;
         _buffer[_bufferIndex++] = codeUnit;
       } else if (_isLeadSurrogate(codeUnit)) {
-        if (_bufferIndex + 3 >= _buffer.length) break;
+        if (_bufferIndex + 4 > _buffer.length) break;
         // Note that it is safe to read the next code unit. We decremented
         // [end] above when the last valid code unit was a leading surrogate.
         var nextCodeUnit = str.codeUnitAt(stringIndex + 1);
         var wasCombined = _writeSurrogate(codeUnit, nextCodeUnit);
         if (wasCombined) stringIndex++;
+      } else if (_isTailSurrogate(codeUnit)) {
+        if (_bufferIndex + 3 > _buffer.length) break;
+        // Unpaired tail surrogate.
+        _writeReplacementCharacter();
       } else {
         var rune = codeUnit;
         if (rune <= _TWO_BYTE_LIMIT) {
