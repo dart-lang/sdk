@@ -45,13 +45,23 @@ class Image : ValueObject {
     return snapshot_size - kHeaderSize;
   }
 
+  // The following method only has meaning for instructions images.
   uword bss_offset() const {
     return *(reinterpret_cast<const uword*>(raw_memory_) + 1);
   }
 
-  static constexpr intptr_t kHeaderFields = 2;
-  static constexpr intptr_t kHeaderSize = kMaxObjectAlignment;
-  COMPILE_ASSERT((kHeaderFields * compiler::target::kWordSize) <= kHeaderSize);
+  // For instructions images that were compiled directly to ELF, returns the
+  // virtual address of the instructions section, otherwise returns 0.
+  uword virtual_address() const {
+    return *(reinterpret_cast<const uword*>(raw_memory_) + 2);
+  }
+
+  static constexpr intptr_t kHeaderFields = 3;
+  static constexpr intptr_t kUnalignedHeaderSize =
+      kHeaderFields * compiler::target::kWordSize;
+  // Can't use Utils::RoundUp because of ASSERT() in Utils::RoundDown.
+  static constexpr intptr_t kHeaderSize =
+      (kUnalignedHeaderSize + kMaxObjectAlignment - 1) & -kMaxObjectAlignment;
 
  private:
   const void* raw_memory_;  // The symbol kInstructionsSnapshot.
