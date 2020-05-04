@@ -18,16 +18,17 @@ import 'dart:convert' show Converter;
 import 'dart:core' hide Symbol;
 import 'dart:core' as core show Symbol;
 import 'dart:math' show Random;
+import 'dart:typed_data' show Uint8List;
 
 part 'async_cast.dart';
 part 'cast.dart';
 part 'errors.dart';
 part 'iterable.dart';
 part 'list.dart';
+part 'linked_list.dart';
 part 'print.dart';
 part 'sort.dart';
 part 'symbol.dart';
-part 'linked_list.dart';
 
 // Returns true iff `null as T` will succeed based on the
 // execution mode.
