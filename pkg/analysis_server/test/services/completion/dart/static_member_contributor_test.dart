@@ -28,8 +28,8 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     addTestSource('enum E { one, two } main() {E.^}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one');
-    assertSuggestEnumConst('two');
+    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
@@ -38,8 +38,8 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     addTestSource('enum E { one, two } main() {E.o^}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one');
-    assertSuggestEnumConst('two');
+    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
@@ -48,8 +48,8 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     addTestSource('enum E { one, two } main() {E.^ int g;}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one');
-    assertSuggestEnumConst('two');
+    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
@@ -64,8 +64,8 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     addTestSource('enum E { one, two } main() {E.^.}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one');
-    assertSuggestEnumConst('two');
+    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
@@ -80,19 +80,16 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     addTestSource('enum E { one, two } main() {E.^.o}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one');
-    assertSuggestEnumConst('two');
+    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
 
-  @failingTest
   Future<void> test_enumConst_deprecated() async {
     addTestSource('@deprecated enum E { one, two } main() {E.^}');
     await computeSuggestions();
     assertNotSuggested('E');
-    // TODO(danrubel) Investigate why enum suggestion is not marked
-    // as deprecated if enum ast element is deprecated
     assertSuggestEnumConst('one', isDeprecated: true);
     assertSuggestEnumConst('two', isDeprecated: true);
     assertNotSuggested('index');
