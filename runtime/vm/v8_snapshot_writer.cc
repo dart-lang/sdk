@@ -53,7 +53,7 @@ void V8SnapshotProfileWriter::SetObjectTypeAndName(ObjectId object_id,
     info->name = EnsureString(name);
   } else {
     info->name =
-        EnsureString(OS::SCreate(zone_, "Unnamed [%s] %s", type, name));
+        EnsureString(OS::SCreate(zone_, "Unnamed [%s] %s", type, "(nil)"));
   }
 }
 

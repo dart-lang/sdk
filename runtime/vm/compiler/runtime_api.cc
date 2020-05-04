@@ -375,7 +375,7 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       }
   }
   FATAL3("Unsupported class for size translation: %s (id=%" Pd
-         ", kNumPredefinedCids=%d)\n",
+         ", kNumPredefinedCids=%" Pd ")\n",
          handle.ToCString(), handle.id(), kNumPredefinedCids);
   return -1;
 }

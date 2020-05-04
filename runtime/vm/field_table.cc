@@ -82,12 +82,18 @@ void FieldTable::AllocateIndex(intptr_t index) {
 void FieldTable::Grow(intptr_t new_capacity) {
   ASSERT(new_capacity > capacity_);
 
+  auto old_table = table_;
   auto new_table = static_cast<InstancePtr*>(
       malloc(new_capacity * sizeof(InstancePtr)));  // NOLINT
-  memmove(new_table, table_, top_ * sizeof(InstancePtr));
-  memset(new_table + top_, 0, (new_capacity - top_) * sizeof(InstancePtr));
+  intptr_t i;
+  for (i = 0; i < top_; i++) {
+    new_table[i] = old_table[i];
+  }
+  for (; i < new_capacity; i++) {
+    new_table[i] = InstancePtr();
+  }
   capacity_ = new_capacity;
-  old_tables_->Add(table_);
+  old_tables_->Add(old_table);
   // Ensure that new_table_ is populated before it is published
   // via store to table_.
   std::atomic_thread_fence(std::memory_order_release);

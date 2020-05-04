@@ -259,7 +259,7 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
 }
 
 SmiPtr BaseReader::ReadAsSmi() {
-  SmiPtr value = Read<SmiPtr>();
+  SmiPtr value = static_cast<SmiPtr>(Read<intptr_t>());
   ASSERT((static_cast<uword>(value) & kSmiTagMask) == kSmiTag);
   return value;
 }

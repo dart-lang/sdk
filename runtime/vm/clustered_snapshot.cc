@@ -121,11 +121,10 @@ void SerializationCluster::WriteAndMeasureAlloc(Serializer* serializer) {
   intptr_t stop_data = serializer->GetDataSize();
   intptr_t stop_objects = serializer->next_ref_index();
   if (FLAG_print_cluster_information) {
-    const int hex_size = kWordSize * 2;
-    OS::PrintErr("Snapshot 0x%0*.*" Px " (%" Pd "), ", hex_size, hex_size,
-                 start_size, stop_size - start_size);
-    OS::PrintErr("Data 0x%0*.*" Px " (%" Pd "): ", hex_size, hex_size,
-                 start_data, stop_data - start_data);
+    OS::PrintErr("Snapshot 0x%" Pp " (%" Pd "), ", start_size,
+                 stop_size - start_size);
+    OS::PrintErr("Data 0x%" Pp " (%" Pd "): ", start_data,
+                 stop_data - start_data);
     OS::PrintErr("Alloc %s (%" Pd ")\n", name(), stop_objects - start_objects);
   }
   size_ += (stop_size - start_size) + (stop_data - start_data);
@@ -137,9 +136,8 @@ void SerializationCluster::WriteAndMeasureFill(Serializer* serializer) {
   WriteFill(serializer);
   intptr_t stop = serializer->bytes_written();
   if (FLAG_print_cluster_information) {
-    const int hex_size = kWordSize * 2;
-    OS::PrintErr("Snapshot 0x%0*.*" Px " (%" Pd "): Fill %s\n", hex_size,
-                 hex_size, start, stop - start, name());
+    OS::PrintErr("Snapshot 0x%" Pp " (%" Pd "): Fill %s\n", start, stop - start,
+                 name());
   }
   size_ += (stop - start);
 }

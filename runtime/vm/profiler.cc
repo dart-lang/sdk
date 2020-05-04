@@ -1132,12 +1132,13 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
     }
   }
 
+  OS::PrintErr("version=%s\n", Version::String());
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
   Isolate* isolate = Isolate::Current();
-  const char* name = isolate == NULL ? NULL : isolate->name();
-  OS::PrintErr("version=%s\npid=%" Pd ", thread=%" Pd ", isolate=%s(%p)\n",
-               Version::String(), OS::ProcessId(),
+  const char* name = isolate == NULL ? "(nil)" : isolate->name();
+  OS::PrintErr("pid=%" Pd ", thread=%" Pd ", isolate=%s(%p)\n",
+               static_cast<intptr_t>(OS::ProcessId()),
                OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name,
                isolate);
   const IsolateGroupSource* source =

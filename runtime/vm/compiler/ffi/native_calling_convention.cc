@@ -131,6 +131,7 @@ class ArgumentAllocator : public ValueObject {
   }
 
   Register AllocateCpuRegister() {
+    RELEASE_ASSERT(cpu_regs_used >= 0);  // Avoids -Werror=array-bounds in GCC.
     ASSERT(cpu_regs_used < CallingConventions::kNumArgRegs);
 
     const auto result = CallingConventions::ArgumentRegisters[cpu_regs_used];

@@ -538,6 +538,9 @@ if (is_win) {
 
   if (is_clang) {
     default_warning_flags += [ "-Wno-tautological-constant-compare" ]
+  } else {
+    default_warning_flags +=
+        [ "-Wno-ignored-qualifiers" ]  # Warnings in BoringSSL headers
   }
 
   if (is_mac) {
