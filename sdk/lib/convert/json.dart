@@ -535,11 +535,16 @@ abstract class _JsonStringifier {
   static const int char_0 = 0x30;
   static const int backslash = 0x5c;
   static const int char_b = 0x62;
+  static const int char_d = 0x64;
   static const int char_f = 0x66;
   static const int char_n = 0x6e;
   static const int char_r = 0x72;
   static const int char_t = 0x74;
   static const int char_u = 0x75;
+  static const int surrogateMin = 0xd800;
+  static const int surrogateMask = 0xfc00;
+  static const int surrogateLead = 0xd800;
+  static const int surrogateTrail = 0xdc00;
 
   /// List of objects currently being traversed. Used to detect cycles.
   final List _seen = [];
@@ -573,7 +578,30 @@ abstract class _JsonStringifier {
     final length = s.length;
     for (var i = 0; i < length; i++) {
       var charCode = s.codeUnitAt(i);
-      if (charCode > backslash) continue;
+      if (charCode > backslash) {
+        if (charCode >= surrogateMin) {
+          // Possible surrogate. Check if it is unpaired.
+          if (((charCode & surrogateMask) == surrogateLead &&
+                  !(i + 1 < length &&
+                      (s.codeUnitAt(i + 1) & surrogateMask) ==
+                          surrogateTrail)) ||
+              ((charCode & surrogateMask) == surrogateTrail &&
+                  !(i - 1 >= 0 &&
+                      (s.codeUnitAt(i - 1) & surrogateMask) ==
+                          surrogateLead))) {
+            // Lone surrogate.
+            if (i > offset) writeStringSlice(s, offset, i);
+            offset = i + 1;
+            writeCharCode(backslash);
+            writeCharCode(char_u);
+            writeCharCode(char_d);
+            writeCharCode(hexDigit((charCode >> 8) & 0xf));
+            writeCharCode(hexDigit((charCode >> 4) & 0xf));
+            writeCharCode(hexDigit(charCode & 0xf));
+          }
+        }
+        continue;
+      }
       if (charCode < 32) {
         if (i > offset) writeStringSlice(s, offset, i);
         offset = i + 1;
