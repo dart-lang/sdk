@@ -628,6 +628,12 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     }
   }
 
+  void reportLintForOffset(int offset, int length,
+      {List<Object> arguments = const [], ErrorCode errorCode}) {
+    reporter.reportErrorForOffset(
+        errorCode ?? lintCode, offset, length, arguments);
+  }
+
   void reportLintForToken(Token token,
       {List<Object> arguments = const [],
       ErrorCode errorCode,
