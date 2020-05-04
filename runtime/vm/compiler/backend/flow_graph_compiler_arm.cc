@@ -1722,6 +1722,31 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
   }
 }
 
+void FlowGraphCompiler::LoadBSSEntry(BSS::Relocation relocation,
+                                     Register dst,
+                                     Register tmp) {
+  compiler::Label skip_reloc;
+  __ b(&skip_reloc);
+  InsertBSSRelocation(relocation);
+  __ Bind(&skip_reloc);
+
+  // For historical reasons, the PC on ARM points 8 bytes (two instructions)
+  // past the current instruction.
+  __ sub(tmp, PC,
+         compiler::Operand(Instr::kPCReadOffset + compiler::target::kWordSize));
+
+  // tmp holds the address of the relocation.
+  __ ldr(dst, compiler::Address(tmp));
+
+  // dst holds the relocation itself: tmp - bss_start.
+  // tmp = tmp + (bss_start - tmp) = bss_start
+  __ add(tmp, tmp, compiler::Operand(dst));
+
+  // tmp holds the start of the BSS section.
+  // Load the "get-thread" routine: *bss_start.
+  __ ldr(dst, compiler::Address(tmp));
+}
+
 #undef __
 #define __ compiler_->assembler()->
 
