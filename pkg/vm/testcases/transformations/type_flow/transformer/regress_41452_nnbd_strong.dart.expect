@@ -19,7 +19,7 @@ abstract class _SplayTree<Node extends self::_SplayTreeNode<self::_SplayTree::No
     ;
 [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method add(generic-covariant-impl self::_SplayTree::Node n) → dynamic {
     self::_SplayTree::Node? root = [@vm.direct-call.metadata=SplayTreeMap::_root] [@vm.inferred-type.metadata=#lib::_SplayTreeMapNode] this.{self::_SplayTree::_root};
-    if([@vm.direct-call.metadata=Object::==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] root.{core::Object::==}(null))
+    if(false)
       return;
     core::print([@vm.direct-call.metadata=_SplayTreeNode::left] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] root{self::_SplayTree::Node}.{self::_SplayTreeNode::left});
   }

@@ -65,7 +65,7 @@ class _SummaryNormalizer extends StatementVisitor {
     }
 
     for (Statement st in statements) {
-      if (st is Call || st is TypeCheck) {
+      if (st is Call || st is TypeCheck || st is NarrowNotNull) {
         _normalizeExpr(st, false);
       } else if (st is Use) {
         _normalizeExpr(st.arg, true);
@@ -113,6 +113,14 @@ class _SummaryNormalizer extends StatementVisitor {
                 return first;
               }
             }
+          }
+        } else if (st is NarrowNotNull) {
+          // This pattern may appear after approximations during summary
+          // normalization, so it's not enough to handle it in
+          // _makeNarrowNotNull.
+          final arg = st.arg;
+          if (arg is Type) {
+            return st.handleArgument(arg);
           }
         } else if (st is Narrow) {
           // This pattern may appear after approximations during summary
@@ -517,6 +525,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
   final Map<AsExpression, TypeCheck> explicitCasts =
       <AsExpression, TypeCheck>{};
+  final Map<TreeNode, NarrowNotNull> nullTests = <TreeNode, NarrowNotNull>{};
   final _FallthroughDetector _fallthroughDetector = new _FallthroughDetector();
   final Set<Name> _nullMethodsAndGetters = <Name>{};
   final Set<Name> _nullSetters = <Name>{};
@@ -1104,6 +1113,37 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     return _makeNarrow(arg, _typesBuilder.fromStaticType(type, canBeNull));
   }
 
+  TypeExpr _makeNarrowNotNull(TreeNode node, TypeExpr arg) {
+    assertx(node is NullCheck ||
+        node is MethodInvocation && isComparisonWithNull(node));
+    if (arg is NarrowNotNull) {
+      nullTests[node] = arg;
+      return arg;
+    } else if (arg is Narrow) {
+      if (arg.type is! NullableType) {
+        nullTests[node] = NarrowNotNull.alwaysNotNull;
+        return arg;
+      }
+    } else if (arg is Type) {
+      if (arg is NullableType) {
+        final baseType = arg.baseType;
+        if (baseType is EmptyType) {
+          nullTests[node] = NarrowNotNull.alwaysNull;
+        } else {
+          nullTests[node] = NarrowNotNull.unknown;
+        }
+        return baseType;
+      } else {
+        nullTests[node] = NarrowNotNull.alwaysNotNull;
+        return arg;
+      }
+    }
+    final narrow = NarrowNotNull(arg);
+    nullTests[node] = narrow;
+    _summary.add(narrow);
+    return narrow;
+  }
+
   // Add an artificial use of given expression in order to make it possible to
   // infer its type even if it is not used in a summary.
   void _addUse(TypeExpr arg) {
@@ -1303,13 +1343,16 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
           node.arguments.named.isEmpty);
       final lhs = node.receiver as VariableGet;
       final rhs = node.arguments.positional.single;
-      if (rhs is NullLiteral) {
+      if (isNullLiteral(rhs)) {
         // 'x == null', where x is a variable.
-        _addUse(_visit(node));
+        final expr = _visit(lhs);
+        _makeCall(node, DirectSelector(_environment.coreTypes.objectEquals),
+            Args<TypeExpr>([expr, _nullType]));
+        final narrowedNotNull = _makeNarrowNotNull(node, expr);
         final int varIndex = _variablesInfo.varIndex[lhs.variable];
         if (_variableCells[varIndex] == null) {
           trueState[varIndex] = _nullType;
-          falseState[varIndex] = _makeNarrow(_visit(lhs), const AnyType());
+          falseState[varIndex] = narrowedNotNull;
         }
         _variableValues = null;
         return;
@@ -1389,7 +1432,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   @override
   TypeExpr visitNullCheck(NullCheck node) {
     final operandNode = node.operand;
-    final TypeExpr result = _makeNarrow(_visit(operandNode), const AnyType());
+    final TypeExpr result = _makeNarrowNotNull(node, _visit(operandNode));
     if (operandNode is VariableGet) {
       final int varIndex = _variablesInfo.varIndex[operandNode.variable];
       if (_variableCells[varIndex] == null) {
@@ -1572,6 +1615,13 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitMethodInvocation(MethodInvocation node) {
+    if (isComparisonWithNull(node)) {
+      final arg = _visit(getArgumentOfComparisonWithNull(node));
+      _makeNarrowNotNull(node, arg);
+      _makeCall(node, DirectSelector(_environment.coreTypes.objectEquals),
+          Args<TypeExpr>([arg, _nullType]));
+      return _boolType;
+    }
     final receiverNode = node.receiver;
     final receiver = _visit(receiverNode);
     final args = _visitArguments(receiver, node.arguments);
@@ -1585,10 +1635,6 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     TypeExpr result;
     if (target == null) {
       if (node.name.name == '==') {
-        assertx(args.values.length == 2);
-        if ((args.values[0] == _nullType) || (args.values[1] == _nullType)) {
-          return _boolType;
-        }
         _makeCall(node, new DynamicSelector(CallKind.Method, node.name), args);
         return new Type.nullable(_boolType);
       }

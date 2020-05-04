@@ -904,8 +904,18 @@ class _TreeShakerPass1 extends Transformer {
     return expr is Throw;
   }
 
+  TreeNode _evaluateArguments(List<Expression> args, Expression result) {
+    Expression node = result;
+    for (var arg in args.reversed) {
+      if (mayHaveSideEffects(arg)) {
+        node = Let(VariableDeclaration(null, initializer: arg), node);
+      }
+    }
+    return node;
+  }
+
   TreeNode _makeUnreachableCall(List<Expression> args) {
-    TreeNode node;
+    Expression node;
     final int last = args.indexWhere(_isThrowExpression);
     if (last >= 0) {
       // One of the arguments is a Throw expression.
@@ -914,22 +924,20 @@ class _TreeShakerPass1 extends Transformer {
       args = args.sublist(0, last);
       Statistics.throwExpressionsPruned++;
     } else {
-      node = new Throw(new StringLiteral(
+      node = Throw(StringLiteral(
           'Attempt to execute code removed by Dart AOT compiler (TFA)'));
     }
-    for (var arg in args.reversed) {
-      if (mayHaveSideEffects(arg)) {
-        node = new Let(new VariableDeclaration(null, initializer: arg), node);
-      }
-    }
     Statistics.callsDropped++;
-    return node;
+    return _evaluateArguments(args, node);
   }
 
   TreeNode _makeUnreachableInitializer(List<Expression> args) {
     return new LocalInitializer(
         new VariableDeclaration(null, initializer: _makeUnreachableCall(args)));
   }
+
+  NarrowNotNull _getNullTest(TreeNode node) =>
+      shaker.typeFlowAnalysis.nullTest(node);
 
   TreeNode _visitAssertNode(TreeNode node) {
     if (kRemoveAsserts) {
@@ -1038,14 +1046,21 @@ class _TreeShakerPass1 extends Transformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableCall(
           _flattenArguments(node.arguments, receiver: node.receiver));
-    } else {
-      node.interfaceTarget =
-          fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget);
-      if (node.interfaceTarget != null) {
-        shaker.addUsedMember(node.interfaceTarget);
-      }
-      return node;
     }
+    if (isComparisonWithNull(node)) {
+      final nullTest = _getNullTest(node);
+      if (nullTest.isAlwaysNull || nullTest.isAlwaysNotNull) {
+        return _evaluateArguments(
+            _flattenArguments(node.arguments, receiver: node.receiver),
+            BoolLiteral(nullTest.isAlwaysNull));
+      }
+    }
+    node.interfaceTarget =
+        fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget);
+    if (node.interfaceTarget != null) {
+      shaker.addUsedMember(node.interfaceTarget);
+    }
+    return node;
   }
 
   @override
@@ -1380,6 +1395,19 @@ class _TreeShakerPass1 extends Transformer {
     if (check != null && check.canAlwaysSkip) {
       return StaticInvocation(
           unsafeCast, Arguments([node.operand], types: [node.type]));
+    }
+    return node;
+  }
+
+  @override
+  TreeNode visitNullCheck(NullCheck node) {
+    node.transformChildren(this);
+    final nullTest = _getNullTest(node);
+    if (nullTest.isAlwaysNotNull) {
+      return StaticInvocation(
+          unsafeCast,
+          Arguments([node.operand],
+              types: [node.getStaticType(staticTypeContext)]));
     }
     return node;
   }

@@ -134,6 +134,49 @@ class Narrow extends Statement {
       arg.getComputedType(computedTypes).intersection(type, typeHierarchy);
 }
 
+/// A flavor of [Narrow] statement which narrows argument
+/// to a non-nullable type and records if argument can be
+/// null or not null.
+class NarrowNotNull extends Narrow {
+  static const int canBeNullFlag = 1 << 0;
+  static const int canBeNotNullFlag = 1 << 1;
+  int _flags = 0;
+
+  NarrowNotNull(TypeExpr arg) : super(arg, const AnyType());
+
+  // Shared NarrowNotNull instances which are used when the outcome is
+  // known at summary creation time.
+  static final NarrowNotNull alwaysNotNull = NarrowNotNull(null)
+    .._flags = canBeNotNullFlag;
+  static final NarrowNotNull alwaysNull = NarrowNotNull(null)
+    .._flags = canBeNullFlag;
+  static final NarrowNotNull unknown = NarrowNotNull(null)
+    .._flags = canBeNullFlag | canBeNotNullFlag;
+
+  bool get isAlwaysNull => (_flags & canBeNotNullFlag) == 0;
+  bool get isAlwaysNotNull => (_flags & canBeNullFlag) == 0;
+
+  Type handleArgument(Type argType) {
+    if (argType is NullableType) {
+      final baseType = argType.baseType;
+      if (baseType is EmptyType) {
+        _flags |= canBeNullFlag;
+      } else {
+        _flags |= (canBeNullFlag | canBeNotNullFlag);
+      }
+      return baseType;
+    } else {
+      _flags |= canBeNotNullFlag;
+      return argType;
+    }
+  }
+
+  @override
+  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+          CallHandler callHandler) =>
+      handleArgument(arg.getComputedType(computedTypes));
+}
+
 /// Joins values from multiple sources. Its type is a union of [values].
 class Join extends Statement {
   final String _name;

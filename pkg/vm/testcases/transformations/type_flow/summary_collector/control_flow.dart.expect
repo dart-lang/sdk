@@ -116,11 +116,11 @@ RESULT: _T {}?
 %z = _Parameter #2 [_T ANY?]
 t3* = _Call [num::==] (%x, _T (dart.core::_Smi, 5))
 t4* = _Call [String::==] (%y, _T (dart.core::_OneByteString, hi))
-t5* = _Call [Object::==] (%z, _T {}?)
-t6 = _Call direct [foo] (_T (dart.core::_Smi, 5))
-t7 = _Call direct [foo] (_T (dart.core::_OneByteString, hi))
-t8 = _Narrow (%z to _T ANY)
-t9 = _Call direct [foo] (t8)
+t5 = _Call direct [Object::==] (%z, _T {}?)
+t6 = _Narrow (%z to _T ANY)
+t7 = _Call direct [foo] (_T (dart.core::_Smi, 5))
+t8 = _Call direct [foo] (_T (dart.core::_OneByteString, hi))
+t9 = _Call direct [foo] (t6)
 RESULT: _T {}?
 ------------ if8 ------------
 %x = _Parameter #0 [_T ANY?]

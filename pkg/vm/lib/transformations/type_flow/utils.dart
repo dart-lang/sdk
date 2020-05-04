@@ -6,16 +6,7 @@
 /// analysis.
 library vm.transformations.type_flow.utils;
 
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        Constructor,
-        DartType,
-        FunctionNode,
-        Member,
-        Nullability,
-        Procedure,
-        VariableDeclaration;
+import 'package:kernel/ast.dart';
 
 const bool kPrintTrace =
     const bool.fromEnvironment('global.type.flow.print.trace');
@@ -268,3 +259,23 @@ const nullabilitySuffix = {
 extension NullabilitySuffix on Nullability {
   String get suffix => nullabilitySuffix[this];
 }
+
+bool isNullLiteral(Expression expr) =>
+    expr is NullLiteral ||
+    (expr is ConstantExpression && expr.constant is NullConstant);
+
+Expression getArgumentOfComparisonWithNull(MethodInvocation node) {
+  if (node.name.name == '==') {
+    final lhs = node.receiver;
+    final rhs = node.arguments.positional.single;
+    if (isNullLiteral(lhs)) {
+      return rhs;
+    } else if (isNullLiteral(rhs)) {
+      return lhs;
+    }
+  }
+  return null;
+}
+
+bool isComparisonWithNull(MethodInvocation node) =>
+    getArgumentOfComparisonWithNull(node) != null;
