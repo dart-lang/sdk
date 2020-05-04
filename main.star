@@ -68,6 +68,13 @@ DDC_PATHS = CFE_PATHS + [
     "pkg/(js|modular_test|sourcemap_testing)/.+",
 ]
 
+# Priorities used by the swarming scheduler. The higher the number, the lower
+# the priority.
+LOW = 70  # Used for "FYI" post-submit builds.
+NORMAL = 50  # Used for post-submit builds.
+HIGH = 30  # Used for try-jobs.
+HIGHEST = 25  # Used for shards in the recipes, included here for completeness.
+
 
 def to_location_regexp(paths):
     return [".+/[+]/%s" % path for path in paths]
@@ -332,7 +339,7 @@ def dart_try_builder(name,
         dimensions=dimensions,
         executable=dart_recipe(recipe),
         execution_timeout=execution_timeout,
-        priority=30,
+        priority=HIGH,
         properties=properties,
         service_account=TRY_ACCOUNT,
         swarming_tags=["vpython:native-python-wrapper"],
@@ -377,7 +384,7 @@ def dart_builder(name,
                  goma_rbe=False,
                  fyi=False,
                  notifies="dart",
-                 priority=50,
+                 priority=NORMAL,
                  properties=None,
                  schedule="triggered",
                  service_account=TRY_ACCOUNT,
@@ -499,12 +506,20 @@ def dart_vm_extra_builder(name, on_cq=False, location_regexp=None, **kwargs):
         **kwargs)
 
 
-LOW = 70
-
-
 def dart_vm_low_priority_builder(name, **kwargs):
     dart_vm_extra_builder(
         name, priority=LOW, expiration_timeout=time.day, **kwargs)
+
+
+def dart_vm_nightly_builder(name, **kwargs):
+    dart_ci_sandbox_builder(
+        name,
+        notifies=None,
+        on_cq=False,
+        priority=LOW,
+        schedule="0 5 * * *",  # daily, at 05:00 UTC
+        triggered_by=None,
+        **kwargs)
 
 
 # cfe
@@ -625,6 +640,11 @@ dart_vm_extra_builder(
     "vm-kernel-precomp-win-release-x64",
     category="vm|kernel-precomp|wr",
     dimensions=windows())
+dart_vm_nightly_builder(
+    "cross-vm-precomp-linux-release-arm64",
+    category="vm|kernel-precomp|cra",
+    channels=[],
+    properties={"shard_timeout": 5400})  # 1.5h
 
 # vm|kernel-precomp|android
 dart_vm_extra_builder(
