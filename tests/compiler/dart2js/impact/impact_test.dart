@@ -46,6 +46,8 @@ class Tags {
 class ImpactDataComputer extends DataComputer<Features> {
   const ImpactDataComputer();
 
+  static const String wildcard = '%';
+
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
@@ -55,14 +57,14 @@ class ImpactDataComputer extends DataComputer<Features> {
     ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
     Features features = new Features();
     if (impact.typeUses.length > 50) {
-      features.addElement(Tags.typeUse, '*');
+      features.addElement(Tags.typeUse, wildcard);
     } else {
       for (TypeUse use in impact.typeUses) {
         features.addElement(Tags.typeUse, use.shortText);
       }
     }
     if (impact.staticUses.length > 50) {
-      features.addElement(Tags.staticUse, '*');
+      features.addElement(Tags.staticUse, wildcard);
     } else {
       for (StaticUse use in impact.staticUses) {
         features.addElement(Tags.staticUse, use.shortText);
@@ -92,5 +94,5 @@ class ImpactDataComputer extends DataComputer<Features> {
 
   @override
   DataInterpreter<Features> get dataValidator =>
-      const FeaturesDataInterpreter(wildcard: '*');
+      const FeaturesDataInterpreter(wildcard: wildcard);
 }
