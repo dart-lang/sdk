@@ -1056,6 +1056,33 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
   }
 }
 
+void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
+  MutexLocker lock(signal_mutex);
+  SignalInfo* handler = signal_handlers;
+  while (handler != NULL) {
+    bool remove = false;
+    if (handler->fd() == fd) {
+      if ((port == ILLEGAL_PORT) || (handler->port() == port)) {
+        if (signal_handlers == handler) {
+          signal_handlers = handler->next();
+        }
+        handler->Unlink();
+        FileHandle* file_handle = reinterpret_cast<FileHandle*>(handler->fd());
+        file_handle->Release();
+        remove = true;
+      }
+    }
+    SignalInfo* next = handler->next();
+    if (remove) {
+      delete handler;
+    }
+    handler = next;
+  }
+  if (signal_handlers == NULL) {
+    USE(SetConsoleCtrlHandler(SignalHandler, false));
+  }
+}
+
 void ProcessInfoList::Init() {
   ASSERT(ProcessInfoList::mutex_ == nullptr);
   ProcessInfoList::mutex_ = new Mutex();

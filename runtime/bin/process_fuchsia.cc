@@ -818,6 +818,8 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
 
 void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {}
 
+void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {}
+
 void ProcessInfoList::Init() {
   ASSERT(ProcessInfoList::mutex_ == nullptr);
   ProcessInfoList::mutex_ = new Mutex();
