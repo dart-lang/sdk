@@ -74,7 +74,6 @@ class TypeMemberContributor extends DartCompletionContributor {
         }
       }
     }
-    String containingMethodName;
     List<InterfaceType> mixins;
     List<InterfaceType> superclassConstraints;
     if (expression is SuperExpression && type is InterfaceType) {
@@ -82,16 +81,6 @@ class TypeMemberContributor extends DartCompletionContributor {
       mixins = (type as InterfaceType).mixins;
       superclassConstraints = (type as InterfaceType).superclassConstraints;
       type = (type as InterfaceType).superclass;
-      // Determine the name of the containing method because the most likely
-      // completion is a super expression with same name.
-      var containingMethod =
-          expression.thisOrAncestorOfType<MethodDeclaration>();
-      if (containingMethod != null) {
-        var id = containingMethod.name;
-        if (id != null) {
-          containingMethodName = id.name;
-        }
-      }
     }
     if (type == null || type.isDynamic) {
       // Suggest members from object if target is "dynamic".
@@ -101,7 +90,7 @@ class TypeMemberContributor extends DartCompletionContributor {
     // Build the suggestions.
     if (type is InterfaceType) {
       var memberBuilder = _SuggestionBuilder(request, builder);
-      memberBuilder.buildSuggestions(type, containingMethodName,
+      memberBuilder.buildSuggestions(type,
           mixins: mixins, superclassConstraints: superclassConstraints);
     } else if (type is FunctionType) {
       builder.suggestFunctionCall();
@@ -240,7 +229,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
   /// Return completion suggestions for 'dot' completions on the given [type].
   /// If the 'dot' completion is a super expression, then [containingMethodName]
   /// is the name of the method in which the completion is requested.
-  void buildSuggestions(InterfaceType type, String containingMethodName,
+  void buildSuggestions(InterfaceType type,
       {List<InterfaceType> mixins, List<InterfaceType> superclassConstraints}) {
     // Visit all of the types in the class hierarchy, collecting possible
     // completions.  If multiple elements are found that complete to the same
@@ -263,17 +252,13 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
         // Exclude static methods when completion on an instance.
         if (!method.isStatic) {
           addSuggestionForMethod(
-              method: method,
-              containingMethodName: containingMethodName,
-              inheritanceDistance: inheritanceDistance);
+              method: method, inheritanceDistance: inheritanceDistance);
         }
       }
       for (var accessor in targetType.accessors) {
         if (!accessor.isStatic) {
           addSuggestionForAccessor(
-              accessor: accessor,
-              containingMethodName: containingMethodName,
-              inheritanceDistance: inheritanceDistance);
+              accessor: accessor, inheritanceDistance: inheritanceDistance);
         }
       }
       if (targetType.isDartCoreFunction) {

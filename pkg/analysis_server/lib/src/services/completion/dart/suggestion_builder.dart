@@ -214,13 +214,11 @@ class MemberSuggestionBuilder {
   /// Add a suggestion for the given [accessor].
   void addSuggestionForAccessor(
       {@required PropertyAccessorElement accessor,
-      String containingMethodName,
       @required double inheritanceDistance}) {
     if (accessor.isAccessibleIn(request.libraryElement)) {
       var member = accessor.isSynthetic ? accessor.variable : accessor;
       if (_shouldAddSuggestion(member)) {
         builder.suggestAccessor(accessor,
-            containingMemberName: containingMethodName,
             inheritanceDistance: inheritanceDistance);
       }
     }
@@ -229,15 +227,12 @@ class MemberSuggestionBuilder {
   /// Add a suggestion for the given [method].
   void addSuggestionForMethod(
       {@required MethodElement method,
-      String containingMethodName,
       CompletionSuggestionKind kind,
       @required double inheritanceDistance}) {
     if (method.isAccessibleIn(request.libraryElement) &&
         _shouldAddSuggestion(method)) {
       builder.suggestMethod(method,
-          containingMemberName: containingMethodName,
-          kind: kind,
-          inheritanceDistance: inheritanceDistance);
+          kind: kind, inheritanceDistance: inheritanceDistance);
     }
   }
 
@@ -376,9 +371,7 @@ class SuggestionBuilder {
   /// distance feature computed for the accessor (or `-1.0` if the accessor is a
   /// static accessor).
   void suggestAccessor(PropertyAccessorElement accessor,
-      {String containingMemberName, @required double inheritanceDistance}) {
-    // TODO(brianwilkerson) Remove [containingMemberName].
-    containingMemberName ??= _containingMemberName;
+      {@required double inheritanceDistance}) {
     assert(accessor.enclosingElement is ClassElement ||
         accessor.enclosingElement is ExtensionElement);
     if (accessor.isSynthetic) {
@@ -388,9 +381,7 @@ class SuggestionBuilder {
       if (accessor.isGetter) {
         var variable = accessor.variable;
         if (variable is FieldElement) {
-          suggestField(variable,
-              containingMemberName: containingMemberName,
-              inheritanceDistance: inheritanceDistance);
+          suggestField(variable, inheritanceDistance: inheritanceDistance);
         }
       }
     } else {
@@ -407,7 +398,7 @@ class SuggestionBuilder {
         var startsWithDollar =
             featureComputer.startsWithDollarFeature(accessor.name);
         var superMatches = featureComputer.superMatchesFeature(
-            containingMemberName, accessor.name);
+            _containingMemberName, accessor.name);
         relevance = _computeMemberRelevance(
             contextType: contextType,
             elementKind: elementKind,
@@ -587,9 +578,7 @@ class SuggestionBuilder {
   /// value of the inheritance distance feature computed for the field (or
   /// `-1.0` if the field is a static field).
   void suggestField(FieldElement field,
-      {String containingMemberName, @required double inheritanceDistance}) {
-    // TODO(brianwilkerson) Remove [containingMemberName].
-    containingMemberName ??= _containingMemberName;
+      {@required double inheritanceDistance}) {
     int relevance;
     if (request.useNewRelevance) {
       var featureComputer = request.featureComputer;
@@ -600,8 +589,8 @@ class SuggestionBuilder {
       var hasDeprecated = featureComputer.hasDeprecatedFeature(field);
       var startsWithDollar =
           featureComputer.startsWithDollarFeature(field.name);
-      var superMatches =
-          featureComputer.superMatchesFeature(containingMemberName, field.name);
+      var superMatches = featureComputer.superMatchesFeature(
+          _containingMemberName, field.name);
       relevance = _computeMemberRelevance(
           contextType: contextType,
           elementKind: elementKind,
@@ -721,11 +710,7 @@ class SuggestionBuilder {
   /// used as the kind for the suggestion. The [inheritanceDistance] is the
   /// value of the inheritance distance feature computed for the method.
   void suggestMethod(MethodElement method,
-      {String containingMemberName,
-      CompletionSuggestionKind kind,
-      @required double inheritanceDistance}) {
-    // TODO(brianwilkerson) Remove [containingMemberName].
-    containingMemberName ??= _containingMemberName;
+      {CompletionSuggestionKind kind, @required double inheritanceDistance}) {
     // TODO(brianwilkerson) Refactor callers so that we're passing in the type
     //  of the target (assuming we don't already have that type available via
     //  the [request]) and compute the [inheritanceDistance] in this method.
@@ -740,7 +725,7 @@ class SuggestionBuilder {
       var startsWithDollar =
           featureComputer.startsWithDollarFeature(method.name);
       var superMatches = featureComputer.superMatchesFeature(
-          containingMemberName, method.name);
+          _containingMemberName, method.name);
       relevance = _computeMemberRelevance(
           contextType: contextType,
           elementKind: elementKind,
@@ -749,8 +734,7 @@ class SuggestionBuilder {
           startsWithDollar: startsWithDollar,
           superMatches: superMatches);
     } else {
-      relevance = _computeOldMemberRelevance(method,
-          containingMethodName: containingMemberName);
+      relevance = _computeOldMemberRelevance(method);
       if (request.opType.includeReturnValueSuggestions) {
         relevance = request.opType
             .returnValueSuggestionsFilter(method.returnType, relevance);
@@ -971,13 +955,10 @@ class SuggestionBuilder {
   }
 
   /// Compute the old relevance score for a member.
-  int _computeOldMemberRelevance(Element member,
-      {String containingMethodName}) {
-    // TODO(brianwilkerson) Remove [containingMethodName].
-    containingMethodName ??= _containingMemberName;
+  int _computeOldMemberRelevance(Element member) {
     if (member.hasOrInheritsDeprecated) {
       return DART_RELEVANCE_LOW;
-    } else if (member.name == containingMethodName) {
+    } else if (member.name == _containingMemberName) {
       // Boost the relevance of a super expression calling a method of the
       // same name as the containing method.
       return DART_RELEVANCE_HIGH;
