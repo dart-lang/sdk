@@ -304,56 +304,22 @@ class NodeChangeForAsExpression extends NodeChangeForExpression<AsExpression> {
 /// Implementation of [NodeChange] specialized for operating on
 /// [AssignmentExpression] nodes.
 class NodeChangeForAssignment
-    extends NodeChangeForExpression<AssignmentExpression> {
-  /// Indicates whether the user should be warned that the assignment is a
-  /// compound assignment with a bad combined type (the return type of the
-  /// combiner isn't assignable to the the write type of the LHS).
-  bool isCompoundAssignmentWithBadCombinedType = false;
-
-  /// Indicates whether the user should be warned that the assignment is a
-  /// compound assignment with a nullable source type.
-  bool isCompoundAssignmentWithNullableSource = false;
-
+    extends NodeChangeForExpression<AssignmentExpression>
+    with NodeChangeForAssignmentLike {
   /// Indicates whether the user should be warned that the assignment is a
   /// null-aware assignment that will have no effect when strong checking is
   /// enabled.
   bool isWeakNullAware = false;
 
   @override
-  Iterable<String> get _toStringParts => [
-        ...super._toStringParts,
-        if (isCompoundAssignmentWithBadCombinedType)
-          'isCompoundAssignmentWithBadCombinedType',
-        if (isCompoundAssignmentWithNullableSource)
-          'isCompoundAssignmentWithNullableSource',
-        if (isWeakNullAware) 'isWeakNullAware'
-      ];
+  Iterable<String> get _toStringParts =>
+      [...super._toStringParts, if (isWeakNullAware) 'isWeakNullAware'];
 
   @override
   NodeProducingEditPlan _apply(
       AssignmentExpression node, FixAggregator aggregator) {
     var lhsPlan = aggregator.planForNode(node.leftHandSide);
-    EditPlan operatorPlan;
-    if (isCompoundAssignmentWithNullableSource) {
-      operatorPlan = aggregator.planner.informativeMessageForToken(
-          node, node.operator,
-          info: AtomicEditInfo(
-              NullabilityFixDescription.compoundAssignmentHasNullableSource,
-              const {}));
-    } else if (isCompoundAssignmentWithBadCombinedType) {
-      operatorPlan = aggregator.planner.informativeMessageForToken(
-          node, node.operator,
-          info: AtomicEditInfo(
-              NullabilityFixDescription.compoundAssignmentHasBadCombinedType,
-              const {}));
-    } else if (isWeakNullAware) {
-      operatorPlan = aggregator.planner.informativeMessageForToken(
-          node, node.operator,
-          info: AtomicEditInfo(
-              NullabilityFixDescription
-                  .nullAwareAssignmentUnnecessaryInStrongMode,
-              const {}));
-    }
+    var operatorPlan = _makeOperatorPlan(aggregator, node, node.operator);
     var rhsPlan = aggregator.planForNode(node.rightHandSide);
     var innerPlans = <EditPlan>[
       lhsPlan,
@@ -362,6 +328,58 @@ class NodeChangeForAssignment
     ];
     return _applyExpression(aggregator,
         aggregator.planner.passThrough(node, innerPlans: innerPlans));
+  }
+
+  EditPlan _makeOperatorPlan(
+      FixAggregator aggregator, AssignmentExpression node, Token operator) {
+    var operatorPlan = super._makeOperatorPlan(aggregator, node, operator);
+    if (operatorPlan != null) return operatorPlan;
+    if (isWeakNullAware) {
+      return aggregator.planner.informativeMessageForToken(node, operator,
+          info: AtomicEditInfo(
+              NullabilityFixDescription
+                  .nullAwareAssignmentUnnecessaryInStrongMode,
+              const {}));
+    } else {
+      return null;
+    }
+  }
+}
+
+/// Common behaviors for expressions that can represent an assignment (possibly
+/// through desugaring).
+mixin NodeChangeForAssignmentLike<N extends Expression>
+    on NodeChangeForExpression<N> {
+  /// Indicates whether the user should be warned that the assignment has a
+  /// bad combined type (the return type of the combiner isn't assignable to the
+  /// write type of the target).
+  bool hasBadCombinedType = false;
+
+  /// Indicates whether the user should be warned that the assignment has a
+  /// nullable source type.
+  bool hasNullableSource = false;
+
+  @override
+  Iterable<String> get _toStringParts => [
+        ...super._toStringParts,
+        if (hasBadCombinedType) 'hasBadCombinedType',
+        if (hasNullableSource) 'hasNullableSource'
+      ];
+
+  EditPlan _makeOperatorPlan(FixAggregator aggregator, N node, Token operator) {
+    if (hasNullableSource) {
+      return aggregator.planner.informativeMessageForToken(node, operator,
+          info: AtomicEditInfo(
+              NullabilityFixDescription.compoundAssignmentHasNullableSource,
+              const {}));
+    } else if (hasBadCombinedType) {
+      return aggregator.planner.informativeMessageForToken(node, operator,
+          info: AtomicEditInfo(
+              NullabilityFixDescription.compoundAssignmentHasBadCombinedType,
+              const {}));
+    } else {
+      return null;
+    }
   }
 }
 
@@ -693,6 +711,44 @@ mixin NodeChangeForNullAware<N extends Expression> on NodeChange<N> {
   }
 }
 
+/// Implementation of [NodeChange] specialized for operating on
+/// [PostfixExpression] nodes.
+class NodeChangeForPostfixExpression
+    extends NodeChangeForExpression<PostfixExpression>
+    with NodeChangeForAssignmentLike {
+  @override
+  NodeProducingEditPlan _apply(
+      PostfixExpression node, FixAggregator aggregator) {
+    var operandPlan = aggregator.planForNode(node.operand);
+    var operatorPlan = _makeOperatorPlan(aggregator, node, node.operator);
+    var innerPlans = <EditPlan>[
+      operandPlan,
+      if (operatorPlan != null) operatorPlan
+    ];
+    return _applyExpression(aggregator,
+        aggregator.planner.passThrough(node, innerPlans: innerPlans));
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on
+/// [PrefixExpression] nodes.
+class NodeChangeForPrefixExpression
+    extends NodeChangeForExpression<PrefixExpression>
+    with NodeChangeForAssignmentLike {
+  @override
+  NodeProducingEditPlan _apply(
+      PrefixExpression node, FixAggregator aggregator) {
+    var operatorPlan = _makeOperatorPlan(aggregator, node, node.operator);
+    var operandPlan = aggregator.planForNode(node.operand);
+    var innerPlans = <EditPlan>[
+      if (operatorPlan != null) operatorPlan,
+      operandPlan
+    ];
+    return _applyExpression(aggregator,
+        aggregator.planner.passThrough(node, innerPlans: innerPlans));
+  }
+}
+
 /// Implementation of [NodeChange] specialized for operating on [PropertyAccess]
 /// nodes.
 class NodeChangeForPropertyAccess
@@ -932,6 +988,14 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
   @override
   NodeChange visitNode(AstNode node) =>
       throw StateError('Unexpected node type: ${node.runtimeType}');
+
+  @override
+  NodeChange visitPostfixExpression(PostfixExpression node) =>
+      NodeChangeForPostfixExpression();
+
+  @override
+  NodeChange visitPrefixExpression(PrefixExpression node) =>
+      NodeChangeForPrefixExpression();
 
   @override
   NodeChange visitPropertyAccess(PropertyAccess node) =>

@@ -694,6 +694,56 @@ String? g() => 1 == 2 ? "Hello" : null;
         explanation: "Changed type 'String' to be nullable");
   }
 
+  Future<void> test_increment_nullable_result() async {
+    var unit = await buildInfoForSingleTestFile('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+void f(C/*!*/ a) {
+  a++;
+}
+''', migratedContent: '''
+abstract class C {
+  C/*?*/ operator+(int  i);
+}
+void f(C/*!*/ a) {
+  a++;
+}
+''');
+    var operator = '++';
+    var operatorOffset = unit.content.indexOf(operator);
+    var region =
+        unit.regions.where((region) => region.offset == operatorOffset).single;
+    assertRegion(
+        region: region,
+        length: operator.length,
+        explanation: 'Compound assignment has bad combined type',
+        kind: NullabilityFixKind.compoundAssignmentHasBadCombinedType,
+        edits: isEmpty);
+  }
+
+  Future<void> test_increment_nullable_source() async {
+    var unit = await buildInfoForSingleTestFile('''
+void f(int/*?*/ a) {
+  a++;
+}
+''', migratedContent: '''
+void f(int/*?*/ a) {
+  a++;
+}
+''');
+    var operator = '++';
+    var operatorOffset = unit.content.indexOf(operator);
+    var region =
+        unit.regions.where((region) => region.offset == operatorOffset).single;
+    assertRegion(
+        region: region,
+        length: operator.length,
+        explanation: 'Compound assignment has nullable source',
+        kind: NullabilityFixKind.compoundAssignmentHasNullableSource,
+        edits: isEmpty);
+  }
+
   Future<void> test_insertedRequired_fieldFormal() async {
     var unit = await buildInfoForSingleTestFile('''
 class C {
