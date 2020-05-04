@@ -66,8 +66,7 @@ const _symbolOffsetREString = r'(?<symbol>' +
     r')\+(?<offset>(?:0x)?[\da-f]+)';
 final _symbolOffsetRE = RegExp(_symbolOffsetREString);
 final _traceLineRE = RegExp(
-    r'    #(\d{2}) abs (?<absolute>[\da-f]+)(?: virt (?<virtual>[\da-f]+))? '
-    r'(?<rest>.*)$');
+    r'    #(\d{2}) abs (?<address>[\da-f]+)(?: virt ([\da-f]+))? (?<rest>.*)$');
 
 /// Parses strings of the format <static symbol>+<integer offset>, where
 /// <static symbol> is one of the static symbols used for Dart instruction
@@ -116,18 +115,9 @@ PCOffset _retrievePCOffset(StackTraceHeader header, RegExpMatch match) {
   // If we're parsing the absolute address, we can only convert it into
   // a PCOffset if we saw the instructions line of the stack trace header.
   if (header != null) {
-    final addressString = match.namedGroup('absolute');
+    final addressString = match.namedGroup('address');
     final address = int.tryParse(addressString, radix: 16);
     return header.offsetOf(address);
-  }
-  // If all other cases failed, check for a virtual address. Until this package
-  // depends on a version of Dart which only prints virtual addresses when the
-  // virtual addresses in the snapshot are the same as in separately saved
-  // debugging information, the other methods should be tried first.
-  final virtualString = match.namedGroup('virtual');
-  if (virtualString != null) {
-    final address = int.tryParse(virtualString, radix: 16);
-    return PCOffset(address, InstructionsSection.none);
   }
   return null;
 }

@@ -6565,9 +6565,9 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                             &vm_image_writer, &isolate_image_writer);
 
   writer.WriteFullSnapshot();
-  elf->AddROData(kVmSnapshotDataAsmSymbol, vm_snapshot_data_buffer,
+  elf->AddROData("_kDartVmSnapshotData", vm_snapshot_data_buffer,
                  writer.VmIsolateSnapshotSize());
-  elf->AddROData(kIsolateSnapshotDataAsmSymbol, isolate_snapshot_data_buffer,
+  elf->AddROData("_kDartIsolateSnapshotData", isolate_snapshot_data_buffer,
                  writer.IsolateSnapshotSize());
 
   if (elf_dwarf != nullptr) {

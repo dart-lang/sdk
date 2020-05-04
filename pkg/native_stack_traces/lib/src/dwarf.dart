@@ -1106,7 +1106,7 @@ class StubCallInfo extends CallInfo {
 }
 
 /// The instructions section in which a program counter address is located.
-enum InstructionsSection { none, vm, isolate }
+enum InstructionsSection { vm, isolate }
 
 /// A program counter address viewed as an offset into the appropriate
 /// instructions section of a Dart snapshot.
@@ -1239,9 +1239,6 @@ class Dwarf {
   /// The virtual address in this DWARF information for the given [PCOffset].
   int virtualAddressOf(PCOffset pcOffset) {
     switch (pcOffset.section) {
-      case InstructionsSection.none:
-        // This address is already virtualized, so we don't need to change it.
-        return pcOffset.offset;
       case InstructionsSection.vm:
         return pcOffset.offset + vmStartAddress;
       case InstructionsSection.isolate:

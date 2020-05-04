@@ -23480,7 +23480,6 @@ StackTracePtr StackTrace::New(const Array& code_array,
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-// Prints the best representation(s) for the call address.
 static void PrintNonSymbolicStackFrameBody(ZoneTextBuffer* buffer,
                                            uword call_addr,
                                            uword isolate_instructions,
@@ -23489,27 +23488,9 @@ static void PrintNonSymbolicStackFrameBody(ZoneTextBuffer* buffer,
   const word isolate_offset = call_addr - isolate_instructions;
   // Pick the closest instructions section start before the call address.
   if (vm_offset > 0 && (isolate_offset < 0 || vm_offset < isolate_offset)) {
-    // If this VM image was compiled directly to ELF, then print the virtual
-    // address of the call address, since the virtual addresses will match
-    // those in any separately saved debugging information.
-    const Image vm_instructions_image(
-        reinterpret_cast<const uword*>(vm_instructions));
-    const uword virtual_base = vm_instructions_image.virtual_address();
-    if (virtual_base != 0) {
-      buffer->Printf(" virt %" Pp "", virtual_base + vm_offset);
-    }
     buffer->Printf(" %s+0x%" Px "", kVmSnapshotInstructionsAsmSymbol,
                    vm_offset);
   } else if (isolate_offset > 0) {
-    // If this isolate image was compiled directly to ELF, then print the
-    // virtual address of the call address, since the virtual addresses will
-    // match those in any separately saved debugging information.
-    const Image isolate_instructions_image(
-        reinterpret_cast<const uword*>(isolate_instructions));
-    const uword virtual_base = isolate_instructions_image.virtual_address();
-    if (virtual_base != 0) {
-      buffer->Printf(" virt %" Pp "", virtual_base + isolate_offset);
-    }
     buffer->Printf(" %s+0x%" Px "", kIsolateSnapshotInstructionsAsmSymbol,
                    isolate_offset);
   } else {

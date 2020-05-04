@@ -408,9 +408,6 @@ void ImageWriter::WriteROData(WriteStream* stream) {
   intptr_t section_start = stream->Position();
 
   stream->WriteWord(next_data_offset_);  // Data length.
-  for (intptr_t i = 1; i < Image::kHeaderFields; i++) {
-    stream->WriteWord(0);  // Zero values for other image header fields.
-  }
   COMPILE_ASSERT(kMaxObjectAlignment >= kObjectAlignment);
   stream->Align(kMaxObjectAlignment);
 
@@ -650,8 +647,6 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #else
   WriteWordLiteralText(0);  // No relocations.
 #endif
-
-  WriteWordLiteralText(0);  // Not compiling directly to ELF.
 
   intptr_t header_words = Image::kHeaderSize / sizeof(compiler::target::uword);
   for (intptr_t i = Image::kHeaderFields; i < header_words; i++) {
@@ -926,7 +921,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #endif
 
   const char* data_symbol =
-      vm ? kVmSnapshotDataAsmSymbol : kIsolateSnapshotDataAsmSymbol;
+      vm ? "_kDartVmSnapshotData" : "_kDartIsolateSnapshotData";
   assembly_stream_.Print(".globl %s\n", data_symbol);
   Align(kMaxObjectAlignment);
   assembly_stream_.Print("%s:\n", data_symbol);
@@ -1100,11 +1095,8 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #if defined(DART_PRECOMPILER)
   instructions_blob_stream_.WriteTargetWord(
       elf_ != nullptr ? bss_base_ - segment_base : 0);
-  // Store the virtual address of the instructions section here.
-  instructions_blob_stream_.WriteTargetWord(segment_base);
 #else
   instructions_blob_stream_.WriteTargetWord(0);  // No relocations.
-  instructions_blob_stream_.WriteTargetWord(0);  // Not an ELF snapshot.
 #endif
   const intptr_t header_words =
       Image::kHeaderSize / sizeof(compiler::target::uword);
