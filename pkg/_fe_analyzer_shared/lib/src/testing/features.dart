@@ -225,11 +225,13 @@ class Features {
 }
 
 class FeaturesDataInterpreter implements DataInterpreter<Features> {
-  const FeaturesDataInterpreter();
+  final String wildcard;
+
+  const FeaturesDataInterpreter({this.wildcard: null});
 
   @override
   String isAsExpected(Features actualFeatures, String expectedData) {
-    if (expectedData == '*') {
+    if (wildcard != null && expectedData == wildcard) {
       return null;
     } else if (expectedData == '') {
       return actualFeatures.isNotEmpty ? "Expected empty data." : null;
@@ -255,7 +257,7 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
           if (actualValue != '') {
             errorsFound.add('Non-empty data found for $key');
           }
-        } else if (expectedValue == '*') {
+        } else if (wildcard != null && expectedValue == wildcard) {
           return;
         } else if (expectedValue is List) {
           if (actualValue is List) {
@@ -263,10 +265,10 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
             for (Object expectedObject in expectedValue) {
               String expectedText = '$expectedObject';
               bool matchFound = false;
-              if (expectedText.endsWith('*')) {
+              if (wildcard != null && expectedText.endsWith(wildcard)) {
                 // Wildcard matcher.
                 String prefix =
-                    expectedText.substring(0, expectedText.indexOf('*'));
+                    expectedText.substring(0, expectedText.indexOf(wildcard));
                 List matches = [];
                 for (Object actualObject in actualList) {
                   if ('$actualObject'.startsWith(prefix)) {

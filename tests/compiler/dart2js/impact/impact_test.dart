@@ -92,5 +92,5 @@ class ImpactDataComputer extends DataComputer<Features> {
 
   @override
   DataInterpreter<Features> get dataValidator =>
-      const FeaturesDataInterpreter();
+      const FeaturesDataInterpreter(wildcard: '*');
 }
