@@ -904,7 +904,7 @@ void testWaitSyncError() {
         new Iterable.generate(5, (i) {
           if (i != 3) return new Future.delayed(cms * (i + 1), () => i);
           throw "throwing synchronously in iterable";
-        }), cleanUp: (index) {
+        }), cleanUp: (dynamic index) {
       Expect.isFalse(cleanups[index]);
       cleanups[index] = true;
       if (cleanups.every((x) => x)) asyncEnd();

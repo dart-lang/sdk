@@ -157,7 +157,7 @@ class ClosureContext {
       DartType returnContext, bool needToInferReturnType) {
     assert(returnContext != null);
     DartType declaredReturnType =
-        greatestClosure(returnContext, inferrer.bottomType);
+        inferrer.computeGreatestClosure(returnContext);
     bool isAsync = asyncMarker == AsyncMarker.Async ||
         asyncMarker == AsyncMarker.AsyncStar;
     bool isGenerator = asyncMarker == AsyncMarker.SyncStar ||
@@ -293,7 +293,7 @@ class ClosureContext {
         if (!identical(statement.expression, expression)) {
           statement.expression = expression..parent = statement;
           // Not assignable, use the expectation.
-          type = greatestClosure(returnOrYieldContext, inferrer.bottomType);
+          type = inferrer.computeGreatestClosure(returnOrYieldContext);
         }
       }
       DartType unwrappedType = type;
@@ -337,7 +337,7 @@ class ClosureContext {
     node.expression = expression..parent = node;
     DartType type = expressionResult.inferredType;
     if (!identical(expressionResult.expression, expression)) {
-      type = greatestClosure(expectedType, inferrer.bottomType);
+      type = inferrer.computeGreatestClosure(expectedType);
     }
     if (_needToInferReturnType) {
       DartType unwrappedType = type;
@@ -381,7 +381,7 @@ class ClosureContext {
         returnOrYieldContext, SubtypeCheckMode.withNullabilities)) {
       // If the inferred return type isn't a subtype of the context, we use the
       // context.
-      inferredType = greatestClosure(declaredReturnType, inferrer.bottomType);
+      inferredType = inferrer.computeGreatestClosure2(declaredReturnType);
     }
 
     for (int i = 0; i < returnStatements.length; ++i) {
@@ -608,6 +608,19 @@ class TypeInferrerImpl implements TypeInferrer {
       ? const NeverType(Nullability.nonNullable)
       : engine.coreTypes.nullType;
 
+  DartType computeGreatestClosure(DartType type) {
+    return greatestClosure(type, const DynamicType(), bottomType);
+  }
+
+  DartType computeGreatestClosure2(DartType type) {
+    return greatestClosure(
+        type,
+        isNonNullableByDefault
+            ? coreTypes.objectNullableRawType
+            : const DynamicType(),
+        bottomType);
+  }
+
   DartType computeNullable(DartType type) {
     if (type == coreTypes.nullType || type is NeverType) {
       return coreTypes.nullType;
@@ -749,7 +762,7 @@ class TypeInferrerImpl implements TypeInferrer {
     if (isTopLevel) return expression;
 
     fileOffset ??= expression.fileOffset;
-    contextType = greatestClosure(contextType, bottomType);
+    contextType = computeGreatestClosure(contextType);
 
     DartType initialContextType = contextType;
     if (isReturnFromAsync &&
@@ -2488,9 +2501,8 @@ class TypeInferrerImpl implements TypeInferrer {
               coreTypes.isNull(formalTypesFromContext[i])) {
             inferredType = coreTypes.objectRawType(library.nullable);
           } else {
-            inferredType = greatestClosure(
-                substitution.substituteType(formalTypesFromContext[i]),
-                bottomType);
+            inferredType = computeGreatestClosure2(
+                substitution.substituteType(formalTypesFromContext[i]));
           }
         } else {
           inferredType = const DynamicType();

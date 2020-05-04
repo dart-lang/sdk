@@ -193,7 +193,7 @@ Future testForEachEmpty() {
 
 Future testForEach() {
   final seen = <int>[];
-  return Future.forEach([1, 2, 3, 4, 5], (n) {
+  return Future.forEach([1, 2, 3, 4, 5], (dynamic n) {
     seen.add(n);
     return new Future.value();
   }).then((_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
@@ -207,7 +207,7 @@ Future testForEachSync() {
 
 Future testForEachWithException() {
   final seen = <int>[];
-  return Future.forEach([1, 2, 3, 4, 5], (n) {
+  return Future.forEach([1, 2, 3, 4, 5], (dynamic n) {
     if (n == 4) throw 'correct exception';
     seen.add(n);
     return new Future.value();

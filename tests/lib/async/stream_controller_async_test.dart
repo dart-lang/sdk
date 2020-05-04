@@ -22,7 +22,7 @@ testController() {
   test("StreamController.fold", () {
     StreamController c = new StreamController();
     Stream stream = c.stream.asBroadcastStream(onCancel: cancelSub);
-    stream.fold(0, (a, b) => a + b).then(expectAsync((int v) {
+    stream.fold<dynamic>(0, (a, b) => a + b).then(expectAsync((int v) {
       Expect.equals(42, v);
     }));
     c.add(10);
@@ -46,7 +46,7 @@ testSingleController() {
   test("Single-subscription StreamController.fold", () {
     StreamController c = new StreamController();
     Stream stream = c.stream;
-    stream.fold(0, (a, b) => a + b).then(expectAsync((int v) {
+    stream.fold<dynamic>(0, (a, b) => a + b).then(expectAsync((int v) {
       Expect.equals(42, v);
     }));
     c.add(10);
