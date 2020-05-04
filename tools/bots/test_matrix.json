@@ -1968,6 +1968,7 @@
           "script": "tools/build.py",
           "arguments": [
             "dart_precompiled_runtime",
+            "gen_snapshot",
             "runtime_kernel"
           ]
         },
