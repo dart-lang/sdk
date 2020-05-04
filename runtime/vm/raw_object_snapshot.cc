@@ -61,7 +61,7 @@ void ClassLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   if (writer->can_send_any_object() ||
-      writer->AllowObjectsInDartLibrary(ptr()->library_)) {
+      writer->AllowObjectsInDartLibrary(library_)) {
     writer->WriteClassId(this);
   } else {
     // We do not allow regular dart instances in isolate messages.
@@ -122,7 +122,7 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
                          bool as_reference) {
   ASSERT(writer != NULL);
 
-  if (ptr()->signature_ != Function::null()) {
+  if (signature_ != Function::null()) {
     writer->SetWriteException(Exceptions::kArgument,
                               "Illegal argument in isolate message"
                               " : (function types are not supported yet)");
@@ -130,9 +130,9 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
   }
 
   // Only resolved and finalized types should be written to a snapshot.
-  ASSERT((ptr()->type_state_ == TypeLayout::kFinalizedInstantiated) ||
-         (ptr()->type_state_ == TypeLayout::kFinalizedUninstantiated));
-  ASSERT(ptr()->type_class_id_ != Object::null());
+  ASSERT((type_state_ == TypeLayout::kFinalizedInstantiated) ||
+         (type_state_ == TypeLayout::kFinalizedUninstantiated));
+  ASSERT(type_class_id_ != Object::null());
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -141,13 +141,13 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kTypeCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
-  if (ptr()->type_class_id_->IsHeapObject()) {
+  if (type_class_id_->IsHeapObject()) {
     // Type class is still an unresolved class.
     UNREACHABLE();
   }
 
   // Lookup the type class.
-  SmiPtr raw_type_class_id = Smi::RawCast(ptr()->type_class_id_);
+  SmiPtr raw_type_class_id = Smi::RawCast(type_class_id_);
   ClassPtr type_class =
       writer->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
 
@@ -160,14 +160,14 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
   writer->Write<bool>(typeclass_is_in_fullsnapshot);
 
   // Write out all the non object pointer fields.
-  writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
-  const uint8_t combined = (ptr()->type_state_ << 4) | ptr()->nullability_;
-  ASSERT(ptr()->type_state_ == (combined >> 4));
-  ASSERT(ptr()->nullability_ == (combined & 0xf));
+  writer->Write<int32_t>(token_pos_.SnapshotEncode());
+  const uint8_t combined = (type_state_ << 4) | nullability_;
+  ASSERT(type_state_ == (combined >> 4));
+  ASSERT(nullability_ == (combined & 0xf));
   writer->Write<uint8_t>(combined);
 
   // Write out all the object pointer fields.
-  ASSERT(ptr()->type_class_id_ != Object::null());
+  ASSERT(type_class_id_ != Object::null());
   SnapshotWriterVisitor visitor(writer, as_reference);
   visitor.VisitPointers(from(), to());
 
@@ -266,7 +266,7 @@ void TypeParameterLayout::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Only finalized type parameters should be written to a snapshot.
-  ASSERT(FinalizedBit::decode(ptr()->flags_));
+  ASSERT(FinalizedBit::decode(flags_));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -276,11 +276,11 @@ void TypeParameterLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
-  writer->Write<int16_t>(ptr()->index_);
-  const uint8_t combined = (ptr()->flags_ << 4) | ptr()->nullability_;
-  ASSERT(ptr()->flags_ == (combined >> 4));
-  ASSERT(ptr()->nullability_ == (combined & 0xf));
+  writer->Write<int32_t>(token_pos_.SnapshotEncode());
+  writer->Write<int16_t>(index_);
+  const uint8_t combined = (flags_ << 4) | nullability_;
+  ASSERT(flags_ == (combined >> 4));
+  ASSERT(nullability_ == (combined & 0xf));
   writer->Write<uint8_t>(combined);
 
   // Write out all the object pointer fields.
@@ -289,7 +289,7 @@ void TypeParameterLayout::WriteTo(SnapshotWriter* writer,
 
   // Write out the parameterized class.
   ClassPtr param_class =
-      writer->isolate()->class_table()->At(ptr()->parameterized_class_id_);
+      writer->isolate()->class_table()->At(parameterized_class_id_);
   writer->WriteObjectImpl(param_class, kAsReference);
 }
 
@@ -339,10 +339,10 @@ void TypeArgumentsLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the length field.
-  writer->Write<ObjectPtr>(ptr()->length_);
+  writer->Write<ObjectPtr>(length_);
 
   // Write out the individual types.
-  intptr_t len = Smi::Value(ptr()->length_);
+  intptr_t len = Smi::Value(length_);
   for (intptr_t i = 0; i < len; i++) {
     // The Dart VM reuses type argument lists across instances in order
     // to reduce memory footprint, this can sometimes lead to a type from
@@ -351,17 +351,17 @@ void TypeArgumentsLayout::WriteTo(SnapshotWriter* writer,
     // across (isolates spawned using spawnURI) we send them as dynamic.
     if (!writer->can_send_any_object()) {
       // Lookup the type class.
-      TypePtr raw_type = Type::RawCast(ptr()->types()[i]);
+      TypePtr raw_type = Type::RawCast(types()[i]);
       SmiPtr raw_type_class_id = Smi::RawCast(raw_type->ptr()->type_class_id_);
       ClassPtr type_class =
           writer->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
       if (!writer->AllowObjectsInDartLibrary(type_class->ptr()->library_)) {
         writer->WriteVMIsolateObject(kDynamicType);
       } else {
-        writer->WriteObjectImpl(ptr()->types()[i], as_reference);
+        writer->WriteObjectImpl(types()[i], as_reference);
       }
     } else {
-      writer->WriteObjectImpl(ptr()->types()[i], as_reference);
+      writer->WriteObjectImpl(types()[i], as_reference);
     }
   }
 }
@@ -435,7 +435,7 @@ void ContextLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out num of variables in the context.
-  int32_t num_variables = ptr()->num_variables_;
+  const int32_t num_variables = num_variables_;
   writer->Write<int32_t>(num_variables);
   if (num_variables != 0) {
     // Write out all the object pointer fields.
@@ -481,9 +481,9 @@ void ContextScopeLayout::WriteTo(SnapshotWriter* writer,
                                  bool as_reference) {
   ASSERT(writer != NULL);
 
-  if (ptr()->is_implicit_) {
-    ASSERT(ptr()->num_variables_ == 1);
-    const VariableDesc* var = ptr()->VariableDescAddr(0);
+  if (is_implicit_) {
+    ASSERT(num_variables_ == 1);
+    const VariableDesc* var = VariableDescAddr(0);
 
     // Write out the serialization header value for this object.
     writer->WriteInlinedObjectHeader(object_id);
@@ -650,9 +650,9 @@ void LanguageErrorLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
-  writer->Write<bool>(ptr()->report_after_token_);
-  writer->Write<uint8_t>(ptr()->kind_);
+  writer->Write<int32_t>(token_pos_.SnapshotEncode());
+  writer->Write<bool>(report_after_token_);
+  writer->Write<uint8_t>(kind_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
@@ -777,7 +777,7 @@ void MintLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the 64 bit value.
-  writer->Write<int64_t>(ptr()->value_);
+  writer->Write<int64_t>(value_);
 }
 
 DoublePtr Double::ReadFrom(SnapshotReader* reader,
@@ -820,7 +820,7 @@ void DoubleLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the double value.
-  writer->WriteDouble(ptr()->value_);
+  writer->WriteDouble(value_);
 }
 
 template <typename StringType, typename CharacterType, typename CallbackType>
@@ -925,7 +925,7 @@ void OneByteStringLayout::WriteTo(SnapshotWriter* writer,
                                   Snapshot::Kind kind,
                                   bool as_reference) {
   StringWriteTo(writer, object_id, kind, kOneByteStringCid,
-                writer->GetObjectTags(this), ptr()->length_, ptr()->data());
+                writer->GetObjectTags(this), length_, data());
 }
 
 void TwoByteStringLayout::WriteTo(SnapshotWriter* writer,
@@ -933,7 +933,7 @@ void TwoByteStringLayout::WriteTo(SnapshotWriter* writer,
                                   Snapshot::Kind kind,
                                   bool as_reference) {
   StringWriteTo(writer, object_id, kind, kTwoByteStringCid,
-                writer->GetObjectTags(this), ptr()->length_, ptr()->data());
+                writer->GetObjectTags(this), length_, data());
 }
 
 ExternalOneByteStringPtr ExternalOneByteString::ReadFrom(SnapshotReader* reader,
@@ -960,8 +960,7 @@ void ExternalOneByteStringLayout::WriteTo(SnapshotWriter* writer,
                                           bool as_reference) {
   // Serialize as a non-external one byte string.
   StringWriteTo(writer, object_id, kind, kOneByteStringCid,
-                writer->GetObjectTags(this), ptr()->length_,
-                ptr()->external_data_);
+                writer->GetObjectTags(this), length_, external_data_);
 }
 
 void ExternalTwoByteStringLayout::WriteTo(SnapshotWriter* writer,
@@ -970,8 +969,7 @@ void ExternalTwoByteStringLayout::WriteTo(SnapshotWriter* writer,
                                           bool as_reference) {
   // Serialize as a non-external two byte string.
   StringWriteTo(writer, object_id, kind, kTwoByteStringCid,
-                writer->GetObjectTags(this), ptr()->length_,
-                ptr()->external_data_);
+                writer->GetObjectTags(this), length_, external_data_);
 }
 
 ArrayPtr Array::ReadFrom(SnapshotReader* reader,
@@ -1044,8 +1042,7 @@ void ArrayLayout::WriteTo(SnapshotWriter* writer,
                           bool as_reference) {
   ASSERT(!this->IsCanonical());
   writer->ArrayWriteTo(object_id, kArrayCid, writer->GetObjectTags(this),
-                       ptr()->length_, ptr()->type_arguments_, ptr()->data(),
-                       as_reference);
+                       length_, type_arguments_, data(), as_reference);
 }
 
 void ImmutableArrayLayout::WriteTo(SnapshotWriter* writer,
@@ -1053,8 +1050,8 @@ void ImmutableArrayLayout::WriteTo(SnapshotWriter* writer,
                                    Snapshot::Kind kind,
                                    bool as_reference) {
   writer->ArrayWriteTo(object_id, kImmutableArrayCid,
-                       writer->GetObjectTags(this), ptr()->length_,
-                       ptr()->type_arguments_, ptr()->data(), as_reference);
+                       writer->GetObjectTags(this), length_, type_arguments_,
+                       data(), as_reference);
 }
 
 GrowableObjectArrayPtr GrowableObjectArray::ReadFrom(SnapshotReader* reader,
@@ -1099,13 +1096,13 @@ void GrowableObjectArrayLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the type arguments field.
-  writer->WriteObjectImpl(ptr()->type_arguments_, kAsInlinedObject);
+  writer->WriteObjectImpl(type_arguments_, kAsInlinedObject);
 
   // Write out the used length field.
-  writer->Write<ObjectPtr>(ptr()->length_);
+  writer->Write<ObjectPtr>(length_);
 
   // Write out the Array object.
-  writer->WriteObjectImpl(ptr()->data_, kAsReference);
+  writer->WriteObjectImpl(data_, kAsReference);
 }
 
 LinkedHashMapPtr LinkedHashMap::ReadFrom(SnapshotReader* reader,
@@ -1170,18 +1167,18 @@ void LinkedHashMapLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the type arguments.
-  writer->WriteObjectImpl(ptr()->type_arguments_, kAsInlinedObject);
+  writer->WriteObjectImpl(type_arguments_, kAsInlinedObject);
 
-  const intptr_t used_data = Smi::Value(ptr()->used_data_);
+  const intptr_t used_data = Smi::Value(used_data_);
   ASSERT((used_data & 1) == 0);  // Keys + values, so must be even.
-  const intptr_t deleted_keys = Smi::Value(ptr()->deleted_keys_);
+  const intptr_t deleted_keys = Smi::Value(deleted_keys_);
 
   // Write out the number of (not deleted) key/value pairs that will follow.
   writer->Write<ObjectPtr>(Smi::New((used_data >> 1) - deleted_keys));
 
   // Write out the keys and values.
   const bool write_as_reference = this->IsCanonical() ? false : true;
-  ArrayPtr data_array = ptr()->data_;
+  ArrayPtr data_array = data_;
   ObjectPtr* data_elements = data_array->ptr()->data();
   ASSERT(used_data <= Smi::Value(data_array->ptr()->length_));
 #if defined(DEBUG)
@@ -1235,10 +1232,10 @@ void Float32x4Layout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the float values.
-  writer->Write<float>(ptr()->value_[0]);
-  writer->Write<float>(ptr()->value_[1]);
-  writer->Write<float>(ptr()->value_[2]);
-  writer->Write<float>(ptr()->value_[3]);
+  writer->Write<float>(value_[0]);
+  writer->Write<float>(value_[1]);
+  writer->Write<float>(value_[2]);
+  writer->Write<float>(value_[3]);
 }
 
 Int32x4Ptr Int32x4::ReadFrom(SnapshotReader* reader,
@@ -1274,10 +1271,10 @@ void Int32x4Layout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the mask values.
-  writer->Write<uint32_t>(ptr()->value_[0]);
-  writer->Write<uint32_t>(ptr()->value_[1]);
-  writer->Write<uint32_t>(ptr()->value_[2]);
-  writer->Write<uint32_t>(ptr()->value_[3]);
+  writer->Write<uint32_t>(value_[0]);
+  writer->Write<uint32_t>(value_[1]);
+  writer->Write<uint32_t>(value_[2]);
+  writer->Write<uint32_t>(value_[3]);
 }
 
 Float64x2Ptr Float64x2::ReadFrom(SnapshotReader* reader,
@@ -1311,8 +1308,8 @@ void Float64x2Layout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the float values.
-  writer->Write<double>(ptr()->value_[0]);
-  writer->Write<double>(ptr()->value_[1]);
+  writer->Write<double>(value_[0]);
+  writer->Write<double>(value_[1]);
 }
 
 TypedDataPtr TypedData::ReadFrom(SnapshotReader* reader,
@@ -1387,7 +1384,7 @@ void TypedDataLayout::WriteTo(SnapshotWriter* writer,
                               bool as_reference) {
   ASSERT(writer != NULL);
   intptr_t cid = this->GetClassId();
-  intptr_t length = Smi::Value(ptr()->length_);  // In elements.
+  intptr_t length = Smi::Value(length_);  // In elements.
   intptr_t external_cid;
   intptr_t bytes;
   switch (cid) {
@@ -1461,8 +1458,8 @@ void TypedDataLayout::WriteTo(SnapshotWriter* writer,
     // Write as external.
     writer->WriteIndexedObject(external_cid);
     writer->WriteTags(writer->GetObjectTags(this));
-    writer->Write<ObjectPtr>(ptr()->length_);
-    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
+    writer->Write<ObjectPtr>(length_);
+    uint8_t* data = reinterpret_cast<uint8_t*>(this->data());
     void* passed_data = malloc(bytes);
     if (passed_data == NULL) {
       OUT_OF_MEMORY();
@@ -1477,8 +1474,8 @@ void TypedDataLayout::WriteTo(SnapshotWriter* writer,
     // Write as internal.
     writer->WriteIndexedObject(cid);
     writer->WriteTags(writer->GetObjectTags(this));
-    writer->Write<ObjectPtr>(ptr()->length_);
-    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
+    writer->Write<ObjectPtr>(length_);
+    uint8_t* data = reinterpret_cast<uint8_t*>(this->data());
     writer->Align(Zone::kAlignment);
     writer->WriteBytes(data, bytes);
   }
@@ -1490,7 +1487,7 @@ void ExternalTypedDataLayout::WriteTo(SnapshotWriter* writer,
                                       bool as_reference) {
   ASSERT(writer != NULL);
   intptr_t cid = this->GetClassId();
-  intptr_t length = Smi::Value(ptr()->length_);  // In elements.
+  intptr_t length = Smi::Value(length_);  // In elements.
   intptr_t bytes;
   switch (cid) {
     case kExternalTypedDataInt8ArrayCid:
@@ -1546,8 +1543,8 @@ void ExternalTypedDataLayout::WriteTo(SnapshotWriter* writer,
   // Write as external.
   writer->WriteIndexedObject(cid);
   writer->WriteTags(writer->GetObjectTags(this));
-  writer->Write<ObjectPtr>(ptr()->length_);
-  uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data_);
+  writer->Write<ObjectPtr>(length_);
+  uint8_t* data = reinterpret_cast<uint8_t*>(data_);
   void* passed_data = malloc(bytes);
   if (passed_data == NULL) {
     OUT_OF_MEMORY();
@@ -1565,7 +1562,7 @@ void TypedDataViewLayout::WriteTo(SnapshotWriter* writer,
                                   Snapshot::Kind kind,
                                   bool as_reference) {
   // Views have always a backing store.
-  ASSERT(ptr()->typed_data_ != Object::null());
+  ASSERT(typed_data_ != Object::null());
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -1575,9 +1572,9 @@ void TypedDataViewLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write members.
-  writer->Write<ObjectPtr>(ptr()->offset_in_bytes_);
-  writer->Write<ObjectPtr>(ptr()->length_);
-  writer->WriteObjectImpl(ptr()->typed_data_, as_reference);
+  writer->Write<ObjectPtr>(offset_in_bytes_);
+  writer->Write<ObjectPtr>(length_);
+  writer->WriteObjectImpl(typed_data_, as_reference);
 }
 
 TypedDataViewPtr TypedDataView::ReadFrom(SnapshotReader* reader,
@@ -1624,7 +1621,7 @@ void CapabilityLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kCapabilityCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
-  writer->Write<uint64_t>(ptr()->id_);
+  writer->Write<uint64_t>(id_);
 }
 
 SendPortPtr SendPort::ReadFrom(SnapshotReader* reader,
@@ -1654,8 +1651,8 @@ void SendPortLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kSendPortCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
-  writer->Write<uint64_t>(ptr()->id_);
-  writer->Write<uint64_t>(ptr()->origin_id_);
+  writer->Write<uint64_t>(id_);
+  writer->Write<uint64_t>(origin_id_);
 }
 
 TransferableTypedDataPtr TransferableTypedData::ReadFrom(SnapshotReader* reader,
@@ -1769,11 +1766,11 @@ void RegExpLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the other fields.
-  writer->Write<ObjectPtr>(ptr()->num_bracket_expressions_);
-  writer->WriteObjectImpl(ptr()->pattern_, kAsInlinedObject);
-  writer->Write<int32_t>(ptr()->num_one_byte_registers_);
-  writer->Write<int32_t>(ptr()->num_two_byte_registers_);
-  writer->Write<int8_t>(ptr()->type_flags_);
+  writer->Write<ObjectPtr>(num_bracket_expressions_);
+  writer->WriteObjectImpl(pattern_, kAsInlinedObject);
+  writer->Write<int32_t>(num_one_byte_registers_);
+  writer->Write<int32_t>(num_two_byte_registers_);
+  writer->Write<int8_t>(type_flags_);
 }
 
 WeakPropertyPtr WeakProperty::ReadFrom(SnapshotReader* reader,

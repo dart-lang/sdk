@@ -37,10 +37,10 @@ CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 class CodeStatistics;
 
 #define VISIT_FROM(type, first)                                                \
-  type* from() { return reinterpret_cast<type*>(&ptr()->first); }
+  type* from() { return reinterpret_cast<type*>(&first); }
 
 #define VISIT_TO(type, last)                                                   \
-  type* to() { return reinterpret_cast<type*>(&ptr()->last); }
+  type* to() { return reinterpret_cast<type*>(&last); }
 
 #define VISIT_TO_LENGTH(type, last)                                            \
   type* to(intptr_t length) { return reinterpret_cast<type*>(last); }
@@ -89,11 +89,9 @@ enum TypedDataElementType {
   DISALLOW_ALLOCATION();                                                       \
   DISALLOW_IMPLICIT_CONSTRUCTORS(object##Layout)
 
-// TODO(koda): Make ptr() return const*, like Object::raw_ptr().
 #define RAW_HEAP_OBJECT_IMPLEMENTATION(object)                                 \
  private:                                                                      \
   RAW_OBJECT_IMPLEMENTATION(object);                                           \
-  object##Layout* ptr() const { return const_cast<object##Layout*>(this); }    \
   SNAPSHOT_WRITER_SUPPORT()                                                    \
   HEAP_PROFILER_SUPPORT()                                                      \
   friend class object##SerializationCluster;                                   \
@@ -286,51 +284,51 @@ class ObjectLayout {
   // visited) or black (already visited).
   bool IsMarked() const {
     ASSERT(IsOldObject());
-    return !ptr()->tags_.Read<OldAndNotMarkedBit>();
+    return !tags_.Read<OldAndNotMarkedBit>();
   }
   void SetMarkBit() {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    ptr()->tags_.UpdateBool<OldAndNotMarkedBit>(false);
+    tags_.UpdateBool<OldAndNotMarkedBit>(false);
   }
   void SetMarkBitUnsynchronized() {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    ptr()->tags_.UpdateUnsynchronized<OldAndNotMarkedBit>(false);
+    tags_.UpdateUnsynchronized<OldAndNotMarkedBit>(false);
   }
   void ClearMarkBit() {
     ASSERT(IsOldObject());
     ASSERT(IsMarked());
-    ptr()->tags_.UpdateBool<OldAndNotMarkedBit>(true);
+    tags_.UpdateBool<OldAndNotMarkedBit>(true);
   }
   // Returns false if the bit was already set.
   DART_WARN_UNUSED_RESULT
   bool TryAcquireMarkBit() {
     ASSERT(IsOldObject());
-    return ptr()->tags_.TryClear<OldAndNotMarkedBit>();
+    return tags_.TryClear<OldAndNotMarkedBit>();
   }
 
   // Canonical objects have the property that two canonical objects are
   // logically equal iff they are the same object (pointer equal).
-  bool IsCanonical() const { return ptr()->tags_.Read<CanonicalBit>(); }
-  void SetCanonical() { ptr()->tags_.UpdateBool<CanonicalBit>(true); }
-  void ClearCanonical() { ptr()->tags_.UpdateBool<CanonicalBit>(false); }
+  bool IsCanonical() const { return tags_.Read<CanonicalBit>(); }
+  void SetCanonical() { tags_.UpdateBool<CanonicalBit>(true); }
+  void ClearCanonical() { tags_.UpdateBool<CanonicalBit>(false); }
 
   bool InVMIsolateHeap() const;
 
   // Support for GC remembered bit.
   bool IsRemembered() const {
     ASSERT(IsOldObject());
-    return !ptr()->tags_.Read<OldAndNotRememberedBit>();
+    return !tags_.Read<OldAndNotRememberedBit>();
   }
   void SetRememberedBit() {
     ASSERT(!IsRemembered());
     ASSERT(!IsCardRemembered());
-    ptr()->tags_.UpdateBool<OldAndNotRememberedBit>(false);
+    tags_.UpdateBool<OldAndNotRememberedBit>(false);
   }
   void ClearRememberedBit() {
     ASSERT(IsOldObject());
-    ptr()->tags_.UpdateBool<OldAndNotRememberedBit>(true);
+    tags_.UpdateBool<OldAndNotRememberedBit>(true);
   }
 
   DART_FORCE_INLINE
@@ -340,19 +338,17 @@ class ObjectLayout {
     thread->StoreBufferAddObject(ObjectPtr(this));
   }
 
-  bool IsCardRemembered() const {
-    return ptr()->tags_.Read<CardRememberedBit>();
-  }
+  bool IsCardRemembered() const { return tags_.Read<CardRememberedBit>(); }
   void SetCardRememberedBitUnsynchronized() {
     ASSERT(!IsRemembered());
     ASSERT(!IsCardRemembered());
-    ptr()->tags_.UpdateUnsynchronized<CardRememberedBit>(true);
+    tags_.UpdateUnsynchronized<CardRememberedBit>(true);
   }
 
-  intptr_t GetClassId() const { return ptr()->tags_.Read<ClassIdTag>(); }
+  intptr_t GetClassId() const { return tags_.Read<ClassIdTag>(); }
 
   intptr_t HeapSize() const {
-    uint32_t tags = ptr()->tags_;
+    uint32_t tags = tags_;
     intptr_t result = SizeTag::decode(tags);
     if (result != 0) {
 #if defined(DEBUG)
@@ -363,8 +359,8 @@ class ObjectLayout {
       // recomputing size from tags.
       const intptr_t size_from_class = HeapSizeFromClass(tags);
       if ((result > size_from_class) && (GetClassId() == kArrayCid) &&
-          (ptr()->tags_) != tags) {
-        result = SizeTag::decode(ptr()->tags_);
+          (tags_ != tags)) {
+        result = SizeTag::decode(tags_);
       }
       ASSERT(result == size_from_class);
 #endif
@@ -375,7 +371,7 @@ class ObjectLayout {
     return result;
   }
 
-  // This variant must not deference ptr()->tags_.
+  // This variant must not deference this->tags_.
   intptr_t HeapSize(uint32_t tags) const {
     intptr_t result = SizeTag::decode(tags);
     if (result != 0) {
@@ -505,16 +501,13 @@ class ObjectLayout {
   uint32_t padding_;
 #endif
 
-  // TODO(koda): After handling tags_, return const*, like Object::raw_ptr().
-  ObjectLayout* ptr() const { return const_cast<ObjectLayout*>(this); }
-
   intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
                                    intptr_t class_id);
 
   intptr_t HeapSizeFromClass(uint32_t tags) const;
 
   void SetClassId(intptr_t new_cid) {
-    ptr()->tags_.UpdateUnsynchronized<ClassIdTag>(new_cid);
+    tags_.UpdateUnsynchronized<ClassIdTag>(new_cid);
   }
 
   // All writes to heap objects should ultimately pass through one of the
@@ -546,7 +539,7 @@ class ObjectLayout {
 
   DART_FORCE_INLINE
   void CheckHeapPointerStore(ObjectPtr value, Thread* thread) {
-    uint32_t source_tags = this->ptr()->tags_;
+    uint32_t source_tags = this->tags_;
     uint32_t target_tags = value->ptr()->tags_;
     if (((source_tags >> kBarrierOverlapShift) & target_tags &
          thread->write_barrier_mask()) != 0) {
@@ -593,7 +586,7 @@ class ObjectLayout {
   DART_FORCE_INLINE void CheckArrayPointerStore(type const* addr,
                                                 ObjectPtr value,
                                                 Thread* thread) {
-    uint32_t source_tags = this->ptr()->tags_;
+    uint32_t source_tags = this->tags_;
     uint32_t target_tags = value->ptr()->tags_;
     if (((source_tags >> kBarrierOverlapShift) & target_tags &
          thread->write_barrier_mask()) != 0) {
@@ -746,11 +739,11 @@ class ClassLayout : public ObjectLayout {
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->allocation_stub_);
+        return reinterpret_cast<ObjectPtr*>(&allocation_stub_);
       case Snapshot::kFull:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->direct_subclasses_);
+        return reinterpret_cast<ObjectPtr*>(&direct_subclasses_);
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->dependent_code_);
+        return reinterpret_cast<ObjectPtr*>(&dependent_code_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -819,10 +812,10 @@ class PatchClassLayout : public ObjectLayout {
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->script_);
+        return reinterpret_cast<ObjectPtr*>(&script_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->library_kernel_data_);
+        return reinterpret_cast<ObjectPtr*>(&library_kernel_data_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1003,7 +996,7 @@ class FunctionLayout : public ObjectLayout {
       case Snapshot::kFullAOT:
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->data_);
+        return reinterpret_cast<ObjectPtr*>(&data_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1014,7 +1007,7 @@ class FunctionLayout : public ObjectLayout {
   }
   ArrayPtr ic_data_array_;  // ICData of unoptimized code.
   ObjectPtr* to_no_code() {
-    return reinterpret_cast<ObjectPtr*>(&ptr()->ic_data_array_);
+    return reinterpret_cast<ObjectPtr*>(&ic_data_array_);
   }
   CodePtr code_;  // Currently active code. Accessed from generated code.
   NOT_IN_PRECOMPILED(BytecodePtr bytecode_);
@@ -1168,7 +1161,7 @@ class FieldLayout : public ObjectLayout {
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->initializer_function_);
+        return reinterpret_cast<ObjectPtr*>(&initializer_function_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1237,10 +1230,10 @@ class ScriptLayout : public ObjectLayout {
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->url_);
+        return reinterpret_cast<ObjectPtr*>(&url_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->kernel_program_info_);
+        return reinterpret_cast<ObjectPtr*>(&kernel_program_info_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1308,10 +1301,10 @@ class LibraryLayout : public ObjectLayout {
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->exports_);
+        return reinterpret_cast<ObjectPtr*>(&exports_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->kernel_data_);
+        return reinterpret_cast<ObjectPtr*>(&kernel_data_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1378,7 +1371,7 @@ class KernelProgramInfoLayout : public ObjectLayout {
   uint32_t kernel_binary_version_;
 
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
-    return reinterpret_cast<ObjectPtr*>(&ptr()->constants_table_);
+    return reinterpret_cast<ObjectPtr*>(&constants_table_);
   }
 };
 
@@ -1528,7 +1521,7 @@ class BytecodeLayout : public ObjectLayout {
 #endif
 
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
-    return reinterpret_cast<ObjectPtr*>(&ptr()->pc_descriptors_);
+    return reinterpret_cast<ObjectPtr*>(&pc_descriptors_);
   }
 
   int32_t instructions_binary_offset_;
@@ -1862,12 +1855,12 @@ class LocalVarDescriptorsLayout : public ObjectLayout {
     // Array of [num_entries_] variable names.
     OPEN_ARRAY_START(StringPtr, StringPtr);
   }
-  StringPtr* nameAddrAt(intptr_t i) { return &(ptr()->names()[i]); }
+  StringPtr* nameAddrAt(intptr_t i) { return &(names()[i]); }
   VISIT_TO_LENGTH(ObjectPtr, nameAddrAt(length - 1));
 
   // Variable info with [num_entries_] entries.
   VarInfo* data() {
-    return reinterpret_cast<VarInfo*>(nameAddrAt(ptr()->num_entries_));
+    return reinterpret_cast<VarInfo*>(nameAddrAt(num_entries_));
   }
 
   friend class Object;
@@ -1884,7 +1877,7 @@ class ExceptionHandlersLayout : public ObjectLayout {
   // exception types.
   VISIT_FROM(ObjectPtr, handled_types_data_)
   ArrayPtr handled_types_data_;
-  VISIT_TO_LENGTH(ObjectPtr, &ptr()->handled_types_data_);
+  VISIT_TO_LENGTH(ObjectPtr, &handled_types_data_);
 
   // Exception handler info of length [num_entries_].
   const ExceptionHandlerInfo* data() const {
@@ -1908,7 +1901,7 @@ class ContextLayout : public ObjectLayout {
   // Variable length data follows here.
   ObjectPtr* data() { OPEN_ARRAY_START(ObjectPtr, ObjectPtr); }
   ObjectPtr const* data() const { OPEN_ARRAY_START(ObjectPtr, ObjectPtr); }
-  VISIT_TO_LENGTH(ObjectPtr, &ptr()->data()[length - 1]);
+  VISIT_TO_LENGTH(ObjectPtr, &data()[length - 1]);
 
   friend class Object;
   friend class SnapshotReader;
@@ -1940,7 +1933,7 @@ class ContextScopeLayout : public ObjectLayout {
   bool is_implicit_;  // true, if this context scope is for an implicit closure.
 
   ObjectPtr* from() {
-    VariableDesc* begin = const_cast<VariableDesc*>(ptr()->VariableDescAddr(0));
+    VariableDesc* begin = const_cast<VariableDesc*>(VariableDescAddr(0));
     return reinterpret_cast<ObjectPtr*>(begin);
   }
   // Variable length data follows here.
@@ -1951,7 +1944,7 @@ class ContextScopeLayout : public ObjectLayout {
     return &(reinterpret_cast<const VariableDesc*>(data())[index]);
   }
   ObjectPtr* to(intptr_t num_vars) {
-    uword end = reinterpret_cast<uword>(ptr()->VariableDescAddr(num_vars));
+    uword end = reinterpret_cast<uword>(VariableDescAddr(num_vars));
     // 'end' is the address just beyond the last descriptor, so step back.
     return reinterpret_cast<ObjectPtr*>(end - kWordSize);
   }
@@ -2028,7 +2021,7 @@ class ICDataLayout : public CallSiteDataLayout {
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->entries_);
+        return reinterpret_cast<ObjectPtr*>(&entries_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
         return to();
@@ -2125,9 +2118,9 @@ class LibraryPrefixLayout : public InstanceLayout {
     switch (kind) {
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->imports_);
+        return reinterpret_cast<ObjectPtr*>(&imports_);
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&ptr()->importer_);
+        return reinterpret_cast<ObjectPtr*>(&importer_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -2159,7 +2152,7 @@ class TypeArgumentsLayout : public InstanceLayout {
     OPEN_ARRAY_START(AbstractTypePtr, AbstractTypePtr);
   }
   ObjectPtr* to(intptr_t length) {
-    return reinterpret_cast<ObjectPtr*>(&ptr()->types()[length - 1]);
+    return reinterpret_cast<ObjectPtr*>(&types()[length - 1]);
   }
 
   friend class Object;
@@ -2426,11 +2419,11 @@ class TypedDataLayout : public TypedDataBaseLayout {
   }
 
   // Recompute [data_] pointer to internal data.
-  void RecomputeDataField() { ptr()->data_ = ptr()->internal_data(); }
+  void RecomputeDataField() { data_ = internal_data(); }
 
  protected:
   VISIT_FROM(RawCompressed, length_)
-  VISIT_TO_LENGTH(RawCompressed, &ptr()->length_)
+  VISIT_TO_LENGTH(RawCompressed, &length_)
 
   // Variable length data follows here.
 
@@ -2464,9 +2457,9 @@ class TypedDataViewLayout : public TypedDataBaseLayout {
  public:
   // Recompute [data_] based on internal/external [typed_data_].
   void RecomputeDataField() {
-    const intptr_t offset_in_bytes = RawSmiValue(ptr()->offset_in_bytes_);
-    uint8_t* payload = ptr()->typed_data_->ptr()->data_;
-    ptr()->data_ = payload + offset_in_bytes;
+    const intptr_t offset_in_bytes = RawSmiValue(offset_in_bytes_);
+    uint8_t* payload = typed_data_->ptr()->data_;
+    data_ = payload + offset_in_bytes;
   }
 
   // Recopute [data_] based on internal [typed_data_] - needs to be called by GC
@@ -2476,25 +2469,23 @@ class TypedDataViewLayout : public TypedDataBaseLayout {
   // [typed_data_] pointer points to the new backing store. The backing store's
   // fields don't need to be valid - only it's address.
   void RecomputeDataFieldForInternalTypedData() {
-    const intptr_t offset_in_bytes = RawSmiValue(ptr()->offset_in_bytes_);
-    uint8_t* payload =
-        reinterpret_cast<uint8_t*>(ObjectLayout::ToAddr(ptr()->typed_data_) +
-                                   TypedDataLayout::payload_offset());
-    ptr()->data_ = payload + offset_in_bytes;
+    const intptr_t offset_in_bytes = RawSmiValue(offset_in_bytes_);
+    uint8_t* payload = reinterpret_cast<uint8_t*>(
+        ObjectLayout::ToAddr(typed_data_) + TypedDataLayout::payload_offset());
+    data_ = payload + offset_in_bytes;
   }
 
   void ValidateInnerPointer() {
-    if (ptr()->typed_data_->ptr()->GetClassId() == kNullCid) {
+    if (typed_data_->ptr()->GetClassId() == kNullCid) {
       // The view object must have gotten just initialized.
-      if (ptr()->data_ != nullptr ||
-          RawSmiValue(ptr()->offset_in_bytes_) != 0 ||
-          RawSmiValue(ptr()->length_) != 0) {
+      if (data_ != nullptr || RawSmiValue(offset_in_bytes_) != 0 ||
+          RawSmiValue(length_) != 0) {
         FATAL("RawTypedDataView has invalid inner pointer.");
       }
     } else {
-      const intptr_t offset_in_bytes = RawSmiValue(ptr()->offset_in_bytes_);
-      uint8_t* payload = ptr()->typed_data_->ptr()->data_;
-      if ((payload + offset_in_bytes) != ptr()->data_) {
+      const intptr_t offset_in_bytes = RawSmiValue(offset_in_bytes_);
+      uint8_t* payload = typed_data_->ptr()->data_;
+      if ((payload + offset_in_bytes) != data_) {
         FATAL("RawTypedDataView has invalid inner pointer.");
       }
     }
@@ -2554,7 +2545,7 @@ class ArrayLayout : public InstanceLayout {
   // Variable length data follows here.
   ObjectPtr* data() { OPEN_ARRAY_START(ObjectPtr, ObjectPtr); }
   ObjectPtr const* data() const { OPEN_ARRAY_START(ObjectPtr, ObjectPtr); }
-  VISIT_TO_LENGTH(RawCompressed, &ptr()->data()[length - 1])
+  VISIT_TO_LENGTH(RawCompressed, &data()[length - 1])
 
   friend class LinkedHashMapSerializationCluster;
   friend class LinkedHashMapDeserializationCluster;
