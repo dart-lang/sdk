@@ -1058,6 +1058,22 @@ f() => true;
     visitSubexpression(findNode.booleanLiteral('true'), 'bool');
   }
 
+  Future<void> test_compound_assignment_null_shorted_ok() async {
+    await analyze('''
+class C {
+  int/*!*/ x;
+}
+_f(C/*?*/ c) {
+  c?.x += 1;
+}
+''');
+    // Even though c?.x is nullable, it should not be a problem to use it as the
+    // LHS of a compound assignment, because null shorting will ensure that the
+    // assignment only happens if c is non-null.
+    var assignment = findNode.assignment('+=');
+    visitSubexpression(assignment, 'int?');
+  }
+
   Future<void> test_compound_assignment_nullable_result_bad() async {
     await analyze('''
 abstract class C {
@@ -1974,6 +1990,22 @@ _f(int x) => x++;
     visitSubexpression(findNode.postfix('++'), 'int');
   }
 
+  Future<void> test_post_increment_null_shorted_ok() async {
+    await analyze('''
+class C {
+  int/*!*/ x;
+}
+_f(C/*?*/ c) {
+  c?.x++;
+}
+''');
+    // Even though c?.x is nullable, it should not be a problem to use it as the
+    // target of a post-increment, because null shorting will ensure that the
+    // increment only happens if c is non-null.
+    var increment = findNode.postfix('++');
+    visitSubexpression(increment, 'int?');
+  }
+
   Future<void> test_post_increment_nullable_result_bad() async {
     await analyze('''
 abstract class C {
@@ -2162,6 +2194,22 @@ _f(int x) => ++x;
     // assignable to `int`) because the value implicitly passed to operator- has
     // type `int`, so the static type of the result is `int`.
     visitSubexpression(findNode.prefix('++'), 'int');
+  }
+
+  Future<void> test_pre_increment_null_shorted_ok() async {
+    await analyze('''
+class C {
+  int/*!*/ x;
+}
+_f(C/*?*/ c) {
+  ++c?.x;
+}
+''');
+    // Even though c?.x is nullable, it should not be a problem to use it as the
+    // target of a pre-increment, because null shorting will ensure that the
+    // increment only happens if c is non-null.
+    var increment = findNode.prefix('++');
+    visitSubexpression(increment, 'int?');
   }
 
   Future<void> test_pre_increment_nullable_result_bad() async {
