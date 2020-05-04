@@ -1,5 +1,10 @@
 # Changelog
 
+## next
+- Update to version `3.33.0` of the spec.
+- Add static error code constants to `RPCError`.
+- Update the toString() method or `RPCError` and add a toMap() method.
+
 ## 4.0.2
 - Fixed issue where RPC format did not conform to the JSON-RPC 2.0
   specification.
