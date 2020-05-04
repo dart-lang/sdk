@@ -9,9 +9,13 @@ import 'package:analyzer/instrumentation/service.dart';
 import 'package:telemetry/crash_reporting.dart';
 
 class CrashReportingInstrumentation extends NoopInstrumentationService {
-  final CrashReportSender reporter;
+  // A staging reporter, that we are in the process of phasing out.
+  final CrashReportSender stagingReporter;
 
-  CrashReportingInstrumentation(this.reporter);
+  // A prod reporter, that we are in the process of phasing in.
+  final CrashReportSender prodReporter;
+
+  CrashReportingInstrumentation(this.stagingReporter, this.prodReporter);
 
   @override
   void logException(dynamic exception,
@@ -28,19 +32,11 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
       // Get the root CaughtException, which matters most for debugging.
       var root = exception.rootCaughtException;
 
-      reporter
-          .sendReport(root.exception, root.stackTrace,
-              attachments: crashReportAttachments, comment: root.message)
-          .catchError((error) {
-        // We silently ignore errors sending crash reports (network issues, ...).
-      });
+      _sendServerReport(root.exception, root.stackTrace,
+          attachments: crashReportAttachments, comment: root.message);
     } else {
-      reporter
-          .sendReport(exception, stackTrace ?? StackTrace.current,
-              attachments: crashReportAttachments)
-          .catchError((error) {
-        // We silently ignore errors sending crash reports (network issues, ...).
-      });
+      _sendServerReport(exception, stackTrace ?? StackTrace.current,
+          attachments: crashReportAttachments);
     }
   }
 
@@ -57,8 +53,20 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
       return;
     }
 
-    reporter
-        .sendReport(exception, stackTrace, comment: 'plugin: ${plugin.name}')
+    _sendServerReport(exception, stackTrace, comment: 'plugin: ${plugin.name}');
+  }
+
+  void _sendServerReport(Object exception, Object stackTrace,
+      {String comment, List<CrashReportAttachment> attachments}) {
+    stagingReporter
+        .sendReport(exception, stackTrace,
+            attachments: attachments, comment: comment)
+        .catchError((error) {
+      // We silently ignore errors sending crash reports (network issues, ...).
+    });
+    prodReporter
+        .sendReport(exception, stackTrace,
+            attachments: attachments, comment: comment)
         .catchError((error) {
       // We silently ignore errors sending crash reports (network issues, ...).
     });
