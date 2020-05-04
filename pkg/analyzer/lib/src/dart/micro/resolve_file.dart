@@ -336,7 +336,9 @@ class FileResolver {
     } else {
       Source source;
       if (workspace is WorkspaceWithDefaultAnalysisOptions) {
-        if (path.contains('/third_party/dart/')) {
+        var separator = resourceProvider.pathContext.separator;
+        if (path
+            .contains('${separator}third_party${separator}dart${separator}')) {
           source = sourceFactory
               .forUri(WorkspaceWithDefaultAnalysisOptions.thirdPartyUri);
         } else {
