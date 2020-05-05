@@ -192,8 +192,9 @@ class FileResolver {
       return logger.run('Resolve $path', () {
         var fileContext = getFileContext(path);
         var file = fileContext.file;
+        var libraryFile = file.partOfLibrary ?? file;
 
-        libraryContext.load2(file);
+        libraryContext.load2(libraryFile);
 
         testView?.addResolvedFile(path);
 
@@ -202,6 +203,7 @@ class FileResolver {
         var unit = file.parse(errorListener, content);
 
         Map<FileState, UnitAnalysisResult> results;
+
         logger.run('Compute analysis results', () {
           var libraryAnalyzer = LibraryAnalyzer(
             fileContext.analysisOptions,
@@ -211,7 +213,7 @@ class FileResolver {
             contextObjects.analysisContext,
             libraryContext.elementFactory,
             libraryContext.inheritanceManager,
-            file,
+            libraryFile,
             resourceProvider,
             (String path) => resourceProvider.getFile(path).readAsStringSync(),
           );

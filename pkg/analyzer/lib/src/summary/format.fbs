@@ -1335,6 +1335,9 @@ table UnlinkedUnit2 {
   /// Is `true` if the unit contains a `part of` directive.
   hasPartOfDirective:bool (id: 3);
 
+  /// URI of the `part of` directive.
+  partOfUri:string (id: 8);
+
   /// URIs of `import` directives.
   imports:[UnlinkedNamespaceDirective] (id: 2);
 

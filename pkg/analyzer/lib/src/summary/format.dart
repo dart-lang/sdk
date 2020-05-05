@@ -19565,6 +19565,7 @@ class UnlinkedUnit2Builder extends Object
   List<UnlinkedNamespaceDirectiveBuilder> _exports;
   bool _hasLibraryDirective;
   bool _hasPartOfDirective;
+  String _partOfUri;
   List<UnlinkedNamespaceDirectiveBuilder> _imports;
   List<UnlinkedInformativeDataBuilder> _informativeData;
   List<int> _lineStarts;
@@ -19606,6 +19607,14 @@ class UnlinkedUnit2Builder extends Object
   }
 
   @override
+  String get partOfUri => _partOfUri ??= '';
+
+  /// URI of the `part of` directive.
+  set partOfUri(String value) {
+    this._partOfUri = value;
+  }
+
+  @override
   List<UnlinkedNamespaceDirectiveBuilder> get imports =>
       _imports ??= <UnlinkedNamespaceDirectiveBuilder>[];
 
@@ -19644,6 +19653,7 @@ class UnlinkedUnit2Builder extends Object
       List<UnlinkedNamespaceDirectiveBuilder> exports,
       bool hasLibraryDirective,
       bool hasPartOfDirective,
+      String partOfUri,
       List<UnlinkedNamespaceDirectiveBuilder> imports,
       List<UnlinkedInformativeDataBuilder> informativeData,
       List<int> lineStarts,
@@ -19652,6 +19662,7 @@ class UnlinkedUnit2Builder extends Object
         _exports = exports,
         _hasLibraryDirective = hasLibraryDirective,
         _hasPartOfDirective = hasPartOfDirective,
+        _partOfUri = partOfUri,
         _imports = imports,
         _informativeData = informativeData,
         _lineStarts = lineStarts,
@@ -19709,6 +19720,7 @@ class UnlinkedUnit2Builder extends Object
         x?.collectApiSignature(signature);
       }
     }
+    signature.addString(this._partOfUri ?? '');
   }
 
   List<int> toBuffer() {
@@ -19719,6 +19731,7 @@ class UnlinkedUnit2Builder extends Object
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_apiSignature;
     fb.Offset offset_exports;
+    fb.Offset offset_partOfUri;
     fb.Offset offset_imports;
     fb.Offset offset_informativeData;
     fb.Offset offset_lineStarts;
@@ -19729,6 +19742,9 @@ class UnlinkedUnit2Builder extends Object
     if (!(_exports == null || _exports.isEmpty)) {
       offset_exports = fbBuilder
           .writeList(_exports.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_partOfUri != null) {
+      offset_partOfUri = fbBuilder.writeString(_partOfUri);
     }
     if (!(_imports == null || _imports.isEmpty)) {
       offset_imports = fbBuilder
@@ -19757,6 +19773,9 @@ class UnlinkedUnit2Builder extends Object
     }
     if (_hasPartOfDirective == true) {
       fbBuilder.addBool(3, true);
+    }
+    if (offset_partOfUri != null) {
+      fbBuilder.addOffset(8, offset_partOfUri);
     }
     if (offset_imports != null) {
       fbBuilder.addOffset(2, offset_imports);
@@ -19799,6 +19818,7 @@ class _UnlinkedUnit2Impl extends Object
   List<idl.UnlinkedNamespaceDirective> _exports;
   bool _hasLibraryDirective;
   bool _hasPartOfDirective;
+  String _partOfUri;
   List<idl.UnlinkedNamespaceDirective> _imports;
   List<idl.UnlinkedInformativeData> _informativeData;
   List<int> _lineStarts;
@@ -19831,6 +19851,12 @@ class _UnlinkedUnit2Impl extends Object
     _hasPartOfDirective ??=
         const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
     return _hasPartOfDirective;
+  }
+
+  @override
+  String get partOfUri {
+    _partOfUri ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 8, '');
+    return _partOfUri;
   }
 
   @override
@@ -19880,6 +19906,9 @@ abstract class _UnlinkedUnit2Mixin implements idl.UnlinkedUnit2 {
     if (hasPartOfDirective != false) {
       _result["hasPartOfDirective"] = hasPartOfDirective;
     }
+    if (partOfUri != '') {
+      _result["partOfUri"] = partOfUri;
+    }
     if (imports.isNotEmpty) {
       _result["imports"] = imports.map((_value) => _value.toJson()).toList();
     }
@@ -19902,6 +19931,7 @@ abstract class _UnlinkedUnit2Mixin implements idl.UnlinkedUnit2 {
         "exports": exports,
         "hasLibraryDirective": hasLibraryDirective,
         "hasPartOfDirective": hasPartOfDirective,
+        "partOfUri": partOfUri,
         "imports": imports,
         "informativeData": informativeData,
         "lineStarts": lineStarts,
