@@ -1328,7 +1328,12 @@ String? g() => 1 == 2 ? "Hello" : null;
     expect(region.explanation, "Type 'int' was not made nullable");
     expect(region.edits.map((edit) => edit.description).toSet(),
         {'Add /*?*/ hint', 'Add /*!*/ hint'});
-    expect(region.traces, isEmpty);
+    var trace = region.traces.first;
+    expect(trace.description, 'Non-nullability reason');
+    var entries = trace.entries;
+    expect(entries, hasLength(1));
+    assertTraceEntry(unit, entries[0], null, unit.content.indexOf('int'),
+        'No reason found to make nullable');
     expect(region.kind, NullabilityFixKind.typeNotMadeNullable);
   }
 
