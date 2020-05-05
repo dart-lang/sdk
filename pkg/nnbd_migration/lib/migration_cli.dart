@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' hide File;
 
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
@@ -12,7 +12,8 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
+import 'package:analyzer/file_system/file_system.dart'
+    show File, ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -152,6 +153,14 @@ class MigrationCli {
       } else {
         migratePath = pathContext
             .normalize(pathContext.join(pathContext.current, rest[0]));
+      }
+      var migrateResource = resourceProvider.getResource(migratePath);
+      if (migrateResource is File) {
+        if (migrateResource.exists) {
+          throw _BadArgException('$migratePath is a file.');
+        } else {
+          throw _BadArgException('$migratePath does not exist.');
+        }
       }
       var applyChanges =
           argResults[CommandLineOptions.applyChangesFlag] as bool;

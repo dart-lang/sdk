@@ -136,6 +136,10 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     expect(http.get(url), throwsA(anything));
   }
 
+  void setUp() {
+    resourceProvider.newFolder(resourceProvider.pathContext.current);
+  }
+
   Map<String, String> simpleProject({bool migrated: false, String sourceText}) {
     return {
       'pubspec.yaml': '''
@@ -385,10 +389,22 @@ int f() => null;
   }
 
   test_migrate_path_absolute() {
+    resourceProvider.newFolder(resourceProvider.pathContext
+        .join(resourceProvider.pathContext.current, 'foo'));
     expect(
         resourceProvider.pathContext
             .isAbsolute(assertParseArgsSuccess(['foo']).directory),
         isTrue);
+  }
+
+  test_migrate_path_file() async {
+    resourceProvider.newFile(resourceProvider.pathContext.absolute('foo'), '');
+    expect(await assertParseArgsFailure(['foo']), contains('foo is a file'));
+  }
+
+  test_migrate_path_non_existent() async {
+    expect(
+        await assertParseArgsFailure(['foo']), contains('foo does not exist'));
   }
 
   test_migrate_path_none() {
@@ -401,6 +417,8 @@ int f() => null;
   }
 
   test_migrate_path_one() {
+    resourceProvider.newFolder(resourceProvider.pathContext
+        .join(resourceProvider.pathContext.current, 'foo'));
     expect(
         assertParseArgsSuccess(['foo']).directory,
         resourceProvider.pathContext
