@@ -10,6 +10,12 @@ library expect;
 
 import 'package:meta/meta.dart';
 
+/// Whether the program is running with weak null safety checking.
+bool get isWeakMode => const <Null>[] is List<Object>;
+
+/// Whether the program is running with strong null safety checking.
+bool get isStrongMode => !isWeakMode;
+
 /**
  * Expect is used for tests that do not want to make use of the
  * Dart unit test library - for example, the core language tests.

@@ -20,17 +20,26 @@ const compilerNames = {
   "vm": "dartk",
 };
 
-const configurations = {
+const strongConfigurations = {
   "analyzer": "analyzer-asserts-strong-linux",
   "cfe": "cfe-strong-linux",
-  "dart2js": "dart2js-weak-linux-x64-d8",
+  "dart2js": "dart2js-hostasserts-strong-linux-x64-d8",
   "ddc": "dartdevk-strong-linux-release-chrome",
   "vm": "dartk-strong-linux-release-x64",
+};
+
+const weakConfigurations = {
+  "analyzer": "analyzer-asserts-weak-linux",
+  "cfe": "cfe-weak-linux",
+  "dart2js": "dart2js-weak-linux-x64-d8",
+  "ddc": "dartdevk-weak-linux-release-chrome",
+  "vm": "dartk-weak-asserts-linux-release-x64",
 };
 
 void main(List<String> arguments) async {
   var testDir = "";
   var isLegacy = false;
+  var isStrong = true;
   var compiler = "ddc";
 
   var argParser = ArgParser();
@@ -44,6 +53,10 @@ void main(List<String> arguments) async {
       help: "Which Dart implementation to run the tests on.",
       allowed: ["analyzer", "cfe", "dart2js", "ddc", "vm"],
       callback: (option) => compiler = option as String);
+
+  argParser.addFlag("weak", abbr: "w",
+      help: "Run the tests in weak mode.",
+      negatable: false, callback: (flag) => isStrong = !flag);
 
   if (arguments.contains("--help")) {
     showUsage(argParser);
@@ -71,6 +84,7 @@ void main(List<String> arguments) async {
   // configuration. Otherwise, use the right named configuration.
   List<String> testArgs;
   if (Platform.isLinux || compiler != "ddc") {
+    var configurations = isStrong ? strongConfigurations : weakConfigurations;
     var configuration = configurations[compiler];
     if (!Platform.isLinux) {
       // TODO(rnystrom): We'll probably never need to run this script on
