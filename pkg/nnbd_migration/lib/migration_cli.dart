@@ -202,8 +202,6 @@ class MigrationCli {
     parseCommandLineArgs(args);
     if (exitCode != null) return;
 
-    // TODO(paulberry): if debugging, create instrumentation log
-
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
 
