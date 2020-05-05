@@ -15,8 +15,11 @@ main() {
   Directory dir = thisscript.parent;
   String snapshot = "${dir.path}/dummy.snapshot";
   String script = "${dir.path}/snapshot_fail_script.dart";
-  var pr =
-      Process.runSync(Platform.executable, ["--snapshot=$snapshot", script]);
+  var pr = Process.runSync(Platform.executable, [
+    // TODO(bkonyi): improve handling of snapshot generation in the world of
+    // DartDev. See issue #41774.
+    "--disable-dart-dev", "--snapshot=$snapshot", script,
+  ]);
 
   // There should be no dummy.snapshot file created.
   File dummy = new File(snapshot);

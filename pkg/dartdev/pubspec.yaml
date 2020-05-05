@@ -8,6 +8,8 @@ environment:
 dependencies:
   args: ^1.5.2
   cli_util: ^0.1.0
+  dds:
+    path: '../dds'
   intl: ^0.16.0
   path: ^1.6.2
   stagehand: 3.3.7
