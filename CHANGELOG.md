@@ -1,3 +1,13 @@
+# 0.1.116
+
+* new lint: `no_default_cases` (experimental)
+* new lint: `exhaustive_cases`
+* updated `type_annotate_public_apis` to allow inferred types in final field assignments
+* updated `prefer_mixin` to allow "legacy" SDK abstract class mixins
+* new lint: `use_is_even_rather_than_modulo`
+* update `unsafe_html` to use a `SecurityLintCode` (making it un-ignorable)
+* improved `sized_box_for_whitespace` to address false-positives
+
 # 0.1.115
 
 * updated `avoid_types_as_parameter_names` to check catch-clauses

@@ -53,7 +53,8 @@ class NoDefaultCases extends LintRule implements NodeLintRule {
             name: 'no_default_cases',
             description: _desc,
             details: _details,
-            group: Group.style);
+            group: Group.style,
+            maturity: Maturity.experimental);
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
