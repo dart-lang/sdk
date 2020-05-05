@@ -146,11 +146,12 @@ class MigrationCli {
       var rest = argResults.rest;
       String migratePath;
       if (rest.isEmpty) {
-        migratePath = Directory.current.path;
+        migratePath = pathContext.current;
       } else if (rest.length > 1) {
         throw _BadArgException('No more than one path may be specified.');
       } else {
-        migratePath = rest[0];
+        migratePath = pathContext
+            .normalize(pathContext.join(pathContext.current, rest[0]));
       }
       var applyChanges =
           argResults[CommandLineOptions.applyChangesFlag] as bool;

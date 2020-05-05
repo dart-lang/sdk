@@ -384,12 +384,27 @@ int f() => null;
     expect(output, contains('Please fix the analysis issues'));
   }
 
+  test_migrate_path_absolute() {
+    expect(
+        resourceProvider.pathContext
+            .isAbsolute(assertParseArgsSuccess(['foo']).directory),
+        isTrue);
+  }
+
   test_migrate_path_none() {
-    expect(assertParseArgsSuccess([]).directory, Directory.current.path);
+    expect(assertParseArgsSuccess([]).directory,
+        resourceProvider.pathContext.current);
+  }
+
+  test_migrate_path_normalized() {
+    expect(assertParseArgsSuccess(['..']).directory, isNot(contains('..')));
   }
 
   test_migrate_path_one() {
-    expect(assertParseArgsSuccess(['foo']).directory, 'foo');
+    expect(
+        assertParseArgsSuccess(['foo']).directory,
+        resourceProvider.pathContext
+            .join(resourceProvider.pathContext.current, 'foo'));
   }
 
   test_migrate_path_two() async {
@@ -472,7 +487,10 @@ class _MigrationCliTestPosix extends _MigrationCliTestBase
 
   _MigrationCliTestPosix()
       : resourceProvider = MemoryResourceProvider(
-            context: path.style == path.Style.posix ? null : path.posix);
+            context: path.style == path.Style.posix
+                ? null
+                : path.Context(
+                    style: path.Style.posix, current: '/working_dir'));
 }
 
 @reflectiveTest
@@ -485,7 +503,8 @@ class _MigrationCliTestWindows extends _MigrationCliTestBase
       : resourceProvider = MemoryResourceProvider(
             context: path.style == path.Style.windows
                 ? null
-                : path.Context(style: path.Style.windows, current: 'C:\\'));
+                : path.Context(
+                    style: path.Style.windows, current: 'C:\\working_dir'));
 }
 
 /// TODO(paulberry): move into cli_util
