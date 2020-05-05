@@ -281,6 +281,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _enclosingClass = classElement;
   }
 
+  /// The language team is thinking about adding abstract fields, or external
+  /// fields. But for now we will ignore such fields in `Struct` subtypes.
+  bool get _isEnclosingClassFfiStruct {
+    var superClass = _enclosingClass?.supertype?.element;
+    return superClass != null &&
+        superClass.library.name == 'dart.ffi' &&
+        superClass.name == 'Struct';
+  }
+
   bool get _isNonNullableByDefault =>
       _featureSet?.isEnabled(Feature.non_nullable) ?? false;
 
@@ -3752,6 +3761,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     if (fields.isLate) return;
     if (fields.isFinal) return;
+
+    if (_isEnclosingClassFfiStruct) return;
 
     for (var field in fields.variables) {
       if (field.initializer != null) continue;

@@ -36,6 +36,17 @@ class A {
 ''');
   }
 
+  test_class_ffi_struct() async {
+    await assertNoErrorsInCode('''
+import 'dart:ffi';
+
+class A extends Struct {
+  @Double()
+  double foo;
+}
+''');
+  }
+
   test_class_notNullable_factoryConstructor_only() async {
     await assertErrorsInCode('''
 class A {
