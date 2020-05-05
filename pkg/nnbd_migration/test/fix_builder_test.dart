@@ -1129,6 +1129,24 @@ class C<T extends num/*?*/> {
         changes: {assignment: isNullableSource});
   }
 
+  Future<void> test_compound_assignment_promoted_ok() async {
+    await analyze('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+f(C/*?*/ x) {
+  if (x != null) {
+    x += 1;
+  }
+}
+''');
+    // The compound assignment is ok, because:
+    // - prior to the assignment, x's value is promoted to non-nullable
+    // - the nullable return value of operator+ is ok to assign to x, because it
+    //   un-does the promotion.
+    visitSubexpression(findNode.assignment('+='), 'C?');
+  }
+
   Future<void> test_conditionalExpression_dead_else_remove() async {
     await analyze('_f(int x, int/*?*/ y) => x != null ? x + 1 : y + 1.0;');
     var expression = findNode.conditionalExpression('x != null');
@@ -2059,6 +2077,24 @@ class C<T extends num/*?*/> {
     visitSubexpression(increment, 'T', changes: {increment: isNullableSource});
   }
 
+  Future<void> test_post_increment_promoted_ok() async {
+    await analyze('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+f(C/*?*/ x) {
+  if (x != null) {
+    x++;
+  }
+}
+''');
+    // The increment is ok, because:
+    // - prior to the increment, x's value is promoted to non-nullable
+    // - the nullable return value of operator+ is ok to assign to x, because it
+    //   un-does the promotion.
+    visitSubexpression(findNode.postfix('++'), 'C');
+  }
+
   Future<void> test_postfixExpression_combined_nullable_noProblem() async {
     await analyze('''
 abstract class _C {
@@ -2265,6 +2301,24 @@ class C<T extends num/*?*/> {
     var increment = findNode.prefix('++');
     visitSubexpression(increment, 'num',
         changes: {increment: isNullableSource});
+  }
+
+  Future<void> test_pre_increment_promoted_ok() async {
+    await analyze('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+f(C/*?*/ x) {
+  if (x != null) {
+    ++x;
+  }
+}
+''');
+    // The increment is ok, because:
+    // - prior to the increment, x's value is promoted to non-nullable
+    // - the nullable return value of operator+ is ok to assign to x, because it
+    //   un-does the promotion.
+    visitSubexpression(findNode.prefix('++'), 'C?');
   }
 
   Future<void> test_prefixedIdentifier_dynamic() async {
