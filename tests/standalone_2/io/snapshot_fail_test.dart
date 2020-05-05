@@ -16,8 +16,8 @@ main() {
   String snapshot = "${dir.path}/dummy.snapshot";
   String script = "${dir.path}/snapshot_fail_script.dart";
   var pr = Process.runSync(Platform.executable, [
-    // TODO(bkonyi): improve handling of snapshot generation in the world of
-    // DartDev. See issue #41774.
+    // We need to disable dartdev so this test doesn't try to create a snapshot
+    // of dartdev when we run from kernel on simarm configurations.
     "--disable-dart-dev", "--snapshot=$snapshot", script,
   ]);
 
