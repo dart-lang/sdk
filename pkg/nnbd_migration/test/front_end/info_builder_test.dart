@@ -834,6 +834,45 @@ C/*!*/ _f(C  c) => (c + c)!;
         kind: NullabilityFixKind.checkExpression);
   }
 
+  void test_nullAwareAssignment_remove() async {
+    var unit = await buildInfoForSingleTestFile('''
+int f(int/*!*/ x, int y) => x ??= y;
+''', migratedContent: '''
+int  f(int/*!*/ x, int  y) => x ??= y;
+''', warnOnWeakCode: false, removeViaComments: false);
+    var codeToRemove = ' ??= y';
+    var removalOffset = unit.content.indexOf(codeToRemove);
+    var region =
+        unit.regions.where((region) => region.offset == removalOffset).single;
+    assertRegion(
+        region: region,
+        length: codeToRemove.length,
+        explanation:
+            'Removed a null-aware assignment, because the target cannot be '
+            'null',
+        kind: NullabilityFixKind.removeDeadCode,
+        edits: isEmpty);
+  }
+
+  void test_nullAwareAssignment_unnecessaryInStrongMode() async {
+    var unit = await buildInfoForSingleTestFile('''
+int f(int/*!*/ x, int y) => x ??= y;
+''', migratedContent: '''
+int  f(int/*!*/ x, int  y) => x ??= y;
+''', warnOnWeakCode: true);
+    var operator = '??=';
+    var operatorOffset = unit.content.indexOf(operator);
+    var region =
+        unit.regions.where((region) => region.offset == operatorOffset).single;
+    assertRegion(
+        region: region,
+        length: operator.length,
+        explanation:
+            'Null-aware assignment will be unnecessary in strong checking mode',
+        kind: NullabilityFixKind.nullAwareAssignmentUnnecessaryInStrongMode,
+        edits: isEmpty);
+  }
+
   void test_nullAwarenessUnnecessaryInStrongMode() async {
     var unit = await buildInfoForSingleTestFile('''
 int f(String s) => s?.length;

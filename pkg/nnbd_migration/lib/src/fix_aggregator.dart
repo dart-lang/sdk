@@ -319,6 +319,12 @@ class NodeChangeForAssignment
   NodeProducingEditPlan _apply(
       AssignmentExpression node, FixAggregator aggregator) {
     var lhsPlan = aggregator.planForNode(node.leftHandSide);
+    if (isWeakNullAware && !aggregator._warnOnWeakCode) {
+      // Just keep the LHS
+      return aggregator.planner.extract(node, lhsPlan as NodeProducingEditPlan,
+          infoAfter: AtomicEditInfo(
+              NullabilityFixDescription.removeNullAwareAssignment, const {}));
+    }
     var operatorPlan = _makeOperatorPlan(aggregator, node, node.operator);
     var rhsPlan = aggregator.planForNode(node.rightHandSide);
     var innerPlans = <EditPlan>[
@@ -335,6 +341,7 @@ class NodeChangeForAssignment
     var operatorPlan = super._makeOperatorPlan(aggregator, node, operator);
     if (operatorPlan != null) return operatorPlan;
     if (isWeakNullAware) {
+      assert(aggregator._warnOnWeakCode);
       return aggregator.planner.informativeMessageForToken(node, operator,
           info: AtomicEditInfo(
               NullabilityFixDescription

@@ -144,6 +144,16 @@ class FixAggregatorTest extends FixAggregatorTestBase {
     expect(edit.length, '??='.length);
   }
 
+  Future<void> test_assignment_weak_null_aware_remove() async {
+    var content = 'f(int x, int y) => x ??= y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('??='): NodeChangeForAssignment()
+        ..isWeakNullAware = true
+    }, warnOnWeakCode: false);
+    expect(previewInfo.applyTo(code), 'f(int x, int y) => x;');
+  }
+
   Future<void> test_eliminateDeadIf_changesInKeptCode() async {
     await analyze('''
 f(int i, int/*?*/ j) {
