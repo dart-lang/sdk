@@ -20,6 +20,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 
 /// Return a suggestion based on the given [element], or `null` if a suggestion
@@ -665,6 +667,36 @@ class SuggestionBuilder {
         kind: kind, relevance: relevance));
   }
 
+  /// Add a suggestion for a [keyword]. The [offset] is the offset from the
+  /// beginning of the keyword where the cursor will be left.
+  void suggestKeyword(String keyword, {int offset, @required int relevance}) {
+    // TODO(brianwilkerson) Use the location at which the keyword is being
+    //  inserted to compute the relevance.
+    _add(CompletionSuggestion(CompletionSuggestionKind.KEYWORD, relevance,
+        keyword, offset ?? keyword.length, 0, false, false));
+  }
+
+  /// Add a suggestion for a [label].
+  void suggestLabel(Label label) {
+    var completion = label.label?.name;
+    // TODO(brianwilkerson) Figure out why we're excluding labels consisting of
+    //  a single underscore.
+    if (completion != null && completion.isNotEmpty && completion != '_') {
+      var suggestion = CompletionSuggestion(
+          CompletionSuggestionKind.IDENTIFIER,
+          request.useNewRelevance ? Relevance.label : DART_RELEVANCE_DEFAULT,
+          completion,
+          completion.length,
+          0,
+          false,
+          false);
+      suggestion.element = createLocalElement(
+          request.source, protocol.ElementKind.LABEL, label.label,
+          returnType: NO_RETURN_TYPE);
+      _add(suggestion);
+    }
+  }
+
   /// Add a suggestion for the `loadLibrary` [function] associated with a
   /// prefix.
   void suggestLoadLibraryFunction(FunctionElement function) {
@@ -776,6 +808,78 @@ class SuggestionBuilder {
     }
   }
 
+  /// Add a suggestion to use the [name] at a declaration site.
+  void suggestName(String name) {
+    // TODO(brianwilkerson) Explore whether there are any features of the name
+    //  that can be used to provide better relevance scores.
+    _add(CompletionSuggestion(
+        CompletionSuggestionKind.IDENTIFIER,
+        request.useNewRelevance ? 500 : DART_RELEVANCE_DEFAULT,
+        name,
+        name.length,
+        0,
+        false,
+        false));
+  }
+
+  /// Add a suggestion to replace the [targetId] with an override of the given
+  /// [element]. If [invokeSuper] is `true`, then the override will contain an
+  /// invocation of an overridden member.
+  Future<void> suggestOverride(SimpleIdentifier targetId,
+      ExecutableElement element, bool invokeSuper) async {
+    var displayTextBuffer = StringBuffer();
+    var builder = DartChangeBuilder(request.result.session);
+    await builder.addFileEdit(request.result.path, (builder) {
+      builder.addReplacement(range.node(targetId), (builder) {
+        builder.writeOverride(
+          element,
+          displayTextBuffer: displayTextBuffer,
+          invokeSuper: invokeSuper,
+        );
+      });
+    });
+
+    var fileEdits = builder.sourceChange.edits;
+    if (fileEdits.length != 1) {
+      return;
+    }
+
+    var sourceEdits = fileEdits[0].edits;
+    if (sourceEdits.length != 1) {
+      return;
+    }
+
+    var replacement = sourceEdits[0].replacement;
+    var completion = replacement.trim();
+    var overrideAnnotation = '@override';
+    if (_hasOverride(request.target.containingNode) &&
+        completion.startsWith(overrideAnnotation)) {
+      completion = completion.substring(overrideAnnotation.length).trim();
+    }
+    if (completion.isEmpty) {
+      return;
+    }
+
+    var selectionRange = builder.selectionRange;
+    if (selectionRange == null) {
+      return;
+    }
+    var offsetDelta = targetId.offset + replacement.indexOf(completion);
+    var displayText =
+        displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
+    var suggestion = CompletionSuggestion(
+        CompletionSuggestionKind.OVERRIDE,
+        request.useNewRelevance ? Relevance.override : DART_RELEVANCE_HIGH,
+        completion,
+        selectionRange.offset - offsetDelta,
+        selectionRange.length,
+        element.hasDeprecated,
+        false,
+        displayText: displayText);
+    suggestion.element = protocol.convertElement(element);
+    _add(suggestion);
+  }
+
   /// Add a suggestion for a [parameter].
   void suggestParameter(ParameterElement parameter) {
     var variableType = parameter.type;
@@ -796,6 +900,21 @@ class SuggestionBuilder {
     }
 
     _add(createSuggestion(request, parameter, relevance: relevance));
+  }
+
+  /// Add a suggestiuon for a [prefix] associated with a [library].
+  void suggestPrefix(LibraryElement library, String prefix) {
+    var relevance;
+    if (request.useNewRelevance) {
+      relevance = Relevance.prefix;
+    } else {
+      relevance =
+          library.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
+    }
+    _add(createSuggestion(request, library,
+        completion: prefix,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: relevance));
   }
 
   /// Add a suggestion for a top-level [function]. If a [kind] is provided it
@@ -907,6 +1026,20 @@ class SuggestionBuilder {
         kind: CompletionSuggestionKind.IDENTIFIER, relevance: relevance));
   }
 
+  /// Add a suggestion to use the [uri] in an import, export, or part directive.
+  void suggestUri(String uri) {
+    int relevance;
+    if (request.useNewRelevance) {
+      relevance =
+          uri == 'dart:core' ? Relevance.importDartCore : Relevance.import;
+    } else {
+      relevance =
+          uri == 'dart:core' ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
+    }
+    _add(CompletionSuggestion(CompletionSuggestionKind.IMPORT, relevance, uri,
+        uri.length, 0, false, false));
+  }
+
   /// Add the given [suggestion] if it isn't `null` and if it isn't shadowed by
   /// a previously added suggestion.
   void _add(protocol.CompletionSuggestion suggestion) {
@@ -1011,6 +1144,20 @@ class SuggestionBuilder {
         weightedAverage(
             [contextTypeFeature, elementKind, hasDeprecated], [1.0, 0.75, 0.2]),
         defaultRelevance);
+  }
+
+  /// Return `true` if the given [node] has an `override` annotation.
+  bool _hasOverride(AstNode node) {
+    if (node is AnnotatedNode) {
+      var metadata = node.metadata;
+      for (var annotation in metadata) {
+        if (annotation.name.name == 'override' &&
+            annotation.arguments == null) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   InterfaceType _instantiateClassElement(ClassElement element) {

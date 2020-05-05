@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:core';
 
 import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
+    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -27,23 +27,18 @@ class UriContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
-    var builder = _UriSuggestionBuilder(request);
-    request.target.containingNode.accept(builder);
-    return builder.suggestions;
+    var visitor = _UriSuggestionBuilder(request, builder);
+    request.target.containingNode.accept(visitor);
+    return const <CompletionSuggestion>[];
   }
 }
 
 class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
-  // TODO(brianwilkerson) Consider whether to make these constants in
-  //  Relevance (after renaming them).
-  static const int dartCoreRelevance = 100;
-  static const int defaultRelevance = 900;
-
   final DartCompletionRequest request;
 
-  final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
+  final SuggestionBuilder builder;
 
-  _UriSuggestionBuilder(this.request);
+  _UriSuggestionBuilder(this.request, this.builder);
 
   @override
   void visitExportDirective(ExportDirective node) {
@@ -118,22 +113,12 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
   }
 
   void _addDartSuggestions() {
-    _addSuggestion('dart:');
+    builder.suggestUri('dart:');
     var factory = request.sourceFactory;
     for (var lib in factory.dartSdk.sdkLibraries) {
       if (!lib.isInternal && !lib.isImplementation) {
         if (!lib.shortName.startsWith('dart:_')) {
-          int relevance;
-          if (request.useNewRelevance) {
-            relevance = lib.shortName == 'dart:core'
-                ? dartCoreRelevance
-                : defaultRelevance;
-          } else {
-            relevance = lib.shortName == 'dart:core'
-                ? DART_RELEVANCE_LOW
-                : DART_RELEVANCE_DEFAULT;
-          }
-          _addSuggestion(lib.shortName, relevance: relevance);
+          builder.suggestUri(lib.shortName);
         }
       }
     }
@@ -197,7 +182,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
             }
           }
           if (completion != null && completion != source.shortName) {
-            _addSuggestion(completion);
+            builder.suggestUri(completion);
           }
         }
       } on FileSystemException {
@@ -212,12 +197,12 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
       for (var child in folder.getChildren()) {
         if (child is Folder) {
           var childPrefix = '$prefix${child.shortName}/';
-          _addSuggestion(childPrefix);
+          builder.suggestUri(childPrefix);
           if (partial.startsWith(childPrefix)) {
             _addPackageFolderSuggestions(partial, childPrefix, child);
           }
         } else {
-          _addSuggestion('$prefix${child.shortName}');
+          builder.suggestUri('$prefix${child.shortName}');
         }
       }
     } on FileSystemException {
@@ -230,10 +215,10 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
     var factory = request.sourceFactory;
     var packageMap = factory.packageMap;
     if (packageMap != null) {
-      _addSuggestion('package:');
+      builder.suggestUri('package:');
       packageMap.forEach((pkgName, folders) {
         var prefix = 'package:$pkgName/';
-        _addSuggestion(prefix);
+        builder.suggestUri(prefix);
         for (var folder in folders) {
           if (folder.exists) {
             _addPackageFolderSuggestions(partial, prefix, folder);
@@ -241,16 +226,6 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
         }
       });
     }
-  }
-
-  void _addSuggestion(String completion, {int relevance}) {
-    if (request.useNewRelevance) {
-      relevance ??= defaultRelevance;
-    } else {
-      relevance ??= DART_RELEVANCE_DEFAULT;
-    }
-    suggestions.add(CompletionSuggestion(CompletionSuggestionKind.IMPORT,
-        relevance, completion, completion.length, 0, false, false));
   }
 
   String _extractPartialUri(SimpleStringLiteral node) {

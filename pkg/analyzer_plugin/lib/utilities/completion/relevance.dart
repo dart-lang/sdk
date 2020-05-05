@@ -53,6 +53,13 @@ abstract class Relevance {
   /// The relevance used when suggesting a field as a field formal parameter.
   static const int fieldFormalParameter = 1000;
 
+  /// The relevance used when suggesting an import of a library other than
+  /// `dart:core`.
+  static const int import = 900;
+
+  /// The relevance used when suggesting an import of `dart:core`.
+  static const int importDartCore = 100;
+
   /// The relevance used when suggesting a label.
   static const int label = 1000;
 
