@@ -53,10 +53,15 @@ abstract class TypeBuilder {
     if (type == null) return null;
     type = builder.localsHandler.substInContext(type);
     if (_closedWorld.dartTypes.isTopType(type)) return null;
+    bool includeNull =
+        _closedWorld.dartTypes.useLegacySubtyping || type is NullableType;
+    type = type.withoutNullability;
     if (type is! InterfaceType) return null;
     // The type element is either a class or the void element.
     ClassEntity element = (type as InterfaceType).element;
-    return _abstractValueDomain.createNullableSubtype(element);
+    return includeNull
+        ? _abstractValueDomain.createNullableSubtype(element)
+        : _abstractValueDomain.createNonNullSubtype(element);
   }
 
   /// Create an instruction to simply trust the provided type.

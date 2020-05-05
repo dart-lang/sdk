@@ -28,7 +28,7 @@ void testNullSafeCalls() {
     takesNever(nil);
     //         ^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Null?' can't be assigned to the parameter type 'Never'.
+    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'Never'.
     takesNever(never);
     takesNever(3 as dynamic);
     (takesNever as dynamic)(3);
@@ -40,7 +40,7 @@ void testNullSafeCalls() {
     takesInt(nil);
     //       ^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Null?' can't be assigned to the parameter type 'int'.
+    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'int'.
     takesInt(nil as dynamic);
     (takesInt as dynamic)(nil);
     (takesInt as dynamic)("hello");
@@ -52,7 +52,7 @@ void testNullSafeCalls() {
     takesObject(nil);
     //          ^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Null?' can't be assigned to the parameter type 'Object'.
+    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'Object'.
     takesObject(nil as dynamic);
     (takesObject as dynamic)(nil);
   }
@@ -74,17 +74,17 @@ void testNullSafeApply() {
     applyTakesNull(takesNever, nil);
     //             ^^^^^^^^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null?)'.
+    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null)'.
     applyTakesNull(takesAny, nil);
 
     applyTakesNull(takesInt, nil);
     //             ^^^^^^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null?)'.
+    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)'.
     applyTakesNull(takesObject, nil);
     //             ^^^^^^^^^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null?)'.
+    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null)'.
   }
 
   // Test applying a null safe function of static type void Function(Null)
@@ -95,15 +95,15 @@ void testNullSafeApply() {
     applyTakesNull(takesNever, 3);
     //             ^^^^^^^^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null?)'.
+    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null)'.
     applyTakesNull(takesInt, 3);
     //             ^^^^^^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null?)'.
+    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)'.
     applyTakesNull(takesObject, 3);
     //             ^^^^^^^^^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null?)'.
+    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null)'.
     applyTakesNull(takesAny, 3);
   }
 
@@ -139,16 +139,16 @@ void testNullSafeApplyDynamically() {
     applyTakesNullDynamically(takesNever, nil);
     //                        ^^^^^^^^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null?)'.
+    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null)'.
     applyTakesNullDynamically(takesAny, nil);
     applyTakesNullDynamically(takesInt, nil);
     //                        ^^^^^^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null?)'.
+    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)'.
     applyTakesNullDynamically(takesObject, nil);
     //                        ^^^^^^^^^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null?)'.
+    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null)'.
   }
 
   // Test dynamically applying a null safe function of static type
@@ -159,19 +159,19 @@ void testNullSafeApplyDynamically() {
     applyTakesNullDynamically(takesNever, 3);
     //                        ^^^^^^^^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null?)'.
+    // [cfe] The argument type 'void Function(Never)' can't be assigned to the parameter type 'void Function(Null)'.
     applyTakesNullDynamically(takesInt, 3);
     //                        ^^^^^^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null?)'.
+    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)'.
     applyTakesNullDynamically(takesInt, "hello");
     //                        ^^^^^^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null?)'.
+    // [cfe] The argument type 'void Function(int)' can't be assigned to the parameter type 'void Function(Null)'.
     applyTakesNullDynamically(takesObject, 3);
     //                        ^^^^^^^^^^^
     // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null?)'.
+    // [cfe] The argument type 'void Function(Object)' can't be assigned to the parameter type 'void Function(Null)'.
     applyTakesNullDynamically(takesAny, 3);
   }
 
@@ -204,12 +204,12 @@ void main() {
   // ^
   // [analyzer] unspecified
   //      ^
-  // [cfe] A value of type 'Null?' can't be assigned to a variable of type 'Never'.
+  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'Never'.
   never = nil;
   // ^
   // [analyzer] unspecified
   //      ^
-  // [cfe] A value of type 'Null?' can't be assigned to a variable of type 'Never'.
+  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'Never'.
   nil = never;
   testNullSafeCalls();
   testNullSafeApply();

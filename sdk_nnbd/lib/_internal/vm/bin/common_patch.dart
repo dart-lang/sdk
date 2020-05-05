@@ -7,7 +7,7 @@
 /// patches of that library. We plan to change this when we have a shared front
 /// end and simply use parts.
 
-import "dart:_internal" show VMLibraryHooks, patch;
+import "dart:_internal" show VMLibraryHooks, patch, checkNotNullable;
 
 import "dart:async"
     show

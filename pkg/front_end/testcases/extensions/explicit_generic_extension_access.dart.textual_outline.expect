@@ -1,0 +1,11 @@
+class Class<T extends num> {
+  T field1;
+  T field2;
+  Class(this.field1, this.field2);
+}
+extension Extension1<T extends num> ( ){ }
+on Class<T> (){ }
+extension Extension2<T extends num> ( ){ }
+on Class<T> (){ }
+main() { }
+expect(expected, actual) { }

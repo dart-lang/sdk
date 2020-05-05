@@ -1,0 +1,8 @@
+library test;
+
+class A<T> {
+  A(T x);
+}
+
+main() {}
+var t2 = [new A(2)];

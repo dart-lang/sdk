@@ -5255,8 +5255,7 @@ class InferenceVisitor
     if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
       if (!inferrer.isAssignable(
           inferrer.typeSchemaEnvironment.objectNonNullableRawType,
-          expressionResult.inferredType,
-          isStrongNullabilityMode: true)) {
+          expressionResult.inferredType)) {
         return new ExpressionInferenceResult(
             const DynamicType(),
             inferrer.helper.buildProblem(

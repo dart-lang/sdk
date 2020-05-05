@@ -1,0 +1,6 @@
+// @dart = 2.6
+main() {}
+var x = () {
+  var y = 42;
+  return y;
+};

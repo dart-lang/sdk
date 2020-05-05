@@ -1,0 +1,24 @@
+// @dart = 2.6
+class C {
+  get getterOnly => null;
+  get setterOnly => null;
+  superMethod() {}
+  var superField;
+  void set getterOnly(_) {}
+  void set setterOnly(_) {}
+}
+
+class D extends C {
+  get getterOnly => null;
+  method() {}
+  var field;
+  void set setterOnly(_) {}
+  void test() {}
+}
+
+class E extends D {
+  var missingField;
+  void missingMethod() {}
+}
+
+main() {}

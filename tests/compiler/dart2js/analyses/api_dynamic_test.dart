@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 import 'package:async_helper/async_helper.dart';
-import '../helpers/compiler_helper.dart';
+import '../helpers/memory_compiler.dart';
 import 'analysis_helper.dart';
 
 // TODO(johnniwinther): Remove unneeded dynamic accesses from platform source

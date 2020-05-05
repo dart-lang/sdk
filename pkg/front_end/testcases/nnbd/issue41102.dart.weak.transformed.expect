@@ -58,7 +58,7 @@ library /*isNonNullableByDefault*/;
 // final s14 = (s13)();
 //                  ^
 //
-// pkg/front_end/testcases/nnbd/issue41102.dart:49:19: Error: Can't throw a value of 'Null?' since it is neither dynamic nor non-nullable.
+// pkg/front_end/testcases/nnbd/issue41102.dart:49:19: Error: Can't throw a value of 'Null' since it is neither dynamic nor non-nullable.
 // final s15 = throw null;
 //                   ^
 //
@@ -120,7 +120,7 @@ static final field core::int s14 = let final<BottomType> #t13 = invalid-expressi
 Try calling using ?.call instead.
 final s14 = (s13)();
                  ^" in self::s13.call();
-static final field Never s15 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:49:19: Error: Can't throw a value of 'Null?' since it is neither dynamic nor non-nullable.
+static final field Never s15 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:49:19: Error: Can't throw a value of 'Null' since it is neither dynamic nor non-nullable.
 final s15 = throw null;
                   ^" as{TypeError,ForDynamic,ForNonNullableByDefault} Never;
 static method main() → void {}

@@ -1,0 +1,5 @@
+import 'issue41436c_lib.dart';
+
+class C extends B {}
+
+main() {}

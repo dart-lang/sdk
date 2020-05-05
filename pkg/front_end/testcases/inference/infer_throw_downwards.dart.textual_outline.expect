@@ -1,0 +1,6 @@
+library test;
+
+T f<T>() => null;
+var x = throw f();
+void g() {}
+main() {}

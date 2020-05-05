@@ -1,0 +1,12 @@
+class A<X> {}
+
+class C<X, Y extends X Function(X)> {}
+
+var lc = <C>[];
+var mc = <C, C>{};
+
+class D<X extends num, Y extends X Function(X)> {}
+
+var ld = <D>[];
+var md = <D, D>{};
+main() {}

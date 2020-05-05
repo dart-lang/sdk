@@ -647,7 +647,9 @@ abstract class FunctionDataForEachParameterMixin implements FunctionData {
       DartType type = elementMap.getDartType(parameter.type);
       String name = parameter.name;
       ConstantValue defaultValue;
-      if (isOptional) {
+      if (parameter.isRequired) {
+        defaultValue = elementMap.getRequiredSentinelConstantValue();
+      } else if (isOptional) {
         if (parameter.initializer != null) {
           defaultValue =
               elementMap.getConstantValue(memberContext, parameter.initializer);

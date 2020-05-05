@@ -1,0 +1,16 @@
+import 'issue_34498_lib.dart' as lib;
+
+class A {
+  Missing bar() {}
+  foo foo() {}
+  lib.MyClass get lib => null;
+}
+
+class B extends A {}
+
+class C<T> {
+  T<String> foo() {}
+}
+
+final A a = null;
+main() {}

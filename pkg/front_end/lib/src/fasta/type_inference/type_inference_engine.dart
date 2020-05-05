@@ -16,6 +16,7 @@ import 'package:kernel/ast.dart'
         NamedType,
         NeverType,
         Nullability,
+        Statement,
         TreeNode,
         TypeParameter,
         TypeParameterType,
@@ -34,6 +35,8 @@ import '../../base/instrumentation.dart' show Instrumentation;
 import '../builder/constructor_builder.dart';
 
 import '../kernel/forest.dart';
+
+import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 
 import '../kernel/kernel_builder.dart'
     show ClassHierarchyBuilder, ImplicitFieldType;
@@ -258,6 +261,14 @@ class TypeOperationsCfe
   @override
   DartType factor(DartType from, DartType what) {
     return factorType(typeEnvironment, from, what);
+  }
+
+  @override
+  bool isLocalVariableWithoutDeclaredType(VariableDeclaration variable) {
+    return variable is VariableDeclarationImpl &&
+        variable.parent is Statement &&
+        variable.isImplicitlyTyped &&
+        !variable.hasDeclaredInitializer;
   }
 
   // TODO(dmitryas): Consider checking for mutual subtypes instead of ==.

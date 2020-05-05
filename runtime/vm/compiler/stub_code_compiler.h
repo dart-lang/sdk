@@ -125,6 +125,12 @@ class StubCodeCompiler : public AllStatic {
 
   static void GenerateJITCallbackTrampolines(Assembler* assembler,
                                              intptr_t next_callback_id);
+
+ private:
+  // Common function for generating InitLateInstanceField and
+  // InitLateFinalInstanceField stubs.
+  static void GenerateInitLateInstanceFieldStub(Assembler* assembler,
+                                                bool is_final);
 };
 
 }  // namespace compiler

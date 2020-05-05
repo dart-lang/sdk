@@ -51,6 +51,8 @@ abstract class Recipe {
   static const String endNamedGroupString = _rightBraceString;
   static const int nameSeparator = _colon;
   static const String nameSeparatorString = _colonString;
+  static const int requiredNameSeparator = _exclamation;
+  static const String requiredNameSeparatorString = _exclamationString;
 
   static const int genericFunctionTypeParameterIndex = _circumflex;
   static const String genericFunctionTypeParameterIndexString =
@@ -189,6 +191,8 @@ abstract class Recipe {
     test("startNamedGroup", startNamedGroup, startNamedGroupString);
     test("endNamedGroup", endNamedGroup, endNamedGroupString);
     test("nameSeparator", nameSeparator, nameSeparatorString);
+    test("requiredNameSeparator", requiredNameSeparator,
+        requiredNameSeparatorString);
     test("genericFunctionTypeParameterIndex", genericFunctionTypeParameterIndex,
         genericFunctionTypeParameterIndexString);
     test("extensionOp", extensionOp, extensionOpString);

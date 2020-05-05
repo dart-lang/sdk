@@ -2266,6 +2266,21 @@ main() {
           });
         });
       });
+
+      test('promote via initialization', () {
+        var h = _Harness();
+        var x = _Var('x', null, isLocalVariableWithoutDeclaredType: true);
+
+        var s1 = FlowModel<_Var, _Type>(true).declare(x, false);
+        expect(s1.variableInfo, {
+          x: _matchVariableModel(chain: null),
+        });
+
+        var s2 = s1.write(x, _Type('int'), h);
+        expect(s2.variableInfo, {
+          x: _matchVariableModel(chain: ['int']),
+        });
+      });
     });
 
     group('declare', () {
@@ -2829,12 +2844,17 @@ main() {
     var intType = _Type('int');
     var intQType = _Type('int?');
     var stringType = _Type('String');
-    const emptyMap = <Null, VariableModel<Null>>{};
+    const emptyMap = const <_Var, VariableModel<_Var, _Type>>{};
 
-    VariableModel<_Type> model(List<_Type> promotionChain,
-            [List<_Type> typesOfInterest]) =>
-        VariableModel<_Type>(promotionChain,
-            typesOfInterest ?? promotionChain ?? [], false, true, false);
+    VariableModel<_Var, _Type> model(List<_Type> promotionChain,
+            {List<_Type> typesOfInterest, bool assigned = false}) =>
+        VariableModel<_Var, _Type>(
+          promotionChain,
+          typesOfInterest ?? promotionChain ?? [],
+          assigned,
+          !assigned,
+          false,
+        );
 
     group('without input reuse', () {
       test('promoted with unpromoted', () {
@@ -2847,7 +2867,7 @@ main() {
           x: model(null),
           y: model([intType])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2), {
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), {
           x: _matchVariableModel(chain: null, ofInterest: ['int']),
           y: _matchVariableModel(chain: null, ofInterest: ['int'])
         });
@@ -2860,7 +2880,7 @@ main() {
           x: model([intType]),
           y: model([stringType])
         };
-        expect(FlowModel.joinVariableInfo(h, p, p), same(p));
+        expect(FlowModel.joinVariableInfo(h, p, p, emptyMap), same(p));
       });
 
       test('one input empty', () {
@@ -2869,9 +2889,9 @@ main() {
           x: model([intType]),
           y: model([stringType])
         };
-        var p2 = <_Var, VariableModel<_Type>>{};
-        expect(FlowModel.joinVariableInfo(h, p1, p2), same(emptyMap));
-        expect(FlowModel.joinVariableInfo(h, p2, p1), same(emptyMap));
+        var p2 = <_Var, VariableModel<_Var, _Type>>{};
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), same(emptyMap));
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), same(emptyMap));
       });
 
       test('promoted with unpromoted', () {
@@ -2883,8 +2903,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: null, ofInterest: ['int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
       });
 
       test('related type chains', () {
@@ -2898,8 +2918,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
       });
 
       test('unrelated type chains', () {
@@ -2913,8 +2933,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: null, ofInterest: ['String', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
       });
 
       test('sub-map', () {
@@ -2925,8 +2945,8 @@ main() {
           y: model([stringType])
         };
         var p2 = {x: xModel};
-        expect(FlowModel.joinVariableInfo(h, p1, p2), same(p2));
-        expect(FlowModel.joinVariableInfo(h, p2, p1), same(p2));
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), same(p2));
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), same(p2));
       });
 
       test('sub-map with matched subtype', () {
@@ -2941,8 +2961,8 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
       });
 
       test('sub-map with mismatched subtype', () {
@@ -2957,24 +2977,24 @@ main() {
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinVariableInfo(h, p1, p2), expected);
-        expect(FlowModel.joinVariableInfo(h, p2, p1), expected);
+        expect(FlowModel.joinVariableInfo(h, p1, p2, emptyMap), expected);
+        expect(FlowModel.joinVariableInfo(h, p2, p1, emptyMap), expected);
       });
 
       test('assigned', () {
         var h = _Harness();
-        var intQModel = model([intQType]);
-        var writtenModel = intQModel.write(intQType, _Type('Object?'), h);
-        var p1 = {x: writtenModel, y: writtenModel, z: intQModel, w: intQModel};
-        var p2 = {x: writtenModel, y: intQModel, z: writtenModel, w: intQModel};
-        var joined = FlowModel.joinVariableInfo(h, p1, p2);
+        var unassigned = model(null, assigned: false);
+        var assigned = model(null, assigned: true);
+        var p1 = {x: assigned, y: assigned, z: unassigned, w: unassigned};
+        var p2 = {x: assigned, y: unassigned, z: assigned, w: unassigned};
+        var joined = FlowModel.joinVariableInfo(h, p1, p2, emptyMap);
         expect(joined, {
-          x: same(writtenModel),
+          x: same(assigned),
           y: _matchVariableModel(
               chain: null, assigned: false, unassigned: false),
           z: _matchVariableModel(
               chain: null, assigned: false, unassigned: false),
-          w: same(intQModel)
+          w: same(unassigned)
         });
       });
 
@@ -2994,7 +3014,7 @@ main() {
           z: writeCapturedModel,
           w: intQModel
         };
-        var joined = FlowModel.joinVariableInfo(h, p1, p2);
+        var joined = FlowModel.joinVariableInfo(h, p1, p2, emptyMap);
         expect(joined, {
           x: same(writeCapturedModel),
           y: same(writeCapturedModel),
@@ -3053,7 +3073,7 @@ Matcher _matchVariableModel(
   Matcher assignedMatcher = wrapMatcher(assigned);
   Matcher unassignedMatcher = wrapMatcher(unassigned);
   Matcher writeCapturedMatcher = wrapMatcher(writeCaptured);
-  return predicate((VariableModel<_Type> model) {
+  return predicate((VariableModel<_Var, _Type> model) {
     if (!chainMatcher.matches(model.promotedTypes, {})) return false;
     if (!ofInterestMatcher.matches(model.tested, {})) return false;
     if (!assignedMatcher.matches(model.assigned, {})) return false;
@@ -3322,6 +3342,11 @@ class _Harness implements TypeOperations<_Var, _Type> {
     if_(isNotType(variableRead(variable), type), ifTrue);
   }
 
+  @override
+  bool isLocalVariableWithoutDeclaredType(_Var variable) {
+    return variable.isLocalVariableWithoutDeclaredType;
+  }
+
   /// Creates a [LazyExpression] representing an `is!` check, checking whether
   /// [subExpression] has the given [type].
   LazyExpression isNotType(LazyExpression subExpression, String type) {
@@ -3475,10 +3500,14 @@ class _Type {
 
 class _Var {
   final String name;
-
   final _Type type;
+  final bool isLocalVariableWithoutDeclaredType;
 
-  _Var(this.name, this.type);
+  _Var(
+    this.name,
+    this.type, {
+    this.isLocalVariableWithoutDeclaredType = false,
+  });
 
   @override
   String toString() => '$type $name';

@@ -1,0 +1,9 @@
+class C {
+  num pi = 3.14;
+  late num ;
+  p1 = this.pi;
+  late ;
+  final p2 = this.pi;
+}
+main() { }
+expect(expected, actual) { }

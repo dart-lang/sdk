@@ -323,6 +323,47 @@ g(String /*!*/ s) {}
             replacement: ''));
   }
 
+  Future<void> test_addLate_dueToTestSetup() async {
+    addTestCorePackage();
+    var content = '''
+import 'package:test/test.dart';
+void main() {
+  int i;
+  setUp(() {
+    i = 1;
+  });
+  test('a', () {
+    f(i);
+  });
+  f(int /*?*/ i) {}
+}
+''';
+    var migratedContent = '''
+import 'package:test/test.dart';
+void main() {
+  late int  i;
+  setUp(() {
+    i = 1;
+  });
+  test('a', () {
+    f(i);
+  });
+  f(int /*?*/ i) {}
+}
+''';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(3));
+    var region = regions[0];
+    assertRegion(
+        region: region,
+        offset: 49,
+        length: 4,
+        explanation: 'Added a late keyword, due to assignment in `setUp`',
+        kind: NullabilityFixKind.addLateDueToTestSetup);
+  }
+
   Future<void> test_conditionFalseInStrongMode_expression() async {
     var unit = await buildInfoForSingleTestFile(
         'int f(String s) => s == null ? 0 : s.length;',

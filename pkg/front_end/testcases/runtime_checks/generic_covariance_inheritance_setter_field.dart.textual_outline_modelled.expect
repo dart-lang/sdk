@@ -1,0 +1,19 @@
+library test;
+
+class C<T> {
+  T y;
+  void set x(T t) {}
+}
+
+class D implements C<num> {
+  num x;
+  num y;
+}
+
+class E implements C<num> {
+  num get y => null;
+  void set x(num t) {}
+  void set y(num t) {}
+}
+
+void main() {}

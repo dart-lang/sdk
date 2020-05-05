@@ -40,6 +40,12 @@
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
       "tests/co19_2/co19_2-runtime.status",
+      "tests/co19/co19-analyzer.status",
+      "tests/co19/co19-co19.status",
+      "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dartdevc.status",
+      "tests/co19/co19-kernel.status",
+      "tests/co19/co19-runtime.status",
       "tests/compiler/",
       "tests/corelib_2/",
       "tests/dart/",
@@ -74,6 +80,12 @@
       "sdk_nnbd/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
+      "tests/co19/co19-analyzer.status",
+      "tests/co19/co19-co19.status",
+      "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dartdevc.status",
+      "tests/co19/co19-kernel.status",
+      "tests/co19/co19-runtime.status",
       "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
       "tests/co19_2/co19_2-dart2js.status",
@@ -120,6 +132,12 @@
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
+      "tests/co19/co19-analyzer.status",
+      "tests/co19/co19-co19.status",
+      "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dartdevc.status",
+      "tests/co19/co19-kernel.status",
+      "tests/co19/co19-runtime.status",
       "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
       "tests/co19_2/co19_2-dart2js.status",
@@ -163,6 +181,12 @@
       "sdk_nnbd/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
+      "tests/co19/co19-analyzer.status",
+      "tests/co19/co19-co19.status",
+      "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dartdevc.status",
+      "tests/co19/co19-kernel.status",
+      "tests/co19/co19-runtime.status",
       "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
       "tests/co19_2/co19_2-dart2js.status",
@@ -205,6 +229,12 @@
       "sdk_nnbd/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
+      "tests/co19/co19-analyzer.status",
+      "tests/co19/co19-co19.status",
+      "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dartdevc.status",
+      "tests/co19/co19-kernel.status",
+      "tests/co19/co19-runtime.status",
       "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
       "tests/co19_2/co19_2-dart2js.status",
@@ -307,6 +337,12 @@
       "third_party/pkg_tested/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
+      "tests/co19/co19-analyzer.status",
+      "tests/co19/co19-co19.status",
+      "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dartdevc.status",
+      "tests/co19/co19-kernel.status",
+      "tests/co19/co19-runtime.status",
       "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
       "tests/co19_2/co19_2-dart2js.status",
@@ -393,6 +429,12 @@
       "third_party/pkg_tested/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
+      "tests/co19/co19-analyzer.status",
+      "tests/co19/co19-co19.status",
+      "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dartdevc.status",
+      "tests/co19/co19-kernel.status",
+      "tests/co19/co19-runtime.status",
       "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
       "tests/co19_2/co19_2-dart2js.status",
@@ -785,6 +827,11 @@
       }
     },
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {},
+    "dartk-linux-debug-(ia32|x64)-canary": {
+      "options": {
+        "builder-tag": "canary"
+      }
+    },
     "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-x64": {
       "options": {
         "enable-experiment": [
@@ -1266,14 +1313,14 @@
         {
           "name": "vm ia32 tests",
           "arguments": [
-            "-ndartk-linux-debug-ia32",
+            "-ndartk-linux-debug-ia32-canary",
             "vm"
           ]
         },
         {
           "name": "vm x64 tests",
           "arguments": [
-            "-ndartk-linux-debug-x64",
+            "-ndartk-linux-debug-x64-canary",
             "vm"
           ]
         }
@@ -1423,6 +1470,7 @@
             "ffi",
             "language",
             "lib",
+	    "co19/LanguageFeatures/nnbd",
             "standalone/io"
           ]
         },
@@ -1434,6 +1482,7 @@
             "ffi",
             "language",
             "lib",
+	    "co19/LanguageFeatures/nnbd",
             "standalone/io"
           ]
         }
@@ -1589,7 +1638,7 @@
         "vm-kernel-asan-linux-release-ia32",
         "vm-kernel-asan-linux-release-x64",
         "vm-kernel-lsan-linux-release-ia32",
-        "vm-kernel-lsan-linux-release-x64",        
+        "vm-kernel-lsan-linux-release-x64",
         "vm-kernel-msan-linux-release-x64",
         "vm-kernel-ubsan-linux-release-ia32",
         "vm-kernel-ubsan-linux-release-x64"
@@ -1786,6 +1835,7 @@
             "ffi",
             "language",
             "lib",
+	    "co19/LanguageFeatures/nnbd",
             "standalone/io"
           ]
         },
@@ -1797,6 +1847,7 @@
             "ffi",
             "language",
             "lib",
+	    "co19/LanguageFeatures/nnbd",
             "standalone/io"
           ]
         }

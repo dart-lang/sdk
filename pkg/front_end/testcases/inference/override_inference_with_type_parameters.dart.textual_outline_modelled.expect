@@ -1,0 +1,9 @@
+abstract class A<X> {
+  void foo({Iterable<X> x});
+}
+
+class B<Y> implements A<Y> {
+  void foo({x}) {}
+}
+
+main() {}

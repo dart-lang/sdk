@@ -187,7 +187,7 @@ name: foo
     expect(result.edits, hasLength(1));
     expectFileEdits(originalContent, result.edits[0], '''
 environment:
-  sdk: '>=2.8.0 <3.0.0'
+  sdk: '>=2.9.0 <2.10.0'
 
 name: foo
 ''');
@@ -209,7 +209,7 @@ environment:
 name: foo
 environment:
   x: y
-  sdk: '>=2.8.0 <3.0.0'
+  sdk: '>=2.9.0 <2.10.0'
 ''');
   }
 
@@ -217,7 +217,7 @@ environment:
     var originalContent = '''
 name: foo
 environment:
-  sdk: '>=2.8.0 <3.0.0'
+  sdk: '>=2.9.0 <2.10.0'
 ''';
     newFile('/project/pubspec.yaml', content: originalContent);
     createProject();
@@ -242,7 +242,7 @@ environment:
     expectFileEdits(originalContent, result.edits[0], '''
 name: foo
 environment:
-  sdk: '>=2.8.0 <3.0.0'
+  sdk: '>=2.9.0 <2.10.0'
 ''');
   }
 

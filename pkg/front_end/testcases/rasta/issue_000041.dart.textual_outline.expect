@@ -1,0 +1,6 @@
+class C {
+  test() {}
+}
+
+use(_) => null;
+main() {}

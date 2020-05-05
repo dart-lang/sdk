@@ -1,0 +1,20 @@
+class A {}
+
+class B extends A {}
+
+class C {
+  A get y => null;
+  void set x(A value) {}
+}
+
+class D extends C {
+  B get y => null;
+  void set x(Object value) {}
+}
+
+class E extends C {
+  Object get y => null;
+  void set x(B value) {}
+}
+
+main() {}

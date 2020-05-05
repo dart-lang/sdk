@@ -9,6 +9,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nullability_state.dart';
+import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
 
@@ -59,6 +60,26 @@ abstract class ExactNullablePropagationStep extends DownstreamPropagationStep {
       : super.fromJson(json, deserializer);
 }
 
+/// Conditions of the "lateness" of a [NullabilityNode].
+enum LateCondition {
+  /// The associated [NullabilityNode] does not represent the type of a late
+  /// variable.
+  notLate,
+
+  /// The associated [NullabilityNode] represents the type of a late variable,
+  /// due to a `/*late*/` hint.
+  lateDueToHint,
+
+  /// The associated [NullabilityNode] represents an variable which is possibly
+  /// late, due to the late-inferring algorithm.
+  possiblyLate,
+
+  /// The associated [NullabilityNode] represents an variable which is possibly
+  /// late, due to being assigned in a function passed to a call to the test
+  /// package's `setUp` function.
+  possiblyLateDueToTestSetup,
+}
+
 /// Abstract interface for assigning ids numbers to nodes.  This allows us to
 /// annotate nodes with their ids when analyzing postmortem output.
 abstract class NodeToIdMapper {
@@ -89,6 +110,10 @@ class NullabilityEdge implements EdgeInfo {
   /// Whether this edge is the result of an uninitialized variable declaration.
   final bool isUninit;
 
+  /// Whether this edge is the result of an assignment within the test package's
+  /// `setUp` function.
+  final bool isSetupAssignment;
+
   NullabilityEdge.fromJson(
       dynamic json, NullabilityGraphDeserializer deserializer)
       : destinationNode = deserializer.nodeForId(json['dest'] as int),
@@ -97,7 +122,8 @@ class NullabilityEdge implements EdgeInfo {
         codeReference =
             json['code'] == null ? null : CodeReference.fromJson(json['code']),
         description = json['description'] as String,
-        isUninit = json['isUninit'] as bool {
+        isUninit = json['isUninit'] as bool,
+        isSetupAssignment = json['isSetupAssignment'] as bool {
     deserializer.defer(() {
       for (var id in json['us'] as List<dynamic>) {
         upstreamNodes.add(deserializer.nodeForId(id as int));
@@ -107,7 +133,7 @@ class NullabilityEdge implements EdgeInfo {
 
   NullabilityEdge._(
       this.destinationNode, this.upstreamNodes, this._kind, this.description,
-      {this.codeReference, this.isUninit});
+      {this.codeReference, this.isUninit, this.isSetupAssignment});
 
   @override
   Iterable<NullabilityNode> get guards => upstreamNodes.skip(1);
@@ -447,9 +473,13 @@ class NullabilityGraph {
     var isUninit = origin?.kind == EdgeOriginKind.fieldNotInitialized ||
         origin?.kind == EdgeOriginKind.implicitNullInitializer ||
         origin?.kind == EdgeOriginKind.uninitializedRead;
+    var isSetupAssignment =
+        origin is ExpressionChecksOrigin && origin.isSetupAssignment;
     var edge = NullabilityEdge._(
         destinationNode, upstreamNodes, kind, origin?.description,
-        codeReference: origin?.codeReference, isUninit: isUninit);
+        codeReference: origin?.codeReference,
+        isUninit: isUninit,
+        isSetupAssignment: isSetupAssignment);
     instrumentation?.graphEdge(edge, origin);
     for (var upstreamNode in upstreamNodes) {
       _connectDownstream(upstreamNode, edge);
@@ -673,7 +703,7 @@ class NullabilityGraphSerializer {
 /// variables.  Over time this will be replaced by a first class representation
 /// of the nullability inference graph.
 abstract class NullabilityNode implements NullabilityNodeInfo {
-  bool _isLate = false;
+  LateCondition _lateCondition = LateCondition.notLate;
 
   bool _isPossiblyOptional = false;
 
@@ -776,10 +806,6 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   @visibleForTesting
   bool get isExactNullable;
 
-  /// Indicates whether this node is associated with a variable declaration
-  /// which should be annotated with "late".
-  bool get isLate => _isLate;
-
   /// After nullability propagation, this getter can be used to query whether
   /// the type associated with this node should be considered nullable.
   @override
@@ -788,6 +814,10 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   /// Indicates whether this node is associated with a named parameter for which
   /// nullability migration needs to decide whether it is optional or required.
   bool get isPossiblyOptional => _isPossiblyOptional;
+
+  /// Indicates whether this node is associated with a variable declaration
+  /// which should be annotated with "late".
+  LateCondition get lateCondition => _lateCondition;
 
   /// After nullability propagation, this getter can be used to query the node's
   /// non-null intent state.
@@ -1414,9 +1444,11 @@ class _PropagationState {
             continue;
           }
         }
-        if (edge.isUninit) {
-          // This is an edge from always to an uninitialized variable
+        if (edge.isUninit && !node.isNullable) {
+          // [edge] is an edge from always to an uninitialized variable
           // declaration.
+          var isSetupAssigned = node.upstreamEdges
+              .any((e) => e is NullabilityEdge && e.isSetupAssignment);
 
           // Whether all downstream edges go to nodes with non-null intent.
           var allDownstreamHaveNonNullIntent = false;
@@ -1428,9 +1460,10 @@ class _PropagationState {
             });
           }
           if (allDownstreamHaveNonNullIntent) {
-            if (!node.isNullable) {
-              node._isLate = true;
-            }
+            node._lateCondition = LateCondition.possiblyLate;
+            continue;
+          } else if (isSetupAssigned) {
+            node._lateCondition = LateCondition.possiblyLateDueToTestSetup;
             continue;
           }
         }
@@ -1439,7 +1472,7 @@ class _PropagationState {
           step.targetNode = node;
           step.newState = Nullability.ordinaryNullable;
           _setNullable(step);
-          node._isLate = false;
+          node._lateCondition = LateCondition.notLate;
         }
       }
       if (_pendingSubstitutions.isEmpty) break;

@@ -105,7 +105,7 @@ class RunningIsolate implements MessageRouter {
     var pauseType;
     try {
       pauseType = await _isolatePauseType(service, message.params['isolateId']);
-    } catch (errorResponse) {
+    } on Response catch (errorResponse) {
       return errorResponse;
     }
     if (pauseType == kInvalidPauseEvent ||

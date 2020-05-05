@@ -1,0 +1,12 @@
+library test;
+
+class B {
+  void f() {}
+}
+
+class C extends B {
+  f() {}
+}
+
+main() {}
+var x = new C().f();

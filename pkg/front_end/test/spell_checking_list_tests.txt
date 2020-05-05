@@ -179,6 +179,7 @@ epoch
 err
 everytime
 evicting
+excess
 exe
 execute
 exercised
@@ -351,6 +352,7 @@ miss
 misspelled
 mistake
 mistakes
+modelled
 month
 moo
 mx
@@ -449,6 +451,7 @@ sdkroot
 sdks
 secondary
 segment
+sensitive
 severe
 sheets
 shipped

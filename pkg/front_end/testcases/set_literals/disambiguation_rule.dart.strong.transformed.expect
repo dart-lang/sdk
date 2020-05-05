@@ -16,14 +16,16 @@ library;
 //   LinkedHashMap<int, bool> lhm = {};
 //                                  ^
 //
-// pkg/front_end/testcases/set_literals/disambiguation_rule.dart:32:46: Error: The set literal type 'Set<dynamic>' isn't of expected type 'LinkedHashSet<int>'.
+// pkg/front_end/testcases/set_literals/disambiguation_rule.dart:32:46: Error: The set literal type 'Future<Set<dynamic>>' isn't of expected type 'Future<LinkedHashSet<int>>'.
+//  - 'Future' is from 'dart:async'.
 //  - 'Set' is from 'dart:core'.
 //  - 'LinkedHashSet' is from 'dart:collection'.
 // Change the type of the set literal or the context in which it is used.
 // Future<LinkedHashSet<int>> lhsfun() async => {};
 //                                              ^
 //
-// pkg/front_end/testcases/set_literals/disambiguation_rule.dart:33:52: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
+// pkg/front_end/testcases/set_literals/disambiguation_rule.dart:33:52: Error: The map literal type 'Future<Map<dynamic, dynamic>>' isn't of expected type 'Future<LinkedHashMap<int, bool>>'.
+//  - 'Future' is from 'dart:async'.
 //  - 'Map' is from 'dart:core'.
 //  - 'LinkedHashMap' is from 'dart:collection'.
 // Change the type of the map literal or the context in which it is used.
@@ -207,7 +209,8 @@ static method lhsfun() → asy::Future<col::LinkedHashSet<core::int*>*>* /* orig
     try {
       #L5:
       {
-        :return_value = let final<BottomType> #t18 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:32:46: Error: The set literal type 'Set<dynamic>' isn't of expected type 'LinkedHashSet<int>'.
+        :return_value = let final<BottomType> #t18 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:32:46: Error: The set literal type 'Future<Set<dynamic>>' isn't of expected type 'Future<LinkedHashSet<int>>'.
+ - 'Future' is from 'dart:async'.
  - 'Set' is from 'dart:core'.
  - 'LinkedHashSet' is from 'dart:collection'.
 Change the type of the set literal or the context in which it is used.
@@ -239,7 +242,8 @@ static method lhmfun() → asy::Future<col::LinkedHashMap<core::int*, core::bool
     try {
       #L6:
       {
-        :return_value = let final<BottomType> #t20 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:33:52: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
+        :return_value = let final<BottomType> #t20 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:33:52: Error: The map literal type 'Future<Map<dynamic, dynamic>>' isn't of expected type 'Future<LinkedHashMap<int, bool>>'.
+ - 'Future' is from 'dart:async'.
  - 'Map' is from 'dart:core'.
  - 'LinkedHashMap' is from 'dart:collection'.
 Change the type of the map literal or the context in which it is used.

@@ -1,0 +1,9 @@
+class A extends Object with M0, M1 implements I<int> {}
+
+class I<X> {}
+
+class M0<T> extends Object implements I<T> {}
+
+class M1<T> extends I<T> {}
+
+main() {}

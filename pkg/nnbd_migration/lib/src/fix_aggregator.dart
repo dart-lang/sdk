@@ -194,6 +194,17 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   }
 }
 
+/// Reasons that a variable declaration is to be made late.
+enum LateAdditionReason {
+  /// It was inferred that the associated variable declaration is to be made
+  /// late through the late-inferring algorithm.
+  inference,
+
+  /// It was inferred that the associated variable declaration is to be made
+  /// late, because it is a test variable which is assigned during setup.
+  testVariableInference,
+}
+
 /// Base class representing a kind of change that [FixAggregator] might make to
 /// a particular AST node.
 abstract class NodeChange<N extends AstNode> {
@@ -202,6 +213,11 @@ abstract class NodeChange<N extends AstNode> {
   /// Indicates whether this node exists solely to provide informative
   /// information.
   bool get isInformative => false;
+
+  Iterable<String> get _toStringParts => const [];
+
+  @override
+  toString() => '$runtimeType(${_toStringParts.join(', ')})';
 
   /// Applies this change to the given [node], producing an [EditPlan].  The
   /// [aggregator] may be used to gather up any edits to the node's descendants
@@ -235,6 +251,10 @@ class NodeChangeForAnnotation extends NodeChange<Annotation> {
   NodeChangeForAnnotation() : super._();
 
   @override
+  Iterable<String> get _toStringParts =>
+      [if (changeToRequiredKeyword) 'changeToRequiredKeyword'];
+
+  @override
   EditPlan _apply(Annotation node, FixAggregator aggregator) {
     if (!changeToRequiredKeyword) {
       return aggregator.innerPlanForNode(node);
@@ -265,6 +285,10 @@ class NodeChangeForAsExpression extends NodeChangeForExpression<AsExpression> {
   bool removeAs = false;
 
   @override
+  Iterable<String> get _toStringParts =>
+      [...super._toStringParts, if (removeAs) 'removeAs'];
+
+  @override
   EditPlan _apply(AsExpression node, FixAggregator aggregator) {
     if (removeAs) {
       return aggregator.planner.extract(node,
@@ -283,6 +307,10 @@ class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
   bool removeLanguageVersionComment = false;
 
   NodeChangeForCompilationUnit() : super._();
+
+  @override
+  Iterable<String> get _toStringParts =>
+      [if (removeLanguageVersionComment) 'removeLanguageVersionComment'];
 
   @override
   EditPlan _apply(CompilationUnit node, FixAggregator aggregator) {
@@ -312,6 +340,10 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
   /// If [conditionValue] is not `null`, the reason that should be included in
   /// the [AtomicEditInfo] for the edit that removes the dead code.
   FixReasonInfo conditionReason;
+
+  @override
+  Iterable<String> get _toStringParts =>
+      [...super._toStringParts, if (conditionValue != null) 'conditionValue'];
 
   /// If dead code removal is warranted for [node], returns an [EditPlan] that
   /// removes the dead code (and performs appropriate updates within any
@@ -424,6 +456,10 @@ class NodeChangeForDefaultFormalParameter
   NodeChangeForDefaultFormalParameter() : super._();
 
   @override
+  Iterable<String> get _toStringParts =>
+      [if (addRequiredKeyword) 'addRequiredKeyword'];
+
+  @override
   EditPlan _apply(DefaultFormalParameter node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
     if (!addRequiredKeyword) return innerPlan;
@@ -459,6 +495,12 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   /// Gets the type for any introduced "as" cast, or `null` if no "as" cast is
   /// being introduced.
   DartType get introducesAsType => _introducesAsType;
+
+  @override
+  Iterable<String> get _toStringParts => [
+        if (_addsNullCheck) 'addsNullCheck',
+        if (_introducesAsType != null) 'introducesAsType'
+      ];
 
   /// Causes a null check to be added to this expression, with the given [info].
   void addNullCheck(AtomicEditInfo info, {HintComment hint}) {
@@ -570,6 +612,10 @@ mixin NodeChangeForNullAware<N extends Expression> on NodeChange<N> {
   /// Indicates whether null-awareness should be removed.
   bool removeNullAwareness = false;
 
+  @override
+  Iterable<String> get _toStringParts =>
+      [...super._toStringParts, if (removeNullAwareness) 'removeNullAwareness'];
+
   /// Returns an [EditPlan] that removes null awareness, if appropriate.
   /// Otherwise returns `null`.
   EditPlan _applyNullAware(N node, FixAggregator aggregator) {
@@ -615,6 +661,10 @@ class NodeChangeForSimpleFormalParameter
   NodeChangeForSimpleFormalParameter() : super._();
 
   @override
+  Iterable<String> get _toStringParts =>
+      [if (addExplicitType != null) 'addExplicitType'];
+
+  @override
   EditPlan _apply(SimpleFormalParameter node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
     if (addExplicitType == null) return innerPlan;
@@ -651,6 +701,12 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
   /// If we are making the type nullable due to a hint, the comment that caused
   /// it.
   HintComment get nullabilityHint => _nullabilityHint;
+
+  @override
+  Iterable<String> get _toStringParts => [
+        if (_makeNullable) 'makeNullable',
+        if (_nullabilityHint != null) 'nullabilityHint'
+      ];
 
   void recordNullability(DecoratedType decoratedType, bool makeNullable,
       {HintComment nullabilityHint}) {
@@ -709,7 +765,7 @@ class NodeChangeForVariableDeclarationList
 
   /// Indicates whether a "late" annotation should be added to this variable
   /// declaration, caused by inference.
-  bool addLate = false;
+  LateAdditionReason lateAdditionReason;
 
   /// If a "late" annotation should be added to this variable declaration, and
   /// the cause is a "late" hint, the hint that caused it.  Otherwise `null`.
@@ -718,10 +774,20 @@ class NodeChangeForVariableDeclarationList
   NodeChangeForVariableDeclarationList() : super._();
 
   @override
+  Iterable<String> get _toStringParts => [
+        if (addExplicitType != null) 'addExplicitType',
+        if (lateAdditionReason != null) 'lateAdditionReason',
+        if (lateHint != null) 'lateHint'
+      ];
+
+  @override
   EditPlan _apply(VariableDeclarationList node, FixAggregator aggregator) {
     List<EditPlan> innerPlans = [];
-    if (addLate) {
-      var info = AtomicEditInfo(NullabilityFixDescription.addLate, {});
+    if (lateAdditionReason != null) {
+      var description = lateAdditionReason == LateAdditionReason.inference
+          ? NullabilityFixDescription.addLate
+          : NullabilityFixDescription.addLateDueToTestSetup;
+      var info = AtomicEditInfo(description, {});
       innerPlans.add(aggregator.planner.insertText(
           node,
           node.firstTokenAfterCommentAndMetadata.offset,

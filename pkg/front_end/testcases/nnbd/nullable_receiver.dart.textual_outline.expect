@@ -1,0 +1,14 @@
+class A {
+  foo() {}
+  int get bar => 42;
+  void set baz(int value) {}
+  void call() {}
+}
+
+class B {
+  String toString([int extra = 42]) => super.toString();
+}
+
+error(String? s, A? a, B? b) {}
+ok<T extends Object?>(String? s, A? a, T t, B? b, Invocation i) {}
+main() {}

@@ -1,0 +1,15 @@
+library test;
+
+typedef int F();
+
+abstract class A {
+  void set x(F value);
+}
+
+abstract class B extends A {
+  void set x(value());
+}
+
+T f<T>() => null;
+g(B b) {}
+main() {}

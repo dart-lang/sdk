@@ -14,6 +14,8 @@ import 'package:compiler/compiler_new.dart';
 
 import 'helpers/source_map_validator_helper.dart';
 
+import '../helpers/memory_compiler.dart';
+
 void main() {
   String mainFile =
       'tests/compiler/dart2js/sourcemaps/test_files/validator_test_file.dart';
@@ -22,7 +24,8 @@ void main() {
         Future<CompilationResult> result = entry.internalMain([
           mainFile,
           '-o${tmpDir.path}/out.js',
-          '--libraries-spec=sdk/lib/libraries.json',
+          '--platform-binaries=$sdkPlatformBinariesPath',
+          '--libraries-spec=$sdkLibrariesSpecificationPath',
         ]);
         return result.then((CompilationResult result) {
           CompilerImpl compiler = result.compiler;

@@ -1,0 +1,20 @@
+library test;
+
+import 'dart:async';
+
+T f<T>() => null;
+
+class B<T> {
+  D<T> g(E<T> x) => null;
+}
+
+class C<U> extends B<Future<U>> {
+  E<Future<U>> g(Object x) => null;
+  void h() {}
+}
+
+class D<T> {}
+
+class E<T> extends D<T> {}
+
+main() {}

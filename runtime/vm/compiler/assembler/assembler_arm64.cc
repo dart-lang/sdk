@@ -1281,10 +1281,10 @@ void Assembler::CheckCodePointer() {
 // register within our generated code to avoid the alignment requirement.
 // Note that Fuchsia does not have signal handlers.
 
-void Assembler::SetupDartSP() {
+void Assembler::SetupDartSP(intptr_t reserve /* = 4096 */) {
   mov(SP, CSP);
   // The caller doesn't have a Thread available. Just kick CSP forward a bit.
-  AddImmediate(CSP, CSP, -4096);
+  AddImmediate(CSP, CSP, -Utils::RoundUp(reserve, 16));
 }
 
 void Assembler::SetupCSPFromThread(Register thr) {
@@ -1838,6 +1838,15 @@ void Assembler::ComputeElementAddressForRegIndex(Register address,
   if (offset != 0) {
     AddImmediate(address, offset);
   }
+}
+
+void Assembler::LoadFieldAddressForRegOffset(Register address,
+                                             Register instance,
+                                             Register offset_in_words_as_smi) {
+  add(address, instance,
+      Operand(offset_in_words_as_smi, LSL,
+              target::kWordSizeLog2 - kSmiTagShift));
+  AddImmediate(address, -kHeapObjectTag);
 }
 
 void Assembler::PushRegisters(const RegisterSet& regs) {

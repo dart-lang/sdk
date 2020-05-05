@@ -1,0 +1,15 @@
+class C {
+  C();
+  factory C.fact() => null;
+  factory C.fact2() = D;
+  C.nonFact();
+  C.nonFact2() : this.nonFact();
+  static void staticFunction(int i) {}
+}
+
+class D extends C {}
+
+void topLevelFunction(int i) {}
+bad() {}
+ok() {}
+main() {}

@@ -90,12 +90,16 @@ T overrideKnownFeatures<T>(
 }
 
 /// Computes a new set of enable flags based on [flags], but with any features
-/// that were not present in [version] set to `false`.
+/// that are not present in the language [version] set to `false`.
 List<bool> restrictEnableFlagsToVersion(List<bool> flags, Version version) {
+  if (version == ExperimentStatus.currentVersion) {
+    return flags;
+  }
+
   flags = List.from(flags);
   for (var feature in _knownFeatures.values) {
-    if (!feature.isEnabledByDefault ||
-        feature.firstSupportedVersion > version) {
+    var firstSupportedVersion = feature.firstSupportedVersion;
+    if (firstSupportedVersion == null || firstSupportedVersion > version) {
       flags[feature.index] = false;
     }
   }

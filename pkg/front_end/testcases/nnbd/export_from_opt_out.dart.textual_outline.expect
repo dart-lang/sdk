@@ -1,0 +1,13 @@
+export 'export_from_opt_out_lib1.dart';
+export 'export_from_opt_out_lib2.dart' hide legacyMethod2;
+export 'export_from_opt_out_lib3.dart' show LegacyClass2;
+export 'export_from_opt_out_lib3.dart' show legacyMethod1;
+export 'export_from_opt_out_lib3.dart' show LegacyExtension;
+export 'export_from_opt_out_lib3.dart' show LegacyTypedef;
+export 'export_from_opt_out_lib3.dart' show NnbdClass1;
+export 'export_from_opt_out_lib3.dart'
+    hide LegacyClass2, LegacyExtension, LegacyTypedef, legacyMethod1;
+export 'export_from_opt_out_lib4.dart';
+export 'export_from_opt_out_lib5.dart';
+
+main() {}

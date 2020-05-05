@@ -1156,8 +1156,7 @@ String _functionRtiToString(Rti functionType, List<String> genericContext,
       typeParametersText += typeSep;
       typeParametersText += genericContext[genericContext.length - 1 - i];
       Rti boundRti = _castToRti(_Utils.arrayAt(bounds, i));
-      if (!isTopType(boundRti) &&
-          (!JS_GET_FLAG('LEGACY') || !isObjectType(boundRti))) {
+      if (!isTopType(boundRti)) {
         typeParametersText +=
             ' extends ' + _rtiToString(boundRti, genericContext);
       }
@@ -1684,7 +1683,7 @@ class _Universe {
       universe, Rti baseType, String key, bool normalize) {
     if (normalize) {
       int baseKind = Rti._getKind(baseType);
-      if (isTopType(baseType) ||
+      if (isStrongTopType(baseType) ||
           isNullType(baseType) ||
           baseKind == Rti.kindQuestion ||
           baseKind == Rti.kindStar) {
@@ -2560,11 +2559,7 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   if (isStrongTopType(s)) return false;
 
   // Left Bottom:
-  if (isLegacy) {
-    if (isNullType(s)) return true;
-  } else {
-    if (sKind == Rti.kindNever) return true;
-  }
+  if (isBottomType(s)) return true;
 
   // Left Type Variable Bound 1:
   bool leftTypeVariable = sKind == Rti.kindGenericFunctionParameter;
@@ -2884,7 +2879,10 @@ bool isNullable(Rti t) {
       kind == Rti.kindFutureOr && isNullable(Rti._getFutureOrArgument(t));
 }
 
-bool isTopType(Rti t) => isStrongTopType(t) || isLegacyObjectType(t);
+bool isTopType(Rti t) =>
+    isStrongTopType(t) ||
+    isLegacyObjectType(t) ||
+    JS_GET_FLAG('LEGACY') && isObjectType(t);
 
 bool isStrongTopType(Rti t) {
   int kind = Rti._getKind(t);
@@ -2892,9 +2890,11 @@ bool isStrongTopType(Rti t) {
       kind == Rti.kindVoid ||
       kind == Rti.kindAny ||
       kind == Rti.kindErased ||
-      !JS_GET_FLAG('NNBD') && isObjectType(t) ||
       isNullableObjectType(t);
 }
+
+bool isBottomType(Rti t) =>
+    Rti._getKind(t) == Rti.kindNever || JS_GET_FLAG('LEGACY') && isNullType(t);
 
 bool isObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object>());
 bool isLegacyObjectType(Rti t) =>

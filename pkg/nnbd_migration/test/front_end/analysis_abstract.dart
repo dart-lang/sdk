@@ -20,10 +20,12 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
+import '../abstract_context.dart';
 import 'mocks.dart';
 
 /// An abstract base for all 'analysis' domain tests.
-class AbstractAnalysisTest with ResourceProviderMixin {
+class AbstractAnalysisTest extends AbstractContextTest
+    with ResourceProviderMixin {
   bool generateSummaryFiles = false;
   MockServerChannel serverChannel;
   TestPluginManager pluginManager;
@@ -181,10 +183,11 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   void setUp() {
+    super.setUp();
     serverChannel = MockServerChannel();
-    projectPath = convertPath('/project');
-    testFolder = convertPath('/project/bin');
-    testFile = convertPath('/project/bin/test.dart');
+    projectPath = convertPath(AbstractContextTest.testsPath);
+    testFolder = convertPath('${AbstractContextTest.testsPath}/bin');
+    testFile = convertPath('${AbstractContextTest.testsPath}/bin/test.dart');
     pluginManager = TestPluginManager();
     server = createAnalysisServer();
     server.pluginManager = pluginManager;

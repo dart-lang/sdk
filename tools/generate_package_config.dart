@@ -74,6 +74,12 @@ Iterable<Map<String, String>> makePackageConfigs(
     var version = pubspecLanguageVersion(packageDir);
     var hasLibDirectory = Directory(p.join(packageDir, 'lib')).existsSync();
 
+    // TODO(rnystrom): Currently, the pre-built SDK does not allow language
+    // version 2.9.0. Until that's fixed, if we see that version, just write
+    // no version at all so that implementations use the current language
+    // version.
+    if (version.toString() == '2.9.0') version = null;
+
     yield {
       'name': p.basename(packageDir),
       'rootUri': p.relative(packageDir, from: p.dirname(configFilePath)),

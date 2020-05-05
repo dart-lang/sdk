@@ -56,6 +56,7 @@ namespace dart {
   F(Field, guarded_list_length_)                                               \
   F(Field, dependent_code_)                                                    \
   F(Field, initializer_function_)                                              \
+  F(Field, host_offset_or_field_id_)                                           \
   F(Script, url_)                                                              \
   F(Script, resolved_url_)                                                     \
   F(Script, compile_time_constants_)                                           \

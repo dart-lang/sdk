@@ -175,7 +175,6 @@ class AssistProcessor extends BaseProcessor {
     }
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
-      _coverageMarker();
       return;
     }
     change.id = kind.id;
@@ -374,12 +373,10 @@ class AssistProcessor extends BaseProcessor {
           node is AssignmentExpression ||
           node is Statement ||
           node is ThrowExpression) {
-        _coverageMarker();
         return;
       }
     }
     if (expressionStatement == null) {
-      _coverageMarker();
       return;
     }
     // prepare expression
@@ -388,7 +385,6 @@ class AssistProcessor extends BaseProcessor {
     // prepare expression type
     var type = expression.staticType;
     if (type.isVoid) {
-      _coverageMarker();
       return;
     }
     // prepare excluded names
@@ -641,7 +637,6 @@ class AssistProcessor extends BaseProcessor {
         body is EmptyFunctionBody ||
         body.isAsynchronous ||
         body.isGenerator) {
-      _coverageMarker();
       return;
     }
 
@@ -673,7 +668,6 @@ class AssistProcessor extends BaseProcessor {
     var body = _getEnclosingFunctionBody();
     // prepare expression body
     if (body is! ExpressionFunctionBody || body.isGenerator) {
-      _coverageMarker();
       return;
     }
 
@@ -682,7 +676,6 @@ class AssistProcessor extends BaseProcessor {
     // Return expressions can be quite large, e.g. Flutter build() methods.
     // It is surprising to see this Quick Assist deep in the function body.
     if (selectionOffset >= returnValue.offset) {
-      _coverageMarker();
       return;
     }
 
@@ -809,13 +802,11 @@ class AssistProcessor extends BaseProcessor {
             (node) => node is ForStatement && node.forLoopParts is ForEachParts)
         as ForStatement;
     if (forEachStatement == null) {
-      _coverageMarker();
       return;
     }
     ForEachParts forEachParts = forEachStatement.forLoopParts;
     if (selectionOffset < forEachStatement.offset ||
         forEachStatement.rightParenthesis.end < selectionOffset) {
-      _coverageMarker();
       return;
     }
     // loop should declare variable
@@ -823,7 +814,6 @@ class AssistProcessor extends BaseProcessor {
         ? forEachParts.loopVariable
         : null;
     if (loopVariable == null) {
-      _coverageMarker();
       return;
     }
     // iterable should be VariableElement
@@ -833,7 +823,6 @@ class AssistProcessor extends BaseProcessor {
         iterable.staticElement is VariableElement) {
       listName = iterable.name;
     } else {
-      _coverageMarker();
       return;
     }
     // iterable should be List
@@ -841,13 +830,11 @@ class AssistProcessor extends BaseProcessor {
       var iterableType = iterable.staticType;
       if (iterableType is! InterfaceType ||
           iterableType.element != typeProvider.listElement) {
-        _coverageMarker();
         return;
       }
     }
     // body should be Block
     if (forEachStatement.body is! Block) {
-      _coverageMarker();
       return;
     }
     Block body = forEachStatement.body;
@@ -863,7 +850,6 @@ class AssistProcessor extends BaseProcessor {
       } else if (!conflicts.contains('k')) {
         indexName = 'k';
       } else {
-        _coverageMarker();
         return;
       }
     }
@@ -892,30 +878,25 @@ class AssistProcessor extends BaseProcessor {
     }
     // prepare "is"
     if (node is! IsExpression) {
-      _coverageMarker();
       return;
     }
     var isExpression = node as IsExpression;
     if (isExpression.notOperator != null) {
-      _coverageMarker();
       return;
     }
     // prepare enclosing ()
     var parent = isExpression.parent;
     if (parent is! ParenthesizedExpression) {
-      _coverageMarker();
       return;
     }
     var parExpression = parent as ParenthesizedExpression;
     // prepare enclosing !()
     var parent2 = parent.parent;
     if (parent2 is! PrefixExpression) {
-      _coverageMarker();
       return;
     }
     var prefExpression = parent2 as PrefixExpression;
     if (prefExpression.operator.type != TokenType.BANG) {
-      _coverageMarker();
       return;
     }
 
@@ -943,31 +924,26 @@ class AssistProcessor extends BaseProcessor {
     }
     // prepare !()
     if (node is! PrefixExpression) {
-      _coverageMarker();
       return;
     }
     var prefExpression = node as PrefixExpression;
     // should be ! operator
     if (prefExpression.operator.type != TokenType.BANG) {
-      _coverageMarker();
       return;
     }
     // prepare !()
     var operand = prefExpression.operand;
     if (operand is! ParenthesizedExpression) {
-      _coverageMarker();
       return;
     }
     var parExpression = operand as ParenthesizedExpression;
     operand = parExpression.expression;
     // prepare "is"
     if (operand is! IsExpression) {
-      _coverageMarker();
       return;
     }
     var isExpression = operand as IsExpression;
     if (isExpression.notOperator != null) {
-      _coverageMarker();
       return;
     }
 
@@ -1007,31 +983,26 @@ class AssistProcessor extends BaseProcessor {
       }
     }
     if (isEmptyIdentifier == null) {
-      _coverageMarker();
       return;
     }
     // should be "isEmpty"
     var propertyElement = isEmptyIdentifier.staticElement;
     if (propertyElement == null || 'isEmpty' != propertyElement.name) {
-      _coverageMarker();
       return;
     }
     // should have "isNotEmpty"
     var propertyTarget = propertyElement.enclosingElement;
     if (propertyTarget == null ||
         getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
-      _coverageMarker();
       return;
     }
     // should be in PrefixExpression
     if (isEmptyAccess.parent is! PrefixExpression) {
-      _coverageMarker();
       return;
     }
     var prefixExpression = isEmptyAccess.parent as PrefixExpression;
     // should be !
     if (prefixExpression.operator.type != TokenType.BANG) {
-      _coverageMarker();
       return;
     }
 
@@ -1118,29 +1089,24 @@ class AssistProcessor extends BaseProcessor {
     // find FieldDeclaration
     var fieldDeclaration = node.thisOrAncestorOfType<FieldDeclaration>();
     if (fieldDeclaration == null) {
-      _coverageMarker();
       return;
     }
     // not interesting for static
     if (fieldDeclaration.isStatic) {
-      _coverageMarker();
       return;
     }
     // has a parse error
     var variableList = fieldDeclaration.fields;
     if (variableList.keyword == null && variableList.type == null) {
-      _coverageMarker();
       return;
     }
     // not interesting for final
     if (variableList.isFinal) {
-      _coverageMarker();
       return;
     }
     // should have exactly one field
     List<VariableDeclaration> fields = variableList.variables;
     if (fields.length != 1) {
-      _coverageMarker();
       return;
     }
     var field = fields.first;
@@ -1149,12 +1115,10 @@ class AssistProcessor extends BaseProcessor {
     // should have a public name
     var name = nameNode.name;
     if (Identifier.isPrivateName(name)) {
-      _coverageMarker();
       return;
     }
     // should be on the name
     if (nameNode != node) {
-      _coverageMarker();
       return;
     }
     var changeBuilder = _newDartChangeBuilder();
@@ -1227,7 +1191,6 @@ class AssistProcessor extends BaseProcessor {
           flutter.isWidgetExpression(parent2.expression)) {
         namedExp = parent2;
       } else {
-        _coverageMarker();
         return;
       }
     }
@@ -1245,14 +1208,12 @@ class AssistProcessor extends BaseProcessor {
     var widgetClass = node.thisOrAncestorOfType<ClassDeclaration>();
     var superclass = widgetClass?.extendsClause?.superclass;
     if (widgetClass == null || superclass == null) {
-      _coverageMarker();
       return;
     }
 
     // Don't spam, activate only from the `class` keyword to the class body.
     if (selectionOffset < widgetClass.classKeyword.offset ||
         selectionOffset > widgetClass.leftBracket.end) {
-      _coverageMarker();
       return;
     }
 
@@ -1268,14 +1229,12 @@ class AssistProcessor extends BaseProcessor {
       }
     }
     if (buildMethod == null) {
-      _coverageMarker();
       return;
     }
 
     // Must be a StatelessWidget subclasses.
     var widgetClassElement = widgetClass.declaredElement;
     if (!flutter.isExactlyStatelessWidgetType(widgetClassElement.supertype)) {
-      _coverageMarker();
       return;
     }
 
@@ -1632,14 +1591,12 @@ class AssistProcessor extends BaseProcessor {
   Future<void> _addProposal_flutterSwapWithChild() async {
     var parent = flutter.identifyNewExpression(node);
     if (!flutter.isWidgetCreation(parent)) {
-      _coverageMarker();
       return;
     }
 
     var childArgument = flutter.findChildArgument(parent);
     if (childArgument?.expression is! InstanceCreationExpression ||
         !flutter.isWidgetCreation(childArgument.expression)) {
-      _coverageMarker();
       return;
     }
     InstanceCreationExpression child = childArgument.expression;
@@ -1651,14 +1608,12 @@ class AssistProcessor extends BaseProcessor {
   Future<void> _addProposal_flutterSwapWithParent() async {
     var child = flutter.identifyNewExpression(node);
     if (!flutter.isWidgetCreation(child)) {
-      _coverageMarker();
       return;
     }
 
     // NamedExpression (child:), ArgumentList, InstanceCreationExpression
     var expr = child.parent?.parent?.parent;
     if (expr is! InstanceCreationExpression) {
-      _coverageMarker();
       return;
     }
     InstanceCreationExpression parent = expr;
@@ -1759,11 +1714,9 @@ class AssistProcessor extends BaseProcessor {
       List<String> leadingLines = const []}) async {
     var widgetExpr = flutter.identifyWidgetExpression(node);
     if (widgetExpr == null) {
-      _coverageMarker();
       return;
     }
     if (widgetValidator != null && !widgetValidator(widgetExpr)) {
-      _coverageMarker();
       return;
     }
     var widgetSrc = utils.getNodeText(widgetExpr);
@@ -1903,18 +1856,15 @@ class AssistProcessor extends BaseProcessor {
     // prepare ImportDirective
     var importDirective = node.thisOrAncestorOfType<ImportDirective>();
     if (importDirective == null) {
-      _coverageMarker();
       return;
     }
     // there should be no existing combinators
     if (importDirective.combinators.isNotEmpty) {
-      _coverageMarker();
       return;
     }
     // prepare whole import namespace
     ImportElement importElement = importDirective.element;
     if (importElement == null) {
-      _coverageMarker();
       return;
     }
     var namespace = getImportNamespace(importElement);
@@ -1932,7 +1882,6 @@ class AssistProcessor extends BaseProcessor {
     context.resolveResult.unit.accept(visitor);
     // ignore if unused
     if (referencedNames.isEmpty) {
-      _coverageMarker();
       return;
     }
     var changeBuilder = _newDartChangeBuilder();
@@ -1952,7 +1901,6 @@ class AssistProcessor extends BaseProcessor {
     }
     // prepare IsExpression
     if (node is! IsExpression) {
-      _coverageMarker();
       return;
     }
     IsExpression isExpression = node;
@@ -1969,7 +1917,6 @@ class AssistProcessor extends BaseProcessor {
       } else if (statement is WhileStatement && statement.body is Block) {
         targetBlock = statement.body;
       } else {
-        _coverageMarker();
         return;
       }
       prefix = utils.getNodePrefix(statement);
@@ -2048,24 +1995,20 @@ class AssistProcessor extends BaseProcessor {
     }
     // prepare target "if" statement
     if (node is! IfStatement) {
-      _coverageMarker();
       return;
     }
     var targetIfStatement = node as IfStatement;
     if (targetIfStatement.elseStatement != null) {
-      _coverageMarker();
       return;
     }
     // prepare inner "if" statement
     var targetThenStatement = targetIfStatement.thenStatement;
     var innerStatement = getSingleStatement(targetThenStatement);
     if (innerStatement is! IfStatement) {
-      _coverageMarker();
       return;
     }
     var innerIfStatement = innerStatement as IfStatement;
     if (innerIfStatement.elseStatement != null) {
-      _coverageMarker();
       return;
     }
     // prepare environment
@@ -2108,30 +2051,25 @@ class AssistProcessor extends BaseProcessor {
     }
     // prepare target "if" statement
     if (node is! IfStatement) {
-      _coverageMarker();
       return;
     }
     var targetIfStatement = node as IfStatement;
     if (targetIfStatement.elseStatement != null) {
-      _coverageMarker();
       return;
     }
     // prepare outer "if" statement
     var parent = targetIfStatement.parent;
     if (parent is Block) {
       if ((parent as Block).statements.length != 1) {
-        _coverageMarker();
         return;
       }
       parent = parent.parent;
     }
     if (parent is! IfStatement) {
-      _coverageMarker();
       return;
     }
     var outerIfStatement = parent as IfStatement;
     if (outerIfStatement.elseStatement != null) {
-      _coverageMarker();
       return;
     }
     // prepare environment
@@ -2170,19 +2108,16 @@ class AssistProcessor extends BaseProcessor {
         (node.parent as AssignmentExpression).leftHandSide == node &&
         node.parent.parent is ExpressionStatement) {
     } else {
-      _coverageMarker();
       return;
     }
     var assignExpression = node.parent as AssignmentExpression;
     // check that binary expression is assignment
     if (assignExpression.operator.type != TokenType.EQ) {
-      _coverageMarker();
       return;
     }
     // prepare "declaration" statement
     var element = (node as SimpleIdentifier).staticElement;
     if (element == null) {
-      _coverageMarker();
       return;
     }
     var declOffset = element.nameOffset;
@@ -2194,19 +2129,16 @@ class AssistProcessor extends BaseProcessor {
         declNode.parent.parent is VariableDeclarationList &&
         declNode.parent.parent.parent is VariableDeclarationStatement) {
     } else {
-      _coverageMarker();
       return;
     }
     var decl = declNode.parent as VariableDeclaration;
     var declStatement = decl.parent.parent as VariableDeclarationStatement;
     // may be has initializer
     if (decl.initializer != null) {
-      _coverageMarker();
       return;
     }
     // check that "declaration" statement declared only one variable
     if (declStatement.variables.variables.length != 1) {
-      _coverageMarker();
       return;
     }
     // check that the "declaration" and "assignment" statements are
@@ -2215,7 +2147,6 @@ class AssistProcessor extends BaseProcessor {
     if (assignStatement.parent is Block &&
         assignStatement.parent == declStatement.parent) {
     } else {
-      _coverageMarker();
       return;
     }
     var block = assignStatement.parent as Block;
@@ -2224,7 +2155,6 @@ class AssistProcessor extends BaseProcessor {
     if (statements.indexOf(assignStatement) ==
         statements.indexOf(declStatement) + 1) {
     } else {
-      _coverageMarker();
       return;
     }
 
@@ -2242,20 +2172,17 @@ class AssistProcessor extends BaseProcessor {
     var declList = node.thisOrAncestorOfType<VariableDeclarationList>();
     if (declList != null && declList.variables.length == 1) {
     } else {
-      _coverageMarker();
       return;
     }
     var decl = declList.variables[0];
     // already initialized
     if (decl.initializer != null) {
-      _coverageMarker();
       return;
     }
     // prepare VariableDeclarationStatement in Block
     if (declList.parent is VariableDeclarationStatement &&
         declList.parent.parent is Block) {
     } else {
-      _coverageMarker();
       return;
     }
     var declStatement = declList.parent as VariableDeclarationStatement;
@@ -2268,28 +2195,24 @@ class AssistProcessor extends BaseProcessor {
       var declIndex = statements.indexOf(declStatement);
       if (declIndex < statements.length - 1) {
       } else {
-        _coverageMarker();
         return;
       }
       // next Statement should be assignment
       var assignStatement = statements[declIndex + 1];
       if (assignStatement is ExpressionStatement) {
       } else {
-        _coverageMarker();
         return;
       }
       var expressionStatement = assignStatement as ExpressionStatement;
       // expression should be assignment
       if (expressionStatement.expression is AssignmentExpression) {
       } else {
-        _coverageMarker();
         return;
       }
       assignExpression = expressionStatement.expression as AssignmentExpression;
     }
     // check that pure assignment
     if (assignExpression.operator.type != TokenType.EQ) {
-      _coverageMarker();
       return;
     }
 
@@ -2309,13 +2232,11 @@ class AssistProcessor extends BaseProcessor {
     if ((node as ListLiteral).elements.any((CollectionElement exp) =>
         !(exp is InstanceCreationExpression &&
             flutter.isWidgetCreation(exp)))) {
-      _coverageMarker();
       return;
     }
     var literalSrc = utils.getNodeText(node);
     var newlineIdx = literalSrc.lastIndexOf(eol);
     if (newlineIdx < 0 || newlineIdx == literalSrc.length - 1) {
-      _coverageMarker();
       return; // Lists need to be in multi-line format already.
     }
     var indentOld = utils.getLinePrefix(node.offset + 1 + newlineIdx);
@@ -2353,7 +2274,6 @@ class AssistProcessor extends BaseProcessor {
     // may be on Statement with Conditional
     var statement = node.thisOrAncestorOfType<Statement>();
     if (statement == null) {
-      _coverageMarker();
       return;
     }
     // variable declaration
@@ -2451,7 +2371,6 @@ class AssistProcessor extends BaseProcessor {
   Future<void> _addProposal_replaceIfElseWithConditional() async {
     // should be "if"
     if (node is! IfStatement) {
-      _coverageMarker();
       return;
     }
     var ifStatement = node as IfStatement;
@@ -2459,7 +2378,6 @@ class AssistProcessor extends BaseProcessor {
     var thenStatement = getSingleStatement(ifStatement.thenStatement);
     var elseStatement = getSingleStatement(ifStatement.elseStatement);
     if (thenStatement == null || elseStatement == null) {
-      _coverageMarker();
       return;
     }
     Expression thenExpression;
@@ -2897,7 +2815,6 @@ class AssistProcessor extends BaseProcessor {
       InstanceCreationExpression child, AssistKind kind) async {
     // The child must have its own child.
     if (flutter.findChildArgument(child) == null) {
-      _coverageMarker();
       return;
     }
 
@@ -2972,13 +2889,6 @@ class AssistProcessor extends BaseProcessor {
     });
     _addAssistFromBuilder(changeBuilder, kind);
   }
-
-  /// This method does nothing, but we invoke it in places where Dart VM
-  /// coverage agent fails to provide coverage information - such as almost
-  /// all "return" statements.
-  ///
-  /// https://code.google.com/p/dart/issues/detail?id=19912
-  static void _coverageMarker() {}
 
   static String _replaceSourceIndent(
       String source, String indentOld, String indentNew) {

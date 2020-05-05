@@ -27,10 +27,6 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   /// The offset of the lint marker in the code being analyzed.
   int lintOffset = -1;
 
-  /// Return a list of the experiments that are to be enabled for tests in this
-  /// class, or `null` if there are no experiments that should be enabled.
-  List<String> get experiments => null;
-
   /// Return the lint code being tested.
   String get lintCode;
 
@@ -41,8 +37,7 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   }
 
   @override
-  void setUp() {
-    super.setUp();
+  void _createAnalysisOptionsFile() {
     createAnalysisOptionsFile(experiments: experiments, lints: [lintCode]);
   }
 
@@ -74,6 +69,10 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   /// The result of applying the [change] to the file content, or `null` if
   /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
   String resultCode;
+
+  /// Return a list of the experiments that are to be enabled for tests in this
+  /// class, or `null` if there are no experiments that should be enabled.
+  List<String> get experiments => null;
 
   /// Return the kind of fixes being tested by this test class.
   FixKind get kind;
@@ -172,6 +171,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     verifyNoTestUnitErrors = false;
+    _createAnalysisOptionsFile();
   }
 
   /// Computes fixes and verifies that there is a fix for the given [error] of the appropriate kind.
@@ -291,6 +291,12 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       },
     );
     return await DartFixContributor().computeFixes(context);
+  }
+
+  /// Create the analysis options file needed in order to correctly analyze the
+  /// test file.
+  void _createAnalysisOptionsFile() {
+    createAnalysisOptionsFile(experiments: experiments);
   }
 
   /// Find the error that is to be fixed by computing the errors in the file,

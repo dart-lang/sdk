@@ -1,0 +1,14 @@
+class Class {
+  const Class(int x) : this.x = x;
+  final int x;
+  int bar() => 0;
+  int baz(int x) {}
+  int boz(int x) => x;
+  int foo() {}
+}
+
+int bar() => 0;
+int baz(int x) {}
+int boz(int x) => x;
+int foo() {}
+main() {}

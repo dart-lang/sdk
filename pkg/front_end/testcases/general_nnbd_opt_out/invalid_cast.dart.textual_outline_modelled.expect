@@ -1,0 +1,17 @@
+// @dart = 2.6
+bad() {}
+
+class C {
+  C();
+  C.nonFact();
+  C.nonFact2() : this.nonFact();
+  factory C.fact() => null;
+  factory C.fact2() = D;
+  static void staticFunction(int i) {}
+}
+
+class D extends C {}
+
+main() {}
+ok() {}
+void topLevelFunction(int i) {}

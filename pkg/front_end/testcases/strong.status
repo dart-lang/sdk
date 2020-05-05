@@ -240,7 +240,7 @@ regress/issue_37285: RuntimeError
 regress/issue_39035.crash: RuntimeError
 regress/issue_39091_1: RuntimeError
 regress/issue_39091_2: RuntimeError
-regress/utf_16_le_content.crash: Crash
+regress/utf_16_le_content.crash: RuntimeError
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError

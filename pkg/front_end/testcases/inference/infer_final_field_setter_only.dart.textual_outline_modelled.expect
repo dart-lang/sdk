@@ -1,0 +1,12 @@
+library test;
+
+abstract class A {
+  void set x(double value) {}
+}
+
+class B extends A {
+  B(this.x);
+  final x;
+}
+
+main() {}

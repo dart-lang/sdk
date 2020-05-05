@@ -1,0 +1,10 @@
+class Class {
+  int field1 = 42;
+  int field2 = 87;
+}
+extension Extension1 ;
+on Class (){ }
+extension Extension2 ;
+on Class (){ }
+main() { }
+expect(expected, actual) { }

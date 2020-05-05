@@ -39,6 +39,7 @@ void runTests() {
   testInterfaces();
   testTopTypes();
   testNull();
+  testBottom();
   testFutureOr();
   testFunctions();
   testGenericFunctions();
@@ -78,6 +79,11 @@ void testNull() {
   strictSubtype(nullName, 'Iterable<CodeUnits>');
   strictSubtype(nullName, objectName);
   equivalent(nullName, nullName);
+}
+
+void testBottom() {
+  String never = '0&';
+  equivalent(nullName, never); // This test is run with legacy subtyping
 }
 
 void testFutureOr() {

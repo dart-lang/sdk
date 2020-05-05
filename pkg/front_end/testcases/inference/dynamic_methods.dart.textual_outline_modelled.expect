@@ -1,0 +1,8 @@
+library test;
+
+class Foo {
+  int foo(int x) => x;
+}
+
+main() {}
+test() {}

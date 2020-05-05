@@ -1,0 +1,9 @@
+class A1 {
+}
+extension A2 ;
+on A1 (){ }
+class B1<T> {
+}
+extension B2<T> ( ){ }
+on B1<T> (){ }
+main() { }

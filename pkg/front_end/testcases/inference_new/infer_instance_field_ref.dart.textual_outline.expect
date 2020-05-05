@@ -1,0 +1,18 @@
+library test;
+
+class A {
+  B b;
+}
+
+class B {
+  C c;
+}
+
+class C {}
+
+class D extends C {}
+
+var a = new A();
+var x = a.b.c;
+var y = a.b.c ??= new D();
+main() {}

@@ -137,6 +137,7 @@ isolate/simple_message_test: Skip # https://dartbug.com/36097: Ongoing concurren
 isolate/spawn_function_custom_class_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/spawn_function_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/spawn_generic_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+isolate/spawn_uri__package_uri__test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/spawn_uri_exported_main_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/spawn_uri_missing_from_isolate_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 isolate/spawn_uri_missing_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.

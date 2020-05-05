@@ -1,0 +1,16 @@
+library test;
+
+class I1 {
+  final x = y;
+}
+
+abstract class I2 {
+  num get x;
+}
+
+class C extends Object implements I1, I2 {
+  int get x => 0;
+}
+
+var y = new C().x;
+main() {}

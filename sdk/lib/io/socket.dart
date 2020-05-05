@@ -215,6 +215,12 @@ abstract class InternetAddress {
    */
   external static InternetAddress _cloneWithNewHost(
       InternetAddress address, String host);
+
+  /// Attempts to parse [address] as a numeric address.
+  ///
+  /// Returns `null` if [address] is not a numeric IPv4 (dotted-decimal
+  /// notation) or IPv6 (hexadecimal representation) address.
+  external static InternetAddress tryParse(String address);
 }
 
 /**

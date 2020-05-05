@@ -36,10 +36,14 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
+  # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
+  # cipd package used to run Dart scripts in the build and test infrastructure.
+  "sdk_tag": "version:2.9.0-4.0.dev",
+
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "919e0b662aa4b392dcb791446d80f31e972f8635",
+  "co19_rev": "306b15d60048bee617b7d5ede9b49ebafb7d1c42",
   "co19_2_rev": "368bfa9e877a2df003547f64bb17e30596af10c7",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -140,7 +144,7 @@ vars = {
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "b3da31e9684a99cfe5f192b89914492018b44da7",
   "test_reflective_loader_tag": "0.1.9",
-  "test_tag": "test_core-v0.3.2",
+  "test_tag": "988e38ff3051f24607ad0aaf4e780835785f2ab5",
   "tflite_native_rev": "3c777c40608a2a9f1427bfe0028ab48e7116b4c1",
   "typed_data_tag": "1.1.6",
   "usage_tag": "3.4.0",
@@ -176,7 +180,7 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.8.0-dev.18.0",
+          "version": Var("sdk_tag"),
       }],
       "dep_type": "cipd",
   },

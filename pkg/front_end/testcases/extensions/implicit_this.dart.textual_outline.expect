@@ -1,0 +1,7 @@
+class A1 {
+  Object field;
+  void method1() { }
+}
+extension A2 ;
+on A1 (){ }
+main() { }

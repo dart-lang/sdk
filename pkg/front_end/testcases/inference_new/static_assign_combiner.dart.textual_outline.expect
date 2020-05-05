@@ -1,0 +1,28 @@
+library test;
+
+T f<T>() => null;
+
+class A {
+  C operator +(int value) => null;
+  C operator *(D value) => null;
+}
+
+class B {
+  E operator +(int value) => null;
+  E operator *(F value) => null;
+}
+
+class C extends B {}
+
+class D {}
+
+class E {}
+
+class F {}
+
+A get target => null;
+void set target(B value) {}
+void test1() {}
+void test2() {}
+void test3() {}
+main() {}

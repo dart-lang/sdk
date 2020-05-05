@@ -707,7 +707,7 @@ class ParameterUsage {
     _hasInvoke = false;
     _areAllTypeParametersProvided = _parameterStructure.typeParameters == 0;
     _providedPositionalParameters = _parameterStructure.positionalParameters ==
-            _parameterStructure.requiredParameters
+            _parameterStructure.requiredPositionalParameters
         ? null
         : 0;
     if (!_parameterStructure.namedParameters.isEmpty) {
@@ -777,7 +777,7 @@ class ParameterUsage {
     if (!_hasInvoke) return null;
     if (isFullyUsed) return _parameterStructure;
     return new ParameterStructure(
-        _parameterStructure.requiredParameters,
+        _parameterStructure.requiredPositionalParameters,
         _providedPositionalParameters ??
             _parameterStructure.positionalParameters,
         _unprovidedNamedParameters == null
@@ -785,6 +785,7 @@ class ParameterUsage {
             : _parameterStructure.namedParameters
                 .where((n) => !_unprovidedNamedParameters.contains(n))
                 .toList(),
+        _parameterStructure.requiredNamedParameters,
         _areAllTypeParametersProvided ? _parameterStructure.typeParameters : 0);
   }
 

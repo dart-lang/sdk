@@ -1935,7 +1935,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // ```dart
   // %uri="lib/optedOut.dart"
-  // // @dart = 2.9
+  // // @dart = 2.8
   // String s;
   // ```
   //
@@ -9632,7 +9632,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
       StaticWarningCode(
           'REDIRECT_TO_INVALID_RETURN_TYPE',
           "The return type '{0}' of the redirected constructor isn't "
-              "assignable to '{1}'.",
+              "a subtype of '{1}'.",
           correction: "Try redirecting to a different constructor.",
           hasPublishedDocs: true);
 

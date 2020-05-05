@@ -1,0 +1,4 @@
+import 'infer_from_opt_in_lib.dart';
+
+main() {}
+reify<T>(T arg) => T;

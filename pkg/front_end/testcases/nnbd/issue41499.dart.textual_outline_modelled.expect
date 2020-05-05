@@ -1,0 +1,11 @@
+import "issue41499_lib.dart";
+
+LegacyFoo test() {}
+
+class C {
+  LegacyFoo get gTest {}
+  LegacyFoo mTest() {}
+  static LegacyFoo sTest() {}
+}
+
+main() {}

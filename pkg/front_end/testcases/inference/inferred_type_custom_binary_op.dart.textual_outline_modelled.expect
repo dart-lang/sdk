@@ -1,0 +1,10 @@
+library test;
+
+C c = new C();
+
+class C {
+  bool operator *(C other) => true;
+}
+
+main() {}
+var x = c * c;

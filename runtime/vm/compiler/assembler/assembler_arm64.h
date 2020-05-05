@@ -472,7 +472,7 @@ class Assembler : public AssemblerBase {
   void Drop(intptr_t stack_elements) {
     ASSERT(stack_elements >= 0);
     if (stack_elements > 0) {
-      add(SP, SP, Operand(stack_elements * target::kWordSize));
+      AddImmediate(SP, SP, stack_elements * target::kWordSize);
     }
   }
 
@@ -1412,6 +1412,11 @@ class Assembler : public AssemblerBase {
       const Object& equivalence,
       CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
+  void Call(Address target) {
+    ldr(LR, target);
+    blr(LR);
+  }
+
   void AddImmediate(Register dest, int64_t imm) {
     AddImmediate(dest, dest, imm);
   }
@@ -1578,7 +1583,8 @@ class Assembler : public AssemblerBase {
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
-  void SetupDartSP();
+  // Reserve specifies how much space to reserve for the Dart stack.
+  void SetupDartSP(intptr_t reserve = 4096);
   void SetupCSPFromThread(Register thr);
   void RestoreCSP();
 
@@ -1710,6 +1716,10 @@ class Assembler : public AssemblerBase {
                                         bool index_unboxed,
                                         Register array,
                                         Register index);
+
+  void LoadFieldAddressForRegOffset(Register address,
+                                    Register instance,
+                                    Register offset_in_words_as_smi);
 
   // Returns object data offset for address calculation; for heap objects also
   // accounts for the tag.

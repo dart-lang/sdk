@@ -21,8 +21,8 @@ $!MEMBERS
      NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     text = null;
     content.nodes.clear();
-    var fragment = createFragment(
-        html$NULLASSERT, validator: validator, treeSanitizer: treeSanitizer);
+    var fragment = createFragment(html, validator: validator,
+        treeSanitizer: treeSanitizer);
 
     content.append(fragment);
   }

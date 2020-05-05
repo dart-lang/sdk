@@ -3551,3 +3551,9 @@ const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
 String testingGetPlatformEnvironmentVariable() {
   return testPlatformEnvironmentVariableValue;
 }
+
+// These are used to indicate that a named parameter is required when lazily
+// retrieving default values via [JsGetName.DEFAULT_VALUES_PROPERTY].
+class _Required {
+  const _Required();
+}

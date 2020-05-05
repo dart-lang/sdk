@@ -476,12 +476,12 @@ class TypeSystemImpl extends TypeSystem {
    *
    * This affects the behavior of [isAssignableTo].
    */
-  final bool implicitCasts;
+  bool implicitCasts;
 
   /// A flag indicating whether inference failures are allowed, off by default.
   ///
   /// This option is experimental and subject to change.
-  final bool strictInference;
+  bool strictInference;
 
   @override
   final TypeProvider typeProvider;
@@ -1480,6 +1480,14 @@ class TypeSystemImpl extends TypeSystem {
     }
 
     return null;
+  }
+
+  void updateOptions({
+    @required bool implicitCasts,
+    @required bool strictInference,
+  }) {
+    this.implicitCasts = implicitCasts;
+    this.strictInference = strictInference;
   }
 
   List<DartType> _defaultTypeArguments(

@@ -211,6 +211,7 @@ class IsolateGroupReloadContext {
                         const char* packages_url,
                         const uint8_t** kernel_buffer,
                         intptr_t* kernel_buffer_size);
+  void BuildModifiedLibrariesClosure(BitVector* modified_libs);
   void FindModifiedSources(bool force_reload,
                            Dart_SourceFile** modified_sources,
                            intptr_t* count,
@@ -271,6 +272,14 @@ class IsolateGroupReloadContext {
 
   // A bit vector indicating which of the original libraries were modified.
   BitVector* modified_libs_ = nullptr;
+
+  // A bit vector indicating which of the original libraries were modified,
+  // or where a transitive dependency was modified.
+  BitVector* modified_libs_transitive_ = nullptr;
+
+  // A bit vector indicating which of the saved libraries that transitively
+  // depend on a modified libary.
+  BitVector* saved_libs_transitive_updated_ = nullptr;
 
   String& root_lib_url_;
   ObjectPtr* from() { return reinterpret_cast<ObjectPtr*>(&root_url_prefix_); }

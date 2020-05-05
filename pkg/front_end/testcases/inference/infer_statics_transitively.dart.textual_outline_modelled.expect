@@ -1,0 +1,8 @@
+library test;
+
+import 'infer_statics_transitively_a.dart';
+
+final m1 = a1;
+final m2 = A.a2;
+foo() {}
+main() {}

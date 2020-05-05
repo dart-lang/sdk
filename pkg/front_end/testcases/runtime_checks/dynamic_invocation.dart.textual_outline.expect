@@ -1,0 +1,15 @@
+library test;
+
+class C<T> {
+  void f1(T x) {}
+  void f2(int x) {}
+}
+
+class D extends C<num> {
+  void f1(covariant int x) {}
+}
+
+void g1(dynamic d) {}
+void g2(dynamic d) {}
+void test() {}
+main() {}

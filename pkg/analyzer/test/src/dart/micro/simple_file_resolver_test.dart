@@ -311,7 +311,7 @@ analyzer:
 
     // Implicit casts are disabled in 'aaa'.
     var aPath = '/workspace/dart/aaa/lib/a.dart';
-    var aResult = await assertErrorsInFile(aPath, r'''
+    await assertErrorsInFile(aPath, r'''
 num a = 0;
 int b = a;
 ''', [
@@ -320,16 +320,17 @@ int b = a;
 
     // Implicit casts are enabled in 'bbb'.
     var bPath = '/workspace/dart/bbb/lib/a.dart';
-    var bResult = await assertErrorsInFile(bPath, r'''
+    await assertErrorsInFile(bPath, r'''
 num a = 0;
 int b = a;
 ''', []);
 
-    // Packages 'aaa' and 'bbb' have different options affecting type system.
-    // So, we cannot share the same context.
-    expect(
-      aResult.libraryElement.context,
-      isNot(same(bResult.libraryElement.context)),
-    );
+    // Implicit casts are still disabled in 'aaa'.
+    await assertErrorsInFile(aPath, r'''
+num a = 0;
+int b = a;
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+    ]);
   }
 }

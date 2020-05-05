@@ -1,0 +1,8 @@
+typedef A<T>(T p);
+
+class B<S> {
+  final List<A<S>> foo = <A<S>>[];
+  final List<A<num>> bar = <A<num>>[];
+}
+
+main() {}

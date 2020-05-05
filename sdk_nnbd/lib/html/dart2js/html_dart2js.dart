@@ -10448,13 +10448,13 @@ class DocumentFragment extends Node
     implements NonElementParentNode, ParentNode {
   factory DocumentFragment() => document.createDocumentFragment();
 
-  factory DocumentFragment.html(String html,
+  factory DocumentFragment.html(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     return document.body!.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
   }
 
-  factory DocumentFragment.svg(String svgContent,
+  factory DocumentFragment.svg(String? svgContent,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     return new svg.SvgSvgElement().createFragment(svgContent,
         validator: validator, treeSanitizer: treeSanitizer);
@@ -10503,11 +10503,11 @@ class DocumentFragment extends Node
     return e.innerHtml;
   }
 
-  set innerHtml(String value) {
+  set innerHtml(String? value) {
     this.setInnerHtml(value);
   }
 
-  void setInnerHtml(String html,
+  void setInnerHtml(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     this.nodes.clear();
     append(document.body!.createFragment(html,
@@ -12664,7 +12664,7 @@ class Element extends Node
    * * [NodeValidator]
    *
    */
-  factory Element.html(String html,
+  factory Element.html(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     var fragment = document.body!.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
@@ -13626,7 +13626,7 @@ class Element extends Node
    * * [NodeValidator]
    * * [NodeTreeSanitizer]
    */
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (treeSanitizer == null) {
       if (validator == null) {
@@ -13674,7 +13674,7 @@ class Element extends Node
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
       _parseRange!.selectNodeContents(contextElement);
-      fragment = _parseRange!.createContextualFragment(html);
+      fragment = _parseRange!.createContextualFragment(html!);
     } else {
       contextElement._innerHtml = html;
 
@@ -13768,7 +13768,7 @@ class Element extends Node
     if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
       _innerHtml = html;
     } else {
-      append(createFragment(html!,
+      append(createFragment(html,
           validator: validator, treeSanitizer: treeSanitizer));
     }
   }
@@ -29332,7 +29332,7 @@ class TableElement extends HtmlElement {
   @JSName('createTBody')
   TableSectionElement _nativeCreateTBody() native;
 
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
@@ -29423,7 +29423,7 @@ class TableRowElement extends HtmlElement {
   TableCellElement insertCell(int index) =>
       _insertCell(index) as TableCellElement;
 
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
@@ -29486,7 +29486,7 @@ class TableSectionElement extends HtmlElement {
 
   TableRowElement insertRow(int index) => _insertRow(index) as TableRowElement;
 
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
@@ -29585,7 +29585,7 @@ class TemplateElement extends HtmlElement {
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     text = null;
     content.nodes.clear();
-    var fragment = createFragment(html!,
+    var fragment = createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
 
     content.append(fragment);
@@ -40391,7 +40391,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       view = window;
     }
 
-    var eventObj;
+    dynamic eventObj;
 
     // Currently this works on everything but Safari. Safari throws an
     // "Attempting to change access mechanism for an unconfigurable property"

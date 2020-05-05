@@ -1,0 +1,21 @@
+class A {
+  int a = 42;
+  late int ;
+  b = (this.a * 2) >> 1;
+  foo(late int x) { }
+}
+bar(late int x) { }
+baz() { }
+hest() async { }
+fisk() async { }
+class B {
+  late ;
+  final int x = 42;
+  const B();
+}
+class C {
+  late ;
+  final int x;
+  initVars() { }
+}
+main() { }

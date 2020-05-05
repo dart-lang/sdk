@@ -1,0 +1,6 @@
+class C<T> {
+}
+extension ext<T> ( ){ }
+on C<T> (){ }
+main() { }
+errors() { }

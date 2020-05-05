@@ -1,0 +1,9 @@
+class Constant {
+  const Constant();
+}
+
+class NotConstant {}
+
+foo({a: Constant(), b: Constant(), c: []}) {}
+test() {}
+main() {}

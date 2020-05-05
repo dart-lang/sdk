@@ -1,0 +1,6 @@
+// @dart = 2.6
+import './no_such_method_private_setter_lib.dart';
+
+class Foo implements Bar {}
+
+main() {}

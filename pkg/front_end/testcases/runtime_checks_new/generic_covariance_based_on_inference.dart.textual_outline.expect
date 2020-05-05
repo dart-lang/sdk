@@ -1,0 +1,20 @@
+library test;
+
+class B<T> {
+  T x;
+  T y;
+}
+
+abstract class C<T> implements B<num> {
+  var x;
+  get y;
+  set y(value);
+}
+
+abstract class D<T> implements B<T> {
+  var x;
+  get y;
+  set y(value);
+}
+
+main() {}

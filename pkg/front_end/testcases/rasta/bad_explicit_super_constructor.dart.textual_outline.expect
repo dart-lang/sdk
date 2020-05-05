@@ -1,0 +1,9 @@
+class A {
+  A(x);
+}
+
+class B extends A {
+  const B() : super();
+}
+
+main() {}

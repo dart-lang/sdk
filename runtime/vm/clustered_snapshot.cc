@@ -1034,11 +1034,7 @@ class FieldSerializationCluster : public SerializationCluster {
     s->Push(field->ptr()->initializer_function_);
 
     if (kind != Snapshot::kFullAOT) {
-      // Write out the saved initial values
       s->Push(field->ptr()->saved_initial_value_);
-    }
-    if (kind != Snapshot::kFullAOT) {
-      // Write out the guarded list length.
       s->Push(field->ptr()->guarded_list_length_);
     }
     if (kind == Snapshot::kFullJIT) {
@@ -1052,7 +1048,8 @@ class FieldSerializationCluster : public SerializationCluster {
           kind == Snapshot::kFullAOT ||
           // Do not reset const fields.
           Field::ConstBit::decode(field->ptr()->kind_bits_)) {
-        s->Push(s->field_table()->At(field->ptr()->host_offset_or_field_id_));
+        s->Push(s->field_table()->At(
+            Smi::Value(field->ptr()->host_offset_or_field_id_)));
       } else {
         // Otherwise, for static fields we write out the initial static value.
         s->Push(field->ptr()->saved_initial_value_);
@@ -1086,9 +1083,6 @@ class FieldSerializationCluster : public SerializationCluster {
       WriteField(field, initializer_function_);
       if (kind != Snapshot::kFullAOT) {
         WriteField(field, saved_initial_value_);
-      }
-      if (kind != Snapshot::kFullAOT) {
-        // Write out the guarded list length.
         WriteField(field, guarded_list_length_);
       }
       if (kind == Snapshot::kFullJIT) {
@@ -1101,9 +1095,7 @@ class FieldSerializationCluster : public SerializationCluster {
         s->WriteCid(field->ptr()->guarded_cid_);
         s->WriteCid(field->ptr()->is_nullable_);
         s->Write<int8_t>(field->ptr()->static_type_exactness_state_);
-#if !defined(DART_PRECOMPILED_RUNTIME)
         s->Write<uint32_t>(field->ptr()->binary_declaration_);
-#endif
       }
       s->Write<uint16_t>(field->ptr()->kind_bits_);
 
@@ -1112,18 +1104,17 @@ class FieldSerializationCluster : public SerializationCluster {
         if (
             // For precompiled static fields, the value was already reset and
             // initializer_ now contains a Function.
-            // WriteField(field, value_.static_value_);
             kind == Snapshot::kFullAOT ||
             // Do not reset const fields.
             Field::ConstBit::decode(field->ptr()->kind_bits_)) {
-          WriteFieldValue(
-              "static value",
-              s->field_table()->At(field->ptr()->host_offset_or_field_id_));
+          WriteFieldValue("static value",
+                          s->field_table()->At(Smi::Value(
+                              field->ptr()->host_offset_or_field_id_)));
         } else {
           // Otherwise, for static fields we write out the initial static value.
           WriteFieldValue("static value", field->ptr()->saved_initial_value_);
         }
-        s->WriteUnsigned(field->ptr()->host_offset_or_field_id_);
+        s->WriteUnsigned(Smi::Value(field->ptr()->host_offset_or_field_id_));
       } else {
         WriteFieldValue("offset", Smi::New(Field::TargetOffsetOf(field)));
       }
@@ -1158,6 +1149,16 @@ class FieldDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(field, kFieldCid, Field::InstanceSize());
       ReadFromTo(field);
       if (kind != Snapshot::kFullAOT) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        field->ptr()->saved_initial_value_ =
+            static_cast<InstancePtr>(d->ReadRef());
+#endif
+        field->ptr()->guarded_list_length_ = static_cast<SmiPtr>(d->ReadRef());
+      }
+      if (kind == Snapshot::kFullJIT) {
+        field->ptr()->dependent_code_ = static_cast<ArrayPtr>(d->ReadRef());
+      }
+      if (kind != Snapshot::kFullAOT) {
         field->ptr()->token_pos_ = d->ReadTokenPosition();
         field->ptr()->end_token_pos_ = d->ReadTokenPosition();
         field->ptr()->guarded_cid_ = d->ReadCid();
@@ -1174,12 +1175,12 @@ class FieldDeserializationCluster : public DeserializationCluster {
         intptr_t field_id = d->ReadUnsigned();
         d->field_table()->SetAt(field_id,
                                 static_cast<InstancePtr>(value_or_offset));
-        field->ptr()->host_offset_or_field_id_ = field_id;
+        field->ptr()->host_offset_or_field_id_ = Smi::New(field_id);
       } else {
-        field->ptr()->host_offset_or_field_id_ =
-            Smi::Value(Smi::RawCast(value_or_offset));
+        field->ptr()->host_offset_or_field_id_ = Smi::RawCast(value_or_offset);
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        field->ptr()->target_offset_ = field->ptr()->host_offset_or_field_id_;
+        field->ptr()->target_offset_ =
+            Smi::Value(field->ptr()->host_offset_or_field_id_);
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
       }
     }

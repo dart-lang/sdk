@@ -222,6 +222,7 @@ abstract class EdgeOriginInfo {
 enum EdgeOriginKind {
   alreadyMigratedType,
   alwaysNullableType,
+  argumentErrorCheckNotNull,
   compoundAssignment,
   // See [DummyOrigin].
   dummy,
@@ -241,8 +242,8 @@ enum EdgeOriginKind {
   instantiateToBounds,
   isCheckComponentType,
   isCheckMainType,
-  literal,
   listLengthConstructor,
+  literal,
   namedParameterNotSupplied,
   nonNullableBoolType,
   nonNullableObjectSuperclass,
@@ -251,6 +252,7 @@ enum EdgeOriginKind {
   nullabilityComment,
   optionalFormalParameter,
   parameterInheritance,
+  quiverCheckNotNull,
   returnTypeInheritance,
   stackTraceTypeOrigin,
   thisOrSuper,

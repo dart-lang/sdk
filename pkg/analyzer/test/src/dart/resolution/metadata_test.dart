@@ -294,7 +294,7 @@ void f() {}
   test_optIn_fromOptOut_class_getter() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
-  const foo = 42;
+  static const foo = 42;
 }
 ''');
 
@@ -399,7 +399,7 @@ void f() {}
   test_optIn_fromOptOut_prefix_class_getter() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
-  const foo = 0;
+  static const foo = 0;
 }
 ''');
 

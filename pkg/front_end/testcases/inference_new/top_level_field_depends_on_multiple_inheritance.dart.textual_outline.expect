@@ -1,0 +1,29 @@
+library test;
+
+class A {}
+
+class B extends A {}
+
+class C extends B {}
+
+abstract class D {
+  A foo();
+}
+
+abstract class E {
+  B foo();
+}
+
+abstract class F {
+  Object foo();
+}
+
+abstract class G extends Object implements D, E, F {}
+
+class H extends G {
+  C foo() => new C();
+}
+
+G bar() => new H();
+var x = bar().foo();
+main() {}

@@ -2192,7 +2192,7 @@ $docLines
 class MyClass {}
 
 $docLines
-class MyClassTypeAlias = Object with MyClass;
+class MyMixinApplication = Object with MyClass;
 
 $docLines
 enum MyEnum {A, B, C}
@@ -2211,7 +2211,7 @@ main() {^}
       assertDoc(suggestion);
     }
     {
-      var suggestion = assertSuggestClassTypeAlias('MyClassTypeAlias');
+      var suggestion = assertSuggestClass('MyMixinApplication');
       assertDoc(suggestion);
     }
     {
@@ -2494,7 +2494,7 @@ class C {foo(){^} void bar() {}}''');
     assertSuggestMethod('bar', 'C', 'void',
         relevance: DART_RELEVANCE_LOCAL_METHOD);
     assertSuggestFunctionTypeAlias('F2', 'int');
-    assertSuggestClassTypeAlias('Clz');
+    assertSuggestClass('Clz');
     assertSuggestClass('C');
     assertNotSuggested('x');
     assertNotSuggested('_B');

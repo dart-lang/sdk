@@ -27,6 +27,12 @@ class NullabilityFixDescription {
       appliedMessage: 'Added a late keyword, due to a hint',
       kind: NullabilityFixKind.addLateDueToHint);
 
+  /// A variable declaration needs to be marked as "late" due to being certainly
+  /// assigned in test setup.
+  static const addLateDueToTestSetup = const NullabilityFixDescription._(
+      appliedMessage: 'Added a late keyword, due to assignment in `setUp`',
+      kind: NullabilityFixKind.addLateDueToTestSetup);
+
   /// An expression's value needs to be null-checked.
   static const checkExpression = const NullabilityFixDescription._(
     appliedMessage: 'Added a non-null assertion to nullable expression',
@@ -206,6 +212,7 @@ class NullabilityFixDescription {
 enum NullabilityFixKind {
   addLate,
   addLateDueToHint,
+  addLateDueToTestSetup,
   addRequired,
   addType,
   checkExpression,

@@ -103,7 +103,6 @@ class TypeMemberContributor extends DartCompletionContributor {
       var memberBuilder = _SuggestionBuilder(request, builder);
       memberBuilder.buildSuggestions(type, containingMethodName,
           mixins: mixins, superclassConstraints: superclassConstraints);
-      return memberBuilder.suggestions.toList();
     } else if (type is FunctionType) {
       builder.suggestFunctionCall();
     }

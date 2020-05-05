@@ -231,7 +231,7 @@ class CustomElementsAnalysisJoin {
         // function type.
         _elementEnvironment.getFunctionType(constructor);
         // Ignore constructors that cannot be called with zero arguments.
-        if (constructor.parameterStructure.requiredParameters == 0) {
+        if (constructor.parameterStructure.requiredPositionalParameters == 0) {
           result.add(constructor);
         }
       }

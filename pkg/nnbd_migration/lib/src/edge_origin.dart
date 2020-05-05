@@ -430,6 +430,49 @@ class NonNullAssertionOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.nonNullAssertion;
 }
 
+/// Edge origin resulting from the presence of a call to quiver's
+/// `checkNotNull`.
+///
+/// For example, in the following code snippet:
+///   import 'package:quiver/check.dart';
+///   void f(int i) {
+///     checkNotNull(i);
+///   }
+///
+/// this class is used for the edge connecting the type of f's `i` parameter to
+/// `never`, due to the `checkNotNull` call proclaiming that `i` is not `null`.
+class QuiverCheckNotNullOrigin extends EdgeOrigin {
+  QuiverCheckNotNullOrigin(Source source, SimpleIdentifier node)
+      : super(source, node);
+
+  @override
+  String get description => 'value checked to be non-null';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.quiverCheckNotNull;
+}
+
+/// Edge origin resulting from the presence of a call to
+/// `ArgumentError.checkNotNull`.
+///
+/// For example, in the following code snippet:
+///   void f(int i) {
+///     ArgumentError.checkNotNull(i);
+///   }
+///
+/// this class is used for the edge connecting the type of f's `i` parameter to
+/// `never`, due to the `checkNotNull` call proclaiming that `i` is not `null`.
+class ArgumentErrorCheckNotNullOrigin extends EdgeOrigin {
+  ArgumentErrorCheckNotNullOrigin(Source source, SimpleIdentifier node)
+      : super(source, node);
+
+  @override
+  String get description => 'value checked to be non-null';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.argumentErrorCheckNotNull;
+}
+
 /// Edge origin resulting from the presence of an explicit nullability hint
 /// comment.
 ///

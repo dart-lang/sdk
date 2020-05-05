@@ -1,0 +1,8 @@
+library test;
+
+main() {}
+var a = (throw 0);
+var b = (throw 0) ? 1 : 2;
+var c = t ? (throw 1) : 2;
+var d = t ? 1 : (throw 2);
+var t = true;

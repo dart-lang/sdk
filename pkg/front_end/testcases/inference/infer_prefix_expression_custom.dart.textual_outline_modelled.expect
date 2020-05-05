@@ -1,0 +1,12 @@
+library test;
+
+class A {
+  A();
+  double operator -() => 2.0;
+  int operator ~() => 1;
+}
+
+main() {}
+var a = new A();
+var v_complement = ~a;
+var v_negate = -a;

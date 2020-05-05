@@ -1,0 +1,15 @@
+library test;
+
+main() {}
+var a_add = 1.0 + 2.0;
+var a_divide = 1.0 / 2.0;
+var a_equal = 1.0 == 2.0;
+var a_floorDivide = 1.0 ~/ 2.0;
+var a_greater = 1.0 > 2.0;
+var a_greaterEqual = 1.0 >= 2.0;
+var a_less = 1.0 < 2.0;
+var a_lessEqual = 1.0 <= 2.0;
+var a_modulo = 1.0 % 2.0;
+var a_multiply = 1.0 * 2.0;
+var a_notEqual = 1.0 != 2.0;
+var a_subtract = 1.0 - 2.0;

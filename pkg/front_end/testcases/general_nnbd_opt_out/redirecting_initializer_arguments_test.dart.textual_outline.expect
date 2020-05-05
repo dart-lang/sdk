@@ -1,0 +1,8 @@
+// @dart = 2.6
+class Foo<T> {
+  T x;
+  Foo.from(String _init) : this._internal(x: _init);
+  Foo._internal({this.x});
+}
+
+void main() {}

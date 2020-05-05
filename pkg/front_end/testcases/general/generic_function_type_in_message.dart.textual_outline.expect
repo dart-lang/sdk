@@ -1,0 +1,3 @@
+num add<A extends num, B extends num>(A a, B b) => a + b;
+test() {}
+main() {}

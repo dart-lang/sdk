@@ -1,0 +1,3 @@
+main() {}
+typedef A<T extends num>(T p);
+var a = <A, A>{};

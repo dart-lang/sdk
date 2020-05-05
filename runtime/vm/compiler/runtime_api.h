@@ -96,6 +96,7 @@ Object& NewZoneHandle(Zone* zone, const Object&);
 //
 
 const Object& NullObject();
+const Object& SentinelObject();
 const Bool& TrueObject();
 const Bool& FalseObject();
 const Object& EmptyTypeArguments();
@@ -1245,8 +1246,9 @@ class Field : public AllStatic {
   static word guarded_list_length_in_object_offset_offset();
   static word guarded_list_length_offset();
   static word is_nullable_offset();
-  static word static_value_offset();
   static word kind_bits_offset();
+  static word initializer_function_offset();
+  static word host_offset_or_field_id_offset();
   static word InstanceSize();
   static word NextFieldOffset();
 };

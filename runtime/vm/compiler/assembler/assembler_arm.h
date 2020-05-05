@@ -751,6 +751,11 @@ class Assembler : public AssemblerBase {
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);
 
+  void Call(Address target) {
+    ldr(LR, target);
+    blx(LR);
+  }
+
   // Add signed immediate value to rd. May clobber IP.
   void AddImmediate(Register rd, int32_t value, Condition cond = AL) {
     AddImmediate(rd, rd, value, cond);
@@ -1165,6 +1170,10 @@ class Assembler : public AssemblerBase {
                                      bool index_unboxed,
                                      Register array,
                                      Register index);
+
+  void LoadFieldAddressForRegOffset(Register address,
+                                    Register instance,
+                                    Register offset_in_words_as_smi);
 
   void LoadHalfWordUnaligned(Register dst, Register addr, Register tmp);
   void LoadHalfWordUnsignedUnaligned(Register dst, Register addr, Register tmp);

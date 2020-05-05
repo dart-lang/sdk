@@ -1,0 +1,11 @@
+abstract class I<T> {
+  T foo();
+}
+
+class A extends Object with M implements I<int> {}
+
+class M {
+  dynamic noSuchMethod(Invocation i) {}
+}
+
+main() {}

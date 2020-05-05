@@ -1,0 +1,8 @@
+a b(c) = d;
+class C {
+  const C.constant();
+  C.missingFactoryKeyword() = C.constant;
+  const factory C.good() = C.constant;
+  C notEvenAConstructor(a) = h;
+}
+main() { }

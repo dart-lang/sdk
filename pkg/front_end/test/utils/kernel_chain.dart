@@ -50,6 +50,7 @@ import 'package:kernel/text/ast_to_text.dart' show Printer;
 
 import 'package:kernel/text/text_serialization_verifier.dart'
     show
+        RoundTripStatus,
         TextDeserializationFailure,
         TextRoundTripFailure,
         TextSerializationFailure,
@@ -345,6 +346,12 @@ class MatchExpectation
 
 class KernelTextSerialization
     extends Step<ComponentResult, ComponentResult, ChainContext> {
+  static const bool writeRoundTripStatus = bool.fromEnvironment(
+      "text_serialization.writeRoundTripStatus",
+      defaultValue: false);
+
+  static const String suffix = ".roundtrip";
+
   const KernelTextSerialization();
 
   String get name => "kernel text serialization";
@@ -400,6 +407,20 @@ class KernelTextSerialization
               .withLocation(failure.uri, failure.offset, 1);
         }
         options.report(message, message.code.severity);
+      }
+
+      if (writeRoundTripStatus) {
+        Uri uri = component.uriToSource.keys
+            .firstWhere((uri) => uri?.scheme == "file");
+        String filename = "${uri.toFilePath()}${suffix}";
+        uri = new File(filename).uri;
+        StringBuffer buffer = new StringBuffer();
+        for (RoundTripStatus status in verifier.status) {
+          status.printOn(buffer);
+        }
+        await openWrite(uri, (IOSink sink) {
+          sink.write(buffer.toString());
+        });
       }
 
       if (verifier.failures.isNotEmpty) {

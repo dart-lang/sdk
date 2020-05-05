@@ -1537,7 +1537,7 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
   if (!I->should_emit_strong_mode_checks()) {
     return Fragment();
   }
-  if (!dst_type.IsTopTypeForAssignability()) {
+  if (!dst_type.IsTopTypeForSubtyping()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
     instructions += AssertAssignableLoadTypeArguments(TokenPosition::kNoSource,
@@ -1628,7 +1628,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
     type_param ^= type_parameters.TypeAt(i);
 
     bound = type_param.bound();
-    if (bound.IsTopType()) {
+    if (bound.IsTopTypeForSubtyping()) {
       continue;
     }
 
@@ -1685,7 +1685,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
           &AbstractType::ZoneHandle(Z, forwarding_target->ParameterTypeAt(i));
     }
 
-    if (target_type->IsTopTypeForAssignability()) continue;
+    if (target_type->IsTopTypeForSubtyping()) continue;
 
     const bool is_covariant = param->is_explicit_covariant_parameter();
     Fragment* checks = is_covariant ? explicit_checks : implicit_checks;
@@ -2254,7 +2254,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   body += Drop();  // argument count
 
   AbstractType& return_type = AbstractType::Handle(function.result_type());
-  if (!return_type.IsTopTypeForAssignability()) {
+  if (!return_type.IsTopTypeForSubtyping()) {
     body += AssertAssignableLoadTypeArguments(TokenPosition::kNoSource,
                                               return_type, Symbols::Empty());
   }

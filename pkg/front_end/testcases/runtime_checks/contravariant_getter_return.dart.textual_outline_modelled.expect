@@ -1,0 +1,12 @@
+library test;
+
+class C<T> {
+  F<T> get f1 => null;
+  List<F<T>> get f2 {}
+}
+
+typedef void F<T>(T x);
+void g1(C<num> c) {}
+void g2(C<num> c) {}
+void g3(C<num> c) {}
+void main() {}

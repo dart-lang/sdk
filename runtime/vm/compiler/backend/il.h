@@ -6356,6 +6356,11 @@ class InitInstanceFieldInstr : public TemplateInstruction<1, Throws> {
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
+  virtual bool AllowsCSE() const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsInitInstanceField()->field().raw() == field().raw();
+  }
+
  private:
   const Field& field_;
 

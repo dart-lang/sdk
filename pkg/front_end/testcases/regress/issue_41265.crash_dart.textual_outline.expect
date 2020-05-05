@@ -1,0 +1,1 @@
+class A<T> {} mixin M<T> {} class DND1 extends Object with M<dynamic> Function()> { } class DND2 extends Object with M<dynamic> Function() { } class DND3 extends M<dynamic> Function() { } class DND4 implements M<dynamic> Function() { } main() { }

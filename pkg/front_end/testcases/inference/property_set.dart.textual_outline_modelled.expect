@@ -1,0 +1,9 @@
+library test;
+
+class A<T> {
+  List<T> x;
+  void set y(List<T> value) {}
+}
+
+main() {}
+test() {}

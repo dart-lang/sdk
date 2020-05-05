@@ -395,7 +395,8 @@ ArrayPtr BytecodeReaderHelper::CreateForwarderChecks(const Function& function) {
     for (intptr_t i = 0, n = type_params.Length(); i < n; ++i) {
       type_param ^= type_params.TypeAt(i);
       bound = type_param.bound();
-      if (!bound.IsTopType() && !type_param.IsGenericCovariantImpl()) {
+      if (!bound.IsTopTypeForSubtyping() &&
+          !type_param.IsGenericCovariantImpl()) {
         name = type_param.name();
         ASSERT(type_param.IsFinalized());
         check = ParameterTypeCheck::New();
@@ -421,7 +422,7 @@ ArrayPtr BytecodeReaderHelper::CreateForwarderChecks(const Function& function) {
   const bool has_optional_parameters = function.HasOptionalParameters();
   for (intptr_t i = function.NumImplicitParameters(); i < num_params; ++i) {
     type = function.ParameterTypeAt(i);
-    if (!type.IsTopTypeForAssignability() &&
+    if (!type.IsTopTypeForSubtyping() &&
         !is_generic_covariant_impl.Contains(i) && !is_covariant.Contains(i)) {
       name = function.ParameterNameAt(i);
       intptr_t index;

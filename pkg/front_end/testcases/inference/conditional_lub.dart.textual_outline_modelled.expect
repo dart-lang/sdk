@@ -1,0 +1,7 @@
+library test;
+
+bool b = true;
+double y = 0.0;
+int x = 0;
+main() {}
+var z = b ? x : y;

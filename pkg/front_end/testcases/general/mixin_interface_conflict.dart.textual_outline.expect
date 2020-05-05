@@ -1,0 +1,10 @@
+class B {
+  int get n => 1;
+}
+
+class C {
+  double get n => 2.0;
+}
+
+mixin M on B, C {}
+main() {}

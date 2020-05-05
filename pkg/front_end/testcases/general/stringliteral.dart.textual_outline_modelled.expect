@@ -1,0 +1,7 @@
+main() {}
+var adjacent = '$color$color$color';
+var color = 'brown';
+var linebreaks = '$color\n$color\n$color';
+var other = '$color\n is \n$color';
+var phrase = "The quick $color fox\njumped over the $thing.\n";
+var thing = 'lazy dog';

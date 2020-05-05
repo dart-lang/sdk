@@ -1,0 +1,9 @@
+class A<X extends int> {
+}
+class B {
+  A<num> fieldOfA;
+  static A<num> staticFieldOfA;
+}
+extension E<X extends A<num>> ( ){ }
+on A (){ }
+main() { }

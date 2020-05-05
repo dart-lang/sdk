@@ -1,0 +1,8 @@
+D d;
+E e;
+
+class D<X extends void Function(X, Y), Y extends void Function(X, Y)> {}
+
+class E<X extends void Function(X)> {}
+
+main() {}

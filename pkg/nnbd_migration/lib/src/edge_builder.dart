@@ -137,6 +137,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// return statements.
   DecoratedType _currentFunctionType;
 
+  FunctionExpression _currentFunctionExpression;
+
   /// The [ClassElement] or [ExtensionElement] of the current class or extension
   /// being visited, or null.
   Element _currentClassOrExtension;
@@ -332,16 +334,34 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (node.operator.type != TokenType.EQ) {
       isCompound = true;
     }
+
+    var sourceIsSetupCall = false;
+    if (node.leftHandSide is SimpleIdentifier &&
+        _isCurrentFunctionExpressionFoundInTestSetUpCall()) {
+      var assignee = (node.leftHandSide as SimpleIdentifier).staticElement;
+      var enclosingElementOfCurrentFunction =
+          _currentFunctionExpression.declaredElement.enclosingElement;
+      if (enclosingElementOfCurrentFunction == assignee.enclosingElement) {
+        // [node]'s enclosing function is a function expression passed directly
+        // to a call to the test package's `setUp` function, and [node] is an
+        // assignment to a variable declared in the same scope as the call to
+        // `setUp`.
+        sourceIsSetupCall = true;
+      }
+    }
+
     var expressionType = _handleAssignment(node.rightHandSide,
         destinationExpression: node.leftHandSide,
         compoundOperatorInfo: isCompound ? node : null,
-        questionAssignNode: isQuestionAssign ? node : null);
+        questionAssignNode: isQuestionAssign ? node : null,
+        sourceIsSetupCall: sourceIsSetupCall);
     var conditionalNode = _conditionalNodes[node.leftHandSide];
     if (conditionalNode != null) {
       expressionType = expressionType.withNode(
           NullabilityNode.forLUB(conditionalNode, expressionType.node));
       _variables.recordDecoratedExpressionType(node, expressionType);
     }
+
     return expressionType;
   }
 
@@ -792,7 +812,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _flowAnalysis.functionExpression_begin(node);
     }
     _addParametersToFlowAnalysis(node.parameters);
+    var previousFunction = _currentFunctionExpression;
     var previousFunctionType = _currentFunctionType;
+    _currentFunctionExpression = node;
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);
     try {
@@ -805,6 +827,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis.functionExpression_end();
       }
       _currentFunctionType = previousFunctionType;
+      _currentFunctionExpression = previousFunction;
     }
   }
 
@@ -1143,6 +1166,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _variables.recordDecoratedExpressionType(node, expressionType);
       }
     }
+    _handleArgumentErrorCheckNotNull(node);
+    _handleQuiverCheckNotNull(node);
     return expressionType;
   }
 
@@ -2048,6 +2073,30 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         .decoratedTypeParameterBound((type.type as TypeParameterType).element);
   }
 
+  void _handleArgumentErrorCheckNotNull(MethodInvocation node) {
+    var callee = node.methodName.staticElement;
+    var calleeIsStatic = callee is ExecutableElement && callee.isStatic;
+    var target = node.realTarget;
+    bool targetIsArgumentError =
+        (target is SimpleIdentifier && target.name == 'ArgumentError') ||
+            (target is PrefixedIdentifier &&
+                target.identifier.name == 'ArgumentError');
+
+    if (calleeIsStatic &&
+        targetIsArgumentError &&
+        callee.name == 'checkNotNull' &&
+        node.argumentList.arguments.isNotEmpty) {
+      var argument = node.argumentList.arguments.first;
+      if (argument is SimpleIdentifier &&
+          _postDominatedLocals.isReferenceInScope(argument)) {
+        var argumentType =
+            _variables.decoratedElementType(argument.staticElement);
+        _graph.makeNonNullable(argumentType.node,
+            ArgumentErrorCheckNotNullOrigin(source, argument));
+      }
+    }
+  }
+
   /// Creates the necessary constraint(s) for an assignment of the given
   /// [expression] to a destination whose type is [destinationType].
   ///
@@ -2063,7 +2112,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       AssignmentExpression compoundOperatorInfo,
       AssignmentExpression questionAssignNode,
       bool fromDefaultValue = false,
-      bool wrapFuture = false}) {
+      bool wrapFuture = false,
+      bool sourceIsSetupCall = false}) {
     assert(
         (destinationExpression == null) != (destinationType == null),
         'Either destinationExpression or destinationType should be supplied, '
@@ -2098,7 +2148,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         throw StateError('No type computed for ${expression.runtimeType} '
             '(${expression.toSource()}) offset=${expression.offset}');
       }
-      EdgeOrigin edgeOrigin = _makeEdgeOrigin(sourceType, expression);
+      EdgeOrigin edgeOrigin = _makeEdgeOrigin(sourceType, expression,
+          isSetupAssignment: sourceIsSetupCall);
       if (compoundOperatorInfo != null) {
         var compoundOperatorMethod = compoundOperatorInfo.staticElement;
         if (compoundOperatorMethod != null) {
@@ -2628,6 +2679,30 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
+  /// Check whether [node] is a call to the quiver package's [`checkNotNull`],
+  /// and if so, potentially mark the first argument as non-nullable.
+  ///
+  /// [`checkNotNull`]: https://pub.dev/documentation/quiver/latest/quiver.check/checkNotNull.html
+  void _handleQuiverCheckNotNull(MethodInvocation node) {
+    var callee = node.methodName.staticElement;
+    var calleeUri = callee?.library?.source?.uri;
+    var isQuiverCheckNull = callee?.name == 'checkNotNull' &&
+        calleeUri != null &&
+        calleeUri.scheme == 'package' &&
+        calleeUri.path.startsWith('quiver/');
+
+    if (isQuiverCheckNull && node.argumentList.arguments.isNotEmpty) {
+      var argument = node.argumentList.arguments.first;
+      if (argument is SimpleIdentifier &&
+          _postDominatedLocals.isReferenceInScope(argument)) {
+        var argumentType =
+            _variables.decoratedElementType(argument.staticElement);
+        _graph.makeNonNullable(
+            argumentType.node, QuiverCheckNotNullOrigin(source, argument));
+      }
+    }
+  }
+
   DecoratedType _handleTarget(Expression target, String name, Element method) {
     if (isDeclaredOnObject(name)) {
       return _dispatch(target);
@@ -2649,6 +2724,27 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _graph.makeNullable(_variables.decoratedElementType(field).node,
           FieldNotInitializedOrigin(source, node));
     }
+  }
+
+  /// Returns whether [_currentFunctionExpression] is an argument to the test
+  /// package's `setUp` function.
+  bool _isCurrentFunctionExpressionFoundInTestSetUpCall() {
+    var parent = _currentFunctionExpression?.parent;
+    if (parent is ArgumentList) {
+      var grandParent = parent.parent;
+      if (grandParent is MethodInvocation) {
+        var enclosingInvocation = grandParent.methodName;
+        if (enclosingInvocation.name == 'setUp') {
+          var uri = enclosingInvocation.staticElement.library?.source?.uri;
+          if (uri != null &&
+              uri.scheme == 'package' &&
+              uri.path.startsWith('test_core/')) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   bool _isPrefix(Expression e) =>
@@ -2702,12 +2798,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  EdgeOrigin _makeEdgeOrigin(DecoratedType sourceType, Expression expression) {
+  EdgeOrigin _makeEdgeOrigin(DecoratedType sourceType, Expression expression,
+      {bool isSetupAssignment = false}) {
     if (sourceType.type.isDynamic) {
       return DynamicAssignmentOrigin(source, expression);
     } else {
-      ExpressionChecksOrigin expressionChecksOrigin =
-          ExpressionChecksOrigin(source, expression, ExpressionChecks());
+      ExpressionChecksOrigin expressionChecksOrigin = ExpressionChecksOrigin(
+          source, expression, ExpressionChecks(),
+          isSetupAssignment: isSetupAssignment);
       _variables.recordExpressionChecks(
           source, expression, expressionChecksOrigin);
       return expressionChecksOrigin;
@@ -2859,7 +2957,9 @@ mixin _AssignmentChecker {
   /// [destination].  [origin] should be used as the origin for any edges
   /// created.  [hard] indicates whether a hard edge should be created.
   /// [sourceIsFunctionLiteral] indicates whether the source of the assignment
-  /// is a function literal expression.
+  /// is a function literal expression. [sourceIsSetupCall] indicates whether the
+  /// source of the assignment is a function literal passed to the test
+  /// package's `setUp` function.
   void _checkAssignment(EdgeOrigin origin, FixReasonTarget edgeTarget,
       {@required DecoratedType source,
       @required DecoratedType destination,

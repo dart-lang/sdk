@@ -57,47 +57,47 @@ void main() {
     if (nil) {}
     //  ^^^
     // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
-    // [cfe] A value of type 'Null?' can't be assigned to a variable of type 'bool'.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     [if (nil) 3];
     //   ^^^
     // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
-    // [cfe] A value of type 'Null?' can't be assigned to a variable of type 'bool'.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     nil ? 3 : 4;
 //  ^^^
 // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
-// [cfe] A value of type 'Null?' can't be assigned to a variable of type 'bool'.
+// [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     while (nil) {}
     //     ^^^
     // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
-    // [cfe] A value of type 'Null?' can't be assigned to a variable of type 'bool'.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     do {} while (nil);
     //           ^^^
     // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
-    // [cfe] A value of type 'Null?' can't be assigned to a variable of type 'bool'.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     nil || true;
 //  ^^^
 // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
-// [cfe] A value of type 'Null?' can't be assigned to a variable of type 'bool'.
+// [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     nil && true;
 //  ^^^
 // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
-// [cfe] A value of type 'Null?' can't be assigned to a variable of type 'bool'.
+// [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     true || nil;
     //      ^^^
     // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
-    // [cfe] A value of type 'Null?' can't be assigned to a variable of type 'bool'.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     true && nil;
     //      ^^^
     // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
-    // [cfe] A value of type 'Null?' can't be assigned to a variable of type 'bool'.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     for (int i = 0; nil; i++) {}
     //              ^^^
     // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
-    // [cfe] A value of type 'Null?' can't be assigned to a variable of type 'bool'.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     [for (int i = 0; nil; i++) 3];
     //               ^^^
     // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
-    // [cfe] A value of type 'Null?' can't be assigned to a variable of type 'bool'.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
   }
   {
     // Check that values of type `Object` are not usable as booleans.

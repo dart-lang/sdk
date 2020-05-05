@@ -1,0 +1,10 @@
+class Foo {
+  @forFactoryItself
+  factory Foo(@forParameter @anotherForParameter p) = Foo.named;
+  Foo.named(p);
+}
+
+const anotherForParameter = 3;
+const forFactoryItself = 2;
+const forParameter = 1;
+main() {}

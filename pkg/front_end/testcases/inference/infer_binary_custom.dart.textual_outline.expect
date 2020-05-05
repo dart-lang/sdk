@@ -1,0 +1,10 @@
+library test;
+
+class A {
+  int operator +(other) => 1;
+  double operator -(other) => 2.0;
+}
+
+var v_add = new A() + 'foo';
+var v_minus = new A() - 'bar';
+main() {}

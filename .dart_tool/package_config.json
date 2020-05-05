@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-04-21T17:36:03.446742",
+  "generated": "2020-04-27T16:42:25.459210",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -95,7 +95,7 @@
       "name": "boolean_selector",
       "rootUri": "../third_party/pkg/boolean_selector",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.4"
     },
     {
       "name": "build_integration",
@@ -107,7 +107,7 @@
       "name": "charcode",
       "rootUri": "../third_party/pkg/charcode",
       "packageUri": "lib/",
-      "languageVersion": "1.0"
+      "languageVersion": "2.0"
     },
     {
       "name": "cli_util",
@@ -119,7 +119,7 @@
       "name": "collection",
       "rootUri": "../third_party/pkg/collection",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.3"
     },
     {
       "name": "compiler",
@@ -131,7 +131,7 @@
       "name": "convert",
       "rootUri": "../third_party/pkg/convert",
       "packageUri": "lib/",
-      "languageVersion": "1.17"
+      "languageVersion": "2.0"
     },
     {
       "name": "crypto",
@@ -143,7 +143,7 @@
       "name": "csslib",
       "rootUri": "../third_party/pkg/csslib",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.2"
     },
     {
       "name": "dart2js_info",
@@ -226,7 +226,7 @@
       "name": "fixnum",
       "rootUri": "../third_party/pkg/fixnum",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.1"
     },
     {
       "name": "front_end",
@@ -275,19 +275,19 @@
       "name": "glob",
       "rootUri": "../third_party/pkg/glob",
       "packageUri": "lib/",
-      "languageVersion": "1.23"
+      "languageVersion": "2.2"
     },
     {
       "name": "html",
       "rootUri": "../third_party/pkg/html",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.3"
     },
     {
       "name": "http",
       "rootUri": "../third_party/pkg/http",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.4"
     },
     {
       "name": "http_io",
@@ -347,7 +347,7 @@
       "name": "json_rpc_2",
       "rootUri": "../third_party/pkg/json_rpc_2",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.2"
     },
     {
       "name": "kernel",
@@ -365,25 +365,24 @@
       "name": "logging",
       "rootUri": "../third_party/pkg/logging",
       "packageUri": "lib/",
-      "languageVersion": "1.5"
+      "languageVersion": "2.0"
     },
     {
       "name": "markdown",
       "rootUri": "../third_party/pkg/markdown",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.2"
     },
     {
       "name": "matcher",
       "rootUri": "../third_party/pkg/matcher",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.4"
     },
     {
       "name": "meta",
       "rootUri": "../pkg/meta",
-      "packageUri": "lib/",
-      "languageVersion": "1.12"
+      "packageUri": "lib/"
     },
     {
       "name": "mime",
@@ -700,7 +699,7 @@
       "name": "yaml",
       "rootUri": "../third_party/pkg/yaml",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.4"
     }
   ]
 }

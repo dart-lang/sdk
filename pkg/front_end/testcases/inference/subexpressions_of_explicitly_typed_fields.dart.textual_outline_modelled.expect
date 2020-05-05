@@ -1,0 +1,9 @@
+library test;
+
+List<num> y = [0];
+
+class C {
+  List<num> x = [0];
+}
+
+main() {}

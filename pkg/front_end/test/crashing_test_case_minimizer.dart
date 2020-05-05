@@ -15,17 +15,16 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
+import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
-import 'package:front_end/src/api_prototype/memory_file_system.dart'
-    show MemoryFileSystem;
+import 'package:front_end/src/api_prototype/file_system.dart'
+    show FileSystem, FileSystemEntity, FileSystemException;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
@@ -34,24 +33,51 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
 
 import 'package:kernel/ast.dart' show Component;
 
+import 'package:kernel/target/targets.dart' show Target, TargetFlags;
+
+import "package:vm/target/flutter.dart" show FlutterTarget;
+
+import "package:vm/target/vm.dart" show VmTarget;
+
+import 'incremental_load_from_dill_suite.dart' show getOptions;
+
 import 'parser_test_listener.dart' show ParserTestListener;
 
 import 'parser_suite.dart' as parser_suite;
 
-import 'incremental_load_from_dill_suite.dart' show getOptions;
-
-Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
-Uri base = Uri.parse("org-dartlang-test:///");
-Uri sdkSummary = base.resolve("vm_platform.dill");
-Uri platformUri = sdkRoot.resolve("vm_platform_strong.dill");
+final FakeFileSystem fs = new FakeFileSystem();
+Uri mainUri;
+Uri platformUri;
+bool nnbd = false;
+bool widgetTransformation = false;
+List<Uri> invalidate = [];
+String targetString = "VM";
+String expectedCrashLine;
+bool byteDelete = false;
 
 main(List<String> arguments) async {
   String filename;
-  bool nnbd = false;
   for (String arg in arguments) {
     if (arg.startsWith("--")) {
       if (arg == "--nnbd") {
         nnbd = true;
+      } else if (arg.startsWith("--platform=")) {
+        String platform = arg.substring("--platform=".length);
+        platformUri = Uri.base.resolve(platform);
+      } else if (arg.startsWith("--invalidate=")) {
+        for (String s in arg.substring("--invalidate=".length).split(",")) {
+          invalidate.add(Uri.base.resolve(s));
+        }
+      } else if (arg.startsWith("--widgetTransformation")) {
+        widgetTransformation = true;
+      } else if (arg.startsWith("--target=VM")) {
+        targetString = "VM";
+      } else if (arg.startsWith("--target=flutter")) {
+        targetString = "flutter";
+      } else if (arg.startsWith("--target=ddc")) {
+        targetString = "ddc";
+      } else if (arg == "--byteDelete") {
+        byteDelete = true;
       } else {
         throw "Unknown option $arg";
       }
@@ -62,71 +88,136 @@ main(List<String> arguments) async {
       filename = arg;
     }
   }
+  if (platformUri == null) {
+    throw "No platform given. Use --platform=/path/to/platform.dill";
+  }
+  if (!new File.fromUri(platformUri).existsSync()) {
+    throw "The platform file '$platformUri' doesn't exist";
+  }
   if (filename == null) {
     throw "Need file to operate on";
   }
   File file = new File(filename);
   if (!file.existsSync()) throw "File $filename doesn't exist.";
+  mainUri = file.absolute.uri;
 
-  await tryToMinimize(file, nnbd);
+  await tryToMinimize();
 }
 
-Future tryToMinimize(File file, bool nnbd) async {
-  Uint8List data;
-  try {
-    String parsedString = getFileAsStringContent(file, nnbd);
-    data = utf8.encode(parsedString);
-  } catch (e) {
-    // If this crash it's a crash in the scanner/parser. It's good to minimize
-    // that too.
-    data = file.readAsBytesSync();
-  }
-
-  print("Got data");
-
-  Uri main = base.resolve("main.dart");
-
-  CompilerContext compilerContext = setupCompilerContext(main);
-  Component initialComponent = await getInitialComponent(compilerContext);
-  MemoryFileSystem fs = compilerContext.options.fileSystem;
-
+Future tryToMinimize() async {
+  // Set main to be basically empty up front.
+  fs.data[mainUri] = utf8.encode("main() {}");
+  Component initialComponent = await getInitialComponent();
   print("Compiled initially (without data)");
+  // Remove fake cache.
+  fs.data.remove(mainUri);
 
   // First assure it actually crash on the input.
-  if (!await crashesOnCompile(
-      fs, main, data, compilerContext, initialComponent)) {
-    throw "Input doesn't crash the compiler: ${dataToText(data)}";
+  if (!await crashesOnCompile(initialComponent)) {
+    throw "Input doesn't crash the compiler.";
   }
   print("Step #1: We did crash on the input!");
 
-  // Try to delete lines.
-  Uint8List latestCrashData =
-      await deleteLines(data, fs, main, compilerContext, initialComponent);
-  print("We're now at ${latestCrashData.length} bytes.");
+  // All file should now be cached.
+  fs._redirectAndRecord = false;
 
-  // Now try to delete 'arbitrarily' (for any given start offset do an
-  // exponential binary search).
-  int prevLength = latestCrashData.length;
-  while (true) {
-    latestCrashData = await binarySearchDeleteData(
-        latestCrashData, fs, main, compilerContext, initialComponent);
-
-    if (latestCrashData.length == prevLength) {
-      // No progress.
-      break;
+  // For all dart files: Parse them as set their source as the parsed source
+  // to "get around" any encoding issues when printing later.
+  Map<Uri, Uint8List> copy = new Map.from(fs.data);
+  for (Uri uri in fs.data.keys) {
+    String uriString = uri.toString();
+    if (uriString.endsWith(".json") ||
+        uriString.endsWith(".json") ||
+        uriString.endsWith(".packages") ||
+        uriString.endsWith(".dill") ||
+        fs.data[uri] == null ||
+        fs.data[uri].isEmpty) {
+      // skip
     } else {
-      print("We're now at ${latestCrashData.length} bytes");
-      prevLength = latestCrashData.length;
+      try {
+        String parsedString = getFileAsStringContent(fs.data[uri], nnbd);
+        fs.data[uri] = utf8.encode(parsedString);
+      } catch (e) {
+        // crash in scanner/parser --- keep original file. This crash might
+        // be what we're looking for!
+      }
+    }
+  }
+  if (!await crashesOnCompile(initialComponent)) {
+    // Now - for whatever reason - we didn't crash. Restore.
+    fs.data.clear();
+    fs.data.addAll(copy);
+  }
+
+  // Operate on one file at a time: Try to delete all content in file.
+  List<Uri> uris = new List<Uri>.from(fs.data.keys);
+
+  bool removedSome = true;
+  while (removedSome) {
+    while (removedSome) {
+      removedSome = false;
+      for (int i = 0; i < uris.length; i++) {
+        Uri uri = uris[i];
+        if (fs.data[uri] == null || fs.data[uri].isEmpty) continue;
+        print("About to work on file $i of ${uris.length}");
+        await deleteContent(uris, i, false, initialComponent);
+        if (fs.data[uri] == null || fs.data[uri].isEmpty) removedSome = true;
+      }
+    }
+    int left = 0;
+    for (Uri uri in uris) {
+      if (fs.data[uri] == null || fs.data[uri].isEmpty) continue;
+      left++;
+    }
+    print("There's now $left files of ${fs.data.length} files left");
+
+    // Operate on one file at a time.
+    for (Uri uri in fs.data.keys) {
+      if (fs.data[uri] == null || fs.data[uri].isEmpty) continue;
+
+      print("Now working on $uri");
+
+      // Try to delete lines.
+      int prevLength = fs.data[uri].length;
+      await deleteLines(uri, initialComponent);
+      print("We're now at ${fs.data[uri].length} bytes for $uri.");
+      if (prevLength != fs.data[uri].length) removedSome = true;
+      if (fs.data[uri].isEmpty) continue;
+
+      if (byteDelete) {
+        // Now try to delete 'arbitrarily' (for any given start offset do an
+        // exponential binary search).
+        int prevLength = fs.data[uri].length;
+        while (true) {
+          await binarySearchDeleteData(uri, initialComponent);
+
+          if (fs.data[uri].length == prevLength) {
+            // No progress.
+            break;
+          } else {
+            print("We're now at ${fs.data[uri].length} bytes");
+            prevLength = fs.data[uri].length;
+            removedSome = true;
+          }
+        }
+      }
     }
   }
 
-  print("Got it down to ${latestCrashData.length} bytes: "
-      "${dataToText(latestCrashData)}");
-  try {
-    String utfDecoded = utf8.decode(latestCrashData, allowMalformed: true);
-    print("That's '$utfDecoded' as text");
-  } catch (e) {
-    print("(which crashes when trying to decode as utf8)");
+  print("\n\nDONE\n\n");
+
+  for (Uri uri in uris) {
+    if (fs.data[uri] == null || fs.data[uri].isEmpty) continue;
+    print("Uri $uri has this content:");
+
+    try {
+      String utfDecoded = utf8.decode(fs.data[uri], allowMalformed: true);
+      print(utfDecoded);
+    } catch (e) {
+      print(fs.data[uri]);
+      print("(which crashes when trying to decode as utf8)");
+    }
+    print("\n\n====================\n\n");
   }
 }
 
@@ -152,12 +243,8 @@ String dataToText(Uint8List data) {
   return sb.toString();
 }
 
-Future<Uint8List> binarySearchDeleteData(
-    Uint8List latestCrashData,
-    MemoryFileSystem fs,
-    Uri main,
-    CompilerContext compilerContext,
-    Component initialComponent) async {
+void binarySearchDeleteData(Uri uri, Component initialComponent) async {
+  Uint8List latestCrashData = fs.data[uri];
   int offset = 0;
   while (offset < latestCrashData.length) {
     print("Working at offset $offset of ${latestCrashData.length}");
@@ -165,8 +252,8 @@ Future<Uint8List> binarySearchDeleteData(
     builder.add(sublist(latestCrashData, 0, offset));
     builder.add(sublist(latestCrashData, offset + 1, latestCrashData.length));
     Uint8List candidate = builder.takeBytes();
-    if (!await crashesOnCompile(
-        fs, main, candidate, compilerContext, initialComponent)) {
+    fs.data[uri] = candidate;
+    if (!await crashesOnCompile(initialComponent)) {
       // Deleting 1 char didn't crash; don't try to delete anymore starting
       // here.
       offset++;
@@ -186,8 +273,8 @@ Future<Uint8List> binarySearchDeleteData(
       builder.add(sublist(
           latestCrashData, offset + deleteChars, latestCrashData.length));
       candidate = builder.takeBytes();
-      if (!await crashesOnCompile(
-          fs, main, candidate, compilerContext, initialComponent)) {
+      fs.data[uri] = candidate;
+      if (!await crashesOnCompile(initialComponent)) {
         noLongerCrashingAt = deleteChars;
         break;
       }
@@ -210,8 +297,8 @@ Future<Uint8List> binarySearchDeleteData(
       builder
           .add(sublist(latestCrashData, offset + mid, latestCrashData.length));
       candidate = builder.takeBytes();
-      if (await crashesOnCompile(
-          fs, main, candidate, compilerContext, initialComponent)) {
+      fs.data[uri] = candidate;
+      if (await crashesOnCompile(initialComponent)) {
         crashingAt = mid;
       } else {
         // [noLongerCrashingAt] might actually crash now.
@@ -225,20 +312,81 @@ Future<Uint8List> binarySearchDeleteData(
     builder.add(
         sublist(latestCrashData, offset + crashingAt, latestCrashData.length));
     candidate = builder.takeBytes();
-    if (!await crashesOnCompile(
-        fs, main, candidate, compilerContext, initialComponent)) {
+    fs.data[uri] = candidate;
+    if (!await crashesOnCompile(initialComponent)) {
       throw "Error in binary search.";
     }
     latestCrashData = candidate;
   }
-  return latestCrashData;
+
+  fs.data[uri] = latestCrashData;
 }
 
-Future<Uint8List> deleteLines(Uint8List data, MemoryFileSystem fs, Uri main,
-    CompilerContext compilerContext, Component initialComponent) async {
+void _tryToRemoveUnreferencedFileContent(Component initialComponent) async {
+  // Check if there now are any unused files.
+  if (_latestComponent == null) return;
+  Set<Uri> neededUris = _latestComponent.uriToSource.keys.toSet();
+  Map<Uri, Uint8List> copy = new Map.from(fs.data);
+  bool removedSome = false;
+  for (MapEntry<Uri, Uint8List> entry in fs.data.entries) {
+    if (entry.value == null || entry.value.isEmpty) continue;
+    if (!entry.key.toString().endsWith(".dart")) continue;
+    if (!neededUris.contains(entry.key)) {
+      fs.data[entry.key] = new Uint8List(0);
+      print(" => Can probably also delete ${entry.key}");
+      removedSome = true;
+    }
+  }
+  if (removedSome) {
+    if (await crashesOnCompile(initialComponent)) {
+      print(" => Yes; Could remove those too!");
+    } else {
+      print(" => No; Couldn't remove those too!");
+      fs.data.clear();
+      fs.data.addAll(copy);
+    }
+  }
+}
+
+void deleteContent(List<Uri> uris, int uriIndex, bool limitTo1,
+    Component initialComponent) async {
+  if (!limitTo1) {
+    Map<Uri, Uint8List> copy = new Map.from(fs.data);
+    // Try to remove content of i and the next 9 (10 files in total).
+    for (int j = uriIndex; j < uriIndex + 10 && j < uris.length; j++) {
+      Uri uri = uris[j];
+      fs.data[uri] = new Uint8List(0);
+    }
+    if (!await crashesOnCompile(initialComponent)) {
+      // Couldn't delete all 10 files. Restore and try the single one.
+      fs.data.clear();
+      fs.data.addAll(copy);
+    } else {
+      for (int j = uriIndex; j < uriIndex + 10 && j < uris.length; j++) {
+        Uri uri = uris[j];
+        print("Can delete all content of file $uri");
+      }
+      await _tryToRemoveUnreferencedFileContent(initialComponent);
+      return;
+    }
+  }
+
+  Uri uri = uris[uriIndex];
+  Uint8List data = fs.data[uri];
+  fs.data[uri] = new Uint8List(0);
+  if (!await crashesOnCompile(initialComponent)) {
+    print("Can't delete all content of file $uri -- keeping it (for now)");
+    fs.data[uri] = data;
+  } else {
+    print("Can delete all content of file $uri");
+    await _tryToRemoveUnreferencedFileContent(initialComponent);
+  }
+}
+
+void deleteLines(Uri uri, Component initialComponent) async {
   // Try to delete "lines".
+  Uint8List data = fs.data[uri];
   const int $LF = 10;
-  Uint8List latestCrashData = data;
   List<Uint8List> lines = [];
   int start = 0;
   for (int i = 0; i < data.length; i++) {
@@ -249,8 +397,16 @@ Future<Uint8List> deleteLines(Uint8List data, MemoryFileSystem fs, Uri main,
   }
   lines.add(sublist(data, start, data.length));
   List<bool> include = new List.filled(lines.length, true);
-  for (int i = 0; i < lines.length; i++) {
-    include[i] = false;
+  Uint8List latestCrashData = data;
+  int length = 1;
+  int i = 0;
+  while (i < lines.length) {
+    if (i + length > lines.length) {
+      length = lines.length - i;
+    }
+    for (int j = i; j < i + length; j++) {
+      include[j] = false;
+    }
     final BytesBuilder builder = new BytesBuilder();
     for (int j = 0; j < lines.length; j++) {
       if (include[j]) {
@@ -261,61 +417,118 @@ Future<Uint8List> deleteLines(Uint8List data, MemoryFileSystem fs, Uri main,
       }
     }
     Uint8List candidate = builder.takeBytes();
-    if (!await crashesOnCompile(
-        fs, main, candidate, compilerContext, initialComponent)) {
-      // Didn't crash => Can't remove line i.
-      include[i] = true;
+    fs.data[uri] = candidate;
+    if (!await crashesOnCompile(initialComponent)) {
+      // Didn't crash => Can't remove line i-j.
+      for (int j = i; j < i + length; j++) {
+        include[j] = true;
+      }
+      if (length > 2) {
+        // Retry with length 2 at same i.
+        // The idea here is that for instance formatted json might have lines
+        // looking like
+        // {
+        // }
+        // where deleting just one line makes it invalid.
+        length = 2;
+      } else if (length > 1) {
+        // Retry with length 1 at same i.
+        length = 1;
+      } else {
+        // Couldn't with length 1 either.
+        i++;
+      }
     } else {
-      print("Can delete line $i");
+      print("Can delete line $i (inclusive) - ${i + length} (exclusive) "
+          "(of ${lines.length})");
       latestCrashData = candidate;
+      i += length;
+      length *= 2;
     }
   }
-  return latestCrashData;
+  fs.data[uri] = latestCrashData;
 }
 
-Future<bool> crashesOnCompile(MemoryFileSystem fs, Uri main, Uint8List data,
-    CompilerContext compilerContext, Component initialComponent) async {
-  fs.entityForUri(main).writeAsBytesSync(data);
+Component _latestComponent;
+
+Future<bool> crashesOnCompile(Component initialComponent) async {
   IncrementalCompiler incrementalCompiler =
-      new IncrementalCompiler.fromComponent(compilerContext, initialComponent);
-  incrementalCompiler.invalidate(main);
+      new IncrementalCompiler.fromComponent(
+          setupCompilerContext(), initialComponent);
+  incrementalCompiler.invalidate(mainUri);
   try {
-    await incrementalCompiler.computeDelta();
+    _latestComponent = await incrementalCompiler.computeDelta();
+    for (Uri uri in invalidate) {
+      incrementalCompiler.invalidate(uri);
+      await incrementalCompiler.computeDelta();
+    }
     return false;
-  } catch (e) {
-    return true;
+  } catch (e, st) {
+    // Find line with #0 in it.
+    String eWithSt = "$e\n\n$st";
+    List<String> lines = eWithSt.split("\n");
+    String foundLine;
+    for (String line in lines) {
+      if (line.startsWith("#0")) {
+        foundLine = line;
+        break;
+      }
+    }
+    if (foundLine == null) throw "Unexpected crash without stacktrace: $e";
+    if (expectedCrashLine == null) {
+      print("Got $foundLine");
+      expectedCrashLine = foundLine;
+      return true;
+    } else if (foundLine == expectedCrashLine) {
+      return true;
+    } else {
+      print("Crashed, but another place: $foundLine");
+      return false;
+    }
   }
 }
 
-Future<Component> getInitialComponent(CompilerContext compilerContext) async {
+Future<Component> getInitialComponent() async {
   IncrementalCompiler incrementalCompiler =
-      new IncrementalCompiler(compilerContext);
+      new IncrementalCompiler(setupCompilerContext());
   Component originalComponent = await incrementalCompiler.computeDelta();
   return originalComponent;
 }
 
-CompilerContext setupCompilerContext(Uri main) {
-  Uint8List sdkSummaryData = new File.fromUri(platformUri).readAsBytesSync();
-  MemoryFileSystem fs = new MemoryFileSystem(base);
+CompilerContext setupCompilerContext() {
   CompilerOptions options = getOptions();
 
+  TargetFlags targetFlags = new TargetFlags(
+      enableNullSafety: nnbd, trackWidgetCreation: widgetTransformation);
+  Target target;
+  switch (targetString) {
+    case "VM":
+      target = new VmTarget(targetFlags);
+      break;
+    case "flutter":
+      target = new FlutterTarget(targetFlags);
+      break;
+    case "ddc":
+      target = new DevCompilerTarget(targetFlags);
+      break;
+    default:
+      throw "Unknown target '$target'";
+  }
+  options.target = target;
   options.fileSystem = fs;
   options.sdkRoot = null;
-  options.sdkSummary = sdkSummary;
+  options.sdkSummary = platformUri;
   options.omitPlatform = false;
   options.onDiagnostic = (DiagnosticMessage message) {
     // don't care.
   };
-  fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
-  fs.entityForUri(main).writeAsStringSync("main() {}");
 
   CompilerContext compilerContext = new CompilerContext(
-      new ProcessedOptions(options: options, inputs: [main]));
+      new ProcessedOptions(options: options, inputs: [mainUri]));
   return compilerContext;
 }
 
-String getFileAsStringContent(File file, bool nnbd) {
-  Uint8List rawBytes = file.readAsBytesSync();
+String getFileAsStringContent(Uint8List rawBytes, bool nnbd) {
   List<int> lineStarts = new List<int>();
 
   Token firstToken = parser_suite.scanRawBytes(rawBytes,
@@ -342,3 +555,56 @@ ScannerConfiguration scannerConfigurationNonNNBD = new ScannerConfiguration(
     enableTripleShift: true,
     enableExtensionMethods: true,
     enableNonNullable: false);
+
+class FakeFileSystem extends FileSystem {
+  bool _redirectAndRecord = true;
+  final Map<Uri, Uint8List> data = {};
+
+  @override
+  FileSystemEntity entityForUri(Uri uri) {
+    return new FakeFileSystemEntity(this, uri);
+  }
+}
+
+class FakeFileSystemEntity extends FileSystemEntity {
+  final FakeFileSystem fs;
+  final Uri uri;
+  FakeFileSystemEntity(this.fs, this.uri);
+
+  void _ensureCachedIfOk() {
+    if (fs.data.containsKey(uri)) return;
+    if (!fs._redirectAndRecord) {
+      throw "Asked for file in non-recording mode that wasn't known";
+    }
+    File f = new File.fromUri(uri);
+    if (!f.existsSync()) {
+      fs.data[uri] = null;
+      return;
+    }
+    fs.data[uri] = f.readAsBytesSync();
+  }
+
+  @override
+  Future<bool> exists() {
+    _ensureCachedIfOk();
+    Uint8List data = fs.data[uri];
+    if (data == null) return Future.value(false);
+    return Future.value(true);
+  }
+
+  @override
+  Future<List<int>> readAsBytes() {
+    _ensureCachedIfOk();
+    Uint8List data = fs.data[uri];
+    if (data == null) throw new FileSystemException(uri, "File doesn't exist.");
+    return Future.value(data);
+  }
+
+  @override
+  Future<String> readAsString() {
+    _ensureCachedIfOk();
+    Uint8List data = fs.data[uri];
+    if (data == null) throw new FileSystemException(uri, "File doesn't exist.");
+    return Future.value(utf8.decode(data));
+  }
+}

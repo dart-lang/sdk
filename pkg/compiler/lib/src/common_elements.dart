@@ -353,6 +353,10 @@ abstract class CommonElements {
 
   ClassEntity get jsInvocationMirrorClass;
 
+  ClassEntity get requiredSentinelClass;
+
+  InterfaceType get requiredSentinelType;
+
   MemberEntity get invocationTypeArgumentGetter;
 
   /// Interface used to determine if an object has the JavaScript
@@ -1555,6 +1559,13 @@ class CommonElementsImpl
   @override
   ClassEntity get jsInvocationMirrorClass =>
       _jsInvocationMirrorClass ??= _findHelperClass('JSInvocationMirror');
+
+  ClassEntity _requiredSentinelClass;
+  @override
+  ClassEntity get requiredSentinelClass =>
+      _requiredSentinelClass ??= _findHelperClass('_Required');
+  @override
+  InterfaceType get requiredSentinelType => _getRawType(requiredSentinelClass);
 
   MemberEntity _invocationTypeArgumentGetter;
   @override

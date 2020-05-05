@@ -1,0 +1,16 @@
+class A {
+  foo() => 23;
+}
+extension B ;
+on A;
+? { foo() => 42; bar() => 87; }
+extension C ;
+on A (){ }
+extension D ;
+on int ;
+Function(){ }
+? { int call() => 76; }
+main() { }
+testA(A? a) { }
+testFunction(int Function()? f) { }
+expect(expected, actual) { }

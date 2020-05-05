@@ -8,6 +8,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
+import '../helpers/memory_compiler.dart';
 import '../helpers/type_test_helper.dart';
 
 main() {
@@ -52,6 +53,14 @@ main() {
   new C().futureOrT();
 }
 """);
+    var options = env.compiler.options;
+
+    String typeToString(DartType type) {
+      return type.toStructuredText(
+          printLegacyStars: options.printLegacyStars,
+          useLegacySubtyping: options.useLegacySubtyping);
+    }
+
     FunctionType getFunctionType(String name, String expectedType,
         [ClassEntity cls]) {
       FunctionType type = env.getMemberType(name, cls);
@@ -59,9 +68,9 @@ main() {
           "Member $name not found${cls != null ? ' in class $cls' : ''}.");
       Expect.equals(
           expectedType,
-          '${type}',
+          typeToString(type),
           "Unexpected type for $name"
-              "${cls != null ? ' in class $cls' : ''}.");
+          "${cls != null ? ' in class $cls' : ''}.");
       return type;
     }
 
@@ -70,12 +79,12 @@ main() {
       FunctionType type = env.getMemberType(name, cls);
       Expect.isNotNull(type,
           "Member $name not found${cls != null ? ' in class $cls' : ''}.");
-      DartType returnType = type.returnType;
+      DartType returnType = type.returnType.withoutNullability;
       Expect.equals(
           expectedType,
-          '${returnType}',
+          typeToString(returnType),
           "Unexpected return type for $name"
-              "${cls != null ? ' in class $cls' : ''}.");
+          "${cls != null ? ' in class $cls' : ''}.");
       return returnType;
     }
 
@@ -107,13 +116,13 @@ main() {
     ClassEntity C = env.getClass('C');
     DartType futureT = getReturnType('futureT', 'Future<C.T>', C);
     FutureOrType futureOrT = getReturnType('futureOrT', 'FutureOr<C.T>', C);
-    DartType T = futureOrT.typeArgument;
+    DartType T = futureOrT.typeArgument.withoutNullability;
     Expect.isTrue(futureOrT.containsTypeVariables);
     futureOrT.forEachTypeVariable((t) => Expect.equals(T, t));
 
     DartType returnVoid = getFunctionType('returnVoid', 'void Function()');
-    DartType returnFutureNull =
-        getFunctionType('futureOrNull', 'Future<Null> Function()');
+    DartType returnFutureNull = getFunctionType('futureOrNull',
+        isDart2jsNnbd ? 'Future<Null>? Function()' : 'Future<Null> Function()');
 
     List<DartType> all = [
       Object_,

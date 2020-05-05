@@ -15,6 +15,7 @@
 
 *   Class `OSError` now implements `Exception`. This change means `OSError` will
     now be caught in catch clauses catching `Exception`s.
+*   Added `InternetAddress.tryParse`.
 
 ### Tools
 
@@ -44,7 +45,7 @@ Updated the Linter to `0.1.115`, which includes:
 ### Dart VM
 
 
-## 2.8.0 - 2020-04-29
+## 2.8.1 - 2020-05-06
 
 Much of the changes in this release are in preparation for non-nullable types,
 which will arrive in a future version. In anticipation of that, we have made a

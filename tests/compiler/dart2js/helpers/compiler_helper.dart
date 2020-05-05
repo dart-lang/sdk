@@ -238,6 +238,3 @@ checkerForAbsentPresent(String test) {
 RegExp _directivePattern = new RegExp(
     //      \1                     \2        \3
     r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)')''', multiLine: true);
-
-bool isDart2jsNnbd =
-    Platform.environment['DART_CONFIGURATION'] == 'ReleaseX64NNBD';

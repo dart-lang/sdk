@@ -92,6 +92,8 @@ namespace dart {
   V(CallNativeThroughSafepoint)                                                \
   V(InitStaticField)                                                           \
   V(InitInstanceField)                                                         \
+  V(InitLateInstanceField)                                                     \
+  V(InitLateFinalInstanceField)                                                \
   V(Throw)                                                                     \
   V(ReThrow)                                                                   \
   V(AssertBoolean)                                                             \

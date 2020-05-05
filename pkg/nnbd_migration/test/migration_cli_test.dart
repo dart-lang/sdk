@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart' as mock_sdk;
@@ -18,56 +19,62 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(_MigrationCliTest);
+    defineReflectiveTests(_MigrationCliTestPosix);
+    defineReflectiveTests(_MigrationCliTestWindows);
   });
 }
 
 class _MigrationCli extends MigrationCli {
-  Completer<void> _previewServerStartedCompleter;
+  Future<void> Function() _runWhilePreviewServerActive;
 
-  Completer<void> _signalInterruptCompleter;
-
-  _MigrationCli(_MigrationCliTest test)
+  _MigrationCli(_MigrationCliTestBase test)
       : super(
             binaryName: 'nnbd_migration',
             loggerFactory: (isVerbose) => test.logger = _TestLogger(isVerbose),
-            defaultSdkPathOverride: mock_sdk.sdkRoot,
+            defaultSdkPathOverride:
+                test.resourceProvider.convertPath(mock_sdk.sdkRoot),
             resourceProvider: test.resourceProvider);
 
   @override
-  Future<void> blockUntilSignalInterrupt() {
-    _previewServerStartedCompleter.complete();
-    _signalInterruptCompleter = Completer<void>();
-    return _signalInterruptCompleter.future;
+  Future<void> blockUntilSignalInterrupt() async {
+    if (_runWhilePreviewServerActive == null) {
+      fail('Preview server not expected to have been started');
+    }
+    await _runWhilePreviewServerActive.call();
+    _runWhilePreviewServerActive = null;
   }
 
   Future<void> runWithPreviewServer(
       List<String> args, Future<void> callback()) async {
-    _previewServerStartedCompleter = Completer<void>();
-    var done = run(args);
-    await _previewServerStartedCompleter.future;
-    await callback();
-    _signalInterruptCompleter.complete();
-    return done;
+    _runWhilePreviewServerActive = callback;
+    await run(args);
+    if (_runWhilePreviewServerActive != null) {
+      fail('Preview server never started');
+    }
   }
 }
 
-@reflectiveTest
-class _MigrationCliTest {
+abstract class _MigrationCliTestBase {
+  void set logger(_TestLogger logger);
+
+  MemoryResourceProvider get resourceProvider;
+}
+
+mixin _MigrationCliTestMethods on _MigrationCliTestBase {
+  @override
   /*late*/ _TestLogger logger;
 
   final hasVerboseHelpMessage = contains('for verbose help output');
 
   final hasUsageText = contains('Usage: nnbd_migration');
 
-  final resourceProvider = MemoryResourceProvider();
-
-  String assertErrorExit(MigrationCli cli) {
+  String assertErrorExit(MigrationCli cli, {bool withUsage = true}) {
     expect(cli.exitCode, isNotNull);
     expect(cli.exitCode, isNot(0));
     var stderrText = logger.stderrBuffer.toString();
-    expect(stderrText, hasUsageText);
-    expect(stderrText, hasVerboseHelpMessage);
+    expect(stderrText, withUsage ? hasUsageText : isNot(hasUsageText));
+    expect(stderrText,
+        withUsage ? hasVerboseHelpMessage : isNot(hasVerboseHelpMessage));
     return stderrText;
   }
 
@@ -85,6 +92,11 @@ class _MigrationCliTest {
     expect(cli.exitCode, isNull);
     var options = cli.options;
     return options;
+  }
+
+  Future assertPreviewServerResponsive(String url) async {
+    var response = await http.get(url);
+    expect(response.statusCode, 200);
   }
 
   void assertProjectContents(String projectDir, Map<String, String> expected) {
@@ -110,24 +122,64 @@ class _MigrationCliTest {
     return resourceProvider.convertPath(projectPathPosix);
   }
 
-  Map<String, String> simpleProject({bool migrated: false}) {
-    // TODO(paulberry): pubspec needs to be updated when migrating.
+  Future<void> runWithPreviewServer(_MigrationCli cli, List<String> args,
+      Future<void> Function(String) callback) async {
+    String url;
+    await cli.runWithPreviewServer(args, () async {
+      // Server should be running now
+      url = RegExp('http://.*', multiLine: true)
+          .stringMatch(logger.stdoutBuffer.toString());
+      await callback(url);
+    });
+    // Server should be stopped now
+    expect(http.get(url), throwsA(anything));
+  }
+
+  Map<String, String> simpleProject({bool migrated: false, String sourceText}) {
     return {
       'pubspec.yaml': '''
 name: test
 environment:
-sdk: '>=2.6.0 <3.0.0'
+  sdk: '${migrated ? '>=2.9.0 <2.10.0' : '>=2.6.0 <3.0.0'}'
 ''',
-      'lib/test.dart': '''
+      'lib/test.dart': sourceText ??
+          '''
 int${migrated ? '?' : ''} f() => null;
 '''
     };
+  }
+
+  void tearDown() {
+    NonNullableFix.shutdownAllServers();
   }
 
   test_default_logger() {
     // When running normally, we don't override the logger; make sure it has a
     // non-null default so that there won't be a crash.
     expect(MigrationCli(binaryName: 'nnbd_migration').logger, isNotNull);
+  }
+
+  test_detect_old_sdk() async {
+    var cli = _createCli();
+    // Alter the mock SDK, changing the signature of Object.operator== to match
+    // the signature that was present prior to NNBD.  (This is what the
+    // migration tool uses to detect an old SDK).
+    var coreLib = resourceProvider.getFile(
+        resourceProvider.convertPath('${mock_sdk.sdkRoot}/lib/core/core.dart'));
+    var oldCoreLibText = coreLib.readAsStringSync();
+    var newCoreLibText = oldCoreLibText.replaceAll(
+        'external bool operator ==(Object other)',
+        'external bool operator ==(dynamic other)');
+    expect(newCoreLibText, isNot(oldCoreLibText));
+    coreLib.writeAsStringSync(newCoreLibText);
+    var projectDir = await createProjectDir(simpleProject());
+    await cli.run([projectDir]);
+    assertErrorExit(cli, withUsage: false);
+    var output = logger.stdoutBuffer.toString();
+    expect(
+        output,
+        contains(
+            'Bad state: Analysis seems to have an SDK without NNBD enabled'));
   }
 
   test_flag_apply_changes_default() {
@@ -163,6 +215,18 @@ int${migrated ? '?' : ''} f() => null;
     expect(helpText, isNot(hasVerboseHelpMessage));
   }
 
+  test_flag_ignore_errors_default() {
+    expect(assertParseArgsSuccess([]).ignoreErrors, isFalse);
+  }
+
+  test_flag_ignore_errors_disable() async {
+    await assertParseArgsFailure(['--no-ignore-errors']);
+  }
+
+  test_flag_ignore_errors_enable() {
+    expect(assertParseArgsSuccess(['--ignore-errors']).ignoreErrors, isTrue);
+  }
+
   test_flag_web_preview_default() {
     expect(assertParseArgsSuccess([]).webPreview, isTrue);
   }
@@ -182,12 +246,53 @@ int${migrated ? '?' : ''} f() => null;
     await cli.run(['--no-web-preview', '--apply-changes', projectDir]);
     // Check that a summary was printed
     expect(logger.stdoutBuffer.toString(), contains('Applying changes'));
-    // And that it refers to test.dart
+    // And that it refers to test.dart and pubspec.yaml
     expect(logger.stdoutBuffer.toString(), contains('test.dart'));
+    expect(logger.stdoutBuffer.toString(), contains('pubspec.yaml'));
     // And that it does not tell the user they can rerun with `--apply-changes`
     expect(logger.stdoutBuffer.toString(), isNot(contains('--apply-changes')));
     // Changes should have been made
     assertProjectContents(projectDir, simpleProject(migrated: true));
+  }
+
+  test_lifecycle_ignore_errors_disable() async {
+    var projectContents = simpleProject(sourceText: '''
+int f() => null
+''');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli.run([projectDir]);
+    assertErrorExit(cli, withUsage: false);
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('1 analysis issue found'));
+    var sep = resourceProvider.pathContext.separator;
+    expect(
+        output,
+        contains("error • Expected to find ';' at lib${sep}test.dart:1:12 • "
+            "(expected_token)"));
+    expect(
+        output,
+        contains(
+            'analysis errors will result in erroneous migration suggestions'));
+    expect(output, contains('Please fix the analysis issues'));
+  }
+
+  test_lifecycle_ignore_errors_enable() async {
+    var projectContents = simpleProject(sourceText: '''
+int? f() => null
+''');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, ['--ignore-errors', projectDir],
+        (url) async {
+      var output = logger.stdoutBuffer.toString();
+      expect(output, isNot(contains('No analysis issues found')));
+      expect(
+          output,
+          contains('Continuing with migration suggestions due to the use of '
+              '--ignore-errors.'));
+      await assertPreviewServerResponsive(url);
+    });
   }
 
   test_lifecycle_no_preview() async {
@@ -197,8 +302,9 @@ int${migrated ? '?' : ''} f() => null;
     await cli.run(['--no-web-preview', projectDir]);
     // Check that a summary was printed
     expect(logger.stdoutBuffer.toString(), contains('Summary'));
-    // And that it refers to test.dart
+    // And that it refers to test.dart and pubspec.yaml
     expect(logger.stdoutBuffer.toString(), contains('test.dart'));
+    expect(logger.stdoutBuffer.toString(), contains('pubspec.yaml'));
     // And that it tells the user they can rerun with `--apply-changes`
     expect(logger.stdoutBuffer.toString(), contains('--apply-changes'));
     // No changes should have been made
@@ -209,18 +315,34 @@ int${migrated ? '?' : ''} f() => null;
     var projectContents = simpleProject();
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
-    String url;
-    await cli.runWithPreviewServer([projectDir], () async {
-      // Server should be running now
-      url = RegExp('http://.*', multiLine: true)
-          .stringMatch(logger.stdoutBuffer.toString());
-      var response = await http.get(url);
-      expect(response.statusCode, 200);
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
     });
-    // Server should be stopped now
-    expect(http.get(url), throwsA(anything));
-    // And no changes should have been made.
+    // No changes should have been made.
     assertProjectContents(projectDir, projectContents);
+  }
+
+  test_lifecycle_uri_error() async {
+    var projectContents = simpleProject(sourceText: '''
+import 'package:does_not/exist.dart';
+int f() => null;
+''');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli.run([projectDir]);
+    assertErrorExit(cli, withUsage: false);
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('1 analysis issue found'));
+    expect(output, contains('uri_does_not_exist'));
+    expect(
+        output,
+        contains(
+            'analysis errors will result in erroneous migration suggestions'));
+    expect(output,
+        contains('Unresolved URIs found.  Did you forget to run "pub get"?'));
+    expect(output, contains('Please fix the analysis issues'));
   }
 
   test_migrate_path_none() {
@@ -295,6 +417,39 @@ int${migrated ? '?' : ''} f() => null;
     var helpText = logger.stderrBuffer.toString();
     return helpText;
   }
+}
+
+@reflectiveTest
+class _MigrationCliTestPosix extends _MigrationCliTestBase
+    with _MigrationCliTestMethods {
+  @override
+  final resourceProvider;
+
+  _MigrationCliTestPosix()
+      : resourceProvider = MemoryResourceProvider(
+            context: path.style == path.Style.posix ? null : path.posix);
+}
+
+@reflectiveTest
+class _MigrationCliTestWindows extends _MigrationCliTestBase
+    with _MigrationCliTestMethods {
+  @override
+  final resourceProvider;
+
+  _MigrationCliTestWindows()
+      : resourceProvider = MemoryResourceProvider(
+            context: path.style == path.Style.windows
+                ? null
+                : path.Context(style: path.Style.windows, current: 'C:\\'));
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40381')
+  @override
+  test_lifecycle_ignore_errors_enable() =>
+      super.test_lifecycle_ignore_errors_enable();
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40381')
+  @override
+  test_lifecycle_preview() => super.test_lifecycle_preview();
 }
 
 /// TODO(paulberry): move into cli_util

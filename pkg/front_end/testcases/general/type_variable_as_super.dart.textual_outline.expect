@@ -1,0 +1,9 @@
+abstract class A<T> extends T {}
+
+abstract class B<T> extends T {
+  B();
+}
+
+class C<T> extends T {}
+
+main() {}

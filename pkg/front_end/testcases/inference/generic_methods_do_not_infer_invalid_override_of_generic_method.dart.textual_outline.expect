@@ -1,0 +1,11 @@
+library test;
+
+class C {
+  T m<T>(T x) => x;
+}
+
+class D extends C {
+  m(x) => x;
+}
+
+main() {}

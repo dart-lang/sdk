@@ -1,0 +1,9 @@
+library test;
+
+class C<T extends num> {
+  T a;
+  void op(int b) {}
+  void opEq(int b) {}
+}
+
+main() {}

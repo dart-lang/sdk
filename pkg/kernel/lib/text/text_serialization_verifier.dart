@@ -54,8 +54,8 @@ class TextRoundTripFailure extends TextSerializationVerificationFailure {
       : super(uri, offset);
 }
 
-class VerificationStatus {
-  final VerificationStatus parent;
+class VerificationState {
+  final VerificationState parent;
 
   final Node node;
 
@@ -71,7 +71,7 @@ class VerificationStatus {
   final Set<TypeParameter> usedTypeParameters =
       new Set<TypeParameter>.identity();
 
-  VerificationStatus(this.parent, this.node);
+  VerificationState(this.parent, this.node);
 
   bool get isRoot => parent == null;
 
@@ -94,9 +94,9 @@ class VerificationStatus {
         !isRoot && parent.isTypeParameterDeclared(node);
   }
 
-  void handleChild(VerificationStatus childStatus) {
+  void handleChild(VerificationState childState) {
     allChildrenAreSupported =
-        allChildrenAreSupported && childStatus.isFullySupported;
+        allChildrenAreSupported && childState.isFullySupported;
   }
 
   void handleDeclarations() {
@@ -249,31 +249,33 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
   final List<TextSerializationVerificationFailure> failures =
       <TextSerializationVerificationFailure>[];
 
+  /// List of status for all round-trip serialization attempts.
+  final List<RoundTripStatus> status = <RoundTripStatus>[];
+
   final CanonicalName root;
 
   Uri lastSeenUri = noUri;
 
   int lastSeenOffset = noOffset;
 
-  VerificationStatus _statusStackTop;
+  VerificationState _stateStackTop;
 
   TextSerializationVerifier({CanonicalName root})
       : root = root ?? new CanonicalName.root() {
     initializeSerializers();
   }
 
-  VerificationStatus get currentStatus => _statusStackTop;
+  VerificationState get currentState => _stateStackTop;
 
-  void pushStatusFor(Node node) {
-    _statusStackTop = new VerificationStatus(_statusStackTop, node);
+  void pushStateFor(Node node) {
+    _stateStackTop = new VerificationState(_stateStackTop, node);
   }
 
-  void dropStatus() {
-    if (_statusStackTop == null) {
-      throw new StateError(
-          "Attempting to remove a status from an empty status stack.");
+  void dropState() {
+    if (_stateStackTop == null) {
+      throw new StateError("Attempting to remove a state from an empty stack.");
     }
-    _statusStackTop = _statusStackTop.parent;
+    _stateStackTop = _stateStackTop.parent;
   }
 
   void verify(Node node) => node.accept(this);
@@ -286,21 +288,21 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
 
   void enterNode(node) {
     storeLastSeenUriAndOffset(node);
-    pushStatusFor(node);
-    currentStatus.handleDeclarations();
+    pushStateFor(node);
+    currentState.handleDeclarations();
   }
 
   void exitNode(node) {
-    if (!identical(node, currentStatus.node)) {
+    if (!identical(node, currentState.node)) {
       throw new StateError("Trying to remove node '${node}' from the stack, "
-          "while another node '${currentStatus.node}' is on the top of it.");
+          "while another node '${currentState.node}' is on the top of it.");
     }
-    List<Node> roundTripReadyNodes = currentStatus.takeRoundTripReadyNodes();
+    List<Node> roundTripReadyNodes = currentState.takeRoundTripReadyNodes();
     for (Node node in roundTripReadyNodes) {
-      makeRoundTripDispatch(node);
+      status.add(makeRoundTripDispatch(node));
     }
-    currentStatus.mergeToParent();
-    dropStatus();
+    currentState.mergeToParent();
+    dropState();
   }
 
   void storeLastSeenUriAndOffset(Node node) {
@@ -374,7 +376,7 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
 
     // The error is reported elsewhere for the case of null.
     if (deserialized == null) {
-      return new RoundTripStatus(false, initial);
+      return new RoundTripStatus(false, node, initial);
     }
 
     String serialized =
@@ -383,15 +385,82 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
     if (initial != serialized) {
       failures.add(new TextRoundTripFailure(
           initial, serialized, lastSeenUri, lastSeenOffset));
-      return new RoundTripStatus(false, initial);
+      return new RoundTripStatus(false, node, initial);
     }
-    return new RoundTripStatus(true, initial);
+    return new RoundTripStatus(true, node, initial);
   }
 }
 
-class RoundTripStatus {
+class RoundTripStatus implements Comparable<RoundTripStatus> {
   final bool successful;
+  final Node node;
   final String serialized;
 
-  RoundTripStatus(this.successful, this.serialized);
+  RoundTripStatus(this.successful, this.node, this.serialized)
+      : assert(successful != null),
+        assert(node != null),
+        assert(serialized != null);
+
+  void printOn(StringBuffer sb) {
+    sb.writeln(
+        ";; -----------------------------------------------------------------------------");
+    sb.writeln("Status: ${successful ? "OK" : "ERROR"}");
+    sb.writeln("Node type: ${node.runtimeType}");
+    sb.writeln("Node: ${node.leakingDebugToString()}");
+    if (node is TreeNode) {
+      TreeNode treeNode = node;
+      sb.writeln("Parent type: ${treeNode.parent.runtimeType}");
+      sb.writeln("Parent: ${treeNode.parent.leakingDebugToString()}");
+    }
+    sb.writeln("Serialized: ${serialized}");
+    sb.writeln();
+  }
+
+  int compareTo(RoundTripStatus other) {
+    if (node is TreeNode && other.node is TreeNode) {
+      TreeNode thisNode = this.node;
+      TreeNode otherNode = other.node;
+      Uri thisUri = thisNode.location?.file;
+      Uri otherUri = otherNode.location?.file;
+      int thisOffset = thisNode.fileOffset;
+      int otherOffset = otherNode.fileOffset;
+
+      int compareUri;
+      if (thisUri == null && otherUri == null) {
+        compareUri = 0;
+      } else if (thisUri == null) {
+        compareUri = 1;
+      } else if (otherUri == null) {
+        return -1;
+      } else {
+        assert(thisUri != null && otherUri != null);
+        compareUri = thisUri.toString().compareTo(otherUri.toString());
+      }
+      if (compareUri != 0) return compareUri;
+
+      int compareOffset;
+      if (thisOffset == null && otherOffset == null) {
+        compareOffset = 0;
+      } else if (thisOffset == null) {
+        compareOffset = 1;
+      } else if (otherOffset == null) {
+        compareOffset = -1;
+      } else {
+        compareOffset = thisOffset = otherOffset;
+      }
+      if (compareOffset != 0) return compareOffset;
+
+      if (!successful && other.successful) {
+        return -1;
+      } else if (successful && !other.successful) {
+        return 1;
+      }
+
+      return serialized.compareTo(other.serialized);
+    } else if (node is TreeNode) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
 }

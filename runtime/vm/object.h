@@ -3958,14 +3958,18 @@ class Field : public Object {
                         intptr_t target_offset_in_bytes) const;
 
   inline intptr_t HostOffset() const;
+  static intptr_t host_offset_or_field_id_offset() {
+    return OFFSET_OF(FieldLayout, host_offset_or_field_id_);
+  }
 
   inline intptr_t TargetOffset() const;
+  static inline intptr_t TargetOffsetOf(FieldPtr field);
 
   inline InstancePtr StaticValue() const;
   void SetStaticValue(const Instance& value,
                       bool save_initial_value = false) const;
 
-  intptr_t field_id() const { return raw_ptr()->host_offset_or_field_id_; }
+  inline intptr_t field_id() const;
   inline void set_field_id(intptr_t field_id) const;
 
 #ifndef DART_PRECOMPILED_RUNTIME
@@ -4072,14 +4076,6 @@ class Field : public Object {
 
   static intptr_t static_type_exactness_state_offset() {
     return OFFSET_OF(FieldLayout, static_type_exactness_state_);
-  }
-
-  static inline intptr_t TargetOffsetOf(const FieldPtr field) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    return field->ptr()->target_offset_;
-#else
-    return field->ptr()->host_offset_or_field_id_;
-#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   }
 
   // Return class id that any non-null value read from this field is guaranteed
@@ -4229,6 +4225,9 @@ class Field : public Object {
   }
   void SetInitializerFunction(const Function& initializer) const;
   bool HasInitializerFunction() const;
+  static intptr_t initializer_function_offset() {
+    return OFFSET_OF(FieldLayout, initializer_function_);
+  }
 
   // For static fields only. Constructs a closure that gets/sets the
   // field value.
@@ -4684,13 +4683,13 @@ class Library : public Object {
 
   // Resolving native methods for script loaded in the library.
   Dart_NativeEntryResolver native_entry_resolver() const {
-    return raw_ptr()->native_entry_resolver_;
+    return LoadNonPointer(&raw_ptr()->native_entry_resolver_);
   }
   void set_native_entry_resolver(Dart_NativeEntryResolver value) const {
     StoreNonPointer(&raw_ptr()->native_entry_resolver_, value);
   }
   Dart_NativeEntrySymbol native_entry_symbol_resolver() const {
-    return raw_ptr()->native_entry_symbol_resolver_;
+    return LoadNonPointer(&raw_ptr()->native_entry_symbol_resolver_);
   }
   void set_native_entry_symbol_resolver(
       Dart_NativeEntrySymbol native_symbol_resolver) const {
@@ -7120,12 +7119,6 @@ class Instance : public Object {
   // [other] is a type parameter in NNBD strong mode).
   static bool NullIsAssignableTo(const AbstractType& other);
 
-  // Returns true if the type of this instance is a subtype of FutureOr<T>
-  // specified by instantiated type 'other'.
-  // Returns false if other type is not a FutureOr.
-  bool IsFutureOrInstanceOf(Zone* zone,
-                            const AbstractType& other) const;
-
   bool IsValidNativeIndex(int index) const {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
   }
@@ -7207,6 +7200,12 @@ class Instance : public Object {
       const AbstractType& other,
       const TypeArguments& other_instantiator_type_arguments,
       const TypeArguments& other_function_type_arguments) const;
+
+  // Returns true if the type of this instance is a subtype of FutureOr<T>
+  // specified by instantiated type 'other'.
+  // Returns false if other type is not a FutureOr.
+  bool RuntimeTypeIsSubtypeOfFutureOr(Zone* zone,
+                                      const AbstractType& other) const;
 
   // Return true if the null instance is an instance of other type.
   static bool NullIsInstanceOf(
@@ -7389,18 +7388,6 @@ class TypeArguments : public Instance {
   // Concatenate [this] and [other] vectors of type parameters.
   TypeArgumentsPtr ConcatenateTypeParameters(Zone* zone,
                                              const TypeArguments& other) const;
-
-  // Check if the subvector of length 'len' starting at 'from_index' of this
-  // type argument vector consists solely of DynamicType, (nullable) ObjectType,
-  // or VoidType.
-  bool IsTopTypes(intptr_t from_index, intptr_t len) const;
-
-  // Check the subtype relationship, considering only a subvector of length
-  // 'len' starting at 'from_index'.
-  bool IsSubtypeOf(const TypeArguments& other,
-                   intptr_t from_index,
-                   intptr_t len,
-                   Heap::Space space) const;
 
   // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
@@ -7729,15 +7716,18 @@ class AbstractType : public Instance {
   // Check if this type represents the 'Object' type.
   bool IsObjectType() const { return type_class_id() == kInstanceCid; }
 
-  // Check if this type represents a top type.
-  bool IsTopType() const;
+  // Check if this type represents a top type for subtyping,
+  // assignability and 'as' type tests.
+  //
+  // Returns true if
+  //  - any type is a subtype of this type;
+  //  - any value can be assigned to a variable of this type;
+  //  - 'as' type test always succeeds for this type.
+  bool IsTopTypeForSubtyping() const;
 
-  // Check if this type represents a top type with respect to
-  // assignability and 'as' type tests, e.g. returns true if any value can be
-  // assigned to a variable of this type and 'as' type test always succeeds.
-  // Guaranteed to return true for top types according to IsTopType(), but
-  // may also return true for other types (non-nullable Object in weak mode).
-  bool IsTopTypeForAssignability() const;
+  // Check if this type represents a top type for 'is' type tests.
+  // Returns true if 'is' type test always returns true for this type.
+  bool IsTopTypeForInstanceOf() const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const { return type_class_id() == kBoolCid; }
@@ -10901,7 +10891,7 @@ bool Function::HasBytecode(FunctionPtr function) {
 
 intptr_t Field::HostOffset() const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
-  return (raw_ptr()->host_offset_or_field_id_ * kWordSize);
+  return (Smi::Value(raw_ptr()->host_offset_or_field_id_) * kWordSize);
 }
 
 intptr_t Field::TargetOffset() const {
@@ -10913,12 +10903,20 @@ intptr_t Field::TargetOffset() const {
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
 }
 
+inline intptr_t Field::TargetOffsetOf(const FieldPtr field) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  return field->ptr()->target_offset_;
+#else
+  return Smi::Value(field->ptr()->host_offset_or_field_id_);
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+}
+
 void Field::SetOffset(intptr_t host_offset_in_bytes,
                       intptr_t target_offset_in_bytes) const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
   ASSERT(kWordSize != 0);
-  StoreNonPointer(&raw_ptr()->host_offset_or_field_id_,
-                  host_offset_in_bytes / kWordSize);
+  StoreSmi(&raw_ptr()->host_offset_or_field_id_,
+           Smi::New(host_offset_in_bytes / kWordSize));
 #if !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(compiler::target::kWordSize != 0);
   StoreNonPointer(&raw_ptr()->target_offset_,
@@ -10931,13 +10929,17 @@ void Field::SetOffset(intptr_t host_offset_in_bytes,
 InstancePtr Field::StaticValue() const {
   ASSERT(is_static());  // Valid only for static dart fields.
   return Isolate::Current()->field_table()->At(
-      raw_ptr()->host_offset_or_field_id_);
+      Smi::Value(raw_ptr()->host_offset_or_field_id_));
+}
+
+inline intptr_t Field::field_id() const {
+  return Smi::Value(raw_ptr()->host_offset_or_field_id_);
 }
 
 void Field::set_field_id(intptr_t field_id) const {
   ASSERT(is_static());
   ASSERT(Thread::Current()->IsMutatorThread());
-  StoreNonPointer(&raw_ptr()->host_offset_or_field_id_, field_id);
+  StoreSmi(&raw_ptr()->host_offset_or_field_id_, Smi::New(field_id));
 }
 
 #ifndef DART_PRECOMPILED_RUNTIME

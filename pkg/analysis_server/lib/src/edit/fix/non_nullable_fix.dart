@@ -12,6 +12,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
 import 'package:nnbd_migration/api_for_analysis_server/http_preview_server.dart';
 import 'package:nnbd_migration/api_for_analysis_server/instrumentation_listener.dart';
@@ -31,10 +32,12 @@ class NonNullableFix extends FixCodeTask {
 
   // TODO(srawlins): Refactor to use
   //  `Feature.non_nullable.firstSupportedVersion` when this becomes non-null.
-  static const String _intendedMinimumSdkVersion = '2.8.0';
+  static const String _intendedMinimumSdkVersion = '2.9.0';
 
   static const String _intendedSdkVersionConstraint =
-      '>=$_intendedMinimumSdkVersion <3.0.0';
+      '>=$_intendedMinimumSdkVersion <2.10.0';
+
+  static final List<HttpPreviewServer> _allServers = [];
 
   final int preferredPort;
 
@@ -104,6 +107,7 @@ class NonNullableFix extends FixCodeTask {
     if (enablePreview && _server == null) {
       _server = HttpPreviewServer(state, rerun, preferredPort);
       _server.serveHttp();
+      _allServers.add(_server);
       port = await _server.boundPort;
       authToken = await _server.authToken;
     }
@@ -193,7 +197,7 @@ environment:
         insertAfterParent(environmentOptions.span, content);
       } else if (sdk is YamlScalar) {
         var currentConstraint = VersionConstraint.parse(sdk.value);
-        var minimumVersion = Version.parse('2.8.0');
+        var minimumVersion = Version.parse(_intendedMinimumSdkVersion);
         if (currentConstraint is VersionRange &&
             currentConstraint.min >= minimumVersion) {
           // The current SDK version constraint already enables Null Safety.
@@ -261,6 +265,18 @@ environment:
 
   void shutdownServer() {
     _server?.close();
+  }
+
+  /// Allows unit tests to shut down any rogue servers that have been started,
+  /// so that unit testing can complete.
+  @visibleForTesting
+  static void shutdownAllServers() {
+    for (var server in _allServers) {
+      try {
+        server.close();
+      } catch (_) {}
+    }
+    _allServers.clear();
   }
 
   static void task(DartFixRegistrar registrar, DartFixListener listener,

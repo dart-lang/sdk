@@ -74,6 +74,25 @@ class A {
     ]);
   }
 
+  test_instanceVariableInitializer_nestedLocal() async {
+    // Test that (1) does not prevent reporting an error at (2).
+    await assertErrorsInCode(r'''
+class A {
+  Map foo = {
+    'a': () {
+      var v = 0; // (1)
+      v;
+    },
+    'b': _foo // (2)
+  };
+
+  void _foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 87, 4),
+    ]);
+  }
+
   test_invocation() async {
     await assertErrorsInCode(r'''
 class A {
@@ -94,28 +113,6 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 27, 1),
-    ]);
-  }
-
-  test_isInInstanceVariableInitializer_restored() async {
-    // If ErrorVerifier._isInInstanceVariableInitializer is not properly
-    // restored on exit from visitVariableDeclaration, the error at (1)
-    // won't be detected.
-    await assertErrorsInCode(r'''
-class Foo {
-  var bar;
-  Map foo = {
-    'bar': () {
-        var _bar;
-    },
-    'bop': _foo // (1)
-  };
-  _foo() {
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 4),
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 89, 4),
     ]);
   }
 

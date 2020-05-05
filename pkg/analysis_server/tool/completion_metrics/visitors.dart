@@ -47,9 +47,13 @@ class ExpectedCompletion {
 
   protocol.ElementKind get elementKind => _elementKind;
 
+  String get filePath => _filePath;
+
   protocol.CompletionSuggestionKind get kind => _kind;
 
   int get lineNumber => _lineNumber;
+
+  String get location => '$filePath:$lineNumber:$columnNumber';
 
   int get offset => _entity.offset;
 
@@ -74,7 +78,7 @@ class ExpectedCompletion {
 
   @override
   String toString() =>
-      "'$completion', kind = $kind, elementKind = $elementKind, $_filePath:$lineNumber:$columnNumber";
+      "'$completion', kind = $kind, elementKind = $elementKind, $location";
 }
 
 class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {

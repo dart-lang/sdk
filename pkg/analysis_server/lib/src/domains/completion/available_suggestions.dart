@@ -71,18 +71,24 @@ void computeIncludedSetList(
   }
 }
 
+protocol.CompletionAvailableSuggestionsParams
+    createCompletionAvailableSuggestions(
+  List<Library> changed,
+  List<int> removed,
+) =>
+        protocol.CompletionAvailableSuggestionsParams(
+          changedLibraries: changed.map((library) {
+            return _protocolAvailableSuggestionSet(library);
+          }).toList(),
+          removedLibraries: removed,
+        );
+
 /// Convert the [LibraryChange] into the corresponding protocol notification.
 protocol.Notification createCompletionAvailableSuggestionsNotification(
   List<Library> changed,
   List<int> removed,
-) {
-  return protocol.CompletionAvailableSuggestionsParams(
-    changedLibraries: changed.map((library) {
-      return _protocolAvailableSuggestionSet(library);
-    }).toList(),
-    removedLibraries: removed,
-  ).toNotification();
-}
+) =>
+    createCompletionAvailableSuggestions(changed, removed).toNotification();
 
 /// Compute existing imports and elements that they provide.
 protocol.Notification createExistingImportsNotification(

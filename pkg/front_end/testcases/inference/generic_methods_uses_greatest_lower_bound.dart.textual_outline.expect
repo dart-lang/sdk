@@ -1,0 +1,6 @@
+library test;
+
+typedef Iterable<num> F(int x);
+typedef List<int> G(double x);
+T generic<T>(a(T _), b(T _)) => null;
+main() {}

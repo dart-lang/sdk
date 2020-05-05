@@ -1,0 +1,6 @@
+library test;
+
+class C<T extends num> {}
+
+main() {}
+var x = new C<int>();

@@ -269,7 +269,7 @@ void main(List<String> args) async {
         function(sdk, app) {
     'use strict';
     if ($nnbd) {
-      sdk.dart.strictSubtypeChecks($isNnbdStrong);
+      sdk.dart.nullSafety($isNnbdStrong);
     }
     sdk._debugger.registerDevtoolsFormatter();
     app.$libname.main();
@@ -301,7 +301,7 @@ let sdk = require(\"dart_sdk\");
 let main = require(\"./$basename\").$libname.main;
 try {
   if ($nnbd) {
-    sdk.dart.strictSubtypeChecks($isNnbdStrong);
+    sdk.dart.nullSafety($isNnbdStrong);
   }
   sdk._isolate_helper.startRootIsolate(main, []);
 } catch(e) {
@@ -334,7 +334,7 @@ import { $libname } from '$basename.js';
 let main = $libname.main;
 try {
   if ($nnbd) {
-    dart.strictSubtypeChecks($isNnbdStrong);
+    dart.nullSafety($isNnbdStrong);
   }
   _isolate_helper.startRootIsolate(() => {}, []);
   main();

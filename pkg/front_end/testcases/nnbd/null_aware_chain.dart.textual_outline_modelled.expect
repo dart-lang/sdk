@@ -1,0 +1,8 @@
+class Class {
+  Class get getter1 => this;
+  Class([this.field]);
+  Class? field;
+  Class? get getter2 => field;
+}
+
+main() {}

@@ -356,6 +356,13 @@ class TypeSystemTypeOperations
   }
 
   @override
+  bool isLocalVariableWithoutDeclaredType(PromotableElement variable) {
+    return variable is LocalVariableElement &&
+        variable.hasImplicitType &&
+        variable.initializer == null;
+  }
+
+  @override
   bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
     return type1 == type2;
   }

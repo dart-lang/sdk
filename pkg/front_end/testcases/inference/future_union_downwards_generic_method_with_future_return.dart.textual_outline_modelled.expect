@@ -1,0 +1,8 @@
+library test;
+
+import 'dart:async';
+
+class A {}
+
+foo() async {}
+main() {}

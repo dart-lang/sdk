@@ -3755,6 +3755,15 @@ void Assembler::LoadElementAddressForRegIndex(Register address,
   }
 }
 
+void Assembler::LoadFieldAddressForRegOffset(Register address,
+                                             Register instance,
+                                             Register offset_in_words_as_smi) {
+  add(address, instance,
+      Operand(offset_in_words_as_smi, LSL,
+              target::kWordSizeLog2 - kSmiTagShift));
+  AddImmediate(address, -kHeapObjectTag);
+}
+
 void Assembler::LoadHalfWordUnaligned(Register dst,
                                       Register addr,
                                       Register tmp) {

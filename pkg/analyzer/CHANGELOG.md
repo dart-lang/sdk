@@ -1,6 +1,13 @@
-## 0.39.8-dev
+## 0.39.8
 * Deprecated `VariableElement.constantValue`, it does not guarantee that
   the value has been computed. Use `computeConstantValue()` instead.
+* Deprecated the following members of `AnalysisOptions`:
+  `analyzeFunctionBodiesPredicate`, `disableCacheFlushing`,
+  `enableLazyAssignmentOperators`, `generateImplicitErrors`,
+  `generateSdkErrors`, `patchPaths`, `preserveComments`,
+  `trackCacheDependencies`, and `resetToDefaults`.
+* Bug fixes: #35716, #37048, #40014, #40957, #41479, #41521, #41551, #41555,
+  #41557, #41593, #41603, #41630, #41632, #41645.
 
 ## 0.39.7
 * Added new error codes: ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING and

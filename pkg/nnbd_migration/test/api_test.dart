@@ -239,6 +239,32 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_argumentError_checkNotNull_implies_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  ArgumentError.checkNotNull(i);
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  ArgumentError.checkNotNull(i);
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_as_allows_null() async {
     var content = '''
 int f(Object o) => (o as int)?.gcd(1);
@@ -266,6 +292,36 @@ main() {
   List<int>? x = null;
 }
 ''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_assignment_to_promoted_var_can_undo_promotion() async {
+    var content = '''
+abstract class C {
+  void test() {
+    var x = f();
+    while (x != null) {
+      x = f();
+    }
+  }
+  int/*?*/ f();
+}
+''';
+    var expected = '''
+abstract class C {
+  void test() {
+    var x = f();
+    while (x != null) {
+      x = f();
+    }
+  }
+  int? f();
+}
+''';
+    // Prior to the fix for https://github.com/dart-lang/sdk/issues/41411,
+    // migration would consider the LHS of `x = f()` to have context type
+    // non-nullable `int`, so it would add a null check to the value returned
+    // from `f`.
     await _checkSingleFileChanges(content, expected);
   }
 
@@ -4671,6 +4727,35 @@ void g() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_quiver_checkNotNull_implies_non_null_intent() async {
+    addQuiverPackage();
+    var content = '''
+import 'package:quiver/check.dart';
+void f(int i) {
+  checkNotNull(i);
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+import 'package:quiver/check.dart';
+void f(int i) {
+  checkNotNull(i);
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_redirecting_constructor_factory() async {
     var content = '''
 class C {
@@ -4973,6 +5058,118 @@ void g({int? x}) {
 }
 void h() {
   f(null, g);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_testVariable_assignedNullableValue() async {
+    addTestCorePackage();
+    var content = '''
+import 'package:test/test.dart';
+void main() {
+  int i;
+  setUp(() {
+    i = null;
+  });
+  test('a', () {
+    i.isEven;
+  });
+}
+''';
+    var expected = '''
+import 'package:test/test.dart';
+void main() {
+  int? i;
+  setUp(() {
+    i = null;
+  });
+  test('a', () {
+    i!.isEven;
+  });
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_testVariable_downstreamAllNonNull() async {
+    addTestCorePackage();
+    var content = '''
+import 'package:test/test.dart';
+void main() {
+  int i;
+  setUp(() {
+    i = 1;
+  });
+  test('a', () {
+    i.isEven;
+  });
+}
+''';
+    var expected = '''
+import 'package:test/test.dart';
+void main() {
+  late int i;
+  setUp(() {
+    i = 1;
+  });
+  test('a', () {
+    i.isEven;
+  });
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_testVariable_hasInitializer() async {
+    addTestCorePackage();
+    var content = '''
+import 'package:test/test.dart';
+void main() {
+  int i = 1;
+  setUp(() {
+    i = 1;
+  });
+}
+''';
+    var expected = '''
+import 'package:test/test.dart';
+void main() {
+  int i = 1;
+  setUp(() {
+    i = 1;
+  });
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_testVariable_usedAsNullable() async {
+    addTestCorePackage();
+    var content = '''
+import 'package:test/test.dart';
+void main() {
+  int i;
+  setUp(() {
+    i = 1;
+  });
+  test('a', () {
+    f(i);
+  });
+  f(int /*?*/ i) {}
+}
+''';
+    var expected = '''
+import 'package:test/test.dart';
+void main() {
+  late int i;
+  setUp(() {
+    i = 1;
+  });
+  test('a', () {
+    f(i);
+  });
+  f(int? i) {}
 }
 ''';
     await _checkSingleFileChanges(content, expected);

@@ -1,0 +1,12 @@
+library test;
+
+abstract class A {}
+
+abstract class B {}
+
+class C {
+  A a;
+  void f(Object o) {}
+}
+
+main() {}

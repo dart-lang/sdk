@@ -1,0 +1,9 @@
+import 'dart:async';
+
+class C {
+  Future<List<int>> m() async => []..add(await _m());
+  Future<int> _m() async => 42;
+}
+
+main() async {}
+expect(expected, actual) {}

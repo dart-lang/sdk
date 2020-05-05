@@ -359,7 +359,8 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       _emitCode(Recipe.endOptionalGroup);
     }
 
-    void emitNamedGroup(List<String> names, List<DartType> types) {
+    void emitNamedGroup(
+        List<String> names, Set<String> requiredNames, List<DartType> types) {
       assert(names.length == types.length);
       first = true;
       _emitCode(Recipe.startNamedGroup);
@@ -368,17 +369,18 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
           _emitCode(Recipe.separator);
         }
         _emitStringUnescaped(names[i]);
-        _emitCode(Recipe.nameSeparator);
+        _emitCode(requiredNames.contains(names[i])
+            ? Recipe.requiredNameSeparator
+            : Recipe.nameSeparator);
         visit(types[i], _);
         first = false;
       }
       _emitCode(Recipe.endNamedGroup);
     }
 
-    // TODO(sra): These are optional named parameters. Handle required named
-    // parameters the same way when they are implemented.
     if (type.namedParameterTypes.isNotEmpty) {
-      emitNamedGroup(type.namedParameters, type.namedParameterTypes);
+      emitNamedGroup(type.namedParameters, type.requiredNamedParameters,
+          type.namedParameterTypes);
     }
 
     _emitCode(Recipe.endFunctionArguments);

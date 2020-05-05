@@ -3671,7 +3671,7 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
 
   // The VM does not like an instanceOf call with a dynamic type. We need to
   // special case this situation by detecting a top type.
-  if (type.IsTopType()) {
+  if (type.IsTopTypeForInstanceOf()) {
     // Evaluate the expression on the left but ignore its result.
     instructions += Drop();
 
@@ -3718,7 +3718,7 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
   Fragment instructions = BuildExpression();  // read operand.
 
   const AbstractType& type = T.BuildType();  // read type.
-  if (type.IsInstantiated() && type.IsTopTypeForAssignability()) {
+  if (type.IsInstantiated() && type.IsTopTypeForSubtyping()) {
     // We already evaluated the operand on the left and just leave it there as
     // the result of the `obj as dynamic` expression.
   } else {

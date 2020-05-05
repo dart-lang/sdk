@@ -86,7 +86,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     this.setInnerHtml(value);
   }
 
-  DocumentFragment createFragment(String svg,
+  DocumentFragment createFragment(String$NULLABLE svg,
       {NodeValidator$NULLABLE validator,
        NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 

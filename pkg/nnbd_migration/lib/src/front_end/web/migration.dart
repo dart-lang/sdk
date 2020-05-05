@@ -260,7 +260,7 @@ void handleError(String header, Object exception, Object stackTrace) {
   (popupPane.querySelector('a.bottom') as AnchorElement).href =
       getGithubUri(header, subheader, stackTrace).toString();
   popupPane..style.display = 'initial';
-  logError('handlePostLinkClick: $exception', stackTrace);
+  logError('$header: $exception', stackTrace);
 }
 
 void handleNavLinkClick(

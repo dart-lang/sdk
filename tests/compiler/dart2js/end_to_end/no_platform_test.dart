@@ -12,6 +12,7 @@ import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/target/targets.dart' hide DiagnosticReporter;
 import 'package:front_end/src/api_prototype/standard_file_system.dart' as fe;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+import '../helpers/memory_compiler.dart';
 
 main() {
   runTest(Map<fe.ExperimentalFlag, bool> experimentalFlags) async {
@@ -19,8 +20,7 @@ main() {
         fe.initializeCompiler(
             null,
             new Dart2jsTarget('dart2js', new TargetFlags()),
-            Uri.base
-                .resolve('sdk/lib/libraries.json'), // librariesSpecificationUri
+            sdkLibrariesSpecificationUri,
             [], // additionalDills
             Uri.base.resolve('.packages'), // packagesFileUri
             experimentalFlags: experimentalFlags,
@@ -37,7 +37,9 @@ main() {
   }
 
   asyncTest(() async {
-    await runTest(const {});
-    await runTest(const {fe.ExperimentalFlag.extensionMethods: true});
+    Map<fe.ExperimentalFlag, bool> baseFlags = {
+      fe.ExperimentalFlag.nonNullable: isDart2jsNnbd
+    };
+    await runTest(baseFlags);
   });
 }
