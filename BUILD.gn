@@ -55,12 +55,14 @@ group("runtime") {
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
     "runtime/vm:kernel_platform_files($host_toolchain)",
-
-    # TODO(bkonyi): this dep causes a segfault on Android XARM_X64 builds
-    # See issue #41776.
-    # "utils/dartdev:dartdev",
     "utils/kernel-service:kernel-service",
   ]
+
+  # TODO(bkonyi): this dep causes a segfault on Android XARM_X64 builds.
+  # See issue #41776.
+  if (dart_target_arch != "arm") {
+    deps += [ "utils/dartdev:dartdev" ]
+  }
 }
 
 group("runtime_kernel") {
