@@ -32,7 +32,7 @@ test1_1() async {
 test1_2() async {
   try {
     await test1_1();
-  } catch (e) {
+  } on int catch (e) {
     throw e + 1;
   }
 }
@@ -50,18 +50,18 @@ test2() async {
   var test2_1 = () async {
     try {
       throw 'a';
-    } catch (e) {
+    } on String catch (e) {
       throw e + 'b';
     }
   };
   try {
     try {
       await test2_1();
-    } catch (e) {
+    } on String catch (e) {
       var y = await bar(e + 'c');
       throw y;
     }
-  } catch (e) {
+  } on String catch (e) {
     x = e + 'd';
     return '?';
   } finally {

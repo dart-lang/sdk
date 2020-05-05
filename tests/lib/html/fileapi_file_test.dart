@@ -30,8 +30,7 @@ main() async {
       try {
         var fileObj = await fs.root.getFile('file2');
         fail("file found");
-      } catch (error) {
-        expect(true, error is DomException);
+      } on DomException catch (error) {
         expect(DomException.NOT_FOUND, error.name);
       }
     });
