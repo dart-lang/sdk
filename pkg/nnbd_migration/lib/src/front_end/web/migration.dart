@@ -533,7 +533,11 @@ void populateEditDetails([EditDetails response]) {
   var line = response.line;
   Element explanation = document.createElement('p');
   editPanel.append(explanation);
-  explanation.append(Text('$explanationMessage at $relPath:$line.'));
+  explanation
+    ..appendText('$explanationMessage at ')
+    ..append(AnchorElement(
+        href: pathWithQueryParameters(filePath, {'line': line.toString()}))
+      ..appendText('$relPath:$line.'));
   explanation.scrollIntoView();
   _populateEditTraces(response, editPanel, parentDirectory);
   _populateEditLinks(response, editPanel);
