@@ -2567,6 +2567,44 @@ int? test(C c) {
   Future<void> test_function_typed_field_formal_param() async {
     var content = '''
 class C {
+  void Function(int) f;
+  C(void this.f(int i));
+}
+main() {
+  C(null);
+}
+''';
+    var expected = '''
+class C {
+  void Function(int)? f;
+  C(void this.f(int i)?);
+}
+main() {
+  C(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_function_typed_field_formal_param_accepts_hint() async {
+    var content = '''
+class C {
+  void Function(int) f;
+  C(void this.f(int i) /*?*/);
+}
+''';
+    var expected = '''
+class C {
+  void Function(int)? f;
+  C(void this.f(int i)?);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_function_typed_field_formal_param_inner_types() async {
+    var content = '''
+class C {
   int Function(int) f;
   C(int this.f(int i));
 }
@@ -2590,7 +2628,33 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_function_typed_formal_param_accepts_hint() async {
+    var content = '''
+void f(g() /*?*/) {}
+''';
+    var expected = '''
+void f(g()?) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_function_typed_formal_param() async {
+    var content = '''
+void f(g()) {}
+void main() {
+  f(null);
+}
+''';
+    var expected = '''
+void f(g()?) {}
+void main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_function_typed_formal_param_inner_types() async {
     var content = '''
 int f(int callback(int i), int j) => callback(j);
 int g(int i) => i;
@@ -3887,6 +3951,20 @@ void f({String s}) {
     var expected = '''
 void f({required String s}) {
   assert(s != null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_named_parameter_add_required_function_typed() async {
+    var content = '''
+void f({void g(int i)}) {
+  assert(g != null);
+}
+''';
+    var expected = '''
+void f({required void g(int i)}) {
+  assert(g != null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

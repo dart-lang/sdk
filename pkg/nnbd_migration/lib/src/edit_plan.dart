@@ -424,7 +424,10 @@ class EditPlanner {
   /// made.
   NodeProducingEditPlan makeNullable(NodeProducingEditPlan innerPlan,
       {AtomicEditInfo info}) {
-    assert(innerPlan.sourceNode is TypeAnnotation);
+    var sourceNode = innerPlan.sourceNode;
+    assert(sourceNode is TypeAnnotation ||
+        sourceNode is FunctionTypedFormalParameter ||
+        (sourceNode is FieldFormalParameter && sourceNode.parameters != null));
     return surround(innerPlan, suffix: [AtomicEdit.insert('?', info: info)]);
   }
 

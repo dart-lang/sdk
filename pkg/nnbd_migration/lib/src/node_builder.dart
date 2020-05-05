@@ -493,23 +493,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           namedParameters: namedParameters);
     }
     _variables.recordDecoratedTypeAnnotation(source, node, decoratedType);
-    var hint = getPostfixHint(node.endToken);
-    if (hint != null) {
-      switch (hint.kind) {
-        case HintCommentKind.bang:
-          _graph.makeNonNullableUnion(decoratedType.node,
-              NullabilityCommentOrigin(source, node, false));
-          _variables.recordNullabilityHint(source, node, hint);
-          break;
-        case HintCommentKind.question:
-          _graph.makeNullableUnion(
-              decoratedType.node, NullabilityCommentOrigin(source, node, true));
-          _variables.recordNullabilityHint(source, node, hint);
-          break;
-        default:
-          break;
-      }
-    }
+    _handleNullabilityHint(node, decoratedType);
     return decoratedType;
   }
 
@@ -680,6 +664,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           returnType: decoratedReturnType,
           positionalParameters: positionalParameters,
           namedParameters: namedParameters);
+      _handleNullabilityHint(node, decoratedType);
     }
     _variables.recordDecoratedElementType(declaredElement, decoratedType);
     if (declaredElement.isNamed) {
@@ -688,6 +673,32 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _positionalParameters.add(decoratedType);
     }
     return decoratedType;
+  }
+
+  /// Nullability hints can be added to [TypeAnnotation]s,
+  /// [FunctionTypedFormalParameter]s, and function-typed
+  /// [FieldFormalParameter]s.
+  void _handleNullabilityHint(AstNode node, DecoratedType decoratedType) {
+    assert(node is TypeAnnotation ||
+        node is FunctionTypedFormalParameter ||
+        (node is FieldFormalParameter && node.parameters != null));
+    var hint = getPostfixHint(node.endToken);
+    if (hint != null) {
+      switch (hint.kind) {
+        case HintCommentKind.bang:
+          _graph.makeNonNullableUnion(decoratedType.node,
+              NullabilityCommentOrigin(source, node, false));
+          _variables.recordNullabilityHint(source, node, hint);
+          break;
+        case HintCommentKind.question:
+          _graph.makeNullableUnion(
+              decoratedType.node, NullabilityCommentOrigin(source, node, true));
+          _variables.recordNullabilityHint(source, node, hint);
+          break;
+        default:
+          break;
+      }
+    }
   }
 
   void _handleSupertypeClauses(

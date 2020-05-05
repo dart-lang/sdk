@@ -176,7 +176,10 @@ class Variables {
   /// If the given [node] is followed by a `/*?*/` or /*!*/ hint, returns the
   /// HintComment for it; otherwise returns `null`.  See
   /// [recordNullabilityHint].
-  HintComment getNullabilityHint(Source source, TypeAnnotation node) {
+  HintComment getNullabilityHint(Source source, AstNode node) {
+    assert(node is TypeAnnotation ||
+        node is FunctionTypedFormalParameter ||
+        (node is FieldFormalParameter && node.parameters != null));
     return (_nullabilityHints[source] ??
         {})[uniqueIdentifierForSpan(node.offset, node.end)];
   }
@@ -248,7 +251,10 @@ class Variables {
 
   /// Records that the given [node] was followed by a `/*?*/` or `/*!*/` hint.
   void recordNullabilityHint(
-      Source source, TypeAnnotation node, HintComment hintComment) {
+      Source source, AstNode node, HintComment hintComment) {
+    assert(node is TypeAnnotation ||
+        node is FunctionTypedFormalParameter ||
+        (node is FieldFormalParameter && node.parameters != null));
     (_nullabilityHints[source] ??=
         {})[uniqueIdentifierForSpan(node.offset, node.end)] = hintComment;
   }

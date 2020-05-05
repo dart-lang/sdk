@@ -2957,8 +2957,8 @@ mixin _AssignmentChecker {
   /// [destination].  [origin] should be used as the origin for any edges
   /// created.  [hard] indicates whether a hard edge should be created.
   /// [sourceIsFunctionLiteral] indicates whether the source of the assignment
-  /// is a function literal expression. [sourceIsSetupCall] indicates whether the
-  /// source of the assignment is a function literal passed to the test
+  /// is a function literal expression. [sourceIsSetupCall] indicates whether
+  /// the source of the assignment is a function literal passed to the test
   /// package's `setUp` function.
   void _checkAssignment(EdgeOrigin origin, FixReasonTarget edgeTarget,
       {@required DecoratedType source,

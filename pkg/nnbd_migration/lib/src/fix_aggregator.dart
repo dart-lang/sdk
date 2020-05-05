@@ -639,6 +639,20 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   }
 }
 
+/// Implementation of [NodeChange] specialized for operating on
+/// [FieldFormalParameter] nodes which are function-typed formal parameters.
+class NodeChangeForFieldFormalParameter
+    extends NodeChangeForType<FieldFormalParameter> {
+  NodeChangeForFieldFormalParameter() : super._();
+}
+
+/// Implementation of [NodeChange] specialized for operating on
+/// [FunctionTypedFormalParameter] nodes.
+class NodeChangeForFunctionTypedFormalParameter
+    extends NodeChangeForType<FunctionTypedFormalParameter> {
+  NodeChangeForFunctionTypedFormalParameter() : super._();
+}
+
 /// Implementation of [NodeChange] specialized for operating on [IfElement]
 /// nodes.
 class NodeChangeForIfElement extends NodeChange<IfElement>
@@ -803,9 +817,9 @@ class NodeChangeForSimpleFormalParameter
   }
 }
 
-/// Implementation of [NodeChange] specialized for operating on [TypeAnnotation]
-/// nodes.
-class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
+/// Implementation of [NodeChange] specialized for operating on nodes which
+/// represent a type, and can be made and hinted nullable and non-nullable.
+abstract class NodeChangeForType<N extends AstNode> extends NodeChange<N> {
   bool _makeNullable = false;
 
   HintComment _nullabilityHint;
@@ -813,11 +827,11 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
   /// The decorated type of the type annotation, or `null` if there is no
   /// decorated type info of interest.  If [makeNullable] is `true`, the node
   /// from this type will be attached to the edit that adds the `?`. If
-  /// [_makeNullable] is `false`, the node from this type will be attached to the
-  /// information about why the node wasn't made nullable.
+  /// [_makeNullable] is `false`, the node from this type will be attached to
+  /// the information about why the node wasn't made nullable.
   DecoratedType _decoratedType;
 
-  NodeChangeForTypeAnnotation() : super._();
+  NodeChangeForType._() : super._();
 
   @override
   bool get isInformative => !_makeNullable;
@@ -843,7 +857,7 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
   }
 
   @override
-  EditPlan _apply(TypeAnnotation node, FixAggregator aggregator) {
+  EditPlan _apply(N node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
     if (_decoratedType == null) return innerPlan;
     var typeName = _decoratedType.type.getDisplayString(withNullability: false);
@@ -880,6 +894,12 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
       }
     }
   }
+}
+
+/// Implementation of [NodeChange] specialized for operating on [TypeAnnotation]
+/// nodes.
+class NodeChangeForTypeAnnotation extends NodeChangeForType<TypeAnnotation> {
+  NodeChangeForTypeAnnotation() : super._();
 }
 
 /// Implementation of [NodeChange] specialized for operating on
@@ -977,6 +997,15 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
 
   @override
   NodeChange visitExpression(Expression node) => NodeChangeForExpression();
+
+  @override
+  NodeChange visitFieldFormalParameter(FieldFormalParameter node) =>
+      NodeChangeForFieldFormalParameter();
+
+  @override
+  NodeChange visitFunctionTypedFormalParameter(
+          FunctionTypedFormalParameter node) =>
+      NodeChangeForFunctionTypedFormalParameter();
 
   @override
   NodeChange visitGenericFunctionType(GenericFunctionType node) =>
