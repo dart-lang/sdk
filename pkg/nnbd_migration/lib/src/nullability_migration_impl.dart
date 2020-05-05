@@ -136,6 +136,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   void finish() {
     _postmortemFileWriter?.write();
+    _instrumentation?.finished();
   }
 
   void prepareInput(ResolvedUnitResult result) {

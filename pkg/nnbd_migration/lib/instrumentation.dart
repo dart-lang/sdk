@@ -339,6 +339,9 @@ abstract class NullabilityMigrationInstrumentation {
   /// Clear any data from the propagation step in preparation for that step
   /// being re-run.
   void prepareForUpdate();
+
+  /// Called when the migration process is finished.
+  void finished();
 }
 
 /// Information exposed to the migration client about a single node in the

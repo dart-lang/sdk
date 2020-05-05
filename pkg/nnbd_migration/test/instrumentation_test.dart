@@ -102,6 +102,9 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   void prepareForUpdate() {
     test.changes = null;
   }
+
+  @override
+  void finished() {}
 }
 
 @reflectiveTest

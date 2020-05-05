@@ -44,6 +44,7 @@ class CommandLineOptions {
   static const ignoreErrorsFlag = 'ignore-errors';
   static const previewPortOption = 'preview-port';
   static const sdkPathOption = 'sdk-path';
+  static const summaryOption = 'summary';
   static const verboseFlag = 'verbose';
   static const webPreviewFlag = 'web-preview';
 
@@ -57,6 +58,8 @@ class CommandLineOptions {
 
   final String sdkPath;
 
+  final String summary;
+
   final bool webPreview;
 
   CommandLineOptions(
@@ -65,6 +68,7 @@ class CommandLineOptions {
       @required this.ignoreErrors,
       @required this.previewPort,
       @required this.sdkPath,
+      @required this.summary,
       @required this.webPreview});
 }
 
@@ -169,6 +173,7 @@ class MigrationCli {
           sdkPath: argResults[CommandLineOptions.sdkPathOption] as String ??
               defaultSdkPathOverride ??
               getSdkPath(),
+          summary: argResults[CommandLineOptions.summaryOption] as String,
           webPreview: webPreview);
       if (isVerbose) {
         logger = loggerFactory(true);
@@ -213,10 +218,11 @@ class MigrationCli {
       var fixCodeProcessor = _FixCodeProcessor(context, this);
       dartFixListener = _DartFixListener(
           _DriverProvider(resourceProvider, context.currentSession));
-      nonNullableFix = NonNullableFix(dartFixListener,
+      nonNullableFix = NonNullableFix(dartFixListener, resourceProvider,
           included: [options.directory],
           preferredPort: options.previewPort,
-          enablePreview: options.webPreview);
+          enablePreview: options.webPreview,
+          summaryPath: options.summary);
       fixCodeProcessor.registerCodeTask(nonNullableFix);
       try {
         await fixCodeProcessor.runFirstPhase();
@@ -383,6 +389,9 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
             'dynamically allocate a port.');
     parser.addOption(CommandLineOptions.sdkPathOption,
         help: 'The path to the Dart SDK.', hide: hide);
+    parser.addOption(CommandLineOptions.summaryOption,
+        help:
+            'Output path for a machine-readable summary of migration changes');
     parser.addFlag(CommandLineOptions.verboseFlag,
         abbr: 'v',
         defaultsTo: false,

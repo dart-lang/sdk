@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
@@ -334,6 +335,31 @@ int? f() => null
     });
   }
 
+  test_lifecycle_summary() async {
+    var projectContents = simpleProject();
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    var summaryPath = resourceProvider.convertPath('/summary.json');
+    await cli.run(['--no-web-preview', '--summary', summaryPath, projectDir]);
+    var summaryData =
+        jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
+    expect(summaryData, TypeMatcher<Map>());
+    expect(summaryData, contains('changes'));
+  }
+
+  test_lifecycle_summary_does_not_double_count_hint_removals() async {
+    var projectContents = simpleProject(sourceText: 'int/*?*/ x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    var summaryPath = resourceProvider.convertPath('/summary.json');
+    await cli.run(['--no-web-preview', '--summary', summaryPath, projectDir]);
+    var summaryData =
+        jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
+    var separator = resourceProvider.pathContext.separator;
+    expect(summaryData['changes']['byPath']['lib${separator}test.dart'],
+        {'makeTypeNullableDueToHint': 1});
+  }
+
   test_lifecycle_uri_error() async {
     var projectContents = simpleProject(sourceText: '''
 import 'package:does_not/exist.dart';
@@ -400,6 +426,12 @@ int f() => null;
     var optionName = '--sdk-path';
     expect(await _getHelpText(verbose: false), isNot(contains(optionName)));
     expect(await _getHelpText(verbose: true), contains(optionName));
+  }
+
+  test_option_summary() {
+    var summaryPath = resourceProvider.convertPath('/summary.json');
+    expect(assertParseArgsSuccess(['--summary', summaryPath]).summary,
+        summaryPath);
   }
 
   test_option_unrecognized() async {

@@ -18,6 +18,7 @@ import 'package:nnbd_migration/api_for_analysis_server/http_preview_server.dart'
 import 'package:nnbd_migration/api_for_analysis_server/instrumentation_listener.dart';
 import 'package:nnbd_migration/api_for_analysis_server/migration_state.dart';
 import 'package:nnbd_migration/api_for_analysis_server/nnbd_migration.dart';
+import 'package:nnbd_migration/src/front_end/migration_summary.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
@@ -53,6 +54,12 @@ class NonNullableFix extends FixCodeTask {
   /// Indicates whether the web preview of migration results should be launched.
   final bool enablePreview;
 
+  /// If non-null, the path to which a machine-readable summary of migration
+  /// results should be written.
+  final String summaryPath;
+
+  final ResourceProvider resourceProvider;
+
   /// The HTTP server that serves the preview tool.
   HttpPreviewServer _server;
 
@@ -78,10 +85,11 @@ class NonNullableFix extends FixCodeTask {
   /// A list of the URLs corresponding to the included roots.
   List<String> previewUrls;
 
-  NonNullableFix(this.listener,
+  NonNullableFix(this.listener, this.resourceProvider,
       {List<String> included = const [],
       this.preferredPort,
-      this.enablePreview = true})
+      this.enablePreview = true,
+      this.summaryPath})
       : includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
     reset();
@@ -92,6 +100,7 @@ class NonNullableFix extends FixCodeTask {
 
   @override
   Future<void> finish() async {
+    migration.finish();
     final state = MigrationState(
         migration, includedRoot, listener, instrumentationListener);
     await state.refresh();
@@ -258,7 +267,10 @@ environment:
   }
 
   void reset() {
-    instrumentationListener = InstrumentationListener();
+    instrumentationListener = InstrumentationListener(
+        migrationSummary: summaryPath == null
+            ? null
+            : MigrationSummary(summaryPath, resourceProvider, includedRoot));
     adapter = NullabilityMigrationAdapter(listener);
     migration = NullabilityMigration(adapter,
         permissive: _usePermissiveMode,
@@ -283,7 +295,8 @@ environment:
 
   static void task(DartFixRegistrar registrar, DartFixListener listener,
       EditDartfixParams params) {
-    registrar.registerCodeTask(NonNullableFix(listener,
+    registrar.registerCodeTask(NonNullableFix(
+        listener, listener.resourceProvider,
         included: params.included, preferredPort: params.port));
   }
 
