@@ -30,7 +30,7 @@ class DartdevRunner<int> extends CommandRunner {
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CreateCommand(verbose: verbose));
     addCommand(FormatCommand(verbose: verbose));
-    addCommand(MigrateCommand(logProvider: () => log, hidden: !verbose));
+    addCommand(MigrateCommand(logProvider: () => log));
     addCommand(PubCommand(verbose: verbose));
     addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand(verbose: verbose));

@@ -57,7 +57,8 @@ class MigrateCommand extends Command {
 
   @override
   String get description =>
-      'Perform a null safety migration on a project or package.';
+      'Perform a null safety migration on a project or package. The migrate '
+      'feature is in preview, and not yet complete. We welcome feedback.';
 
   @override
   String get invocation {

@@ -54,7 +54,7 @@ void help() {
     expect(result.stdout, contains('analyze '));
     expect(result.stdout, contains('create '));
     expect(result.stdout, contains('format '));
-    expect(result.stdout, isNot(contains('migrate ')));
+    expect(result.stdout, contains('migrate '));
   });
 
   test('--help --verbose', () {
