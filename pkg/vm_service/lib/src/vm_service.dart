@@ -1103,7 +1103,7 @@ abstract class VmServiceInterface {
   /// -------- | -----------
   /// VM | VMUpdate, VMFlagUpdate
   /// Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate,
-  /// IsolateReload, IsolateSpawn, ServiceExtensionAdded
+  /// IsolateReload, ServiceExtensionAdded
   /// Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted,
   /// PauseException, PausePostRequest, Resume, BreakpointAdded,
   /// BreakpointResolved, BreakpointRemoved, Inspect, None
@@ -1600,7 +1600,7 @@ class VmService implements VmServiceInterface {
   // VMUpdate, VMFlagUpdate
   Stream<Event> get onVMEvent => _getEventController('VM').stream;
 
-  // IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, IsolateSpawn, ServiceExtensionAdded
+  // IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, ServiceExtensionAdded
   Stream<Event> get onIsolateEvent => _getEventController('Isolate').stream;
 
   // PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
@@ -3587,7 +3587,6 @@ class Event extends Response {
   /// The status (success or failure) related to the event. This is provided for
   /// the event kinds:
   ///  - IsolateReloaded
-  ///  - IsolateSpawn
   @optional
   String status;
 
