@@ -168,6 +168,9 @@ import 'import_duplicated_library_named_test.dart'
 import 'import_of_non_library_test.dart' as import_of_non_library;
 import 'inconsistent_case_expression_types_test.dart'
     as inconsistent_case_expression_types;
+import 'inconsistent_inheritance_getter_and_method_test.dart'
+    as inconsistent_inheritance_getter_and_method;
+import 'inconsistent_inheritance_test.dart' as inconsistent_inheritance;
 import 'inference_failure_on_collection_literal_test.dart'
     as inference_failure_on_collection_literal;
 import 'inference_failure_on_function_return_type_test.dart'
@@ -619,6 +622,8 @@ main() {
     import_deferred_library_with_load_function.main();
     import_duplicated_library_named.main();
     inconsistent_case_expression_types.main();
+    inconsistent_inheritance_getter_and_method.main();
+    inconsistent_inheritance.main();
     import_of_non_library.main();
     inference_failure_on_collection_literal.main();
     inference_failure_on_function_return_type.main();
