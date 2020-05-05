@@ -1038,7 +1038,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   }
   if (I->null_safety() && (mode == NNBDCompiledMode::kWeak ||
                            mode == NNBDCompiledMode::kDisabled)) {
-    H.ReportError(
+    FATAL1(
         "Library '%s' was compiled without null safety (in weak mode) and it "
         "cannot be used with --null-safety at runtime",
         String::Handle(library.url()).ToCString());
