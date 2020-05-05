@@ -55,6 +55,7 @@ group("runtime") {
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
     "runtime/vm:kernel_platform_files($host_toolchain)",
+    "utils/dartdev:dartdev",
     "utils/kernel-service:kernel-service",
   ]
 }
