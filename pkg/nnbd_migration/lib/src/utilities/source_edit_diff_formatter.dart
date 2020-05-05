@@ -350,9 +350,3 @@ class _TraditionalOutput extends _Output {
     _lineNum += count;
   }
 }
-
-/// Workaround for the fact that the Ansi class doesn't support `reversed`.
-/// TODO(paulberry): update package:cli_util and eliminate this.
-extension AnsiReversed on Ansi {
-  String get reversed => useAnsi ? '\u001b[7m' : '';
-}
