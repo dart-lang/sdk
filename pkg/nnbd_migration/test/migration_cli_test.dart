@@ -302,12 +302,15 @@ int? f() => null
     var cli = _createCli();
     await cli.run(['--no-web-preview', projectDir]);
     // Check that a summary was printed
-    expect(logger.stdoutBuffer.toString(), contains('Summary'));
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('Summary'));
     // And that it refers to test.dart and pubspec.yaml
-    expect(logger.stdoutBuffer.toString(), contains('test.dart'));
-    expect(logger.stdoutBuffer.toString(), contains('pubspec.yaml'));
+    expect(output, contains('test.dart'));
+    expect(output, contains('pubspec.yaml'));
+    // And that it contains text from a changed line
+    expect(output, contains('f() => null'));
     // And that it tells the user they can rerun with `--apply-changes`
-    expect(logger.stdoutBuffer.toString(), contains('--apply-changes'));
+    expect(output, contains('--apply-changes'));
     // No changes should have been made
     assertProjectContents(projectDir, projectContents);
   }

@@ -25,6 +25,8 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
 import 'package:nnbd_migration/api_for_analysis_server/driver_provider.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/utilities/source_edit_diff_formatter.dart';
 import 'package:path/path.dart' show Context;
 
 String _pluralize(int count, String single, {String multiple}) {
@@ -416,10 +418,12 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
     }
 
     // present a diff-like view
+    var diffStyle = DiffStyle(logger.ansi);
     for (SourceFileEdit sourceFileEdit in migrationResults.sourceChange.edits) {
       String file = sourceFileEdit.file;
       String relPath = pathContext.relative(file, from: options.directory);
-      int count = sourceFileEdit.edits.length;
+      var edits = sourceFileEdit.edits;
+      int count = edits.length;
 
       logger.stdout('');
       logger.stdout('${ansi.emphasized(relPath)} '
@@ -433,8 +437,10 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
       if (source == null) {
         logger.stdout('  (unable to retrieve source for file)');
       } else {
-        // TODO(paulberry): implement this
-        logger.stdout('  (diff view not yet functional)');
+        for (var line
+            in diffStyle.formatDiff(source, _sourceEditsToAtomicEdits(edits))) {
+          logger.stdout('  $line');
+        }
       }
     }
   }
@@ -497,6 +503,14 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
     } else {
       return Logger.standard(ansi: ansi);
     }
+  }
+
+  static Map<int, List<AtomicEdit>> _sourceEditsToAtomicEdits(
+      List<SourceEdit> edits) {
+    return {
+      for (var edit in edits)
+        edit.offset: [AtomicEdit.replace(edit.length, edit.replacement)]
+    };
   }
 }
 
