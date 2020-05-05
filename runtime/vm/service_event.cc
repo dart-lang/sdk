@@ -69,8 +69,6 @@ const char* ServiceEvent::KindAsCString() const {
       return "ServiceExtensionAdded";
     case kIsolateReload:
       return "IsolateReload";
-    case kIsolateSpawn:
-      return "IsolateSpawn";
     case kPauseStart:
       return "PauseStart";
     case kPauseExit:
@@ -126,7 +124,6 @@ const StreamInfo* ServiceEvent::stream_info() const {
     case kIsolateExit:
     case kIsolateUpdate:
     case kIsolateReload:
-    case kIsolateSpawn:
     case kServiceExtensionAdded:
       return &Service::isolate_stream;
 
@@ -193,16 +190,6 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     } else {
       jsobj.AddProperty("status", "failure");
       jsobj.AddProperty("reloadError", *(reload_error()));
-    }
-  }
-  if (kind() == kIsolateSpawn) {
-    ASSERT(spawn_token() != NULL);
-    jsobj.AddPropertyStr("spawnToken", *(spawn_token()));
-    if (spawn_error_ == NULL) {
-      jsobj.AddProperty("status", "success");
-    } else {
-      jsobj.AddProperty("status", "failure");
-      jsobj.AddPropertyStr("spawnError", *(spawn_error()));
     }
   }
   if (kind() == kServiceExtensionAdded) {
