@@ -139,7 +139,7 @@ vars = {
   "stack_trace_tag": "1.9.3",
   "stagehand_tag": "v3.3.7",
   "stream_channel_tag": "2.0.0",
-  "string_scanner_tag": "1.0.3",
+  "string_scanner_tag": "a918e7371af6b6e73bfd534ff9da6084741c1f99",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "b3da31e9684a99cfe5f192b89914492018b44da7",
