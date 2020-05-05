@@ -1273,9 +1273,7 @@ class TypeInferrerImpl implements TypeInferrer {
           new InstrumentationValueForMember(target.member));
     }
 
-    if (target.isUnresolved &&
-        receiverBound is! DynamicType &&
-        includeExtensionMethods) {
+    if (target.isMissing && includeExtensionMethods) {
       if (isReceiverTypePotentiallyNullable) {
         // When the receiver type is potentially nullable we would have found
         // the extension member above, if available. Therefore we know that we
@@ -1342,7 +1340,6 @@ class TypeInferrerImpl implements TypeInferrer {
         return receiverType;
       case ObjectAccessTargetKind.invalid:
         return const InvalidType();
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.missing:
       case ObjectAccessTargetKind.ambiguous:
@@ -1450,7 +1447,6 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
         return _getFunctionType(receiverType);
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.invalid:
@@ -1527,7 +1523,6 @@ class TypeInferrerImpl implements TypeInferrer {
         return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.missing:
       case ObjectAccessTargetKind.ambiguous:
@@ -1566,7 +1561,6 @@ class TypeInferrerImpl implements TypeInferrer {
         return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.missing:
@@ -1630,7 +1624,6 @@ class TypeInferrerImpl implements TypeInferrer {
         return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.missing:
@@ -1691,7 +1684,6 @@ class TypeInferrerImpl implements TypeInferrer {
         return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.missing:
@@ -1746,7 +1738,6 @@ class TypeInferrerImpl implements TypeInferrer {
 
   DartType getSetterType(ObjectAccessTarget target, DartType receiverType) {
     switch (target.kind) {
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.missing:
@@ -2854,13 +2845,13 @@ class TypeInferrerImpl implements TypeInferrer {
       FunctionNode signature = method.function;
       if (arguments.positional.length < signature.requiredParameterCount ||
           arguments.positional.length > signature.positionalParameters.length) {
-        target = const ObjectAccessTarget.unresolved();
+        target = const ObjectAccessTarget.dynamic();
         method = null;
       }
       for (NamedExpression argument in arguments.named) {
         if (!signature.namedParameters
             .any((declaration) => declaration.name == argument.name)) {
-          target = const ObjectAccessTarget.unresolved();
+          target = const ObjectAccessTarget.dynamic();
           method = null;
         }
       }
@@ -2954,13 +2945,13 @@ class TypeInferrerImpl implements TypeInferrer {
       FunctionNode signature = getter.function;
       if (arguments.positional.length < signature.requiredParameterCount ||
           arguments.positional.length > signature.positionalParameters.length) {
-        target = const ObjectAccessTarget.unresolved();
+        target = const ObjectAccessTarget.dynamic();
         getter = null;
       }
       for (NamedExpression argument in arguments.named) {
         if (!signature.namedParameters
             .any((declaration) => declaration.name == argument.name)) {
-          target = const ObjectAccessTarget.unresolved();
+          target = const ObjectAccessTarget.dynamic();
           getter = null;
         }
       }
@@ -3276,7 +3267,6 @@ class TypeInferrerImpl implements TypeInferrer {
             implicitInvocationPropertyName: implicitInvocationPropertyName);
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.invalid:
-      case ObjectAccessTargetKind.unresolved:
         return _inferDynamicInvocation(fileOffset, nullAwareGuards, receiver,
             name, arguments, typeContext, hoistedExpressions,
             isImplicitCall: isExpressionInvocation || isImplicitCall);
@@ -3346,6 +3336,7 @@ class TypeInferrerImpl implements TypeInferrer {
       SuperMethodInvocation expression,
       DartType typeContext,
       ObjectAccessTarget target) {
+    assert(target.isInstanceMember || target.isMissing);
     int fileOffset = expression.fileOffset;
     Name methodName = expression.name;
     Arguments arguments = expression.arguments;
@@ -3392,6 +3383,7 @@ class TypeInferrerImpl implements TypeInferrer {
   /// Performs the core type inference algorithm for super property get.
   ExpressionInferenceResult inferSuperPropertyGet(SuperPropertyGet expression,
       DartType typeContext, ObjectAccessTarget readTarget) {
+    assert(readTarget.isInstanceMember || readTarget.isMissing);
     DartType receiverType = thisType;
     DartType inferredType = getGetterType(readTarget, receiverType);
     if (readTarget.isInstanceMember) {
@@ -4261,9 +4253,6 @@ enum ObjectAccessTargetKind {
   /// An access to multiple extension members, none of which are most specific.
   /// This is an erroneous case and a compile-time error is reported.
   ambiguous,
-
-  // TODO(johnniwinther): Remove this.
-  unresolved,
 }
 
 /// Result for performing an access on an object, like `o.foo`, `o.foo()` and
@@ -4304,10 +4293,6 @@ class ObjectAccessTarget {
   const ObjectAccessTarget.nullableCallFunction()
       : this.internal(ObjectAccessTargetKind.nullableCallFunction, null);
 
-  /// Creates an access with no known target.
-  const ObjectAccessTarget.unresolved()
-      : this.internal(ObjectAccessTargetKind.unresolved, null);
-
   /// Creates an access on a dynamic receiver type with no known target.
   const ObjectAccessTarget.dynamic()
       : this.internal(ObjectAccessTargetKind.dynamic, null);
@@ -4341,13 +4326,6 @@ class ObjectAccessTarget {
   /// nullable function.
   bool get isNullableCallFunction =>
       kind == ObjectAccessTargetKind.nullableCallFunction;
-
-  /// Returns `true` if this is an access without a known target.
-  bool get isUnresolved =>
-      kind == ObjectAccessTargetKind.unresolved ||
-      isDynamic ||
-      isInvalid ||
-      isMissing;
 
   /// Returns `true` if this is an access on a dynamic receiver type.
   bool get isDynamic => kind == ObjectAccessTargetKind.dynamic;
