@@ -61,8 +61,7 @@ void main() {
 
     final reportProblemButton = document.querySelector('.report-problem');
     reportProblemButton.onClick.listen((_) {
-      window.open('https://goo.gle/dart-null-safety-migration-tool-issue',
-          'report-problem');
+      window.open(getGitHubProblemUri().toString(), 'report-problem');
     });
 
     document.querySelector('.popup-pane .close').onClick.listen(
@@ -105,6 +104,8 @@ final Element headerPanel = document.querySelector('header');
 final Element unitName = document.querySelector('#unit-name');
 
 String get rootPath => querySelector('.root').text.trim();
+
+String get sdkVersion => document.getElementById('sdk-version').text;
 
 void addArrowClickHandler(Element arrow) {
   var childList = (arrow.parentNode as Element).querySelector(':scope > ul');
@@ -187,7 +188,11 @@ Future<Map<String, Object>> doPost(String path) async {
   }
 }
 
-Uri getGithubUri(String description, Object exception, Object stackTrace) =>
+/// Returns the URL of the "new issue" form for the SDK repository,
+/// pre-populating the title, some labels, using [description], [exception], and
+/// [stackTrace] in the body.
+Uri getGitHubErrorUri(
+        String description, Object exception, Object stackTrace) =>
     Uri.https('github.com', 'dart-lang/sdk/issues/new', {
       'title': 'Issue with NNBD migration tool: $description',
       'labels': 'area-analyzer,analyzer-nnbd-migration,type-bug',
@@ -202,7 +207,7 @@ Please fill in the following:
 **What I was doing when this issue occurred**:
 **Is it possible to work around this issue**:
 **Has this issue happened before, and if so, how often**:
-**Dart SDK version**: (visible in lower left of migration preview)
+**Dart SDK version**: $sdkVersion
 **Additional details**:
 
 Thanks for filing!
@@ -212,6 +217,26 @@ Stacktrace: _auto populated by migration preview tool._
 ```
 $stackTrace
 ```
+''',
+    });
+
+/// Returns the URL of the "new issue" form for the SDK repository,
+/// pre-populating some labels and a body template.
+Uri getGitHubProblemUri() =>
+    Uri.https('github.com', 'dart-lang/sdk/issues/new', {
+      'labels': 'area-analyzer,analyzer-nnbd-migration,type-bug',
+      'body': '''
+#### Steps to reproduce
+
+#### What did you expect to happen?
+
+#### What actually happened?
+
+_Screenshots are appreciated_
+
+**Dart SDK version**: $sdkVersion
+
+Thanks for filing!
 ''',
     });
 
@@ -258,7 +283,7 @@ void handleError(String header, Object exception, Object stackTrace) {
   popupPane.querySelector('p').innerText = subheader;
   popupPane.querySelector('pre').innerText = stackTrace.toString();
   (popupPane.querySelector('a.bottom') as AnchorElement).href =
-      getGithubUri(header, subheader, stackTrace).toString();
+      getGitHubErrorUri(header, subheader, stackTrace).toString();
   popupPane..style.display = 'initial';
   logError('$header: $exception', stackTrace);
 }
