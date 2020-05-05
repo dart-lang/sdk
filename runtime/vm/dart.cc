@@ -559,6 +559,7 @@ char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
                  UptimeMillis());
   }
+  thread_pool_->Shutdown();
   delete thread_pool_;
   thread_pool_ = NULL;
 

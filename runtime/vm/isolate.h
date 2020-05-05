@@ -33,6 +33,7 @@
 #include "vm/random.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
+#include "vm/thread_pool.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/token_position.h"
 #include "vm/virtual_memory.h"
@@ -272,6 +273,21 @@ class DisableIdleTimerScope : public ValueObject {
 
  private:
   IdleTimeHandler* handler_;
+};
+
+class MutatorThreadPool : public ThreadPool {
+ public:
+  MutatorThreadPool(IsolateGroup* isolate_group, intptr_t max_pool_size)
+      : ThreadPool(max_pool_size), isolate_group_(isolate_group) {}
+  virtual ~MutatorThreadPool() {}
+
+ protected:
+  virtual void OnEnterIdleLocked(MonitorLocker* ml);
+
+ private:
+  void NotifyIdle();
+
+  IsolateGroup* isolate_group_ = nullptr;
 };
 
 // Represents an isolate group and is shared among all isolates within a group.
@@ -515,6 +531,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     reverse_pc_lookup_cache_ = table;
   }
 
+  MutatorThreadPool* thread_pool() { return thread_pool_.get(); }
+
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
@@ -548,6 +566,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   bool is_vm_isolate_heap_ = false;
   void* embedder_data_ = nullptr;
 
+  IdleTimeHandler idle_time_handler_;
+  std::unique_ptr<MutatorThreadPool> thread_pool_;
   std::unique_ptr<SafepointRwLock> isolates_lock_;
   IntrusiveDList<Isolate> isolates_;
   intptr_t isolate_count_ = 0;
@@ -598,7 +618,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
   ArrayPtr saved_unlinked_calls_;
 
-  IdleTimeHandler idle_time_handler_;
   uint32_t isolate_group_flags_ = 0;
 };
 
@@ -1590,6 +1609,26 @@ class StartIsolateScope {
   Isolate* saved_isolate_;
 
   DISALLOW_COPY_AND_ASSIGN(StartIsolateScope);
+};
+
+class EnterIsolateGroupScope {
+ public:
+  explicit EnterIsolateGroupScope(IsolateGroup* isolate_group)
+      : isolate_group_(isolate_group) {
+    ASSERT(IsolateGroup::Current() == nullptr);
+    const bool result = Thread::EnterIsolateGroupAsHelper(
+        isolate_group_, Thread::kUnknownTask, /*bypass_safepoint=*/false);
+    ASSERT(result);
+  }
+
+  ~EnterIsolateGroupScope() {
+    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
+  }
+
+ private:
+  IsolateGroup* isolate_group_;
+
+  DISALLOW_COPY_AND_ASSIGN(EnterIsolateGroupScope);
 };
 
 class IsolateSpawnState {

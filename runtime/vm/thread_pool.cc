@@ -34,10 +34,28 @@ static int64_t ComputeTimeout(int64_t idle_start) {
   }
 }
 
-ThreadPool::ThreadPool() : all_workers_dead_(false) {}
+ThreadPool::ThreadPool(uintptr_t max_pool_size)
+    : all_workers_dead_(false), max_pool_size_(max_pool_size) {}
 
 ThreadPool::~ThreadPool() {
-  TriggerShutdown();
+  Shutdown();
+}
+
+void ThreadPool::Shutdown() {
+  {
+    MonitorLocker ml(&pool_monitor_);
+
+    // Prevent scheduling of new tasks.
+    shutting_down_ = true;
+
+    if (running_workers_.IsEmpty() && idle_workers_.IsEmpty()) {
+      // All workers have already died.
+      all_workers_dead_ = true;
+    } else {
+      // Tell workers to drain remaining work and then shut down.
+      ml.NotifyAll();
+    }
+  }
 
   // Wait until all workers are dead. Any new death will notify the exit
   // monitor.
@@ -47,14 +65,20 @@ ThreadPool::~ThreadPool() {
       eml.Wait();
     }
   }
+  ASSERT(count_idle_ == 0);
+  ASSERT(count_running_ == 0);
+  ASSERT(idle_workers_.IsEmpty());
+  ASSERT(running_workers_.IsEmpty());
 
-  // Join all dead workers.
   WorkerList dead_workers_to_join;
   {
     MonitorLocker ml(&pool_monitor_);
     ObtainDeadWorkersLocked(&dead_workers_to_join);
   }
   JoinDeadWorkersLocked(&dead_workers_to_join);
+
+  ASSERT(count_dead_ == 0);
+  ASSERT(dead_workers_.IsEmpty());
 }
 
 bool ThreadPool::RunImpl(std::unique_ptr<Task> task) {
@@ -91,6 +115,14 @@ void ThreadPool::WorkerLoop(Worker* worker) {
       RunningToIdleLocked(worker);
     }
 
+    if (running_workers_.IsEmpty()) {
+      ASSERT(tasks_.IsEmpty());
+      OnEnterIdleLocked(&ml);
+      if (!tasks_.IsEmpty()) {
+        continue;
+      }
+    }
+
     if (shutting_down_) {
       ObtainDeadWorkersLocked(&dead_workers_to_join);
       IdleToDeadLocked(worker);
@@ -123,21 +155,6 @@ void ThreadPool::WorkerLoop(Worker* worker) {
   // previously died workers, we keep the pending non-joined [dead_workers_] to
   // effectively 1.
   JoinDeadWorkersLocked(&dead_workers_to_join);
-}
-
-void ThreadPool::TriggerShutdown() {
-  MonitorLocker ml(&pool_monitor_);
-
-  // Prevent scheduling of new tasks.
-  shutting_down_ = true;
-
-  if (running_workers_.IsEmpty() && idle_workers_.IsEmpty()) {
-    // All workers have already died.
-    all_workers_dead_ = true;
-  } else {
-    // Tell workers to drain remaining work and then shut down.
-    ml.NotifyAll();
-  }
 }
 
 void ThreadPool::IdleToRunningLocked(Worker* worker) {
@@ -209,6 +226,15 @@ ThreadPool::Worker* ThreadPool::ScheduleTaskLocked(MonitorLocker* ml,
     return nullptr;
   }
 
+  // If we have maxed out the number of threads running, we will not start a
+  // new one.
+  if (max_pool_size_ > 0 && (count_idle_ + count_running_) >= max_pool_size_) {
+    if (!idle_workers_.IsEmpty()) {
+      ml->Notify();
+    }
+    return nullptr;
+  }
+
   // Otherwise start a new worker.
   auto new_worker = new Worker(this);
   idle_workers_.Append(new_worker);
@@ -234,6 +260,8 @@ void ThreadPool::Worker::Main(uword args) {
   Worker* worker = reinterpret_cast<Worker*>(args);
   ThreadPool* pool = worker->pool_;
 
+  os_thread->owning_thread_pool_ = pool;
+
   // Once the worker quits it needs to be joined.
   worker->join_id_ = OSThread::GetCurrentThreadJoinId(os_thread);
 
@@ -245,6 +273,8 @@ void ThreadPool::Worker::Main(uword args) {
 #endif
 
   pool->WorkerLoop(worker);
+
+  os_thread->owning_thread_pool_ = nullptr;
 
   // Call the thread exit hook here to notify the embedder that the
   // thread pool thread is exiting.

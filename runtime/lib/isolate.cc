@@ -440,7 +440,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
 
-      Dart::thread_pool()->Run<SpawnIsolateTask>(isolate, std::move(state));
+      isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
+                                                             std::move(state));
       return Object::null();
     }
   }
@@ -554,7 +555,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   // Since this is a call to Isolate.spawnUri, don't copy the parent's code.
   state->isolate_flags()->copy_parent_code = false;
 
-  Dart::thread_pool()->Run<SpawnIsolateTask>(isolate, std::move(state));
+  isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
+                                                         std::move(state));
   return Object::null();
 }
 

@@ -1956,7 +1956,7 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     RunLoopData data;
     data.monitor = &monitor;
     data.done = false;
-    I->message_handler()->Run(Dart::thread_pool(), NULL, RunLoopDone,
+    I->message_handler()->Run(I->group()->thread_pool(), NULL, RunLoopDone,
                               reinterpret_cast<uword>(&data));
     while (!data.done) {
       ml.Wait();

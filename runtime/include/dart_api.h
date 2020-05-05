@@ -844,6 +844,9 @@ DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Initialize(
  *
  * \return NULL if cleanup is successful. Returns an error message otherwise.
  *   The caller is responsible for freeing the error message.
+ *
+ * NOTE: This function must not be called on a thread that was created by the VM
+ * itself.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Cleanup();
 
