@@ -427,25 +427,9 @@ class Keyword extends TokenType {
   bool get isReservedWord => !isBuiltInOrPseudo;
 
   /**
-   * A flag indicating whether the keyword is "built-in" identifier.
-   * This method exists for backward compatibility and will be removed.
-   * Use [isBuiltIn] instead.
-   */
-  @deprecated
-  bool get isPseudoKeyword => isBuiltIn; // TODO (danrubel): remove this
-
-  /**
    * The name of the keyword type.
    */
   String get name => lexeme.toUpperCase();
-
-  /**
-   * The lexeme for the keyword.
-   *
-   * Deprecated - use [lexeme] instead.
-   */
-  @deprecated
-  String get syntax => lexeme;
 
   @override
   String toString() => name;
@@ -1786,10 +1770,4 @@ class TokenType {
 
   @override
   String toString() => name;
-
-  /**
-   * Use [lexeme] instead of this method
-   */
-  @deprecated
-  String get value => lexeme;
 }
