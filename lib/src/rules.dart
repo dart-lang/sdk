@@ -77,6 +77,7 @@ import 'rules/list_remove_unrelated_type.dart';
 import 'rules/literal_only_boolean_expressions.dart';
 import 'rules/missing_whitespace_between_adjacent_strings.dart';
 import 'rules/no_adjacent_strings_in_list.dart';
+import 'rules/no_default_cases.dart';
 import 'rules/no_duplicate_case_values.dart';
 import 'rules/no_logic_in_create_state.dart';
 import 'rules/no_runtimeType_toString.dart';
@@ -251,6 +252,7 @@ void registerLintRules() {
     ..register(LiteralOnlyBooleanExpressions())
     ..register(MissingWhitespaceBetweenAdjacentStrings())
     ..register(NoAdjacentStringsInList())
+    ..register(NoDefaultCases())
     ..register(NoDuplicateCaseValues())
     ..register(NonConstantIdentifierNames())
     ..register(NoLogicInCreateState())
