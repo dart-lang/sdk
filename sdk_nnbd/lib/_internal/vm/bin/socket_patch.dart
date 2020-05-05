@@ -1425,7 +1425,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
   final _NativeSocket _socket;
   StreamController<RawSocket>? _controller;
-  ReceivePort? _referencePort;
   bool _v6Only;
 
   static Future<_RawServerSocket> bind(
@@ -1450,27 +1449,24 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
         onCancel: _onSubscriptionStateChange,
         onPause: _onPauseStateChange,
         onResume: _onPauseStateChange);
-    _socket.setHandlers(read: zone.bindCallbackGuarded(() {
-      while (_socket.connections > 0) {
-        var socket = _socket.accept();
-        if (socket == null) return;
-        if (!const bool.fromEnvironment("dart.vm.product")) {
-          _SocketProfile.collectNewSocket(socket.nativeGetSocketId(),
-              _tcpSocket, socket.address, socket.port);
-        }
-        controller.add(_RawSocket(socket));
-        if (controller.isPaused) return;
-      }
-    }), error: zone.bindBinaryCallbackGuarded((Object e, StackTrace? st) {
-      controller.addError(e, st);
-      controller.close();
-    }), destroyed: () {
-      controller.close();
-      if (_referencePort != null) {
-        _referencePort!.close();
-        _referencePort = null;
-      }
-    });
+    _socket.setHandlers(
+        read: zone.bindCallbackGuarded(() {
+          while (_socket.connections > 0) {
+            var socket = _socket.accept();
+            if (socket == null) return;
+            if (!const bool.fromEnvironment("dart.vm.product")) {
+              _SocketProfile.collectNewSocket(socket.nativeGetSocketId(),
+                  _tcpSocket, socket.address, socket.port);
+            }
+            controller.add(_RawSocket(socket));
+            if (controller.isPaused) return;
+          }
+        }),
+        error: zone.bindBinaryCallbackGuarded((Object e, StackTrace? st) {
+          controller.addError(e, st);
+          controller.close();
+        }),
+        destroyed: () => controller.close());
     return controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
@@ -1480,13 +1476,7 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
   InternetAddress get address => _socket.address;
 
   Future<RawServerSocket> close() {
-    return _socket.close().then<RawServerSocket>((_) {
-      if (_referencePort != null) {
-        _referencePort!.close();
-        _referencePort = null;
-      }
-      return this;
-    });
+    return _socket.close().then<RawServerSocket>((_) => this);
   }
 
   void _pause() {
