@@ -1694,6 +1694,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   FunctionType _getFunctionType(DartType calleeType) {
+    calleeType = resolveTypeParameter(calleeType);
     if (calleeType is FunctionType) {
       return calleeType;
     }
@@ -1701,6 +1702,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   FunctionType getFunctionTypeForImplicitCall(DartType calleeType) {
+    calleeType = resolveTypeParameter(calleeType);
     if (calleeType is FunctionType) {
       return calleeType;
     } else if (calleeType is InterfaceType) {

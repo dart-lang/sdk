@@ -20,6 +20,7 @@ general/bug21938: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug31124: RuntimeError
 general/call: TypeCheckError
+general/callable_type_variable: TypeCheckError
 general/candidate_found: TypeCheckError
 general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError
