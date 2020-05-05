@@ -131,47 +131,59 @@ class Keyword extends TokenType {
   static const Keyword AS = const Keyword("as", "AS",
       precedence: RELATIONAL_PRECEDENCE, isBuiltIn: true);
 
+  // Reserved Word.
   static const Keyword ASSERT = const Keyword("assert", "ASSERT");
 
   static const Keyword ASYNC = const Keyword("async", "ASYNC", isPseudo: true);
 
   static const Keyword AWAIT = const Keyword("await", "AWAIT", isPseudo: true);
 
+  // Reserved Word.
   static const Keyword BREAK = const Keyword("break", "BREAK");
 
+  // Reserved Word.
   static const Keyword CASE = const Keyword("case", "CASE");
 
+  // Reserved Word.
   static const Keyword CATCH = const Keyword("catch", "CATCH");
 
+  // Reserved Word.
   static const Keyword CLASS =
       const Keyword("class", "CLASS", isTopLevelKeyword: true);
 
+  // Reserved Word.
   static const Keyword CONST =
       const Keyword("const", "CONST", isModifier: true);
 
+  // Reserved Word.
   static const Keyword CONTINUE = const Keyword("continue", "CONTINUE");
 
   static const Keyword COVARIANT = const Keyword("covariant", "COVARIANT",
       isBuiltIn: true, isModifier: true);
 
+  // Reserved Word.
   static const Keyword DEFAULT = const Keyword("default", "DEFAULT");
 
   static const Keyword DEFERRED =
       const Keyword("deferred", "DEFERRED", isBuiltIn: true);
 
+  // Reserved Word.
   static const Keyword DO = const Keyword("do", "DO");
 
   static const Keyword DYNAMIC =
       const Keyword("dynamic", "DYNAMIC", isBuiltIn: true);
 
+  // Reserved Word.
   static const Keyword ELSE = const Keyword("else", "ELSE");
 
+  // Reserved Word.
   static const Keyword ENUM =
       const Keyword("enum", "ENUM", isTopLevelKeyword: true);
 
   static const Keyword EXPORT = const Keyword("export", "EXPORT",
       isBuiltIn: true, isTopLevelKeyword: true);
 
+  // Reserved Word.
   static const Keyword EXTENDS = const Keyword("extends", "EXTENDS");
 
   static const Keyword EXTENSION = const Keyword("extension", "EXTENSION",
@@ -183,13 +195,17 @@ class Keyword extends TokenType {
   static const Keyword FACTORY =
       const Keyword("factory", "FACTORY", isBuiltIn: true);
 
+  // Reserved Word.
   static const Keyword FALSE = const Keyword("false", "FALSE");
 
+  // Reserved Word.
   static const Keyword FINAL =
       const Keyword("final", "FINAL", isModifier: true);
 
+  // Reserved Word.
   static const Keyword FINALLY = const Keyword("finally", "FINALLY");
 
+  // Reserved Word.
   static const Keyword FOR = const Keyword("for", "FOR");
 
   static const Keyword FUNCTION =
@@ -199,6 +215,7 @@ class Keyword extends TokenType {
 
   static const Keyword HIDE = const Keyword("hide", "HIDE", isPseudo: true);
 
+  // Reserved Word.
   static const Keyword IF = const Keyword("if", "IF");
 
   static const Keyword IMPLEMENTS =
@@ -207,6 +224,7 @@ class Keyword extends TokenType {
   static const Keyword IMPORT = const Keyword("import", "IMPORT",
       isBuiltIn: true, isTopLevelKeyword: true);
 
+  // Reserved Word.
   static const Keyword IN = const Keyword("in", "IN");
 
   static const Keyword INOUT = const Keyword("inout", "INOUT", isPseudo: true);
@@ -214,6 +232,7 @@ class Keyword extends TokenType {
   static const Keyword INTERFACE =
       const Keyword("interface", "INTERFACE", isBuiltIn: true);
 
+  // Reserved Word.
   static const Keyword IS =
       const Keyword("is", "IS", precedence: RELATIONAL_PRECEDENCE);
 
@@ -229,8 +248,10 @@ class Keyword extends TokenType {
   static const Keyword NATIVE =
       const Keyword("native", "NATIVE", isPseudo: true);
 
+  // Reserved Word.
   static const Keyword NEW = const Keyword("new", "NEW");
 
+  // Reserved Word.
   static const Keyword NULL = const Keyword("null", "NULL");
 
   static const Keyword OF = const Keyword("of", "OF", isPseudo: true);
@@ -250,8 +271,10 @@ class Keyword extends TokenType {
   static const Keyword REQUIRED =
       const Keyword("required", "REQUIRED", isBuiltIn: true, isModifier: true);
 
+  // Reserved Word.
   static const Keyword RETHROW = const Keyword("rethrow", "RETHROW");
 
+  // Reserved Word.
   static const Keyword RETURN = const Keyword("return", "RETURN");
 
   static const Keyword SET = const Keyword("set", "SET", isBuiltIn: true);
@@ -264,29 +287,39 @@ class Keyword extends TokenType {
   static const Keyword STATIC =
       const Keyword("static", "STATIC", isBuiltIn: true, isModifier: true);
 
+  // Reserved Word.
   static const Keyword SUPER = const Keyword("super", "SUPER");
 
+  // Reserved Word.
   static const Keyword SWITCH = const Keyword("switch", "SWITCH");
 
   static const Keyword SYNC = const Keyword("sync", "SYNC", isPseudo: true);
 
+  // Reserved Word.
   static const Keyword THIS = const Keyword("this", "THIS");
 
+  // Reserved Word.
   static const Keyword THROW = const Keyword("throw", "THROW");
 
+  // Reserved Word.
   static const Keyword TRUE = const Keyword("true", "TRUE");
 
+  // Reserved Word.
   static const Keyword TRY = const Keyword("try", "TRY");
 
   static const Keyword TYPEDEF = const Keyword("typedef", "TYPEDEF",
       isBuiltIn: true, isTopLevelKeyword: true);
 
+  // Reserved Word.
   static const Keyword VAR = const Keyword("var", "VAR", isModifier: true);
 
+  // Reserved Word.
   static const Keyword VOID = const Keyword("void", "VOID");
 
+  // Reserved Word.
   static const Keyword WHILE = const Keyword("while", "WHILE");
 
+  // Reserved Word.
   static const Keyword WITH = const Keyword("with", "WITH");
 
   static const Keyword YIELD = const Keyword("yield", "YIELD", isPseudo: true);
@@ -390,6 +423,8 @@ class Keyword extends TokenType {
             isModifier: isModifier, isTopLevelKeyword: isTopLevelKeyword);
 
   bool get isBuiltInOrPseudo => isBuiltIn || isPseudo;
+
+  bool get isReservedWord => !isBuiltInOrPseudo;
 
   /**
    * A flag indicating whether the keyword is "built-in" identifier.

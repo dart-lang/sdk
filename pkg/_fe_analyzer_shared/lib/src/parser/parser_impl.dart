@@ -2306,6 +2306,22 @@ class Parser {
       }
     }
 
+    // Recovery: If the code is
+    // <return type>? <reserved word> <token indicating method or field>
+    // take the reserved keyword as the name.
+    if (typeInfo == noType &&
+        varFinalOrConst == null &&
+        isReservedKeyword(next.next) &&
+        indicatesMethodOrField(next.next.next)) {
+      // Recovery: Use the reserved keyword despite that not being legal.
+      typeInfo = computeType(
+          token,
+          /*required = */ true,
+          /* inDeclaration = */ true);
+      token = typeInfo.skipType(token);
+      next = token.next;
+    }
+
     if (next.type != TokenType.IDENTIFIER) {
       value = next.stringValue;
       if (identical(value, 'factory') || identical(value, 'operator')) {
@@ -3065,6 +3081,25 @@ class Parser {
         .next;
   }
 
+  bool isReservedKeyword(Token token) {
+    if (!token.isKeyword) return false;
+    Keyword keyword = token.type;
+    return keyword.isReservedWord;
+  }
+
+  bool indicatesMethodOrField(Token token) {
+    String value = token.stringValue;
+    if (identical(value, ';') ||
+        identical(value, '=') ||
+        identical(value, '(') ||
+        identical(value, '{') ||
+        identical(value, '=>') ||
+        identical(value, '<')) {
+      return true;
+    }
+    return false;
+  }
+
   /// ```
   /// classMember:
   ///   fieldDeclaration |
@@ -3150,7 +3185,10 @@ class Parser {
     listener.beginMember();
 
     Token beforeType = token;
-    TypeInfo typeInfo = computeType(token, false, true);
+    TypeInfo typeInfo = computeType(
+        token,
+        /*required = */ false,
+        /* inDeclaration = */ true);
     token = typeInfo.skipType(token);
     next = token.next;
 
@@ -3159,6 +3197,11 @@ class Parser {
       String value = next.stringValue;
       if (identical(value, 'get') || identical(value, 'set')) {
         if (next.next.isIdentifier) {
+          getOrSet = token = next;
+          next = token.next;
+        } else if (isReservedKeyword(next.next) &&
+            indicatesMethodOrField(next.next.next)) {
+          // Recovery: Getter or setter followed by a reserved word (name).
           getOrSet = token = next;
           next = token.next;
         }
@@ -3269,6 +3312,15 @@ class Parser {
               kind,
               enclosingDeclarationName);
         }
+      } else if (isReservedKeyword(next2) &&
+          indicatesMethodOrField(next2.next)) {
+        // Recovery: Use the reserved keyword despite that not being legal.
+        typeInfo = computeType(
+            token,
+            /*required = */ true,
+            /* inDeclaration = */ true);
+        token = typeInfo.skipType(token);
+        next = token.next;
       }
     }
 
