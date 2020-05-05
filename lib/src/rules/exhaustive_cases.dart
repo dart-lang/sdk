@@ -119,12 +119,13 @@ class _Visitor extends SimpleAstVisitor {
       for (var member in statement.members) {
         if (member is SwitchCase) {
           var expression = member.expression;
-          // todo (pq): add a test to ensure that this handles prefixed identifiers.
           if (expression is Identifier) {
             var element = expression.staticElement;
             if (element is PropertyAccessorElement) {
               enumConstantNames.remove(element.name);
             }
+          } else if (expression is PropertyAccess) {
+            enumConstantNames.remove(expression.propertyName.name);
           }
         }
       }

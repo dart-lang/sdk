@@ -21,6 +21,24 @@ void main() {
 
 void defineTests() {
   group('integration', () {
+    group('exhaustive_cases', () {
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
+      setUp(() => outSink = collectingOut);
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+      });
+      test('exhaustive_cases', () async {
+        await cli.runLinter([
+          'test/_data/exhaustive_cases',
+          '--rules=exhaustive_cases',
+        ], LinterOptions());
+        expect(collectingOut.trim(),
+            contains('2 files analyzed, 1 issue found, in'));
+      });
+    });
+
     group('avoid_web_libraries_in_flutter', () {
       final currentOut = outSink;
       final collectingOut = CollectingSink();
