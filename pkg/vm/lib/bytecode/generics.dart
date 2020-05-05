@@ -74,6 +74,8 @@ List<DartType> flattenInstantiatorTypeArguments(
     }
   }
 
+  assert(typeParameters.length == typeArgs.length);
+
   final substitution = Substitution.fromPairs(typeParameters, typeArgs);
 
   List<DartType> flatTypeArgs = <DartType>[];
