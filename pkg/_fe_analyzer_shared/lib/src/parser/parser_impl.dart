@@ -3083,8 +3083,7 @@ class Parser {
 
   bool isReservedKeyword(Token token) {
     if (!token.isKeyword) return false;
-    Keyword keyword = token.type;
-    return keyword.isReservedWord;
+    return token.type.isReservedWord;
   }
 
   bool indicatesMethodOrField(Token token) {
