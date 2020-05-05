@@ -12,6 +12,56 @@ import 'package:meta/meta.dart';
 typedef AstNodePredicate = bool Function(AstNode node);
 
 class DartTypeUtilities {
+  static EnumLikeClassDescription asEnumLikeClass(ClassElement classElement) {
+    // See discussion: https://github.com/dart-lang/linter/issues/2083
+    //
+
+    // Must be concrete.
+    if (classElement.isAbstract) {
+      return null;
+    }
+
+    // With only private non-factory constructors.
+    for (var cons in classElement.constructors) {
+      if (!cons.isPrivate || cons.isFactory) {
+        return null;
+      }
+    }
+
+    var type = classElement.thisType;
+
+    // And 2 or more static const fields whose type is the enclosing class.
+    var enumConstantNames = <String>[];
+    for (var field in classElement.fields) {
+      // Ensure static const.
+      if (field.isSynthetic || !field.isConst || !field.isStatic) {
+        continue;
+      }
+      // Check for type equality.
+      if (field.type != type) {
+        continue;
+      }
+      enumConstantNames.add(field.name);
+    }
+    if (enumConstantNames.length < 2) {
+      return null;
+    }
+
+    // And no subclasses in the defining library.
+    var compilationUnit = classElement.library.definingCompilationUnit;
+    for (var cls in compilationUnit.types) {
+      var classType = cls.thisType;
+      do {
+        classType = classType.superclass;
+        if (classType == type) {
+          return null;
+        }
+      } while (!classType.isDartCoreObject);
+    }
+
+    return EnumLikeClassDescription(enumConstantNames);
+  }
+
   /// Return whether the canonical elements of two elements are equal.
   static bool canonicalElementsAreEqual(Element element1, Element element2) =>
       getCanonicalElement(element1) == getCanonicalElement(element2);
@@ -446,6 +496,11 @@ class DartTypeUtilities {
     }
     return true;
   }
+}
+
+class EnumLikeClassDescription {
+  List<String> enumConstantNames;
+  EnumLikeClassDescription(this.enumConstantNames);
 }
 
 class InterfaceTypeDefinition {

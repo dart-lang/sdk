@@ -61,6 +61,7 @@ import 'rules/directives_ordering.dart';
 import 'rules/empty_catches.dart';
 import 'rules/empty_constructor_bodies.dart';
 import 'rules/empty_statements.dart';
+import 'rules/exhaustive_cases.dart';
 import 'rules/file_names.dart';
 import 'rules/flutter_style_todos.dart';
 import 'rules/hash_and_equals.dart';
@@ -115,7 +116,6 @@ import 'rules/prefer_if_null_operators.dart';
 import 'rules/prefer_initializing_formals.dart';
 import 'rules/prefer_inlined_adds.dart';
 import 'rules/prefer_int_literals.dart';
-import 'rules/use_is_even_rather_than_modulo.dart';
 import 'rules/prefer_interpolation_to_compose_strings.dart';
 import 'rules/prefer_is_empty.dart';
 import 'rules/prefer_is_not_empty.dart';
@@ -164,6 +164,7 @@ import 'rules/unrelated_type_equality_checks.dart';
 import 'rules/unsafe_html.dart';
 import 'rules/use_full_hex_values_for_flutter_colors.dart';
 import 'rules/use_function_type_syntax_for_parameters.dart';
+import 'rules/use_is_even_rather_than_modulo.dart';
 import 'rules/use_key_in_widget_constructors.dart';
 import 'rules/use_raw_strings.dart';
 import 'rules/use_rethrow_when_possible.dart';
@@ -234,6 +235,7 @@ void registerLintRules() {
     ..register(EmptyCatches())
     ..register(EmptyConstructorBodies())
     ..register(EmptyStatements())
+    ..register(ExhaustiveCases())
     ..register(FileNames())
     ..register(FlutterStyleTodos())
     ..register(HashAndEquals())

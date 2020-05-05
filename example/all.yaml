@@ -60,6 +60,7 @@ linter:
     - empty_catches
     - empty_constructor_bodies
     - empty_statements
+    - exhaustive_cases
     - file_names
     - flutter_style_todos
     - hash_and_equals
