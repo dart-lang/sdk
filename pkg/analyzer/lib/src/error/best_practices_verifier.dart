@@ -307,15 +307,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             Name name = Name(_currentLibrary.source.uri, element.name);
             Element enclosingElement = element.enclosingElement;
             if (enclosingElement is ClassElement) {
-              InterfaceType classType = enclosingElement.thisType;
-              var overridden = _inheritanceManager.getMember(classType, name,
-                  forSuper: true);
+              var overridden = _inheritanceManager
+                  .getMember2(enclosingElement, name, forSuper: true);
               // Check for a setter.
               if (overridden == null) {
                 Name setterName =
                     Name(_currentLibrary.source.uri, '${element.name}=');
                 overridden = _inheritanceManager
-                    .getMember(classType, setterName, forSuper: true);
+                    .getMember2(enclosingElement, setterName, forSuper: true);
               }
               return overridden;
             }
@@ -462,21 +461,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     ExecutableElement element = node.declaredElement;
     Element enclosingElement = element?.enclosingElement;
 
-    InterfaceType classType =
-        enclosingElement is ClassElement ? enclosingElement.thisType : null;
     Name name = Name(_currentLibrary.source.uri, element?.name ?? '');
 
     bool elementIsOverride() =>
-        element is ClassMemberElement && enclosingElement != null
-            ? _inheritanceManager.getOverridden(classType, name) != null
+        element is ClassMemberElement && enclosingElement is ClassElement
+            ? _inheritanceManager.getOverridden2(enclosingElement, name) != null
             : false;
     ExecutableElement getConcreteOverriddenElement() =>
-        element is ClassMemberElement && enclosingElement != null
-            ? _inheritanceManager.getMember(classType, name, forSuper: true)
+        element is ClassMemberElement && enclosingElement is ClassElement
+            ? _inheritanceManager.getMember2(enclosingElement, name,
+                forSuper: true)
             : null;
     ExecutableElement getOverriddenPropertyAccessor() =>
-        element is PropertyAccessorElement && enclosingElement != null
-            ? _inheritanceManager.getMember(classType, name, forSuper: true)
+        element is PropertyAccessorElement && enclosingElement is ClassElement
+            ? _inheritanceManager.getMember2(enclosingElement, name,
+                forSuper: true)
             : null;
 
     if (element != null && element.hasDeprecated) {

@@ -1824,7 +1824,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_enclosingClass == null) {
       return;
     }
-    InterfaceType enclosingType = _enclosingClass.thisType;
     Uri libraryUri = _currentLibrary.source.uri;
 
     // method declared in the enclosing class vs. inherited getter/setter
@@ -1832,10 +1831,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       String name = method.name;
 
       // find inherited property accessor
-      ExecutableElement inherited = _inheritanceManager.getInherited(
-          enclosingType, Name(libraryUri, name));
-      inherited ??= _inheritanceManager.getInherited(
-          enclosingType, Name(libraryUri, '$name='));
+      ExecutableElement inherited = _inheritanceManager.getInherited2(
+          _enclosingClass, Name(libraryUri, name));
+      inherited ??= _inheritanceManager.getInherited2(
+          _enclosingClass, Name(libraryUri, '$name='));
 
       if (method.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(
@@ -1859,10 +1858,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       String name = accessor.displayName;
 
       // find inherited method or property accessor
-      ExecutableElement inherited = _inheritanceManager.getInherited(
-          enclosingType, Name(libraryUri, name));
-      inherited ??= _inheritanceManager.getInherited(
-          enclosingType, Name(libraryUri, '$name='));
+      ExecutableElement inherited = _inheritanceManager.getInherited2(
+          _enclosingClass, Name(libraryUri, name));
+      inherited ??= _inheritanceManager.getInherited2(
+          _enclosingClass, Name(libraryUri, '$name='));
 
       if (accessor.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(
@@ -3431,12 +3430,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    InterfaceTypeImpl enclosingType = _enclosingClass.thisType;
     Uri mixinLibraryUri = mixinElement.librarySource.uri;
     for (var name in mixinElementImpl.superInvokedNames) {
       var nameObject = Name(mixinLibraryUri, name);
 
-      var superMember = _inheritanceManager.getMember(enclosingType, nameObject,
+      var superMember = _inheritanceManager.getMember2(
+          _enclosingClass, nameObject,
           forMixinIndex: mixinIndex, concrete: true, forSuper: true);
 
       if (superMember == null) {
@@ -3486,7 +3485,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (declaredSupertype is! InterfaceType) {
       return;
     }
-    InterfaceType superclass = declaredSupertype;
     Map<LibraryElement, Map<String, String>> mixedInNames =
         <LibraryElement, Map<String, String>>{};
 
@@ -3506,8 +3504,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           return true;
         }
         names[name] = typeName.name.name;
-        ExecutableElement inheritedMember = _inheritanceManager.getMember(
-          superclass,
+        ExecutableElement inheritedMember = _inheritanceManager.getMember2(
+          declaredSupertype.element,
           Name(library.source.uri, name),
           concrete: true,
         );

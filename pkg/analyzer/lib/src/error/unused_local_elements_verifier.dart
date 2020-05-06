@@ -354,7 +354,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     if (enclosingElement is ClassElement) {
       Name name = Name(_libraryUri, element.name);
       Iterable<ExecutableElement> overriddenElements = _inheritanceManager
-          .getOverridden(enclosingElement.thisType, name)
+          .getOverridden2(enclosingElement, name)
           ?.map((ExecutableElement e) =>
               (e is ExecutableMember) ? e.declaration : e);
       if (overriddenElements != null) {

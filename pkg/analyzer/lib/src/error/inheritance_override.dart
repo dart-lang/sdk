@@ -133,10 +133,8 @@ class _ClassVerifier {
       return;
     }
 
-    InterfaceTypeImpl type = classElement.thisType;
-
     // Compute the interface of the class.
-    var interface = inheritance.getInterface(type);
+    var interface = inheritance.getInterface(classElement);
 
     // Report conflicts between direct superinterfaces of the class.
     for (var conflict in interface.conflicts) {
@@ -155,7 +153,7 @@ class _ClassVerifier {
     // So, we need to check members of each mixin against superinterfaces
     // of `S`, and superinterfaces of all previous mixins.
     var mixinNodes = withClause?.mixinTypes;
-    var mixinTypes = type.mixins;
+    var mixinTypes = classElement.mixins;
     for (var i = 0; i < mixinTypes.length; i++) {
       var mixinType = mixinTypes[i];
       _checkDeclaredMembers(mixinNodes[i], mixinType, mixinIndex: i);

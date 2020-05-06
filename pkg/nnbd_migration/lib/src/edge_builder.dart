@@ -1725,8 +1725,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var type = _variables.decoratedElementType(declaredElement);
       var enclosingElement = declaredElement.enclosingElement;
       if (!declaredElement.isStatic && enclosingElement is ClassElement) {
-        var overriddenElements = _inheritanceManager.getOverridden(
-            enclosingElement.thisType,
+        var overriddenElements = _inheritanceManager.getOverridden2(
+            enclosingElement,
             Name(enclosingElement.library.source.uri, declaredElement.name));
         for (var overriddenElement
             in overriddenElements ?? <ExecutableElement>[]) {
@@ -1734,8 +1734,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               variable, type, enclosingElement, overriddenElement);
         }
         if (!declaredElement.isFinal) {
-          var overriddenElements = _inheritanceManager.getOverridden(
-              enclosingElement.thisType,
+          var overriddenElements = _inheritanceManager.getOverridden2(
+              enclosingElement,
               Name(enclosingElement.library.source.uri,
                   declaredElement.name + '='));
           for (var overriddenElement
@@ -2269,8 +2269,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (declaredElement is! ConstructorElement) {
         var enclosingElement = declaredElement.enclosingElement;
         if (enclosingElement is ClassElement) {
-          var overriddenElements = _inheritanceManager.getOverridden(
-              enclosingElement.thisType,
+          var overriddenElements = _inheritanceManager.getOverridden2(
+              enclosingElement,
               Name(enclosingElement.library.source.uri, declaredElement.name));
           for (var overriddenElement
               in overriddenElements ?? <ExecutableElement>[]) {

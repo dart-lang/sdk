@@ -7,11 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 
@@ -34,8 +30,7 @@ class OverrideContributor implements DartCompletionContributor {
 
     // Generate a collection of inherited members
     var classElem = classDecl.declaredElement;
-    var classType = _thisType(request, classElem);
-    var interface = inheritance.getInterface(classType);
+    var interface = inheritance.getInterface(classElem);
     var interfaceMap = interface.map;
     var namesToOverride =
         _namesToOverride(classElem.librarySource.uri, interface);
@@ -104,26 +99,5 @@ class OverrideContributor implements DartCompletionContributor {
       }
     }
     return namesToOverride;
-  }
-
-  InterfaceType _thisType(
-    DartCompletionRequest request,
-    ClassElement thisElement,
-  ) {
-    var typeParameters = thisElement.typeParameters;
-    var typeArguments = const <DartType>[];
-    if (typeParameters.isNotEmpty) {
-      var nullabilitySuffix = request.featureSet.isEnabled(Feature.non_nullable)
-          ? NullabilitySuffix.none
-          : NullabilitySuffix.star;
-      typeArguments = typeParameters.map((t) {
-        return t.instantiate(nullabilitySuffix: nullabilitySuffix);
-      }).toList();
-    }
-
-    return thisElement.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
   }
 }

@@ -25,7 +25,7 @@ class InstanceMemberInferrer {
 
   TypeSystemImpl typeSystem;
   bool isNonNullableByDefault;
-  InterfaceType interfaceType;
+  ClassElement currentClassElement;
 
   /**
    * Initialize a newly create inferrer.
@@ -68,15 +68,15 @@ class InstanceMemberInferrer {
       PropertyAccessorElement accessor) {
     String name = accessor.displayName;
 
-    var overriddenGetters = inheritance.getOverridden(
-      interfaceType,
+    var overriddenGetters = inheritance.getOverridden2(
+      currentClassElement,
       Name(accessor.library.source.uri, name),
     );
 
     List<ExecutableElement> overriddenSetters;
     if (overriddenGetters == null || !accessor.variable.isFinal) {
-      overriddenSetters = inheritance.getOverridden(
-        interfaceType,
+      overriddenSetters = inheritance.getOverridden2(
+        currentClassElement,
         Name(accessor.library.source.uri, '$name='),
       );
     }
@@ -285,7 +285,7 @@ class InstanceMemberInferrer {
         //
         // Then infer the types for the members.
         //
-        this.interfaceType = classElement.thisType;
+        currentClassElement = classElement;
         for (FieldElement field in classElement.fields) {
           _inferField(field);
         }
@@ -342,8 +342,8 @@ class InstanceMemberInferrer {
 
     // TODO(scheglov) If no implicit types, don't ask inherited.
 
-    List<ExecutableElement> overriddenElements = inheritance.getOverridden(
-      interfaceType,
+    List<ExecutableElement> overriddenElements = inheritance.getOverridden2(
+      currentClassElement,
       Name(element.library.source.uri, element.name),
     );
     if (overriddenElements == null ||
