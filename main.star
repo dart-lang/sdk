@@ -208,6 +208,11 @@ luci.list_view(
     title="SDK CQ Console",
 )
 
+luci.list_view(
+    name="infra",
+    title="Infra Console",
+)
+
 luci.logdog(gs_bucket="chromium-luci-logdog")
 
 luci.bucket(
@@ -352,10 +357,7 @@ def dart_try_builder(name,
         experiment_percentage=experiment_percentage,
         location_regexp=location_regexp,
         includable_only=includable_only)
-    luci.list_view_entry(
-        list_view="cq",
-        builder=builder,
-    )
+    luci.list_view_entry(list_view="cq", builder=builder)
 
 
 postponed_alt_console_entries = []
@@ -388,7 +390,7 @@ def dart_builder(name,
                  properties=None,
                  schedule="triggered",
                  service_account=TRY_ACCOUNT,
-                 triggered_by=None,
+                 triggered_by=["dart-gitiles-trigger-%s"],
                  triggering_policy=None,
                  on_cq=False,
                  experiment_percentage=None,
@@ -398,7 +400,7 @@ def dart_builder(name,
     if dimensions["os"] == "Linux" and goma_rbe:
         properties.setdefault("$build/goma", GOMA_RBE)
 
-    def builder(channel=None, triggered_by=None):
+    def builder(channel, triggered_by):
         if channel == "try":
             dart_try_builder(
                 name,
@@ -412,9 +414,7 @@ def dart_builder(name,
         else:
             builder = name + "-" + channel if channel else name
             branch = channel if channel else "master"
-            if enabled and schedule == "triggered":
-                if not triggered_by:
-                    triggered_by = ["dart-gitiles-trigger-%s"]
+            if schedule == "triggered" and triggered_by:
                 triggered_by = [
                     trigger.replace("%s", branch) for trigger in triggered_by
                 ]
@@ -440,7 +440,7 @@ def dart_builder(name,
                 schedule=schedule if enabled else None,
                 service_account=service_account,
                 swarming_tags=["vpython:native-python-wrapper"],
-                triggered_by=triggered_by,
+                triggered_by=triggered_by if enabled else None,
                 triggering_policy=triggering_policy)
             if category:
                 console_category, _, short_name = category.rpartition("|")
@@ -467,7 +467,7 @@ def dart_builder(name,
                             console_view="alt",
                         )
 
-    builder(triggered_by=triggered_by)
+    builder(None, triggered_by=triggered_by)
     for channel in channels:
         if enabled:
             builder(channel, triggered_by=triggered_by)
@@ -483,14 +483,19 @@ def dart_ci_builder(name, dimensions={}, **kwargs):
         **kwargs)
 
 
-def dart_ci_sandbox_builder(name, channels=CHANNELS, properties={}, **kwargs):
+def dart_ci_sandbox_builder(name, channels=CHANNELS, **kwargs):
     dart_builder(
         name,
         bucket="ci.sandbox",
         channels=channels,
-        properties=properties,
         service_account=TRY_ACCOUNT,
         **kwargs)
+
+
+def dart_infra_builder(name, notifies="infra", triggered_by=None, **kwargs):
+    dart_ci_builder(
+        name, notifies=notifies, triggered_by=triggered_by, **kwargs)
+    luci.list_view_entry(list_view="infra", builder=name)
 
 
 def dart_vm_extra_builder(name, on_cq=False, location_regexp=None, **kwargs):
@@ -511,15 +516,19 @@ def dart_vm_low_priority_builder(name, **kwargs):
         name, priority=LOW, expiration_timeout=time.day, **kwargs)
 
 
+nightly_builders = []
+
+
 def dart_vm_nightly_builder(name, **kwargs):
     dart_ci_sandbox_builder(
         name,
         notifies=None,
         on_cq=False,
         priority=LOW,
-        schedule="0 5 * * *",  # daily, at 05:00 UTC
+        schedule="triggered",  # triggered by nightly cron builder
         triggered_by=None,
         **kwargs)
+    nightly_builders.append(name)
 
 
 # cfe
@@ -842,21 +851,20 @@ dart_ci_builder(
     "versionchecker-linux", category="misc|vc", channels=RELEASE_CHANNELS)
 
 # external
-dart_ci_builder(
+dart_infra_builder(
     "google", recipe="external", category="external|g", enabled=False, fyi=True)
 
 # infra
-dart_ci_builder(
+dart_infra_builder(
     "base",
     execution_timeout=time.duration(15 * 60 * 1000),
     recipe="forward_branch",
     schedule="with 10m interval",
     notifies=None)
-dart_ci_builder(
-    "chocolatey", recipe="chocolatey", enabled=False, dimensions=windows())
-dart_ci_builder("co19-roller", recipe="package_co19", enabled=False)
-dart_ci_builder("docker", recipe="docker", enabled=False)
-dart_ci_builder(
+dart_infra_builder("chocolatey", recipe="chocolatey", dimensions=windows())
+dart_infra_builder("co19-roller", recipe="package_co19")
+dart_infra_builder("docker", recipe="docker")
+dart_infra_builder(
     "linearize-flutter",
     recipe="linearize",
     properties={
@@ -869,6 +877,15 @@ dart_ci_builder(
     ],
     triggering_policy=scheduler.greedy_batching(max_batch_size=1),
 )
+dart_infra_builder(
+    "nightly",
+    notifies="infra",
+    properties={"$dart/cron/builders": {
+        "builders": nightly_builders
+    }},
+    recipe="cron/cron",
+    schedule="0 5 * * *",  # daily, at 05:00 UTC
+)
 
 # Fuzz testing builders
 dart_ci_sandbox_builder(
@@ -876,7 +893,9 @@ dart_ci_sandbox_builder(
     channels=[],
     goma_rbe=True,
     notifies="dart-fuzz-testing",
-    schedule="0 3,4 * * *")
+    schedule="0 3,4 * * *",
+    triggered_by=None,
+)
 
 # Try only builders
 dart_try_builder("benchmark-linux", on_cq=True)
