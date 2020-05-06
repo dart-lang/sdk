@@ -442,12 +442,11 @@ class InheritanceManager3 {
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member
-  /// with the given [name], defined in the [element], would override; or `null`
+  /// with the given [name], defined in the [type], would override; or `null`
   /// if no members would be overridden.
   @Deprecated('Use getOverridden2')
-  List<ExecutableElement> getOverridden(ClassElement element, Name name) {
-    var interface = getInterface(element);
-    return interface._overridden[name];
+  List<ExecutableElement> getOverridden(InterfaceType type, Name name) {
+    return getOverridden2(type.element, name);
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member
