@@ -97,7 +97,7 @@ vars = {
   "html_tag": "083a36cd801a4b787ba156b7c6e4c8b2e2daed4a",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev" : "ea269f79321d659208402088f3297e8920a88ee6",
-  "http_parser_tag" : "3.1.3",
+  "http_parser_tag": "6e63a97b5aaa2b4d1215fe01683e51fb73258e54",
   "http_retry_tag": "0.1.1",
   "http_tag": "a131e563c09349f624d5421237183a06fb10552d",
   "http_throttle_tag" : "1.0.2",
