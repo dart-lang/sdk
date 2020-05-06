@@ -23,6 +23,18 @@
     null-safe changes in the `Set` interface, it will now return `false`
     instead. The same applies for `CssClassSet.toggle`.
 
+*   `EventStreamSubscription.cancel` method used to return `null`, but since
+    `StreamSubscription.cancel` has changed to be non-nullable, this method
+    returns an empty `Future` instead. Due to an optimization on `null`
+    `Future`s, this method used to complete synchronously, but now that the
+    `Future` is empty instead, it completes asynchronously, therefore
+    potentially invalidating code that relied on the synchronous side-effect.
+    This change will only affect code using sound null-safety. See issue
+    [41653][] for more details.
+
+[41653]: https://github.com/dart-lang/sdk/issues/41653
+
+
 #### `dart:io`
 
 *   Class `OSError` now implements `Exception`. This change means `OSError` will
