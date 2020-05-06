@@ -56,25 +56,9 @@ parser/error_recovery/reserved_words_class_methods:27:7: Expected an identifier,
   int const(int x) {
       ^^^^^
 
-parser/error_recovery/reserved_words_class_methods:27:7: A method declaration needs an explicit list of parameters.
-  int const(int x) {
-      ^^^^^
-
-parser/error_recovery/reserved_words_class_methods:27:7: Expected a function body, but got 'const'.
-  int const(int x) {
-      ^^^^^
-
-parser/error_recovery/reserved_words_class_methods:27:12: Expected an identifier, but got '('.
-  int const(int x) {
-           ^
-
 parser/error_recovery/reserved_words_class_methods:29:17: Expected an identifier, but got '('.
     return const(x-1) + 1;
                 ^
-
-parser/error_recovery/reserved_words_class_methods:27:7: Getters, setters and methods can't be declared to be 'const'.
-  int const(int x) {
-      ^^^^^
 
 parser/error_recovery/reserved_words_class_methods:32:7: Expected an identifier, but got 'continue'.
   int continue(int x) {
@@ -179,22 +163,6 @@ parser/error_recovery/reserved_words_class_methods:62:7: Expected an identifier,
 parser/error_recovery/reserved_words_class_methods:67:7: Expected an identifier, but got 'final'.
   int final(int x) {
       ^^^^^
-
-parser/error_recovery/reserved_words_class_methods:67:7: A method declaration needs an explicit list of parameters.
-  int final(int x) {
-      ^^^^^
-
-parser/error_recovery/reserved_words_class_methods:67:7: Expected a function body, but got 'final'.
-  int final(int x) {
-      ^^^^^
-
-parser/error_recovery/reserved_words_class_methods:67:7: Can't have modifier 'final' here.
-  int final(int x) {
-      ^^^^^
-
-parser/error_recovery/reserved_words_class_methods:67:12: Expected an identifier, but got '('.
-  int final(int x) {
-           ^
 
 parser/error_recovery/reserved_words_class_methods:69:12: Expected an identifier, but got 'final'.
     return final(x-1) + 1;
@@ -404,22 +372,6 @@ parser/error_recovery/reserved_words_class_methods:147:7: Expected an identifier
   int var(int x) {
       ^^^
 
-parser/error_recovery/reserved_words_class_methods:147:7: A method declaration needs an explicit list of parameters.
-  int var(int x) {
-      ^^^
-
-parser/error_recovery/reserved_words_class_methods:147:7: Expected a function body, but got 'var'.
-  int var(int x) {
-      ^^^
-
-parser/error_recovery/reserved_words_class_methods:147:7: The return type can't be 'var'.
-  int var(int x) {
-      ^^^
-
-parser/error_recovery/reserved_words_class_methods:147:10: Expected an identifier, but got '('.
-  int var(int x) {
-         ^
-
 parser/error_recovery/reserved_words_class_methods:149:12: Expected an identifier, but got 'var'.
     return var(x-1) + 1;
            ^^^
@@ -459,18 +411,6 @@ parser/error_recovery/reserved_words_class_methods:149:21: '+' is not a prefix o
 parser/error_recovery/reserved_words_class_methods:152:7: Expected an identifier, but got 'void'.
   int void(int x) {
       ^^^^
-
-parser/error_recovery/reserved_words_class_methods:152:7: A method declaration needs an explicit list of parameters.
-  int void(int x) {
-      ^^^^
-
-parser/error_recovery/reserved_words_class_methods:152:7: Expected a function body, but got 'void'.
-  int void(int x) {
-      ^^^^
-
-parser/error_recovery/reserved_words_class_methods:152:11: Expected an identifier, but got '('.
-  int void(int x) {
-          ^
 
 parser/error_recovery/reserved_words_class_methods:154:12: Expected an identifier, but got 'void'.
     return void(x-1) + 1;
@@ -855,24 +795,7 @@ beginCompilationUnit(class)
             handleNoTypeArguments(const)
             handleType(int, null)
             handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'const'., null, {token: const}], const, const)
-            handleIdentifier(, methodDeclaration)
-            handleNoTypeVariables(const)
-            handleRecoverableError(MissingMethodParameters, const, const)
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
-            handleAsyncModifier(null, null)
-            handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got 'const'., null, {token: const}], const, const)
-            handleInvalidFunctionBody({)
-          endClassMethod(null, int, (, null, })
-        endMember()
-        beginMetadataStar(const)
-        endMetadataStar(0)
-        beginMember()
-          beginMethod(null, null, null, const, null, ()
-            handleNoType(const)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., null, {token: (}], (, ()
-            handleIdentifier(, methodDeclaration)
+            handleIdentifier(const, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
               beginMetadataStar(int)
@@ -926,8 +849,7 @@ beginCompilationUnit(class)
                 endBinaryExpression(+)
               endReturnStatement(true, return, ;)
             endBlockFunctionBody(2, {, })
-            handleRecoverableError(ConstMethod, const, const)
-          endClassMethod(null, const, (, null, })
+          endClassMethod(null, int, (, null, })
         endMember()
         beginMetadataStar(int)
         endMetadataStar(0)
@@ -1386,25 +1308,7 @@ beginCompilationUnit(class)
             handleNoTypeArguments(final)
             handleType(int, null)
             handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'final'., null, {token: final}], final, final)
-            handleIdentifier(, methodDeclaration)
-            handleNoTypeVariables(final)
-            handleRecoverableError(MissingMethodParameters, final, final)
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
-            handleAsyncModifier(null, null)
-            handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got 'final'., null, {token: final}], final, final)
-            handleInvalidFunctionBody({)
-          endClassMethod(null, int, (, null, })
-        endMember()
-        beginMetadataStar(final)
-        endMetadataStar(0)
-        beginMember()
-          handleRecoverableError(Message[ExtraneousModifier, Can't have modifier 'final' here., Try removing 'final'., {token: final}], final, final)
-          beginMethod(null, null, null, null, null, ()
-            handleNoType(final)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., null, {token: (}], (, ()
-            handleIdentifier(, methodDeclaration)
+            handleIdentifier(final, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
               beginMetadataStar(int)
@@ -1481,7 +1385,7 @@ beginCompilationUnit(class)
               endBinaryExpression(+)
               handleExpressionStatement(;)
             endBlockFunctionBody(6, {, })
-          endClassMethod(null, final, (, null, })
+          endClassMethod(null, int, (, null, })
         endMember()
         beginMetadataStar(int)
         endMetadataStar(0)
@@ -2453,25 +2357,7 @@ beginCompilationUnit(class)
           handleNoTypeArguments(var)
           handleType(int, null)
           handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'var'., null, {token: var}], var, var)
-          handleIdentifier(, methodDeclaration)
-          handleNoTypeVariables(var)
-          handleRecoverableError(MissingMethodParameters, var, var)
-          beginFormalParameters((, MemberKind.NonStaticMethod)
-          endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-          handleNoInitializers()
-          handleAsyncModifier(null, null)
-          handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got 'var'., null, {token: var}], var, var)
-          handleInvalidFunctionBody({)
-        endClassMethod(null, int, (, null, })
-      endMember()
-      beginMetadataStar(var)
-      endMetadataStar(0)
-      beginMember()
-        handleRecoverableError(VarReturnType, var, var)
-        beginMethod(null, null, null, null, null, ()
-          handleNoType(var)
-          handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., null, {token: (}], (, ()
-          handleIdentifier(, methodDeclaration)
+          handleIdentifier(var, methodDeclaration)
           handleNoTypeVariables(()
           beginFormalParameters((, MemberKind.NonStaticMethod)
             beginMetadataStar(int)
@@ -2548,7 +2434,7 @@ beginCompilationUnit(class)
             endBinaryExpression(+)
             handleExpressionStatement(;)
           endBlockFunctionBody(6, {, })
-        endClassMethod(null, var, (, null, })
+        endClassMethod(null, int, (, null, })
       endMember()
       beginMetadataStar(int)
       endMetadataStar(0)
@@ -2558,24 +2444,7 @@ beginCompilationUnit(class)
           handleNoTypeArguments(void)
           handleType(int, null)
           handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'void'., null, {token: void}], void, void)
-          handleIdentifier(, methodDeclaration)
-          handleNoTypeVariables(void)
-          handleRecoverableError(MissingMethodParameters, void, void)
-          beginFormalParameters((, MemberKind.NonStaticMethod)
-          endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-          handleNoInitializers()
-          handleAsyncModifier(null, null)
-          handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got 'void'., null, {token: void}], void, void)
-          handleInvalidFunctionBody({)
-        endClassMethod(null, int, (, null, })
-      endMember()
-      beginMetadataStar(void)
-      endMetadataStar(0)
-      beginMember()
-        beginMethod(null, null, null, null, null, ()
-          handleVoidKeyword(void)
-          handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., null, {token: (}], (, ()
-          handleIdentifier(, methodDeclaration)
+          handleIdentifier(void, methodDeclaration)
           handleNoTypeVariables(()
           beginFormalParameters((, MemberKind.NonStaticMethod)
             beginMetadataStar(int)
@@ -2652,7 +2521,7 @@ beginCompilationUnit(class)
             endBinaryExpression(+)
             handleExpressionStatement(;)
           endBlockFunctionBody(6, {, })
-        endClassMethod(null, void, (, null, })
+        endClassMethod(null, int, (, null, })
       endMember()
       beginMetadataStar(int)
       endMetadataStar(0)
@@ -2785,7 +2654,7 @@ beginCompilationUnit(class)
           endBlockFunctionBody(2, {, })
         endClassMethod(null, int, (, null, })
       endMember()
-    endClassOrMixinBody(DeclarationKind.Class, 38, {, })
+    endClassOrMixinBody(DeclarationKind.Class, 34, {, })
   endClassDeclaration(class, })
 endTopLevelDeclaration()
 endCompilationUnit(1, )

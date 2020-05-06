@@ -2213,6 +2213,28 @@ class Parser {
     return identifier;
   }
 
+  /// Parse a simple identifier at the given [token], and return the identifier
+  /// that was parsed.
+  ///
+  /// If the token is not an identifier, or is not appropriate for use as an
+  /// identifier in the given [context], create a synthetic identifier, report
+  /// an error, and return the synthetic identifier.
+  /// [isRecovered] is passed to [context] which - if true - allows implementers
+  /// to use the token as an identifier, even if it isn't a valid identifier.
+  Token ensureIdentifierPotentiallyRecovered(
+      Token token, IdentifierContext context, bool isRecovered) {
+    assert(context != null);
+    Token identifier = token.next;
+    if (identifier.kind != IDENTIFIER_TOKEN) {
+      identifier = context.ensureIdentifierPotentiallyRecovered(
+          token, this, isRecovered);
+      assert(identifier != null);
+      assert(identifier.isKeywordOrIdentifier);
+    }
+    listener.handleIdentifier(identifier, context);
+    return identifier;
+  }
+
   bool notEofOrValue(String value, Token token) {
     return !identical(token.kind, EOF_TOKEN) &&
         !identical(value, token.stringValue);
@@ -2306,6 +2328,8 @@ class Parser {
       }
     }
 
+    bool nameIsRecovered = false;
+
     // Recovery: If the code is
     // <return type>? <reserved word> <token indicating method or field>
     // take the reserved keyword as the name.
@@ -2320,6 +2344,7 @@ class Parser {
           /* inDeclaration = */ true);
       token = typeInfo.skipType(token);
       next = token.next;
+      nameIsRecovered = true;
     }
 
     if (next.type != TokenType.IDENTIFIER) {
@@ -2398,7 +2423,7 @@ class Parser {
             lateToken, codes.templateExtraneousModifier);
       }
       return parseTopLevelMethod(beforeStart, externalToken, beforeType,
-          typeInfo, getOrSet, token.next);
+          typeInfo, getOrSet, token.next, nameIsRecovered);
     }
 
     if (getOrSet != null) {
@@ -2416,7 +2441,8 @@ class Parser {
         typeInfo,
         token.next,
         DeclarationKind.TopLevel,
-        null);
+        null,
+        nameIsRecovered);
   }
 
   Token parseFields(
@@ -2430,7 +2456,8 @@ class Parser {
       TypeInfo typeInfo,
       Token name,
       DeclarationKind kind,
-      String enclosingDeclarationName) {
+      String enclosingDeclarationName,
+      bool nameIsRecovered) {
     if (externalToken != null) {
       reportRecoverableError(externalToken, codes.messageExternalField);
     }
@@ -2460,7 +2487,8 @@ class Parser {
     IdentifierContext context = kind == DeclarationKind.TopLevel
         ? IdentifierContext.topLevelVariableDeclaration
         : IdentifierContext.fieldDeclaration;
-    Token firstName = name = ensureIdentifier(token, context);
+    Token firstName = name = ensureIdentifierPotentiallyRecovered(
+        token, context, /* isRecovered = */ nameIsRecovered);
 
     // Check for covariant late final with initializer.
     if (covariantToken != null && lateToken != null) {
@@ -2529,14 +2557,22 @@ class Parser {
     return token;
   }
 
-  Token parseTopLevelMethod(Token beforeStart, Token externalToken,
-      Token beforeType, TypeInfo typeInfo, Token getOrSet, Token name) {
+  Token parseTopLevelMethod(
+      Token beforeStart,
+      Token externalToken,
+      Token beforeType,
+      TypeInfo typeInfo,
+      Token getOrSet,
+      Token name,
+      bool nameIsRecovered) {
     listener.beginTopLevelMethod(beforeStart, externalToken);
 
     Token token = typeInfo.parseType(beforeType, this);
     assert(token.next == (getOrSet ?? name) || token.next.isEof);
-    name = ensureIdentifier(
-        getOrSet ?? token, IdentifierContext.topLevelFunctionDeclaration);
+    name = ensureIdentifierPotentiallyRecovered(
+        getOrSet ?? token,
+        IdentifierContext.topLevelFunctionDeclaration,
+        /* isRecovered = */ nameIsRecovered);
 
     bool isGetter = false;
     if (getOrSet == null) {
@@ -3192,6 +3228,7 @@ class Parser {
     next = token.next;
 
     Token getOrSet;
+    bool nameIsRecovered = false;
     if (next.type != TokenType.IDENTIFIER) {
       String value = next.stringValue;
       if (identical(value, 'get') || identical(value, 'set')) {
@@ -3203,6 +3240,7 @@ class Parser {
           // Recovery: Getter or setter followed by a reserved word (name).
           getOrSet = token = next;
           next = token.next;
+          nameIsRecovered = true;
         }
         // Fall through to continue parsing `get` or `set` as an identifier.
       } else if (identical(value, 'factory')) {
@@ -3235,7 +3273,8 @@ class Parser {
               getOrSet,
               token.next,
               kind,
-              enclosingDeclarationName);
+              enclosingDeclarationName,
+              nameIsRecovered);
           listener.endMember();
           return token;
         } else if (optional('===', next2) ||
@@ -3268,7 +3307,8 @@ class Parser {
               getOrSet,
               token.next,
               kind,
-              enclosingDeclarationName);
+              enclosingDeclarationName,
+              nameIsRecovered);
           listener.endMember();
           return token;
         }
@@ -3320,6 +3360,7 @@ class Parser {
             /* inDeclaration = */ true);
         token = typeInfo.skipType(token);
         next = token.next;
+        nameIsRecovered = true;
       }
     }
 
@@ -3344,7 +3385,8 @@ class Parser {
           getOrSet,
           token.next,
           kind,
-          enclosingDeclarationName);
+          enclosingDeclarationName,
+          nameIsRecovered);
     } else {
       if (getOrSet != null) {
         reportRecoverableErrorWithToken(
@@ -3361,7 +3403,8 @@ class Parser {
           typeInfo,
           token.next,
           kind,
-          enclosingDeclarationName);
+          enclosingDeclarationName,
+          nameIsRecovered);
     }
     listener.endMember();
     return token;
@@ -3379,7 +3422,8 @@ class Parser {
       Token getOrSet,
       Token name,
       DeclarationKind kind,
-      String enclosingDeclarationName) {
+      String enclosingDeclarationName,
+      bool nameIsRecovered) {
     if (lateToken != null) {
       reportRecoverableErrorWithToken(
           lateToken, codes.templateExtraneousModifier);
@@ -3438,7 +3482,10 @@ class Parser {
     if (isOperator) {
       token = parseOperatorName(token);
     } else {
-      token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
+      token = ensureIdentifierPotentiallyRecovered(
+          token,
+          IdentifierContext.methodDeclaration,
+          /* isRecovered = */ nameIsRecovered);
       // Possible recovery: This call only does something if the next token is
       // a '.' --- that's not legal for get or set, but an error is reported
       // later, and it will recover better if we allow it.
@@ -6810,7 +6857,8 @@ class Parser {
         null,
         beforeName.next,
         kind,
-        enclosingDeclarationName);
+        enclosingDeclarationName,
+        false);
     listener.endMember();
     return token;
   }
@@ -6869,7 +6917,8 @@ class Parser {
           getOrSet,
           token.next,
           kind,
-          enclosingDeclarationName);
+          enclosingDeclarationName,
+          false);
     } else if (token == beforeStart) {
       // TODO(danrubel): Provide a more specific error message for extra ';'.
       reportRecoverableErrorWithToken(next, codes.templateExpectedClassMember);
@@ -6890,7 +6939,8 @@ class Parser {
           typeInfo,
           token.next,
           kind,
-          enclosingDeclarationName);
+          enclosingDeclarationName,
+          false);
     }
 
     listener.endMember();
