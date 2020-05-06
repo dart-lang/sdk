@@ -13674,7 +13674,9 @@ class Element extends Node
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
       _parseRange!.selectNodeContents(contextElement);
-      fragment = _parseRange!.createContextualFragment(html!);
+      // createContextualFragment expects a non-nullable html string.
+      // If null is passed, it gets converted to 'null' instead.
+      fragment = _parseRange!.createContextualFragment(html ?? 'null');
     } else {
       contextElement._innerHtml = html;
 
