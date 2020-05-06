@@ -296,8 +296,9 @@ void Become::FollowForwardingPointers(Thread* thread) {
   isolate_group->ForEachIsolate(
       [&](Isolate* isolate) {
         ObjectIdRing* ring = isolate->object_id_ring();
-        ASSERT(ring != NULL);
-        ring->VisitPointers(&pointer_visitor);
+        if (ring != nullptr) {
+          ring->VisitPointers(&pointer_visitor);
+        }
       },
       /*at_safepoint=*/true);
 #endif  // !PRODUCT

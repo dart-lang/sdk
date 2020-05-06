@@ -1475,9 +1475,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
 #undef ISOLATE_METRIC_CONSTRUCTORS
           reload_every_n_stack_overflow_checks_(FLAG_reload_every),
 #endif  // !defined(PRODUCT)
-#if !defined(PRODUCT)
-      object_id_ring_(new ObjectIdRing()),
-#endif
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
@@ -2780,7 +2777,10 @@ void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
 void IsolateGroup::VisitObjectIdRingPointers(ObjectPointerVisitor* visitor) {
 #if !defined(PRODUCT)
   for (Isolate* isolate : isolates_) {
-    isolate->object_id_ring()->VisitPointers(visitor);
+    ObjectIdRing* ring = isolate->object_id_ring();
+    if (ring != nullptr) {
+      ring->VisitPointers(visitor);
+    }
   }
 #endif  // !defined(PRODUCT)
 }
@@ -2839,6 +2839,15 @@ intptr_t IsolateGroup::GetClassSizeForHeapWalkAt(intptr_t cid) {
   return shared_class_table()->SizeAt(cid);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
+
+#if !defined(PRODUCT)
+ObjectIdRing* Isolate::EnsureObjectIdRing() {
+  if (object_id_ring_ == nullptr) {
+    object_id_ring_ = new ObjectIdRing();
+  }
+  return object_id_ring_;
+}
+#endif  // !defined(PRODUCT)
 
 void Isolate::AddPendingDeopt(uword fp, uword pc) {
   // GrowableArray::Add is not atomic and may be interrupt by a profiler

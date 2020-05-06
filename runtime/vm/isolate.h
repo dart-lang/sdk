@@ -955,7 +955,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
 #if !defined(PRODUCT)
-  ObjectIdRing* object_id_ring() { return object_id_ring_; }
+  ObjectIdRing* object_id_ring() const { return object_id_ring_; }
+  ObjectIdRing* EnsureObjectIdRing();
 #endif  // !defined(PRODUCT)
 
   void AddPendingDeopt(uword fp, uword pc);

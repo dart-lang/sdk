@@ -418,7 +418,10 @@ void CompactorTask::RunEnteredIsolateGroup() {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardObjectIdRing");
           isolate_group_->ForEachIsolate(
               [&](Isolate* isolate) {
-                isolate->object_id_ring()->VisitPointers(compactor_);
+                ObjectIdRing* ring = isolate->object_id_ring();
+                if (ring != nullptr) {
+                  ring->VisitPointers(compactor_);
+                }
               },
               /*at_safepoint=*/true);
           break;
