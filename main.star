@@ -880,9 +880,7 @@ dart_infra_builder(
 dart_infra_builder(
     "nightly",
     notifies="infra",
-    properties={"$dart/cron/builders": {
-        "builders": nightly_builders
-    }},
+    properties={"builders": nightly_builders},
     recipe="cron/cron",
     schedule="0 5 * * *",  # daily, at 05:00 UTC
 )
