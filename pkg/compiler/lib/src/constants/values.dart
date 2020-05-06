@@ -906,7 +906,9 @@ class DummyInterceptorConstantValue extends ConstantValue {
 // A constant with an empty type used in [HInstruction]s of an expression
 // in an unreachable context.
 class UnreachableConstantValue extends ConstantValue {
-  const UnreachableConstantValue();
+  factory UnreachableConstantValue() => const UnreachableConstantValue._();
+
+  const UnreachableConstantValue._();
 
   @override
   bool get isDummy => true;

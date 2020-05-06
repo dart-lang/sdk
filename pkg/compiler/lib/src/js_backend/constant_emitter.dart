@@ -155,7 +155,9 @@ class ModularConstantEmitter
 
   @override
   jsAst.Expression visitUnreachable(UnreachableConstantValue constant, [_]) {
-    return new jsAst.LiteralNumber('0');
+    // Unreachable constants should be rare in generated code, so we use
+    // `undefined` encoded as `void 1' to make them distinctive.
+    return js('void 1');
   }
 
   @override

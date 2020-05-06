@@ -542,7 +542,7 @@ abstract class AbstractDataSource extends DataSourceMixin
         AbstractValue abstractValue = readAbstractValue();
         return new DummyInterceptorConstantValue(abstractValue);
       case ConstantValueKind.UNREACHABLE:
-        return const UnreachableConstantValue();
+        return UnreachableConstantValue();
       case ConstantValueKind.JS_NAME:
         js.LiteralString name = readJsNode();
         return new JsNameConstantValue(name);
