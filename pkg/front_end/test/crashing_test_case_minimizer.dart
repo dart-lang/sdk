@@ -48,6 +48,7 @@ import 'parser_suite.dart' as parser_suite;
 final FakeFileSystem fs = new FakeFileSystem();
 Uri mainUri;
 Uri platformUri;
+bool noPlatform = false;
 bool nnbd = false;
 bool widgetTransformation = false;
 List<Uri> invalidate = [];
@@ -64,6 +65,8 @@ main(List<String> arguments) async {
       } else if (arg.startsWith("--platform=")) {
         String platform = arg.substring("--platform=".length);
         platformUri = Uri.base.resolve(platform);
+      } else if (arg == "--no-platform") {
+        noPlatform = true;
       } else if (arg.startsWith("--invalidate=")) {
         for (String s in arg.substring("--invalidate=".length).split(",")) {
           invalidate.add(Uri.base.resolve(s));
@@ -88,11 +91,19 @@ main(List<String> arguments) async {
       filename = arg;
     }
   }
-  if (platformUri == null) {
-    throw "No platform given. Use --platform=/path/to/platform.dill";
-  }
-  if (!new File.fromUri(platformUri).existsSync()) {
-    throw "The platform file '$platformUri' doesn't exist";
+  if (noPlatform) {
+    int i = 0;
+    while (platformUri == null || new File.fromUri(platformUri).existsSync()) {
+      platformUri = Uri.base.resolve("nonexisting_$i");
+      i++;
+    }
+  } else {
+    if (platformUri == null) {
+      throw "No platform given. Use --platform=/path/to/platform.dill";
+    }
+    if (!new File.fromUri(platformUri).existsSync()) {
+      throw "The platform file '$platformUri' doesn't exist";
+    }
   }
   if (filename == null) {
     throw "Need file to operate on";
@@ -331,7 +342,7 @@ void _tryToRemoveUnreferencedFileContent(Component initialComponent) async {
   for (MapEntry<Uri, Uint8List> entry in fs.data.entries) {
     if (entry.value == null || entry.value.isEmpty) continue;
     if (!entry.key.toString().endsWith(".dart")) continue;
-    if (!neededUris.contains(entry.key)) {
+    if (!neededUris.contains(entry.key) && fs.data[entry.key].length != 0) {
       fs.data[entry.key] = new Uint8List(0);
       print(" => Can probably also delete ${entry.key}");
       removedSome = true;
@@ -452,9 +463,13 @@ void deleteLines(Uri uri, Component initialComponent) async {
 Component _latestComponent;
 
 Future<bool> crashesOnCompile(Component initialComponent) async {
-  IncrementalCompiler incrementalCompiler =
-      new IncrementalCompiler.fromComponent(
-          setupCompilerContext(), initialComponent);
+  IncrementalCompiler incrementalCompiler;
+  if (noPlatform) {
+    incrementalCompiler = new IncrementalCompiler(setupCompilerContext());
+  } else {
+    incrementalCompiler = new IncrementalCompiler.fromComponent(
+        setupCompilerContext(), initialComponent);
+  }
   incrementalCompiler.invalidate(mainUri);
   try {
     _latestComponent = await incrementalCompiler.computeDelta();
