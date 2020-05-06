@@ -336,7 +336,7 @@ class VMService extends MessageRouter {
       if (parsePermission('onPauseExit')) {
         pauseTypeMask |= RunningIsolate.kPauseOnExitMask;
       }
-    } catch (rpcError) {
+    } on dynamic catch (rpcError) {
       return rpcError;
     }
 

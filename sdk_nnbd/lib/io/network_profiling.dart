@@ -71,7 +71,7 @@ abstract class _NetworkProfiling {
               'Method $method does not exist'));
       }
       return Future.value(ServiceExtensionResponse.result(responseJson));
-    } catch (errorMessage) {
+    } on dynamic catch (errorMessage) {
       return Future.value(ServiceExtensionResponse.error(
           ServiceExtensionResponse.invalidParams, errorMessage));
     }
