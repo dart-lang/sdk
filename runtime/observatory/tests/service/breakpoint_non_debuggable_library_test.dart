@@ -11,9 +11,9 @@ import 'test_helper.dart';
 
 const String file = 'package:path/path.dart';
 // At join() function
-const int LINE_A = 259;
+const int LINE_A = 271;
 // At current getter function
-const int LINE_B = 84;
+const int LINE_B = 83;
 
 testMain() {
   print(join('test', 'test'));
