@@ -1816,6 +1816,23 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41409')
+  Future<void> test_exact_nullability_in_nested_list() async {
+    var content = '''
+f(List<int/*?*/> y) {
+  var x = <List<int>>[];
+  x.add(y);
+}
+''';
+    var expected = '''
+f(List<int?> y) {
+  var x = <List<int?>>[];
+  x.add(y);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_explicit_nullable_overrides_hard_edge() async {
     var content = '''
 int f(int/*?*/ i) => i + 1;
