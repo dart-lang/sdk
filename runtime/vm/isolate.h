@@ -418,6 +418,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void ForEachIsolate(std::function<void(Isolate* isolate)> function,
                       bool at_safepoint = false);
   Isolate* FirstIsolate() const;
+  Isolate* FirstIsolateLocked() const;
 
   // Ensures mutators are stopped during execution of the provided function.
   //

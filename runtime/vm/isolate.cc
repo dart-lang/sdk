@@ -2700,6 +2700,10 @@ void IsolateGroup::ForEachIsolate(
 
 Isolate* IsolateGroup::FirstIsolate() const {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  return FirstIsolateLocked();
+}
+
+Isolate* IsolateGroup::FirstIsolateLocked() const {
   return isolates_.IsEmpty() ? nullptr : isolates_.First();
 }
 

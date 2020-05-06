@@ -668,18 +668,28 @@ static bool CloneIntoChildIsolateAOT(Thread* T,
                                      Isolate* I,
                                      IsolateGroup* source_isolate_group) {
   // In AOT we speed up isolate spawning by copying donor's isolate structure.
-  Isolate* donor_isolate = source_isolate_group != nullptr
-                               ? source_isolate_group->FirstIsolate()
-                               : nullptr;
-  if (donor_isolate == nullptr) {
+  if (source_isolate_group == nullptr) {
+    return false;
+  }
+  bool has_found_donor_isolate = false;
+  std::shared_ptr<FieldTable> donor_saved_initial_field_table;
+  source_isolate_group->RunWithLockedGroup([&]() {
+    Isolate* donor_isolate = source_isolate_group->FirstIsolateLocked();
+    if (donor_isolate == nullptr) {
+      return;
+    }
+    has_found_donor_isolate = true;
+    // Initialize field_table with initial values.
+    donor_saved_initial_field_table =
+        donor_isolate->saved_initial_field_table_shareable();
+  });
+  if (!has_found_donor_isolate) {
     return false;
   }
   I->isolate_object_store()->Init();
   I->isolate_object_store()->PreallocateObjects();
-  // Initialize field_table with initial values.
-  I->set_field_table(T, donor_isolate->saved_initial_field_table()->Clone());
-  I->set_saved_initial_field_table(
-      donor_isolate->saved_initial_field_table_shareable());
+  I->set_field_table(T, donor_saved_initial_field_table->Clone());
+  I->set_saved_initial_field_table(donor_saved_initial_field_table);
 
   return true;
 }
