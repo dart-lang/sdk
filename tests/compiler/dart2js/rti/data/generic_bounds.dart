@@ -7,47 +7,49 @@
 import 'package:expect/expect.dart';
 
 /*spec:nnbd-off.class: Class1a:explicit=[Class1a]*/
+/*spec:nnbd-sdk.class: Class1a:explicit=[Class1a*]*/
 class Class1a {}
 
 class Class1b extends Class1a {}
 
 /*spec:nnbd-off.class: Class2a:explicit=[Class2a<num>],needsArgs*/
+/*spec:nnbd-sdk.class: Class2a:explicit=[Class2a<num*>*],needsArgs*/
 class Class2a<T> {}
 
 class Class2b<T> extends Class2a<T> {}
 
-/*spec:nnbd-off.member: method1:needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+/*spec:nnbd-off|spec:nnbd-sdk.member: method1:needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
 method1<T extends Class1a>() => null;
 
-/*spec:nnbd-off.member: method2:needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+/*spec:nnbd-off|spec:nnbd-sdk.member: method2:needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
 method2<T extends Class2a<num>>() => null;
 
 method3<T>() => null;
 
 class Class3 {
-  /*spec:nnbd-off.member: Class3.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*spec:nnbd-off|spec:nnbd-sdk.member: Class3.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
   method4<T extends Class1a>() => null;
 
-  /*spec:nnbd-off.member: Class3.method5:needsArgs,selectors=[Selector(call, method5, arity=0, types=1)]*/
+  /*spec:nnbd-off|spec:nnbd-sdk.member: Class3.method5:needsArgs,selectors=[Selector(call, method5, arity=0, types=1)]*/
   method5<T extends Class2a<num>>() => null;
 
   method6<T>() => null;
 }
 
 /*spec:nnbd-off.class: Class4:explicit=[Class4]*/
+/*spec:nnbd-sdk.class: Class4:explicit=[Class4*]*/
 class Class4 {}
 
-/*spec:nnbd-off.member: method10:needsArgs*/
+/*spec:nnbd-off|spec:nnbd-sdk.member: method10:needsArgs*/
 method10<T extends Class4>() => null;
 
 main() {
-  /*spec:nnbd-off.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
-  /*prod:nnbd-off.*/method7<T extends Class1a>() => null;
+  /*spec:nnbd-off|spec:nnbd-sdk.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+  method7<T extends Class1a>() => null;
 
-  /*spec:nnbd-off.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
-  /*prod:nnbd-off.*/method8<T extends Class2a<num>>() => null;
+  /*spec:nnbd-off|spec:nnbd-sdk.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+  method8<T extends Class2a<num>>() => null;
 
-  /**/
   method9<T>() => null;
 
   dynamic f1 = method1;

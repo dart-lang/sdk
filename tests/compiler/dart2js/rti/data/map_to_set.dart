@@ -25,8 +25,8 @@ main() {
   set is Set<String>;
 }
 
-/*prod:nnbd-off.class: Class:needsArgs*/
-/*spec:nnbd-off.class: Class:implicit=[Class.S,Class.T],indirect,needsArgs*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: Class:needsArgs*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: Class:implicit=[Class.S,Class.T],indirect,needsArgs*/
 class Class<T, S> {
   m() {
     return <T, S>{};

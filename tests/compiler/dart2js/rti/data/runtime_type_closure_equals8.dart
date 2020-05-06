@@ -6,11 +6,9 @@
 
 import 'package:expect/expect.dart';
 
-/*spec:nnbd-off.class: Class1:*/
-/*prod:nnbd-off.class: Class1:*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class1:*/
 class Class1<S> {
-  /*spec:nnbd-off.member: Class1.:*/
-  /*prod:nnbd-off.member: Class1.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class1.:*/
   Class1();
 
   /*member: Class1.method1a:*/
@@ -19,21 +17,18 @@ class Class1<S> {
   /*member: Class1.method1b:*/
   T method1b<T>() => null;
 
+  /*spec:nnbd-sdk.member: Class1.method2:direct,explicit=[method2.T*],needsArgs*/
   /*spec:nnbd-off.member: Class1.method2:direct,explicit=[method2.T],needsArgs*/
-  /*prod:nnbd-off.member: Class1.method2:*/
   T method2<T>(T t, String s) => t;
 }
 
-/*spec:nnbd-off.class: Class2:*/
-/*prod:nnbd-off.class: Class2:*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class2:*/
 class Class2<T> {
-  /*spec:nnbd-off.member: Class2.:*/
-  /*prod:nnbd-off.member: Class2.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class2.:*/
   Class2();
 }
 
-/*spec:nnbd-off.member: main:*/
-/*prod:nnbd-off.member: main:*/
+/*spec:nnbd-off|prod:nnbd-off.member: main:*/
 main() {
   var c = new Class1<int>();
 

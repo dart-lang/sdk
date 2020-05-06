@@ -7,37 +7,33 @@
 import 'package:expect/expect.dart';
 
 /*spec:nnbd-off.class: Class1a:explicit=[Class1a],needsArgs*/
-/*prod:nnbd-off.class: Class1a:needsArgs*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: Class1a:needsArgs*/
+/*spec:nnbd-sdk.class: Class1a:explicit=[Class1a*],needsArgs*/
 class Class1a<T> {
   Class1a();
 }
 
-/*spec:nnbd-off.class: Class1b:needsArgs*/
-/*prod:nnbd-off.class: Class1b:needsArgs*/
+/*class: Class1b:needsArgs*/
 class Class1b<T> extends Class1a<T> {
   Class1b();
 }
 
-/*spec:nnbd-off.class: Class1c:needsArgs*/
-/*prod:nnbd-off.class: Class1c:needsArgs*/
+/*class: Class1c:needsArgs*/
 class Class1c<T> extends Class1a<T> {
   Class1c();
 }
 
-/*spec:nnbd-off.class: Class2:*/
-/*prod:nnbd-off.class: Class2:*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class2:*/
 class Class2<T> {
   Class2();
 }
 
-/*spec:nnbd-off.member: test:*/
-/*prod:nnbd-off.member: test:*/
+/*spec:nnbd-off|prod:nnbd-off.member: test:*/
 test(Class1a c, Type type) {
   return c.runtimeType == type;
 }
 
-/*spec:nnbd-off.member: main:*/
-/*prod:nnbd-off.member: main:*/
+/*spec:nnbd-off|prod:nnbd-off.member: main:*/
 main() {
   Expect.isTrue(test(new Class1a(), Class1a));
   Expect.isFalse(test(new Class1b<int>(), Class1a));

@@ -5,15 +5,14 @@
 // @dart = 2.7
 
 /*spec:nnbd-off.class: Class:direct,explicit=[Class.T],implicit=[Class.T],needsArgs*/
-/*prod:nnbd-off.class: Class:*/
+/*spec:nnbd-sdk.class: Class:direct,explicit=[Class.T*],implicit=[Class.T],needsArgs*/
 class Class<T> {
   method() {
     var list = <T>[];
     // If any method was `async`, this would have triggered the need for type
     // arguments on `Class`. See the 'async_foreach.dart' test.
     list.forEach(
-        /*spec:nnbd-off.needsSignature*/
-        /*prod:nnbd-off.*/
+        /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
         (x) => print(x));
   }
 }

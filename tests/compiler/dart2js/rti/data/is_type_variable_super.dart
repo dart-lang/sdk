@@ -6,7 +6,8 @@
 
 class A<T> {}
 
-/*class: B:direct,explicit=[B.T],needsArgs*/
+/*spec:nnbd-off|prod:nnbd-off.class: B:direct,explicit=[B.T],needsArgs*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: B:direct,explicit=[B.T*],needsArgs*/
 class B<T> extends A<T> {
   m(T t) => t is T;
 }

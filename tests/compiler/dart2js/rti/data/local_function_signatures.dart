@@ -8,8 +8,7 @@ import 'package:expect/expect.dart';
 
 class Class1 {
   method1() {
-    /*spec:nnbd-off.needsSignature*/
-    /*prod:nnbd-off.needsSignature*/
+    /*needsSignature*/
     num local(num n) => null;
     return local;
   }
@@ -25,8 +24,9 @@ class Class1 {
   }
 }
 
-/*prod:nnbd-off.class: Class2:needsArgs*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: Class2:needsArgs*/
 /*spec:nnbd-off.class: Class2:direct,explicit=[Class2.T],needsArgs*/
+/*spec:nnbd-sdk.class: Class2:direct,explicit=[Class2.T*],needsArgs*/
 class Class2<T> {
   method4() {
     /*needsSignature*/
@@ -44,11 +44,10 @@ class Class3<T> {
   }
 }
 
-/*prod:nnbd-off.class: Class4:*/
 /*spec:nnbd-off.class: Class4:direct,explicit=[Class4.T],needsArgs*/
+/*spec:nnbd-sdk.class: Class4:direct,explicit=[Class4.T*],needsArgs*/
 class Class4<T> {
   method6() {
-    /**/
     num local(num n, T t) => null;
     return local;
   }

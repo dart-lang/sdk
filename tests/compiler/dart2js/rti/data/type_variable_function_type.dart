@@ -10,7 +10,8 @@ import 'package:expect/expect.dart';
 
 typedef T Func<T>();
 
-/*class: Foo:direct,explicit=[Foo.S Function()],needsArgs*/
+/*spec:nnbd-off|prod:nnbd-off.class: Foo:direct,explicit=[Foo.S Function()],needsArgs*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: Foo:direct,explicit=[Foo.S* Function()*],needsArgs*/
 class Foo<S> {
   m(x) => x is Func<S>;
 }

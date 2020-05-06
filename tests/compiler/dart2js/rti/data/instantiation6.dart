@@ -4,14 +4,13 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off.member: f:deps=[method],direct,explicit=[f.T],needsArgs,needsInst=[<method.S>]*/
-/*prod:nnbd-off.member: f:deps=[method],direct,explicit=[f.T],needsArgs,needsInst=[<method.S>]*/
+/*spec:nnbd-off|prod:nnbd-off.member: f:deps=[method],direct,explicit=[f.T],needsArgs,needsInst=[<method.S>]*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.member: f:deps=[method],direct,explicit=[f.T*],needsArgs,needsInst=[<method.S*>]*/
 bool f<T>(T a) => a is T;
 
 typedef bool F<R>(R a);
 
-/*spec:nnbd-off.member: method:indirect,needsArgs*/
-/*prod:nnbd-off.member: method:indirect,needsArgs*/
+/*member: method:indirect,needsArgs*/
 method<S>() {
   F<S> c;
 

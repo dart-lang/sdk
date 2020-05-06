@@ -8,7 +8,8 @@
 
 main() {
   /*spec:nnbd-off.direct,explicit=[id.T],needsArgs,needsInst=[<int>],needsSignature*/
-  T id<T>(T t, String s) => t;
+  /*spec:nnbd-sdk.direct,explicit=[id.T*],needsArgs,needsInst=[<int*>],needsSignature*/ T
+      id<T>(T t, String s) => t;
   int Function(int, String s) x = id;
   print("${x.runtimeType}");
 }

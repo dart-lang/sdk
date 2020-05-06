@@ -17,11 +17,14 @@ class A {}
 
 /*spec:nnbd-off.class: B:explicit=[List<B>],implicit=[B]*/
 /*prod:nnbd-off.class: B:explicit=[List<B>]*/
+/*spec:nnbd-sdk.class: B:explicit=[List<B*>*],implicit=[B]*/
+/*prod:nnbd-sdk.class: B:explicit=[List<B*>*]*/
 class B {}
 
 class C {
+  /*spec:nnbd-sdk.member: C.bar:direct,explicit=[Iterable<bar.T*>*],implicit=[bar.T],needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
   /*spec:nnbd-off.member: C.bar:direct,explicit=[Iterable<bar.T>],implicit=[bar.T],needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
-  /*prod:nnbd-off.member: C.bar:needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
+  /*prod:nnbd-off|prod:nnbd-sdk.member: C.bar:needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
   List<T> bar<T>(Iterable<T> t) => <T>[t.first];
 }
 

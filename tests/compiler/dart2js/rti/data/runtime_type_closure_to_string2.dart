@@ -4,23 +4,18 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off.class: Class:*/
-/*prod:nnbd-off.class: Class:*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class:*/
 class Class<T> {
-  /*spec:nnbd-off.member: Class.:*/
-  /*prod:nnbd-off.member: Class.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class.:*/
   Class();
 }
 
-/*spec:nnbd-off.member: main:*/
-/*prod:nnbd-off.member: main:*/
+/*spec:nnbd-off|prod:nnbd-off.member: main:*/
 main() {
-  /*spec:nnbd-off.needsArgs,needsSignature*/
-  /*prod:nnbd-off.*/
+  /*spec:nnbd-off|spec:nnbd-sdk.needsArgs,needsSignature*/
   local1<T>() {}
 
-  /*spec:nnbd-off.needsArgs,needsSignature,selectors=[Selector(call, call, arity=2, types=1)]*/
-  /*prod:nnbd-off.*/
+  /*spec:nnbd-off|spec:nnbd-sdk.needsArgs,needsSignature,selectors=[Selector(call, call, arity=2, types=1)]*/
   local2<T>(t, s) => t;
 
   print('${local1.runtimeType}');

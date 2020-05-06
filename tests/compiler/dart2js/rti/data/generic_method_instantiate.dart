@@ -4,14 +4,15 @@
 
 // @dart = 2.7
 
-/*class: A:explicit=[B<A>]*/
+/*spec:nnbd-off|prod:nnbd-off.class: A:explicit=[B<A>]*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: A:explicit=[B<A*>*]*/
 class A {}
 
-/*class: B:deps=[method],explicit=[B<A>],needsArgs*/
+/*spec:nnbd-off|prod:nnbd-off.class: B:deps=[method],explicit=[B<A>],needsArgs*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: B:deps=[method],explicit=[B<A*>*],needsArgs*/
 class B<T> {}
 
-/*spec:nnbd-off.member: method:needsArgs*/
-/*prod:nnbd-off.member: method:needsArgs*/
+/*member: method:needsArgs*/
 method<T>() => new B<T>();
 
 main() {

@@ -12,8 +12,7 @@ main() async {
   // This happens because the closure is thought as possibly going to the
   // async.errorHandler callback.
 
-  /*spec:nnbd-off.needsSignature*/
-  /*prod:nnbd-off.needsSignature*/
+  /*needsSignature*/
   local(object, stacktrace) => null;
 
   return local;

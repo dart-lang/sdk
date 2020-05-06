@@ -6,9 +6,11 @@
 
 import 'dart:async';
 
-/*class: global#Future:implicit=[Future<A>],indirect,needsArgs*/
+/*spec:nnbd-off|prod:nnbd-off.class: global#Future:implicit=[Future<A>],indirect,needsArgs*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: global#Future:implicit=[Future<A*>],indirect,needsArgs*/
 
-/*class: A:explicit=[FutureOr<A>],implicit=[A,Future<A>]*/
+/*spec:nnbd-off|prod:nnbd-off.class: A:explicit=[FutureOr<A>],implicit=[A,Future<A>]*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: A:explicit=[FutureOr<A*>*],implicit=[A,Future<A*>]*/
 class A {}
 
 main() {

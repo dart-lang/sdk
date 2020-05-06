@@ -5,6 +5,7 @@
 // @dart = 2.7
 
 /*spec:nnbd-off.class: A:explicit=[A]*/
+/*spec:nnbd-sdk.class: A:explicit=[A*]*/
 class A {
   /*member: A.instanceMethod:deps=[B.instanceMethod],exp,needsArgs,selectors=[Selector(call, instanceMethod, arity=0, types=1)]*/
   instanceMethod<T>() => T;

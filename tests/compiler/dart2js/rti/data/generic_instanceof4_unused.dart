@@ -4,7 +4,8 @@
 
 // @dart = 2.7
 
-/*class: A:deps=[B],direct,explicit=[A.T],needsArgs*/
+/*spec:nnbd-off|prod:nnbd-off.class: A:deps=[B],direct,explicit=[A.T],needsArgs*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: A:deps=[B],direct,explicit=[A.T*],needsArgs*/
 class A<T> {
   @pragma('dart2js:noInline')
   foo(x) {

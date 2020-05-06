@@ -6,8 +6,8 @@
 
 import 'package:expect/expect.dart';
 
-/*spec:nnbd-off.member: method:implicit=[method.T],indirect,needsArgs*/
-/*prod:nnbd-off.member: method:needsArgs*/
+/*spec:nnbd-off|spec:nnbd-sdk.member: method:implicit=[method.T],indirect,needsArgs*/
+/*prod:nnbd-off|prod:nnbd-sdk.member: method:needsArgs*/
 /*spec:nnbd-off.class: global#JSArray:deps=[ArrayIterator,List],direct,explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs*/
 /*prod:nnbd-off.class: global#JSArray:deps=[List],explicit=[JSArray],needsArgs*/
 
