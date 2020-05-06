@@ -2032,7 +2032,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType _dispatch(AstNode node, {bool skipNullCheckHint = false}) {
     var type = node?.accept(this);
-    if (!skipNullCheckHint && node is Expression) {
+    if (!skipNullCheckHint &&
+        node is Expression &&
+        // A /*!*/ hint following an AsExpression should be interpreted as a
+        // nullability hint for the type, not a null-check hint.
+        node is! AsExpression) {
       type = _handleNullCheckHint(node, type);
     }
     return type;

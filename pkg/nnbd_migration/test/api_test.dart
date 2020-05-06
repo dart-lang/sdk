@@ -1853,6 +1853,16 @@ int f(int? i) => i!;
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  Future<void> test_expression_bang_hint_in_as() async {
+    var content = '''
+int f(num/*?*/ i) => i as int/*!*/;
+''';
+    var expected = '''
+int f(num? i) => i as int;
+''';
+    await _checkSingleFileChanges(content, expected, removeViaComments: true);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41788')
   Future<void> test_expression_bang_hint_in_as_wrapped() async {
     var content = '''
