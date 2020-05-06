@@ -1410,15 +1410,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
                 _resolver.inheritance.getInherited2(staticType.element, name);
             if (element != null) {
               propertyName.staticElement = element;
-              ClassElementImpl receiverSuperClass =
-                  staticType.element.supertype.element;
-              if (!receiverSuperClass.hasNoSuchMethod) {
-                _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                  propertyName,
-                  [element.kind.displayName, propertyName.name],
-                );
-              }
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
+                propertyName,
+                [element.kind.displayName, propertyName.name],
+              );
             } else {
               _errorReporter.reportErrorForNode(
                 StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,
