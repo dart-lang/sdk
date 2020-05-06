@@ -5127,14 +5127,30 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkUseOfDefaultValuesInParameters(FormalParameterList node) {
     if (!_isNonNullableByDefault) return;
 
-    var parent = node.parent;
-    var defaultValuesAreExpected =
-        parent is ConstructorDeclaration && parent.externalKeyword == null ||
-            parent is FunctionExpression ||
-            parent is MethodDeclaration &&
-                !parent.isAbstract &&
-                parent.externalKeyword == null &&
-                parent.body is! NativeFunctionBody;
+    var defaultValuesAreExpected = () {
+      var parent = node.parent;
+      if (parent is ConstructorDeclaration) {
+        if (parent.externalKeyword != null) {
+          return false;
+        } else if (parent.factoryKeyword != null &&
+            parent.redirectedConstructor != null) {
+          return false;
+        }
+        return true;
+      } else if (parent is FunctionExpression) {
+        return true;
+      } else if (parent is MethodDeclaration) {
+        if (parent.isAbstract) {
+          return false;
+        } else if (parent.externalKeyword != null) {
+          return false;
+        } else if (parent.body is NativeFunctionBody) {
+          return false;
+        }
+        return true;
+      }
+      return false;
+    }();
 
     for (var parameter in node.parameters) {
       if (parameter is DefaultFormalParameter) {
