@@ -2181,11 +2181,17 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           sourceType = _makeNullableDynamicType(compoundOperatorInfo);
         }
       } else {
+        var unwrappedExpression = expression.unParenthesized;
+        var hard = (questionAssignNode == null &&
+                _postDominatedLocals.isReferenceInScope(expression)) ||
+            // An edge from a cast should be hard, so that the cast type
+            // annotation is appropriately made nullable according to the
+            // destination type.
+            unwrappedExpression is AsExpression;
         _checkAssignment(edgeOrigin, FixReasonTarget.root,
             source: sourceType,
             destination: destinationType,
-            hard: questionAssignNode == null &&
-                _postDominatedLocals.isReferenceInScope(expression),
+            hard: hard,
             sourceIsFunctionLiteral: expression is FunctionExpression);
       }
       if (destinationLocalVariable != null) {

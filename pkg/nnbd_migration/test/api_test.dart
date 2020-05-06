@@ -1890,6 +1890,16 @@ int? f(int? i) => i!;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_expression_nullable_cast_then_checked() async {
+    var content = '''
+int/*!*/ f(num/*?*/ i) => (i as int);
+''';
+    var expected = '''
+int f(num? i) => (i as int);
+''';
+    await _checkSingleFileChanges(content, expected, removeViaComments: true);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41788')
   Future<void> test_expression_wrapped_with_null_check_and_null_intent() async {
     var content = '''

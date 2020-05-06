@@ -1959,6 +1959,18 @@ C f(C c, int i) => c..x = i;
         hard: false);
   }
 
+  Future<void> test_cast_type_used_as_non_nullable() async {
+    await analyze('''
+void f(int/*!*/ i) {}
+void g(num/*?*/ j) {
+  f(j as int);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int)').node,
+        decoratedTypeAnnotation('int/*!*/').node,
+        hard: true);
+  }
+
   Future<void> test_catch_clause() async {
     await analyze('''
 foo() => 1;
