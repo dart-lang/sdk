@@ -340,7 +340,7 @@ class FileResolver {
       if (workspace is WorkspaceWithDefaultAnalysisOptions) {
         var separator = resourceProvider.pathContext.separator;
         if (path
-            .contains('${separator}third_party${separator}dart${separator}')) {
+            .contains('${separator}third_party${separator}dart$separator')) {
           source = sourceFactory
               .forUri(WorkspaceWithDefaultAnalysisOptions.thirdPartyUri);
         } else {
