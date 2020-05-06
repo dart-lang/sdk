@@ -67,8 +67,9 @@ Future runTest(AnnotatedCode annotatedCode, String config,
     bool verbose: false,
     List<String> options: const <String>[]}) async {
   Directory dir = Directory.systemTemp.createTempSync('stepping_test');
+  String testFileName = 'test.dart';
   String path = dir.path;
-  String inputFile = '$path/test.dart';
+  String inputFile = '$path/$testFileName';
   new File(inputFile).writeAsStringSync(annotatedCode.sourceCode);
   String outputFile = '$path/js.js';
   List<String> arguments = <String>[
@@ -82,7 +83,8 @@ Future runTest(AnnotatedCode annotatedCode, String config,
     '$sdkPath/_internal/js_runtime/lib/preambles/d8.js',
     outputFile
   ];
-  ProcessResult result = runD8AndStep(dir.path, annotatedCode, scriptD8Command);
+  ProcessResult result =
+      runD8AndStep(dir.path, testFileName, annotatedCode, scriptD8Command);
   List<String> d8output = result.stdout.split("\n");
   if (verbose) {
     d8output.forEach(print);
