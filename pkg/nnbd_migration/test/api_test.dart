@@ -1853,6 +1853,17 @@ int f(int? i) => i!;
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41788')
+  Future<void> test_expression_bang_hint_in_as_wrapped() async {
+    var content = '''
+int f(num/*?*/ i) => (i as int)/*!*/;
+''';
+    var expected = '''
+int f(num? i) => (i as int?)!;
+''';
+    await _checkSingleFileChanges(content, expected, removeViaComments: true);
+  }
+
   Future<void> test_expression_bang_hint_unnecessary() async {
     var content = '''
 int/*?*/ f(int/*?*/ i) => i/*!*/;
@@ -1877,6 +1888,17 @@ int? f(int? i) => i!;
     var content = 'int f(Object/*?*/ o) => o/*!*/;';
     var expected = 'int f(Object? o) => o! as int;';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41788')
+  Future<void> test_expression_wrapped_with_null_check_and_null_intent() async {
+    var content = '''
+int/*!*/ f(int/*?*/ i) => (i)/*!*/;
+''';
+    var expected = '''
+int f(int? i) => i!;
+''';
+    await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
@@ -2645,16 +2667,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_function_typed_formal_param_accepts_hint() async {
-    var content = '''
-void f(g() /*?*/) {}
-''';
-    var expected = '''
-void f(g()?) {}
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
   Future<void> test_function_typed_formal_param() async {
     var content = '''
 void f(g()) {}
@@ -2667,6 +2679,16 @@ void f(g()?) {}
 void main() {
   f(null);
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_function_typed_formal_param_accepts_hint() async {
+    var content = '''
+void f(g() /*?*/) {}
+''';
+    var expected = '''
+void f(g()?) {}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
