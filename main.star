@@ -313,13 +313,13 @@ luci.cq_group(
 
 def dart_recipe(name):
     return luci.recipe(
-        name="dart/" + name,
+        name=name,
         cipd_package="dart/recipe_bundles/dart.googlesource.com/recipes",
     )
 
 
 def dart_try_builder(name,
-                     recipe="neo",
+                     recipe="dart/neo",
                      dimensions=None,
                      execution_timeout=None,
                      experiment_percentage=None,
@@ -375,7 +375,7 @@ luci.builder.defaults.properties.set({
 
 def dart_builder(name,
                  bucket,
-                 recipe="neo",
+                 recipe="dart/neo",
                  enabled=True,
                  category=None,
                  channels=[],
@@ -551,7 +551,7 @@ dart_ci_sandbox_builder(
 # flutter
 dart_ci_sandbox_builder(
     "flutter-engine-linux",
-    recipe="flutter_engine",
+    recipe="dart/flutter_engine",
     category="flutter|3H",
     channels=["try"],
     execution_timeout=time.duration(6 * 60 * 60 * 1000),
@@ -841,7 +841,7 @@ dart_ci_sandbox_builder("ddk-linux-release-firefox", category="ddc|fl")
 
 # misc
 dart_ci_sandbox_builder(
-    "gclient", recipe="gclient", category="misc|g", on_cq=True)
+    "gclient", recipe="dart/gclient", category="misc|g", on_cq=True)
 dart_ci_builder(
     "debianpackage-linux",
     category="misc|dp",
@@ -852,21 +852,21 @@ dart_ci_builder(
 
 # external
 dart_infra_builder(
-    "google", recipe="external", category="external|g", enabled=False, fyi=True)
+    "google", recipe="dart/external", category="external|g", enabled=False, fyi=True)
 
 # infra
 dart_infra_builder(
     "base",
     execution_timeout=time.duration(15 * 60 * 1000),
-    recipe="forward_branch",
+    recipe="dart/forward_branch",
     schedule="with 10m interval",
     notifies=None)
-dart_infra_builder("chocolatey", recipe="chocolatey", dimensions=windows())
-dart_infra_builder("co19-roller", recipe="package_co19")
-dart_infra_builder("docker", recipe="docker")
+dart_infra_builder("chocolatey", recipe="dart/chocolatey", dimensions=windows())
+dart_infra_builder("co19-roller", recipe="dart/package_co19")
+dart_infra_builder("docker", recipe="dart/docker")
 dart_infra_builder(
     "linearize-flutter",
-    recipe="linearize",
+    recipe="dart/linearize",
     properties={
         "repo": "https://dart.googlesource.com/linear_sdk_flutter_engine.git"
     },
