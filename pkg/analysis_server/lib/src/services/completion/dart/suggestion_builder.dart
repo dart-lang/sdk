@@ -13,6 +13,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -852,7 +853,7 @@ class SuggestionBuilder {
     var replacement = sourceEdits[0].replacement;
     var completion = replacement.trim();
     var overrideAnnotation = '@override';
-    if (_hasOverride(request.target.containingNode) &&
+    if (request.target.containingNode.hasOverride &&
         completion.startsWith(overrideAnnotation)) {
       completion = completion.substring(overrideAnnotation.length).trim();
     }
@@ -1144,20 +1145,6 @@ class SuggestionBuilder {
         weightedAverage(
             [contextTypeFeature, elementKind, hasDeprecated], [1.0, 0.75, 0.2]),
         defaultRelevance);
-  }
-
-  /// Return `true` if the given [node] has an `override` annotation.
-  bool _hasOverride(AstNode node) {
-    if (node is AnnotatedNode) {
-      var metadata = node.metadata;
-      for (var annotation in metadata) {
-        if (annotation.name.name == 'override' &&
-            annotation.arguments == null) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   InterfaceType _instantiateClassElement(ClassElement element) {

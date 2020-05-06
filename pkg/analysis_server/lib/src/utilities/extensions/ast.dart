@@ -6,6 +6,20 @@ import 'package:analyzer/dart/ast/ast.dart';
 
 /// Extensions for [AstNode]s
 extension AstNodeExtensions on AstNode {
+  /// Return `true` if this node has an `override` annotation.
+  bool get hasOverride {
+    var node = this;
+    if (node is AnnotatedNode) {
+      for (var annotation in node.metadata) {
+        if (annotation.name.name == 'override' &&
+            annotation.arguments == null) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   bool get inAsyncMethodOrFunction {
     var body = thisOrAncestorOfType<FunctionBody>();
     return body != null && body.isAsynchronous && body.star == null;
