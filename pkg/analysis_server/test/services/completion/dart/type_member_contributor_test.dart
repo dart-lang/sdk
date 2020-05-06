@@ -3127,6 +3127,17 @@ void main() {int y = new C().^}''');
     assertHasNoParameterInfo(suggestion);
   }
 
+  Future<void> test_no_parameters_setter2() async {
+    addTestSource('''
+class C {
+  set x() {};
+}
+void main() {int y = new C().^}''');
+    await computeSuggestions();
+    var suggestion = assertSuggestSetter('x');
+    assertHasNoParameterInfo(suggestion);
+  }
+
   Future<void> test_only_instance() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
     addTestSource('''

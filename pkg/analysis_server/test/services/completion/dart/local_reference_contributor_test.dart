@@ -1421,6 +1421,19 @@ class Z { }''');
     assertNotSuggested('parseHex');
   }
 
+  Future<void> test_Block_setterWithoutParameters() async {
+    addTestSource('''
+set foo() {}
+
+void main() {
+  ^
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestSetter('foo', relevance: DART_RELEVANCE_LOCAL_ACCESSOR);
+  }
+
   Future<void> test_Block_unimported() async {
     addPackageFile('aaa', 'a.dart', 'class A {}');
     addTestSource('main() { ^ }');

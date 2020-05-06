@@ -388,8 +388,7 @@ class SuggestionBuilder {
         }
       }
     } else {
-      var type =
-          accessor.isGetter ? accessor.returnType : accessor.parameters[0].type;
+      var type = _getPropertyAccessorType(accessor);
       int relevance;
       if (request.useNewRelevance) {
         var featureComputer = request.featureComputer;
@@ -958,8 +957,7 @@ class SuggestionBuilder {
         }
       }
     } else {
-      var type =
-          accessor.isGetter ? accessor.returnType : accessor.parameters[0].type;
+      var type = _getPropertyAccessorType(accessor);
       int relevance;
       if (request.useNewRelevance) {
         var featureComputer = request.featureComputer;
@@ -1145,6 +1143,21 @@ class SuggestionBuilder {
         weightedAverage(
             [contextTypeFeature, elementKind, hasDeprecated], [1.0, 0.75, 0.2]),
         defaultRelevance);
+  }
+
+  /// Return the type associated with the [accessor], maybe `null` if an
+  /// invalid setter with no parameters at all.
+  DartType _getPropertyAccessorType(PropertyAccessorElement accessor) {
+    if (accessor.isGetter) {
+      return accessor.returnType;
+    } else {
+      var parameters = accessor.parameters;
+      if (parameters.isEmpty) {
+        return null;
+      } else {
+        return parameters[0].type;
+      }
+    }
   }
 
   InterfaceType _instantiateClassElement(ClassElement element) {
