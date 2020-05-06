@@ -382,7 +382,7 @@ class _JsonDecoderSink extends _StringSinkConversionSink<StringBuffer> {
     super.close();
     String accumulated = _stringSink.toString();
     _stringSink.clear();
-    Object decoded = _parseJson(accumulated, _reviver);
+    Object? decoded = _parseJson(accumulated, _reviver);
     _sink.add(decoded);
     _sink.close();
   }
