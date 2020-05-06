@@ -263,8 +263,11 @@ static void ThrowIsolateSpawnException(const String& message) {
 class SpawnIsolateTask : public ThreadPool::Task {
  public:
   SpawnIsolateTask(Isolate* parent_isolate,
-                   std::unique_ptr<IsolateSpawnState> state)
-      : parent_isolate_(parent_isolate), state_(std::move(state)) {
+                   std::unique_ptr<IsolateSpawnState> state,
+                   bool in_new_isolate_group)
+      : parent_isolate_(parent_isolate),
+        state_(std::move(state)),
+        in_new_isolate_group_(in_new_isolate_group) {
     parent_isolate->IncrementSpawnCount();
   }
 
@@ -299,7 +302,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     char* error = nullptr;
     Isolate* isolate = nullptr;
     if (!FLAG_enable_isolate_groups || group == nullptr ||
-        initialize_callback == nullptr) {
+        initialize_callback == nullptr || in_new_isolate_group_) {
       // Make a copy of the state's isolate flags and hand it to the callback.
       Dart_IsolateFlags api_flags = *(state_->isolate_flags());
       isolate = reinterpret_cast<Isolate*>((create_group_callback)(
@@ -377,6 +380,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
   Isolate* parent_isolate_;
   std::unique_ptr<IsolateSpawnState> state_;
+  bool in_new_isolate_group_;
 
   DISALLOW_COPY_AND_ASSIGN(SpawnIsolateTask);
 };
@@ -390,7 +394,7 @@ static const char* String2UTF8(const String& str) {
   return result;
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, script_uri, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(2));
@@ -400,7 +404,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(6));
   GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(7));
   GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(8));
-  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(9));
+  GET_NATIVE_ARGUMENT(Bool, newIsolateGroup, arguments->NativeArgAt(9));
+  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(10));
 
   if (closure.IsClosure()) {
     Function& func = Function::Handle();
@@ -440,8 +445,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
 
-      isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
-                                                             std::move(state));
+      const bool in_new_isolate_group = newIsolateGroup.value();
+      isolate->group()->thread_pool()->Run<SpawnIsolateTask>(
+          isolate, std::move(state), in_new_isolate_group);
       return Object::null();
     }
   }
@@ -555,8 +561,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   // Since this is a call to Isolate.spawnUri, don't copy the parent's code.
   state->isolate_flags()->copy_parent_code = false;
 
-  isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
-                                                         std::move(state));
+  const bool in_new_isolate_group = false;
+  isolate->group()->thread_pool()->Run<SpawnIsolateTask>(
+      isolate, std::move(state), in_new_isolate_group);
   return Object::null();
 }
 

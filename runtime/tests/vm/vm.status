@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
+
 cc/Fail0: Fail # These tests are expected to crash on all platforms.
 cc/Fail1: Fail # These tests are expected to crash on all platforms.
 cc/Fail2: Fail # These tests are expected to crash on all platforms.
@@ -19,6 +21,17 @@ dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-g
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
+
+[ $runtime != dart_precompiled ]
+dart/isolates/fibonacci_call_ig_test: Skip # Only AOT has lightweight enough isolates to run those tests, JIT work is pending.
+dart/isolates/fibonacci_call_test: Skip # Only AOT has lightweight enough isolates to run those tests.
+dart/isolates/internal: Skip # Only AOT has lightweight enough isolates to run those tests.
+dart/isolates/ring_gc_sendAndExit_test: Skip # Only AOT has lightweight enough isolates to run those tests.
+dart/isolates/ring_gc_test: Skip # Only AOT has lightweight enough isolates to run those tests.
+dart/isolates/sum_recursive_call_ig_test: Skip # Only AOT has lightweight enough isolates to run those tests.
+dart/isolates/sum_recursive_call_test: Skip # Only AOT has lightweight enough isolates to run those tests.
+dart/isolates/sum_recursive_tail_call_ig_test: Skip # Only AOT has lightweight enough isolates to run those tests.
+dart/isolates/sum_recursive_tail_call_test: Skip # Only AOT has lightweight enough isolates to run those tests.
 
 [ $builder_tag == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188

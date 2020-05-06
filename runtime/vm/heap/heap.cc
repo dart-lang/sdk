@@ -34,6 +34,10 @@
 namespace dart {
 
 DEFINE_FLAG(bool, write_protect_vm_isolate, true, "Write protect vm_isolate.");
+DEFINE_FLAG(bool,
+            disable_heap_verification,
+            false,
+            "Explicitly disable heap verification.");
 
 // We ensure that the GC does not use the current isolate.
 class NoActiveIsolateScope {
@@ -768,6 +772,9 @@ ObjectSet* Heap::CreateAllocatedObjectSet(Zone* zone,
 }
 
 bool Heap::Verify(MarkExpectation mark_expectation) {
+  if (FLAG_disable_heap_verification) {
+    return true;
+  }
   HeapIterationScope heap_iteration_scope(Thread::Current());
   return VerifyGC(mark_expectation);
 }
