@@ -10,6 +10,9 @@
 #   $build_dir/gen_kernel_bytecode.dill
 # This script is a no-op unless $BUILDBOT_BUILDERNAME is "dart-sdk-linux-be".
 # It's also a no-op if dill files were already uploaded today.
+#
+# If the ABI was modified, the ABI_VERSION in tools/VERSIONS should be manually
+# incremented accordingly.
 set -e
 set -x
 
