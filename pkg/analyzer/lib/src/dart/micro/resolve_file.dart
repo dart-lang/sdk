@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
@@ -212,7 +211,7 @@ class FileResolver {
             (_) => true, // _isLibraryUri
             contextObjects.analysisContext,
             libraryContext.elementFactory,
-            libraryContext.inheritanceManager,
+            contextObjects.inheritanceManager,
             libraryFile,
             resourceProvider,
             (String path) => resourceProvider.getFile(path).readAsStringSync(),
@@ -417,7 +416,6 @@ class _LibraryContext {
   final MicroContextObjects contextObjects;
 
   LinkedElementFactory elementFactory;
-  InheritanceManager3 inheritanceManager;
 
   Set<LibraryCycle> loadedBundles = Set.identity();
 
@@ -565,7 +563,6 @@ class _LibraryContext {
     // already include the [targetLibrary]. When this happens, [loadBundle]
     // exists without doing any work. But the type provider must be created.
     _createElementFactoryTypeProvider();
-    inheritanceManager = InheritanceManager3();
   }
 
   void _createElementFactory() {

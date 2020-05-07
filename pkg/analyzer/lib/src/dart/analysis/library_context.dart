@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
@@ -54,7 +53,6 @@ class LibraryContext {
 
   AnalysisContextImpl analysisContext;
   LinkedElementFactory elementFactory;
-  InheritanceManager3 inheritanceManager;
 
   var loadedBundles = Set<LibraryCycle>.identity();
 
@@ -77,8 +75,6 @@ class LibraryContext {
 
     _createElementFactory();
     load2(targetLibrary);
-
-    inheritanceManager = InheritanceManager3();
   }
 
   /**
