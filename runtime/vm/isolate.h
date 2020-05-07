@@ -532,6 +532,16 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     reverse_pc_lookup_cache_ = table;
   }
 
+  FieldTable* saved_initial_field_table() const {
+    return saved_initial_field_table_.get();
+  }
+  std::shared_ptr<FieldTable> saved_initial_field_table_shareable() {
+    return saved_initial_field_table_;
+  }
+  void set_saved_initial_field_table(std::shared_ptr<FieldTable> field_table) {
+    saved_initial_field_table_ = field_table;
+  }
+
   MutatorThreadPool* thread_pool() { return thread_pool_.get(); }
 
  private:
@@ -618,6 +628,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<DispatchTable> dispatch_table_;
   ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
   ArrayPtr saved_unlinked_calls_;
+  std::shared_ptr<FieldTable> saved_initial_field_table_;
 
   uint32_t isolate_group_flags_ = 0;
 };
@@ -724,16 +735,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     delete field_table_;
     field_table_ = field_table;
     T->field_table_values_ = field_table->table();
-  }
-
-  FieldTable* saved_initial_field_table() const {
-    return saved_initial_field_table_.get();
-  }
-  std::shared_ptr<FieldTable> saved_initial_field_table_shareable() {
-    return saved_initial_field_table_;
-  }
-  void set_saved_initial_field_table(std::shared_ptr<FieldTable> field_table) {
-    saved_initial_field_table_ = field_table;
   }
 
   IsolateObjectStore* isolate_object_store() const {
@@ -1372,7 +1373,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   IsolateGroup* isolate_group_;
   IdleTimeHandler idle_time_handler_;
-  std::shared_ptr<FieldTable> saved_initial_field_table_;
   std::unique_ptr<IsolateObjectStore> isolate_object_store_;
   // shared in AOT(same pointer as on IsolateGroup), not shared in JIT
   std::shared_ptr<ObjectStore> object_store_shared_ptr_;

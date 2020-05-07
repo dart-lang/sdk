@@ -1203,10 +1203,6 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field.InitializeGuardedListLengthInObjectOffset();
       }
     }
-
-    Isolate* isolate = Isolate::Current();
-    isolate->set_saved_initial_field_table(
-        std::shared_ptr<FieldTable>(isolate->field_table()->Clone()));
   }
 };
 

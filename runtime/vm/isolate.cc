@@ -2583,9 +2583,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit objects in the field table.
   field_table()->VisitObjectPointers(visitor);
-  if (saved_initial_field_table() != nullptr) {
-    saved_initial_field_table()->VisitObjectPointers(visitor);
-  }
 
   visitor->clear_gc_root_type();
   // Visit the objects directly referenced from the isolate structure.
@@ -2756,6 +2753,9 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
     object_store()->VisitObjectPointers(visitor);
   }
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
+  if (saved_initial_field_table() != nullptr) {
+    saved_initial_field_table()->VisitObjectPointers(visitor);
+  }
   VisitStackPointers(visitor, validate_frames);
 }
 

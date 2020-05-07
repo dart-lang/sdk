@@ -671,25 +671,10 @@ static bool CloneIntoChildIsolateAOT(Thread* T,
   if (source_isolate_group == nullptr) {
     return false;
   }
-  bool has_found_donor_isolate = false;
-  std::shared_ptr<FieldTable> donor_saved_initial_field_table;
-  source_isolate_group->RunWithLockedGroup([&]() {
-    Isolate* donor_isolate = source_isolate_group->FirstIsolateLocked();
-    if (donor_isolate == nullptr) {
-      return;
-    }
-    has_found_donor_isolate = true;
-    // Initialize field_table with initial values.
-    donor_saved_initial_field_table =
-        donor_isolate->saved_initial_field_table_shareable();
-  });
-  if (!has_found_donor_isolate) {
-    return false;
-  }
   I->isolate_object_store()->Init();
   I->isolate_object_store()->PreallocateObjects();
-  I->set_field_table(T, donor_saved_initial_field_table->Clone());
-  I->set_saved_initial_field_table(donor_saved_initial_field_table);
+  I->set_field_table(
+      T, source_isolate_group->saved_initial_field_table()->Clone());
 
   return true;
 }
@@ -735,6 +720,8 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
     }
 
     ReversePcLookupCache::BuildAndAttachToIsolateGroup(I->group());
+    I->group()->set_saved_initial_field_table(
+        std::shared_ptr<FieldTable>(I->field_table()->Clone()));
 
 #if defined(SUPPORT_TIMELINE)
     if (tbes.enabled()) {
