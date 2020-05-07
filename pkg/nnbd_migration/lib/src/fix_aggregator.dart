@@ -270,7 +270,7 @@ class NodeChangeForAnnotation extends NodeChange<Annotation> {
       // extract it.
       return aggregator.planner.extract(
           node, aggregator.planForNode(name) as NodeProducingEditPlan,
-          infoBefore: changeToRequiredKeywordInfo);
+          infoBefore: changeToRequiredKeywordInfo, alwaysDelete: true);
     } else {
       return aggregator.planner.replace(node,
           [AtomicEdit.insert('required', info: changeToRequiredKeywordInfo)]);
