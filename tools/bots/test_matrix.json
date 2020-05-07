@@ -683,7 +683,7 @@
         "dart2js-options": [
           "--null-safety",
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64NNBD/"
+          "--platform-binaries=out/ReleaseX64/"
         ],
         "timeout": 240,
         "host-checked": true
@@ -698,7 +698,7 @@
         "dart2js-options": [
           "--null-safety",
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
-          "--platform-binaries=xcodebuild/ReleaseX64NNBD/"
+          "--platform-binaries=xcodebuild/ReleaseX64/"
         ],
         "timeout": 240,
         "host-checked": true
