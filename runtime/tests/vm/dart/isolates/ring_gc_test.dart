@@ -31,7 +31,7 @@ class Worker extends RingElement {
 }
 
 main(args) async {
-  const int numIsolates = 1000;
+  final int numIsolates = (isDebugMode || isSimulator) ? 100 : 1000;
 
   // Spawn ring of 1k isolates.
   final ring = await Ring.create(numIsolates);
