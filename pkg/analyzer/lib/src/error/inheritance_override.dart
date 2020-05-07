@@ -596,7 +596,7 @@ class _ClassVerifier {
   void _reportInconsistentInheritance(AstNode node, Conflict conflict) {
     var name = conflict.name;
 
-    if (conflict.getter != null && conflict.method != null) {
+    if (conflict is GetterMethodConflict) {
       reporter.reportErrorForNode(
         CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
         node,
@@ -606,7 +606,7 @@ class _ClassVerifier {
           conflict.method.enclosingElement.name
         ],
       );
-    } else {
+    } else if (conflict is CandidatesConflict) {
       var candidatesStr = conflict.candidates.map((candidate) {
         var className = candidate.enclosingElement.name;
         var typeStr = candidate.type.getDisplayString(
@@ -620,6 +620,8 @@ class _ClassVerifier {
         node,
         [name.name, candidatesStr],
       );
+    } else {
+      throw StateError('${conflict.runtimeType}');
     }
   }
 

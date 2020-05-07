@@ -13,25 +13,35 @@ import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
 
-/// Description of a failure to find a valid override from superinterfaces.
-class Conflict {
-  /// The name of an instance member for which we failed to find a valid
-  /// override.
-  final Name name;
-
-  /// The list of candidates for a valid override for a member [name].  It has
-  /// at least two items, because otherwise the only candidate is always valid.
+/// Failure because of there is no most specific signature in [candidates].
+class CandidatesConflict extends Conflict {
+  /// The list has at least two items, because the only item is always valid.
   final List<ExecutableElement> candidates;
 
-  /// The getter that conflicts with the [method], or `null`, if the conflict
-  /// is inconsistent inheritance.
-  final ExecutableElement getter;
+  CandidatesConflict({
+    @required Name name,
+    @required this.candidates,
+  }) : super(name);
+}
 
-  /// The method tha conflicts with the [getter], or `null`, if the conflict
-  /// is inconsistent inheritance.
+/// Failure to find a valid signature from superinterfaces.
+class Conflict {
+  /// The name for which we failed to find a valid signature.
+  final Name name;
+
+  Conflict(this.name);
+}
+
+/// Failure because of a getter and a method from direct superinterfaces.
+class GetterMethodConflict extends Conflict {
+  final ExecutableElement getter;
   final ExecutableElement method;
 
-  Conflict(this.name, this.candidates, [this.getter, this.method]);
+  GetterMethodConflict({
+    @required Name name,
+    @required this.getter,
+    @required this.method,
+  }) : super(name);
 }
 
 /// Manages knowledge about interface types and their members.
@@ -266,11 +276,10 @@ class InheritanceManager3 {
               if (current.kind != candidate.kind) {
                 var currentIsGetter = current.kind == ElementKind.GETTER;
                 mixinConflicts.add(
-                  Conflict(
-                    name,
-                    [current, candidate],
-                    currentIsGetter ? current : candidate,
-                    currentIsGetter ? candidate : current,
+                  GetterMethodConflict(
+                    name: name,
+                    getter: currentIsGetter ? current : candidate,
+                    method: currentIsGetter ? candidate : current,
                   ),
                 );
               }
@@ -565,7 +574,7 @@ class InheritanceManager3 {
         method ??= candidate;
       }
     }
-    return Conflict(name, candidates, getter, method);
+    return GetterMethodConflict(name: name, getter: getter, method: method);
   }
 
   /// The given [namedCandidates] maps names to candidates from direct
@@ -624,7 +633,12 @@ class InheritanceManager3 {
 
       if (validOverrides.isEmpty) {
         conflicts ??= <Conflict>[];
-        conflicts.add(Conflict(name, candidates));
+        conflicts.add(
+          CandidatesConflict(
+            name: name,
+            candidates: candidates,
+          ),
+        );
         continue;
       }
 
