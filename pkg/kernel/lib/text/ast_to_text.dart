@@ -161,6 +161,13 @@ String debugNodeToString(Node node) {
   return '$buffer';
 }
 
+String debugLibraryToString(Library library) {
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: globalDebuggingNames)
+      .writeLibraryFile(library);
+  return '$buffer';
+}
+
 String componentToString(Component node) {
   StringBuffer buffer = new StringBuffer();
   new Printer(buffer, syntheticNames: new NameSystem())

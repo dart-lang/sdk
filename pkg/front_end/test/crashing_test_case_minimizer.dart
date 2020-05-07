@@ -4,7 +4,7 @@
 
 import 'dart:convert' show utf8;
 
-import 'dart:io' show BytesBuilder, File;
+import 'dart:io' show BytesBuilder, File, stdin;
 
 import 'dart:typed_data' show Uint8List;
 
@@ -55,6 +55,8 @@ List<Uri> invalidate = [];
 String targetString = "VM";
 String expectedCrashLine;
 bool byteDelete = false;
+bool askAboutRedirectCrashTarget = false;
+Set<String> askedAboutRedirect = {};
 
 main(List<String> arguments) async {
   String filename;
@@ -81,6 +83,8 @@ main(List<String> arguments) async {
         targetString = "ddc";
       } else if (arg == "--byteDelete") {
         byteDelete = true;
+      } else if (arg == "--ask-redirect-target") {
+        askAboutRedirectCrashTarget = true;
       } else {
         throw "Unknown option $arg";
       }
@@ -477,6 +481,7 @@ Future<bool> crashesOnCompile(Component initialComponent) async {
       incrementalCompiler.invalidate(uri);
       await incrementalCompiler.computeDelta();
     }
+    _latestComponent = null; // if it didn't crash this isn't relevant.
     return false;
   } catch (e, st) {
     // Find line with #0 in it.
@@ -498,6 +503,24 @@ Future<bool> crashesOnCompile(Component initialComponent) async {
       return true;
     } else {
       print("Crashed, but another place: $foundLine");
+      if (askAboutRedirectCrashTarget &&
+          !askedAboutRedirect.contains(foundLine)) {
+        while (true) {
+          askedAboutRedirect.add(foundLine);
+          print(eWithSt);
+          print("Should we redirect to searching for that? (y/n)");
+          String answer = stdin.readLineSync();
+          if (answer == "yes" || answer == "y") {
+            expectedCrashLine = foundLine;
+            return true;
+          } else if (answer == "no" || answer == "n") {
+            break;
+          } else {
+            print("Didn't get that answer. "
+                "Please answer 'yes, 'y', 'no' or 'n'");
+          }
+        }
+      }
       return false;
     }
   }
@@ -537,6 +560,9 @@ CompilerContext setupCompilerContext() {
   options.onDiagnostic = (DiagnosticMessage message) {
     // don't care.
   };
+  if (noPlatform) {
+    options.librariesSpecificationUri = null;
+  }
 
   CompilerContext compilerContext = new CompilerContext(
       new ProcessedOptions(options: options, inputs: [mainUri]));

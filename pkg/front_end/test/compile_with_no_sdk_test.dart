@@ -9,6 +9,10 @@ import 'incremental_load_from_dill_suite.dart'
     show TestIncrementalCompiler, getOptions;
 
 main() async {
+  await compile("import 'foo.dart' if (dart.library.bar) 'baz.dart';");
+}
+
+void compile(String data) async {
   Uri base = Uri.parse("org-dartlang-test:///");
   Uri sdkSummary = base.resolve("nonexisting.dill");
   Uri mainFile = base.resolve("main.dart");
@@ -22,9 +26,7 @@ main() async {
   options.onDiagnostic = (DiagnosticMessage message) {
     // ignored
   };
-  fs
-      .entityForUri(mainFile)
-      .writeAsStringSync("import 'foo.dart' if (dart.library.bar) 'baz.dart';");
+  fs.entityForUri(mainFile).writeAsStringSync(data);
   TestIncrementalCompiler compiler =
       new TestIncrementalCompiler(options, mainFile);
   await compiler.computeDelta();
