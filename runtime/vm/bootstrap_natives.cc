@@ -55,11 +55,11 @@ Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
   return NULL;
 }
 
-const uint8_t* BootstrapNatives::Symbol(Dart_NativeFunction* nf) {
+const uint8_t* BootstrapNatives::Symbol(Dart_NativeFunction nf) {
   int num_entries = sizeof(BootStrapEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     struct NativeEntries* entry = &(BootStrapEntries[i]);
-    if (reinterpret_cast<Dart_NativeFunction*>(entry->function_) == nf) {
+    if (reinterpret_cast<Dart_NativeFunction>(entry->function_) == nf) {
       return reinterpret_cast<const uint8_t*>(entry->name_);
     }
   }
@@ -69,11 +69,9 @@ const uint8_t* BootstrapNatives::Symbol(Dart_NativeFunction* nf) {
 void Bootstrap::SetupNativeResolver() {
   Library& library = Library::Handle();
 
-  Dart_NativeEntryResolver resolver =
-      reinterpret_cast<Dart_NativeEntryResolver>(BootstrapNatives::Lookup);
+  Dart_NativeEntryResolver resolver = BootstrapNatives::Lookup;
 
-  Dart_NativeEntrySymbol symbol_resolver =
-      reinterpret_cast<Dart_NativeEntrySymbol>(BootstrapNatives::Symbol);
+  Dart_NativeEntrySymbol symbol_resolver = BootstrapNatives::Symbol;
 
   library = Library::AsyncLibrary();
   ASSERT(!library.IsNull());
@@ -144,8 +142,7 @@ void Bootstrap::SetupNativeResolver() {
 }
 
 bool Bootstrap::IsBootstrapResolver(Dart_NativeEntryResolver resolver) {
-  return (resolver ==
-          reinterpret_cast<Dart_NativeEntryResolver>(BootstrapNatives::Lookup));
+  return resolver == BootstrapNatives::Lookup;
 }
 
 }  // namespace dart

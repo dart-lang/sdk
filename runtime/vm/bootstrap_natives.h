@@ -484,7 +484,7 @@ class BootstrapNatives : public AllStatic {
                                     int argument_count,
                                     bool* auto_setup_scope);
 
-  static const uint8_t* Symbol(Dart_NativeFunction* nf);
+  static const uint8_t* Symbol(Dart_NativeFunction nf);
 
 #define DECLARE_BOOTSTRAP_NATIVE(name, ignored)                                \
   static ObjectPtr DN_##name(Thread* thread, Zone* zone,                       \

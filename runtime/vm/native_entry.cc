@@ -112,7 +112,8 @@ uword NativeEntry::BootstrapNativeCallWrapperEntry() {
       reinterpret_cast<uword>(NativeEntry::BootstrapNativeCallWrapper);
 #if defined(USING_SIMULATOR)
   entry = Simulator::RedirectExternalReference(
-      entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
+      entry, Simulator::kNativeCallWrapper,
+      NativeEntry::kNumCallWrapperArguments);
 #endif
   return entry;
 }
@@ -150,7 +151,8 @@ uword NativeEntry::NoScopeNativeCallWrapperEntry() {
   uword entry = reinterpret_cast<uword>(NativeEntry::NoScopeNativeCallWrapper);
 #if defined(USING_SIMULATOR)
   entry = Simulator::RedirectExternalReference(
-      entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
+      entry, Simulator::kNativeCallWrapper,
+      NativeEntry::kNumCallWrapperArguments);
 #endif
   return entry;
 }
@@ -184,7 +186,8 @@ uword NativeEntry::AutoScopeNativeCallWrapperEntry() {
       reinterpret_cast<uword>(NativeEntry::AutoScopeNativeCallWrapper);
 #if defined(USING_SIMULATOR)
   entry = Simulator::RedirectExternalReference(
-      entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
+      entry, Simulator::kNativeCallWrapper,
+      NativeEntry::kNumCallWrapperArguments);
 #endif
   return entry;
 }
