@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
@@ -188,12 +189,14 @@ class CiderCompletionComputer {
   /// Compute all unprefixed suggestions for all elements exported from
   /// the library.
   List<CompletionSuggestion> _librarySuggestions(LibraryElement element) {
-    var visitor = LibraryElementSuggestionBuilder(_dartCompletionRequest, '');
+    var suggestionBuilder = SuggestionBuilder(_dartCompletionRequest);
+    var visitor = LibraryElementSuggestionBuilder(
+        _dartCompletionRequest, suggestionBuilder);
     var exportMap = element.exportNamespace.definedNames;
     for (var definedElement in exportMap.values) {
       definedElement.accept(visitor);
     }
-    return visitor.suggestions;
+    return visitor.suggestions..addAll(suggestionBuilder.suggestions);
   }
 }
 

@@ -32,6 +32,7 @@ CompletionSuggestion createSuggestion(
     {String completion,
     protocol.ElementKind elementKind,
     CompletionSuggestionKind kind,
+    String prefix,
     int relevance = DART_RELEVANCE_DEFAULT}) {
   if (element == null) {
     return null;
@@ -43,6 +44,9 @@ CompletionSuggestion createSuggestion(
   completion ??= element.displayName;
   if (completion == null || completion.isEmpty) {
     return null;
+  }
+  if (prefix != null && prefix.isNotEmpty) {
+    completion = '$prefix.$completion';
   }
   kind ??= CompletionSuggestionKind.INVOCATION;
   var suggestion = CompletionSuggestion(kind, relevance, completion,
@@ -371,8 +375,8 @@ class SuggestionBuilder {
   /// If the accessor is being invoked with a target of `super`, then the
   /// [containingMemberName] should be the name of the member containing the
   /// invocation. The [inheritanceDistance] is the value of the inheritance
-  /// distance feature computed for the accessor (or `-1.0` if the accessor is a
-  /// static accessor).
+  /// distance feature computed for the accessor or `-1.0` if the accessor is a
+  /// static accessor.
   void suggestAccessor(PropertyAccessorElement accessor,
       {@required double inheritanceDistance}) {
     assert(accessor.enclosingElement is ClassElement ||
@@ -409,7 +413,9 @@ class SuggestionBuilder {
             startsWithDollar: startsWithDollar,
             superMatches: superMatches);
       } else {
-        relevance = _computeOldMemberRelevance(accessor);
+        relevance = accessor.hasOrInheritsDeprecated
+            ? DART_RELEVANCE_LOW
+            : _computeOldMemberRelevance(accessor);
         if (request.opType.includeReturnValueSuggestions) {
           relevance =
               request.opType.returnValueSuggestionsFilter(type, relevance);
@@ -444,9 +450,11 @@ class SuggestionBuilder {
   }
 
   /// Add a suggestion for a [classElement]. If a [kind] is provided it will
-  /// be used as the kind for the suggestion.
+  /// be used as the kind for the suggestion. If the class can only be
+  /// referenced using a prefix, then the [prefix] should be provided.
   void suggestClass(ClassElement classElement,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      String prefix}) {
     int relevance;
     if (request.useNewRelevance) {
       relevance = _computeTopLevelRelevance(classElement,
@@ -462,33 +470,33 @@ class SuggestionBuilder {
     }
 
     _add(createSuggestion(request, classElement,
-        kind: kind, relevance: relevance));
+        kind: kind, prefix: prefix, relevance: relevance));
   }
 
   /// Add a suggestion for a [constructor]. If a [kind] is provided it will be
   /// used as the kind for the suggestion. The flag [hasClassName] should be
   /// `true` if the completion is occurring after the name of the class and a
-  /// period, and hence should not include the name of the class.
+  /// period, and hence should not include the name of the class. If the class
+  /// can only be referenced using a prefix, and the class name is to be
+  /// included in the completion, then the [prefix] should be provided.
   void suggestConstructor(ConstructorElement constructor,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      bool hasClassName = false}) {
-    var classElement = constructor.enclosingElement;
-    if (classElement == null) {
-      return;
-    }
-    var prefix = classElement.name;
-    // TODO(brianwilkerson) It shouldn't be necessary to test for an empty
-    //  prefix.
-    if (prefix == null || prefix.isEmpty) {
+      bool hasClassName = false,
+      String prefix}) {
+    // If the class name is already in the text, then we don't support
+    // prepending a prefix.
+    assert(!hasClassName || prefix == null);
+    var className = constructor.enclosingElement?.name;
+    if (className == null || className.isEmpty) {
       return;
     }
 
     var completion = constructor.displayName;
-    if (!hasClassName && prefix != null && prefix.isNotEmpty) {
+    if (!hasClassName && className != null && className.isNotEmpty) {
       if (completion == null || completion.isEmpty) {
-        completion = prefix;
+        completion = className;
       } else {
-        completion = '$prefix.$completion';
+        completion = '$className.$completion';
       }
     }
     if (completion == null || completion.isEmpty) {
@@ -502,10 +510,15 @@ class SuggestionBuilder {
       relevance = constructor.hasOrInheritsDeprecated
           ? DART_RELEVANCE_LOW
           : DART_RELEVANCE_DEFAULT;
+      relevance = request.opType.returnValueSuggestionsFilter(
+          _instantiateClassElement(constructor.enclosingElement), relevance);
     }
 
     _add(createSuggestion(request, constructor,
-        completion: completion, kind: kind, relevance: relevance));
+        completion: completion,
+        kind: kind,
+        prefix: prefix,
+        relevance: relevance));
   }
 
   /// Add a suggestion for a top-level [element]. If a [kind] is provided it
@@ -531,8 +544,9 @@ class SuggestionBuilder {
     }
   }
 
-  /// Add a suggestion for an enum [constant].
-  void suggestEnumConstant(FieldElement constant) {
+  /// Add a suggestion for an enum [constant]. If the enum can only be
+  /// referenced using a prefix, then the [prefix] should be provided.
+  void suggestEnumConstant(FieldElement constant, {String prefix}) {
     var constantName = constant.name;
     var enumElement = constant.enclosingElement;
     var enumName = enumElement.name;
@@ -553,13 +567,15 @@ class SuggestionBuilder {
     }
 
     _add(createSuggestion(request, constant,
-        completion: completion, relevance: relevance));
+        completion: completion, prefix: prefix, relevance: relevance));
   }
 
   /// Add a suggestion for an [extension]. If a [kind] is provided it will be
-  /// used as the kind for the suggestion.
+  /// used as the kind for the suggestion. If the extension can only be
+  /// referenced using a prefix, then the [prefix] should be provided.
   void suggestExtension(ExtensionElement extension,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      String prefix}) {
     int relevance;
     if (request.useNewRelevance) {
       relevance = _computeTopLevelRelevance(extension,
@@ -570,8 +586,8 @@ class SuggestionBuilder {
           : DART_RELEVANCE_DEFAULT;
     }
 
-    _add(
-        createSuggestion(request, extension, kind: kind, relevance: relevance));
+    _add(createSuggestion(request, extension,
+        kind: kind, prefix: prefix, relevance: relevance));
   }
 
   /// Add a suggestion for a [field]. If the field is being referenced with a
@@ -648,9 +664,11 @@ class SuggestionBuilder {
   }
 
   /// Add a suggestion for a [functionTypeAlias]. If a [kind] is provided it
-  /// will be used as the kind for the suggestion.
+  /// will be used as the kind for the suggestion. If the alias can only be
+  /// referenced using a prefix, then the [prefix] should be provided.
   void suggestFunctionTypeAlias(FunctionTypeAliasElement functionTypeAlias,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      String prefix}) {
     int relevance;
     if (request.useNewRelevance) {
       relevance = _computeTopLevelRelevance(functionTypeAlias,
@@ -664,7 +682,7 @@ class SuggestionBuilder {
           : DART_RELEVANCE_DEFAULT;
     }
     _add(createSuggestion(request, functionTypeAlias,
-        kind: kind, relevance: relevance));
+        kind: kind, prefix: prefix, relevance: relevance));
   }
 
   /// Add a suggestion for a [keyword]. The [offset] is the offset from the
@@ -902,7 +920,7 @@ class SuggestionBuilder {
     _add(createSuggestion(request, parameter, relevance: relevance));
   }
 
-  /// Add a suggestiuon for a [prefix] associated with a [library].
+  /// Add a suggestion for a [prefix] associated with a [library].
   void suggestPrefix(LibraryElement library, String prefix) {
     var relevance;
     if (request.useNewRelevance) {
@@ -918,9 +936,11 @@ class SuggestionBuilder {
   }
 
   /// Add a suggestion for a top-level [function]. If a [kind] is provided it
-  /// will be used as the kind for the suggestion.
+  /// will be used as the kind for the suggestion. If the function can only be
+  /// referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelFunction(FunctionElement function,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      String prefix}) {
     int relevance;
     if (request.useNewRelevance) {
       relevance =
@@ -938,13 +958,17 @@ class SuggestionBuilder {
       }
     }
 
-    _add(createSuggestion(request, function, kind: kind, relevance: relevance));
+    _add(createSuggestion(request, function,
+        kind: kind, prefix: prefix, relevance: relevance));
   }
 
   /// Add a suggestion for a top-level property [accessor]. If a [kind] is
-  /// provided it will be used as the kind for the suggestion.
+  /// provided it will be used as the kind for the suggestion. If the accessor
+  /// can only be referenced using a prefix, then the [prefix] should be
+  /// provided.
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      String prefix}) {
     assert(accessor.enclosingElement is CompilationUnitElement);
     if (accessor.isSynthetic) {
       // Avoid visiting a field twice. All fields induce a getter, but only
@@ -976,7 +1000,9 @@ class SuggestionBuilder {
             startsWithDollar: startsWithDollar,
             superMatches: -1.0);
       } else {
-        relevance = _computeOldMemberRelevance(accessor);
+        relevance = accessor.hasOrInheritsDeprecated
+            ? DART_RELEVANCE_LOW
+            : _computeOldMemberRelevance(accessor);
         if (request.opType.includeReturnValueSuggestions) {
           relevance =
               request.opType.returnValueSuggestionsFilter(type, relevance);
@@ -985,31 +1011,35 @@ class SuggestionBuilder {
           return;
         }
       }
-      _add(createSuggestion(request, accessor, relevance: relevance));
+      _add(createSuggestion(request, accessor,
+          prefix: prefix, relevance: relevance));
     }
   }
 
   /// Add a suggestion for a top-level [variable]. If a [kind] is provided it
-  /// will be used as the kind for the suggestion.
+  /// will be used as the kind for the suggestion. If the variable can only be
+  /// referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelVariable(TopLevelVariableElement variable,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      String prefix}) {
     assert(variable.enclosingElement is CompilationUnitElement);
     int relevance;
     if (request.useNewRelevance) {
       relevance =
           _computeTopLevelRelevance(variable, elementType: variable.type);
-    } else if (variable.hasOrInheritsDeprecated) {
-      relevance = DART_RELEVANCE_LOW;
     } else {
       var type = variable.type;
-      relevance = _computeOldMemberRelevance(variable);
+      relevance = variable.hasOrInheritsDeprecated
+          ? DART_RELEVANCE_LOW
+          : _computeOldMemberRelevance(variable);
       relevance = request.opType.returnValueSuggestionsFilter(type, relevance);
       if (relevance == null) {
         return;
       }
     }
 
-    _add(createSuggestion(request, variable, kind: kind, relevance: relevance));
+    _add(createSuggestion(request, variable,
+        kind: kind, prefix: prefix, relevance: relevance));
   }
 
   /// Add a suggestion for a type [parameter].
@@ -1043,10 +1073,14 @@ class SuggestionBuilder {
   /// a previously added suggestion.
   void _add(protocol.CompletionSuggestion suggestion) {
     if (suggestion != null) {
+      var key = suggestion.completion;
+      if (suggestion.element?.kind == protocol.ElementKind.CONSTRUCTOR) {
+        key = '$key()';
+      }
       if (laterReplacesEarlier) {
-        _suggestionMap[suggestion.completion] = suggestion;
+        _suggestionMap[key] = suggestion;
       } else {
-        _suggestionMap.putIfAbsent(suggestion.completion, () => suggestion);
+        _suggestionMap.putIfAbsent(key, () => suggestion);
       }
     }
   }

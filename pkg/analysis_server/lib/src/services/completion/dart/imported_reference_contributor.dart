@@ -36,8 +36,10 @@ class ImportedReferenceContributor extends DartCompletionContributor {
       var libraryElement = importElement.importedLibrary;
       if (libraryElement != null) {
         final newSuggestions = _buildSuggestions(
-            request, importElement.namespace,
+            request, builder, importElement.namespace,
             prefix: importElement.prefix?.name);
+        // TODO(brianwilkerson) Remove this filtering after every suggestion is
+        //  being generated via SuggestionBuilder.
         for (var suggestion in newSuggestions) {
           // Filter out multiply-exported elements (like Future and Stream).
           if (seenElements.add(suggestion.element)) {
@@ -49,10 +51,10 @@ class ImportedReferenceContributor extends DartCompletionContributor {
     return suggestions;
   }
 
-  List<CompletionSuggestion> _buildSuggestions(
-      DartCompletionRequest request, Namespace namespace,
+  List<CompletionSuggestion> _buildSuggestions(DartCompletionRequest request,
+      SuggestionBuilder builder, Namespace namespace,
       {String prefix}) {
-    var visitor = LibraryElementSuggestionBuilder(request, prefix);
+    var visitor = LibraryElementSuggestionBuilder(request, builder, prefix);
     for (var elem in namespace.definedNames.values) {
       elem.accept(visitor);
     }
