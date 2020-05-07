@@ -79,6 +79,21 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     return stderrText;
   }
 
+  void assertHttpSuccess(http.Response response) {
+    if (response.statusCode == 500) {
+      try {
+        var decodedResponse = jsonDecode(response.body);
+        print('Exception: ${decodedResponse['exception']}');
+        print('Stack trace:');
+        print(decodedResponse['stackTrace']);
+      } catch (_) {
+        print(response.body);
+      }
+      fail('HTTP request failed');
+    }
+    expect(response.statusCode, 200);
+  }
+
   Future<String> assertParseArgsFailure(List<String> args) async {
     var cli = _createCli();
     await cli.run(args);
@@ -97,7 +112,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
 
   Future assertPreviewServerResponsive(String url) async {
     var response = await http.get(url);
-    expect(response.statusCode, 200);
+    assertHttpSuccess(response);
   }
 
   void assertProjectContents(String projectDir, Map<String, String> expected) {
@@ -330,6 +345,35 @@ int? f() => null
     });
     // No changes should have been made.
     assertProjectContents(projectDir, projectContents);
+  }
+
+  test_lifecycle_preview_add_hint() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var authToken = uri.queryParameters['authToken'];
+      var response = await http.post(
+          uri.replace(
+              path: resourceProvider.pathContext
+                  .toUri(resourceProvider.pathContext
+                      .join(projectDir, 'lib', 'test.dart'))
+                  .path,
+              queryParameters: {
+                'offset': '3',
+                'end': '3',
+                'replacement': '/*!*/',
+                'authToken': authToken
+              }),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      assertProjectContents(
+          projectDir, simpleProject(sourceText: 'int/*!*/ x;'));
+    });
   }
 
   test_lifecycle_preview_extra_forward_slash() async {

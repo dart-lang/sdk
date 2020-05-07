@@ -240,7 +240,7 @@ class PreviewSite extends Site
     // Update the code on disk.
     //
     var params = uri.queryParameters;
-    var path = Uri.parse(uri.path).toFilePath();
+    var path = pathMapper.reverseMap(uri);
     var offset = int.parse(params['offset']);
     var end = int.parse(params['end']);
     var replacement = params['replacement'];
