@@ -27,7 +27,7 @@ class _Vector extends core::Object {
 [@vm.inferred-type.metadata=#lib::_Vector?]static field self::_Vector* v = new self::_Vector::•(10);
 [@vm.inferred-type.metadata=dart.core::_Double?]static field core::double* x = 0.0;
 static method main(core::List<core::String*>* args) → dynamic {
-  core::Stopwatch* timer = let final core::Stopwatch* #t3 = new core::Stopwatch::•() in let final void #t4 = [@vm.direct-call.metadata=Stopwatch::start] [@vm.inferred-type.metadata=!? (skip check)] #t3.{core::Stopwatch::start}() in #t3;
+  core::Stopwatch* timer = let final core::Stopwatch #t3 = new core::Stopwatch::•() in let final void #t4 = [@vm.direct-call.metadata=Stopwatch::start] [@vm.inferred-type.metadata=!? (skip check)] #t3.{core::Stopwatch::start}() in #t3;
   for (core::int* i = 0; [@vm.direct-call.metadata=_IntegerImplementation::<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(100000000); i = [@vm.direct-call.metadata=_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
     self::x = [@vm.direct-call.metadata=_Double::+??] [@vm.inferred-type.metadata=dart.core::_Double (skip check)] [@vm.inferred-type.metadata=dart.core::_Double?] self::x.{core::double::+}([@vm.direct-call.metadata=_Vector::*??] [@vm.inferred-type.metadata=dart.core::_Double (skip check)] [@vm.inferred-type.metadata=#lib::_Vector?] self::v.{self::_Vector::*}([@vm.inferred-type.metadata=#lib::_Vector?] self::v));
   }

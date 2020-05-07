@@ -123,6 +123,46 @@ ConstantPool {
   [1] = Reserved
 }
 
+
+Function 'get:_identityHashCode', getter, abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Function '_instanceOf', abstract, debuggable
+    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
+    return-type dart:core::bool
+
+Function '_simpleInstanceOf', abstract, debuggable
+    parameters [dynamic 'type'] (required: 1)
+    return-type dart:core::bool
+
+Function '_simpleInstanceOfTrue', abstract, debuggable
+    parameters [dynamic 'type'] (required: 1)
+    return-type dart:core::bool
+
+Function '_simpleInstanceOfFalse', abstract, debuggable
+    parameters [dynamic 'type'] (required: 1)
+    return-type dart:core::bool
+
+Function '==', abstract, debuggable
+    parameters [dynamic 'other'] (required: 1)
+    return-type dart:core::bool
+
+Function 'get:hashCode', getter, abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Function 'toString', abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::String
+
+Function 'noSuchMethod', abstract, debuggable
+    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    return-type dynamic
+
+Function 'get:runtimeType', getter, abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::Type
 Class 'B', script = '#lib'
     extends #lib::A < dart:core::String >
 
@@ -432,6 +472,46 @@ ConstantPool {
   [4] = ObjectRef 'T'
 }
 
+
+Function 'get:_identityHashCode', getter, abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Function '_instanceOf', abstract, debuggable
+    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
+    return-type dart:core::bool
+
+Function '_simpleInstanceOf', abstract, debuggable
+    parameters [dynamic 'type'] (required: 1)
+    return-type dart:core::bool
+
+Function '_simpleInstanceOfTrue', abstract, debuggable
+    parameters [dynamic 'type'] (required: 1)
+    return-type dart:core::bool
+
+Function '_simpleInstanceOfFalse', abstract, debuggable
+    parameters [dynamic 'type'] (required: 1)
+    return-type dart:core::bool
+
+Function '==', abstract, debuggable
+    parameters [dynamic 'other'] (required: 1)
+    return-type dart:core::bool
+
+Function 'get:hashCode', getter, abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Function 'toString', abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::String
+
+Function 'noSuchMethod', abstract, debuggable
+    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    return-type dynamic
+
+Function 'get:runtimeType', getter, abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::Type
 Class 'F', script = '#lib', abstract
     type-params <dart:core::Object T> (args: 1)
     extends dart:core::Object
@@ -465,6 +545,46 @@ Function 'foo8', abstract, reflectable, debuggable
     type-params <#lib::F::TypeParam/0 Q>
     parameters [#lib::F::foo8::TypeParam/0 'a', dart:core::num 'b', #lib::F::TypeParam/0 'c'] (required: 3)
     return-type void
+
+Function 'get:_identityHashCode', getter, abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Function '_instanceOf', abstract, debuggable
+    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
+    return-type dart:core::bool
+
+Function '_simpleInstanceOf', abstract, debuggable
+    parameters [dynamic 'type'] (required: 1)
+    return-type dart:core::bool
+
+Function '_simpleInstanceOfTrue', abstract, debuggable
+    parameters [dynamic 'type'] (required: 1)
+    return-type dart:core::bool
+
+Function '_simpleInstanceOfFalse', abstract, debuggable
+    parameters [dynamic 'type'] (required: 1)
+    return-type dart:core::bool
+
+Function '==', abstract, debuggable
+    parameters [dynamic 'other'] (required: 1)
+    return-type dart:core::bool
+
+Function 'get:hashCode', getter, abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Function 'toString', abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::String
+
+Function 'noSuchMethod', abstract, debuggable
+    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    return-type dynamic
+
+Function 'get:runtimeType', getter, abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::Type
 Class 'G', script = '#lib'
     type-params <dart:core::Object T> (args: 1)
     extends dart:core::Object
@@ -535,6 +655,46 @@ ConstantPool {
   [6] = ObjectRef < #lib::G::TypeParam/0 >
 }
 
+
+Function 'get:_identityHashCode', getter, abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Function '_instanceOf', abstract, debuggable
+    parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
+    return-type dart:core::bool
+
+Function '_simpleInstanceOf', abstract, debuggable
+    parameters [dynamic 'type'] (required: 1)
+    return-type dart:core::bool
+
+Function '_simpleInstanceOfTrue', abstract, debuggable
+    parameters [dynamic 'type'] (required: 1)
+    return-type dart:core::bool
+
+Function '_simpleInstanceOfFalse', abstract, debuggable
+    parameters [dynamic 'type'] (required: 1)
+    return-type dart:core::bool
+
+Function '==', abstract, debuggable
+    parameters [dynamic 'other'] (required: 1)
+    return-type dart:core::bool
+
+Function 'get:hashCode', getter, abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Function 'toString', abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::String
+
+Function 'noSuchMethod', abstract, debuggable
+    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    return-type dynamic
+
+Function 'get:runtimeType', getter, abstract, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::Type
 Class 'H', script = '#lib'
     type-params <dart:core::Object T> (args: 1)
     extends #lib::G < #lib::H::TypeParam/0 >
@@ -690,6 +850,16 @@ ConstantPool {
     synthetic constructor •() → #lib::A<#lib::A::T*>*
       : super dart.core::Object::•()
       ;
+    abstract member-signature get _identityHashCode() → dart.core::int*;
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class B extends #lib::A<dart.core::String*> {
     synthetic constructor •() → #lib::B*
@@ -733,6 +903,16 @@ ConstantPool {
     static factory •<P extends dart.core::String* = dynamic>() → #lib::E<#lib::E::•::P*>*
       return null;
     method foo6<generic-covariant-impl T extends #lib::E::P* = #lib::E::P*, U extends dart.core::List<#lib::E::foo6::T*>* = dart.core::List<#lib::E::P*>*>(dart.core::Map<#lib::E::foo6::T*, #lib::E::foo6::U*>* map) → void {}
+    abstract member-signature get _identityHashCode() → dart.core::int*;
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   abstract class F<T extends dart.core::Object* = dynamic> extends dart.core::Object {
     synthetic constructor •() → #lib::F<#lib::F::T*>*
@@ -740,12 +920,32 @@ ConstantPool {
       ;
     abstract method foo7<generic-covariant-impl Q extends #lib::F::T* = #lib::F::T*>(#lib::F::foo7::Q* a, covariant dart.core::num* b, generic-covariant-impl #lib::F::T* c) → void;
     abstract method foo8<generic-covariant-impl Q extends #lib::F::T* = #lib::F::T*>(#lib::F::foo8::Q* a, covariant dart.core::num* b, generic-covariant-impl #lib::F::T* c) → void;
+    abstract member-signature get _identityHashCode() → dart.core::int*;
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class G<T extends dart.core::Object* = dynamic> extends dart.core::Object {
     synthetic constructor •() → #lib::G<#lib::G::T*>*
       : super dart.core::Object::•()
       ;
     method foo7<generic-covariant-impl Q extends #lib::G::T* = #lib::G::T*>(#lib::G::foo7::Q* a, dart.core::int* b, generic-covariant-impl #lib::G::T* c) → void {}
+    abstract member-signature get _identityHashCode() → dart.core::int*;
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class H<T extends dart.core::Object* = dynamic> extends #lib::G<#lib::H::T*> implements #lib::F<#lib::H::T*> {
     synthetic constructor •() → #lib::H<#lib::H::T*>*
