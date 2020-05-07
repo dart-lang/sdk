@@ -537,6 +537,14 @@ class ObjectLayout {
     }
   }
 
+  template <typename type>
+  void StorePointerUnaligned(type const* addr, type value, Thread* thread) {
+    StoreUnaligned(const_cast<type*>(addr), value);
+    if (value->IsHeapObject()) {
+      CheckHeapPointerStore(value, thread);
+    }
+  }
+
   DART_FORCE_INLINE
   void CheckHeapPointerStore(ObjectPtr value, Thread* thread) {
     uint32_t source_tags = this->tags_;

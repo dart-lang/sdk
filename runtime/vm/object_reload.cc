@@ -4,6 +4,7 @@
 
 #include "vm/object.h"
 
+#include "platform/unaligned.h"
 #include "vm/code_patcher.h"
 #include "vm/hash_table.h"
 #include "vm/isolate_reload.h"
@@ -74,7 +75,7 @@ void CallSiteResetter::ResetCaches(const Code& code) {
   for (intptr_t i = 0; i < offsets_length; i++) {
     int32_t offset = offsets[i];
     ObjectPtr* object_ptr = reinterpret_cast<ObjectPtr*>(base_address + offset);
-    ObjectPtr raw_object = *object_ptr;
+    ObjectPtr raw_object = LoadUnaligned(object_ptr);
     if (!raw_object->IsHeapObject()) {
       continue;
     }

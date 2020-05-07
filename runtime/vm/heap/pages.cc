@@ -1648,11 +1648,15 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
 void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
   // Number of pages we can allocate and still be within the desired growth
   // ratio.
-  intptr_t growth_in_pages =
-      (static_cast<intptr_t>(after.CombinedUsedInWords() /
-                             desired_utilization_) -
-       (after.CombinedUsedInWords())) /
-      kPageSizeInWords;
+  intptr_t growth_in_pages;
+  if (desired_utilization_ == 0.0) {
+    growth_in_pages = heap_growth_max_;
+  } else {
+    growth_in_pages = (static_cast<intptr_t>(after.CombinedUsedInWords() /
+                                             desired_utilization_) -
+                       (after.CombinedUsedInWords())) /
+                      kPageSizeInWords;
+  }
 
   // Apply growth cap.
   growth_in_pages =

@@ -8,6 +8,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/unaligned.h"
 #include "platform/unicode.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
@@ -555,6 +556,7 @@ void Object::InitNullAndBool(Isolate* isolate) {
     // Allocate a dummy bool object to give true the desired alignment.
     uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
     InitializeObject(address, kBoolCid, Bool::InstanceSize());
+    static_cast<BoolPtr>(address + kHeapObjectTag)->ptr()->value_ = false;
   }
   {
     // Allocate true.
@@ -8532,7 +8534,7 @@ InstancePtr Function::ImplicitInstanceClosure(const Instance& receiver) const {
 intptr_t Function::ComputeClosureHash() const {
   ASSERT(IsClosureFunction());
   const Class& cls = Class::Handle(Owner());
-  intptr_t result = String::Handle(name()).Hash();
+  uintptr_t result = String::Handle(name()).Hash();
   result += String::Handle(Signature()).Hash();
   result += String::Handle(cls.Name()).Hash();
   return result;
@@ -15956,18 +15958,19 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
 
     // Set pointer offsets list in Code object and resolve all handles in
     // the instruction stream to raw objects.
+    Thread* thread = Thread::Current();
     for (intptr_t i = 0; i < pointer_offsets.length(); i++) {
       intptr_t offset_in_instrs = pointer_offsets[i];
       code.SetPointerOffsetAt(i, offset_in_instrs);
       uword addr = region.start() + offset_in_instrs;
       ASSERT(instrs.PayloadStart() <= addr);
       ASSERT((instrs.PayloadStart() + instrs.Size()) > addr);
-      const Object* object = *reinterpret_cast<Object**>(addr);
+      const Object* object = LoadUnaligned(reinterpret_cast<Object**>(addr));
       ASSERT(object->IsOld());
       // N.B. The pointer is embedded in the Instructions object, but visited
       // through the Code object.
-      code.raw()->ptr()->StorePointer(reinterpret_cast<ObjectPtr*>(addr),
-                                      object->raw());
+      code.raw()->ptr()->StorePointerUnaligned(
+          reinterpret_cast<ObjectPtr*>(addr), object->raw(), thread);
     }
 
     // Write protect instructions and, if supported by OS, use dual mapping
@@ -20476,7 +20479,7 @@ const char* Integer::ToHexCString(Zone* zone) const {
   ASSERT(IsSmi() || IsMint());
   int64_t value = AsInt64Value();
   if (value < 0) {
-    return OS::SCreate(zone, "-0x%" PX64, static_cast<uint64_t>(-value));
+    return OS::SCreate(zone, "-0x%" PX64, -static_cast<uint64_t>(value));
   } else {
     return OS::SCreate(zone, "0x%" PX64, static_cast<uint64_t>(value));
   }
@@ -21116,7 +21119,7 @@ bool String::Equals(const uint16_t* utf16_array, intptr_t len) const {
   }
 
   for (intptr_t i = 0; i < len; i++) {
-    if (this->CharAt(i) != utf16_array[i]) {
+    if (this->CharAt(i) != LoadUnaligned(&utf16_array[i])) {
       return false;
     }
   }
@@ -21260,7 +21263,7 @@ StringPtr String::FromUTF16(const uint16_t* utf16_array,
                             Heap::Space space) {
   bool is_one_byte_string = true;
   for (intptr_t i = 0; i < array_len; ++i) {
-    if (!Utf::IsLatin1(utf16_array[i])) {
+    if (!Utf::IsLatin1(LoadUnaligned(&utf16_array[i]))) {
       is_one_byte_string = false;
       break;
     }
@@ -21357,7 +21360,7 @@ void String::Copy(const String& dst,
   if (dst.IsOneByteString()) {
     NoSafepointScope no_safepoint;
     for (intptr_t i = 0; i < array_len; ++i) {
-      ASSERT(Utf::IsLatin1(utf16_array[i]));
+      ASSERT(Utf::IsLatin1(LoadUnaligned(&utf16_array[i])));
       *OneByteString::CharAddr(dst, i + dst_offset) = utf16_array[i];
     }
   } else {
@@ -22860,7 +22863,7 @@ Float32x4Ptr Float32x4::New(simd128_value_t value, Heap::Space space) {
 }
 
 simd128_value_t Float32x4::value() const {
-  return ReadUnaligned(
+  return LoadUnaligned(
       reinterpret_cast<const simd128_value_t*>(&raw_ptr()->value_));
 }
 
@@ -22976,7 +22979,7 @@ int32_t Int32x4::w() const {
 }
 
 simd128_value_t Int32x4::value() const {
-  return ReadUnaligned(
+  return LoadUnaligned(
       reinterpret_cast<const simd128_value_t*>(&raw_ptr()->value_));
 }
 

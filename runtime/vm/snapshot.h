@@ -155,7 +155,7 @@ class Snapshot {
 
   template <typename T>
   T Read(intptr_t offset) const {
-    return ReadUnaligned(
+    return LoadUnaligned(
         reinterpret_cast<const T*>(reinterpret_cast<uword>(this) + offset));
   }
 

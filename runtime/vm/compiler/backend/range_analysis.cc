@@ -1827,7 +1827,7 @@ RangeBoundary RangeBoundary::Shl(const RangeBoundary& value_boundary,
   } else if (shift_count == 0 ||
              (limit > 0 && Utils::IsInt(static_cast<int>(limit), value))) {
     // Result stays in 64 bit range.
-    const int64_t result = value << shift_count;
+    const int64_t result = static_cast<uint64_t>(value) << shift_count;
     return RangeBoundary(result);
   }
 

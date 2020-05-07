@@ -134,6 +134,12 @@ def UseSysroot(args, gn_args):
     # Don't use the sysroot if we're given another sysroot.
     if TargetSysroot(args):
         return False
+    # Our Debian Jesse sysroot doesn't work with GCC 9
+    if not gn_args['is_clang']:
+        return False
+    # Our Debian Jesse sysroot has incorrect annotations on realloc.
+    if gn_args['is_ubsan']:
+        return False
     # Otherwise use the sysroot.
     return True
 

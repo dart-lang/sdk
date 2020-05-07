@@ -1175,11 +1175,13 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   native_stack_walker.walk();
   OS::PrintErr("-- End of DumpStackTrace\n");
 
-  if (thread->execution_state() == Thread::kThreadInNative) {
-    TransitionNativeToVM transition(thread);
-    StackFrame::DumpCurrentTrace();
-  } else if (thread->execution_state() == Thread::kThreadInVM) {
-    StackFrame::DumpCurrentTrace();
+  if (thread != nullptr) {
+    if (thread->execution_state() == Thread::kThreadInNative) {
+      TransitionNativeToVM transition(thread);
+      StackFrame::DumpCurrentTrace();
+    } else if (thread->execution_state() == Thread::kThreadInVM) {
+      StackFrame::DumpCurrentTrace();
+    }
   }
 }
 

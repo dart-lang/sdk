@@ -9796,7 +9796,7 @@ class TypedData : public TypedDataBase {
     ASSERT((byte_offset >= 0) &&                                               \
            (byte_offset + static_cast<intptr_t>(sizeof(type)) - 1) <           \
                LengthInBytes());                                               \
-    return ReadUnaligned(ReadOnlyDataAddr<type>(byte_offset));                 \
+    return LoadUnaligned(ReadOnlyDataAddr<type>(byte_offset));                 \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
     NoSafepointScope no_safepoint;                                             \
@@ -9931,7 +9931,7 @@ class ExternalTypedData : public TypedDataBase {
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
-    return ReadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
+    return LoadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
     StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \

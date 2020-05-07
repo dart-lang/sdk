@@ -41,7 +41,8 @@ intptr_t RegisterSet::RegisterCount(intptr_t registers) {
   intptr_t count = 0;
   while (registers != 0) {
     ++count;
-    registers &= (registers - 1);  // Clear the least significant bit set.
+    // Clear the least significant bit set.
+    registers &= (static_cast<uintptr_t>(registers) - 1);
   }
   return count;
 }

@@ -5,6 +5,8 @@
 #include <memory>
 
 #include "vm/dart_api_message.h"
+
+#include "platform/undefined_behavior_sanitizer.h"
 #include "platform/unicode.h"
 #include "vm/object.h"
 #include "vm/snapshot_ids.h"
@@ -101,8 +103,6 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectInt64(int64_t val) {
   value->value.as_int64 = val;
   return value;
 }
-
-_Dart_CObject* ApiMessageReader::singleton_uint32_typed_data_ = NULL;
 
 Dart_CObject* ApiMessageReader::AllocateDartCObjectDouble(double val) {
   Dart_CObject* value = AllocateDartCObject(Dart_CObject_kDouble);
@@ -789,6 +789,8 @@ ApiMessageWriter::~ApiMessageWriter() {
   delete finalizable_data_;
 }
 
+NO_SANITIZE_UNDEFINED(
+    "enum")  // TODO(https://github.com/dart-lang/sdk/issues/39427)
 void ApiMessageWriter::MarkCObject(Dart_CObject* object, intptr_t object_id) {
   // Mark the object as serialized by adding the object id to the
   // upper bits of the type field in the Dart_CObject structure. Add
@@ -799,16 +801,22 @@ void ApiMessageWriter::MarkCObject(Dart_CObject* object, intptr_t object_id) {
       ((mark_value) << kDartCObjectTypeBits) | object->type);
 }
 
+NO_SANITIZE_UNDEFINED(
+    "enum")  // TODO(https://github.com/dart-lang/sdk/issues/39427)
 void ApiMessageWriter::UnmarkCObject(Dart_CObject* object) {
   ASSERT(IsCObjectMarked(object));
   object->type =
       static_cast<Dart_CObject_Type>(object->type & kDartCObjectTypeMask);
 }
 
+NO_SANITIZE_UNDEFINED(
+    "enum")  // TODO(https://github.com/dart-lang/sdk/issues/39427)
 bool ApiMessageWriter::IsCObjectMarked(Dart_CObject* object) {
   return (object->type & kDartCObjectMarkMask) != 0;
 }
 
+NO_SANITIZE_UNDEFINED(
+    "enum")  // TODO(https://github.com/dart-lang/sdk/issues/39427)
 intptr_t ApiMessageWriter::GetMarkedCObjectMark(Dart_CObject* object) {
   ASSERT(IsCObjectMarked(object));
   intptr_t mark_value =
@@ -954,6 +962,8 @@ bool ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
   return WriteCObjectInlined(object, type);
 }
 
+NO_SANITIZE_UNDEFINED(
+    "enum")  // TODO(https://github.com/dart-lang/sdk/issues/39427)
 bool ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
   ASSERT(IsCObjectMarked(object));
   Dart_CObject_Type type =

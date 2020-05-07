@@ -10,6 +10,7 @@
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 #include "platform/assert.h"
+#include "platform/unaligned.h"
 #include "vm/allocation.h"
 #include "vm/compiler/assembler/object_pool_builder.h"
 #include "vm/compiler/runtime_api.h"
@@ -164,7 +165,13 @@ class AssemblerBuffer : public ValueObject {
   template <typename T>
   void Emit(T value) {
     ASSERT(HasEnsuredCapacity());
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+    // Variable-length instructions in ia32/x64 have unaligned immediates.
+    StoreUnaligned(reinterpret_cast<T*>(cursor_), value);
+#else
+    // Other architecture have aligned, fixed-length instructions.
     *reinterpret_cast<T*>(cursor_) = value;
+#endif
     cursor_ += sizeof(T);
   }
 
@@ -181,14 +188,26 @@ class AssemblerBuffer : public ValueObject {
   T Load(intptr_t position) {
     ASSERT(position >= 0 &&
            position <= (Size() - static_cast<intptr_t>(sizeof(T))));
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+    // Variable-length instructions in ia32/x64 have unaligned immediates.
+    return LoadUnaligned(reinterpret_cast<T*>(contents_ + position));
+#else
+    // Other architecture have aligned, fixed-length instructions.
     return *reinterpret_cast<T*>(contents_ + position);
+#endif
   }
 
   template <typename T>
   void Store(intptr_t position, T value) {
     ASSERT(position >= 0 &&
            position <= (Size() - static_cast<intptr_t>(sizeof(T))));
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+    // Variable-length instructions in ia32/x64 have unaligned immediates.
+    StoreUnaligned(reinterpret_cast<T*>(contents_ + position), value);
+#else
+    // Other architecture have aligned, fixed-length instructions.
     *reinterpret_cast<T*>(contents_ + position) = value;
+#endif
   }
 
   const ZoneGrowableArray<intptr_t>& pointer_offsets() const {

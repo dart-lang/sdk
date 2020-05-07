@@ -459,6 +459,8 @@ const int32_t kMaxInt32 = 0x7FFFFFFF;
 const uint32_t kMaxUint32 = 0xFFFFFFFF;
 const int64_t kMinInt64 = DART_INT64_C(0x8000000000000000);
 const int64_t kMaxInt64 = DART_INT64_C(0x7FFFFFFFFFFFFFFF);
+const int64_t kMinInt64RepresentableAsDouble = kMinInt64;
+const int64_t kMaxInt64RepresentableAsDouble = DART_INT64_C(0x7FFFFFFFFFFFFC00);
 const uint64_t kMaxUint64 = DART_2PART_UINT64_C(0xFFFFFFFF, FFFFFFFF);
 const int64_t kSignBitDouble = DART_INT64_C(0x8000000000000000);
 
@@ -635,36 +637,6 @@ inline D bit_copy(const S& source) {
          sizeof(destination));
   return destination;
 }
-
-#if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
-// Similar to bit_copy and bit_cast, but does take the type from the argument.
-template <typename T>
-static inline T ReadUnaligned(const T* ptr) {
-  T value;
-  memcpy(reinterpret_cast<void*>(&value), reinterpret_cast<const void*>(ptr),
-         sizeof(value));
-  return value;
-}
-
-// Similar to bit_copy and bit_cast, but does take the type from the argument.
-template <typename T>
-static inline void StoreUnaligned(T* ptr, T value) {
-  memcpy(reinterpret_cast<void*>(ptr), reinterpret_cast<const void*>(&value),
-         sizeof(value));
-}
-#else   // !(HOST_ARCH_ARM || HOST_ARCH_ARM64)
-// Similar to bit_copy and bit_cast, but does take the type from the argument.
-template <typename T>
-static inline T ReadUnaligned(const T* ptr) {
-  return *ptr;
-}
-
-// Similar to bit_copy and bit_cast, but does take the type from the argument.
-template <typename T>
-static inline void StoreUnaligned(T* ptr, T value) {
-  *ptr = value;
-}
-#endif  // !(HOST_ARCH_ARM || HOST_ARCH_ARM64)
 
 // On Windows the reentrent version of strtok is called
 // strtok_s. Unify on the posix name strtok_r.
