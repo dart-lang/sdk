@@ -1414,7 +1414,7 @@ f() => E.a;
 
   test_thisAccessOnDynamic() async {
     await assertNoErrorsInCode('''
-extension on dynamic {
+extension E on dynamic {
   int get d => 3;
 
   void testDynamic() {
@@ -1427,7 +1427,7 @@ extension on dynamic {
 
   test_thisAccessOnFunction() async {
     await assertNoErrorsInCode('''
-extension on Function {
+extension E on Function {
   int get f => 4;
 
   void testFunction() {

@@ -323,13 +323,18 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     return _usedElements.elements.contains(element);
   }
 
-  bool _isUsedMember(Element element) {
+  bool _isUsedMember(ExecutableElement element) {
+    var enclosingElement = element.enclosingElement;
     if (element.isPublic) {
-      if (_isPrivateClassOrExtension(element.enclosingElement) &&
-          element is ExecutableElement &&
+      if (enclosingElement is ClassElement &&
+          enclosingElement.isPrivate &&
           element.isStatic) {
-        // Public static members of private classes, mixins, and extensions are
-        // inaccessible from outside the library in which they are declared.
+        // Public static members of private classes and mixins are inaccessible
+        // from outside the library in which they are declared.
+      } else if (enclosingElement is ExtensionElement &&
+          enclosingElement.isPrivate) {
+        // Public members of private extensions are inaccessible from outside
+        // the library in which they are declared.
       } else {
         return true;
       }
