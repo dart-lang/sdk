@@ -1002,6 +1002,10 @@ class StatementTagger extends StatementVisitor<String>
   }
 
   String visitEmptyStatement(EmptyStatement node) => "skip";
+  String visitWhileStatement(WhileStatement node) => "while";
+  String visitDoStatement(DoStatement node) => "do-while";
+  String visitForStatement(ForStatement node) => "for";
+  String visitForInStatement(ForInStatement node) => "for-in";
 }
 
 TextSerializer<ExpressionStatement> expressionStatementSerializer = new Wrapped(
@@ -1128,6 +1132,72 @@ TextSerializer<EmptyStatement> emptyStatementSerializer =
 void unwrapEmptyStatement(EmptyStatement node) {}
 
 EmptyStatement wrapEmptyStatement(void ignored) => new EmptyStatement();
+
+TextSerializer<WhileStatement> whileStatementSerializer = new Wrapped(
+    unwrapWhileStatement,
+    wrapWhileStatement,
+    new Tuple2Serializer(expressionSerializer, statementSerializer));
+
+Tuple2<Expression, Statement> unwrapWhileStatement(WhileStatement node) {
+  return new Tuple2(node.condition, node.body);
+}
+
+WhileStatement wrapWhileStatement(Tuple2<Expression, Statement> tuple) {
+  return new WhileStatement(tuple.first, tuple.second);
+}
+
+TextSerializer<DoStatement> doStatementSerializer = new Wrapped(
+    unwrapDoStatement,
+    wrapDoStatement,
+    new Tuple2Serializer(statementSerializer, expressionSerializer));
+
+Tuple2<Statement, Expression> unwrapDoStatement(DoStatement node) {
+  return new Tuple2(node.body, node.condition);
+}
+
+DoStatement wrapDoStatement(Tuple2<Statement, Expression> tuple) {
+  return new DoStatement(tuple.first, tuple.second);
+}
+
+TextSerializer<ForStatement> forStatementSerializer = new Wrapped(
+    unwrapForStatement,
+    wrapForStatement,
+    new Bind(
+        ListSerializer(variableDeclarationSerializer),
+        new Tuple3Serializer(expressionSerializer,
+            new ListSerializer(expressionSerializer), statementSerializer)));
+
+Tuple2<List<VariableDeclaration>,
+        Tuple3<Expression, List<Expression>, Statement>>
+    unwrapForStatement(ForStatement node) {
+  return new Tuple2(
+      node.variables, new Tuple3(node.condition, node.updates, node.body));
+}
+
+ForStatement wrapForStatement(
+    Tuple2<List<VariableDeclaration>,
+            Tuple3<Expression, List<Expression>, Statement>>
+        tuple) {
+  return new ForStatement(
+      tuple.first, tuple.second.first, tuple.second.second, tuple.second.third);
+}
+
+TextSerializer<ForInStatement> forInStatementSerializer = new Wrapped(
+    unwrapForInStatement,
+    wrapForInStatement,
+    new Tuple2Serializer(expressionSerializer,
+        new Bind(variableDeclarationSerializer, statementSerializer)));
+
+Tuple2<Expression, Tuple2<VariableDeclaration, Statement>> unwrapForInStatement(
+    ForInStatement node) {
+  return new Tuple2(node.iterable, new Tuple2(node.variable, node.body));
+}
+
+ForInStatement wrapForInStatement(
+    Tuple2<Expression, Tuple2<VariableDeclaration, Statement>> tuple) {
+  return new ForInStatement(
+      tuple.second.first, tuple.first, tuple.second.second);
+}
 
 Case<Statement> statementSerializer =
     new Case.uninitialized(const StatementTagger());
@@ -1443,6 +1513,10 @@ void initializeSerializers() {
     "if": ifStatementSerializer,
     "if-else": ifElseStatementSerializer,
     "skip": emptyStatementSerializer,
+    "while": whileStatementSerializer,
+    "do-while": doStatementSerializer,
+    "for": forStatementSerializer,
+    "for-in": forInStatementSerializer,
   });
   functionNodeSerializer.registerTags({
     "sync": syncFunctionNodeSerializer,

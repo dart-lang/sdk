@@ -373,7 +373,8 @@ class KernelTextSerialization
         }
       }
 
-      for (RoundTripStatus failure in verifier.failures) {
+      List<RoundTripStatus> failures = verifier.failures;
+      for (RoundTripStatus failure in failures) {
         LocatedMessage message = templateUnspecified
             .withArguments("\n${failure}")
             .withLocation(failure.uri, failure.offset, 1);
@@ -386,7 +387,7 @@ class KernelTextSerialization
         String filename = "${uri.toFilePath()}${suffix}";
         uri = new File(filename).uri;
         StringBuffer buffer = new StringBuffer();
-        for (RoundTripStatus status in verifier.status) {
+        for (RoundTripStatus status in verifier.takeStatus()) {
           status.printOn(buffer);
         }
         await openWrite(uri, (IOSink sink) {
@@ -394,7 +395,7 @@ class KernelTextSerialization
         });
       }
 
-      if (verifier.failures.isNotEmpty) {
+      if (failures.isNotEmpty) {
         return new Result<ComponentResult>(
             null,
             context.expectationSet["TextSerializationFailure"],

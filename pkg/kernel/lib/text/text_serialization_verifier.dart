@@ -379,7 +379,11 @@ class VerificationState {
           node.parent is Block &&
           node.name != null ||
       node is YieldStatement ||
-      node is IfStatement;
+      node is IfStatement ||
+      node is WhileStatement ||
+      node is DoStatement ||
+      node is ForStatement ||
+      node is ForInStatement && !node.isAsync;
 
   static bool isSupported(Node node) =>
       node is DartType && isDartTypeSupported(node) ||
@@ -396,7 +400,7 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
       defaultValue: false);
 
   /// List of status for all round-trip serialization attempts.
-  final List<RoundTripStatus> status = <RoundTripStatus>[];
+  final List<RoundTripStatus> _status = <RoundTripStatus>[];
 
   final CanonicalName root;
 
@@ -408,7 +412,9 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
   }
 
   /// List of errors produced during round trips on the visited nodes.
-  Iterable<RoundTripStatus> get failures => status.where((s) => s.isFailure);
+  Iterable<RoundTripStatus> get _failures => _status.where((s) => s.isFailure);
+
+  List<RoundTripStatus> get failures => _failures.toList()..sort();
 
   VerificationState get currentState => _stateStackTop;
 
@@ -472,17 +478,17 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
     } catch (exception, stackTrace) {
       String message =
           showStackTrace ? "${exception}\n${stackTrace}" : "${exception}";
-      status.add(new RoundTripDeserializationFailure(node, message,
+      _status.add(new RoundTripDeserializationFailure(node, message,
           context: lastSeenTreeNodeWithLocation));
       return null;
     }
     if (stream.moveNext()) {
-      status.add(new RoundTripDeserializationFailure(
+      _status.add(new RoundTripDeserializationFailure(
           node, "unexpected trailing text",
           context: lastSeenTreeNodeWithLocation));
     }
     if (result == null) {
-      status.add(new RoundTripDeserializationFailure(
+      _status.add(new RoundTripDeserializationFailure(
           node, "Deserialization of the following returned null: '${input}'",
           context: lastSeenTreeNodeWithLocation));
     }
@@ -497,7 +503,7 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
     } catch (exception, stackTrace) {
       String message =
           showStackTrace ? "${exception}\n${stackTrace}" : "${exception}";
-      status.add(new RoundTripInitialSerializationFailure(node, message,
+      _status.add(new RoundTripInitialSerializationFailure(node, message,
           context: lastSeenTreeNodeWithLocation));
     }
     return buffer.toString();
@@ -524,15 +530,15 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
   }
 
   void makeRoundTrip<T extends Node>(T node, TextSerializer<T> serializer) {
-    int failureCount = failures.length;
+    int failureCount = _failures.length;
     String initial = writeNode(node, serializer);
-    if (failures.length != failureCount) {
+    if (_failures.length != failureCount) {
       return;
     }
 
     // Do the round trip.
     T deserialized = readNode(node, initial, serializer);
-    if (failures.length != failureCount) {
+    if (_failures.length != failureCount) {
       return;
     }
 
@@ -542,17 +548,23 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
     }
 
     String serialized = writeNode(deserialized, serializer);
-    if (failures.length != failureCount) {
+    if (_failures.length != failureCount) {
       return;
     }
 
     if (initial != serialized) {
-      status.add(new RoundTripSecondSerializationFailure(
+      _status.add(new RoundTripSecondSerializationFailure(
           node, initial, serialized,
           context: lastSeenTreeNodeWithLocation));
     } else {
-      status.add(new RoundTripSuccess(node, initial,
+      _status.add(new RoundTripSuccess(node, initial,
           context: lastSeenTreeNodeWithLocation));
     }
+  }
+
+  List<RoundTripStatus> takeStatus() {
+    List<RoundTripStatus> result = _status.toList()..sort();
+    _status.clear();
+    return result;
   }
 }
