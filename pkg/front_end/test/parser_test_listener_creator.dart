@@ -181,6 +181,12 @@ class ParserCreatorListener extends Listener {
           out.write("  indent++;\n  ");
         }
 
+        if (currentMethodName == "handleErrorToken") {
+          // It redirects to give an error message, so also do that here.
+          out.write("  handleRecoverableError("
+              "token.assertionMessage, token, token);");
+        }
+
         out.write("}");
       }
       out.write("\n\n");

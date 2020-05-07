@@ -4,6 +4,10 @@ parser/error_recovery/bracket_mismatch_05:2:5: Expected ';' after this.
   {[1};
     ^
 
+parser/error_recovery/bracket_mismatch_05:2:4: Can't find ']' to match '['.
+  {[1};
+   ^
+
 beginCompilationUnit(void)
   beginMetadataStar(void)
   endMetadataStar(0)
@@ -28,4 +32,5 @@ beginCompilationUnit(void)
     endTopLevelMethod(void, null, })
   endTopLevelDeclaration()
   handleErrorToken(UnmatchedToken([))
+  handleRecoverableError(Message[UnmatchedToken, Can't find ']' to match '['., null, {string: ], token: [}], UnmatchedToken([), UnmatchedToken([))
 endCompilationUnit(1, )

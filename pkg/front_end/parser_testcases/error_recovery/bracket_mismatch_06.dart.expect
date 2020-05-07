@@ -4,6 +4,10 @@ parser/error_recovery/bracket_mismatch_06:2:9: Expected an identifier, but got '
   new C(;
         ^
 
+parser/error_recovery/bracket_mismatch_06:2:8: Can't find ')' to match '('.
+  new C(;
+       ^
+
 beginCompilationUnit(main)
   beginMetadataStar(main)
   endMetadataStar(0)
@@ -35,4 +39,5 @@ beginCompilationUnit(main)
     endTopLevelMethod(main, null, })
   endTopLevelDeclaration()
   handleErrorToken(UnmatchedToken(())
+  handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), token: (}], UnmatchedToken((), UnmatchedToken(())
 endCompilationUnit(1, )
