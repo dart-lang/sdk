@@ -5,12 +5,22 @@
 import "dart:io";
 import "package:async_helper/async_minitest.dart";
 
-void testNoPackages(String filePath, String uri, String expected) {
+void testNullSafetyMode(String filePath, String version, String expected) {
   File mainIsolate = new File(filePath);
   mainIsolate.writeAsStringSync('''
-    library spawn_tests;
-
+    // $version
     import \'dart:isolate\';
+
+    spawnFunc(List args) {
+      var data = args[0];
+      var replyTo = args[1];
+      try {
+        int x = null as int;
+        replyTo.send(\'re: weak\');
+      } catch (ex) {
+        replyTo.send(\'re: strong\');
+      }
+    }
 
     void main() async {
       const String debugName = \'spawnedIsolate\';
@@ -21,10 +31,9 @@ void testNoPackages(String filePath, String uri, String expected) {
           port.close();
       });
 
-      final isolate = await Isolate.spawnUri(
-        Uri.parse(\'$uri\'),
-          [\'$expected\'],
-          port.sendPort,
+      final isolate = await Isolate.spawn(
+          spawnFunc,
+          [\'re: hi\', port.sendPort],
           paused: false,
           debugName: debugName,
           onExit: exitPort.sendPort);
@@ -37,6 +46,7 @@ void testNoPackages(String filePath, String uri, String expected) {
     ''');
   var exec = Platform.resolvedExecutable;
   var args = <String>[];
+  args.add("--enable-experiment=non-nullable");
   args.add(mainIsolate.path);
   var result = Process.runSync(exec, args);
   expect(result.stdout.contains('$expected'), true);
@@ -47,20 +57,12 @@ void main() {
   var tmpDir = Directory.systemTemp.createTempSync();
   var tmpDirPath = tmpDir.path;
 
-  // Generate code for an isolate to run without any package specification.
-  File noPackageIsolate = new File("$tmpDirPath/no_package.dart");
-  noPackageIsolate.writeAsStringSync('''
-    library SpawnUriIsolate;
-    main(List<String> args, replyTo) {
-      var data = args[0];
-      replyTo.send(data);
-    }
-    ''');
-
   try {
-    // Isolate Spawning another Isolate without any package specification.
-    testNoPackages("$tmpDirPath/no_package_isolate.dart", noPackageIsolate.path,
-        're: no package');
+    // Strong Isolate Spawning another Strong Isolate using spawn.
+    testNullSafetyMode("$tmpDirPath/strong.dart", '', 're: strong');
+
+    // Weak Isolate Spawning a Weak Isolate using spawn.
+    testNullSafetyMode("$tmpDirPath/weak.dart", '@dart=2.6', 're: weak');
   } finally {
     tmpDir.deleteSync(recursive: true);
   }

@@ -2283,6 +2283,35 @@ main() {
       });
     });
 
+    group('demotion, to NonNull', () {
+      test('when promoted via test', () {
+        var x = _Var('x', _Type('Object?'));
+
+        var h = _Harness();
+
+        var s1 = FlowModel<_Var, _Type>(true)
+            .declare(x, true)
+            .tryPromoteForTypeCheck(h, x, _Type('num?'))
+            .ifTrue
+            .tryPromoteForTypeCheck(h, x, _Type('int?'))
+            .ifTrue;
+        expect(s1.variableInfo, {
+          x: _matchVariableModel(
+            chain: ['num?', 'int?'],
+            ofInterest: ['num?', 'int?'],
+          ),
+        });
+
+        var s2 = s1.write(x, _Type('double'), h);
+        expect(s2.variableInfo, {
+          x: _matchVariableModel(
+            chain: ['num?', 'num'],
+            ofInterest: ['num?', 'int?'],
+          ),
+        });
+      });
+    });
+
     group('declare', () {
       var objectQVar = _Var('x', _Type('Object?'));
 
@@ -3131,7 +3160,11 @@ class _Expression {
 
 class _Harness implements TypeOperations<_Var, _Type> {
   static const Map<String, bool> _coreSubtypes = const {
+    'double <: Object': true,
+    'double <: num': true,
+    'double <: num?': true,
     'double <: int': false,
+    'double <: int?': false,
     'int <: double': false,
     'int <: int?': true,
     'int <: Iterable': false,

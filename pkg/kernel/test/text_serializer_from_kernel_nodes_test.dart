@@ -458,6 +458,32 @@ void test() {
               new DeserializationEnvironment(null), new CanonicalName.root()),
           serializer: librarySerializer);
     }(),
+    () {
+      Class a = Class(name: "A");
+      Procedure foo = Procedure(
+          Name("foo"),
+          ProcedureKind.Method,
+          FunctionNode(ReturnStatement(NullLiteral()),
+              returnType: InterfaceType(a, Nullability.legacy)),
+          isStatic: true);
+      Library library = Library(Uri(scheme: "package", path: "foo/bar.dart"),
+          classes: [a], procedures: [foo]);
+      Component component = Component(libraries: [library]);
+      component.computeCanonicalNames();
+      return new TestCase<Library>(
+          name: 'class A{} A foo() => null;',
+          node: library,
+          expectation: ''
+              '(legacy "package:foo/bar.dart"'
+              ' ((static-method (public "foo")'
+              ' (sync () () () () () () (interface "package:foo/bar.dart::A" ())'
+              ' (ret (null))))))',
+          serializationState:
+              new SerializationState(new SerializationEnvironment(null)),
+          deserializationState: new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
+          serializer: librarySerializer);
+    }(),
   ];
   for (TestCase testCase in tests) {
     String roundTripInput =

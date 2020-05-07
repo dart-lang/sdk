@@ -392,6 +392,20 @@ class EditPlanner {
     return (plan as NodeProducingEditPlan)._getChanges(false);
   }
 
+  /// Creates a new edit plan that adds an informative message to the given
+  /// [token].
+  ///
+  /// The created edit plan should be inserted into the list of inner plans for
+  /// a pass-through plan targeted at the [containingNode].  See [passThrough].
+  EditPlan informativeMessageForToken(AstNode containingNode, Token token,
+      {AtomicEditInfo info}) {
+    return _TokenChangePlan(containingNode, {
+      token.offset: [
+        AtomicEdit.delete(token.lexeme.length, info: info, isInformative: true)
+      ]
+    });
+  }
+
   /// Creates a new edit plan that inserts the text indicated by [edits] at the
   /// given [offset].
   ///

@@ -191,8 +191,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  P(null_safety, bool, false,                                                  \
-    "Respect the nullability of types in casts and instance checks.")          \
   P(use_table_dispatch, bool, true, "Enable dispatch table based calls.")      \
   P(retain_function_objects, bool, true,                                       \
     "Serialize function objects for all code objects even if not otherwise "   \

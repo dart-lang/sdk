@@ -188,7 +188,8 @@ class VerificationState {
       node is VoidType ||
       node is BottomType ||
       node is FunctionType ||
-      node is TypeParameterType;
+      node is TypeParameterType ||
+      node is InterfaceType;
 
   static bool isExpressionSupported(Expression node) =>
       node is StringLiteral ||

@@ -1081,6 +1081,9 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   intptr_t debug_segment_base = 0;
   if (debug_dwarf_ != nullptr) {
     debug_segment_base = debug_dwarf_->elf()->NextMemoryOffset();
+    // If we're also generating an ELF snapshot, we want the virtual addresses
+    // in it and the separately saved DWARF information to match.
+    ASSERT(elf_ == nullptr || segment_base == debug_segment_base);
   }
 #endif
 
@@ -1309,9 +1312,9 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     ASSERT(segment_base == segment_base2);
   }
   if (debug_dwarf_ != nullptr) {
-    auto const debug_segment_base2 = debug_dwarf_->elf()->AddText(
-        instructions_symbol, instructions_blob_stream_.buffer(),
-        instructions_blob_stream_.bytes_written());
+    auto const debug_segment_base2 =
+        debug_dwarf_->elf()->AddText(instructions_symbol, nullptr,
+                                     instructions_blob_stream_.bytes_written());
     ASSERT(debug_segment_base == debug_segment_base2);
   }
 #endif

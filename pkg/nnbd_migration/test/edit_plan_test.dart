@@ -535,6 +535,25 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'var x = 0; var y = 0;');
   }
 
+  Future<void> test_informativeMessageForToken() async {
+    await analyze('f(x) => x + 1;');
+    var sum = findNode.binary('+');
+    var info = _MockInfo();
+    var changes = checkPlan(
+        planner.passThrough(sum, innerPlans: [
+          planner.informativeMessageForToken(sum, sum.operator, info: info)
+        ]),
+        'f(x) => x + 1;',
+        expectedIncludingInformative: 'f(x) => x  1;');
+    var expectedOffset = sum.operator.offset;
+    expect(changes.keys, unorderedEquals([expectedOffset]));
+    expect(changes[expectedOffset], hasLength(1));
+    expect(changes[expectedOffset][0].length, '+'.length);
+    expect(changes[expectedOffset][0].replacement, '');
+    expect(changes[expectedOffset][0].isInformative, isTrue);
+    expect(changes[expectedOffset][0].info, same(info));
+  }
+
   Future<void> test_insertText() async {
     await analyze('final x = 1;');
     var variableDeclarationList = findNode.variableDeclarationList('final');
@@ -1579,6 +1598,10 @@ g(a, c) => a..b = throw (c..d);
         () => testUnit.accept(_PrecedenceChecker(testUnit.lineInfo, testCode)),
         throwsA(TypeMatcher<TestFailure>()));
   }
+}
+
+class _MockInfo implements AtomicEditInfo {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _PrecedenceChecker extends UnifyingAstVisitor<void> {

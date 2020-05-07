@@ -277,7 +277,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     assert(classElement is ClassElementImpl);
     assert(_enclosingClass == null);
     assert(_enclosingEnum == null);
-    assert(_enclosingExecutable == null);
+    assert(_enclosingExecutable.element == null);
     _enclosingClass = classElement;
   }
 
@@ -4017,6 +4017,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         redirectedConstructor.staticElement,
         redirectedConstructor,
       );
+      var redirectedClass =
+          redirectedConstructor.staticElement?.enclosingElement;
+      if (redirectedClass is ClassElement &&
+          redirectedClass.isAbstract &&
+          !redirectedConstructor.staticElement.isFactory) {
+        String enclosingTypeName = _enclosingClass.displayName;
+        String constructorStrName = enclosingTypeName;
+        if (declaration.name != null) {
+          constructorStrName += ".${declaration.name.name}";
+        }
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR,
+            redirectedConstructor,
+            [constructorStrName, redirectedClass.name]);
+      }
     }
     // check if there are redirected invocations
     int numRedirections = 0;

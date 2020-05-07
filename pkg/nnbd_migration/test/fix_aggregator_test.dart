@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
@@ -52,6 +53,95 @@ class FixAggregatorTest extends FixAggregatorTestBase {
         ..addNullCheck(_MockInfo())
     });
     expect(previewInfo.applyTo(code), 'f(a, b) => (a! + b!)!;');
+  }
+
+  Future<void> test_assignment_add_null_check() async {
+    var content = 'f(int x, int y) => x += y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('+='): NodeChangeForAssignment()..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x, int y) => (x += y)!;');
+  }
+
+  Future<void> test_assignment_change_lhs() async {
+    var content = 'f(List<int> x, int y) => x[0] += y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('+='): NodeChangeForAssignment(),
+      findNode.index('[0]').target: NodeChangeForExpression()
+        ..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(List<int> x, int y) => x![0] += y;');
+  }
+
+  Future<void> test_assignment_change_rhs() async {
+    var content = 'f(int x, int y) => x += y;';
+    await analyze(content);
+    var assignment = findNode.assignment('+=');
+    var previewInfo = run({
+      assignment: NodeChangeForAssignment(),
+      assignment.rightHandSide: NodeChangeForExpression()..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x, int y) => x += y!;');
+  }
+
+  Future<void> test_assignment_compound_with_bad_combined_type() async {
+    var content = 'f(int x, int y) => x += y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('+='): NodeChangeForAssignment()
+        ..isCompoundAssignmentWithBadCombinedType = true
+    });
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('+=')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.compoundAssignmentHasBadCombinedType);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '+='.length);
+  }
+
+  Future<void> test_assignment_compound_with_nullable_source() async {
+    var content = 'f(int x, int y) => x += y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('+='): NodeChangeForAssignment()
+        ..isCompoundAssignmentWithNullableSource = true
+    });
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('+=')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.compoundAssignmentHasNullableSource);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '+='.length);
+  }
+
+  Future<void> test_assignment_introduce_as() async {
+    var content = 'f(int x, int y) => x += y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('+='): NodeChangeForAssignment()
+        ..introduceAs(nnbdTypeProvider.intType, null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x, int y) => (x += y) as int;');
+  }
+
+  Future<void> test_assignment_weak_null_aware() async {
+    var content = 'f(int x, int y) => x ??= y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('??='): NodeChangeForAssignment()
+        ..isWeakNullAware = true
+    }, warnOnWeakCode: true);
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('??=')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.nullAwareAssignmentUnnecessaryInStrongMode);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '??='.length);
   }
 
   Future<void> test_eliminateDeadIf_changesInKeptCode() async {

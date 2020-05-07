@@ -324,6 +324,16 @@ int? f() => null
     assertProjectContents(projectDir, projectContents);
   }
 
+  test_lifecycle_preview_extra_forward_slash() async {
+    var projectDir = await createProjectDir(simpleProject());
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      var uri = Uri.parse(url);
+      await assertPreviewServerResponsive(
+          uri.replace(path: uri.path + '/').toString());
+    });
+  }
+
   test_lifecycle_uri_error() async {
     var projectContents = simpleProject(sourceText: '''
 import 'package:does_not/exist.dart';
@@ -441,15 +451,6 @@ class _MigrationCliTestWindows extends _MigrationCliTestBase
             context: path.style == path.Style.windows
                 ? null
                 : path.Context(style: path.Style.windows, current: 'C:\\'));
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40381')
-  @override
-  test_lifecycle_ignore_errors_enable() =>
-      super.test_lifecycle_ignore_errors_enable();
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40381')
-  @override
-  test_lifecycle_preview() => super.test_lifecycle_preview();
 }
 
 /// TODO(paulberry): move into cli_util

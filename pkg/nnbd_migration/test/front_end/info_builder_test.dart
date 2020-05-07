@@ -364,6 +364,56 @@ void main() {
         kind: NullabilityFixKind.addLateDueToTestSetup);
   }
 
+  Future<void> test_compound_assignment_nullable_result() async {
+    var unit = await buildInfoForSingleTestFile('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+void f(C/*!*/ a, int b) {
+  a += b;
+}
+''', migratedContent: '''
+abstract class C {
+  C/*?*/ operator+(int  i);
+}
+void f(C/*!*/ a, int  b) {
+  a += b;
+}
+''');
+    var operator = '+=';
+    var operatorOffset = unit.content.indexOf(operator);
+    var region =
+        unit.regions.where((region) => region.offset == operatorOffset).single;
+    assertRegion(
+        region: region,
+        length: operator.length,
+        explanation: 'Compound assignment has bad combined type',
+        kind: NullabilityFixKind.compoundAssignmentHasBadCombinedType,
+        edits: isEmpty);
+  }
+
+  Future<void> test_compound_assignment_nullable_source() async {
+    var unit = await buildInfoForSingleTestFile('''
+void f(int/*?*/ a, int b) {
+  a += b;
+}
+''', migratedContent: '''
+void f(int/*?*/ a, int  b) {
+  a += b;
+}
+''');
+    var operator = '+=';
+    var operatorOffset = unit.content.indexOf(operator);
+    var region =
+        unit.regions.where((region) => region.offset == operatorOffset).single;
+    assertRegion(
+        region: region,
+        length: operator.length,
+        explanation: 'Compound assignment has nullable source',
+        kind: NullabilityFixKind.compoundAssignmentHasNullableSource,
+        edits: isEmpty);
+  }
+
   Future<void> test_conditionFalseInStrongMode_expression() async {
     var unit = await buildInfoForSingleTestFile(
         'int f(String s) => s == null ? 0 : s.length;',

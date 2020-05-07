@@ -4,21 +4,15 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/util/comment.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
-    show ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
     show LocalDeclarationVisitor;
@@ -187,26 +181,16 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if ((opType.includeReturnValueSuggestions &&
             (!opType.inStaticMethodBody || fieldDecl.isStatic)) ||
         suggestLocalFields) {
-      var deprecated = isDeprecated(fieldDecl) || isDeprecated(varDecl);
-      var fieldElement = varDecl.declaredElement;
-      var fieldType = fieldElement.type;
-      var typeName = fieldDecl.fields.type;
-      int relevance;
-      if (useNewRelevance) {
-        relevance = _relevanceForType(fieldType);
-      } else {
-        relevance = DART_RELEVANCE_LOCAL_FIELD;
+      var field = varDecl.declaredElement;
+      var inheritanceDistance = -1.0;
+      var enclosingClass = request.target.containingNode
+          .thisOrAncestorOfType<ClassDeclaration>();
+      if (enclosingClass != null) {
+        inheritanceDistance = request.featureComputer
+            .inheritanceDistanceFeature(
+                enclosingClass.declaredElement, field.enclosingElement);
       }
-      _addLocalSuggestion_includeReturnValueSuggestions(
-        fieldElement,
-        varDecl.name,
-        typeName,
-        protocol.ElementKind.FIELD,
-        isDeprecated: deprecated,
-        relevance: relevance,
-        classDecl: fieldDecl.parent,
-        type: fieldType,
-      );
+      builder.suggestField(field, inheritanceDistance: inheritanceDistance);
     }
   }
 
@@ -214,39 +198,23 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredFunction(FunctionDeclaration declaration) {
     if (opType.includeReturnValueSuggestions ||
         opType.includeVoidReturnSuggestions) {
-      var typeName = declaration.returnType;
-      protocol.ElementKind elemKind;
-      var relevance = DART_RELEVANCE_DEFAULT;
-      if (declaration.isGetter) {
-        elemKind = protocol.ElementKind.GETTER;
-        relevance = DART_RELEVANCE_LOCAL_ACCESSOR;
-      } else if (declaration.isSetter) {
+      if (declaration.isSetter) {
         if (!opType.includeVoidReturnSuggestions) {
           return;
         }
-        elemKind = protocol.ElementKind.SETTER;
-        typeName = NO_RETURN_TYPE;
-        relevance = DART_RELEVANCE_LOCAL_ACCESSOR;
-      } else {
-        if (!opType.includeVoidReturnSuggestions && _isVoid(typeName)) {
+      } else if (!declaration.isGetter) {
+        if (!opType.includeVoidReturnSuggestions &&
+            _isVoid(declaration.returnType)) {
           return;
         }
-        elemKind = protocol.ElementKind.FUNCTION;
-        relevance = DART_RELEVANCE_LOCAL_FUNCTION;
       }
-      if (useNewRelevance) {
-        relevance = _relevanceForType(declaration.declaredElement.returnType);
+      var declaredElement = declaration.declaredElement;
+      if (declaredElement is FunctionElement) {
+        builder.suggestTopLevelFunction(declaredElement, kind: _defaultKind);
+      } else if (declaredElement is PropertyAccessorElement) {
+        builder.suggestTopLevelPropertyAccessor(declaredElement,
+            kind: _defaultKind);
       }
-      _addLocalSuggestion_includeReturnValueSuggestions(
-        declaration.declaredElement,
-        declaration.name,
-        typeName,
-        elemKind,
-        isDeprecated: isDeprecated(declaration),
-        param: declaration.functionExpression.parameters,
-        relevance: relevance,
-        type: declaration.declaredElement.type,
-      );
     }
   }
 
@@ -274,23 +242,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredLocalVar(SimpleIdentifier id, TypeAnnotation typeName) {
     if (opType.includeReturnValueSuggestions) {
-      var variableType = (id.staticElement as LocalVariableElement)?.type;
-      int relevance;
-      if (useNewRelevance) {
-        // TODO(brianwilkerson) Use the distance to the local variable as
-        //  another feature.
-        relevance = _relevanceForType(variableType);
-      } else {
-        relevance = DART_RELEVANCE_LOCAL_VARIABLE;
-      }
-      _addLocalSuggestion_includeReturnValueSuggestions(
-        null,
-        id,
-        typeName,
-        protocol.ElementKind.LOCAL_VARIABLE,
-        relevance: relevance,
-        type: variableType ?? typeProvider.dynamicType,
-      );
+      builder.suggestLocalVariable(id.staticElement as LocalVariableElement);
     }
   }
 
@@ -299,49 +251,22 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if ((opType.includeReturnValueSuggestions ||
             opType.includeVoidReturnSuggestions) &&
         (!opType.inStaticMethodBody || declaration.isStatic)) {
-//      var method = declaration.declaredElement;
-//      // TODO(brianwilkerson) Use request.featureComputer.inheritanceDistance to
-//      //  compute the inheritance distance.
-//      var inheritanceDistance = -1.0;
-//      builder.suggestMethod(method, inheritanceDistance: inheritanceDistance, kind: _defaultKind);
-      protocol.ElementKind elemKind;
-      FormalParameterList param;
-      var typeName = declaration.returnType;
-      var relevance = DART_RELEVANCE_DEFAULT;
-      if (declaration.isGetter) {
-        elemKind = protocol.ElementKind.GETTER;
-        param = null;
-        relevance = DART_RELEVANCE_LOCAL_ACCESSOR;
-      } else if (declaration.isSetter) {
-        if (!opType.includeVoidReturnSuggestions) {
-          return;
-        }
-        elemKind = protocol.ElementKind.SETTER;
-        typeName = NO_RETURN_TYPE;
-        relevance = DART_RELEVANCE_LOCAL_ACCESSOR;
-      } else {
-        if (!opType.includeVoidReturnSuggestions && _isVoid(typeName)) {
-          return;
-        }
-        elemKind = protocol.ElementKind.METHOD;
-        param = declaration.parameters;
-        relevance = DART_RELEVANCE_LOCAL_METHOD;
+      var element = declaration.declaredElement;
+      var inheritanceDistance = -1.0;
+      var enclosingClass = request.target.containingNode
+          .thisOrAncestorOfType<ClassDeclaration>();
+      if (enclosingClass != null) {
+        inheritanceDistance = request.featureComputer
+            .inheritanceDistanceFeature(
+                enclosingClass.declaredElement, element.enclosingElement);
       }
-      if (useNewRelevance) {
-        relevance = _relevanceForType(declaration.declaredElement.returnType);
+      if (element is MethodElement) {
+        builder.suggestMethod(element,
+            inheritanceDistance: inheritanceDistance, kind: _defaultKind);
+      } else if (element is PropertyAccessorElement) {
+        builder.suggestAccessor(element,
+            inheritanceDistance: inheritanceDistance);
       }
-      _addLocalSuggestion_includeReturnValueSuggestions(
-        declaration.declaredElement,
-        declaration.name,
-        typeName,
-        elemKind,
-        isAbstract: declaration.isAbstract,
-        isDeprecated: isDeprecated(declaration),
-        classDecl: declaration.parent,
-        param: param,
-        relevance: relevance,
-        type: declaration.declaredElement.type,
-      );
     }
   }
 
@@ -355,21 +280,15 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredParam(SimpleIdentifier id, TypeAnnotation typeName) {
     if (opType.includeReturnValueSuggestions) {
-      var parameterType = (id.staticElement as VariableElement).type;
-      int relevance;
-      if (useNewRelevance) {
-        relevance = _relevanceForType(parameterType);
-      } else {
-        relevance = DART_RELEVANCE_PARAMETER;
+      if (_isUnused(id.name)) {
+        return;
       }
-      _addLocalSuggestion_includeReturnValueSuggestions(
-        null,
-        id,
-        typeName,
-        protocol.ElementKind.PARAMETER,
-        relevance: relevance,
-        type: parameterType,
-      );
+      var element = id.staticElement;
+      if (element is ParameterElement) {
+        builder.suggestParameter(element);
+      } else if (element is LocalVariableElement) {
+        builder.suggestCatchParameter(element);
+      }
     }
   }
 
@@ -378,177 +297,21 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       VariableDeclarationList varList, VariableDeclaration varDecl) {
     if (opType.includeReturnValueSuggestions) {
       var variableElement = varDecl.declaredElement;
-//      builder.suggestTopLevelPropertyAccessor((variableElement as TopLevelVariableElement).getter);
-      var variableType = variableElement.type;
-      int relevance;
-      if (useNewRelevance) {
-        relevance = _relevanceForType(variableType);
-      } else {
-        relevance = DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE;
-      }
-      _addLocalSuggestion_includeReturnValueSuggestions(
-        variableElement,
-        varDecl.name,
-        varList.type,
-        protocol.ElementKind.TOP_LEVEL_VARIABLE,
-        isDeprecated: isDeprecated(varList) || isDeprecated(varDecl),
-        relevance: relevance,
-        type: variableType,
-      );
+      builder.suggestTopLevelPropertyAccessor(
+          (variableElement as TopLevelVariableElement).getter);
     }
   }
 
   @override
   void declaredTypeParameter(TypeParameter node) {
     if (opType.includeTypeNameSuggestions) {
-      int relevance;
-      if (useNewRelevance) {
-        relevance = Relevance.typeParameter;
-      } else {
-        relevance = DART_RELEVANCE_TYPE_PARAMETER;
-      }
-      _addLocalSuggestion(
-        null,
-        node.name,
-        null,
-        protocol.ElementKind.TYPE_PARAMETER,
-        isDeprecated: isDeprecated(node),
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        relevance: relevance,
-      );
+      builder.suggestTypeParameter(node.declaredElement);
     }
   }
 
-  void _addLocalSuggestion(Element element, SimpleIdentifier id,
-      TypeAnnotation typeName, protocol.ElementKind elemKind,
-      {bool isAbstract = false,
-      bool isDeprecated = false,
-      ClassOrMixinDeclaration classDecl,
-      CompletionSuggestionKind kind,
-      FormalParameterList param,
-      int relevance = DART_RELEVANCE_DEFAULT}) {
-    if (id == null) {
-      return null;
-    }
-    kind ??= _defaultKind;
-    var suggestion = _createLocalSuggestion(
-        id, isDeprecated, relevance, typeName,
-        classDecl: classDecl, kind: kind);
-    if (suggestion != null) {
-      _setDocumentation(suggestion, element);
-      if (!useNewRelevance &&
-          privateMemberRelevance != null &&
-          suggestion.completion.startsWith('_')) {
-        suggestion.relevance = privateMemberRelevance;
-      }
-      suggestionMap.putIfAbsent(suggestion.completion, () => suggestion);
-      suggestion.element = createLocalElement(request.source, elemKind, id,
-          isAbstract: isAbstract,
-          isDeprecated: isDeprecated,
-          parameters: param?.toSource(),
-          returnType: typeName);
-      if ((elemKind == protocol.ElementKind.METHOD ||
-              elemKind == protocol.ElementKind.FUNCTION) &&
-          param != null) {
-        _addParameterInfo(suggestion, param);
-      }
-    }
-  }
-
-  void _addLocalSuggestion_includeReturnValueSuggestions(
-      Element element,
-      SimpleIdentifier id,
-      TypeAnnotation typeName,
-      protocol.ElementKind elemKind,
-      {bool isAbstract = false,
-      bool isDeprecated = false,
-      ClassOrMixinDeclaration classDecl,
-      FormalParameterList param,
-      int relevance = DART_RELEVANCE_DEFAULT,
-      @required DartType type}) {
-    if (!useNewRelevance) {
-      relevance = opType.returnValueSuggestionsFilter(type, relevance);
-    }
-    if (relevance != null) {
-      _addLocalSuggestion(element, id, typeName, elemKind,
-          isAbstract: isAbstract,
-          isDeprecated: isDeprecated,
-          classDecl: classDecl,
-          param: param,
-          relevance: relevance);
-    }
-  }
-
-  void _addParameterInfo(
-      CompletionSuggestion suggestion, FormalParameterList parameters) {
-    var paramList = parameters.parameters;
-    suggestion.parameterNames = paramList
-        .map((FormalParameter param) => param.identifier.name)
-        .toList();
-    suggestion.parameterTypes = paramList.map((FormalParameter param) {
-      TypeAnnotation type;
-      if (param is DefaultFormalParameter) {
-        var child = param.parameter;
-        if (child is SimpleFormalParameter) {
-          type = child.type;
-        } else if (child is FieldFormalParameter) {
-          type = child.type;
-        }
-      }
-      if (param is SimpleFormalParameter) {
-        type = param.type;
-      } else if (param is FieldFormalParameter) {
-        type = param.type;
-      }
-      if (type == null) {
-        return 'dynamic';
-      }
-      if (type is TypeName) {
-        var typeId = type.name;
-        if (typeId == null) {
-          return 'dynamic';
-        }
-        return typeId.name;
-      }
-      // TODO(brianwilkerson) Support function types.
-      return 'dynamic';
-    }).toList();
-
-    var requiredParameters = paramList
-        .where((FormalParameter param) => param.isRequiredPositional)
-        .map((p) => p.declaredElement);
-    suggestion.requiredParameterCount = requiredParameters.length;
-
-    var namedParameters = paramList
-        .where((FormalParameter param) => param.isNamed)
-        .map((p) => p.declaredElement);
-    suggestion.hasNamedParameters = namedParameters.isNotEmpty;
-
-    addDefaultArgDetails(suggestion, null, requiredParameters, namedParameters);
-  }
-
-  /// Create a new suggestion based upon the given information. Return the new
-  /// suggestion or `null` if it could not be created.
-  CompletionSuggestion _createLocalSuggestion(SimpleIdentifier id,
-      bool isDeprecated, int relevance, TypeAnnotation returnType,
-      {ClassOrMixinDeclaration classDecl,
-      @required CompletionSuggestionKind kind}) {
-    var completion = id.name;
-    if (completion == null || completion.isEmpty || completion == '_') {
-      return null;
-    }
-    if (!useNewRelevance) {
-      relevance = isDeprecated ? DART_RELEVANCE_LOW : relevance;
-    }
-    var suggestion = CompletionSuggestion(
-        kind, relevance, completion, completion.length, 0, isDeprecated, false,
-        returnType: nameForType(id, returnType));
-    var className = classDecl?.name?.name;
-    if (className != null && className.isNotEmpty) {
-      suggestion.declaringType = className;
-    }
-    return suggestion;
-  }
+  /// Return `true` if the [identifier] is composed of one or more underscore
+  /// characters and nothing else.
+  bool _isUnused(String identifier) => RegExp(r'^_+$').hasMatch(identifier);
 
   bool _isVoid(TypeAnnotation returnType) {
     if (returnType is TypeName) {
@@ -558,26 +321,5 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       }
     }
     return false;
-  }
-
-  /// Return the relevance for an element with the given [elementType].
-  int _relevanceForType(DartType elementType) {
-    var contextTypeFeature =
-        request.featureComputer.contextTypeFeature(contextType, elementType);
-    // TODO(brianwilkerson) Figure out whether there are other features that
-    //  ought to be used here and what the right default value is. It's possible
-    //  that the right default value depends on where this is called from.
-    return toRelevance(contextTypeFeature, 800);
-  }
-
-  /// If the given [documentationComment] is not `null`, fill the [suggestion]
-  /// documentation fields.
-  void _setDocumentation(CompletionSuggestion suggestion, Element element) {
-    var doc = DartUnitHoverComputer.computeDocumentation(
-        request.dartdocDirectiveInfo, element);
-    if (doc != null) {
-      suggestion.docComplete = doc;
-      suggestion.docSummary = getDartDocSummary(doc);
-    }
   }
 }

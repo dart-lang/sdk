@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_unstable/dart2js.dart' show Link, LinkBuilder;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 
 import 'package:kernel/ast.dart' as ir;
@@ -705,17 +704,41 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         data.isMixinApplication = false;
         data.interfaces = const <InterfaceType>[];
       } else {
-        InterfaceType processSupertype(ir.Supertype node) {
-          InterfaceType supertype = _typeConverter.visitSupertype(node);
+        // Set of canonical supertypes.
+        //
+        // This is necessary to support when a class implements the same
+        // supertype in multiple non-conflicting ways, like implementing A<int*>
+        // and A<int?> or B<Object?> and B<dynamic>.
+        Set<InterfaceType> canonicalSupertypes = <InterfaceType>{};
+
+        InterfaceType processSupertype(ir.Supertype supertypeNode) {
+          supertypeNode = classHierarchy.getClassAsInstanceOf(
+              node, supertypeNode.classNode);
+          InterfaceType supertype =
+              _typeConverter.visitSupertype(supertypeNode);
+          canonicalSupertypes.add(supertype);
           IndexedClass superclass = supertype.element;
           JClassData superdata = classes.getData(superclass);
           _ensureSupertypes(superclass, superdata);
+          for (InterfaceType supertype in superdata.orderedTypeSet.supertypes) {
+            ClassDefinition definition = getClassDefinition(supertype.element);
+            if (definition.kind == ClassKind.regular) {
+              ir.Supertype canonicalSupertype =
+                  classHierarchy.getClassAsInstanceOf(node, definition.node);
+              if (canonicalSupertype != null) {
+                supertype = _typeConverter.visitSupertype(canonicalSupertype);
+              } else {
+                assert(supertype.typeArguments.isEmpty,
+                    "Generic synthetic supertypes are not supported");
+              }
+            }
+            canonicalSupertypes.add(supertype);
+          }
           return supertype;
         }
 
         InterfaceType supertype;
-        LinkBuilder<InterfaceType> linkBuilder =
-            new LinkBuilder<InterfaceType>();
+        List<InterfaceType> interfaces = <InterfaceType>[];
         if (node.isMixinDeclaration) {
           // A mixin declaration
           //
@@ -733,7 +756,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           // so we need get the superclasses from the on-clause, A, B, and C,
           // through [superclassConstraints].
           for (ir.Supertype constraint in node.superclassConstraints()) {
-            linkBuilder.addLast(processSupertype(constraint));
+            interfaces.add(processSupertype(constraint));
           }
           // Set superclass to `Object`.
           supertype = _commonElements.objectType;
@@ -744,26 +767,26 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           ClassEntity defaultSuperclass =
               _commonElements.getDefaultSuperclass(cls, nativeData);
           data.supertype = _elementEnvironment.getRawType(defaultSuperclass);
+          assert(data.supertype.typeArguments.isEmpty,
+              "Generic default supertypes are not supported");
+          canonicalSupertypes.add(data.supertype);
         } else {
           data.supertype = supertype;
         }
         if (node.mixedInType != null) {
           data.isMixinApplication = true;
-          linkBuilder
-              .addLast(data.mixedInType = processSupertype(node.mixedInType));
+          interfaces.add(data.mixedInType = processSupertype(node.mixedInType));
         } else {
           data.isMixinApplication = false;
         }
         node.implementedTypes.forEach((ir.Supertype supertype) {
-          linkBuilder.addLast(processSupertype(supertype));
+          interfaces.add(processSupertype(supertype));
         });
-        Link<InterfaceType> interfaces =
-            linkBuilder.toLink(const Link<InterfaceType>());
         OrderedTypeSetBuilder setBuilder =
             new KernelOrderedTypeSetBuilder(this, cls);
-        data.orderedTypeSet = setBuilder.createOrderedTypeSet(
-            data.supertype, interfaces.reverse(const Link<InterfaceType>()));
-        data.interfaces = new List<InterfaceType>.from(interfaces.toList());
+        data.orderedTypeSet =
+            setBuilder.createOrderedTypeSet(canonicalSupertypes);
+        data.interfaces = interfaces;
       }
     }
   }

@@ -3,15 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
+#include "vm/kernel_binary.h"
+
 #include <memory>
 
-#include "vm/kernel_binary.h"
 #include "platform/globals.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/dart_api_impl.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/kernel.h"
+#include "vm/object.h"
 #include "vm/os.h"
 
 namespace dart {
@@ -170,11 +172,11 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
 
   program->main_method_reference_ = NameIndex(reader->ReadUInt32() - 1);
   if (formatVersion >= 41) {
-    NonNullableByDefaultCompiledMode compilation_mode =
-        static_cast<NonNullableByDefaultCompiledMode>(reader->ReadUInt32());
+    NNBDCompiledMode compilation_mode =
+        static_cast<NNBDCompiledMode>(reader->ReadUInt32());
     program->compilation_mode_ = compilation_mode;
   } else {
-    program->compilation_mode_ = kNNBDDisabled;
+    program->compilation_mode_ = NNBDCompiledMode::kDisabled;
   }
 
   return program;

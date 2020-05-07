@@ -47,6 +47,18 @@ class FixBuilderTest extends EdgeBuilderTestBase {
       TypeMatcher<NodeChangeForDefaultFormalParameter>()
           .having((c) => c.addRequiredKeyword, 'addRequiredKeyword', true);
 
+  static final isCompoundAssignmentNullableSource =
+      TypeMatcher<NodeChangeForAssignment>().having(
+          (c) => c.isCompoundAssignmentWithNullableSource,
+          'isCompoundAssignmentWithNullableSource',
+          true);
+
+  static final isCompoundAssignmentBadCombinedType =
+      TypeMatcher<NodeChangeForAssignment>().having(
+          (c) => c.isCompoundAssignmentWithBadCombinedType,
+          'isCompoundAssignmentWithBadCombinedType',
+          true);
+
   static final isMakeNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
       .having((c) => c.makeNullable, 'makeNullable', true)
       .having((c) => c.nullabilityHint, 'nullabilityHint', isNull);
@@ -83,6 +95,10 @@ class FixBuilderTest extends EdgeBuilderTestBase {
   static final isRequiredAnnotationToRequiredKeyword =
       TypeMatcher<NodeChangeForAnnotation>().having(
           (c) => c.changeToRequiredKeyword, 'changeToRequiredKeyword', true);
+
+  static final isWeakNullAwareAssignment =
+      TypeMatcher<NodeChangeForAssignment>()
+          .having((c) => c.isWeakNullAware, 'isWeakNullAware', true);
 
   DartType get dynamicType => postMigrationTypeProvider.dynamicType;
 
@@ -349,7 +365,8 @@ _f(bool/*?*/ x, bool/*?*/ y) => x != null && (x ??= y) != null;
     // On the RHS of the `&&`, `x` is promoted to non-nullable, but it is still
     // considered to be a nullable assignment target, so no null check is
     // generated for `y`.
-    visitSubexpression(findNode.binary('&&'), 'bool');
+    visitSubexpression(findNode.binary('&&'), 'bool',
+        changes: {findNode.assignment('??='): isWeakNullAwareAssignment});
   }
 
   Future<void>
@@ -1045,6 +1062,61 @@ _f(int/*?*/ x, int/*?*/ y) {
 f() => true;
 ''');
     visitSubexpression(findNode.booleanLiteral('true'), 'bool');
+  }
+
+  Future<void> test_compound_assignment_nullable_result_bad() async {
+    await analyze('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+f(C c) {
+  c += 1;
+}
+''');
+    var assignment = findNode.assignment('+=');
+    visitSubexpression(assignment, 'C?',
+        changes: {assignment: isCompoundAssignmentBadCombinedType});
+  }
+
+  Future<void> test_compound_assignment_nullable_result_ok() async {
+    await analyze('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+abstract class D {
+  void set x(C/*?*/ value);
+  C/*!*/ get x;
+  f() {
+    x += 1;
+  }
+}
+''');
+    var assignment = findNode.assignment('+=');
+    visitSubexpression(assignment, 'C?');
+  }
+
+  Future<void> test_compound_assignment_nullable_source() async {
+    await analyze('''
+_f(int/*?*/ x) {
+  x += 1;
+}
+''');
+    var assignment = findNode.assignment('+=');
+    visitSubexpression(assignment, 'int',
+        changes: {assignment: isCompoundAssignmentNullableSource});
+  }
+
+  Future<void> test_compound_assignment_potentially_nullable_source() async {
+    await analyze('''
+class C<T extends num/*?*/> {
+  _f(T/*!*/ x) {
+    x += 1;
+  }
+}
+''');
+    var assignment = findNode.assignment('+=');
+    visitSubexpression(assignment, 'T',
+        changes: {assignment: isCompoundAssignmentNullableSource});
   }
 
   Future<void> test_conditionalExpression_dead_else_remove() async {
@@ -1812,6 +1884,49 @@ abstract class _C {}
 _f(_C/*?*/ c) => c.toString();
 ''');
     visitSubexpression(findNode.methodInvocation('c.toString'), 'String');
+  }
+
+  Future<void> test_null_aware_assignment_non_nullable_source() async {
+    await analyze('''
+abstract class C {
+  int/*!*/ f();
+  g(int/*!*/ x) {
+    x ??= f();
+  }
+}
+''');
+    var assignment = findNode.assignment('??=');
+    visitSubexpression(assignment, 'int',
+        changes: {assignment: isWeakNullAwareAssignment});
+  }
+
+  Future<void> test_null_aware_assignment_nullable_rhs_needs_check() async {
+    await analyze('''
+abstract class C {
+  void set x(int/*!*/ value);
+  int/*?*/ get x;
+  int/*?*/ f();
+  g() {
+    x ??= f();
+  }
+}
+''');
+    var assignment = findNode.assignment('??=');
+    visitSubexpression(assignment, 'int',
+        changes: {assignment.rightHandSide: isNullCheck});
+  }
+
+  Future<void> test_null_aware_assignment_nullable_rhs_ok() async {
+    await analyze('''
+abstract class C {
+  int/*?*/ f();
+  g(int/*?*/ x) {
+    x ??= f();
+  }
+}
+''');
+    var assignment = findNode.assignment('??=');
+    visitSubexpression(assignment, 'int?');
   }
 
   Future<void> test_nullAssertion_promotes() async {

@@ -376,6 +376,8 @@ import 'redirect_generative_to_missing_constructor_test.dart'
     as redirect_generative_to_missing_constructor;
 import 'redirect_generative_to_non_generative_constructor_test.dart'
     as redirect_generative_to_non_generative_constructor;
+import 'redirect_to_abstract_class_constructor_test.dart'
+    as redirect_to_abstract_class_constructor;
 import 'redirect_to_invalid_function_type_test.dart'
     as redirect_to_invalid_function_type;
 import 'redirect_to_invalid_return_type_test.dart'
@@ -758,6 +760,7 @@ main() {
     recursive_factory_redirect.main();
     redirect_generative_to_missing_constructor.main();
     redirect_generative_to_non_generative_constructor.main();
+    redirect_to_abstract_class_constructor.main();
     redirect_to_invalid_function_type.main();
     redirect_to_invalid_return_type.main();
     redirect_to_missing_constructor.main();

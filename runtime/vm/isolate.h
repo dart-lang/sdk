@@ -89,6 +89,17 @@ class ThreadRegistry;
 class UserTag;
 class WeakTable;
 
+/*
+ * Possible values of null safety flag
+  0 - not specified
+  1 - weak mode
+  2 - strong mode)
+*/
+constexpr int kNullSafetyOptionUnspecified = 0;
+constexpr int kNullSafetyOptionWeak = 1;
+constexpr int kNullSafetyOptionStrong = 2;
+extern int FLAG_null_safety;
+
 class PendingLazyDeopt {
  public:
   PendingLazyDeopt(uword fp, uword pc) : fp_(fp), pc_(pc) {}
@@ -152,7 +163,6 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
   V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
-  V(PRODUCT, null_safety, NullSafety, null_safety, FLAG_null_safety)           \
   V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false_by_default)            \
   V(PRODUCT, unsafe_trust_strong_mode_types, UnsafeTrustStrongModeTypes,       \
     unsafe_trust_strong_mode_types,                                            \
@@ -1180,6 +1190,24 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 #endif  // defined(PRODUCT)
 
+  bool null_safety_not_set() const {
+    return !NullSafetySetBit::decode(isolate_flags_);
+  }
+
+  bool null_safety() const {
+    // TODO(asiva) : We return false when the null safety mode is not yet set
+    // instead of just asserting as some code runs during bootstrapping that
+    // requires the mode to be set. Once all of that is resolved this could
+    // turn into just an assert.
+    if (null_safety_not_set()) return false;
+    ASSERT(!null_safety_not_set());
+    return NullSafetyBit::decode(isolate_flags_);
+  }
+  void set_null_safety(bool null_safety) {
+    isolate_flags_ = NullSafetySetBit::update(true, isolate_flags_);
+    isolate_flags_ = NullSafetyBit::update(null_safety, isolate_flags_);
+  }
+
   // Convenience flag tester indicating whether incoming function arguments
   // should be type checked.
   bool argument_type_checks() const { return should_emit_strong_mode_checks(); }
@@ -1351,6 +1379,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(Obfuscate)                                                                 \
   V(ShouldLoadVmService)                                                       \
   V(NullSafety)                                                                \
+  V(NullSafetySet)                                                             \
   V(UnsafeTrustStrongModeTypes)
 
   // Isolate specific flags.

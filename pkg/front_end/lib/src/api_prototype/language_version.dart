@@ -7,7 +7,7 @@ import 'dart:typed_data' show Uint8List;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show LanguageVersionToken, Scanner, ScannerConfiguration, scan;
 
-import 'package:kernel/ast.dart' show Version;
+import 'package:kernel/ast.dart' show Version, defaultLanguageVersion;
 export 'package:kernel/ast.dart' show Version;
 
 import 'package:package_config/package_config.dart'
@@ -16,6 +16,8 @@ import 'package:package_config/package_config.dart'
 import '../base/processed_options.dart' show ProcessedOptions;
 
 import '../fasta/compiler_context.dart' show CompilerContext;
+
+import '../fasta/source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../fasta/uri_translator.dart' show UriTranslator;
 
@@ -121,4 +123,13 @@ Future<Version> languageVersionForUri(Uri uri, CompilerOptions options) async {
     // Return default.
     return new Version(currentSdkVersionMajor, currentSdkVersionMinor);
   });
+}
+
+Future<bool> uriUsesLegacyLanguageVersion(
+    Uri uri, CompilerOptions options) async {
+  // This method is here in order to use the opt out hack here for test
+  // sources.
+  if (SourceLibraryBuilder.isOptOutTest(uri)) return true;
+  Version uriVersion = await languageVersionForUri(uri, options);
+  return (uriVersion < defaultLanguageVersion);
 }

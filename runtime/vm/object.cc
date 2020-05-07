@@ -1713,10 +1713,9 @@ ErrorPtr Object::Init(Isolate* isolate,
     // declared number of type parameters is still 0. It will become 1 after
     // patching. The array type allocated below represents the raw type _List
     // and not _List<E> as we could expect. Use with caution.
-    type = Type::New(Class::Handle(zone, cls.raw()),
-                     TypeArguments::Handle(zone), TokenPosition::kNoSource,
-                     Dart::non_nullable_flag() ? Nullability::kNonNullable
-                                               : Nullability::kLegacy);
+    type =
+        Type::New(Class::Handle(zone, cls.raw()), TypeArguments::Handle(zone),
+                  TokenPosition::kNoSource, Nullability::kNonNullable);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
     object_store->set_array_type(type);
@@ -2782,8 +2781,7 @@ AbstractTypePtr Class::RareType() const {
   ASSERT(is_declaration_loaded());
   const Type& type = Type::Handle(
       Type::New(*this, Object::null_type_arguments(), TokenPosition::kNoSource,
-                Dart::non_nullable_flag() ? Nullability::kNonNullable
-                                          : Nullability::kLegacy));
+                Nullability::kNonNullable));
   return ClassFinalizer::FinalizeType(*this, type);
 }
 
@@ -4850,9 +4848,7 @@ void Class::set_declaration_type(const Type& value) const {
   // non-generic class, the nullability is set to kNonNullable instead of
   // kLegacy when the non-nullable experiment is enabled.
   ASSERT(value.type_class_id() != kNullCid || value.IsNullable());
-  ASSERT(
-      value.type_class_id() == kNullCid ||
-      (Dart::non_nullable_flag() ? value.IsNonNullable() : value.IsLegacy()));
+  ASSERT(value.type_class_id() == kNullCid || value.IsNonNullable());
   StorePointer(&raw_ptr()->declaration_type_, value.raw());
 }
 
@@ -4875,10 +4871,9 @@ TypePtr Class::DeclarationType() const {
   // consistently cache the kLegacy version of a type, unless the non-nullable
   // experiment is enabled, in which case we store the kNonNullable version.
   // In either cases, the exception is type Null which is stored as kNullable.
-  Type& type = Type::Handle(
-      Type::New(*this, TypeArguments::Handle(type_parameters()), token_pos(),
-                Dart::non_nullable_flag() ? Nullability::kNonNullable
-                                          : Nullability::kLegacy));
+  Type& type =
+      Type::Handle(Type::New(*this, TypeArguments::Handle(type_parameters()),
+                             token_pos(), Nullability::kNonNullable));
   type ^= ClassFinalizer::FinalizeType(*this, type);
   set_declaration_type(type);
   return type.raw();
@@ -7994,7 +7989,7 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other,
       ASSERT(bound.IsFinalized());
       other_bound = other_type_param.bound();
       ASSERT(other_bound.IsFinalized());
-      if (Dart::non_nullable_flag() && kind == TypeEquality::kInSubtypeTest) {
+      if (kind == TypeEquality::kInSubtypeTest) {
         // Bounds that are mutual subtypes are considered equal.
         if (!bound.IsSubtypeOf(other_bound, Heap::kOld) ||
             !other_bound.IsSubtypeOf(bound, Heap::kOld)) {
@@ -8385,12 +8380,10 @@ FunctionPtr Function::ImplicitClosureFunction() const {
                                     &is_generic_covariant_impl);
 
     Type& object_type = Type::Handle(zone, Type::ObjectType());
-    if (Dart::non_nullable_flag()) {
-      ObjectStore* object_store = Isolate::Current()->object_store();
-      object_type = nnbd_mode() == NNBDMode::kOptedInLib
-                        ? object_store->nullable_object_type()
-                        : object_store->legacy_object_type();
-    }
+    ObjectStore* object_store = Isolate::Current()->object_store();
+    object_type = nnbd_mode() == NNBDMode::kOptedInLib
+                      ? object_store->nullable_object_type()
+                      : object_store->legacy_object_type();
     for (intptr_t i = kClosure; i < num_params; ++i) {
       const intptr_t original_param_index = has_receiver - kClosure + i;
       if (is_covariant.Contains(original_param_index) ||
@@ -9020,12 +9013,12 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
     return true;
   }
 
-  if (Dart::non_nullable_flag()) {
-    // The non-nullable experiment changes the fingerprints, and we only track
-    // one fingerprint set.
-    return true;
-  }
-
+#if 1
+  // The non-nullable experiment changes the fingerprints, we only track
+  // one fingerprint set, until we unfork and settle on a single snapshot
+  // version this check has to be bypassed.
+  // TODO(36376) - Restore checking fingerprints of recognized methods.
+#else
   if (SourceFingerprint() != fp) {
     const bool recalculatingFingerprints = false;
     if (recalculatingFingerprints) {
@@ -9044,6 +9037,7 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
       return false;
     }
   }
+#endif
   return true;
 }
 
@@ -17738,9 +17732,7 @@ AbstractTypePtr Instance::GetType(Heap::Space space) const {
       type_arguments = GetTypeArguments();
     }
     type = Type::New(cls, type_arguments, TokenPosition::kNoSource,
-                     Dart::non_nullable_flag() ? Nullability::kNonNullable
-                                               : Nullability::kLegacy,
-                     space);
+                     Nullability::kNonNullable, space);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
@@ -18278,65 +18270,61 @@ AbstractTypePtr AbstractType::SetInstantiatedNullability(
 }
 
 AbstractTypePtr AbstractType::NormalizeFutureOrType(Heap::Space space) const {
-  if (Dart::non_nullable_flag()) {
-    if (IsFutureOrType()) {
-      const AbstractType& unwrapped_type =
-          AbstractType::Handle(UnwrapFutureOr());
-      const classid_t cid = unwrapped_type.type_class_id();
-      if (cid == kDynamicCid || cid == kVoidCid) {
+  if (IsFutureOrType()) {
+    const AbstractType& unwrapped_type = AbstractType::Handle(UnwrapFutureOr());
+    const classid_t cid = unwrapped_type.type_class_id();
+    if (cid == kDynamicCid || cid == kVoidCid) {
+      return unwrapped_type.raw();
+    }
+    if (cid == kInstanceCid) {
+      if (IsNonNullable()) {
         return unwrapped_type.raw();
       }
-      if (cid == kInstanceCid) {
-        if (IsNonNullable()) {
-          return unwrapped_type.raw();
-        }
-        if (IsNullable() || unwrapped_type.IsNullable()) {
-          return Type::Cast(unwrapped_type)
-              .ToNullability(Nullability::kNullable, space);
-        }
+      if (IsNullable() || unwrapped_type.IsNullable()) {
         return Type::Cast(unwrapped_type)
-            .ToNullability(Nullability::kLegacy, space);
+            .ToNullability(Nullability::kNullable, space);
       }
-      if (cid == kNeverCid && unwrapped_type.IsNonNullable()) {
-        ObjectStore* object_store = Isolate::Current()->object_store();
-        if (object_store->non_nullable_future_never_type() == Type::null()) {
-          const Class& cls = Class::Handle(object_store->future_class());
-          ASSERT(!cls.IsNull());
-          const TypeArguments& type_args =
-              TypeArguments::Handle(TypeArguments::New(1));
-          type_args.SetTypeAt(0, Type::Handle(object_store->never_type()));
-          Type& type =
-              Type::Handle(Type::New(cls, type_args, TokenPosition::kNoSource,
-                                     Nullability::kNonNullable));
-          type.SetIsFinalized();
-          type ^= type.Canonicalize();
-          object_store->set_non_nullable_future_never_type(type);
-        }
-        const Type& future_never_type =
-            Type::Handle(object_store->non_nullable_future_never_type());
-        return future_never_type.ToNullability(nullability(), space);
+      return Type::Cast(unwrapped_type)
+          .ToNullability(Nullability::kLegacy, space);
+    }
+    if (cid == kNeverCid && unwrapped_type.IsNonNullable()) {
+      ObjectStore* object_store = Isolate::Current()->object_store();
+      if (object_store->non_nullable_future_never_type() == Type::null()) {
+        const Class& cls = Class::Handle(object_store->future_class());
+        ASSERT(!cls.IsNull());
+        const TypeArguments& type_args =
+            TypeArguments::Handle(TypeArguments::New(1));
+        type_args.SetTypeAt(0, Type::Handle(object_store->never_type()));
+        Type& type =
+            Type::Handle(Type::New(cls, type_args, TokenPosition::kNoSource,
+                                   Nullability::kNonNullable));
+        type.SetIsFinalized();
+        type ^= type.Canonicalize();
+        object_store->set_non_nullable_future_never_type(type);
       }
-      if (cid == kNullCid) {
-        ObjectStore* object_store = Isolate::Current()->object_store();
-        if (object_store->nullable_future_null_type() == Type::null()) {
-          const Class& cls = Class::Handle(object_store->future_class());
-          ASSERT(!cls.IsNull());
-          const TypeArguments& type_args =
-              TypeArguments::Handle(TypeArguments::New(1));
-          Type& type = Type::Handle(object_store->null_type());
-          type_args.SetTypeAt(0, type);
-          type = Type::New(cls, type_args, TokenPosition::kNoSource,
-                           Nullability::kNullable);
-          type.SetIsFinalized();
-          type ^= type.Canonicalize();
-          object_store->set_nullable_future_null_type(type);
-        }
-        return object_store->nullable_future_null_type();
+      const Type& future_never_type =
+          Type::Handle(object_store->non_nullable_future_never_type());
+      return future_never_type.ToNullability(nullability(), space);
+    }
+    if (cid == kNullCid) {
+      ObjectStore* object_store = Isolate::Current()->object_store();
+      if (object_store->nullable_future_null_type() == Type::null()) {
+        const Class& cls = Class::Handle(object_store->future_class());
+        ASSERT(!cls.IsNull());
+        const TypeArguments& type_args =
+            TypeArguments::Handle(TypeArguments::New(1));
+        Type& type = Type::Handle(object_store->null_type());
+        type_args.SetTypeAt(0, type);
+        type = Type::New(cls, type_args, TokenPosition::kNoSource,
+                         Nullability::kNullable);
+        type.SetIsFinalized();
+        type ^= type.Canonicalize();
+        object_store->set_nullable_future_null_type(type);
       }
-      if (IsNullable() && unwrapped_type.IsNullable()) {
-        return Type::Cast(*this).ToNullability(Nullability::kNonNullable,
-                                               space);
-      }
+      return object_store->nullable_future_null_type();
+    }
+    if (IsNullable() && unwrapped_type.IsNullable()) {
+      return Type::Cast(*this).ToNullability(Nullability::kNonNullable, space);
     }
   }
   return raw();
@@ -19017,8 +19005,7 @@ TypePtr Type::NewNonParameterizedType(const Class& type_class) {
   if (type.IsNull()) {
     type = Type::New(Class::Handle(type_class.raw()),
                      Object::null_type_arguments(), TokenPosition::kNoSource,
-                     Dart::non_nullable_flag() ? Nullability::kNonNullable
-                                               : Nullability::kLegacy);
+                     Nullability::kNonNullable);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
     type_class.set_declaration_type(type);
@@ -19403,10 +19390,7 @@ bool Type::IsDeclarationTypeOf(const Class& cls) const {
   if (cls.IsGeneric() || cls.IsClosureClass() || cls.IsTypedefClass()) {
     return false;
   }
-  const Nullability declaration_nullability = Dart::non_nullable_flag()
-                                                  ? Nullability::kNonNullable
-                                                  : Nullability::kLegacy;
-  return nullability() == declaration_nullability;
+  return nullability() == Nullability::kNonNullable;
 }
 
 AbstractTypePtr Type::Canonicalize(TrailPtr trail) const {

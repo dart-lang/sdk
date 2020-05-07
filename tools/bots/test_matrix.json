@@ -837,7 +837,13 @@
         "enable-experiment": [
           "non-nullable"
         ],
-        "enable-asserts": true
+	"gen-kernel-options": [
+          "--no-null-safety"
+        ],
+        "enable-asserts": true,
+	"vm-options": [
+          "--no-null-safety"
+        ]
       }
     },
     "dartkp-weak-asserts-win-(debug|product|release)-x64": {
@@ -845,8 +851,14 @@
         "enable-experiment": [
           "non-nullable"
         ],
+	"gen-kernel-options": [
+          "--no-null-safety"
+        ],
         "enable-asserts": true,
-        "use-elf": true
+        "use-elf": true,
+	"vm-options": [
+          "--no-null-safety"
+        ]
       }
     },
     "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-x64": {
@@ -854,16 +866,16 @@
         "enable-experiment": [
           "non-nullable"
         ],
-        "enable-asserts": true
+        "enable-asserts": true,
+	"vm-options": [
+          "--no-null-safety"
+        ]
       }
     },
     "dartk-strong-(linux|mac|win)-(debug|product|release)-x64": {
       "options": {
         "enable-experiment": [
           "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--null-safety"
         ],
         "vm-options": [
           "--null-safety"
@@ -3044,6 +3056,15 @@
           ]
         },
         {
+          "name": "nnbd_migration unit tests",
+          "arguments": [
+            "-nanalyzer-unittest-asserts-${mode}-${system}",
+            "pkg/nnbd_migration"
+          ],
+          "shards": 2,
+          "fileset": "analyzer_unit_tests"
+        },
+        {
           "name": "analyze tests co19_2",
           "arguments": [
             "-nanalyzer-asserts-${system}",
@@ -3123,6 +3144,13 @@
           "name": "analyze nnbd strong co19 tests",
           "arguments": [
             "-nanalyzer-asserts-strong-${system}",
+            "co19/LanguageFeatures/nnbd"
+          ]
+        },
+        {
+          "name": "analyze nnbd weak co19 tests",
+          "arguments": [
+            "-nanalyzer-asserts-weak-${system}",
             "co19/LanguageFeatures/nnbd"
           ]
         }
@@ -3429,7 +3457,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {
@@ -3467,7 +3495,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {

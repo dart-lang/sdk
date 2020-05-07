@@ -66,6 +66,4 @@ var tests = <VMTest>[
 main(args) async => runVMTests(
       args,
       tests,
-      // TODO(bkonyi): client names are not yet supported in DDS.
-      enableDds: false,
     );

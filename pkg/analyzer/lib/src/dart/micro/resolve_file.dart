@@ -336,7 +336,13 @@ class FileResolver {
     } else {
       Source source;
       if (workspace is WorkspaceWithDefaultAnalysisOptions) {
-        source = sourceFactory.forUri(WorkspaceWithDefaultAnalysisOptions.uri);
+        if (path.contains('/third_party/dart/')) {
+          source = sourceFactory
+              .forUri(WorkspaceWithDefaultAnalysisOptions.thirdPartyUri);
+        } else {
+          source =
+              sourceFactory.forUri(WorkspaceWithDefaultAnalysisOptions.uri);
+        }
       }
 
       if (source != null && source.exists()) {

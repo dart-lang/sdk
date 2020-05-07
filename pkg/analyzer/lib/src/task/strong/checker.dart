@@ -271,7 +271,8 @@ class CodeChecker extends RecursiveAstVisitor {
           checkBoolean(node.rightOperand);
           break;
         case TokenType.BANG_EQ:
-          break;
+        case TokenType.BANG_EQ_EQ:
+        case TokenType.EQ_EQ_EQ:
         case TokenType.QUESTION_QUESTION:
           break;
         default:
