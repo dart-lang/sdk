@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing throw statement
 
+// Tests that thrown errors contain their stack trace.
+
 import "package:expect/expect.dart";
 
 class MyException {
@@ -30,6 +32,7 @@ class Helper1 {
       func5();
     } on ArgumentError catch (e) {
       i = 100;
+      // Error contains stack trace, even if we don't ask for one with (e, s).
       Expect.isNotNull(e.stackTrace, "Errors need a stackTrace on throw");
     }
     return i;
@@ -73,54 +76,7 @@ class Helper2 {
   }
 }
 
-class Helper3 {
-  static int func1() {
-    return func2();
-  }
-
-  static int func2() {
-    return func3();
-  }
-
-  static int func3() {
-    return func4();
-  }
-
-  static int func4() {
-    var i = 0;
-    try {
-      i = 10;
-      func5();
-    } on MyException catch (e) {
-      i = 300;
-      try {
-        // There should be no stackTrace in this normal exception object.
-        // We should get a NoSuchMethodError.
-        var trace = e.stackTrace;
-        //            ^^^^^^^^^^
-        // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
-        // [cfe] The getter 'stackTrace' isn't defined for the class 'MyException'.
-      } on NoSuchMethodError catch (e) {
-        Expect.isNotNull(e.stackTrace, "Error needs a stackTrace on throw");
-      }
-    }
-    return i;
-  }
-
-  static List func5() {
-    // Throw an Exception (any random object).
-    throw new MyException("MyException in func5");
-  }
-}
-
-class ErrorStackTraceTest {
-  static testMain() {
-    Expect.equals(100, Helper1.func1());
-    Expect.equals(200, Helper2.func1());
-    Expect.equals(300, Helper3.func1());
-  }
-}
-
 main() {
-  ErrorStackTraceTest.testMain();
+  Expect.equals(100, Helper1.func1());
+  Expect.equals(200, Helper2.func1());
 }

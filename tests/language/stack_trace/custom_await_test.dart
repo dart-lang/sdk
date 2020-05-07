@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Tests that `await` can handle a future with a non-native stack trace.
+
 import "dart:async";
 import "package:expect/expect.dart";
 
@@ -17,12 +19,12 @@ class Blah implements StackTrace {
 
 foo() {
   var x = "\nBloop\nBleep\n";
-  return new Future.error(42, new Blah(x));
+  return Future.error(42, Blah(x));
 }
 
 main() async {
   try {
-    var x = await foo();
+    await foo();
     Expect.fail("Should not reach here.");
   } on int catch (e, s) {
     Expect.equals(42, e);
