@@ -68,7 +68,7 @@ static method test() → dynamic /* originally async */ {
             while (true) {
               dynamic #t4 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t5 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
-              if(_in::unsafeCast<core::bool*>(:result)) {
+              if(_in::unsafeCast<core::bool>(:result)) {
                 final dynamic #t6 = :for-iterator.{asy::_StreamIterator::current};
                 {
                   core::int* x = #t6 as{TypeError,ForDynamic} core::int*;
@@ -108,7 +108,7 @@ static method test() → dynamic /* originally async */ {
             while (true) {
               dynamic #t11 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t12 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
-              if(_in::unsafeCast<core::bool*>(:result)) {
+              if(_in::unsafeCast<core::bool>(:result)) {
                 final dynamic #t13 = :for-iterator.{asy::_StreamIterator::current};
                 {
                   y = #t13 as{TypeError,ForDynamic} core::int*;

@@ -132,7 +132,7 @@ static method foo(dynamic dynVar) → dynamic {
   core::Map<dynamic, dynamic>* map10 = block {
     final core::Map<dynamic, dynamic>* #t5 = <dynamic, dynamic>{};
     {
-      core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = <dynamic, dynamic>{}.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = <dynamic, dynamic>{}.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<dynamic, dynamic>* #t6 = :sync-for-iterator.{core::Iterator::current};
         #t5.{core::Map::[]=}(#t6.{core::MapEntry::key}, #t6.{core::MapEntry::value});
@@ -142,7 +142,7 @@ static method foo(dynamic dynVar) → dynamic {
   core::Map<dynamic, dynamic>* map10ambiguous = block {
     final core::Map<dynamic, dynamic>* #t7 = <dynamic, dynamic>{};
     {
-      core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = <dynamic, dynamic>{}.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = <dynamic, dynamic>{}.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<dynamic, dynamic>* #t8 = :sync-for-iterator.{core::Iterator::current};
         #t7.{core::Map::[]=}(#t8.{core::MapEntry::key}, #t8.{core::MapEntry::value});
@@ -186,7 +186,7 @@ static method foo(dynamic dynVar) → dynamic {
   core::Map<core::String*, core::int*>* map20 = block {
     final core::Map<core::String*, core::int*>* #t16 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::int*>*>* :sync-for-iterator = mapSpread.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String*, core::int*>* #t17 = :sync-for-iterator.{core::Iterator::current};
         #t16.{core::Map::[]=}(#t17.{core::MapEntry::key}, #t17.{core::MapEntry::value});
@@ -197,7 +197,7 @@ static method foo(dynamic dynVar) → dynamic {
   core::Map<core::String*, core::int*>* map20ambiguous = block {
     final core::Map<core::String*, core::int*>* #t18 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::int*>*>* :sync-for-iterator = mapSpread.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String*, core::int*>* #t19 = :sync-for-iterator.{core::Iterator::current};
         #t18.{core::Map::[]=}(#t19.{core::MapEntry::key}, #t19.{core::MapEntry::value});
@@ -228,7 +228,7 @@ static method foo(dynamic dynVar) → dynamic {
   core::Map<dynamic, dynamic>* map21 = block {
     final core::Map<dynamic, dynamic>* #t24 = <dynamic, dynamic>{};
     {
-      core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = ((mapSpread as dynamic) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = ((mapSpread as dynamic) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<dynamic, dynamic>* #t25 = :sync-for-iterator.{core::Iterator::current};
         #t24.{core::Map::[]=}(#t25.{core::MapEntry::key}, #t25.{core::MapEntry::value});
@@ -277,7 +277,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::String*, core::int*>* map22 = block {
     final core::Map<core::String*, core::int*>* #t33 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::int*>*>* :sync-for-iterator = <core::String*, core::int*>{}.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = <core::String*, core::int*>{}.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String*, core::int*>* #t34 = :sync-for-iterator.{core::Iterator::current};
         #t33.{core::Map::[]=}(#t34.{core::MapEntry::key}, #t34.{core::MapEntry::value});
@@ -321,7 +321,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::String*, core::List<core::int*>*>* map23 = block {
     final core::Map<core::String*, core::List<core::int*>*>* #t42 = <core::String*, core::List<core::int*>*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::List<core::int*>*>*>* :sync-for-iterator = <core::String*, core::List<core::int*>*>{"baz": <core::int*>[]}.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::String*, core::List<core::int*>*>>* :sync-for-iterator = <core::String*, core::List<core::int*>*>{"baz": <core::int*>[]}.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String*, core::List<core::int*>*>* #t43 = :sync-for-iterator.{core::Iterator::current};
         #t42.{core::Map::[]=}(#t43.{core::MapEntry::key}, #t43.{core::MapEntry::value});
@@ -380,7 +380,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
       ^" in ( block {
     final core::Map<core::String*, core::int*>* #t55 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::int*>*>* :sync-for-iterator = mapSpread.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String*, core::int*>* #t56 = :sync-for-iterator.{core::Iterator::current};
         #t55.{core::Map::[]=}(#t56.{core::MapEntry::key}, #t56.{core::MapEntry::value});
@@ -394,7 +394,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
       ^" in ( block {
     final core::Map<core::String*, core::int*>* #t58 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::int*>*>* :sync-for-iterator = mapSpread.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String*, core::int*>* #t59 = :sync-for-iterator.{core::Iterator::current};
         #t58.{core::Map::[]=}(#t59.{core::MapEntry::key}, #t59.{core::MapEntry::value});
@@ -404,7 +404,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::List<dynamic>* lhs40 = <dynamic>[invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:111:38: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
   List<dynamic> lhs40 = <dynamic>[...notSpreadInt];
                                      ^"];
-  core::Set<dynamic>* set40 = let final core::Set<dynamic>* #t60 = col::LinkedHashSet::•<dynamic>() in let final core::bool* #t61 = #t60.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:113:37: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+  core::Set<dynamic>* set40 = let final core::Set<dynamic>* #t60 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t61 = #t60.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:113:37: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
   Set<dynamic> set40 = <dynamic>{...notSpreadInt};
                                     ^") in #t60;
   core::Map<dynamic, dynamic>* map40 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:115:55: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
@@ -413,7 +413,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::List<dynamic>* lhs50 = <dynamic>[invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:117:38: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
   List<dynamic> lhs50 = <dynamic>[...notSpreadFunction];
                                      ^"];
-  core::Set<dynamic>* set50 = let final core::Set<dynamic>* #t62 = col::LinkedHashSet::•<dynamic>() in let final core::bool* #t63 = #t62.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:119:37: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+  core::Set<dynamic>* set50 = let final core::Set<dynamic>* #t62 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t63 = #t62.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:119:37: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
   Set<dynamic> set50 = <dynamic>{...notSpreadFunction};
                                     ^") in #t62;
   core::Map<dynamic, dynamic>* map50 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:121:55: Error: Unexpected type 'int Function()' of a map spread entry.  Expected 'dynamic' or a Map.
@@ -422,7 +422,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::List<core::String*>* lhs60 = <core::String*>[invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:123:36: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
   List<String> lhs60 = <String>[...spread];
                                    ^"];
-  core::Set<core::String*>* set60 = let final core::Set<core::String*>* #t64 = col::LinkedHashSet::•<core::String*>() in let final core::bool* #t65 = #t64.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:125:35: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
+  core::Set<core::String*>* set60 = let final core::Set<core::String*>* #t64 = col::LinkedHashSet::•<core::String*>() in let final core::bool #t65 = #t64.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:125:35: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
   Set<String> set60 = <String>{...spread};
                                   ^") in #t64;
   core::Map<core::int*, core::int*>* map60 = <core::int*, core::int*>{invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:127:39: Error: Can't assign spread entry keys of type 'String' to map entry keys of type 'int'.
@@ -434,7 +434,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::List<core::int*>* lhs70 = <core::int*>[invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:131:30: Error: Can't spread a value with static type Null.
   List<int> lhs70 = <int>[...null];
                              ^"];
-  core::Set<core::int*>* set70 = let final core::Set<core::int*>* #t66 = col::LinkedHashSet::•<core::int*>() in let final core::bool* #t67 = #t66.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:133:29: Error: Can't spread a value with static type Null.
+  core::Set<core::int*>* set70 = let final core::Set<core::int*>* #t66 = col::LinkedHashSet::•<core::int*>() in let final core::bool #t67 = #t66.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:133:29: Error: Can't spread a value with static type Null.
   Set<int> set70 = <int>{...null};
                             ^") in #t66;
   core::Set<dynamic>* set71ambiguous = block {
@@ -506,7 +506,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     final core::Map<core::String*, core::int*>* #t83 = <core::String*, core::int*>{};
     final core::Map<core::String*, core::int*>* #t84 = null;
     if(!#t84.{core::Object::==}(null)) {
-      core::Iterator<core::MapEntry<core::String*, core::int*>*>* :sync-for-iterator = #t84.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = #t84.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String*, core::int*>* #t85 = :sync-for-iterator.{core::Iterator::current};
         #t83.{core::Map::[]=}(#t85.{core::MapEntry::key}, #t85.{core::MapEntry::value});
@@ -516,7 +516,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::String*, core::int*>* map90 = block {
     final core::Map<core::String*, core::int*>* #t86 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::int*>*>* :sync-for-iterator = self::bar<core::String*, core::int*>().{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = self::bar<core::String*, core::int*>().{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String*, core::int*>* #t87 = :sync-for-iterator.{core::Iterator::current};
         #t86.{core::Map::[]=}(#t87.{core::MapEntry::key}, #t87.{core::MapEntry::value});
@@ -539,7 +539,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::num*, core::int*>* map100 = block {
     final core::Map<core::num*, core::int*>* #t91 = <core::num*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::int*, core::num*>*>* :sync-for-iterator = mapIntNum.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::int*, core::num*>>* :sync-for-iterator = mapIntNum.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<dynamic, dynamic>* #t92 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -566,7 +566,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::num*, core::int*>* map110 = block {
     final core::Map<core::num*, core::int*>* #t98 = <core::num*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<dynamic, dynamic>* #t99 = :sync-for-iterator.{core::Iterator::current};
         {

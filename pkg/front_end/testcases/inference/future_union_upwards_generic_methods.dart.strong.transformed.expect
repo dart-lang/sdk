@@ -10,6 +10,16 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends self::A {
   synthetic constructor •() → self::B*
@@ -38,9 +48,9 @@ static method main() → dynamic /* originally async */ {
         asy::Future<self::C*>* c = asy::Future::value<self::C*>(new self::C::•());
         core::List<asy::Future<self::A*>*>* lll = <asy::Future<self::A*>*>[b, c];
         [yield] let dynamic #t1 = asy::_awaitHelper(asy::Future::wait<self::A*>(lll), :async_op_then, :async_op_error, :async_op) in null;
-        core::List<self::A*>* result = _in::unsafeCast<core::List<self::A*>*>(:result);
+        core::List<self::A*>* result = _in::unsafeCast<core::List<self::A*>>(:result);
         [yield] let dynamic #t2 = asy::_awaitHelper(asy::Future::wait<self::A*>(<asy::Future<self::A*>*>[b, c]), :async_op_then, :async_op_error, :async_op) in null;
-        core::List<self::A*>* result2 = _in::unsafeCast<core::List<self::A*>*>(:result);
+        core::List<self::A*>* result2 = _in::unsafeCast<core::List<self::A*>>(:result);
         core::List<self::A*>* list = result;
         list = result2;
       }

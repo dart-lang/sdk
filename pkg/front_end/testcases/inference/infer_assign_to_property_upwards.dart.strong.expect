@@ -14,6 +14,16 @@ class Test1 extends core::Object {
     core::int* v10 = let final self::Test1* #t4 = t in #t4.{self::Test1::prop} = #t4.{self::Test1::prop}.{core::num::+}(1);
     core::int* v11 = let final self::Test1* #t5 = t in let final core::int* #t6 = #t5.{self::Test1::prop} in let final core::int* #t7 = #t5.{self::Test1::prop} = #t6.{core::num::+}(1) in #t6;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Test2 extends core::Object {
   field core::num* prop = null;
@@ -33,6 +43,16 @@ class Test2 extends core::Object {
     core::num* v10 = let final self::Test2* #t17 = t in #t17.{self::Test2::prop} = #t17.{self::Test2::prop}.{core::num::+}(1);
     core::num* v11 = let final self::Test2* #t18 = t in let final core::num* #t19 = #t18.{self::Test2::prop} in let final core::num* #t20 = #t18.{self::Test2::prop} = #t19.{core::num::+}(1) in #t19;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Test3 extends core::Object {
   field core::double* prop = null;
@@ -48,6 +68,16 @@ class Test3 extends core::Object {
     core::double* v10 = let final self::Test3* #t26 = t in #t26.{self::Test3::prop} = #t26.{self::Test3::prop}.{core::double::+}(1);
     core::double* v11 = let final self::Test3* #t27 = t in let final core::double* #t28 = #t27.{self::Test3::prop} in let final core::double* #t29 = #t27.{self::Test3::prop} = #t28.{core::double::+}(1) in #t28;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method getInt() → core::int*
   return 0;

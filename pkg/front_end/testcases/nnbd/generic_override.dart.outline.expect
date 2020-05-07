@@ -125,6 +125,16 @@ abstract class LegacyClass1 extends core::Object {
   abstract method method5a<T extends self::Class1* = self::Class1*>() → void;
   abstract method method5b<T extends self::Class1* = self::Class1*>() → void;
   abstract method method5c<T extends self::Class1* = self::Class1*>() → void;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class LegacyClass2 extends self::Class1 {
   synthetic constructor •() → gen::LegacyClass2*
@@ -144,6 +154,16 @@ abstract class LegacyClass2 extends self::Class1 {
   abstract method method5a<T extends self::Class1* = self::Class1*>() → void;
   abstract method method5b<T extends self::Class1* = self::Class1*>() → void;
   abstract method method5c<T extends self::Class1* = self::Class1*>() → void;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class LegacyClass3 extends self::Class1 {
   synthetic constructor •() → gen::LegacyClass3*
@@ -160,6 +180,16 @@ abstract class LegacyClass3 extends self::Class1 {
   abstract member-signature method method5a<T extends self::Class1* = self::Class1*>() → void;
   abstract member-signature method method5b<T extends self::Class1* = self::Class1*>() → void;
   abstract member-signature method method5c<T extends self::Class1* = self::Class1*>() → void;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main() → dynamic
   ;

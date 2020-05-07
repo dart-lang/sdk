@@ -14,10 +14,12 @@ abstract class _C&Object&A&B = self::_C&Object&A with baz2::B /*isAnonymousMixin
   const synthetic constructor •() → self::_C&Object&A&B*
     : super self::_C&Object&A::•()
     ;
+  abstract forwarding-stub method toString({core::String* s}) → core::String*;
 }
 class C extends self::_C&Object&A&B {
   synthetic constructor •() → self::C*
     ;
+  abstract forwarding-stub method toString({core::String* s}) → core::String*;
 }
 static method main() → void
   ;
@@ -29,8 +31,27 @@ import "dart:core" as core;
 abstract class A extends core::Object /*isMixinDeclaration*/  {
   method toString({core::String* s = "hello"}) → core::String*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends core::Object {
   synthetic constructor •() → baz2::B*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }

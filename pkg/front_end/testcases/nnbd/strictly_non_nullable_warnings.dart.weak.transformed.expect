@@ -175,7 +175,7 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
     final core::Map<core::String, core::int> #t16 = <core::String, core::int>{};
     final core::Map<core::String, core::int>? #t17 = m;
     if(!#t17.{core::Object::==}(null)) {
-      core::Iterator<core::MapEntry<core::String*, core::int*>*> :sync-for-iterator = #t17{core::Map<core::String, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::String, core::int>> :sync-for-iterator = #t17{core::Map<core::String, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String, core::int> #t18 = :sync-for-iterator.{core::Iterator::current};
         #t16.{core::Map::[]=}(#t18.{core::MapEntry::key}, #t18.{core::MapEntry::value});
@@ -186,7 +186,7 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
     final core::Map<core::String, core::int> #t19 = <core::String, core::int>{};
     final core::Map<core::String, core::int>? #t20 = m;
     if(!#t20.{core::Object::==}(null)) {
-      core::Iterator<core::MapEntry<core::String*, core::int*>*> :sync-for-iterator = #t20{core::Map<core::String, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::String, core::int>> :sync-for-iterator = #t20{core::Map<core::String, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String, core::int> #t21 = :sync-for-iterator.{core::Iterator::current};
         #t19.{core::Map::[]=}(#t21.{core::MapEntry::key}, #t21.{core::MapEntry::value});

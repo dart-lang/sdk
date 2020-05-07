@@ -9,7 +9,7 @@ class Class extends core::Object {
   method noSuchMethod(core::Object o, {core::String foo = ""}) → dynamic
     ;
   @core::override
-  method toString({core::String foo = ""}) → core::String*
+  method toString({core::String foo = ""}) → core::String
     ;
 }
 static method main() → dynamic

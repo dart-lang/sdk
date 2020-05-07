@@ -109,6 +109,15 @@ class Class2a extends opt::LegacyClass implements self::Interface {
   abstract member-signature set property3(core::int value) → void;
   abstract member-signature get property4() → core::int?;
   abstract member-signature set property4(core::int? value) → void;
+  abstract member-signature get _identityHashCode() → core::int;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool;
+  abstract member-signature get hashCode() → core::int;
+  abstract member-signature method toString() → core::String;
+  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type;
   abstract member-signature set setter1(core::int value) → void;
   abstract member-signature set setter2(core::int? value) → void;
 }
@@ -171,6 +180,15 @@ class Class2b extends opt::LegacyClass implements self::Interface {
     ;
   set property2(core::int? value) → void
     ;
+  abstract member-signature get _identityHashCode() → core::int;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool;
+  abstract member-signature get hashCode() → core::int;
+  abstract member-signature method toString() → core::String;
+  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type;
 }
 class Class3a extends opt::GenericLegacyClass<core::int> {
   synthetic constructor •() → self::Class3a
@@ -250,10 +268,30 @@ class LegacyClass extends core::Object {
     ;
   set property4(core::int* value) → void
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class GenericLegacyClass<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → opt::GenericLegacyClass<opt::GenericLegacyClass::T*>*
     ;
   method method1() → opt::GenericLegacyClass::T*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }

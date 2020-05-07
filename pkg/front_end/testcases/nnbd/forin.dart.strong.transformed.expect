@@ -182,7 +182,7 @@ static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic
     }
   } =>#t17;
   {
-    core::Iterator<core::int*> :sync-for-iterator = l1.{core::Iterable::iterator};
+    core::Iterator<core::int> :sync-for-iterator = l1.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       core::int x = :sync-for-iterator.{core::Iterator::current};
       x;
@@ -191,7 +191,7 @@ static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic
   block {
     final core::List<core::int> #t18 = <core::int>[];
     {
-      core::Iterator<core::int*> :sync-for-iterator = l1.{core::Iterable::iterator};
+      core::Iterator<core::int> :sync-for-iterator = l1.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int x = :sync-for-iterator.{core::Iterator::current};
         #t18.{core::List::add}(x);

@@ -6,11 +6,31 @@ class Index extends core::Object {
   synthetic constructor •() → self::Index*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends self::A {
   synthetic constructor •() → self::B*
@@ -39,20 +59,30 @@ class Test extends core::Object {
   operator []=(self::Index* i, self::B* v) → void {}
   method test() → void {
     this.{self::Test::[]=}(self::f<self::Index*>(), self::f<self::B*>());
-    let final self::Index* #t1 = self::f<self::Index*>() in this.{self::Test::[]}(#t1).{core::Object::==}(null) ?{self::B*} this.{self::Test::[]=}(#t1, self::f<self::B*>()) : null;
+    let final self::Index* #t1 = self::f<self::Index*>() in this.{self::Test::[]}(#t1).{self::A::==}(null) ?{self::B*} this.{self::Test::[]=}(#t1, self::f<self::B*>()) : null;
     let final self::Index* #t2 = self::f<self::Index*>() in this.{self::Test::[]=}(#t2, this.{self::Test::[]}(#t2).{self::B::+}(self::f<self::C*>()) as{TypeError} self::B*);
     let final self::Index* #t3 = self::f<self::Index*>() in this.{self::Test::[]=}(#t3, this.{self::Test::[]}(#t3).{self::B::*}(self::f<self::B*>()));
     let final self::Index* #t4 = self::f<self::Index*>() in this.{self::Test::[]=}(#t4, this.{self::Test::[]}(#t4).{self::B::&}(self::f<self::A*>()));
     let final self::Index* #t5 = self::f<self::Index*>() in let final self::B* #t6 = this.{self::Test::[]}(#t5).{self::B::-}(1) in let final void #t7 = this.{self::Test::[]=}(#t5, #t6) in #t6;
     let final self::Index* #t8 = self::f<self::Index*>() in this.{self::Test::[]=}(#t8, this.{self::Test::[]}(#t8).{self::B::-}(1));
     self::B* v1 = let final self::Index* #t9 = self::f<self::Index*>() in let final self::B* #t10 = self::f<self::B*>() in let final void #t11 = this.{self::Test::[]=}(#t9, #t10) in #t10;
-    self::B* v2 = let final self::Index* #t12 = self::f<self::Index*>() in let final self::B* #t13 = this.{self::Test::[]}(#t12) in #t13.{core::Object::==}(null) ?{self::B*} let final self::B* #t14 = self::f<self::B*>() in let final void #t15 = this.{self::Test::[]=}(#t12, #t14) in #t14 : #t13;
+    self::B* v2 = let final self::Index* #t12 = self::f<self::Index*>() in let final self::B* #t13 = this.{self::Test::[]}(#t12) in #t13.{self::A::==}(null) ?{self::B*} let final self::B* #t14 = self::f<self::B*>() in let final void #t15 = this.{self::Test::[]=}(#t12, #t14) in #t14 : #t13;
     self::A* v3 = let final self::Index* #t16 = self::f<self::Index*>() in let final self::A* #t17 = this.{self::Test::[]}(#t16).{self::B::+}(self::f<self::C*>()) as{TypeError} self::B* in let final void #t18 = this.{self::Test::[]=}(#t16, #t17) in #t17;
     self::B* v4 = let final self::Index* #t19 = self::f<self::Index*>() in let final self::B* #t20 = this.{self::Test::[]}(#t19).{self::B::*}(self::f<self::B*>()) in let final void #t21 = this.{self::Test::[]=}(#t19, #t20) in #t20;
     self::C* v5 = let final self::Index* #t22 = self::f<self::Index*>() in let final self::C* #t23 = this.{self::Test::[]}(#t22).{self::B::&}(self::f<self::A*>()) in let final void #t24 = this.{self::Test::[]=}(#t22, #t23) in #t23;
     self::B* v6 = let final self::Index* #t25 = self::f<self::Index*>() in let final self::B* #t26 = this.{self::Test::[]}(#t25).{self::B::-}(1) in let final void #t27 = this.{self::Test::[]=}(#t25, #t26) in #t26;
     self::B* v7 = let final self::Index* #t28 = self::f<self::Index*>() in let final self::B* #t29 = this.{self::Test::[]}(#t28) in let final void #t30 = this.{self::Test::[]=}(#t28, #t29.{self::B::-}(1)) in #t29;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method f<T extends core::Object* = dynamic>() → self::f::T*
   return null;

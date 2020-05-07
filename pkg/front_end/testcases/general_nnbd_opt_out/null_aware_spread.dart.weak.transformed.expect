@@ -37,7 +37,7 @@ static method nullAwareMapSpread(core::Map<core::int*, core::String*>* map) → 
     #t7.{core::Map::[]=}(0, "foo");
     final core::Map<core::int*, core::String*>* #t8 = map;
     if(!#t8.{core::Object::==}(null)) {
-      core::Iterator<core::MapEntry<core::int*, core::String*>*>* :sync-for-iterator = #t8.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::int*, core::String*>>* :sync-for-iterator = #t8.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::int*, core::String*>* #t9 = :sync-for-iterator.{core::Iterator::current};
         #t7.{core::Map::[]=}(#t9.{core::MapEntry::key}, #t9.{core::MapEntry::value});
