@@ -4,14 +4,13 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show SuggestionBuilder;
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
-
-import '../../../protocol_server.dart' show CompletionSuggestion;
 
 /// A contributor for calculating suggestions for imported top level members.
 class ImportedReferenceContributor extends DartCompletionContributor {
@@ -27,37 +26,23 @@ class ImportedReferenceContributor extends DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
-    var suggestions = <CompletionSuggestion>[];
-
-    var seenElements = <protocol.Element>{};
-
     // Traverse imports including dart:core
     for (var importElement in imports) {
       var libraryElement = importElement.importedLibrary;
       if (libraryElement != null) {
-        final newSuggestions = _buildSuggestions(
-            request, builder, importElement.namespace,
+        _buildSuggestions(request, builder, importElement.namespace,
             prefix: importElement.prefix?.name);
-        // TODO(brianwilkerson) Remove this filtering after every suggestion is
-        //  being generated via SuggestionBuilder.
-        for (var suggestion in newSuggestions) {
-          // Filter out multiply-exported elements (like Future and Stream).
-          if (seenElements.add(suggestion.element)) {
-            suggestions.add(suggestion);
-          }
-        }
       }
     }
-    return suggestions;
+    return const <CompletionSuggestion>[];
   }
 
-  List<CompletionSuggestion> _buildSuggestions(DartCompletionRequest request,
+  void _buildSuggestions(DartCompletionRequest request,
       SuggestionBuilder builder, Namespace namespace,
       {String prefix}) {
     var visitor = LibraryElementSuggestionBuilder(request, builder, prefix);
     for (var elem in namespace.definedNames.values) {
       elem.accept(visitor);
     }
-    return visitor.suggestions;
   }
 }

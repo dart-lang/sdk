@@ -196,7 +196,7 @@ class CiderCompletionComputer {
     for (var definedElement in exportMap.values) {
       definedElement.accept(visitor);
     }
-    return visitor.suggestions..addAll(suggestionBuilder.suggestions);
+    return suggestionBuilder.suggestions.toList();
   }
 }
 

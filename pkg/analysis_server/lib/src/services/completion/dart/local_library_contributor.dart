@@ -8,7 +8,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
-    show ElementSuggestionBuilder, SuggestionBuilder;
+    show SuggestionBuilder;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -17,9 +17,7 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 /// A visitor for building suggestions based upon the elements defined by
 /// a source file contained in the same library but not the same as
 /// the source in which the completions are being requested.
-class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
-    with ElementSuggestionBuilder {
-  @override
+class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   final DartCompletionRequest request;
 
   final SuggestionBuilder builder;
@@ -28,7 +26,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
 
   DartType contextType;
 
-  @override
   CompletionSuggestionKind kind;
 
   final String prefix;
@@ -44,9 +41,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
         ? CompletionSuggestionKind.IDENTIFIER
         : opType.suggestKind;
   }
-
-  @override
-  LibraryElement get containingLibrary => request.libraryElement;
 
   @override
   void visitClassElement(ClassElement element) {
@@ -176,6 +170,6 @@ class LocalLibraryContributor extends DartCompletionContributor {
         unit.accept(visitor);
       }
     }
-    return visitor.suggestions;
+    return const <CompletionSuggestion>[];
   }
 }
