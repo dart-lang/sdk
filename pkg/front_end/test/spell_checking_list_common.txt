@@ -179,6 +179,7 @@ are
 aren't
 argument
 arguments
+arises
 arithmetic
 arose
 around

@@ -20,6 +20,9 @@ library test.qualified.main;
 // pkg/front_end/testcases/general/qualified.dart:18:7: Error: The type 'lib.VoidFunction' can't be used as supertype.
 // class IllegalSupertype extends lib.VoidFunction {}
 //       ^
+// pkg/front_end/testcases/general/qualified_lib.dart:27:9: Context: The issue arises via this type alias.
+// typedef VoidFunction = void Function();
+//         ^
 //
 import self as self;
 import "dart:core" as core;
