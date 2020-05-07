@@ -177,7 +177,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   /// Runs the [FixAggregator] on a [unit] and returns the resulting edits.
   static Map<int, List<AtomicEdit>> run(
       CompilationUnit unit, String sourceText, Map<AstNode, NodeChange> changes,
-      {bool removeViaComments = true, bool warnOnWeakCode = false}) {
+      {bool removeViaComments = false, bool warnOnWeakCode = false}) {
     var planner = EditPlanner(unit.lineInfo, sourceText,
         removeViaComments: removeViaComments);
     var aggregator =

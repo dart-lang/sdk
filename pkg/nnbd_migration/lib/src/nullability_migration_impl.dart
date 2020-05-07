@@ -72,7 +72,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   NullabilityMigrationImpl(NullabilityMigrationListener listener,
       {bool permissive: false,
       NullabilityMigrationInstrumentation instrumentation,
-      bool removeViaComments = true,
+      bool removeViaComments = false,
       bool warnOnWeakCode = true})
       : this._(listener, NullabilityGraph(instrumentation: instrumentation),
             permissive, instrumentation, removeViaComments, warnOnWeakCode);
