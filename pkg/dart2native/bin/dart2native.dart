@@ -32,7 +32,8 @@ Future<void> generateNative(
     String packages,
     List<String> defines,
     bool enableAsserts,
-    bool verbose) async {
+    bool verbose,
+    List<String> extraGenSnapshotOptions) async {
   final Directory tempDir = Directory.systemTemp.createTempSync();
   try {
     final String kernelFile = path.join(tempDir.path, 'kernel.dill');
@@ -68,8 +69,8 @@ Future<void> generateNative(
     if (verbose) {
       print('Generating AOT snapshot.');
     }
-    final snapshotResult = await generateAotSnapshot(
-        genSnapshot, kernelFile, snapshotFile, debugFile, enableAsserts);
+    final snapshotResult = await generateAotSnapshot(genSnapshot, kernelFile,
+        snapshotFile, debugFile, enableAsserts, extraGenSnapshotOptions);
     if (snapshotResult.exitCode != 0) {
       stderr.writeln(snapshotResult.stdout);
       stderr.writeln(snapshotResult.stderr);
@@ -119,6 +120,12 @@ Set values of environment variables. To specify multiple variables, use multiple
 E.g.: dart2native -Da=1,b=2 main.dart''')
     ..addFlag('enable-asserts',
         negatable: false, help: 'Enable assert statements.')
+    ..addMultiOption(
+      'extra-gen-snapshot-options',
+      help: 'Pass additional options to gen_snapshot.',
+      hide: true,
+      valueHelp: 'opt1,opt2,...',
+    )
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Display this help message.')
     ..addOption(
@@ -200,7 +207,8 @@ Remove debugging information from the output and save it separately to the speci
         parsedArgs['packages'],
         parsedArgs['define'],
         parsedArgs['enable-asserts'],
-        parsedArgs['verbose']);
+        parsedArgs['verbose'],
+        parsedArgs['extra-gen-snapshot-options']);
   } catch (e) {
     stderr.writeln('Failed to generate native files:');
     stderr.writeln(e);

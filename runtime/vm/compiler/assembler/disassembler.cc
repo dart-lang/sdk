@@ -417,7 +417,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
           cls ^= code.owner();
           if (cls.IsNull()) {
             THR_Print("  0x%" Px ": %s, (%s)%s\n", base + offset,
-                      code.QualifiedName(), skind, s_entry_point);
+                      code.QualifiedName(Object::kScrubbedName,
+                                         Object::NameDisambiguation::kYes),
+                      skind, s_entry_point);
           } else {
             THR_Print("  0x%" Px ": allocation stub for %s, (%s)%s\n",
                       base + offset, cls.ToCString(), skind, s_entry_point);

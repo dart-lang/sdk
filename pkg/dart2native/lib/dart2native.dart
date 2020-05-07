@@ -59,8 +59,13 @@ Future generateAotKernel(
   ]);
 }
 
-Future generateAotSnapshot(String genSnapshot, String kernelFile,
-    String snapshotFile, String debugFile, bool enableAsserts) {
+Future generateAotSnapshot(
+    String genSnapshot,
+    String kernelFile,
+    String snapshotFile,
+    String debugFile,
+    bool enableAsserts,
+    List<String> extraGenSnapshotOptions) {
   return Process.run(genSnapshot, [
     '--snapshot-kind=app-aot-elf',
     '--elf=${snapshotFile}',
@@ -68,6 +73,7 @@ Future generateAotSnapshot(String genSnapshot, String kernelFile,
     if (debugFile != null) '--dwarf-stack-traces',
     if (debugFile != null) '--strip',
     if (enableAsserts) '--enable-asserts',
+    ...extraGenSnapshotOptions,
     kernelFile
   ]);
 }

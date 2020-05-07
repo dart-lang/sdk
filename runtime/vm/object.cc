@@ -2754,6 +2754,20 @@ const char* Class::UserVisibleNameCString() const {
   return GenerateUserVisibleName();  // No caching in PRODUCT, regenerate.
 }
 
+const char* Class::NameCString(NameVisibility name_visibility) const {
+  switch (name_visibility) {
+    case Object::kInternalName:
+      return String::Handle(Name()).ToCString();
+    case Object::kScrubbedName:
+      return ScrubbedNameCString();
+    case Object::kUserVisibleName:
+      return UserVisibleNameCString();
+    default:
+      UNREACHABLE();
+      return nullptr;
+  }
+}
+
 ClassPtr Class::Mixin() const {
   if (is_transformed_mixin_application()) {
     const Array& interfaces = Array::Handle(this->interfaces());
@@ -5791,10 +5805,13 @@ StringPtr TypeArguments::UserVisibleName() const {
   return Symbols::New(thread, printer.buffer());
 }
 
-void TypeArguments::PrintSubvectorName(intptr_t from_index,
-                                       intptr_t len,
-                                       NameVisibility name_visibility,
-                                       ZoneTextBuffer* printer) const {
+void TypeArguments::PrintSubvectorName(
+    intptr_t from_index,
+    intptr_t len,
+    NameVisibility name_visibility,
+    ZoneTextBuffer* printer,
+    NameDisambiguation name_disambiguation /* = NameDisambiguation::kNo */)
+    const {
   printer->AddString("<");
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
@@ -5803,7 +5820,7 @@ void TypeArguments::PrintSubvectorName(intptr_t from_index,
       if (type.IsNull()) {
         printer->AddString("null");  // Unfinalized vector.
       } else {
-        type.PrintName(name_visibility, printer);
+        type.PrintName(name_visibility, printer, name_disambiguation);
       }
     } else {
       printer->AddString("dynamic");
@@ -8757,6 +8774,18 @@ bool Function::ShouldCompilerOptimize() const {
          ForceOptimize();
 }
 
+const char* Function::NameCString(NameVisibility name_visibility) const {
+  switch (name_visibility) {
+    case kInternalName:
+      return String::Handle(name()).ToCString();
+    case kScrubbedName:
+    case kUserVisibleName:
+      return UserVisibleNameCString();
+  }
+  UNREACHABLE();
+  return nullptr;
+}
+
 const char* Function::UserVisibleNameCString() const {
   if (FLAG_show_internal_names) {
     return String::Handle(name()).ToCString();
@@ -8787,12 +8816,31 @@ StringPtr Function::QualifiedUserVisibleName() const {
   return Symbols::New(thread, printer.buffer());
 }
 
-void Function::PrintQualifiedName(NameVisibility name_visibility,
-                                  ZoneTextBuffer* printer) const {
-  ASSERT(name_visibility != kInternalName);  // We never request it.
+void Function::PrintQualifiedName(
+    NameVisibility name_visibility,
+    ZoneTextBuffer* printer,
+    NameDisambiguation name_disambiguation /* = NameDisambiguation::kNo */)
+    const {
   // If |this| is the generated asynchronous body closure, use the
   // name of the parent function.
   Function& fun = Function::Handle(raw());
+
+  if (name_disambiguation == NameDisambiguation::kYes) {
+    if (fun.IsInvokeFieldDispatcher()) {
+      printer->AddString("[invoke-field] ");
+    }
+    if (fun.IsImplicitClosureFunction()) {
+      printer->AddString("[tear-off] ");
+    }
+    if (fun.IsMethodExtractor()) {
+      printer->AddString("[tear-off-extractor] ");
+    }
+    if (fun.IsAsyncClosure() || fun.IsAsyncGenClosure() ||
+        fun.IsGeneratorClosure()) {
+      printer->AddString("[body] ");
+    }
+  }
+
   if (fun.IsClosureFunction()) {
     // Sniff the parent function.
     fun = fun.parent_function();
@@ -8813,10 +8861,15 @@ void Function::PrintQualifiedName(NameVisibility name_visibility,
         // the parent.
         parent = parent.parent_function();
       }
-      parent.PrintQualifiedName(name_visibility, printer);
+      parent.PrintQualifiedName(name_visibility, printer, name_disambiguation);
       // A function's scrubbed name and its user visible name are identical.
       printer->AddString(".");
-      printer->AddString(fun.UserVisibleNameCString());
+      if (name_disambiguation == NameDisambiguation::kYes &&
+          fun.name() == Symbols::AnonymousClosure().raw()) {
+        printer->Printf("<anonymous closure @%" Pd ">", fun.token_pos().Pos());
+      } else {
+        printer->AddString(fun.NameCString(name_visibility));
+      }
       return;
     }
   }
@@ -8826,14 +8879,40 @@ void Function::PrintQualifiedName(NameVisibility name_visibility,
       printer->AddString("new ");
     } else {
       const Class& mixin = Class::Handle(cls.Mixin());
-      printer->AddString(name_visibility == kScrubbedName
-                             ? cls.ScrubbedNameCString()
-                             : mixin.UserVisibleNameCString());
+      printer->AddString(name_visibility == kUserVisibleName
+                             ? mixin.UserVisibleNameCString()
+                             : cls.NameCString(name_visibility));
       printer->AddString(".");
     }
   }
-  // A function's scrubbed name and its user visible name are identical.
-  printer->AddString(fun.UserVisibleNameCString());
+
+  printer->AddString(fun.NameCString(name_visibility));
+
+  // Field dispatchers are specialized for an argument descriptor so there
+  // might be multiples of them with the same name but different argument
+  // descriptors. Add a suffix to disambiguate.
+  if (name_disambiguation == NameDisambiguation::kYes &&
+      fun.IsInvokeFieldDispatcher()) {
+    printer->AddString(" ");
+    if (NumTypeParameters() != 0) {
+      printer->Printf("<%" Pd ">", fun.NumTypeParameters());
+    }
+    printer->AddString("(");
+    printer->Printf("%" Pd "", fun.num_fixed_parameters());
+    if (fun.NumOptionalPositionalParameters() != 0) {
+      printer->Printf(" [%" Pd "]", fun.NumOptionalPositionalParameters());
+    }
+    if (fun.NumOptionalNamedParameters() != 0) {
+      printer->AddString(" {");
+      String& name = String::Handle();
+      for (intptr_t i = 0; i < fun.NumOptionalNamedParameters(); i++) {
+        name = fun.ParameterNameAt(fun.num_fixed_parameters() + i);
+        printer->Printf("%s%s", i > 0 ? ", " : "", name.ToCString());
+      }
+      printer->AddString("}");
+    }
+    printer->AddString(")");
+  }
 }
 
 StringPtr Function::GetSource() const {
@@ -16085,7 +16164,8 @@ intptr_t Code::GetDeoptIdForOsr(uword pc) const {
 }
 
 const char* Code::ToCString() const {
-  return Thread::Current()->zone()->PrintToString("Code(%s)", QualifiedName());
+  return OS::SCreate(Thread::Current()->zone(), "Code(%s)",
+                     QualifiedName(kScrubbedName, NameDisambiguation::kYes));
 }
 
 const char* Code::Name() const {
@@ -16096,7 +16176,7 @@ const char* Code::Name() const {
     if (name == NULL) {
       return "[unknown stub]";  // Not yet recorded.
     }
-    return zone->PrintToString("[Stub] %s", name);
+    return OS::SCreate(zone, "[Stub] %s", name);
   }
   const auto& obj =
       Object::Handle(zone, WeakSerializationReference::UnwrapIfTarget(owner()));
@@ -16104,11 +16184,11 @@ const char* Code::Name() const {
     // Allocation stub.
     String& cls_name = String::Handle(zone, Class::Cast(obj).ScrubbedName());
     ASSERT(!cls_name.IsNull());
-    return zone->PrintToString("[Stub] Allocate %s", cls_name.ToCString());
+    return OS::SCreate(zone, "[Stub] Allocate %s", cls_name.ToCString());
   } else if (obj.IsAbstractType()) {
     // Type test stub.
-    return zone->PrintToString("[Stub] Type Test %s",
-                               AbstractType::Cast(obj).ToCString());
+    return OS::SCreate(zone, "[Stub] Type Test %s",
+                       AbstractType::Cast(obj).ToCString());
   } else {
     ASSERT(IsFunctionCode());
     // Dart function.
@@ -16118,17 +16198,20 @@ const char* Code::Name() const {
             ? String::Handle(zone, Function::Cast(obj).UserVisibleName())
                   .ToCString()
             : WeakSerializationReference::Cast(obj).ToCString();
-    return zone->PrintToString("%s %s", opt, function_name);
+    return OS::SCreate(zone, "%s %s", opt, function_name);
   }
 }
 
-const char* Code::QualifiedName() const {
+const char* Code::QualifiedName(NameVisibility name_visibility,
+                                NameDisambiguation name_disambiguation) const {
   Zone* zone = Thread::Current()->zone();
-  const Object& obj = Object::Handle(zone, owner());
+  const Object& obj =
+      Object::Handle(zone, WeakSerializationReference::UnwrapIfTarget(owner()));
   if (obj.IsFunction()) {
     ZoneTextBuffer printer(zone);
     printer.AddString(is_optimized() ? "[Optimized] " : "[Unoptimized] ");
-    Function::Cast(obj).PrintQualifiedName(kUserVisibleName, &printer);
+    Function::Cast(obj).PrintQualifiedName(name_visibility, &printer,
+                                           name_disambiguation);
     return printer.buffer();
   }
   return Name();
@@ -18546,22 +18629,44 @@ StringPtr AbstractType::UserVisibleName() const {
   return Symbols::New(thread, printer.buffer());
 }
 
-void AbstractType::PrintName(NameVisibility name_visibility,
-                             ZoneTextBuffer* printer) const {
+void AbstractType::PrintName(
+    NameVisibility name_visibility,
+    ZoneTextBuffer* printer,
+    NameDisambiguation name_disambiguation /* = NameDisambiguation::kNo */)
+    const {
   ASSERT(name_visibility != kScrubbedName);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  Class& cls = Class::Handle(zone);
+  String& class_name = String::Handle(zone);
   if (IsTypeParameter()) {
-    printer->AddString(String::Handle(zone, TypeParameter::Cast(*this).name()));
+    const TypeParameter& param = TypeParameter::Cast(*this);
+
+    // Type parameters might have the same name but be owned by different
+    // entities. If we want to disambiguate them we need to prefix
+    // type parameter name with the name of its owner.
+    if (name_disambiguation == NameDisambiguation::kYes) {
+      cls = param.parameterized_class();
+      if (cls.raw() != Class::null()) {
+        printer->AddString(cls.NameCString(name_visibility));
+        printer->AddString("::");
+      } else if (param.parameterized_function() != Function::null()) {
+        const Function& func =
+            Function::Handle(zone, param.parameterized_function());
+        func.PrintQualifiedName(name_visibility, printer, name_disambiguation);
+        printer->AddString("::");
+      }
+    }
+
+    printer->AddString(String::Handle(zone, param.name()));
     printer->AddString(NullabilitySuffix(name_visibility));
     return;
   }
   const TypeArguments& args = TypeArguments::Handle(zone, arguments());
   const intptr_t num_args = args.IsNull() ? 0 : args.Length();
-  String& class_name = String::Handle(zone);
   intptr_t first_type_param_index;
   intptr_t num_type_params;  // Number of type parameters to print.
-  Class& cls = Class::Handle(zone, type_class());
+  cls = type_class();
   if (IsFunctionType()) {
     const Function& signature_function =
         Function::Handle(zone, Type::Cast(*this).signature());
@@ -18619,7 +18724,7 @@ void AbstractType::PrintName(NameVisibility name_visibility,
     // Do nothing.
   } else {
     args.PrintSubvectorName(first_type_param_index, num_type_params,
-                            name_visibility, printer);
+                            name_visibility, printer, name_disambiguation);
   }
   printer->AddString(NullabilitySuffix(name_visibility));
   // The name is only used for type checking and debugging purposes.
@@ -19689,7 +19794,8 @@ const char* Type::ToCString() const {
   const TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
   const char* args_cstr = "";
   if (!type_args.IsNull()) {
-    type_args.PrintSubvectorName(0, type_args.Length(), kInternalName, &args);
+    type_args.PrintSubvectorName(0, type_args.Length(), kInternalName, &args,
+                                 NameDisambiguation::kYes);
     args_cstr = args.buffer();
   }
   const Class& cls = Class::Handle(zone, type_class());

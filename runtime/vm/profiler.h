@@ -499,7 +499,8 @@ class AbstractCode {
 
   const char* QualifiedName() const {
     if (code_.IsCode()) {
-      return Code::Cast(code_).QualifiedName();
+      return Code::Cast(code_).QualifiedName(Object::kUserVisibleName,
+                                             Object::NameDisambiguation::kNo);
     } else if (code_.IsBytecode()) {
       return Bytecode::Cast(code_).QualifiedName();
     } else {
