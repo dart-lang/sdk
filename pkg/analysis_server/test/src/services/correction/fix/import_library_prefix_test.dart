@@ -11,7 +11,6 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibraryPrefixTest);
-    defineReflectiveTests(ImportLibraryPrefixWithExtensionMethodsTest);
   });
 }
 
@@ -39,35 +38,6 @@ main() {
 ''');
   }
 
-  Future<void> test_withTopLevelVariable() async {
-    await resolveTestUnit('''
-import 'dart:math' as pref;
-main() {
-  print(pref.E);
-  print(PI);
-}
-''');
-    await assertHasFix('''
-import 'dart:math' as pref;
-main() {
-  print(pref.E);
-  print(pref.PI);
-}
-''');
-  }
-}
-
-@reflectiveTest
-class ImportLibraryPrefixWithExtensionMethodsTest extends FixProcessorTest {
-  @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PREFIX;
-
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
-    super.setUp();
-  }
-
   Future<void> test_withExtension() async {
     addSource('/home/test/lib/lib.dart', '''
 class C {}
@@ -85,6 +55,23 @@ void f(p.C c) {
 import 'lib.dart' as p;
 void f(p.C c) {
   print(p.E.m());
+}
+''');
+  }
+
+  Future<void> test_withTopLevelVariable() async {
+    await resolveTestUnit('''
+import 'dart:math' as pref;
+main() {
+  print(pref.E);
+  print(PI);
+}
+''');
+    await assertHasFix('''
+import 'dart:math' as pref;
+main() {
+  print(pref.E);
+  print(pref.PI);
 }
 ''');
   }

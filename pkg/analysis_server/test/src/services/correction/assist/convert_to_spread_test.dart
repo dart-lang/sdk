@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,7 +12,6 @@ import 'assist_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToSpreadTest);
-    defineReflectiveTests(ConvertToSpreadWithControlFlowTest);
   });
 }
 
@@ -22,10 +20,30 @@ class ConvertToSpreadTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_SPREAD;
 
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: [EnableString.spread_collections]);
-    super.setUp();
+  Future<void> test_addAll_condition_const() async {
+    await resolveTestUnit('''
+bool condition;
+var things;
+var l = ['a']..add/*caret*/All(condition ? things : const []);
+''');
+    await assertHasAssist('''
+bool condition;
+var things;
+var l = ['a', if (condition) ...things];
+''');
+  }
+
+  Future<void> test_addAll_condition_nonConst() async {
+    await resolveTestUnit('''
+bool condition;
+var things;
+var l = ['a']..add/*caret*/All(condition ? things : []);
+''');
+    await assertHasAssist('''
+bool condition;
+var things;
+var l = ['a', if (condition) ...things];
+''');
   }
 
   Future<void> test_addAll_expression() async {
@@ -112,47 +130,6 @@ var l = ['a']..add/*caret*/All(things ?? []);
     await assertHasAssist('''
 var things;
 var l = ['a', ...?things];
-''');
-  }
-}
-
-@reflectiveTest
-class ConvertToSpreadWithControlFlowTest extends AssistProcessorTest {
-  @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_SPREAD;
-
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ]);
-    super.setUp();
-  }
-
-  Future<void> test_addAll_condition_const() async {
-    await resolveTestUnit('''
-bool condition;
-var things;
-var l = ['a']..add/*caret*/All(condition ? things : const []);
-''');
-    await assertHasAssist('''
-bool condition;
-var things;
-var l = ['a', if (condition) ...things];
-''');
-  }
-
-  Future<void> test_addAll_condition_nonConst() async {
-    await resolveTestUnit('''
-bool condition;
-var things;
-var l = ['a']..add/*caret*/All(condition ? things : []);
-''');
-    await assertHasAssist('''
-bool condition;
-var things;
-var l = ['a', if (condition) ...things];
 ''');
   }
 }

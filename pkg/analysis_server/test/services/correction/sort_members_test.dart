@@ -654,7 +654,6 @@ class D {}
   }
 
   Future<void> test_unitMembers_extensionClass() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     await _parseTestUnit(r'''
 extension E on C {}
 class C {}
@@ -667,7 +666,6 @@ extension E on C {}
   }
 
   Future<void> test_unitMembers_extensions() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     await _parseTestUnit(r'''
 extension E2 on String {}
 extension on List {}

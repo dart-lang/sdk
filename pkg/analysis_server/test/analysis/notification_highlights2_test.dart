@@ -1156,16 +1156,6 @@ part 'test.dart';
 
 @reflectiveTest
 class HighlightsWithControlFlowCollectionsTest extends HighlightsTestSupport {
-  @override
-  void createProject({Map<String, String> packageRoots}) {
-    addAnalysisOptionsFile('''
-analyzer:
-  enable-experiment:
-    - control-flow-collections
-''');
-    super.createProject(packageRoots: packageRoots);
-  }
-
   @failingTest
   Future<void> test_KEYWORD_awaitForIn_list() async {
     addTestFile('''

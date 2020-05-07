@@ -319,7 +319,6 @@ enum MyEnum {AAA, BBB, CCC}
   }
 
   Future<void> test_extensionDeclaration() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 class A {}
 /// Comment

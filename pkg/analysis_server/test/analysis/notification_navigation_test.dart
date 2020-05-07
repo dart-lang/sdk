@@ -345,7 +345,6 @@ class BBB {}
   }
 
   Future<void> test_extension_on() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 class C //1
 {}
