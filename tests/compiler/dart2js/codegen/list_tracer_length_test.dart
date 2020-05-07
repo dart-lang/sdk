@@ -76,7 +76,7 @@ main() {
 """;
 
 const String TEST8 = r"""
-var b = 42;
+var b = int.parse('42');
 var a = new List(b);
 main() {
   return a[1];
@@ -91,8 +91,9 @@ main() {
 }
 """;
 
-checkRangeError(String test, {bool hasRangeError}) async {
-  String generated = await compileAll(test);
+checkRangeError(String test, {bool hasRangeError, String methodName}) async {
+  String generated =
+      await compile(test, methodName: methodName, disableTypeInference: false);
   Expect.equals(
       hasRangeError,
       generated.contains('ioore'),
@@ -110,7 +111,7 @@ main() {
     await checkRangeError(TEST3, hasRangeError: false);
     await checkRangeError(TEST4, hasRangeError: true);
     await checkRangeError(TEST5, hasRangeError: true);
-    await checkRangeError(TEST6, hasRangeError: true);
+    await checkRangeError(TEST6, hasRangeError: true, methodName: 'foo');
     await checkRangeError(TEST7, hasRangeError: false);
     await checkRangeError(TEST8, hasRangeError: true);
     await checkRangeError(TEST9, hasRangeError: false);
