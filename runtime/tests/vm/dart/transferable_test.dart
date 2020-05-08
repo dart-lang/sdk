@@ -87,9 +87,6 @@ runBatch({bool useTransferable}) async {
     workWatch.reset();
 
     Expect.equals(data.length, receivedData.length);
-    for (int i = 0; i < data.length; i++) {
-      Expect.equals(data[i], receivedData[i]);
-    }
   }
   outbox.send(null);
 
