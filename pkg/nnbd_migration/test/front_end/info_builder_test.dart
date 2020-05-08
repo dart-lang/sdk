@@ -1019,7 +1019,7 @@ void f(A  a) => a.m = null;
     // Entry 0 is the nullability of the type of A.m.
     // TODO(srawlins): "A" is probably incorrect here. Should be "A.m".
     assertTraceEntry(unit, entries[0], 'A', unit.content.indexOf('int?'),
-        contains('explicit type'));
+        contains('A.m (test.dart:2:3)'));
   }
 
   Future<void> test_removal_handles_offsets_correctly() async {
