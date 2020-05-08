@@ -107,6 +107,7 @@ const Type& IntType();
 const Class& GrowableObjectArrayClass();
 const Class& MintClass();
 const Class& DoubleClass();
+const Array& OneArgArgumentsDescriptor();
 
 template <typename To, typename From>
 const To& CastHandle(const From& from) {

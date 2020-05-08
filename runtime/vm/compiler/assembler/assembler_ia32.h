@@ -600,6 +600,14 @@ class Assembler : public AssemblerBase {
     cmpl(reg, Immediate(immediate));
   }
 
+  void LoadImmediate(Register reg, int32_t immediate) {
+    if (immediate == 0) {
+      xorl(reg, reg);
+    } else {
+      movl(reg, Immediate(immediate));
+    }
+  }
+
   void Drop(intptr_t stack_elements);
 
   void LoadIsolate(Register dst);

@@ -174,6 +174,11 @@ const Class& DoubleClass() {
   return Class::Handle(object_store->double_class());
 }
 
+const Array& OneArgArgumentsDescriptor() {
+  return Array::ZoneHandle(
+      ArgumentsDescriptor::NewBoxed(/*type_args_len=*/0, /*num_arguments=*/1));
+}
+
 bool IsOriginalObject(const Object& object) {
   if (object.IsICData()) {
     return ICData::Cast(object).IsOriginal();

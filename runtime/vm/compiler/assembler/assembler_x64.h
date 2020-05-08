@@ -711,6 +711,9 @@ class Assembler : public AssemblerBase {
 
   // Unlike movq this can affect the flags or use the constant pool.
   void LoadImmediate(Register reg, const Immediate& imm);
+  void LoadImmediate(Register reg, int32_t immediate) {
+    LoadImmediate(reg, Immediate(immediate));
+  }
 
   void LoadIsolate(Register dst);
   void LoadDispatchTable(Register dst);
