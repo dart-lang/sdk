@@ -193,6 +193,9 @@ eval_regression_flutter20255_test: SkipSlow # Timeout
 get_vm_timeline_rpc_test: Pass, Slow
 rewind_optimized_out_test: SkipSlow # Timeout
 
+[ $arch == ia32 && $compiler == dartk ]
+valid_source_locations_test: Skip # Issue 34736, too slow.
+
 [ $arch != simarm && $arch != simarm64 && $compiler == dartk ]
 complex_reload_test: RuntimeError
 
@@ -286,7 +289,7 @@ rewind_optimized_out_test: RuntimeError # Issue #34736
 rewind_test: Pass, RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
 simple_reload_test: RuntimeError, Timeout
-valid_source_locations_test: Pass, Slow, Timeout # Issue 34736
+valid_source_locations_test: Skip # Issue 34736, too slow.
 
 [ $compiler == dartk || $compiler == dartkb ]
 bad_reload_test: RuntimeError # Issue 34025
