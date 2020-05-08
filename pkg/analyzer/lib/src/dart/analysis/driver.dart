@@ -1516,7 +1516,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _libraryContext = LibraryContext(
           session: currentSession,
           logger: _logger,
-          fsState: fsState,
           byteStore: _byteStore,
           analysisOptions: _analysisOptions,
           declaredVariables: declaredVariables,

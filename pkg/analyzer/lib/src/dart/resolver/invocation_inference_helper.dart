@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -30,7 +29,6 @@ class InvocationInferenceHelper {
 
   InvocationInferenceHelper(
       {@required ResolverVisitor resolver,
-      @required LibraryElementImpl definingLibrary,
       @required ErrorReporter errorReporter,
       @required FlowAnalysisHelper flowAnalysis,
       @required TypeSystemImpl typeSystem,

@@ -211,7 +211,7 @@ class LibraryAnalyzer {
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = ConstantVerifier(
         errorReporter, _libraryElement, _declaredVariables,
-        featureSet: unit.featureSet, forAnalysisDriver: true);
+        featureSet: unit.featureSet);
     unit.accept(constantVerifier);
   }
 
@@ -232,8 +232,7 @@ class LibraryAnalyzer {
     ErrorReporter errorReporter = _getErrorReporter(file);
 
     if (!_libraryElement.isNonNullableByDefault) {
-      unit.accept(DeadCodeVerifier(errorReporter, unit.featureSet,
-          typeSystem: _typeSystem));
+      unit.accept(DeadCodeVerifier(errorReporter, typeSystem: _typeSystem));
     }
 
     // Dart2js analysis.
@@ -387,7 +386,7 @@ class LibraryAnalyzer {
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = ErrorVerifier(
-        errorReporter, _libraryElement, _typeProvider, _inheritance, false);
+        errorReporter, _libraryElement, _typeProvider, _inheritance);
     unit.accept(errorVerifier);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as

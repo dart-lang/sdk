@@ -60,7 +60,6 @@ class LibraryContext {
     @required AnalysisSessionImpl session,
     @required PerformanceLog logger,
     @required ByteStore byteStore,
-    @required FileSystemState fsState,
     @required AnalysisOptions analysisOptions,
     @required DeclaredVariables declaredVariables,
     @required SourceFactory sourceFactory,

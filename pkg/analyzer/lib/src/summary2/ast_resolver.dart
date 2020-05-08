@@ -70,7 +70,6 @@ class AstResolver {
       errorListener,
       featureSet: featureSet,
       nameScope: _nameScope,
-      propagateTypes: false,
       reportConstEvaluationErrors: false,
       flowAnalysisHelper: flowAnalysis,
     );

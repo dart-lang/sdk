@@ -305,7 +305,6 @@ class ResolverVisitor extends ScopedVisitor {
       AnalysisErrorListener errorListener,
       {FeatureSet featureSet,
       Scope nameScope,
-      bool propagateTypes = true,
       reportConstEvaluationErrors = true,
       FlowAnalysisHelper flowAnalysisHelper})
       : this._(
@@ -318,7 +317,6 @@ class ResolverVisitor extends ScopedVisitor {
             featureSet ??
                 definingLibrary.context.analysisOptions.contextFeatures,
             nameScope,
-            propagateTypes,
             reportConstEvaluationErrors,
             flowAnalysisHelper,
             const MigratableAstInfoProvider(),
@@ -333,7 +331,6 @@ class ResolverVisitor extends ScopedVisitor {
       AnalysisErrorListener errorListener,
       FeatureSet featureSet,
       Scope nameScope,
-      bool propagateTypes,
       reportConstEvaluationErrors,
       this._flowAnalysis,
       this._migratableAstInfoProvider,
@@ -358,7 +355,6 @@ class ResolverVisitor extends ScopedVisitor {
     this.typePropertyResolver = TypePropertyResolver(this);
     this.inferenceHelper = InvocationInferenceHelper(
         resolver: this,
-        definingLibrary: definingLibrary,
         flowAnalysis: _flowAnalysis,
         errorReporter: errorReporter,
         typeSystem: typeSystem,
@@ -2085,7 +2081,6 @@ class ResolverVisitorForMigration extends ResolverVisitor {
             errorListener,
             featureSet,
             null,
-            true,
             true,
             FlowAnalysisHelperForMigration(
                 typeSystem, migrationResolutionHooks),

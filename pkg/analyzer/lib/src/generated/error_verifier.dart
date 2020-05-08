@@ -233,7 +233,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Initialize a newly created error verifier.
    */
   ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
-      this._typeProvider, this._inheritanceManager, bool enableSuperMixins)
+      this._typeProvider, this._inheritanceManager,
+      [@deprecated bool enableSuperMixins])
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
