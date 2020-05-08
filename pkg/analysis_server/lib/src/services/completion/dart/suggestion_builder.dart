@@ -25,77 +25,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 
-/// Return a suggestion based on the given [element], or `null` if a suggestion
-/// is not appropriate for the given element.
-CompletionSuggestion createSuggestion(
-    DartCompletionRequest request, Element element,
-    {String completion,
-    protocol.ElementKind elementKind,
-    CompletionSuggestionKind kind,
-    String prefix,
-    int relevance = DART_RELEVANCE_DEFAULT}) {
-  if (element == null) {
-    return null;
-  }
-  if (element is ExecutableElement && element.isOperator) {
-    // Do not include operators in suggestions
-    return null;
-  }
-  completion ??= element.displayName;
-  if (completion == null || completion.isEmpty) {
-    return null;
-  }
-  if (prefix != null && prefix.isNotEmpty) {
-    completion = '$prefix.$completion';
-  }
-  kind ??= CompletionSuggestionKind.INVOCATION;
-  var suggestion = CompletionSuggestion(kind, relevance, completion,
-      completion.length, 0, element.hasOrInheritsDeprecated, false);
-
-  // Attach docs.
-  var doc = DartUnitHoverComputer.computeDocumentation(
-      request.dartdocDirectiveInfo, element);
-  if (doc != null) {
-    suggestion.docComplete = doc;
-    suggestion.docSummary = getDartDocSummary(doc);
-  }
-
-  suggestion.element = protocol.convertElement(element);
-  if (elementKind != null) {
-    suggestion.element.kind = elementKind;
-  }
-  var enclosingElement = element.enclosingElement;
-  if (enclosingElement is ClassElement) {
-    suggestion.declaringType = enclosingElement.displayName;
-  }
-  suggestion.returnType = getReturnTypeString(element);
-  if (element is ExecutableElement && element is! PropertyAccessorElement) {
-    suggestion.parameterNames = element.parameters
-        .map((ParameterElement parameter) => parameter.name)
-        .toList();
-    suggestion.parameterTypes =
-        element.parameters.map((ParameterElement parameter) {
-      var paramType = parameter.type;
-      // Gracefully degrade if type not resolved yet
-      return paramType != null
-          ? paramType.getDisplayString(withNullability: false)
-          : 'var';
-    }).toList();
-
-    var requiredParameters = element.parameters
-        .where((ParameterElement param) => param.isRequiredPositional);
-    suggestion.requiredParameterCount = requiredParameters.length;
-
-    var namedParameters =
-        element.parameters.where((ParameterElement param) => param.isNamed);
-    suggestion.hasNamedParameters = namedParameters.isNotEmpty;
-
-    addDefaultArgDetails(
-        suggestion, element, requiredParameters, namedParameters);
-  }
-  return suggestion;
-}
-
 /// This class provides suggestions based upon the visible instance members in
 /// an interface type.
 class MemberSuggestionBuilder {
@@ -338,7 +267,7 @@ class SuggestionBuilder {
           return;
         }
       }
-      _add(createSuggestion(request, accessor, relevance: relevance));
+      _add(_createSuggestion(accessor, relevance: relevance));
     }
   }
 
@@ -359,7 +288,7 @@ class SuggestionBuilder {
       }
     }
 
-    _add(createSuggestion(request, parameter,
+    _add(_createSuggestion(parameter,
         elementKind: protocol.ElementKind.PARAMETER, relevance: relevance));
   }
 
@@ -383,7 +312,7 @@ class SuggestionBuilder {
       }
     }
 
-    _add(createSuggestion(request, classElement,
+    _add(_createSuggestion(classElement,
         kind: kind, prefix: prefix, relevance: relevance));
   }
 
@@ -431,7 +360,7 @@ class SuggestionBuilder {
       }
     }
 
-    _add(createSuggestion(request, constructor,
+    _add(_createSuggestion(constructor,
         completion: completion,
         kind: kind,
         prefix: prefix,
@@ -483,7 +412,7 @@ class SuggestionBuilder {
       }
     }
 
-    _add(createSuggestion(request, constant,
+    _add(_createSuggestion(constant,
         completion: completion, prefix: prefix, relevance: relevance));
   }
 
@@ -503,7 +432,7 @@ class SuggestionBuilder {
           : DART_RELEVANCE_DEFAULT;
     }
 
-    _add(createSuggestion(request, extension,
+    _add(_createSuggestion(extension,
         kind: kind, prefix: prefix, relevance: relevance));
   }
 
@@ -543,7 +472,7 @@ class SuggestionBuilder {
         return;
       }
     }
-    _add(createSuggestion(request, field, relevance: relevance));
+    _add(_createSuggestion(field, relevance: relevance));
   }
 
   /// Add a suggestion to reference a [field] in a field formal parameter.
@@ -554,7 +483,7 @@ class SuggestionBuilder {
         ? Relevance.fieldFormalParameter
         : DART_RELEVANCE_LOCAL_FIELD;
 
-    _add(createSuggestion(request, field, relevance: relevance));
+    _add(_createSuggestion(field, relevance: relevance));
   }
 
   /// Add a suggestion for the `call` method defined on functions.
@@ -598,7 +527,7 @@ class SuggestionBuilder {
           ? DART_RELEVANCE_LOCAL_FUNCTION
           : DART_RELEVANCE_DEFAULT;
     }
-    _add(createSuggestion(request, functionTypeAlias,
+    _add(_createSuggestion(functionTypeAlias,
         kind: kind, prefix: prefix, relevance: relevance));
   }
 
@@ -646,7 +575,7 @@ class SuggestionBuilder {
           : DART_RELEVANCE_DEFAULT;
     }
 
-    _add(createSuggestion(request, function, relevance: relevance));
+    _add(_createSuggestion(function, relevance: relevance));
   }
 
   /// Add a suggestion for a local [variable].
@@ -668,7 +597,7 @@ class SuggestionBuilder {
       }
     }
 
-    _add(createSuggestion(request, variable, relevance: relevance));
+    _add(_createSuggestion(variable, relevance: relevance));
   }
 
   /// Add a suggestion for a [method]. If the method is being invoked with a
@@ -712,7 +641,7 @@ class SuggestionBuilder {
     }
 
     var suggestion =
-        createSuggestion(request, method, kind: kind, relevance: relevance);
+        _createSuggestion(method, kind: kind, relevance: relevance);
     if (suggestion != null) {
       if (method.name == 'setState' &&
           flutter.isExactState(method.enclosingElement)) {
@@ -834,7 +763,7 @@ class SuggestionBuilder {
       }
     }
 
-    _add(createSuggestion(request, parameter, relevance: relevance));
+    _add(_createSuggestion(parameter, relevance: relevance));
   }
 
   /// Add a suggestion for a [prefix] associated with a [library].
@@ -846,7 +775,7 @@ class SuggestionBuilder {
       relevance =
           library.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
     }
-    _add(createSuggestion(request, library,
+    _add(_createSuggestion(library,
         completion: prefix,
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance: relevance));
@@ -875,7 +804,7 @@ class SuggestionBuilder {
       }
     }
 
-    _add(createSuggestion(request, function,
+    _add(_createSuggestion(function,
         kind: kind, prefix: prefix, relevance: relevance));
   }
 
@@ -928,8 +857,7 @@ class SuggestionBuilder {
           return;
         }
       }
-      _add(createSuggestion(request, accessor,
-          prefix: prefix, relevance: relevance));
+      _add(_createSuggestion(accessor, prefix: prefix, relevance: relevance));
     }
   }
 
@@ -955,7 +883,7 @@ class SuggestionBuilder {
       }
     }
 
-    _add(createSuggestion(request, variable,
+    _add(_createSuggestion(variable,
         kind: kind, prefix: prefix, relevance: relevance));
   }
 
@@ -968,7 +896,7 @@ class SuggestionBuilder {
       relevance = _computeOldMemberRelevance(parameter);
     }
 
-    _add(createSuggestion(request, parameter,
+    _add(_createSuggestion(parameter,
         kind: CompletionSuggestionKind.IDENTIFIER, relevance: relevance));
   }
 
@@ -1094,6 +1022,78 @@ class SuggestionBuilder {
         weightedAverage(
             [contextTypeFeature, elementKind, hasDeprecated], [1.0, 0.75, 0.2]),
         defaultRelevance);
+  }
+
+  /// Return a suggestion based on the [element], or `null` if a suggestion is
+  /// not appropriate for the element. If the completion should be something
+  /// different than the name of the element, then the [completion] should be
+  /// supplied. If an [elementKind] is provided, then it will be used rather
+  /// than the kind normally used for the element. If a [prefix] is provided,
+  /// then the element name (or completion) will be prefixed. The [relevance] is
+  /// the relevance of the suggestion.
+  CompletionSuggestion _createSuggestion(Element element,
+      {String completion,
+      protocol.ElementKind elementKind,
+      CompletionSuggestionKind kind,
+      String prefix,
+      @required int relevance}) {
+    if (element is ExecutableElement && element.isOperator) {
+      // Do not include operators in suggestions
+      return null;
+    }
+    completion ??= element.displayName;
+    if (completion == null || completion.isEmpty) {
+      return null;
+    }
+    if (prefix != null && prefix.isNotEmpty) {
+      completion = '$prefix.$completion';
+    }
+    kind ??= CompletionSuggestionKind.INVOCATION;
+    var suggestion = CompletionSuggestion(kind, relevance, completion,
+        completion.length, 0, element.hasOrInheritsDeprecated, false);
+
+    // Attach docs.
+    var doc = DartUnitHoverComputer.computeDocumentation(
+        request.dartdocDirectiveInfo, element);
+    if (doc != null) {
+      suggestion.docComplete = doc;
+      suggestion.docSummary = getDartDocSummary(doc);
+    }
+
+    suggestion.element = protocol.convertElement(element);
+    if (elementKind != null) {
+      suggestion.element.kind = elementKind;
+    }
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement is ClassElement) {
+      suggestion.declaringType = enclosingElement.displayName;
+    }
+    suggestion.returnType = getReturnTypeString(element);
+    if (element is ExecutableElement && element is! PropertyAccessorElement) {
+      suggestion.parameterNames = element.parameters
+          .map((ParameterElement parameter) => parameter.name)
+          .toList();
+      suggestion.parameterTypes =
+          element.parameters.map((ParameterElement parameter) {
+        var paramType = parameter.type;
+        // Gracefully degrade if type not resolved yet
+        return paramType != null
+            ? paramType.getDisplayString(withNullability: false)
+            : 'var';
+      }).toList();
+
+      var requiredParameters = element.parameters
+          .where((ParameterElement param) => param.isRequiredPositional);
+      suggestion.requiredParameterCount = requiredParameters.length;
+
+      var namedParameters =
+          element.parameters.where((ParameterElement param) => param.isNamed);
+      suggestion.hasNamedParameters = namedParameters.isNotEmpty;
+
+      addDefaultArgDetails(
+          suggestion, element, requiredParameters, namedParameters);
+    }
+    return suggestion;
   }
 
   /// Return the type associated with the [accessor], maybe `null` if an
