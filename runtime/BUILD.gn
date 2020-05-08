@@ -149,7 +149,6 @@ config("dart_config") {
       "-Wno-unused-private-field",
       "-Wnon-virtual-dtor",
       "-Wvla",
-      "-Wno-conversion-null",
       "-Woverloaded-virtual",
       "-Wno-comments",  # Conflicts with clang-format.
       "-g3",
