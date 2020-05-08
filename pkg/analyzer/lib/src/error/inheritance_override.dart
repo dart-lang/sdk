@@ -144,6 +144,7 @@ class _ClassVerifier {
     if (classElement.supertype != null) {
       directSuperInterfaces.add(classElement.supertype);
     }
+    directSuperInterfaces.addAll(classElement.superclassConstraints);
 
     // Each mixin in `class C extends S with M0, M1, M2 {}` is equivalent to:
     //   class S&M0 extends S { ...members of M0... }
@@ -299,7 +300,7 @@ class _ClassVerifier {
   }
 
   /// Check that instance members of [type] are valid overrides of the
-  /// corresponding instance members in each of [allSuperinterfaces].
+  /// corresponding instance members in each of [directSuperInterfaces].
   void _checkDeclaredMembers(AstNode node, InterfaceTypeImpl type,
       {@required int mixinIndex}) {
     var libraryUri = type.element.library.source.uri;

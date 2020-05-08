@@ -160,234 +160,18 @@ class InheritanceManager3 {
       return Interface._empty;
     }
 
-    var classLibrary = element.library;
-    var isNonNullableByDefault = classLibrary.isNonNullableByDefault;
-
-    Map<Name, List<ExecutableElement>> namedCandidates = {};
-    List<Map<Name, ExecutableElement>> superImplemented = [];
-    Map<Name, ExecutableElement> declared;
-    Interface superInterface;
-    Map<Name, ExecutableElement> implemented;
-    List<List<Conflict>> mixinsConflicts = [];
     try {
-      // If a class declaration has a member declaration, the signature of that
-      // member declaration becomes the signature in the interface.
-      declared = _getTypeMembers(element);
-
       if (element.isMixin) {
-        var superClassCandidates = <Name, List<ExecutableElement>>{};
-        for (var constraint in element.superclassConstraints) {
-          var substitution = Substitution.fromInterfaceType(constraint);
-          var interfaceObj = getInterface(constraint.element);
-          _addCandidates(
-            namedCandidates: superClassCandidates,
-            substitution: substitution,
-            interface: interfaceObj,
-            isNonNullableByDefault: isNonNullableByDefault,
-          );
-          _addCandidates(
-            namedCandidates: namedCandidates,
-            substitution: substitution,
-            interface: interfaceObj,
-            isNonNullableByDefault: isNonNullableByDefault,
-          );
-        }
-
-        implemented = {};
-
-        // `mixin M on S1, S2 {}` can call using `super` any instance member
-        // from its superclass constraints, whether it is abstract or concrete.
-        var superClass = <Name, ExecutableElement>{};
-        _findMostSpecificFromNamedCandidates(
-          element,
-          superClass,
-          superClassCandidates,
-          doTopMerge: true,
-        );
-        superImplemented.add(superClass);
+        result = _getInterfaceMixin(element);
       } else {
-        var superType = element.supertype;
-        if (superType != null) {
-          var substitution = Substitution.fromInterfaceType(superType);
-          superInterface = getInterface(superType.element);
-          _addCandidates(
-            namedCandidates: namedCandidates,
-            substitution: substitution,
-            interface: superInterface,
-            isNonNullableByDefault: isNonNullableByDefault,
-          );
-
-          implemented = {};
-          for (var entry in superInterface.implemented.entries) {
-            var executable = entry.value;
-            executable = ExecutableMember.from2(executable, substitution);
-            if (!isNonNullableByDefault) {
-              executable = Member.legacy(executable);
-            }
-            implemented[entry.key] = executable;
-          }
-
-          superImplemented.add(implemented);
-        } else {
-          implemented = {};
-        }
-
-        // TODO(scheglov) Handling of members for super and mixins is not
-        // optimal. We always have just one member for each name in super,
-        // multiple candidates happen only when we merge super and multiple
-        // interfaces. Consider using `Map<Name, ExecutableElement>` here.
-        for (var mixin in element.mixins) {
-          var mixinElement = mixin.element;
-          var substitution = Substitution.fromInterfaceType(mixin);
-          var mixinInterface = getInterface(mixinElement);
-          // `class X extends S with M1, M2 {}` is semantically a sequence of:
-          //     class S&M1 extends S implements M1 {
-          //       // declared M1 members
-          //     }
-          //     class S&M2 extends S&M1 implements M2 {
-          //       // declared M2 members
-          //     }
-          //     class X extends S&M2 {
-          //       // declared X members
-          //     }
-          // So, each mixin always replaces members in the interface.
-          // And there are individual override conflicts for each mixin.
-          var candidatesFromSuperAndMixin = <Name, List<ExecutableElement>>{};
-          var mixinConflicts = <Conflict>[];
-          for (var name in mixinInterface.map.keys) {
-            var candidate = ExecutableMember.from2(
-              mixinInterface.map[name],
-              substitution,
-            );
-
-            var currentList = namedCandidates[name];
-            if (currentList == null) {
-              namedCandidates[name] = [
-                isNonNullableByDefault ? candidate : Member.legacy(candidate),
-              ];
-              continue;
-            }
-
-            var current = currentList.single;
-            if (candidate.enclosingElement == mixinElement) {
-              namedCandidates[name] = [
-                isNonNullableByDefault ? candidate : Member.legacy(candidate),
-              ];
-              if (current.kind != candidate.kind) {
-                var currentIsGetter = current.kind == ElementKind.GETTER;
-                mixinConflicts.add(
-                  GetterMethodConflict(
-                    name: name,
-                    getter: currentIsGetter ? current : candidate,
-                    method: currentIsGetter ? candidate : current,
-                  ),
-                );
-              }
-            } else {
-              candidatesFromSuperAndMixin[name] = [current, candidate];
-            }
-          }
-
-          // Merge members from the superclass and the mixin interface.
-          {
-            var map = <Name, ExecutableElement>{};
-            _findMostSpecificFromNamedCandidates(
-              element,
-              map,
-              candidatesFromSuperAndMixin,
-              doTopMerge: true,
-            );
-            for (var entry in map.entries) {
-              namedCandidates[entry.key] = [
-                isNonNullableByDefault
-                    ? entry.value
-                    : Member.legacy(entry.value),
-              ];
-            }
-          }
-
-          mixinsConflicts.add(mixinConflicts);
-
-          implemented = <Name, ExecutableElement>{}..addAll(implemented);
-          _addMixinMembers(
-            implemented: implemented,
-            substitution: substitution,
-            mixin: mixinInterface,
-            isNonNullableByDefault: isNonNullableByDefault,
-          );
-
-          superImplemented.add(implemented);
-        }
-      }
-
-      for (var interface in element.interfaces) {
-        _addCandidates(
-          namedCandidates: namedCandidates,
-          substitution: Substitution.fromInterfaceType(interface),
-          interface: getInterface(interface.element),
-          isNonNullableByDefault: isNonNullableByDefault,
-        );
+        result = _getInterfaceClass(element);
       }
     } finally {
       _processingClasses.remove(element);
     }
 
-    implemented = <Name, ExecutableElement>{}..addAll(implemented);
-    _addImplemented(implemented, element);
-
-    // If a class declaration does not have a member declaration with a
-    // particular name, but some super-interfaces do have a member with that
-    // name, it's a compile-time error if there is no signature among the
-    // super-interfaces that is a valid override of all the other
-    // super-interface signatures with the same name. That "most specific"
-    // signature becomes the signature of the class's interface.
-    Map<Name, ExecutableElement> map = Map.of(declared);
-    List<Conflict> conflicts = _findMostSpecificFromNamedCandidates(
-      element,
-      map,
-      namedCandidates,
-      doTopMerge: true,
-    );
-
-    var noSuchMethodForwarders = <Name>{};
-    if (element.isAbstract) {
-      if (superInterface != null) {
-        noSuchMethodForwarders = superInterface._noSuchMethodForwarders;
-      }
-    } else {
-      var noSuchMethod = implemented[_noSuchMethodName];
-      if (noSuchMethod != null && !_isDeclaredInObject(noSuchMethod)) {
-        var superForwarders = superInterface?._noSuchMethodForwarders;
-        for (var name in map.keys) {
-          if (!implemented.containsKey(name) ||
-              superForwarders != null && superForwarders.contains(name)) {
-            implemented[name] = map[name];
-            noSuchMethodForwarders.add(name);
-          }
-        }
-      }
-    }
-
-    /// TODO(scheglov) Instead of merging conflicts we could report them on
-    /// the corresponding mixins applied in the class.
-    for (var mixinConflicts in mixinsConflicts) {
-      if (mixinConflicts.isNotEmpty) {
-        conflicts ??= [];
-        conflicts.addAll(mixinConflicts);
-      }
-    }
-
-    var interface = Interface._(
-      map,
-      declared,
-      implemented,
-      noSuchMethodForwarders,
-      namedCandidates,
-      superImplemented,
-      conflicts ?? const [],
-    );
-    _interfaces[element] = interface;
-    return interface;
+    _interfaces[element] = result;
+    return result;
   }
 
   /// Return the result of [getMember2] with [type] substitution.
@@ -650,6 +434,253 @@ class InheritanceManager3 {
     }
 
     return conflicts;
+  }
+
+  Interface _getInterfaceClass(ClassElement element) {
+    var classLibrary = element.library;
+    var isNonNullableByDefault = classLibrary.isNonNullableByDefault;
+
+    var namedCandidates = <Name, List<ExecutableElement>>{};
+    var superImplemented = <Map<Name, ExecutableElement>>[];
+    var implemented = <Name, ExecutableElement>{};
+
+    Interface superTypeInterface;
+    var superType = element.supertype;
+    if (superType != null) {
+      var substitution = Substitution.fromInterfaceType(superType);
+      superTypeInterface = getInterface(superType.element);
+      _addCandidates(
+        namedCandidates: namedCandidates,
+        substitution: substitution,
+        interface: superTypeInterface,
+        isNonNullableByDefault: isNonNullableByDefault,
+      );
+
+      for (var entry in superTypeInterface.implemented.entries) {
+        var executable = entry.value;
+        executable = ExecutableMember.from2(executable, substitution);
+        if (!isNonNullableByDefault) {
+          executable = Member.legacy(executable);
+        }
+        implemented[entry.key] = executable;
+      }
+
+      superImplemented.add(implemented);
+    }
+
+    // TODO(scheglov) Handling of members for super and mixins is not
+    // optimal. We always have just one member for each name in super,
+    // multiple candidates happen only when we merge super and multiple
+    // interfaces. Consider using `Map<Name, ExecutableElement>` here.
+    var mixinsConflicts = <List<Conflict>>[];
+    for (var mixin in element.mixins) {
+      var mixinElement = mixin.element;
+      var substitution = Substitution.fromInterfaceType(mixin);
+      var mixinInterface = getInterface(mixinElement);
+      // `class X extends S with M1, M2 {}` is semantically a sequence of:
+      //     class S&M1 extends S implements M1 {
+      //       // declared M1 members
+      //     }
+      //     class S&M2 extends S&M1 implements M2 {
+      //       // declared M2 members
+      //     }
+      //     class X extends S&M2 {
+      //       // declared X members
+      //     }
+      // So, each mixin always replaces members in the interface.
+      // And there are individual override conflicts for each mixin.
+      var candidatesFromSuperAndMixin = <Name, List<ExecutableElement>>{};
+      var mixinConflicts = <Conflict>[];
+      for (var name in mixinInterface.map.keys) {
+        var candidate = ExecutableMember.from2(
+          mixinInterface.map[name],
+          substitution,
+        );
+
+        var currentList = namedCandidates[name];
+        if (currentList == null) {
+          namedCandidates[name] = [
+            isNonNullableByDefault ? candidate : Member.legacy(candidate),
+          ];
+          continue;
+        }
+
+        var current = currentList.single;
+        if (candidate.enclosingElement == mixinElement) {
+          namedCandidates[name] = [
+            isNonNullableByDefault ? candidate : Member.legacy(candidate),
+          ];
+          if (current.kind != candidate.kind) {
+            var currentIsGetter = current.kind == ElementKind.GETTER;
+            mixinConflicts.add(
+              GetterMethodConflict(
+                name: name,
+                getter: currentIsGetter ? current : candidate,
+                method: currentIsGetter ? candidate : current,
+              ),
+            );
+          }
+        } else {
+          candidatesFromSuperAndMixin[name] = [current, candidate];
+        }
+      }
+
+      // Merge members from the superclass and the mixin interface.
+      {
+        var map = <Name, ExecutableElement>{};
+        _findMostSpecificFromNamedCandidates(
+          element,
+          map,
+          candidatesFromSuperAndMixin,
+          doTopMerge: true,
+        );
+        for (var entry in map.entries) {
+          namedCandidates[entry.key] = [
+            isNonNullableByDefault ? entry.value : Member.legacy(entry.value),
+          ];
+        }
+      }
+
+      mixinsConflicts.add(mixinConflicts);
+
+      implemented = Map.of(implemented);
+      _addMixinMembers(
+        implemented: implemented,
+        substitution: substitution,
+        mixin: mixinInterface,
+        isNonNullableByDefault: isNonNullableByDefault,
+      );
+
+      superImplemented.add(implemented);
+    }
+
+    for (var interface in element.interfaces) {
+      _addCandidates(
+        namedCandidates: namedCandidates,
+        substitution: Substitution.fromInterfaceType(interface),
+        interface: getInterface(interface.element),
+        isNonNullableByDefault: isNonNullableByDefault,
+      );
+    }
+
+    implemented = Map.of(implemented);
+    _addImplemented(implemented, element);
+
+    // If a class declaration has a member declaration, the signature of that
+    // member declaration becomes the signature in the interface.
+    var declared = _getTypeMembers(element);
+
+    // If a class declaration does not have a member declaration with a
+    // particular name, but some super-interfaces do have a member with that
+    // name, it's a compile-time error if there is no signature among the
+    // super-interfaces that is a valid override of all the other
+    // super-interface signatures with the same name. That "most specific"
+    // signature becomes the signature of the class's interface.
+    var interface = Map.of(declared);
+    List<Conflict> conflicts = _findMostSpecificFromNamedCandidates(
+      element,
+      interface,
+      namedCandidates,
+      doTopMerge: true,
+    );
+
+    var noSuchMethodForwarders = <Name>{};
+    if (element.isAbstract) {
+      if (superTypeInterface != null) {
+        noSuchMethodForwarders = superTypeInterface._noSuchMethodForwarders;
+      }
+    } else {
+      var noSuchMethod = implemented[_noSuchMethodName];
+      if (noSuchMethod != null && !_isDeclaredInObject(noSuchMethod)) {
+        var superForwarders = superTypeInterface?._noSuchMethodForwarders;
+        for (var name in interface.keys) {
+          if (!implemented.containsKey(name) ||
+              superForwarders != null && superForwarders.contains(name)) {
+            implemented[name] = interface[name];
+            noSuchMethodForwarders.add(name);
+          }
+        }
+      }
+    }
+
+    /// TODO(scheglov) Instead of merging conflicts we could report them on
+    /// the corresponding mixins applied in the class.
+    for (var mixinConflicts in mixinsConflicts) {
+      if (mixinConflicts.isNotEmpty) {
+        conflicts ??= [];
+        conflicts.addAll(mixinConflicts);
+      }
+    }
+
+    return Interface._(
+      interface,
+      declared,
+      implemented,
+      noSuchMethodForwarders,
+      namedCandidates,
+      superImplemented,
+      conflicts ?? const [],
+    );
+  }
+
+  Interface _getInterfaceMixin(ClassElement element) {
+    var classLibrary = element.library;
+    var isNonNullableByDefault = classLibrary.isNonNullableByDefault;
+
+    var superCandidates = <Name, List<ExecutableElement>>{};
+    for (var constraint in element.superclassConstraints) {
+      var substitution = Substitution.fromInterfaceType(constraint);
+      var interfaceObj = getInterface(constraint.element);
+      _addCandidates(
+        namedCandidates: superCandidates,
+        substitution: substitution,
+        interface: interfaceObj,
+        isNonNullableByDefault: isNonNullableByDefault,
+      );
+    }
+
+    // `mixin M on S1, S2 {}` can call using `super` any instance member
+    // from its superclass constraints, whether it is abstract or concrete.
+    var superInterface = <Name, ExecutableElement>{};
+    var superConflicts = _findMostSpecificFromNamedCandidates(
+      element,
+      superInterface,
+      superCandidates,
+      doTopMerge: true,
+    );
+
+    var interfaceCandidates = Map.of(superCandidates);
+    for (var interface in element.interfaces) {
+      _addCandidates(
+        namedCandidates: interfaceCandidates,
+        substitution: Substitution.fromInterfaceType(interface),
+        interface: getInterface(interface.element),
+        isNonNullableByDefault: isNonNullableByDefault,
+      );
+    }
+
+    var declared = _getTypeMembers(element);
+
+    var interface = Map.of(declared);
+    var interfaceConflicts = _findMostSpecificFromNamedCandidates(
+      element,
+      interface,
+      interfaceCandidates,
+      doTopMerge: true,
+    );
+
+    var implemented = <Name, ExecutableElement>{};
+    _addImplemented(implemented, element);
+
+    return Interface._(
+      interface,
+      declared,
+      implemented,
+      {},
+      interfaceCandidates,
+      [superInterface],
+      <Conflict>[...?superConflicts, ...?interfaceConflicts],
+    );
   }
 
   /// Given one or more [validOverrides], merge them into a single resulting
