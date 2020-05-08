@@ -294,6 +294,9 @@ abstract class NullabilityMigrationInstrumentation {
   void externalDecoratedTypeParameterBound(
       TypeParameterElement typeParameter, DecoratedTypeInfo decoratedType);
 
+  /// Called when the migration process is finished.
+  void finished();
+
   /// Called whenever the migration engine creates a graph edge between
   /// nullability nodes, to report information about the edge that was created,
   /// and why it was created.
@@ -339,9 +342,6 @@ abstract class NullabilityMigrationInstrumentation {
   /// Clear any data from the propagation step in preparation for that step
   /// being re-run.
   void prepareForUpdate();
-
-  /// Called when the migration process is finished.
-  void finished();
 }
 
 /// Information exposed to the migration client about a single node in the
