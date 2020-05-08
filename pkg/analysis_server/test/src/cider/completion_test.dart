@@ -79,6 +79,34 @@ main(int b) {
     _assertNoClass(text: 'Random');
   }
 
+  Future<void> test_compute2_prefixStarts() async {
+    var content = '''
+class A {
+  String abcdef;
+}
+
+main() {
+  A a;
+  a.abc^
+}
+''';
+
+    _createFileResolver();
+    await _compute2(content);
+    expect(_completionResult.prefixStart.line, 6);
+    expect(_completionResult.prefixStart.column, 4);
+
+    content = r'''
+import 'a.dart';
+^
+''';
+
+    _createFileResolver();
+    await _compute2(content);
+    expect(_completionResult.prefixStart.line, 1);
+    expect(_completionResult.prefixStart.column, 0);
+  }
+
   Future<void> test_compute2_sameSignature_sameResult() async {
     _createFileResolver();
     await _compute2(r'''

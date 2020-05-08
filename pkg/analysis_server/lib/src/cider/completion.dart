@@ -135,14 +135,17 @@ class CiderCompletionComputer {
       });
     }
 
+    var filter = _FilterSort(
+      _dartCompletionRequest,
+      suggestions,
+    );
+
     _logger.run('Filter suggestions', () {
-      suggestions = _FilterSort(
-        _dartCompletionRequest,
-        suggestions,
-      ).perform();
+      suggestions = filter.perform();
     });
 
-    var result = CiderCompletionResult._(suggestions);
+    var result = CiderCompletionResult._(
+        suggestions, CiderPosition(line, column - filter._pattern.length));
 
     _cache._lastResult =
         _LastCompletionResult(path, resolvedSignature, offset, result);
@@ -203,7 +206,19 @@ class CiderCompletionComputer {
 class CiderCompletionResult {
   final List<CompletionSuggestion> suggestions;
 
-  CiderCompletionResult._(this.suggestions);
+  /// The start of the range that should be replaced with the suggestion. This
+  /// position always precedes or is the same as the cursor provided in the
+  /// completion request.
+  final CiderPosition prefixStart;
+
+  CiderCompletionResult._(this.suggestions, this.prefixStart);
+}
+
+class CiderPosition {
+  final int line;
+  final int column;
+
+  CiderPosition(this.line, this.column);
 }
 
 class _CiderImportedLibrarySuggestions {
@@ -218,12 +233,13 @@ class _FilterSort {
   final List<CompletionSuggestion> _suggestions;
 
   FuzzyMatcher _matcher;
+  String _pattern;
 
   _FilterSort(this._request, this._suggestions);
 
   List<CompletionSuggestion> perform() {
-    var pattern = _matchingPattern();
-    _matcher = FuzzyMatcher(pattern, matchStyle: MatchStyle.SYMBOL);
+    _pattern = _matchingPattern();
+    _matcher = FuzzyMatcher(_pattern, matchStyle: MatchStyle.SYMBOL);
 
     var scored = _suggestions
         .map((e) => _FuzzyScoredSuggestion(e, _score(e)))
