@@ -99,6 +99,24 @@ class _DartDevelopmentServiceClient {
       (parameters) => dds.isolateManager.resumeIsolate(this, parameters),
     );
 
+    _clientPeer.registerMethod(
+        'getLogHistorySize',
+        (parameters) => {
+              'type': 'Size',
+              'size': dds.loggingRepository.bufferSize,
+            });
+
+    _clientPeer.registerMethod('setLogHistorySize', (parameters) {
+      final size = parameters['size'].asInt;
+      if (size < 0) {
+        throw json_rpc.RpcException.invalidParams(
+          "'size' must be greater or equal to zero",
+        );
+      }
+      dds.loggingRepository.resize(size);
+      return _RPCResponses.success;
+    });
+
     // When invoked within a fallback, the next fallback will start executing.
     // The final fallback forwards the request to the VM service directly.
     @alwaysThrows

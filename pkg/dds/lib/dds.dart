@@ -10,6 +10,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:async/async.dart';
@@ -28,6 +29,7 @@ part 'src/client.dart';
 part 'src/client_manager.dart';
 part 'src/constants.dart';
 part 'src/dds_impl.dart';
+part 'src/logging_repository.dart';
 part 'src/isolate_manager.dart';
 part 'src/named_lookup.dart';
 part 'src/rpc_error_codes.dart';

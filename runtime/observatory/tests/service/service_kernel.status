@@ -72,6 +72,7 @@ complex_reload_test: SkipByDesign
 coverage_const_field_async_closure_test: Skip, Timeout
 coverage_leaf_function_test: Skip, Timeout
 coverage_optimized_function_test: Skip, Timeout
+dds_log_history_size_*: Skip, Timeout
 debugger_inspect_test: SkipByDesign
 debugger_location_second_test: Skip, Timeout
 debugger_location_test: Skip, Timeout
@@ -269,6 +270,7 @@ bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 break_on_activation_test: RuntimeError # Issue #34736
 breakpoint_in_package_parts_class_file_uri_test: RuntimeError # Issue #34736
 complex_reload_test: Skip # Times out on sim architectures, also RuntimeError.
+dds_log_history_size_gigantic_test: SkipSlow # Involves hundreds of thousands of log messages
 debugger_inspect_test: RuntimeError, Timeout # Issue #34736
 eval_internal_class_test: RuntimeError # Issue #34736
 eval_regression_flutter20255_test: SkipByDesign # No incremental compiler available.

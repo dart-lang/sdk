@@ -347,6 +347,7 @@ class _ServiceTesterRunner {
     bool enable_service_port_fallback: false,
     bool testeeControlsServer: false,
     bool enableDds: true,
+    bool enableService: true,
     int port = 0,
   }) {
     if (executableArgs == null) {
@@ -465,6 +466,10 @@ class _ServiceTesterRunner {
       print('Skipping DDS run for $name');
       return;
     }
+    if (!useDds && !enableService) {
+      print('Skipping VM Service run for $name');
+      return;
+    }
     runTest(name);
   }
 
@@ -524,6 +529,7 @@ Future runIsolateTests(List<String> mainArgs, List<IsolateTest> tests,
     bool pause_on_unhandled_exceptions: false,
     bool testeeControlsServer: false,
     bool enableDds: true,
+    bool enableService: true,
     List<String> extraArgs}) async {
   assert(!pause_on_start || testeeBefore == null);
   if (_isTestee()) {
@@ -534,15 +540,17 @@ Future runIsolateTests(List<String> mainArgs, List<IsolateTest> tests,
         pause_on_exit: pause_on_exit);
   } else {
     new _ServiceTesterRunner().run(
-        mainArgs: mainArgs,
-        extraArgs: extraArgs,
-        isolateTests: tests,
-        pause_on_start: pause_on_start,
-        pause_on_exit: pause_on_exit,
-        verbose_vm: verbose_vm,
-        pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
-        testeeControlsServer: testeeControlsServer,
-        enableDds: enableDds);
+      mainArgs: mainArgs,
+      extraArgs: extraArgs,
+      isolateTests: tests,
+      pause_on_start: pause_on_start,
+      pause_on_exit: pause_on_exit,
+      verbose_vm: verbose_vm,
+      pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
+      testeeControlsServer: testeeControlsServer,
+      enableDds: enableDds,
+      enableService: enableService,
+    );
   }
 }
 
@@ -595,6 +603,7 @@ Future runVMTests(List<String> mainArgs, List<VMTest> tests,
     bool pause_on_unhandled_exceptions: false,
     bool enable_service_port_fallback: false,
     bool enableDds: true,
+    bool enableService: true,
     int port = 0,
     List<String> extraArgs,
     List<String> executableArgs}) async {
@@ -616,6 +625,7 @@ Future runVMTests(List<String> mainArgs, List<VMTest> tests,
       pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
       enable_service_port_fallback: enable_service_port_fallback,
       enableDds: enableDds,
+      enableService: enableService,
       port: port,
     );
   }
@@ -655,6 +665,7 @@ Future runDDSTests(List<String> mainArgs, List<DDSTest> tests,
       pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
       enable_service_port_fallback: enable_service_port_fallback,
       enableDds: true,
+      enableService: false,
       port: port,
     );
   }
