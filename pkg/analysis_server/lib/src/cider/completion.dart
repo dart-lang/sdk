@@ -44,22 +44,6 @@ class CiderCompletionComputer {
 
   CiderCompletionComputer(this._logger, this._cache, this._fileResolver);
 
-  @deprecated
-  Future<List<CompletionSuggestion>> compute(String path, int offset) async {
-    var fileContext = _fileResolver.getFileContext(path);
-    var file = fileContext.file;
-
-    var location = file.lineInfo.getLocation(offset);
-
-    var result = await compute2(
-      path: path,
-      line: location.lineNumber - 1,
-      column: location.columnNumber - 1,
-    );
-
-    return result.suggestions;
-  }
-
   /// Return completion suggestions for the file and position.
   ///
   /// The [path] must be the absolute and normalized path of the file.
@@ -67,7 +51,7 @@ class CiderCompletionComputer {
   /// The content of the file has already been updated.
   ///
   /// The [line] and [column] are zero based.
-  Future<CiderCompletionResult> compute2({
+  Future<CiderCompletionResult> compute({
     @required String path,
     @required int line,
     @required int column,
@@ -151,6 +135,15 @@ class CiderCompletionComputer {
         _LastCompletionResult(path, resolvedSignature, offset, result);
 
     return result;
+  }
+
+  @Deprecated('Use compute')
+  Future<CiderCompletionResult> compute2({
+    @required String path,
+    @required int line,
+    @required int column,
+  }) async {
+    return compute(path: path, line: line, column: column);
   }
 
   /// Return suggestions from libraries imported into the [target].
