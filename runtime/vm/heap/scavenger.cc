@@ -36,14 +36,19 @@ DEFINE_FLAG(int,
             "Grow new gen when less than this percentage is garbage.");
 DEFINE_FLAG(int, new_gen_growth_factor, 2, "Grow new gen by this factor.");
 
-// Scavenger uses ObjectLayout::kMarkBit to distinguish forwarded and
-// non-forwarded objects. The kMarkBit does not intersect with the target
-// address because of object alignment.
+// Scavenger uses the kCardRememberedBit to distinguish forwarded and
+// non-forwarded objects. We must choose a bit that is clear for all new-space
+// object headers, and which doesn't intersect with the target address because
+// of object alignment.
 enum {
-  kForwardingMask = 1 << ObjectLayout::kOldAndNotMarkedBit,
+  kForwardingMask = 1 << ObjectLayout::kCardRememberedBit,
   kNotForwarded = 0,
   kForwarded = kForwardingMask,
 };
+
+// If the forwarded bit and pointer tag bit are the same, we can avoid a few
+// conversions.
+COMPILE_ASSERT(kForwarded == kHeapObjectTag);
 
 static inline bool IsForwarding(uword header) {
   uword bits = header & kForwardingMask;
@@ -51,15 +56,15 @@ static inline bool IsForwarding(uword header) {
   return bits == kForwarded;
 }
 
-static inline uword ForwardedAddr(uword header) {
+static inline ObjectPtr ForwardedObj(uword header) {
   ASSERT(IsForwarding(header));
-  return header & ~kForwardingMask;
+  return static_cast<ObjectPtr>(header);
 }
 
-static inline uword ForwardingHeader(uword target) {
-  // Make sure forwarding can be encoded.
-  ASSERT((target & kForwardingMask) == 0);
-  return target | kForwarded;
+static inline uword ForwardingHeader(ObjectPtr target) {
+  uword result = static_cast<uword>(target);
+  ASSERT(IsForwarding(result));
+  return result;
 }
 
 // Races: The first word in the copied region is a header word that may be
@@ -379,12 +384,13 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     // already been copied.
     uword header = reinterpret_cast<std::atomic<uword>*>(raw_addr)->load(
         std::memory_order_relaxed);
-    uword new_addr = 0;
+    ObjectPtr new_obj;
     if (IsForwarding(header)) {
       // Get the new location of the object.
-      new_addr = ForwardedAddr(header);
+      new_obj = ForwardedObj(header);
     } else {
       intptr_t size = raw_obj->ptr()->HeapSize(header);
+      uword new_addr = 0;
       // Check whether object should be promoted.
       if (!NewPage::Of(raw_obj)->IsSurvivor(raw_addr)) {
         // Not a survivor of a previous scavenge. Just copy the object into the
@@ -416,7 +422,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       objcpy(reinterpret_cast<void*>(new_addr),
              reinterpret_cast<void*>(raw_addr), size);
 
-      ObjectPtr new_obj = ObjectLayout::FromAddr(new_addr);
+      new_obj = ObjectLayout::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
         // Promoted: update age/barrier tags.
         uint32_t tags = static_cast<uint32_t>(header);
@@ -439,7 +445,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       }
 
       // Try to install forwarding address.
-      uword forwarding_header = ForwardingHeader(new_addr);
+      uword forwarding_header = ForwardingHeader(new_obj);
       if (!InstallForwardingPointer(raw_addr, &header, forwarding_header)) {
         ASSERT(IsForwarding(header));
         if (new_obj->IsOldObject()) {
@@ -451,12 +457,11 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
           tail_->Unallocate(new_addr, size);
         }
         // Use the winner's forwarding target.
-        new_addr = ForwardedAddr(header);
+        new_obj = ForwardedObj(header);
       }
     }
 
     // Update the reference.
-    ObjectPtr new_obj = ObjectLayout::FromAddr(new_addr);
     if (!new_obj->IsNewObject()) {
       // Setting the mark bit above must not be ordered after a publishing store
       // of this object. Note this could be a publishing store even if the
@@ -1180,8 +1185,7 @@ bool Scavenger::IsUnreachable(ObjectPtr* p) {
   }
   uword header = *reinterpret_cast<uword*>(raw_addr);
   if (IsForwarding(header)) {
-    uword new_addr = ForwardedAddr(header);
-    *p = ObjectLayout::FromAddr(new_addr);
+    *p = ForwardedObj(header);
     return false;
   }
   return true;
@@ -1348,8 +1352,7 @@ void Scavenger::MournWeakTables() {
         uword header = *reinterpret_cast<uword*>(raw_addr);
         if (IsForwarding(header)) {
           // The object has survived.  Preserve its record.
-          uword new_addr = ForwardedAddr(header);
-          raw_obj = ObjectLayout::FromAddr(new_addr);
+          raw_obj = ForwardedObj(header);
           auto replacement =
               raw_obj->IsNewObject() ? replacement_new : replacement_old;
           replacement->SetValueExclusive(raw_obj, table->ValueAtExclusive(i));
