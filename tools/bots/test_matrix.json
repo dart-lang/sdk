@@ -154,6 +154,51 @@
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
       "xcodebuild/ReleaseX64/dart2js_platform_strong.dill"
     ],
+    "dart2js_hostasserts_prennbd": [
+      ".packages",
+      ".dart_tool/package_config.json",
+      "out/ReleaseX64Legacy/dart",
+      "out/ReleaseX64Legacy/dart2js_platform.dill",
+      "out/ReleaseX64Legacy/dart2js_platform_strong.dill",
+      "pkg/",
+      "runtime/tests/",
+      "samples-dev/",
+      "samples/",
+      "sdk/",
+      "tests/.dart_tool/package_config.json",
+      "tests/angular/",
+      "tests/co19/co19-analyzer.status",
+      "tests/co19/co19-co19.status",
+      "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dartdevc.status",
+      "tests/co19/co19-kernel.status",
+      "tests/co19/co19-runtime.status",
+      "tests/co19_2/co19_2-analyzer.status",
+      "tests/co19_2/co19_2-co19.status",
+      "tests/co19_2/co19_2-dart2js.status",
+      "tests/co19_2/co19_2-dartdevc.status",
+      "tests/co19_2/co19_2-kernel.status",
+      "tests/co19_2/co19_2-runtime.status",
+      "tests/compiler/",
+      "tests/corelib_2/",
+      "tests/dart/",
+      "tests/kernel/",
+      "tests/language_2/",
+      "tests/lib_2/",
+      "tests/light_unittest.dart",
+      "tests/search/",
+      "tests/standalone_2/",
+      "tests/ffi/",
+      "tests/ffi_2/",
+      "third_party/d8/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      "third_party/requirejs/",
+      "tools/",
+      "xcodebuild/ReleaseX64Legacy/dart",
+      "xcodebuild/ReleaseX64Legacy/dart2js_platform.dill",
+      "xcodebuild/ReleaseX64Legacy/dart2js_platform_strong.dill"
+    ],
     "dart2js_hostasserts_nnbd": [
       ".packages",
       ".dart_tool/package_config.json",
@@ -644,6 +689,17 @@
         "host-checked": true
       }
     },
+    "dart2js-hostasserts-prennbd-(linux|win)-x64-(d8|chrome)": {
+      "options": {
+        "builder-tag": "dart2js-prennbd",
+        "dart2js-options": [
+          "--libraries-spec=sdk/lib/libraries.json",
+          "--platform-binaries=out/ReleaseX64Legacy/"
+        ],
+        "timeout": 240,
+        "host-checked": true
+      }
+    },
     "dart2js-hostasserts-weak-(linux|win)-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-weak",
@@ -702,26 +758,6 @@
         ],
         "timeout": 240,
         "host-checked": true
-      }
-    },
-    "dart2js-old-rti-(linux|mac|win)-x64-d8": {
-      "options": {
-        "builder-tag": "old_rti",
-        "dart2js-options": [
-          "--use-old-rti"
-        ],
-        "host-checked": true
-      }
-    },
-    "dart2js-old-rti-minified-csp-(linux|mac|win)-x64-d8": {
-      "options": {
-        "builder-tag": "old_rti",
-        "csp": true,
-        "dart2js-options": [
-          "--use-old-rti"
-        ],
-        "minified": true,
-        "use-sdk": true
       }
     },
     "dartkp-android-(debug|product|release)-arm_x64": {
@@ -2364,20 +2400,22 @@
         "dart2js-rti-linux-x64-d8"
       ],
       "meta": {
-        "description": "dart2js-d8 tests with new-RTI enabled"
+        "description": "dart2js-d8 tests without null safety"
       },
       "steps": [
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--no-nnbd",
+            "create_sdk",
             "dart2js_bot"
           ]
         },
         {
-          "name": "dart2js old-rti tests",
+          "name": "dart2js pre nnbd tests",
           "arguments": [
-            "-ndart2js-old-rti-linux-x64-d8",
+            "-ndart2js-hostasserts-prennbd-linux-x64-d8",
             "--dart2js-batch",
             "language_2",
             "corelib_2",
@@ -2385,20 +2423,7 @@
             "dart2js_extra"
           ],
           "shards": 6,
-          "fileset": "dart2js_hostasserts"
-        },
-        {
-          "name": "dart2js old-rti minified+csp tests",
-          "arguments": [
-            "-ndart2js-old-rti-minified-csp-linux-x64-d8",
-            "--dart2js-batch",
-            "language_2",
-            "corelib_2",
-            "dart2js_native",
-            "dart2js_extra"
-          ],
-          "shards": 6,
-          "fileset": "dart2js"
+          "fileset": "dart2js_hostasserts_prennbd"
         }
       ]
     },
@@ -2633,8 +2658,8 @@
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-d8",
             "--dart2js-batch",
-	    "language",
-	    "corelib",
+            "language",
+            "corelib",
             "dart2js_extra",
             "dart2js_native",
             "kernel"
@@ -2647,7 +2672,7 @@
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-chrome",
             "--dart2js-batch",
-            "lib_2"
+            "lib"
           ],
           "shards": 3,
           "fileset": "dart2js_hostasserts_nnbd"
@@ -2657,7 +2682,7 @@
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-chrome",
             "--dart2js-batch",
-            "co19_2"
+            "co19"
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_nnbd"

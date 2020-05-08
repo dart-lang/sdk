@@ -69,7 +69,8 @@ class TestConfiguration {
       this.reproducingArguments,
       this.fastTestsOnly,
       this.printPassingStdout})
-      : _packages = packages;
+      : _packages = packages,
+        isPreNNBD = configuration.name.split('-').contains('prennbd');
 
   final Map<String, RegExp> selectors;
   final Progress progress;
@@ -98,6 +99,7 @@ class TestConfiguration {
   final bool writeResults;
   final bool writeLogs;
   final bool printPassingStdout;
+  final bool isPreNNBD;
 
   Architecture get architecture => configuration.architecture;
   Compiler get compiler => configuration.compiler;
@@ -467,6 +469,13 @@ class TestConfiguration {
     var arch = architecture.name.toUpperCase();
     var normal = '$result$arch';
     var cross = '${result}X$arch';
+
+    // TODO(sigmund): remove once all prennbd coverage is dropped. Currently
+    // only dart2js supports opting-out of using the nnbd sdk.
+    if (isPreNNBD) {
+      normal += 'Legacy';
+      cross += 'Legacy';
+    }
 
     var outDir = system.outputDirectory;
     var normalDir = Directory(Path('$outDir$normal').toNativePath());
