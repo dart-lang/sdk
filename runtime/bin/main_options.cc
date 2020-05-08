@@ -393,6 +393,8 @@ int Options::ParseArguments(int argc,
   // Start the rest after the executable name.
   int i = 1;
 
+  CommandLineOptions temp_vm_options(vm_options->max_count());
+
   // Parse out the vm options.
   while (i < argc) {
     if (OptionProcessor::TryProcess(argv[i], vm_options)) {
@@ -417,7 +419,7 @@ int Options::ParseArguments(int argc,
                   0)) {
         *verbose_debug_seen = true;
       }
-      vm_options->AddArgument(argv[i]);
+      temp_vm_options.AddArgument(argv[i]);
       i++;
     }
   }
@@ -427,7 +429,7 @@ int Options::ParseArguments(int argc,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (Options::deterministic()) {
     // Both an embedder and VM flag.
-    vm_options->AddArgument("--deterministic");
+    temp_vm_options.AddArgument("--deterministic");
   }
 
   Socket::set_short_socket_read(Options::short_socket_read());
@@ -440,14 +442,18 @@ int Options::ParseArguments(int argc,
   // The arguments to the VM are at positions 1 through i-1 in argv.
   Platform::SetExecutableArguments(i, argv);
 
+  bool is_script = false;
+  int script_or_cmd_index = -1;
   // Get the script name.
   if (i < argc) {
+    // If the script name is a valid file or a URL, we'll run the script directly.
+    // Otherwise, this might be a DartDev command and we need to try to
+    // find the DartDev snapshot so we can forward the command and its arguments.
+    script_or_cmd_index = i;
     if (Options::disable_dart_dev() ||
         !DartDevUtils::ShouldParseCommand(argv[i])) {
-      // If the script name isn't a valid file or a URL, this might be a DartDev
-      // command. Try to find the DartDev snapshot so we can forward the command
-      // and its arguments.
       *script_name = strdup(argv[i]);
+      is_script = true;
       i++;
     } else if (!DartDevUtils::TryResolveDartDevSnapshotPath(script_name)) {
       Syslog::PrintErr(
@@ -464,6 +470,29 @@ int Options::ParseArguments(int argc,
     return 0;
   } else {
     return -1;
+  }
+
+  if (Options::disable_dart_dev() || is_script) {
+    // Only populate the VM options if we're not running with dartdev.
+    const char** vm_argv = temp_vm_options.arguments();
+    int vm_argc = temp_vm_options.count();
+    vm_options->AddArguments(vm_argv, vm_argc);
+  } else if (i > 1) {
+    // If we're running with DartDev, we're going to ignore the VM options for
+    // this VM instance and print a warning.
+    Syslog::PrintErr(
+        "Warning: The following flags were passed as VM options and are being "
+        "ignored: ");
+    for (int j = 1; j < script_or_cmd_index; ++j) {
+      Syslog::PrintErr("%s", argv[j]);
+      if (j + 1 < script_or_cmd_index) {
+        Syslog::PrintErr(", ");
+      }
+    }
+    Syslog::PrintErr(
+        "\nThese flags should be passed after the dart command (e.g., 'dart "
+        "run --enable-asserts foo.dart' instead of 'dart --enable-asserts run "
+        "foo.dart').\n");
   }
 
   // Parse out options to be passed to dart main.
