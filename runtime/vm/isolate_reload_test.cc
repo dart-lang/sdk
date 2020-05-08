@@ -4516,7 +4516,9 @@ TEST_CASE(IsolateReload_StaticTargetArityChange) {
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
   EXPECT_ERROR(SimpleInvokeError(lib, "main"),
-               "Static call with invalid arguments");
+               "Unhandled exception:\n"
+               "NoSuchMethodError: No constructor 'A.' "
+               "with matching arguments declared in class 'A'.");
 }
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

@@ -1685,8 +1685,9 @@ Fragment StreamingFlowGraphBuilder::RethrowException(TokenPosition position,
   return flow_graph_builder_->RethrowException(position, catch_try_index);
 }
 
-Fragment StreamingFlowGraphBuilder::ThrowNoSuchMethodError() {
-  return flow_graph_builder_->ThrowNoSuchMethodError();
+Fragment StreamingFlowGraphBuilder::ThrowNoSuchMethodError(
+    const Function& target) {
+  return flow_graph_builder_->ThrowNoSuchMethodError(target);
 }
 
 Fragment StreamingFlowGraphBuilder::Constant(const Object& value) {
@@ -1715,32 +1716,12 @@ Fragment StreamingFlowGraphBuilder::CheckNull(
                                         clear_the_temp);
 }
 
-static void BadArity(const Script& script,
-                     TokenPosition position,
-                     const String& error_message) {
-#ifndef PRODUCT
-  // TODO(https://github.com/dart-lang/sdk/issues/37517): Should emit code to
-  // throw a NoSuchMethodError.
-  // Correct arity is checked at compile time by CFE. However, an isolate reload
-  // after an arity change may lead here.
-  // Using strong mode with a mix of opted in and opted out libraries may
-  // also result in this error undetected by CFE.
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->HasAttemptedReload() || isolate->null_safety());
-  Report::MessageF(Report::kError, script, position, Report::AtLocation,
-                   "Static call with invalid arguments: %s",
-                   error_message.ToCString());
-#endif
-  UNREACHABLE();
-}
-
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                const Function& target,
                                                intptr_t argument_count,
                                                ICData::RebindRule rebind_rule) {
-  String& error_message = String::Handle();
-  if (!target.AreValidArgumentCounts(0, argument_count, 0, &error_message)) {
-    BadArity(script_, position, error_message);
+  if (!target.AreValidArgumentCounts(0, argument_count, 0, nullptr)) {
+    return flow_graph_builder_->ThrowNoSuchMethodError(target);
   }
   return flow_graph_builder_->StaticCall(position, target, argument_count,
                                          rebind_rule);
@@ -1755,10 +1736,9 @@ Fragment StreamingFlowGraphBuilder::StaticCall(
     const InferredTypeMetadata* result_type,
     intptr_t type_args_count,
     bool use_unchecked_entry) {
-  String& error_message = String::Handle();
   if (!target.AreValidArguments(type_args_count, argument_count, argument_names,
-                                &error_message)) {
-    BadArity(script_, position, error_message);
+                                nullptr)) {
+    return flow_graph_builder_->ThrowNoSuchMethodError(target);
   }
   return flow_graph_builder_->StaticCall(
       position, target, argument_count, argument_names, rebind_rule,

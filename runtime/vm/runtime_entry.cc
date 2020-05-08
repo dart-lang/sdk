@@ -179,13 +179,14 @@ static void NullErrorHelper(Zone* zone, const String& selector) {
       zone,
       Smi::New(InvocationMirror::EncodeType(InvocationMirror::kDynamic, kind)));
 
-  const Array& args = Array::Handle(zone, Array::New(6));
+  const Array& args = Array::Handle(zone, Array::New(7));
   args.SetAt(0, /* instance */ Object::null_object());
   args.SetAt(1, selector);
   args.SetAt(2, invocation_type);
-  args.SetAt(3, /* func_type_args */ Object::null_object());
-  args.SetAt(4, /* func_args */ Object::null_object());
-  args.SetAt(5, /* func_arg_names */ Object::null_object());
+  args.SetAt(3, /* func_type_args_length */ Object::smi_zero());
+  args.SetAt(4, /* func_type_args */ Object::null_object());
+  args.SetAt(5, /* func_args */ Object::null_object());
+  args.SetAt(6, /* func_arg_names */ Object::null_object());
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
 }
 

@@ -392,7 +392,7 @@ Fragment FlowGraphBuilder::ThrowException(TokenPosition position) {
   instructions +=
       Fragment(new (Z) ThrowInstr(position, GetNextDeoptId(), exception))
           .closed();
-  // Use it's side effect of leaving a constant on the stack (does not change
+  // Use its side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
 
@@ -408,7 +408,7 @@ Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
       Fragment(new (Z) ReThrowInstr(position, catch_try_index, GetNextDeoptId(),
                                     exception, stacktrace))
           .closed();
-  // Use it's side effect of leaving a constant on the stack (does not change
+  // Use its side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
 
@@ -678,7 +678,7 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   return instructions;
 }
 
-Fragment FlowGraphBuilder::ThrowNoSuchMethodError() {
+Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
   const Class& klass = Class::ZoneHandle(
       Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
   ASSERT(!klass.IsNull());
@@ -688,20 +688,36 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError() {
 
   Fragment instructions;
 
-  // Call NoSuchMethodError._throwNew static function.
-  instructions += NullConstant();  // receiver
+  const Class& owner = Class::Handle(Z, target.Owner());
+  AbstractType& receiver = AbstractType::ZoneHandle();
+  InvocationMirror::Kind kind = InvocationMirror::Kind::kMethod;
+  InvocationMirror::Level level;
+  if (owner.IsTopLevel()) {
+    level = InvocationMirror::Level::kTopLevel;
+  } else {
+    receiver = owner.RareType();
+    if (target.kind() == FunctionLayout::kConstructor) {
+      level = InvocationMirror::Level::kConstructor;
+    } else {
+      level = InvocationMirror::Level::kStatic;
+    }
+  }
 
-  instructions +=
-      Constant(H.DartString("<unknown>", Heap::kOld));  // memberName
-  instructions += IntConstant(-1);                      // invocation_type
-  instructions += NullConstant();                       // type arguments
-  instructions += NullConstant();                       // arguments
-  instructions += NullConstant();                       // argumentNames
+  // Call NoSuchMethodError._throwNew static function.
+  instructions += Constant(receiver);                              // receiver
+  instructions += Constant(String::ZoneHandle(Z, target.name()));  // memberName
+  instructions += IntConstant(InvocationMirror::EncodeType(level, kind));
+  instructions += IntConstant(0);  // type arguments length
+  instructions += NullConstant();  // type arguments
+  instructions += NullConstant();  // arguments
+  instructions += NullConstant();  // argumentNames
 
   instructions += StaticCall(TokenPosition::kNoSource, throw_function,
-                             /* argument_count = */ 6, ICData::kStatic);
-  // Leave "result" on the stack since callers expect it to be there (even
-  // though the function will result in an exception).
+                             /* argument_count = */ 7, ICData::kStatic);
+
+  // Properly close graph with a ThrowInstr, although it is not executed.
+  instructions += ThrowException(TokenPosition::kNoSource);
+  instructions += Drop();
 
   return instructions;
 }

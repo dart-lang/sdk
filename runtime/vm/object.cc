@@ -3907,14 +3907,14 @@ static ObjectPtr ThrowNoSuchMethod(const Instance& receiver,
   const Smi& invocation_type =
       Smi::Handle(Smi::New(InvocationMirror::EncodeType(level, kind)));
 
-  const Array& args = Array::Handle(Array::New(6));
+  const Array& args = Array::Handle(Array::New(7));
   args.SetAt(0, receiver);
   args.SetAt(1, function_name);
   args.SetAt(2, invocation_type);
-  // TODO(regis): Support invocation of generic functions with type arguments.
-  args.SetAt(3, Object::null_type_arguments());
-  args.SetAt(4, arguments);
-  args.SetAt(5, argument_names);
+  args.SetAt(3, Object::smi_zero());  // Type arguments length.
+  args.SetAt(4, Object::null_type_arguments());
+  args.SetAt(5, arguments);
+  args.SetAt(6, argument_names);
 
   const Library& libcore = Library::Handle(Library::CoreLibrary());
   const Class& NoSuchMethodError =
