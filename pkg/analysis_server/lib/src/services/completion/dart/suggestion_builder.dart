@@ -426,6 +426,9 @@ class SuggestionBuilder {
           : DART_RELEVANCE_DEFAULT;
       relevance = request.opType.returnValueSuggestionsFilter(
           _instantiateClassElement(constructor.enclosingElement), relevance);
+      if (relevance == null) {
+        return;
+      }
     }
 
     _add(createSuggestion(request, constructor,
