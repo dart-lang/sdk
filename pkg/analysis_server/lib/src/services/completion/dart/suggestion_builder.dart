@@ -316,6 +316,58 @@ class SuggestionBuilder {
         kind: kind, prefix: prefix, relevance: relevance));
   }
 
+  /// Add a suggestion to insert a closure matching the given function [type].
+  /// If [includeTrailingComma] is `true` then the completion text will include
+  /// a trailing comma, such as when the closure is part of an argument list.
+  void suggestClosure(FunctionType type, {bool includeTrailingComma = false}) {
+    var indent = getRequestLineIndent(request);
+    var parametersString = buildClosureParameters(type);
+
+    var blockBuffer = StringBuffer(parametersString);
+    blockBuffer.writeln(' {');
+    blockBuffer.write('$indent  ');
+    var blockSelectionOffset = blockBuffer.length;
+    blockBuffer.writeln();
+    blockBuffer.write('$indent}');
+
+    var expressionBuffer = StringBuffer(parametersString);
+    expressionBuffer.write(' => ');
+    var expressionSelectionOffset = expressionBuffer.length;
+
+    if (includeTrailingComma) {
+      blockBuffer.write(',');
+      expressionBuffer.write(',');
+    }
+
+    CompletionSuggestion createSuggestion({
+      @required String completion,
+      @required String displayText,
+      @required int selectionOffset,
+    }) {
+      return CompletionSuggestion(
+        CompletionSuggestionKind.INVOCATION,
+        request.useNewRelevance ? Relevance.closure : DART_RELEVANCE_HIGH,
+        completion,
+        selectionOffset,
+        0,
+        false,
+        false,
+        displayText: displayText,
+      );
+    }
+
+    _add(createSuggestion(
+      completion: blockBuffer.toString(),
+      displayText: '$parametersString {}',
+      selectionOffset: blockSelectionOffset,
+    ));
+    _add(createSuggestion(
+      completion: expressionBuffer.toString(),
+      displayText: '$parametersString =>',
+      selectionOffset: expressionSelectionOffset,
+    ));
+  }
+
   /// Add a suggestion for a [constructor]. If a [kind] is provided it will be
   /// used as the kind for the suggestion. The flag [hasClassName] should be
   /// `true` if the completion is occurring after the name of the class and a
@@ -686,6 +738,72 @@ class SuggestionBuilder {
         false));
   }
 
+  /// Add a suggestion to add a named argument corresponding to the [parameter].
+  /// If [appendColon] is `true` then a colon will be added after the name. If
+  /// [appendComma] is `true` then a comma will be included at the end of the
+  /// completion text.
+  void suggestNamedArgument(ParameterElement parameter,
+      {@required bool appendColon, @required bool appendComma}) {
+    var name = parameter.name;
+    var type = parameter.type?.getDisplayString(withNullability: false);
+
+    var completion = name;
+    if (appendColon) {
+      completion += ': ';
+    }
+    var selectionOffset = completion.length;
+
+    // Optionally add Flutter child widget details.
+    // todo (pq): revisit this special casing; likely it can be generalized away
+    var element = parameter.enclosingElement;
+    if (element is ConstructorElement) {
+      var flutter = Flutter.of(request.result);
+      if (flutter.isWidget(element.enclosingElement)) {
+        var defaultValue = getDefaultStringParameterValue(parameter);
+        // TODO(devoncarew): Should we remove the check here? We would then
+        // suggest values for param types like closures.
+        if (defaultValue != null && defaultValue.text == '[]') {
+          var completionLength = completion.length;
+          completion += defaultValue.text;
+          if (defaultValue.cursorPosition != null) {
+            selectionOffset = completionLength + defaultValue.cursorPosition;
+          }
+        }
+      }
+    }
+
+    if (appendComma) {
+      completion += ',';
+    }
+
+    int relevance;
+    if (parameter.isRequiredNamed || parameter.hasRequired) {
+      relevance = request.useNewRelevance
+          ? Relevance.requiredNamedArgument
+          : DART_RELEVANCE_NAMED_PARAMETER_REQUIRED;
+    } else {
+      relevance = request.useNewRelevance
+          ? Relevance.namedArgument
+          : DART_RELEVANCE_NAMED_PARAMETER;
+    }
+
+    var suggestion = CompletionSuggestion(
+        CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance,
+        completion,
+        selectionOffset,
+        0,
+        false,
+        false,
+        parameterName: name,
+        parameterType: type);
+    if (parameter is FieldFormalParameterElement) {
+      _setDocumentation(suggestion, parameter);
+      suggestion.element = convertElement(parameter);
+    }
+    _add(suggestion);
+  }
+
   /// Add a suggestion to replace the [targetId] with an override of the given
   /// [element]. If [invokeSuper] is `true`, then the override will contain an
   /// invocation of an overridden member.
@@ -1052,13 +1170,7 @@ class SuggestionBuilder {
     var suggestion = CompletionSuggestion(kind, relevance, completion,
         completion.length, 0, element.hasOrInheritsDeprecated, false);
 
-    // Attach docs.
-    var doc = DartUnitHoverComputer.computeDocumentation(
-        request.dartdocDirectiveInfo, element);
-    if (doc != null) {
-      suggestion.docComplete = doc;
-      suggestion.docSummary = getDartDocSummary(doc);
-    }
+    _setDocumentation(suggestion, element);
 
     suggestion.element = protocol.convertElement(element);
     if (elementKind != null) {
@@ -1145,5 +1257,16 @@ class SuggestionBuilder {
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
+  }
+
+  /// If the [element] has a documentation comment, fill the [suggestion]'s
+  /// documentation fields.
+  void _setDocumentation(CompletionSuggestion suggestion, Element element) {
+    var doc = DartUnitHoverComputer.computeDocumentation(
+        request.dartdocDirectiveInfo, element);
+    if (doc != null) {
+      suggestion.docComplete = doc;
+      suggestion.docSummary = getDartDocSummary(doc);
+    }
   }
 }
