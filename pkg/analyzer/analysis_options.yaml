@@ -17,7 +17,7 @@ analyzer:
     # Ignoring "style" lint rules from pedantic for now. There are pre-existing
     # violations that need to be cleaned up. Each one can be cleaned up and
     # enabled according to the value provided.
-    # TODO(srawlins): At the time of writing, 2600 violations in lib/. The fix
+    # TODO(srawlins): At the time of writing, 1700 violations in lib/. The fix
     # is mechanical, via `dartfmt --fix-doc-comments`, but not worth the churn
     # today.
     slash_for_doc_comments: ignore
