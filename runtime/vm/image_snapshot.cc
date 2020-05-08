@@ -644,7 +644,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   assembly_stream_.Print("%s:\n", instructions_symbol);
 
   // This head also provides the gap to make the instructions snapshot
-  // look like a HeapPage.
+  // look like a OldPage.
   const intptr_t image_size = Utils::RoundUp(
       next_text_offset_, compiler::target::ObjectAlignment::kObjectAlignment);
   WriteWordLiteralText(image_size);
@@ -1096,7 +1096,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #endif
 
   // This header provides the gap to make the instructions snapshot look like a
-  // HeapPage.
+  // OldPage.
   const intptr_t image_size = Utils::RoundUp(
       next_text_offset_, compiler::target::ObjectAlignment::kObjectAlignment);
   instructions_blob_stream_.WriteTargetWord(image_size);

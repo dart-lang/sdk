@@ -94,9 +94,9 @@ static inline void objcpy(void* dst, const void* src, size_t size) {
   } while (size > 0);
 }
 
-static const intptr_t kNewPageSize = 512 * KB;
-static const intptr_t kNewPageSizeInWords = kNewPageSize / kWordSize;
-static const intptr_t kNewPageMask = ~(kNewPageSize - 1);
+static constexpr intptr_t kNewPageSize = 512 * KB;
+static constexpr intptr_t kNewPageSizeInWords = kNewPageSize / kWordSize;
+static constexpr intptr_t kNewPageMask = ~(kNewPageSize - 1);
 
 // A page containing new generation objects.
 class NewPage {
@@ -298,7 +298,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     ASSERT((obj == nullptr) || obj->IsOldObject());
     visiting_old_object_ = obj;
     if (obj != nullptr) {
-      // Card update happens in HeapPage::VisitRememberedCards.
+      // Card update happens in OldPage::VisitRememberedCards.
       ASSERT(!obj->ptr()->IsCardRemembered());
     }
   }

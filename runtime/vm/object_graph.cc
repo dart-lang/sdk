@@ -527,7 +527,7 @@ intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   return visitor.length();
 }
 
-// Each HeapPage is divided into blocks of size kBlockSize. Each object belongs
+// Each OldPage is divided into blocks of size kBlockSize. Each object belongs
 // to the block containing its header word.
 // When generating a heap snapshot, we assign objects sequential ids in heap
 // iteration order. A bitvector is computed that indicates the number of objects
@@ -584,7 +584,7 @@ class CountingPage {
   }
 
   CountingBlock* BlockFor(uword addr) {
-    intptr_t page_offset = addr & ~kPageMask;
+    intptr_t page_offset = addr & ~kOldPageMask;
     intptr_t block_number = page_offset / kBlockSize;
     ASSERT(block_number >= 0);
     ASSERT(block_number <= kBlocksPerPage);
@@ -656,7 +656,7 @@ void HeapSnapshotWriter::SetupCountingPages() {
     image_page_ranges_[i].size = 0;
   }
   intptr_t next_offset = 0;
-  HeapPage* image_page = Dart::vm_isolate()->heap()->old_space()->image_pages_;
+  OldPage* image_page = Dart::vm_isolate()->heap()->old_space()->image_pages_;
   while (image_page != NULL) {
     RELEASE_ASSERT(next_offset <= kMaxImagePages);
     image_page_ranges_[next_offset].base = image_page->object_start();
@@ -675,7 +675,7 @@ void HeapSnapshotWriter::SetupCountingPages() {
     next_offset++;
   }
 
-  HeapPage* page = isolate()->heap()->old_space()->pages_;
+  OldPage* page = isolate()->heap()->old_space()->pages_;
   while (page != NULL) {
     page->forwarding_page();
     CountingPage* counting_page =
@@ -699,7 +699,7 @@ bool HeapSnapshotWriter::OnImagePage(ObjectPtr obj) const {
 CountingPage* HeapSnapshotWriter::FindCountingPage(ObjectPtr obj) const {
   if (obj->IsOldObject() && !OnImagePage(obj)) {
     // On a regular or large page.
-    HeapPage* page = HeapPage::Of(obj);
+    OldPage* page = OldPage::Of(obj);
     return reinterpret_cast<CountingPage*>(page->forwarding_page());
   }
 
@@ -727,7 +727,7 @@ intptr_t HeapSnapshotWriter::GetObjectId(ObjectPtr obj) const {
 
   if (FLAG_write_protect_code && obj->IsInstructions() && !OnImagePage(obj)) {
     // A non-writable alias mapping may exist for instruction pages.
-    obj = HeapPage::ToWritable(obj);
+    obj = OldPage::ToWritable(obj);
   }
 
   CountingPage* counting_page = FindCountingPage(obj);

@@ -261,9 +261,9 @@ word RuntimeEntry::OffsetFromThread() const {
 
 namespace target {
 
-const word kPageSize = dart::kPageSize;
-const word kPageSizeInWords = dart::kPageSize / kWordSize;
-const word kPageMask = dart::kPageMask;
+const word kOldPageSize = dart::kOldPageSize;
+const word kOldPageSizeInWords = dart::kOldPageSize / kWordSize;
+const word kOldPageMask = dart::kOldPageMask;
 
 static word TranslateOffsetInWordsToHost(word offset) {
   RELEASE_ASSERT((offset % kWordSize) == 0);

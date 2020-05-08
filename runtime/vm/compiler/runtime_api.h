@@ -290,9 +290,9 @@ constexpr word kSmiMax = (static_cast<uword>(1) << kSmiBits) - 1;
 constexpr word kSmiMin = -(static_cast<uword>(1) << kSmiBits);
 
 // Information about heap pages.
-extern const word kPageSize;
-extern const word kPageSizeInWords;
-extern const word kPageMask;
+extern const word kOldPageSize;
+extern const word kOldPageSizeInWords;
+extern const word kOldPageMask;
 
 static constexpr intptr_t kObjectAlignment = ObjectAlignment::kObjectAlignment;
 static constexpr intptr_t kNumParameterFlagsPerElement = kBitsPerWord / 2;
@@ -1189,7 +1189,7 @@ class ClosureData : public AllStatic {
   static word NextFieldOffset();
 };
 
-class HeapPage : public AllStatic {
+class OldPage : public AllStatic {
  public:
   static const word kBytesPerCardLog2;
 

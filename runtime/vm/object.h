@@ -10894,7 +10894,7 @@ void Object::SetRaw(ObjectPtr value) {
       uword addr = ObjectLayout::ToAddr(raw_);
       if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
         ASSERT(FLAG_write_protect_code);
-        addr = ObjectLayout::ToAddr(HeapPage::ToWritable(raw_));
+        addr = ObjectLayout::ToAddr(OldPage::ToWritable(raw_));
         ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
       }
     }

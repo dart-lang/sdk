@@ -1472,19 +1472,18 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
     // Get card table.
     __ Bind(&remember_card);
-    __ movl(EAX, EDX);                           // Object.
-    __ andl(EAX, Immediate(target::kPageMask));  // HeapPage.
-    __ cmpl(Address(EAX, target::HeapPage::card_table_offset()), Immediate(0));
+    __ movl(EAX, EDX);                              // Object.
+    __ andl(EAX, Immediate(target::kOldPageMask));  // OldPage.
+    __ cmpl(Address(EAX, target::OldPage::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
     // Dirty the card.
     __ subl(EDI, EAX);  // Offset in page.
-    __ movl(
-        EAX,
-        Address(EAX, target::HeapPage::card_table_offset()));  // Card table.
-    __ shrl(EDI,
-            Immediate(
-                target::HeapPage::kBytesPerCardLog2));  // Index in card table.
+    __ movl(EAX,
+            Address(EAX, target::OldPage::card_table_offset()));  // Card table.
+    __ shrl(
+        EDI,
+        Immediate(target::OldPage::kBytesPerCardLog2));  // Index in card table.
     __ movb(Address(EAX, EDI, TIMES_1, 0), Immediate(1));
     __ popl(ECX);
     __ popl(EAX);

@@ -2515,7 +2515,7 @@ bool Object::InVMIsolateHeap() const {
     uword addr = ObjectLayout::ToAddr(raw());
     if (!vm_isolate_heap->Contains(addr)) {
       ASSERT(FLAG_write_protect_code);
-      addr = ObjectLayout::ToAddr(HeapPage::ToWritable(raw()));
+      addr = ObjectLayout::ToAddr(OldPage::ToWritable(raw()));
       ASSERT(vm_isolate_heap->Contains(addr));
     }
   }
@@ -2605,7 +2605,7 @@ void Object::CheckHandle() const {
         uword addr = ObjectLayout::ToAddr(raw_);
         if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
           ASSERT(FLAG_write_protect_code);
-          addr = ObjectLayout::ToAddr(HeapPage::ToWritable(raw_));
+          addr = ObjectLayout::ToAddr(OldPage::ToWritable(raw_));
           ASSERT(isolate_heap->Contains(addr) ||
                  vm_isolate_heap->Contains(addr));
         }
@@ -15978,7 +15978,7 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
     if (FLAG_write_protect_code) {
       uword address = ObjectLayout::ToAddr(instrs.raw());
       // Check if a dual mapping exists.
-      instrs = Instructions::RawCast(HeapPage::ToExecutable(instrs.raw()));
+      instrs = Instructions::RawCast(OldPage::ToExecutable(instrs.raw()));
       uword exec_address = ObjectLayout::ToAddr(instrs.raw());
       const bool use_dual_mapping = exec_address != address;
       ASSERT(use_dual_mapping == FLAG_dual_map_code);

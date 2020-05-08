@@ -38,7 +38,7 @@ const intptr_t kBytesPerBigIntDigit = 4;
 // The default old gen heap size in MB, where 0 == unlimited.
 // 32-bit: OS limit is 2 or 3 GB
 // 64-bit: Linux's limit is
-//   sysctl vm.max_map_count (default 2^16) * 512 KB HeapPages = 32 GB
+//   sysctl vm.max_map_count (default 2^16) * 512 KB OldPages = 32 GB
 // Set the VM limit below the OS limit to increase the likelihood of failing
 // gracefully with a Dart OutOfMemory exception instead of SIGABORT.
 const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 30720;

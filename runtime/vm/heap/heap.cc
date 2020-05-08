@@ -105,10 +105,10 @@ uword Heap::AllocateNew(intptr_t size) {
 
   // It is possible a GC doesn't clear enough space.
   // In that case, we must fall through and allocate into old space.
-  return AllocateOld(size, HeapPage::kData);
+  return AllocateOld(size, OldPage::kData);
 }
 
-uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
+uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   CollectForDebugging();
   uword addr = old_space_.TryAllocate(size, type);
@@ -209,7 +209,7 @@ bool Heap::OldContains(uword addr) const {
 }
 
 bool Heap::CodeContains(uword addr) const {
-  return old_space_.Contains(addr, HeapPage::kExecutable);
+  return old_space_.Contains(addr, OldPage::kExecutable);
 }
 
 bool Heap::DataContains(uword addr) const {
@@ -329,14 +329,14 @@ void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 InstructionsPtr Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
   // Only executable pages can have RawInstructions objects.
-  ObjectPtr raw_obj = old_space_.FindObject(visitor, HeapPage::kExecutable);
+  ObjectPtr raw_obj = old_space_.FindObject(visitor, OldPage::kExecutable);
   ASSERT((raw_obj == Object::null()) ||
          (raw_obj->GetClassId() == kInstructionsCid));
   return static_cast<InstructionsPtr>(raw_obj);
 }
 
 ObjectPtr Heap::FindOldObject(FindObjectVisitor* visitor) const {
-  return old_space_.FindObject(visitor, HeapPage::kData);
+  return old_space_.FindObject(visitor, OldPage::kData);
 }
 
 ObjectPtr Heap::FindNewObject(FindObjectVisitor* visitor) {

@@ -2561,7 +2561,7 @@ class ArrayLayout : public InstanceLayout {
   friend class ICData;            // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
 
-  friend class HeapPage;
+  friend class OldPage;
 };
 
 class ImmutableArrayLayout : public ArrayLayout {

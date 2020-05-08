@@ -12,7 +12,7 @@ namespace dart {
 // Forward declarations.
 class FreeList;
 class Heap;
-class HeapPage;
+class OldPage;
 class IsolateGroup;
 class PageSpace;
 
@@ -28,18 +28,18 @@ class GCSweeper {
   // pre-locked is indicated by the locked parameter.
   // Returns true if the page is in use. Freelist is untouched if page is not
   // in use.
-  bool SweepPage(HeapPage* page, FreeList* freelist, bool locked);
+  bool SweepPage(OldPage* page, FreeList* freelist, bool locked);
 
   // Returns the number of words from page->object_start() to the end of the
   // last marked object.
-  intptr_t SweepLargePage(HeapPage* page);
+  intptr_t SweepLargePage(OldPage* page);
 
   // Sweep the regular sized data pages between first and last inclusive.
   static void SweepConcurrent(IsolateGroup* isolate_group,
-                              HeapPage* first,
-                              HeapPage* last,
-                              HeapPage* large_first,
-                              HeapPage* large_last,
+                              OldPage* first,
+                              OldPage* last,
+                              OldPage* large_first,
+                              OldPage* large_last,
                               FreeList* freelist);
 };
 
