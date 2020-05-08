@@ -12,7 +12,7 @@ import 'ring_gc_test.dart' show Worker;
 import 'test_utils.dart';
 
 main(args) async {
-  final int numIsolates = (isDebugMode || isSimulator) ? 100 : 1000;
+  final int numIsolates = (isDebugMode || isSimulator) ? 100 : 5000;
 
   // Spawn ring of 1k isolates.
   final ring = await Ring.create(numIsolates);

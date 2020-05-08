@@ -3,8 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
-dart/isolates/ring_gc_sendAndExit_test: Skip # The test times out on precomp bots.
-dart/isolates/ring_gc_test: Skip # The test times out on precomp bots.
 
 cc/Fail0: Fail # These tests are expected to crash on all platforms.
 cc/Fail1: Fail # These tests are expected to crash on all platforms.

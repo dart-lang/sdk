@@ -61,7 +61,6 @@ Future fibonacciRecursive(List args) async {
 }
 
 enum Command {
-  kNextCommand,
   kRun,
   kRunAndClose,
   kClose,
@@ -74,9 +73,10 @@ abstract class RingElement {
 class Ring {
   final int size;
   final List<StreamIterator> receivePorts;
-  final List<SendPort> sendPorts;
+  final List<SendPort> controlSendPorts;
+  final List<SendPort> dataSendPorts;
 
-  Ring(this.size, this.receivePorts, this.sendPorts);
+  Ring(this.size, this.receivePorts, this.controlSendPorts, this.dataSendPorts);
 
   static Future<Ring> create(int n) async {
     final ports = <StreamIterator>[];
@@ -88,44 +88,43 @@ class Ring {
           .add(Isolate.spawn(_ringEntry, port.sendPort, debugName: 'ring-$i'));
     }
     await Future.wait(spawnFutures);
-    final sendPorts = <SendPort>[];
+    final controlSendPorts = <SendPort>[];
+    final dataSendPorts = <SendPort>[];
     for (int i = 0; i < n; ++i) {
       final si = ports[i];
       await si.moveNext();
-      sendPorts.add(si.current);
+      controlSendPorts.add(si.current[0]);
+      dataSendPorts.add(si.current[1]);
     }
 
-    return Ring(n, ports, sendPorts);
+    return Ring(n, ports, controlSendPorts, dataSendPorts);
   }
 
   static Future _ringEntry(SendPort port) async {
-    final rp = ReceivePort();
-    port.send(rp.sendPort);
+    final rpControl = ReceivePort();
+    final rpData = ReceivePort();
+    port.send([rpControl.sendPort, rpData.sendPort]);
 
-    final si = StreamIterator(rp);
-    var runCommand = null;
-    while (await si.moveNext()) {
-      final List args = si.current;
+    final siControl = StreamIterator(rpControl);
+    final siData = StreamIterator(rpData);
+    while (await siControl.moveNext()) {
+      final List args = siControl.current;
       final command = args[0];
       switch (command) {
-        case Command.kNextCommand:
-          runCommand = args;
-          break;
         case Command.kRun:
-          final RingElement re = runCommand[1];
-          final SendPort nextNeighbor = runCommand[2];
-          runCommand = null;
-          port.send(await re.run(nextNeighbor, si));
+          final RingElement re = args[1];
+          final SendPort nextNeighbor = args[2];
+          port.send(await re.run(nextNeighbor, siData));
           break;
         case Command.kRunAndClose:
-          final RingElement re = runCommand[1];
-          final SendPort nextNeighbor = runCommand[2];
-          runCommand = null;
-          port.sendAndExit(await re.run(nextNeighbor, si));
+          final RingElement re = args[1];
+          final SendPort nextNeighbor = args[2];
+          port.sendAndExit(await re.run(nextNeighbor, siData));
           break;
         case Command.kClose:
           port.send('done');
-          rp.close();
+          rpControl.close();
+          rpData.close();
           return;
       }
     }
@@ -135,12 +134,9 @@ class Ring {
 
   Future<List> run(RingElement buildRingElement(int id)) async {
     for (int i = 0; i < size; i++) {
-      final nextNeighbor = sendPorts[(i + 1) % size];
-      sendPorts[i]
-          .send([Command.kNextCommand, buildRingElement(i), nextNeighbor]);
-    }
-    for (int i = 0; i < size; i++) {
-      sendPorts[i].send([Command.kRun]);
+      final nextNeighbor = dataSendPorts[(i + 1) % size];
+      controlSendPorts[i]
+          .send([Command.kRun, buildRingElement(i), nextNeighbor]);
     }
 
     final results = await Future.wait(receivePorts.map((si) async {
@@ -153,14 +149,11 @@ class Ring {
 
   Future<List> runAndClose(RingElement buildRingElement(int id)) async {
     for (int i = 0; i < size; i++) {
-      final nextNeighbor = sendPorts[(i + 1) % size];
-      sendPorts[i]
-          .send([Command.kNextCommand, buildRingElement(i), nextNeighbor]);
+      final nextNeighbor = dataSendPorts[(i + 1) % size];
+      controlSendPorts[i]
+          .send([Command.kRunAndClose, buildRingElement(i), nextNeighbor]);
     }
 
-    for (int i = 0; i < size; i++) {
-      sendPorts[i].send([Command.kRunAndClose]);
-    }
     final results = await Future.wait(receivePorts.map((si) async {
       await si.moveNext();
       return si.current;
@@ -171,7 +164,7 @@ class Ring {
 
   Future close() async {
     for (int i = 0; i < size; i++) {
-      sendPorts[i].send([Command.kClose]);
+      controlSendPorts[i].send([Command.kClose]);
     }
     final results = await Future.wait(receivePorts.map((si) async {
       await si.moveNext();
