@@ -2854,17 +2854,14 @@ class Function : public Object {
   }
   bool IsInFactoryScope() const;
 
-  bool NeedsArgumentTypeChecks(Isolate* I) const {
-    if (!I->should_emit_strong_mode_checks()) {
-      return false;
-    }
+  bool NeedsArgumentTypeChecks() const {
     return IsClosureFunction() ||
            !(is_static() || (kind() == FunctionLayout::kConstructor));
   }
 
   bool NeedsMonomorphicCheckedEntry(Zone* zone) const;
 
-  bool MayHaveUncheckedEntryPoint(Isolate* I) const;
+  bool MayHaveUncheckedEntryPoint() const;
 
   TokenPosition token_pos() const {
 #if defined(DART_PRECOMPILED_RUNTIME)

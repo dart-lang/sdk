@@ -1534,9 +1534,6 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
                                            const String& dst_name,
                                            AssertAssignableInstr::Kind kind) {
   Fragment instructions;
-  if (!I->should_emit_strong_mode_checks()) {
-    return Fragment();
-  }
   if (!dst_type.IsTopTypeForSubtyping()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
@@ -1552,10 +1549,6 @@ Fragment FlowGraphBuilder::AssertAssignableLoadTypeArguments(
     const AbstractType& dst_type,
     const String& dst_name,
     AssertAssignableInstr::Kind kind) {
-  if (!I->should_emit_strong_mode_checks()) {
-    return Fragment();
-  }
-
   Fragment instructions;
 
   if (!dst_type.IsInstantiated(kCurrentClass)) {
@@ -1599,7 +1592,6 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
     Fragment* explicit_checks,
     Fragment* implicit_checks,
     Fragment* implicit_redefinitions) {
-  if (!I->should_emit_strong_mode_checks()) return;
   const Function& dart_function = parsed_function_->function();
 
   const Function* forwarding_target = nullptr;
@@ -2033,7 +2025,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     }
   }
 
-  if (function.NeedsArgumentTypeChecks(I)) {
+  if (function.NeedsArgumentTypeChecks()) {
     BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
                             &body, &body, nullptr);
   }
@@ -2402,7 +2394,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   // We're going to throw away the explicit checks because the target will
   // always check them.
   Fragment implicit_checks;
-  if (function.NeedsArgumentTypeChecks(I)) {
+  if (function.NeedsArgumentTypeChecks()) {
     Fragment explicit_checks_unused;
     if (target.is_static()) {
       // Tearoffs of static methods needs to perform arguments checks since
@@ -2460,7 +2452,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   // Setup multiple entrypoints if useful.
   FunctionEntryInstr* extra_entry = nullptr;
-  if (function.MayHaveUncheckedEntryPoint(I)) {
+  if (function.MayHaveUncheckedEntryPoint()) {
     // The prologue for a closure will always have context handling (e.g.
     // setting up the receiver variable), but we don't need it on the unchecked
     // entry because the only time we reference this is for loading the
@@ -2538,7 +2530,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       body += LoadLocal(parsed_function_->ParameterVariable(0));
     }
     body += LoadLocal(setter_value);
-    if (I->argument_type_checks() && setter_value->needs_type_check()) {
+    if (setter_value->needs_type_check()) {
       body += CheckAssignable(setter_value->type(), setter_value->name(),
                               AssertAssignableInstr::kParameterCheck);
     }

@@ -763,7 +763,7 @@ void StreamingFlowGraphBuilder::CheckArgumentTypesAsNecessary(
     Fragment* explicit_checks,
     Fragment* implicit_checks,
     Fragment* implicit_redefinitions) {
-  if (!dart_function.NeedsArgumentTypeChecks(I)) return;
+  if (!dart_function.NeedsArgumentTypeChecks()) return;
 
   // Check if parent function was annotated with no-dynamic-invocations.
   const ProcedureAttributesMetadata attrs =
@@ -903,7 +903,7 @@ UncheckedEntryPointStyle StreamingFlowGraphBuilder::ChooseEntryPointStyle(
     const Fragment& every_time_prologue,
     const Fragment& type_args_handling) {
   ASSERT(!dart_function.IsImplicitClosureFunction());
-  if (!dart_function.MayHaveUncheckedEntryPoint(I) ||
+  if (!dart_function.MayHaveUncheckedEntryPoint() ||
       implicit_type_checks.is_empty()) {
     return UncheckedEntryPointStyle::kNone;
   }
@@ -2437,7 +2437,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
 
   const String* mangled_name = &setter_name;
   const Function* direct_call_target = &direct_call.target_;
-  if (I->should_emit_strong_mode_checks() && H.IsRoot(itarget_name)) {
+  if (H.IsRoot(itarget_name)) {
     mangled_name = &String::ZoneHandle(
         Z, Function::CreateDynamicInvocationForwarderName(setter_name));
     if (!direct_call_target->IsNull()) {
@@ -3014,8 +3014,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   //     those cases require a dynamic invocation forwarder;
   //   * we assume that all closures are entered in a checked way.
   const Function* direct_call_target = &direct_call.target_;
-  if (I->should_emit_strong_mode_checks() &&
-      (name.raw() != Symbols::EqualOperator().raw()) &&
+  if ((name.raw() != Symbols::EqualOperator().raw()) &&
       (name.raw() != Symbols::Call().raw()) && H.IsRoot(itarget_name)) {
     mangled_name = &String::ZoneHandle(
         Z, Function::CreateDynamicInvocationForwarderName(name));

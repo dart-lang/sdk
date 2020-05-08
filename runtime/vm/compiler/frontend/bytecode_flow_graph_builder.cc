@@ -2105,7 +2105,7 @@ UncheckedEntryPointStyle BytecodeFlowGraphBuilder::ChooseEntryPointStyle(
     const KBCInstr* jump_if_unchecked) {
   ASSERT(KernelBytecode::IsJumpIfUncheckedOpcode(jump_if_unchecked));
 
-  if (!function().MayHaveUncheckedEntryPoint(isolate())) {
+  if (!function().MayHaveUncheckedEntryPoint()) {
     return UncheckedEntryPointStyle::kNone;
   }
 

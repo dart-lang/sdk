@@ -17,6 +17,8 @@ namespace dart {
   V(Object, Object., ObjectConstructor, 0x8f3ae7ea)                            \
   V(List, ., ListFactory, 0xdf9970a9)                                          \
   V(_List, ., ObjectArrayAllocate, 0x03ddbd3a)                                 \
+  V(_List, []=, ObjectArraySetIndexed, 0x4d5e74cf)                             \
+  V(_GrowableList, []=, GrowableArraySetIndexed, 0x4d5e74cf)                   \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 0xa24c2704)                    \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 0xa491df3e)                  \
   V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 0xb65ae1fc)                  \
@@ -347,7 +349,6 @@ namespace dart {
 #define GRAPH_CORE_INTRINSICS_LIST(V)                                          \
   V(_List, get:length, ObjectArrayLength, 0x05176aac)                          \
   V(_List, [], ObjectArrayGetIndexed, 0x7e13418e)                              \
-  V(_List, []=, ObjectArraySetIndexed, 0x4d5e74cf)                             \
   V(_List, _setIndexed, ObjectArraySetIndexedUnchecked, 0x91b2c203)            \
   V(_ImmutableList, get:length, ImmutableArrayLength, 0x05176aac)              \
   V(_ImmutableList, [], ImmutableArrayGetIndexed, 0x7e13418e)                  \
@@ -356,7 +357,6 @@ namespace dart {
   V(_GrowableList, _setData, GrowableArraySetData, 0x9e2350fe)                 \
   V(_GrowableList, _setLength, GrowableArraySetLength, 0x8d94d91d)             \
   V(_GrowableList, [], GrowableArrayGetIndexed, 0x7e13418e)                    \
-  V(_GrowableList, []=, GrowableArraySetIndexed, 0x4d5e74cf)                   \
   V(_GrowableList, _setIndexed, GrowableArraySetIndexedUnchecked, 0x91b2c203)  \
   V(_StringBase, get:length, StringBaseLength, 0x05176aac)                     \
   V(_OneByteString, codeUnitAt, OneByteStringCodeUnitAt, 0xb0959953)           \

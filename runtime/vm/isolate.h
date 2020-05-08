@@ -164,10 +164,7 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
   V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
-  V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false_by_default)            \
-  V(PRODUCT, unsafe_trust_strong_mode_types, UnsafeTrustStrongModeTypes,       \
-    unsafe_trust_strong_mode_types,                                            \
-    FLAG_experimental_unsafe_mode_use_at_your_own_risk)
+  V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false_by_default)
 
 // Represents the information used for spawning the first isolate within an
 // isolate group.
@@ -1144,10 +1141,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     isolate_flags_ = IsKernelIsolateBit::update(value, isolate_flags_);
   }
 
-  bool can_use_strong_mode_types() const {
-    return FLAG_use_strong_mode_types && !unsafe_trust_strong_mode_types();
-  }
-
   // Whether it's possible for unoptimized code to optimize immediately on entry
   // (can happen with random or very low optimization counter thresholds)
   bool CanOptimizeImmediately() const {
@@ -1228,14 +1221,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_null_safety(bool null_safety) {
     isolate_flags_ = NullSafetySetBit::update(true, isolate_flags_);
     isolate_flags_ = NullSafetyBit::update(null_safety, isolate_flags_);
-  }
-
-  // Convenience flag tester indicating whether incoming function arguments
-  // should be type checked.
-  bool argument_type_checks() const { return should_emit_strong_mode_checks(); }
-
-  bool should_emit_strong_mode_checks() const {
-    return !unsafe_trust_strong_mode_types();
   }
 
   bool has_attempted_stepping() const {
@@ -1400,8 +1385,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(Obfuscate)                                                                 \
   V(ShouldLoadVmService)                                                       \
   V(NullSafety)                                                                \
-  V(NullSafetySet)                                                             \
-  V(UnsafeTrustStrongModeTypes)
+  V(NullSafetySet)
 
   // Isolate specific flags.
   enum FlagBits {

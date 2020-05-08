@@ -9180,9 +9180,9 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
 #endif
 }
 
-bool Function::MayHaveUncheckedEntryPoint(Isolate* I) const {
+bool Function::MayHaveUncheckedEntryPoint() const {
   return FLAG_enable_multiple_entrypoints &&
-         (NeedsArgumentTypeChecks(I) || IsImplicitClosureFunction());
+         (NeedsArgumentTypeChecks() || IsImplicitClosureFunction());
 }
 
 const char* Function::ToCString() const {

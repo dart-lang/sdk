@@ -748,14 +748,6 @@ bool GraphIntrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   return true;
 }
 
-bool GraphIntrinsifier::Build_ObjectArraySetIndexed(FlowGraph* flow_graph) {
-  if (Isolate::Current()->argument_type_checks()) {
-    return false;
-  }
-
-  return Build_ObjectArraySetIndexedUnchecked(flow_graph);
-}
-
 bool GraphIntrinsifier::Build_ObjectArraySetIndexedUnchecked(
     FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -778,14 +770,6 @@ bool GraphIntrinsifier::Build_ObjectArraySetIndexedUnchecked(
   Definition* null_def = builder.AddNullDefinition();
   builder.AddReturn(new Value(null_def));
   return true;
-}
-
-bool GraphIntrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
-  if (Isolate::Current()->argument_type_checks()) {
-    return false;
-  }
-
-  return Build_GrowableArraySetIndexedUnchecked(flow_graph);
 }
 
 bool GraphIntrinsifier::Build_GrowableArraySetIndexedUnchecked(

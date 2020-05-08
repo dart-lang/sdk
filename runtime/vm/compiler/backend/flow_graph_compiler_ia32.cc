@@ -752,21 +752,6 @@ void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
   __ ret();
 }
 
-void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
-  // TOS: return address.
-  // +1 : value
-  // +2 : receiver.
-  // Sequence node has one store node and one return NULL node.
-  __ Comment("Intrinsic Setter");
-  __ movl(EAX, compiler::Address(ESP, 2 * kWordSize));  // Receiver.
-  __ movl(EBX, compiler::Address(ESP, 1 * kWordSize));  // Value.
-  __ StoreIntoObject(EAX, compiler::FieldAddress(EAX, offset), EBX);
-  const compiler::Immediate& raw_null =
-      compiler::Immediate(static_cast<intptr_t>(Object::null()));
-  __ movl(EAX, raw_null);
-  __ ret();
-}
-
 // NOTE: If the entry code shape changes, ReturnAddressLocator in profiler.cc
 // needs to be updated to match.
 void FlowGraphCompiler::EmitFrameEntry() {

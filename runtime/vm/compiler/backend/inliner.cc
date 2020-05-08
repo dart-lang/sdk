@@ -2535,7 +2535,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   }
 
   Instruction* cursor = *entry;
-  if (flow_graph->isolate()->argument_type_checks() && !is_unchecked_call &&
+  if (!is_unchecked_call &&
       (kind != MethodRecognizer::kObjectArraySetIndexedUnchecked &&
        kind != MethodRecognizer::kGrowableArraySetIndexedUnchecked)) {
     // Only type check for the value. A type check for the index is not
@@ -2827,60 +2827,6 @@ static bool InlineLoadClassId(FlowGraph* flow_graph,
   return true;
 }
 
-// Adds an explicit bounds check for a typed getter/setter.
-static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
-                                               Instruction* call,
-                                               intptr_t array_cid,
-                                               intptr_t view_cid,
-                                               Definition* array,
-                                               Definition** byte_index,
-                                               Instruction** cursor) {
-  ASSERT(array_cid != kDynamicCid);
-
-  LoadFieldInstr* length = new (Z) LoadFieldInstr(
-      new (Z) Value(array), Slot::GetLengthFieldForArrayCid(array_cid),
-      call->token_pos());
-  *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
-
-  intptr_t element_size = compiler::target::Instance::ElementSizeFor(array_cid);
-  ConstantInstr* bytes_per_element =
-      flow_graph->GetConstant(Smi::Handle(Z, Smi::New(element_size)));
-  BinarySmiOpInstr* len_in_bytes = new (Z)
-      BinarySmiOpInstr(Token::kMUL, new (Z) Value(length),
-                       new (Z) Value(bytes_per_element), call->deopt_id());
-  *cursor = flow_graph->AppendTo(*cursor, len_in_bytes, call->env(),
-                                 FlowGraph::kValue);
-
-  // adjusted_length = len_in_bytes - (element_size - 1).
-  Definition* adjusted_length = len_in_bytes;
-  intptr_t adjustment =
-      compiler::target::Instance::ElementSizeFor(view_cid) - 1;
-  if (adjustment > 0) {
-    ConstantInstr* length_adjustment =
-        flow_graph->GetConstant(Smi::Handle(Z, Smi::New(adjustment)));
-    adjusted_length = new (Z)
-        BinarySmiOpInstr(Token::kSUB, new (Z) Value(len_in_bytes),
-                         new (Z) Value(length_adjustment), call->deopt_id());
-    *cursor = flow_graph->AppendTo(*cursor, adjusted_length, call->env(),
-                                   FlowGraph::kValue);
-  }
-
-  // Check adjusted_length > 0.
-  // TODO(ajcbik): this is a synthetic check that cannot
-  // be directly linked to a use, is that a sign of wrong use?
-  ConstantInstr* zero = flow_graph->GetConstant(Object::smi_zero());
-  Definition* check =
-      flow_graph->CreateCheckBound(adjusted_length, zero, call->deopt_id());
-  *cursor =
-      flow_graph->AppendTo(*cursor, check, call->env(), FlowGraph::kValue);
-
-  // Check 0 <= byte_index < adjusted_length.
-  *byte_index = flow_graph->CreateCheckBound(adjusted_length, *byte_index,
-                                             call->deopt_id());
-  *cursor = flow_graph->AppendTo(*cursor, *byte_index, call->env(),
-                                 FlowGraph::kValue);
-}
-
 // Emits preparatory code for a typed getter/setter.
 // Handles three cases:
 //   (1) dynamic:  generates load untagged (internal or external)
@@ -2919,12 +2865,12 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   // Dynamic calls are polymorphic due to:
   // (A) extra bounds check computations (length stored in receiver),
   // (B) external/internal typed data in receiver.
-  // For Dart2, both issues are resolved in the inlined code.
+  // Both issues are resolved in the inlined code.
+  // All getters that go through InlineByteArrayBaseLoad() have explicit
+  // bounds checks in all their clients in the library, so we can omit yet
+  // another inlined bounds check.
   if (array_cid == kDynamicCid) {
     ASSERT(call->IsStaticCall());
-    if (!flow_graph->isolate()->can_use_strong_mode_types()) {
-      return false;
-    }
   }
 
   Definition* array = receiver;
@@ -2935,15 +2881,6 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
-  // All getters that go through InlineByteArrayBaseLoad() have explicit
-  // bounds checks in all their clients in the library, so we can omit yet
-  // another inlined bounds check when compiling for Dart2 (resolves (A)).
-  const bool needs_bounds_check =
-      !flow_graph->isolate()->can_use_strong_mode_types();
-  if (needs_bounds_check) {
-    PrepareInlineTypedArrayBoundsCheck(flow_graph, call, array_cid, view_cid,
-                                       array, &index, &cursor);
-  }
 
   // Generates a template for the load, either a dynamic conditional
   // that dispatches on external and internal storage, or a single
@@ -2999,12 +2936,12 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   // Dynamic calls are polymorphic due to:
   // (A) extra bounds check computations (length stored in receiver),
   // (B) external/internal typed data in receiver.
-  // For Dart2, both issues are resolved in the inlined code.
+  // Both issues are resolved in the inlined code.
+  // All setters that go through InlineByteArrayBaseLoad() have explicit
+  // bounds checks in all their clients in the library, so we can omit yet
+  // another inlined bounds check.
   if (array_cid == kDynamicCid) {
     ASSERT(call->IsStaticCall());
-    if (!flow_graph->isolate()->can_use_strong_mode_types()) {
-      return false;
-    }
   }
 
   Definition* array = receiver;
@@ -3014,16 +2951,6 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                  call->GetBlock()->try_index(), DeoptId::kNone);
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
-
-  // All setters that go through InlineByteArrayBaseLoad() have explicit
-  // bounds checks in all their clients in the library, so we can omit yet
-  // another inlined bounds check when compiling for Dart2 (resolves (A)).
-  const bool needs_bounds_check =
-      !flow_graph->isolate()->can_use_strong_mode_types();
-  if (needs_bounds_check) {
-    PrepareInlineTypedArrayBoundsCheck(flow_graph, call, array_cid, view_cid,
-                                       array, &index, &cursor);
-  }
 
   // Prepare additional checks. In AOT Dart2, we use an explicit null check and
   // non-speculative unboxing for most value types.
@@ -3037,8 +2964,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kExternalTypedDataUint8ClampedArrayCid:
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
-      if (CompilerState::Current().is_aot() &&
-          flow_graph->isolate()->can_use_strong_mode_types()) {
+      if (CompilerState::Current().is_aot()) {
         needs_null_check = true;
       } else {
         // Check that value is always smi.
@@ -3048,8 +2974,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     }
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      if (CompilerState::Current().is_aot() &&
-          flow_graph->isolate()->can_use_strong_mode_types()) {
+      if (CompilerState::Current().is_aot()) {
         needs_null_check = true;
       } else {
         // On 64-bit platforms assume that stored value is always a smi.
@@ -3061,8 +2986,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid: {
       // Check that value is always double.
-      if (CompilerState::Current().is_aot() &&
-          flow_graph->isolate()->can_use_strong_mode_types()) {
+      if (CompilerState::Current().is_aot()) {
         needs_null_check = true;
       } else {
         value_check = Cids::CreateMonomorphic(Z, kDoubleCid);
@@ -3082,10 +3006,9 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid:
       // StoreIndexedInstr takes unboxed int64, so value is
-      // checked when unboxing. In AOT Dart2, we use an
+      // checked when unboxing. In AOT, we use an
       // explicit null check and non-speculative unboxing.
-      needs_null_check = CompilerState::Current().is_aot() &&
-                         flow_graph->isolate()->can_use_strong_mode_types();
+      needs_null_check = CompilerState::Current().is_aot();
       break;
     default:
       // Array cids are already checked in the caller.

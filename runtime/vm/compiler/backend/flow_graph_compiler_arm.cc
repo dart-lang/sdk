@@ -871,20 +871,6 @@ void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
   __ Ret();
 }
 
-void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
-  // LR: return address.
-  // SP+1: receiver.
-  // SP+0: value.
-  // Sequence node has one store node and one return NULL node.
-  __ Comment("Intrinsic Setter");
-  __ ldr(R0,
-         compiler::Address(SP, 1 * compiler::target::kWordSize));  // Receiver.
-  __ ldr(R1, compiler::Address(SP, 0 * compiler::target::kWordSize));  // Value.
-  __ StoreIntoObjectOffset(R0, offset, R1);
-  __ LoadObject(R0, Object::null_object());
-  __ Ret();
-}
-
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
   if (CanOptimizeFunction() && function.IsOptimizable() &&

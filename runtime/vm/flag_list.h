@@ -85,9 +85,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
 #define FLAG_LIST(P, R, C, D)                                                  \
   VM_GLOBAL_FLAG_LIST(P, R, C, D)                                              \
   DISASSEMBLE_FLAGS(P, R, C, D)                                                \
-  P(experimental_unsafe_mode_use_at_your_own_risk, bool, false,                \
-    "Omit runtime strong mode type checks and disable optimizations based on " \
-    "types.")                                                                  \
   P(abort_on_oom, bool, false,                                                 \
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   C(async_debugger, false, false, bool, true,                                  \
@@ -233,7 +230,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
   P(use_field_guards, bool, true, "Use field guards and track field types")    \
   C(use_osr, false, true, bool, true, "Use OSR")                               \
-  P(use_strong_mode_types, bool, true, "Optimize based on strong mode types.") \
   R(verbose_gc, false, bool, false, "Enables verbose GC.")                     \
   R(verbose_gc_hdr, 40, int, 40, "Print verbose GC header interval.")          \
   R(verify_after_gc, false, bool, false,                                       \
