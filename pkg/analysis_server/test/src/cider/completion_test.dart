@@ -52,36 +52,30 @@ main(int b) {
     _assertNoClass(text: 'Random');
   }
 
-  Future<void> test_compute_prefixStarts() async {
-    var content = '''
+  Future<void> test_compute_prefixStart_hasPrefix() async {
+    await _compute('''
 class A {
-  String abcdef;
+  String foobar;
 }
 
-main() {
-  A a;
-  a.abc^
+main(A a) {
+  a.foo^
 }
-''';
-
-    _createFileResolver();
-    await _compute(content);
-    expect(_completionResult.prefixStart.line, 6);
+''');
+    expect(_completionResult.prefixStart.line, 5);
     expect(_completionResult.prefixStart.column, 4);
+  }
 
-    content = r'''
-import 'a.dart';
+  Future<void> test_compute_prefixStart_noPrefix() async {
+    await _compute(r'''
+import 'dart:math';
 ^
-''';
-
-    _createFileResolver();
-    await _compute(content);
+''');
     expect(_completionResult.prefixStart.line, 1);
     expect(_completionResult.prefixStart.column, 0);
   }
 
   Future<void> test_compute_sameSignature_sameResult() async {
-    _createFileResolver();
     await _compute(r'''
 var a = ^;
 ''');
@@ -97,8 +91,6 @@ var a = ^;
   }
 
   Future<void> test_compute_updateImportedLibrary() async {
-    var corePath = convertPath('/sdk/lib/core/core.dart');
-
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
     newFile(aPath, content: r'''
 class A {}
@@ -109,9 +101,8 @@ import 'a.dart';
 ^
 ''';
 
-    _createFileResolver();
     await _compute(content);
-    _assertComputedImportedLibraries([corePath, aPath]);
+    _assertComputedImportedLibraries([aPath], hasCore: true);
     _assertHasClass(text: 'A');
 
     // Repeat the query, still has 'A'.
@@ -132,18 +123,15 @@ class B {}
   }
 
   Future<void> test_compute_updateImports() async {
-    var corePath = convertPath('/sdk/lib/core/core.dart');
-
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
     newFile(aPath, content: r'''
 class A {}
 ''');
 
-    _createFileResolver();
     await _compute(r'''
 var a = ^;
 ''');
-    _assertComputedImportedLibraries([corePath]);
+    _assertComputedImportedLibraries([], hasCore: true);
     _assertHasClass(text: 'String');
 
     // Repeat the query, still has 'A'.
@@ -271,8 +259,17 @@ main() {
     ]);
   }
 
-  void _assertComputedImportedLibraries(List<String> expected) {
+  void _assertComputedImportedLibraries(
+    List<String> expected, {
+    bool hasCore = false,
+  }) {
     expected = expected.map(convertPath).toList();
+
+    if (hasCore) {
+      var corePath = convertPath('/sdk/lib/core/core.dart');
+      expected.add(corePath);
+    }
+
     expect(
       _computer.computedImportedLibraries,
       unorderedEquals(expected),
