@@ -2830,7 +2830,7 @@ class _BigIntImpl implements BigInt {
           // There is already one in the cachedBits.
           roundUp();
         } else {
-          for (int i = digitIndex; digitIndex >= 0; i--) {
+          for (int i = digitIndex; i >= 0; i--) {
             if (_digits[i] != 0) {
               roundUp();
               break;
