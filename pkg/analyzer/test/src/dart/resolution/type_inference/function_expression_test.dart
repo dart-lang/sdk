@@ -63,6 +63,13 @@ var v = () async {
     _assertReturnType('() async {', 'Future<int>');
   }
 
+  test_returnType_async_blockBody_noReturn() async {
+    await resolveTestCode('''
+var v = () async {};
+''');
+    _assertReturnType('() async {', 'Future<Null>');
+  }
+
   test_returnType_async_expressionBody() async {
     await resolveTestCode('''
 var v = () async => 0;
@@ -70,13 +77,34 @@ var v = () async => 0;
     _assertReturnType('() async =>', 'Future<int>');
   }
 
-  test_returnType_asyncStar_blockBody() async {
+  test_returnType_async_expressionBody_flatten() async {
+    await resolveTestCode('''
+var v = () async => Future.value(0);
+''');
+    _assertReturnType('() async =>', 'Future<int>');
+  }
+
+  test_returnType_async_expressionBody_flatten2() async {
+    await resolveTestCode('''
+var v = () async => Future.value(Future.value(0));
+''');
+    _assertReturnType('() async =>', 'Future<int>');
+  }
+
+  test_returnType_asyncStar_blockBody_hasYield() async {
     await resolveTestCode('''
 var v = () async* {
   yield 0;
 };
 ''');
     _assertReturnType('() async* {', 'Stream<int>');
+  }
+
+  test_returnType_asyncStar_blockBody_noYield() async {
+    await resolveTestCode('''
+var v = () async* {};
+''');
+    _assertReturnType('() async* {', 'Stream<dynamic>');
   }
 
   test_returnType_sync_blockBody() async {
@@ -225,13 +253,20 @@ var v = () => null;
     _assertReturnType('() =>', 'Null');
   }
 
-  test_returnType_syncStar_blockBody() async {
+  test_returnType_syncStar_blockBody_hasYield() async {
     await resolveTestCode('''
 var v = () sync* {
   yield 0;
 };
 ''');
     _assertReturnType('() sync* {', 'Iterable<int>');
+  }
+
+  test_returnType_syncStar_blockBody_noYield() async {
+    await resolveTestCode('''
+var v = () sync* {};
+''');
+    _assertReturnType('() sync* {', 'Iterable<dynamic>');
   }
 
   void _assertReturnType(String search, String expected) {

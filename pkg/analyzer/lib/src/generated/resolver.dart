@@ -28,6 +28,7 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/for_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
+import 'package:analyzer/src/dart/resolver/function_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
@@ -218,6 +219,7 @@ class ResolverVisitor extends ScopedVisitor {
   AssignmentExpressionResolver _assignmentExpressionResolver;
   BinaryExpressionResolver _binaryExpressionResolver;
   FunctionExpressionInvocationResolver _functionExpressionInvocationResolver;
+  FunctionExpressionResolver _functionExpressionResolver;
   ForResolver _forResolver;
   PostfixExpressionResolver _postfixExpressionResolver;
   PrefixExpressionResolver _prefixExpressionResolver;
@@ -372,6 +374,12 @@ class ResolverVisitor extends ScopedVisitor {
         FunctionExpressionInvocationResolver(
       resolver: this,
     );
+    this._functionExpressionResolver = FunctionExpressionResolver(
+      resolver: this,
+      migrationResolutionHooks: migrationResolutionHooks,
+      flowAnalysis: _flowAnalysis,
+      promoteManager: _promoteManager,
+    );
     this._forResolver = ForResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
@@ -435,8 +443,72 @@ class ResolverVisitor extends ScopedVisitor {
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
 
+  void checkForBodyMayCompleteNormally({
+    @required DartType returnType,
+    @required FunctionBody body,
+    @required AstNode errorNode,
+  }) {
+    if (!_flowAnalysis.flow.isReachable) {
+      return;
+    }
+
+    if (returnType == null) {
+      return;
+    }
+
+    if (body is BlockFunctionBody) {
+      if (body.isGenerator) {
+        return;
+      }
+
+      if (typeSystem.isPotentiallyNonNullable(returnType)) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
+          errorNode,
+        );
+      }
+    }
+  }
+
   void checkUnreachableNode(AstNode node) {
     nullSafetyDeadCodeVerifier.visitNode(node);
+  }
+
+  /// Given the declared return type of a function, compute the type of the
+  /// values which should be returned or yielded as appropriate.  If a type
+  /// cannot be computed from the declared return type, return null.
+  DartType computeReturnOrYieldType(DartType declaredType) {
+    bool isGenerator = _enclosingFunction.isGenerator;
+    bool isAsynchronous = _enclosingFunction.isAsynchronous;
+
+    // Ordinary functions just return their declared types.
+    if (!isGenerator && !isAsynchronous) {
+      return declaredType;
+    }
+    if (declaredType is InterfaceType) {
+      if (isGenerator) {
+        // If it's sync* we expect Iterable<T>
+        // If it's async* we expect Stream<T>
+        // Match the types to instantiate the type arguments if possible
+        List<DartType> targs = declaredType.typeArguments;
+        if (targs.length == 1) {
+          var arg = targs[0];
+          if (isAsynchronous) {
+            if (typeProvider.streamType2(arg) == declaredType) {
+              return arg;
+            }
+          } else {
+            if (typeProvider.iterableType2(arg) == declaredType) {
+              return arg;
+            }
+          }
+        }
+      }
+      // async functions expect `Future<T> | T`
+      var futureTypeParam = typeSystem.flatten(declaredType);
+      return _createFutureOr(futureTypeParam);
+    }
+    return declaredType;
   }
 
   /// Return the static element associated with the given expression whose type
@@ -458,49 +530,6 @@ class ResolverVisitor extends ScopedVisitor {
       return element;
     }
     return null;
-  }
-
-  /// Given a downward inference type [fnType], and the declared
-  /// [typeParameterList] for a function expression, determines if we can enable
-  /// downward inference and if so, returns the function type to use for
-  /// inference.
-  ///
-  /// This will return null if inference is not possible. This happens when
-  /// there is no way we can find a subtype of the function type, given the
-  /// provided type parameter list.
-  FunctionType matchFunctionTypeParameters(
-      TypeParameterList typeParameterList, FunctionType fnType) {
-    if (typeParameterList == null) {
-      if (fnType.typeFormals.isEmpty) {
-        return fnType;
-      }
-
-      // A non-generic function cannot be a subtype of a generic one.
-      return null;
-    }
-
-    NodeList<TypeParameter> typeParameters = typeParameterList.typeParameters;
-    if (fnType.typeFormals.isEmpty) {
-      // TODO(jmesserly): this is a legal subtype. We don't currently infer
-      // here, but we could.  This is similar to
-      // Dart2TypeSystem.inferFunctionTypeInstantiation, but we don't
-      // have the FunctionType yet for the current node, so it's not quite
-      // straightforward to apply.
-      return null;
-    }
-
-    if (fnType.typeFormals.length != typeParameters.length) {
-      // A subtype cannot have different number of type formals.
-      return null;
-    }
-
-    // Same number of type formals. Instantiate the function type so its
-    // parameter and return type are in terms of the surrounding context.
-    return fnType.instantiate(typeParameters.map((TypeParameter t) {
-      return t.declaredElement.instantiate(
-        nullabilitySuffix: noneOrStarSuffix,
-      );
-    }).toList());
   }
 
   /// If we reached a null-shorting termination, and the [node] has null
@@ -1108,8 +1137,8 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitFunctionDeclaration(node);
 
     if (_flowAnalysis != null) {
-      var returnType = _computeReturnOrYieldType(functionType.returnType);
-      _checkForBodyMayCompleteNormally(
+      var returnType = computeReturnOrYieldType(functionType.returnType);
+      checkForBodyMayCompleteNormally(
         returnType: returnType,
         body: node.functionExpression.body,
         errorNode: node.name,
@@ -1142,45 +1171,17 @@ class ResolverVisitor extends ScopedVisitor {
     ExecutableElement outerFunction = _enclosingFunction;
     _enclosingFunction = node.declaredElement;
 
-    var isFunctionDeclaration = node.parent is FunctionDeclaration;
-    var body = node.body;
-
-    if (_flowAnalysis != null) {
-      if (_flowAnalysis.flow != null && !isFunctionDeclaration) {
-        _flowAnalysis.executableDeclaration_enter(node, node.parameters, true);
-      }
+    if (node.parent is FunctionDeclaration) {
+      _functionExpressionResolver.resolve(node);
     } else {
-      _promoteManager.enterFunctionBody(body);
-    }
-
-    DartType returnType;
-    var contextType = InferenceContext.getContext(node);
-    if (contextType is FunctionType) {
-      contextType = matchFunctionTypeParameters(
-        node.typeParameters,
-        contextType,
-      );
-      if (contextType is FunctionType) {
-        typeAnalyzer.inferFormalParameterList(node.parameters, contextType);
-        returnType = _computeReturnOrYieldType(contextType.returnType);
-        InferenceContext.setType(body, returnType);
+      Scope outerScope = nameScope;
+      try {
+        ExecutableElement functionElement = node.declaredElement;
+        nameScope = FunctionScope(nameScope, functionElement);
+        _functionExpressionResolver.resolve(node);
+      } finally {
+        nameScope = outerScope;
       }
-    }
-
-    super.visitFunctionExpression(node);
-
-    if (_flowAnalysis != null) {
-      if (_flowAnalysis.flow != null && !isFunctionDeclaration) {
-        _checkForBodyMayCompleteNormally(
-          returnType: returnType,
-          body: body,
-          errorNode: body,
-        );
-        _flowAnalysis.flow?.functionExpression_end();
-        nullSafetyDeadCodeVerifier?.flowEnd(node);
-      }
-    } else {
-      _promoteManager.exitFunctionBody();
     }
 
     _enclosingFunction = outerFunction;
@@ -1366,7 +1367,7 @@ class ResolverVisitor extends ScopedVisitor {
       _promoteManager.enterFunctionBody(node.body);
     }
 
-    DartType returnType = _computeReturnOrYieldType(
+    DartType returnType = computeReturnOrYieldType(
       _enclosingFunction?.returnType,
     );
     InferenceContext.setType(node.body, returnType);
@@ -1374,7 +1375,7 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitMethodDeclaration(node);
 
     if (_flowAnalysis != null) {
-      _checkForBodyMayCompleteNormally(
+      checkForBodyMayCompleteNormally(
         returnType: returnType,
         body: node.body,
         errorNode: node.name,
@@ -1795,70 +1796,6 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitYieldStatement(YieldStatement node) {
     _yieldStatementResolver.resolve(node);
-  }
-
-  void _checkForBodyMayCompleteNormally({
-    @required DartType returnType,
-    @required FunctionBody body,
-    @required AstNode errorNode,
-  }) {
-    if (!_flowAnalysis.flow.isReachable) {
-      return;
-    }
-
-    if (returnType == null) {
-      return;
-    }
-
-    if (body is BlockFunctionBody) {
-      if (body.isGenerator) {
-        return;
-      }
-
-      if (typeSystem.isPotentiallyNonNullable(returnType)) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
-          errorNode,
-        );
-      }
-    }
-  }
-
-  /// Given the declared return type of a function, compute the type of the
-  /// values which should be returned or yielded as appropriate.  If a type
-  /// cannot be computed from the declared return type, return null.
-  DartType _computeReturnOrYieldType(DartType declaredType) {
-    bool isGenerator = _enclosingFunction.isGenerator;
-    bool isAsynchronous = _enclosingFunction.isAsynchronous;
-
-    // Ordinary functions just return their declared types.
-    if (!isGenerator && !isAsynchronous) {
-      return declaredType;
-    }
-    if (declaredType is InterfaceType) {
-      if (isGenerator) {
-        // If it's sync* we expect Iterable<T>
-        // If it's async* we expect Stream<T>
-        // Match the types to instantiate the type arguments if possible
-        List<DartType> targs = declaredType.typeArguments;
-        if (targs.length == 1) {
-          var arg = targs[0];
-          if (isAsynchronous) {
-            if (typeProvider.streamType2(arg) == declaredType) {
-              return arg;
-            }
-          } else {
-            if (typeProvider.iterableType2(arg) == declaredType) {
-              return arg;
-            }
-          }
-        }
-      }
-      // async functions expect `Future<T> | T`
-      var futureTypeParam = typeSystem.flatten(declaredType);
-      return _createFutureOr(futureTypeParam);
-    }
-    return declaredType;
   }
 
   /// Return a newly created cloner that can be used to clone constant
