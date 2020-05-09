@@ -9,15 +9,16 @@ import 'dart:math' as math;
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_async.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
 import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
+import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_enum_case_clauses.dart';
+import 'package:analysis_server/src/services/correction/dart/add_missing_required_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
@@ -412,8 +413,12 @@ class FixProcessor extends BaseProcessor {
 //    HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM : [],
 //    HintCode.INVALID_REQUIRED_POSITIONAL_PARAM : [],
 //    HintCode.INVALID_SEALED_ANNOTATION : [],
-//    HintCode.MISSING_REQUIRED_PARAM : [],
-//    HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS : [],
+    HintCode.MISSING_REQUIRED_PARAM: [
+      AddMissingRequiredArgument.newInstance,
+    ],
+    HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS: [
+      AddMissingRequiredArgument.newInstance,
+    ],
     HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
       RemoveQuestionMark.newInstance,
     ],
@@ -459,7 +464,9 @@ class FixProcessor extends BaseProcessor {
 
 //    StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE : [],
 //    StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER : [],
-//    StaticTypeWarningCode.INVALID_ASSIGNMENT : [],
+    StaticTypeWarningCode.INVALID_ASSIGNMENT: [
+      AddExplicitCast.newInstance,
+    ],
 //    StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION : [],
 //    StaticTypeWarningCode.NON_BOOL_CONDITION : [],
 //    StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT : [],
@@ -648,10 +655,6 @@ class FixProcessor extends BaseProcessor {
         errorCode == HintCode.INVALID_SEALED_ANNOTATION) {
       await _addFix_removeAnnotation();
     }
-    if (errorCode == HintCode.MISSING_REQUIRED_PARAM ||
-        errorCode == HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS) {
-      await _addFix_addMissingRequiredArgument();
-    }
     if (errorCode == HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER ||
         errorCode == HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD ||
         errorCode == HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD ||
@@ -809,7 +812,6 @@ class FixProcessor extends BaseProcessor {
       await _addFix_useStaticAccess_property();
     }
     if (errorCode == StaticTypeWarningCode.INVALID_ASSIGNMENT) {
-      await _addFix_addExplicitCast();
       await _addFix_changeTypeAnnotation();
     }
     if (errorCode ==
@@ -1023,105 +1025,6 @@ class FixProcessor extends BaseProcessor {
     return fixes.isNotEmpty ? fixes.first : null;
   }
 
-  Future<void> _addFix_addExplicitCast() async {
-    if (coveredNode is! Expression) {
-      return;
-    }
-    Expression target = coveredNode;
-    var fromType = target.staticType;
-    DartType toType;
-    var parent = target.parent;
-    if (parent is AssignmentExpression && target == parent.rightHandSide) {
-      toType = parent.leftHandSide.staticType;
-    } else if (parent is VariableDeclaration && target == parent.initializer) {
-      toType = parent.declaredElement.type;
-    } else {
-      // TODO(brianwilkerson) Handle function arguments.
-      return;
-    }
-    // TODO(brianwilkerson) Handle `toSet` in a manner similar to the below.
-    if (_isToListMethodInvocation(target)) {
-      var targetTarget = (target as MethodInvocation).target;
-      if (targetTarget != null) {
-        var targetTargetType = targetTarget.staticType;
-        if (_isDartCoreIterable(targetTargetType) ||
-            _isDartCoreList(targetTargetType) ||
-            _isDartCoreMap(targetTargetType) ||
-            _isDartCoreSet(targetTargetType)) {
-          target = targetTarget;
-          fromType = targetTargetType;
-        }
-      }
-    }
-    if (target is AsExpression) {
-      // TODO(brianwilkerson) Consider updating the right operand.
-      return;
-    }
-    var needsParentheses = target.precedence < Precedence.postfix;
-    if (((_isDartCoreIterable(fromType) || _isDartCoreList(fromType)) &&
-            _isDartCoreList(toType)) ||
-        (_isDartCoreSet(fromType) && _isDartCoreSet(toType))) {
-      if (_isCastMethodInvocation(target)) {
-        // TODO(brianwilkerson) Consider updating the type arguments to the
-        // `cast` invocation.
-        return;
-      }
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        if (needsParentheses) {
-          builder.addSimpleInsertion(target.offset, '(');
-        }
-        builder.addInsertion(target.end, (DartEditBuilder builder) {
-          if (needsParentheses) {
-            builder.write(')');
-          }
-          builder.write('.cast<');
-          builder.writeType((toType as InterfaceType).typeArguments[0]);
-          builder.write('>()');
-        });
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.ADD_EXPLICIT_CAST);
-    } else if (_isDartCoreMap(fromType) && _isDartCoreMap(toType)) {
-      if (_isCastMethodInvocation(target)) {
-        // TODO(brianwilkerson) Consider updating the type arguments to the
-        // `cast` invocation.
-        return;
-      }
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        if (needsParentheses) {
-          builder.addSimpleInsertion(target.offset, '(');
-        }
-        builder.addInsertion(target.end, (DartEditBuilder builder) {
-          if (needsParentheses) {
-            builder.write(')');
-          }
-          builder.write('.cast<');
-          builder.writeType((toType as InterfaceType).typeArguments[0]);
-          builder.write(', ');
-          builder.writeType((toType as InterfaceType).typeArguments[1]);
-          builder.write('>()');
-        });
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.ADD_EXPLICIT_CAST);
-    } else {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        if (needsParentheses) {
-          builder.addSimpleInsertion(target.offset, '(');
-        }
-        builder.addInsertion(target.end, (DartEditBuilder builder) {
-          if (needsParentheses) {
-            builder.write(')');
-          }
-          builder.write(' as ');
-          builder.writeType(toType);
-        });
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.ADD_EXPLICIT_CAST);
-    }
-  }
-
   Future<void> _addFix_addMissingHashOrEquals() async {
     final methodDecl = node.thisOrAncestorOfType<MethodDeclaration>();
     final classDecl = node.thisOrAncestorOfType<ClassDeclaration>();
@@ -1281,104 +1184,6 @@ class FixProcessor extends BaseProcessor {
     } else {
       var parameterList = await context.getParameterList();
       await addParameter(parameterList?.leftParenthesis?.end, '{', '}');
-    }
-  }
-
-  Future<void> _addFix_addMissingRequiredArgument() async {
-    InstanceCreationExpression creation;
-    Element targetElement;
-    ArgumentList argumentList;
-
-    if (node is SimpleIdentifier) {
-      var invocation = node.parent;
-      if (invocation is MethodInvocation) {
-        targetElement = invocation.methodName.staticElement;
-        argumentList = invocation.argumentList;
-      } else {
-        creation =
-            invocation.thisOrAncestorOfType<InstanceCreationExpression>();
-        if (creation != null) {
-          targetElement = creation.staticElement;
-          argumentList = creation.argumentList;
-        }
-      }
-    }
-
-    if (targetElement is ExecutableElement) {
-      // Format: "Missing required argument 'foo"
-      var messageParts = error.message.split("'");
-      if (messageParts.length < 2) {
-        return;
-      }
-      var missingParameterName = messageParts[1];
-
-      var missingParameter = targetElement.parameters.firstWhere(
-          (p) => p.name == missingParameterName,
-          orElse: () => null);
-      if (missingParameter == null) {
-        return;
-      }
-
-      int offset;
-      var hasTrailingComma = false;
-      var insertBetweenParams = false;
-      List<Expression> arguments = argumentList.arguments;
-      if (arguments.isEmpty) {
-        offset = argumentList.leftParenthesis.end;
-      } else {
-        var lastArgument = arguments.last;
-        offset = lastArgument.end;
-        hasTrailingComma = lastArgument.endToken.next.type == TokenType.COMMA;
-
-        if (lastArgument is NamedExpression &&
-            flutter.isWidgetExpression(creation)) {
-          if (flutter.isChildArgument(lastArgument) ||
-              flutter.isChildrenArgument(lastArgument)) {
-            offset = lastArgument.offset;
-            hasTrailingComma = true;
-            insertBetweenParams = true;
-          }
-        }
-      }
-
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addInsertion(offset, (DartEditBuilder builder) {
-          if (arguments.isNotEmpty && !insertBetweenParams) {
-            builder.write(', ');
-          }
-
-          builder.write('$missingParameterName: ');
-
-          var defaultValue = getDefaultStringParameterValue(missingParameter);
-          // Use defaultValue.cursorPosition if it's not null.
-          if (defaultValue?.cursorPosition != null) {
-            builder.write(
-                defaultValue.text.substring(0, defaultValue.cursorPosition));
-            builder.selectHere();
-            builder.write(
-                defaultValue.text.substring(defaultValue.cursorPosition));
-          } else {
-            builder.addSimpleLinkedEdit('VALUE', defaultValue?.text);
-          }
-
-          if (flutter.isWidgetExpression(creation)) {
-            // Insert a trailing comma after Flutter instance creation params.
-            if (!hasTrailingComma) {
-              builder.write(',');
-            } else if (insertBetweenParams) {
-              builder.writeln(',');
-
-              // Insert indent before the child: or children: param.
-              var indent = utils.getLinePrefix(offset);
-              builder.write(indent);
-            }
-          }
-        });
-      });
-      _addFixFromBuilder(
-          changeBuilder, DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
-          args: [missingParameterName]);
     }
   }
 
@@ -4452,9 +4257,10 @@ class FixProcessor extends BaseProcessor {
 
   Future<void> _addFromProducers() async {
     var context = CorrectionProducerContext(
+      diagnostic: error,
+      resolvedResult: resolvedResult,
       selectionOffset: errorOffset,
       selectionLength: 0,
-      resolvedResult: resolvedResult,
       workspace: workspace,
     );
 
@@ -4791,74 +4597,12 @@ class FixProcessor extends BaseProcessor {
     return node is SimpleIdentifier && node.name == 'await';
   }
 
-  bool _isCastMethodElement(MethodElement method) {
-    if (method.name != 'cast') {
-      return false;
-    }
-    ClassElement definingClass = method.enclosingElement;
-    return _isDartCoreIterableElement(definingClass) ||
-        _isDartCoreListElement(definingClass) ||
-        _isDartCoreMapElement(definingClass) ||
-        _isDartCoreSetElement(definingClass);
-  }
-
-  bool _isCastMethodInvocation(Expression expression) {
-    if (expression is MethodInvocation) {
-      var element = expression.methodName.staticElement;
-      return element is MethodElement && _isCastMethodElement(element);
-    }
-    return false;
-  }
-
-  bool _isDartCoreIterable(DartType type) =>
-      type is InterfaceType && _isDartCoreIterableElement(type.element);
-
-  bool _isDartCoreIterableElement(ClassElement element) =>
-      element != null &&
-      element.name == 'Iterable' &&
-      element.library.isDartCore;
-
-  bool _isDartCoreList(DartType type) =>
-      type is InterfaceType && _isDartCoreListElement(type.element);
-
-  bool _isDartCoreListElement(ClassElement element) =>
-      element != null && element.name == 'List' && element.library.isDartCore;
-
-  bool _isDartCoreMap(DartType type) =>
-      type is InterfaceType && _isDartCoreMapElement(type.element);
-
-  bool _isDartCoreMapElement(ClassElement element) =>
-      element != null && element.name == 'Map' && element.library.isDartCore;
-
-  bool _isDartCoreSet(DartType type) =>
-      type is InterfaceType && _isDartCoreSetElement(type.element);
-
-  bool _isDartCoreSetElement(ClassElement element) =>
-      element != null && element.name == 'Set' && element.library.isDartCore;
-
   bool _isLibSrcPath(String path) {
     var parts = resourceProvider.pathContext.split(path);
     for (var i = 0; i < parts.length - 2; i++) {
       if (parts[i] == 'lib' && parts[i + 1] == 'src') {
         return true;
       }
-    }
-    return false;
-  }
-
-  bool _isToListMethodElement(MethodElement method) {
-    if (method.name != 'toList') {
-      return false;
-    }
-    ClassElement definingClass = method.enclosingElement;
-    return _isDartCoreIterableElement(definingClass) ||
-        _isDartCoreListElement(definingClass);
-  }
-
-  bool _isToListMethodInvocation(Expression expression) {
-    if (expression is MethodInvocation) {
-      var element = expression.methodName.staticElement;
-      return element is MethodElement && _isToListMethodElement(element);
     }
     return false;
   }

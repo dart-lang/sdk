@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 /// Extensions for [AstNode]s
 extension AstNodeExtensions on AstNode {
@@ -57,6 +59,29 @@ extension AstNodeExtensions on AstNode {
   bool get inSwitch => thisOrAncestorOfType<SwitchStatement>() != null;
 
   bool get inWhileLoop => thisOrAncestorOfType<WhileStatement>() != null;
+}
+
+/// Extensions for [Expression]s
+extension ExpressionExtensions on Expression {
+  /// Return `true` if this expression is an invocation of the method `cast`
+  /// from either Iterable`, `List`, `Map`, or `Set`.
+  bool get isCastMethodInvocation {
+    if (this is MethodInvocation) {
+      var element = (this as MethodInvocation).methodName.staticElement;
+      return element is MethodElement && element.isCastMethod;
+    }
+    return false;
+  }
+
+  /// Return `true` if this expression is an invocation of the method `toList`
+  /// from either `Iterable` or `List`.
+  bool get isToListMethodInvocation {
+    if (this is MethodInvocation) {
+      var element = (this as MethodInvocation).methodName.staticElement;
+      return element is MethodElement && element.isToListMethod;
+    }
+    return false;
+  }
 }
 
 /// Extensions for [FunctionBody]s

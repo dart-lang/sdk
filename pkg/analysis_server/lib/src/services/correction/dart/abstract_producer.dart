@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -20,6 +23,12 @@ import 'package:meta/meta.dart';
 abstract class CorrectionProducer {
   CorrectionProducerContext _context;
 
+  /// The most deeply nested node that completely covers the highlight region of
+  /// the diagnostic, or `null` if there is no diagnostic, such a node does not
+  /// exist, or if it hasn't been computed yet. Use [coveredNode] to access this
+  /// field.
+  AstNode _coveredNode;
+
   /// Return the arguments that should be used when composing the message for an
   /// assist, or `null` if the assist message has no parameters or if this
   /// producer doesn't support assists.
@@ -28,6 +37,29 @@ abstract class CorrectionProducer {
   /// Return the assist kind that should be used to build an assist, or `null`
   /// if this producer doesn't support assists.
   AssistKind get assistKind => null;
+
+  /// The most deeply nested node that completely covers the highlight region of
+  /// the diagnostic, or `null` if there is no diagnostic or if such a node does
+  /// not exist.
+  AstNode get coveredNode {
+    // TODO(brianwilkerson) Consider renaming this to `coveringNode`.
+    if (_coveredNode == null) {
+      var diagnostic = this.diagnostic;
+      if (diagnostic == null) {
+        return null;
+      }
+      var errorOffset = diagnostic.problemMessage.offset;
+      var errorLength = diagnostic.problemMessage.length;
+      _coveredNode =
+          NodeLocator2(errorOffset, math.max(errorOffset + errorLength - 1, 0))
+              .searchWithin(unit);
+    }
+    return _coveredNode;
+  }
+
+  /// Return the diagnostic being fixed, or `null` if this producer is being
+  /// used to produce an assist.
+  Diagnostic get diagnostic => _context.diagnostic;
 
   /// Returns the EOL to use for this [CompilationUnit].
   String get eol => utils.endOfLine;
@@ -137,13 +169,16 @@ class CorrectionProducerContext {
   final ResolvedUnitResult resolvedResult;
   final ChangeWorkspace workspace;
 
+  final Diagnostic diagnostic;
+
   AstNode _node;
 
   CorrectionProducerContext({
-    this.selectionOffset = -1,
-    this.selectionLength = 0,
     @required this.resolvedResult,
     @required this.workspace,
+    this.diagnostic,
+    this.selectionOffset = -1,
+    this.selectionLength = 0,
   })  : file = resolvedResult.path,
         flutter = Flutter.of(resolvedResult),
         session = resolvedResult.session,
