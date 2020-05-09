@@ -702,7 +702,6 @@ void PageSpace::AbandonMarkingForShutdown() {
 }
 
 void PageSpace::UpdateMaxCapacityLocked() {
-#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -712,11 +711,9 @@ void PageSpace::UpdateMaxCapacityLocked() {
   auto isolate_group = heap_->isolate_group();
   isolate_group->GetHeapOldCapacityMaxMetric()->SetValue(
       static_cast<int64_t>(usage_.capacity_in_words) * kWordSize);
-#endif  // !defined(PRODUCT)
 }
 
 void PageSpace::UpdateMaxUsed() {
-#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -725,7 +722,6 @@ void PageSpace::UpdateMaxUsed() {
   ASSERT(heap_->isolate_group() != NULL);
   auto isolate_group = heap_->isolate_group();
   isolate_group->GetHeapOldUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
-#endif  // !defined(PRODUCT)
 }
 
 bool PageSpace::Contains(uword addr) const {

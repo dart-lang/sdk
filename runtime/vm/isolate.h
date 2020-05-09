@@ -327,12 +327,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void CreateHeap(bool is_vm_isolate, bool is_service_or_kernel_isolate);
   void Shutdown();
 
-#if !defined(PRODUCT)
 #define ISOLATE_METRIC_ACCESSOR(type, variable, name, unit)                    \
   type* Get##variable##Metric() { return &metric_##variable##_; }
   ISOLATE_GROUP_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
 
+#if !defined(PRODUCT)
   void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
     last_allocationprofile_accumulator_reset_timestamp_ =
         OS::GetCurrentTimeMillis();
@@ -588,12 +588,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
 #endif
 
-#if !defined(PRODUCT)
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
   ISOLATE_GROUP_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
+#if !defined(PRODUCT)
   // Timestamps of last operation via service.
   int64_t last_allocationprofile_accumulator_reset_timestamp_ = 0;
   int64_t last_allocationprofile_gc_timestamp_ = 0;

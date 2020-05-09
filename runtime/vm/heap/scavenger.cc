@@ -1273,7 +1273,6 @@ void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
 }
 
 void Scavenger::UpdateMaxHeapCapacity() {
-#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -1284,11 +1283,9 @@ void Scavenger::UpdateMaxHeapCapacity() {
   ASSERT(isolate_group != NULL);
   isolate_group->GetHeapNewCapacityMaxMetric()->SetValue(
       to_->max_capacity_in_words() * kWordSize);
-#endif  // !defined(PRODUCT)
 }
 
 void Scavenger::UpdateMaxHeapUsage() {
-#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -1298,7 +1295,6 @@ void Scavenger::UpdateMaxHeapUsage() {
   auto isolate_group = heap_->isolate_group();
   ASSERT(isolate_group != NULL);
   isolate_group->GetHeapNewUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
-#endif  // !defined(PRODUCT)
 }
 
 template <bool parallel>
