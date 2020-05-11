@@ -5,6 +5,7 @@
 // @dart = 2.7
 
 // Test that logical or-expressions don't introduce unnecessary nots.
+// See http://dartbug.com/17027
 
 import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
@@ -14,6 +15,14 @@ foo(bar, gee) {
   bool cond1 = bar();
   if (cond1 || gee()) gee();
   if (cond1 || gee()) gee();
+
+  // We want something like:
+  //     var t1 = bar.call$0();
+  //     if (t1 || gee.call$0()) gee.call$0();
+  //     if (t1 || gee.call$0()) gee.call$0();
+
+  // absent: 'if (!'
+  // present: /if \(\w+ \|\|/
 }
 """;
 
@@ -22,29 +31,26 @@ void foo(list, bar) {
   if (list == null) bar();
   if (list == null || bar()) bar();
   if (list == null || bar()) bar();
+
+  // We want something like:
+  //     var t1 = list == null;
+  //     if (t1) bar.call$0();
+  //     if (t1 || bar.call$0()) bar.call$0();
+  //     if (t1 || bar.call$0()) bar.call$0();
+
+  // absent: 'if (!'
+  // present: /if \(\w+ \|\|/
 }
 """;
 
 main() {
   runTests() async {
-    // We want something like:
-    //     var t1 = bar.call$0() === true;
-    //     if (t1 || gee.call$0() === true) gee.call$0();
-    //     if (t1 || gee.call$0() === true) gee.call$0();
-    await compileAndDoNotMatchFuzzy(
-        TEST_ONE, 'foo', r"""var x = [a-zA-Z0-9$.]+\(\) == true;
-            if \(x \|\| [a-zA-Z0-9$.]+\(\) === true\) [^;]+;
-            if \(x \|\| [a-zA-Z0-9$.]+\(\) === true\) [^;]+;""");
+    Future check(String test) {
+      return compile(test, entry: 'foo', check: checkerForAbsentPresent(test));
+    }
 
-    // We want something like:
-    //     var t1 = list == null;
-    //     if (t1) bar.call$0();
-    //     if (t1 || bar.call$0() === true) bar.call$0();
-    //     if (t1 || bar.call$0() === true) bar.call$0();
-    await compileAndMatchFuzzy(TEST_TWO, 'foo', r"""var x = x == null;
-            if \(x\) [^;]+;
-            if \(x \|\| [a-zA-Z0-9$.]+\(\) === true\) [^;]+;
-            if \(x \|\| [a-zA-Z0-9$.]+\(\) === true\) [^;]+;""");
+    await check(TEST_ONE);
+    await check(TEST_TWO);
   }
 
   asyncTest(() async {
