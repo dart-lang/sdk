@@ -262,13 +262,15 @@
       "name": "lint",
       "kind": "Chain",
       "source": "test/lint_suite.dart",
-      "path": "lib/",
+      "path": "../",
       "status": "test/lint_test.status",
       "pattern": [
-        ".*\\.dart$"
+        "_fe_analyzer_shared/lib/.*\\.dart$",
+        "front_end/lib/.*\\.dart$"
       ],
       "exclude": [
-        "src/fasta/fasta_codes_generated\\.dart$"
+        "_fe_analyzer_shared/lib/src/messages/codes_generated\\.dart$",
+        "front_end/lib/src/fasta/fasta_codes_cfe_generated\\.dart$"
       ]
     },
     {

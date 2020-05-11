@@ -1244,7 +1244,7 @@ class FlowModel<Variable, Type> {
 
     if (newVariableInfo == null) return this;
 
-    return FlowModel<Variable, Type>._(reachable, newVariableInfo);
+    return new FlowModel<Variable, Type>._(reachable, newVariableInfo);
   }
 
   /// Updates the state to indicate that the given [writtenVariables] are no
@@ -2065,8 +2065,8 @@ class VariableModel<Variable, Type> {
     bool skipped2 = false;
     List<Type> result;
     while (index1 < chain1.length && index2 < chain2.length) {
-      var type1 = chain1[index1];
-      var type2 = chain2[index2];
+      Type type1 = chain1[index1];
+      Type type2 = chain2[index2];
       if (typeOperations.isSameType(type1, type2)) {
         result ??= <Type>[];
         result.add(type1);
@@ -2838,7 +2838,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void whileStatement_end() {
     _WhileContext<Variable, Type> context =
         _stack.removeLast() as _WhileContext<Variable, Type>;
-    var afterBody = _current;
+    FlowModel<Variable, Type> afterBody = _current;
     _current = _join(context._conditionInfo.ifFalse, context._breakModel);
     _current = _current.joinUnassigned(other: afterBody);
   }
