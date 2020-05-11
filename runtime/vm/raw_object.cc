@@ -16,7 +16,7 @@
 
 namespace dart {
 
-bool RawObject::InVMIsolateHeap() const {
+bool ObjectLayout::InVMIsolateHeap() const {
   // All "vm-isolate" objects are pre-marked and in old space
   // (see [Object::FinalizeVMIsolate]).
   if (!IsOldObject() || !IsMarked()) return false;
@@ -26,22 +26,26 @@ bool RawObject::InVMIsolateHeap() const {
   return heap->old_space()->ContainsUnsafe(ToAddr(this));
 }
 
-void RawObject::Validate(IsolateGroup* isolate_group) const {
-  if (Object::void_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
-    // Validation relies on properly initialized class classes. Skip if the
-    // VM is still being initialized.
-    return;
-  }
+void ObjectPtr::Validate(IsolateGroup* isolate_group) const {
   // All Smi values are valid.
   if (!IsHeapObject()) {
     return;
   }
   // Slightly more readable than a segfault.
-  if (this == reinterpret_cast<RawObject*>(kHeapObjectTag)) {
+  if (tagged_pointer_ == kHeapObjectTag) {
     FATAL("RAW_NULL encountered");
   }
+  ptr()->Validate(isolate_group);
+}
+
+void ObjectLayout::Validate(IsolateGroup* isolate_group) const {
+  if (static_cast<uword>(Object::void_class_) == kHeapObjectTag) {
+    // Validation relies on properly initialized class classes. Skip if the
+    // VM is still being initialized.
+    return;
+  }
   // Validate that the tags_ field is sensible.
-  uint32_t tags = ptr()->tags_;
+  uint32_t tags = tags_;
   if (IsNewObject()) {
     if (!NewBit::decode(tags)) {
       FATAL1("New object missing kNewBit: %x\n", tags);
@@ -64,16 +68,16 @@ void RawObject::Validate(IsolateGroup* isolate_group) const {
     }
   }
   const intptr_t class_id = ClassIdTag::decode(tags);
-  if (!isolate_group->class_table()->IsValidIndex(class_id)) {
+  if (!isolate_group->shared_class_table()->IsValidIndex(class_id)) {
     FATAL1("Invalid class id encountered %" Pd "\n", class_id);
   }
   if (class_id == kNullCid &&
-      isolate_group->class_table()->HasValidClassAt(class_id)) {
+      isolate_group->shared_class_table()->HasValidClassAt(class_id)) {
     // Null class not yet initialized; skip.
     return;
   }
   intptr_t size_from_tags = SizeTag::decode(tags);
-  intptr_t size_from_class = HeapSizeFromClass();
+  intptr_t size_from_class = HeapSizeFromClass(tags);
   if ((size_from_tags != 0) && (size_from_tags != size_from_class)) {
     FATAL3(
         "Inconsistent size encountered "
@@ -85,82 +89,79 @@ void RawObject::Validate(IsolateGroup* isolate_group) const {
 // Can't look at the class object because it can be called during
 // compaction when the class objects are moving. Can use the class
 // id in the header and the sizes in the Class Table.
-intptr_t RawObject::HeapSizeFromClass() const {
-  // Only reasonable to be called on heap objects.
-  ASSERT(IsHeapObject());
-
-  intptr_t class_id = GetClassId();
+// Cannot deference ptr()->tags_. May dereference other parts of the object.
+intptr_t ObjectLayout::HeapSizeFromClass(uint32_t tags) const {
+  intptr_t class_id = ClassIdTag::decode(tags);
   intptr_t instance_size = 0;
   switch (class_id) {
     case kCodeCid: {
-      const RawCode* raw_code = reinterpret_cast<const RawCode*>(this);
+      const CodePtr raw_code = static_cast<const CodePtr>(this);
       intptr_t pointer_offsets_length =
           Code::PtrOffBits::decode(raw_code->ptr()->state_bits_);
       instance_size = Code::InstanceSize(pointer_offsets_length);
       break;
     }
     case kInstructionsCid: {
-      const RawInstructions* raw_instructions =
-          reinterpret_cast<const RawInstructions*>(this);
+      const InstructionsPtr raw_instructions =
+          static_cast<const InstructionsPtr>(this);
       intptr_t instructions_size = Instructions::Size(raw_instructions);
       instance_size = Instructions::InstanceSize(instructions_size);
       break;
     }
     case kInstructionsSectionCid: {
-      const RawInstructionsSection* raw_section =
-          reinterpret_cast<const RawInstructionsSection*>(this);
+      const InstructionsSectionPtr raw_section =
+          static_cast<const InstructionsSectionPtr>(this);
       intptr_t section_size = InstructionsSection::Size(raw_section);
       instance_size = InstructionsSection::InstanceSize(section_size);
       break;
     }
     case kContextCid: {
-      const RawContext* raw_context = reinterpret_cast<const RawContext*>(this);
+      const ContextPtr raw_context = static_cast<const ContextPtr>(this);
       intptr_t num_variables = raw_context->ptr()->num_variables_;
       instance_size = Context::InstanceSize(num_variables);
       break;
     }
     case kContextScopeCid: {
-      const RawContextScope* raw_context_scope =
-          reinterpret_cast<const RawContextScope*>(this);
+      const ContextScopePtr raw_context_scope =
+          static_cast<const ContextScopePtr>(this);
       intptr_t num_variables = raw_context_scope->ptr()->num_variables_;
       instance_size = ContextScope::InstanceSize(num_variables);
       break;
     }
     case kOneByteStringCid: {
-      const RawOneByteString* raw_string =
-          reinterpret_cast<const RawOneByteString*>(this);
+      const OneByteStringPtr raw_string =
+          static_cast<const OneByteStringPtr>(this);
       intptr_t string_length = Smi::Value(raw_string->ptr()->length_);
       instance_size = OneByteString::InstanceSize(string_length);
       break;
     }
     case kTwoByteStringCid: {
-      const RawTwoByteString* raw_string =
-          reinterpret_cast<const RawTwoByteString*>(this);
+      const TwoByteStringPtr raw_string =
+          static_cast<const TwoByteStringPtr>(this);
       intptr_t string_length = Smi::Value(raw_string->ptr()->length_);
       instance_size = TwoByteString::InstanceSize(string_length);
       break;
     }
     case kArrayCid:
     case kImmutableArrayCid: {
-      const RawArray* raw_array = reinterpret_cast<const RawArray*>(this);
+      const ArrayPtr raw_array = static_cast<const ArrayPtr>(this);
       intptr_t array_length = Smi::Value(raw_array->ptr()->length_);
       instance_size = Array::InstanceSize(array_length);
       break;
     }
     case kObjectPoolCid: {
-      const RawObjectPool* raw_object_pool =
-          reinterpret_cast<const RawObjectPool*>(this);
+      const ObjectPoolPtr raw_object_pool =
+          static_cast<const ObjectPoolPtr>(this);
       intptr_t len = raw_object_pool->ptr()->length_;
       instance_size = ObjectPool::InstanceSize(len);
       break;
     }
 #define SIZE_FROM_CLASS(clazz) case kTypedData##clazz##Cid:
       CLASS_LIST_TYPED_DATA(SIZE_FROM_CLASS) {
-        const RawTypedData* raw_obj =
-            reinterpret_cast<const RawTypedData*>(this);
-        intptr_t cid = raw_obj->GetClassId();
+        const TypedDataPtr raw_obj = static_cast<const TypedDataPtr>(this);
         intptr_t array_len = Smi::Value(raw_obj->ptr()->length_);
-        intptr_t lengthInBytes = array_len * TypedData::ElementSizeInBytes(cid);
+        intptr_t lengthInBytes =
+            array_len * TypedData::ElementSizeInBytes(class_id);
         instance_size = TypedData::InstanceSize(lengthInBytes);
         break;
       }
@@ -169,55 +170,55 @@ intptr_t RawObject::HeapSizeFromClass() const {
       instance_size = Pointer::InstanceSize();
       break;
     case kTypeArgumentsCid: {
-      const RawTypeArguments* raw_array =
-          reinterpret_cast<const RawTypeArguments*>(this);
+      const TypeArgumentsPtr raw_array =
+          static_cast<const TypeArgumentsPtr>(this);
       intptr_t array_length = Smi::Value(raw_array->ptr()->length_);
       instance_size = TypeArguments::InstanceSize(array_length);
       break;
     }
     case kPcDescriptorsCid: {
-      const RawPcDescriptors* raw_descriptors =
-          reinterpret_cast<const RawPcDescriptors*>(this);
+      const PcDescriptorsPtr raw_descriptors =
+          static_cast<const PcDescriptorsPtr>(this);
       intptr_t length = raw_descriptors->ptr()->length_;
       instance_size = PcDescriptors::InstanceSize(length);
       break;
     }
     case kCodeSourceMapCid: {
-      const RawCodeSourceMap* raw_code_source_map =
-          reinterpret_cast<const RawCodeSourceMap*>(this);
+      const CodeSourceMapPtr raw_code_source_map =
+          static_cast<const CodeSourceMapPtr>(this);
       intptr_t length = raw_code_source_map->ptr()->length_;
       instance_size = CodeSourceMap::InstanceSize(length);
       break;
     }
     case kCompressedStackMapsCid: {
-      const RawCompressedStackMaps* maps =
-          reinterpret_cast<const RawCompressedStackMaps*>(this);
+      const CompressedStackMapsPtr maps =
+          static_cast<const CompressedStackMapsPtr>(this);
       intptr_t length = CompressedStackMaps::PayloadSizeOf(maps);
       instance_size = CompressedStackMaps::InstanceSize(length);
       break;
     }
     case kLocalVarDescriptorsCid: {
-      const RawLocalVarDescriptors* raw_descriptors =
-          reinterpret_cast<const RawLocalVarDescriptors*>(this);
+      const LocalVarDescriptorsPtr raw_descriptors =
+          static_cast<const LocalVarDescriptorsPtr>(this);
       intptr_t num_descriptors = raw_descriptors->ptr()->num_entries_;
       instance_size = LocalVarDescriptors::InstanceSize(num_descriptors);
       break;
     }
     case kExceptionHandlersCid: {
-      const RawExceptionHandlers* raw_handlers =
-          reinterpret_cast<const RawExceptionHandlers*>(this);
+      const ExceptionHandlersPtr raw_handlers =
+          static_cast<const ExceptionHandlersPtr>(this);
       intptr_t num_handlers = raw_handlers->ptr()->num_entries_;
       instance_size = ExceptionHandlers::InstanceSize(num_handlers);
       break;
     }
     case kFreeListElement: {
-      uword addr = RawObject::ToAddr(this);
+      uword addr = ObjectLayout::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
       instance_size = element->HeapSize();
       break;
     }
     case kForwardingCorpse: {
-      uword addr = RawObject::ToAddr(this);
+      uword addr = ObjectLayout::ToAddr(this);
       ForwardingCorpse* element = reinterpret_cast<ForwardingCorpse*>(addr);
       instance_size = element->HeapSize();
       break;
@@ -240,12 +241,12 @@ intptr_t RawObject::HeapSizeFromClass() const {
       const bool use_saved_class_table = false;
 #endif
 
-      auto class_table = isolate_group->class_table();
+      auto class_table = isolate_group->shared_class_table();
       ASSERT(use_saved_class_table || class_table->SizeAt(class_id) > 0);
       if (!class_table->IsValidIndex(class_id) ||
           (!class_table->HasValidClassAt(class_id) && !use_saved_class_table)) {
         FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?",
-               class_id, this, static_cast<uint32_t>(ptr()->tags_));
+               class_id, this, static_cast<uint32_t>(tags));
       }
 #endif  // DEBUG
       instance_size = isolate_group->GetClassSizeForHeapWalkAt(class_id);
@@ -253,7 +254,6 @@ intptr_t RawObject::HeapSizeFromClass() const {
   }
   ASSERT(instance_size != 0);
 #if defined(DEBUG)
-  uint32_t tags = ptr()->tags_;
   intptr_t tags_size = SizeTag::decode(tags);
   if ((class_id == kArrayCid) && (instance_size > tags_size && tags_size > 0)) {
     // TODO(22501): Array::MakeFixedLength could be in the process of shrinking
@@ -262,7 +262,7 @@ intptr_t RawObject::HeapSizeFromClass() const {
     int retries_remaining = 1000;  // ... but not forever.
     do {
       OS::Sleep(1);
-      const RawArray* raw_array = reinterpret_cast<const RawArray*>(this);
+      const ArrayPtr raw_array = static_cast<const ArrayPtr>(this);
       intptr_t array_length = Smi::Value(raw_array->ptr()->length_);
       instance_size = Array::InstanceSize(array_length);
     } while ((instance_size > tags_size) && (--retries_remaining > 0));
@@ -275,60 +275,59 @@ intptr_t RawObject::HeapSizeFromClass() const {
   return instance_size;
 }
 
-intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
-                                            intptr_t class_id) {
+intptr_t ObjectLayout::VisitPointersPredefined(ObjectPointerVisitor* visitor,
+                                               intptr_t class_id) {
   ASSERT(class_id < kNumPredefinedCids);
 
   intptr_t size = 0;
 
-  // Only reasonable to be called on heap objects.
-  ASSERT(IsHeapObject());
-
   switch (class_id) {
 #define RAW_VISITPOINTERS(clazz)                                               \
   case k##clazz##Cid: {                                                        \
-    Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(this);                 \
-    size = Raw##clazz::Visit##clazz##Pointers(raw_obj, visitor);               \
+    clazz##Ptr raw_obj = static_cast<clazz##Ptr>(this);                        \
+    size = clazz##Layout::Visit##clazz##Pointers(raw_obj, visitor);            \
     break;                                                                     \
   }
     CLASS_LIST_NO_OBJECT(RAW_VISITPOINTERS)
 #undef RAW_VISITPOINTERS
 #define RAW_VISITPOINTERS(clazz) case kTypedData##clazz##Cid:
     CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
-      RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(this);
-      size = RawTypedData::VisitTypedDataPointers(raw_obj, visitor);
+      TypedDataPtr raw_obj = static_cast<TypedDataPtr>(this);
+      size = TypedDataLayout::VisitTypedDataPointers(raw_obj, visitor);
       break;
     }
 #undef RAW_VISITPOINTERS
 #define RAW_VISITPOINTERS(clazz) case kExternalTypedData##clazz##Cid:
     CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
-      auto raw_obj = reinterpret_cast<RawExternalTypedData*>(this);
-      size = RawExternalTypedData::VisitExternalTypedDataPointers(raw_obj,
-                                                                  visitor);
+      auto raw_obj = static_cast<ExternalTypedDataPtr>(this);
+      size = ExternalTypedDataLayout::VisitExternalTypedDataPointers(raw_obj,
+                                                                     visitor);
       break;
     }
 #undef RAW_VISITPOINTERS
     case kByteDataViewCid:
 #define RAW_VISITPOINTERS(clazz) case kTypedData##clazz##ViewCid:
       CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
-        auto raw_obj = reinterpret_cast<RawTypedDataView*>(this);
-        size = RawTypedDataView::VisitTypedDataViewPointers(raw_obj, visitor);
+        auto raw_obj = static_cast<TypedDataViewPtr>(this);
+        size =
+            TypedDataViewLayout::VisitTypedDataViewPointers(raw_obj, visitor);
         break;
       }
 #undef RAW_VISITPOINTERS
     case kByteBufferCid: {
-      RawInstance* raw_obj = reinterpret_cast<RawInstance*>(this);
-      size = RawInstance::VisitInstancePointers(raw_obj, visitor);
+      InstancePtr raw_obj = static_cast<InstancePtr>(this);
+      size = InstanceLayout::VisitInstancePointers(raw_obj, visitor);
       break;
     }
     case kFfiPointerCid: {
-      RawPointer* raw_obj = reinterpret_cast<RawPointer*>(this);
-      size = RawPointer::VisitPointerPointers(raw_obj, visitor);
+      PointerPtr raw_obj = static_cast<PointerPtr>(this);
+      size = PointerLayout::VisitPointerPointers(raw_obj, visitor);
       break;
     }
     case kFfiDynamicLibraryCid: {
-      RawDynamicLibrary* raw_obj = reinterpret_cast<RawDynamicLibrary*>(this);
-      size = RawDynamicLibrary::VisitDynamicLibraryPointers(raw_obj, visitor);
+      DynamicLibraryPtr raw_obj = static_cast<DynamicLibraryPtr>(this);
+      size =
+          DynamicLibraryLayout::VisitDynamicLibraryPointers(raw_obj, visitor);
       break;
     }
 #define RAW_VISITPOINTERS(clazz) case kFfi##clazz##Cid:
@@ -346,23 +345,24 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       }
 #undef RAW_VISITPOINTERS
     case kFreeListElement: {
-      uword addr = RawObject::ToAddr(this);
+      uword addr = ObjectLayout::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
       size = element->HeapSize();
       break;
     }
     case kForwardingCorpse: {
-      uword addr = RawObject::ToAddr(this);
+      uword addr = ObjectLayout::ToAddr(this);
       ForwardingCorpse* forwarder = reinterpret_cast<ForwardingCorpse*>(addr);
       size = forwarder->HeapSize();
       break;
     }
     case kNullCid:
+    case kNeverCid:
       size = HeapSize();
       break;
     default:
       FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?", class_id,
-             this, static_cast<uint32_t>(ptr()->tags_));
+             this, static_cast<uint32_t>(tags_));
       break;
   }
 
@@ -383,8 +383,8 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 #endif
 }
 
-void RawObject::VisitPointersPrecise(Isolate* isolate,
-                                     ObjectPointerVisitor* visitor) {
+void ObjectLayout::VisitPointersPrecise(Isolate* isolate,
+                                        ObjectPointerVisitor* visitor) {
   intptr_t class_id = GetClassId();
   if (class_id < kNumPredefinedCids) {
     VisitPointersPredefined(visitor, class_id);
@@ -397,19 +397,19 @@ void RawObject::VisitPointersPrecise(Isolate* isolate,
                                 ->host_next_field_offset_in_words_
                             << kWordSizeLog2;
   ASSERT(next_field_offset > 0);
-  uword obj_addr = RawObject::ToAddr(this);
-  uword from = obj_addr + sizeof(RawObject);
+  uword obj_addr = ObjectLayout::ToAddr(this);
+  uword from = obj_addr + sizeof(ObjectLayout);
   uword to = obj_addr + next_field_offset - kWordSize;
-  const auto first = reinterpret_cast<RawObject**>(from);
-  const auto last = reinterpret_cast<RawObject**>(to);
+  const auto first = reinterpret_cast<ObjectPtr*>(from);
+  const auto last = reinterpret_cast<ObjectPtr*>(to);
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
   const auto unboxed_fields_bitmap =
       visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
 
   if (!unboxed_fields_bitmap.IsEmpty()) {
-    intptr_t bit = sizeof(RawObject) / kWordSize;
-    for (RawObject** current = first; current <= last; current++) {
+    intptr_t bit = sizeof(ObjectLayout) / kWordSize;
+    for (ObjectPtr* current = first; current <= last; current++) {
       if (!unboxed_fields_bitmap.Get(bit++)) {
         visitor->VisitPointer(current);
       }
@@ -422,21 +422,21 @@ void RawObject::VisitPointersPrecise(Isolate* isolate,
 #endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 }
 
-bool RawObject::FindObject(FindObjectVisitor* visitor) {
+bool ObjectLayout::FindObject(FindObjectVisitor* visitor) {
   ASSERT(visitor != NULL);
-  return visitor->FindObject(this);
+  return visitor->FindObject(static_cast<ObjectPtr>(this));
 }
 
 // Most objects are visited with this function. It calls the from() and to()
 // methods on the raw object to get the first and last cells that need
 // visiting.
 #define REGULAR_VISITOR(Type)                                                  \
-  intptr_t Raw##Type::Visit##Type##Pointers(Raw##Type* raw_obj,                \
-                                            ObjectPointerVisitor* visitor) {   \
+  intptr_t Type##Layout::Visit##Type##Pointers(                                \
+      Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
     /* Make sure that we got here with the tagged pointer as this. */          \
     ASSERT(raw_obj->IsHeapObject());                                           \
     ASSERT_UNCOMPRESSED(Type);                                                 \
-    visitor->VisitPointers(raw_obj->from(), raw_obj->to());                    \
+    visitor->VisitPointers(raw_obj->ptr()->from(), raw_obj->ptr()->to());      \
     return Type::InstanceSize();                                               \
   }
 
@@ -446,25 +446,26 @@ bool RawObject::FindObject(FindObjectVisitor* visitor) {
 // Though as opposed to Similar to [REGULAR_VISITOR] this visitor will call the
 // specializd VisitTypedDataViewPointers
 #define TYPED_DATA_VIEW_VISITOR(Type)                                          \
-  intptr_t Raw##Type::Visit##Type##Pointers(Raw##Type* raw_obj,                \
-                                            ObjectPointerVisitor* visitor) {   \
+  intptr_t Type##Layout::Visit##Type##Pointers(                                \
+      Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
     /* Make sure that we got here with the tagged pointer as this. */          \
     ASSERT(raw_obj->IsHeapObject());                                           \
     ASSERT_UNCOMPRESSED(Type);                                                 \
-    visitor->VisitTypedDataViewPointers(raw_obj, raw_obj->from(),              \
-                                        raw_obj->to());                        \
+    visitor->VisitTypedDataViewPointers(raw_obj, raw_obj->ptr()->from(),       \
+                                        raw_obj->ptr()->to());                 \
     return Type::InstanceSize();                                               \
   }
 
 // For variable length objects. get_length is a code snippet that gets the
 // length of the object, which is passed to InstanceSize and the to() method.
 #define VARIABLE_VISITOR(Type, get_length)                                     \
-  intptr_t Raw##Type::Visit##Type##Pointers(Raw##Type* raw_obj,                \
-                                            ObjectPointerVisitor* visitor) {   \
+  intptr_t Type##Layout::Visit##Type##Pointers(                                \
+      Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
     /* Make sure that we got here with the tagged pointer as this. */          \
     ASSERT(raw_obj->IsHeapObject());                                           \
     intptr_t length = get_length;                                              \
-    visitor->VisitPointers(raw_obj->from(), raw_obj->to(length));              \
+    visitor->VisitPointers(raw_obj->ptr()->from(),                             \
+                           raw_obj->ptr()->to(length));                        \
     return Type::InstanceSize(length);                                         \
   }
 
@@ -475,8 +476,8 @@ bool RawObject::FindObject(FindObjectVisitor* visitor) {
 
 // For fixed-length objects that don't have any pointers that need visiting.
 #define NULL_VISITOR(Type)                                                     \
-  intptr_t Raw##Type::Visit##Type##Pointers(Raw##Type* raw_obj,                \
-                                            ObjectPointerVisitor* visitor) {   \
+  intptr_t Type##Layout::Visit##Type##Pointers(                                \
+      Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
     /* Make sure that we got here with the tagged pointer as this. */          \
     ASSERT(raw_obj->IsHeapObject());                                           \
     ASSERT_NOTHING_TO_VISIT(Type);                                             \
@@ -486,8 +487,8 @@ bool RawObject::FindObject(FindObjectVisitor* visitor) {
 // For objects that don't have any pointers that need visiting, but have a
 // variable length.
 #define VARIABLE_NULL_VISITOR(Type, get_length)                                \
-  intptr_t Raw##Type::Visit##Type##Pointers(Raw##Type* raw_obj,                \
-                                            ObjectPointerVisitor* visitor) {   \
+  intptr_t Type##Layout::Visit##Type##Pointers(                                \
+      Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
     /* Make sure that we got here with the tagged pointer as this. */          \
     ASSERT(raw_obj->IsHeapObject());                                           \
     ASSERT_NOTHING_TO_VISIT(Type);                                             \
@@ -497,8 +498,8 @@ bool RawObject::FindObject(FindObjectVisitor* visitor) {
 
 // For objects that are never instantiated on the heap.
 #define UNREACHABLE_VISITOR(Type)                                              \
-  intptr_t Raw##Type::Visit##Type##Pointers(Raw##Type* raw_obj,                \
-                                            ObjectPointerVisitor* visitor) {   \
+  intptr_t Type##Layout::Visit##Type##Pointers(                                \
+      Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
     UNREACHABLE();                                                             \
     return 0;                                                                  \
   }
@@ -575,6 +576,7 @@ VARIABLE_NULL_VISITOR(OneByteString, Smi::Value(raw_obj->ptr()->length_))
 VARIABLE_NULL_VISITOR(TwoByteString, Smi::Value(raw_obj->ptr()->length_))
 // Abstract types don't have their visitor called.
 UNREACHABLE_VISITOR(AbstractType)
+UNREACHABLE_VISITOR(CallSiteData)
 UNREACHABLE_VISITOR(TypedDataBase)
 UNREACHABLE_VISITOR(Error)
 UNREACHABLE_VISITOR(Number)
@@ -589,19 +591,19 @@ NULL_VISITOR(WeakSerializationReference)
 REGULAR_VISITOR(WeakSerializationReference)
 #endif
 
-bool RawCode::ContainsPC(const RawObject* raw_obj, uword pc) {
+bool CodeLayout::ContainsPC(const ObjectPtr raw_obj, uword pc) {
   if (!raw_obj->IsCode()) return false;
-  auto const raw_code = static_cast<const RawCode*>(raw_obj);
+  auto const raw_code = static_cast<const CodePtr>(raw_obj);
   const uword start = Code::PayloadStartOf(raw_code);
   const uword size = Code::PayloadSizeOf(raw_code);
   return (pc - start) <= size;  // pc may point just past last instruction.
 }
 
-intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
-                                    ObjectPointerVisitor* visitor) {
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+intptr_t CodeLayout::VisitCodePointers(CodePtr raw_obj,
+                                       ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->ptr()->from(), raw_obj->ptr()->to());
 
-  RawCode* obj = raw_obj->ptr();
+  CodeLayout* obj = raw_obj->ptr();
   intptr_t length = Code::PtrOffBits::decode(obj->state_bits_);
 #if defined(TARGET_ARCH_IA32)
   // On IA32 only we embed pointers to objects directly in the generated
@@ -611,8 +613,7 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
     uword entry_point = Code::PayloadStartOf(raw_obj);
     for (intptr_t i = 0; i < length; i++) {
       int32_t offset = obj->data()[i];
-      visitor->VisitPointer(
-          reinterpret_cast<RawObject**>(entry_point + offset));
+      visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(entry_point + offset));
     }
   }
   return Code::InstanceSize(length);
@@ -624,9 +625,9 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
 #endif
 }
 
-bool RawBytecode::ContainsPC(RawObject* raw_obj, uword pc) {
+bool BytecodeLayout::ContainsPC(ObjectPtr raw_obj, uword pc) {
   if (raw_obj->IsBytecode()) {
-    RawBytecode* raw_bytecode = static_cast<RawBytecode*>(raw_obj);
+    BytecodePtr raw_bytecode = static_cast<BytecodePtr>(raw_obj);
     uword start = raw_bytecode->ptr()->instructions_;
     uword size = raw_bytecode->ptr()->instructions_size_;
     return (pc - start) <= size;  // pc may point past last instruction.
@@ -634,10 +635,11 @@ bool RawBytecode::ContainsPC(RawObject* raw_obj, uword pc) {
   return false;
 }
 
-intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
-                                                ObjectPointerVisitor* visitor) {
+intptr_t ObjectPoolLayout::VisitObjectPoolPointers(
+    ObjectPoolPtr raw_obj,
+    ObjectPointerVisitor* visitor) {
   const intptr_t length = raw_obj->ptr()->length_;
-  RawObjectPool::Entry* entries = raw_obj->ptr()->data();
+  ObjectPoolLayout::Entry* entries = raw_obj->ptr()->data();
   uint8_t* entry_bits = raw_obj->ptr()->entry_bits();
   for (intptr_t i = 0; i < length; ++i) {
     ObjectPool::EntryType entry_type =
@@ -650,7 +652,7 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
   return ObjectPool::InstanceSize(length);
 }
 
-bool RawInstructions::ContainsPC(const RawInstructions* raw_instr, uword pc) {
+bool InstructionsLayout::ContainsPC(const InstructionsPtr raw_instr, uword pc) {
   const uword start = Instructions::PayloadStart(raw_instr);
   const uword size = Instructions::Size(raw_instr);
   // We use <= instead of < here because the saved-pc can be outside the
@@ -659,8 +661,8 @@ bool RawInstructions::ContainsPC(const RawInstructions* raw_instr, uword pc) {
   return (pc - start) <= size;
 }
 
-intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
-                                            ObjectPointerVisitor* visitor) {
+intptr_t InstanceLayout::VisitInstancePointers(InstancePtr raw_obj,
+                                               ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
   uint32_t tags = raw_obj->ptr()->tags_;
@@ -671,36 +673,37 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
   }
 
   // Calculate the first and last raw object pointer fields.
-  uword obj_addr = RawObject::ToAddr(raw_obj);
-  uword from = obj_addr + sizeof(RawObject);
+  uword obj_addr = ObjectLayout::ToAddr(raw_obj);
+  uword from = obj_addr + sizeof(ObjectLayout);
   uword to = obj_addr + instance_size - kWordSize;
-  visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
-                         reinterpret_cast<RawObject**>(to));
+  visitor->VisitPointers(reinterpret_cast<ObjectPtr*>(from),
+                         reinterpret_cast<ObjectPtr*>(to));
   return instance_size;
 }
 
-intptr_t RawImmutableArray::VisitImmutableArrayPointers(
-    RawImmutableArray* raw_obj,
+intptr_t ImmutableArrayLayout::VisitImmutableArrayPointers(
+    ImmutableArrayPtr raw_obj,
     ObjectPointerVisitor* visitor) {
-  return RawArray::VisitArrayPointers(raw_obj, visitor);
+  return ArrayLayout::VisitArrayPointers(raw_obj, visitor);
 }
 
-void RawObject::RememberCard(RawObject* const* slot) {
-  HeapPage::Of(this)->RememberCard(slot);
+void ObjectLayout::RememberCard(ObjectPtr const* slot) {
+  HeapPage::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
 }
 
 DEFINE_LEAF_RUNTIME_ENTRY(void,
                           RememberCard,
                           2,
-                          RawObject* object,
-                          RawObject** slot) {
+                          uword /*ObjectPtr*/ object_in,
+                          ObjectPtr* slot) {
+  ObjectPtr object = static_cast<ObjectPtr>(object_in);
   ASSERT(object->IsOldObject());
-  ASSERT(object->IsCardRemembered());
+  ASSERT(object->ptr()->IsCardRemembered());
   HeapPage::Of(object)->RememberCard(slot);
 }
 END_LEAF_RUNTIME_ENTRY
 
-const char* RawPcDescriptors::KindToCString(Kind k) {
+const char* PcDescriptorsLayout::KindToCString(Kind k) {
   switch (k) {
 #define ENUM_CASE(name, init)                                                  \
   case Kind::k##name:                                                          \
@@ -712,7 +715,7 @@ const char* RawPcDescriptors::KindToCString(Kind k) {
   }
 }
 
-bool RawPcDescriptors::ParseKind(const char* cstr, Kind* out) {
+bool PcDescriptorsLayout::ParseKind(const char* cstr, Kind* out) {
   ASSERT(cstr != nullptr && out != nullptr);
 #define ENUM_CASE(name, init)                                                  \
   if (strcmp(#name, cstr) == 0) {                                              \

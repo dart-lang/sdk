@@ -1,0 +1,13 @@
+library test;
+
+class A {
+  T f<T>(T t) => t;
+  int g(dynamic i) => 0;
+}
+
+var a = new A();
+var b = () => a.f(c);
+var c = () => a.f(b);
+var d = () => a.f(e);
+var e = () => a.g(d);
+main() {}

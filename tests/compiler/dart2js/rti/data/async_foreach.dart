@@ -4,8 +4,8 @@
 
 // @dart = 2.7
 
-/*strong.class: Class:direct,explicit=[Class.T],implicit=[Class.T],needsArgs*/
-/*omit.class: Class:needsArgs*/
+/*spec:nnbd-off.class: Class:direct,explicit=[Class.T],implicit=[Class.T],needsArgs*/
+/*prod:nnbd-off.class: Class:needsArgs*/
 class Class<T> {
   method() {
     var list = <T>[];
@@ -16,8 +16,8 @@ class Class<T> {
     // This happens because the closure is thought as possibly going to the
     // async.errorHandler callback.
     list.forEach(
-        /*strong.needsSignature*/
-        /*omit.needsSignature*/
+        /*spec:nnbd-off.needsSignature*/
+        /*prod:nnbd-off.needsSignature*/
         (x) => print(x));
   }
 }

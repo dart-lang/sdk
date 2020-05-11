@@ -70,7 +70,12 @@ class BinaryExpressionResolver {
       return;
     }
 
-    _resolveOtherOperator(node);
+    if (operator.isUserDefinableOperator) {
+      _resolveUserDefinable(node);
+      return;
+    }
+
+    _resolveUnsupportedOperator(node);
   }
 
   /// Set the static type of [node] to be the least upper bound of the static
@@ -129,100 +134,26 @@ class BinaryExpressionResolver {
     return _resolveTypeParameter(type);
   }
 
-  void _resolve1(BinaryExpressionImpl node) {
-    Token operator = node.operator;
-    if (operator.isUserDefinableOperator) {
-      _resolveBinaryExpression(node, operator.lexeme);
-    } else if (operator.type == TokenType.BANG_EQ) {
-      _resolveBinaryExpression(node, TokenType.EQ_EQ.lexeme);
-    }
-  }
-
-  void _resolve2(BinaryExpressionImpl node) {
-    if (identical(node.leftOperand.staticType, NeverTypeImpl.instance)) {
-      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
-      return;
-    }
-
-    DartType staticType =
-        node.staticInvokeType?.returnType ?? DynamicTypeImpl.instance;
-    if (node.leftOperand is! ExtensionOverride) {
-      staticType = _typeSystem.refineBinaryExpressionType(
-        _getStaticType(node.leftOperand),
-        node.operator.type,
-        node.rightOperand.staticType,
-        staticType,
-      );
-    }
-    _inferenceHelper.recordStaticType(node, staticType);
-  }
-
-  void _resolveBinaryExpression(BinaryExpression node, String methodName) {
-    Expression leftOperand = node.leftOperand;
-
-    if (leftOperand is ExtensionOverride) {
-      ExtensionElement extension = leftOperand.extensionName.staticElement;
-      MethodElement member = extension.getMethod(methodName);
-      if (member == null) {
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          node.operator,
-          [methodName, extension.name],
-        );
-      }
-      node.staticElement = member;
-      return;
-    }
-
-    var leftType = _getStaticType(leftOperand);
-
-    if (identical(leftType, NeverTypeImpl.instance)) {
-      _resolver.errorReporter.reportErrorForNode(
-        HintCode.RECEIVER_OF_TYPE_NEVER,
-        leftOperand,
-      );
-      return;
-    }
-
-    ResolutionResult result = _typePropertyResolver.resolve(
-      receiver: leftOperand,
-      receiverType: leftType,
-      name: methodName,
-      receiverErrorNode: leftOperand,
-      nameErrorNode: node,
-    );
-
-    node.staticElement = result.getter;
-    node.staticInvokeType = result.getter?.type;
-    if (_shouldReportInvalidMember(leftType, result)) {
-      if (leftOperand is SuperExpression) {
-        _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
-          node.operator,
-          [methodName, leftType],
-        );
-      } else {
-        _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_OPERATOR,
-          node.operator,
-          [methodName, leftType],
-        );
-      }
-    }
-  }
-
   void _resolveEqual(BinaryExpressionImpl node, {@required bool notEqual}) {
     var left = node.leftOperand;
-    var right = node.rightOperand;
-    var flow = _flowAnalysis?.flow;
-
     left.accept(_resolver);
+    left = node.leftOperand;
+
+    var flow = _flowAnalysis?.flow;
     flow?.equalityOp_rightBegin(left);
+
+    var right = node.rightOperand;
     right.accept(_resolver);
-    _resolve1(node);
+    right = node.rightOperand;
+
     flow?.equalityOp_end(node, right, notEqual: notEqual);
 
-    _resolve2(node);
+    _resolveUserDefinableElement(
+      node,
+      TokenType.EQ_EQ.lexeme,
+      promoteLeftTypeToNonNull: true,
+    );
+    _resolveUserDefinableType(node);
   }
 
   void _resolveIfNull(BinaryExpressionImpl node) {
@@ -270,17 +201,17 @@ class BinaryExpressionResolver {
     InferenceContext.setType(left, _typeProvider.boolType);
     InferenceContext.setType(right, _typeProvider.boolType);
 
-    // TODO(scheglov) Do we need these checks for null?
-    left?.accept(_resolver);
+    left.accept(_resolver);
     left = node.leftOperand;
 
     if (_flowAnalysis != null) {
       flow?.logicalBinaryOp_rightBegin(left, isAnd: true);
-      _flowAnalysis.checkUnreachableNode(right);
+      _resolver.checkUnreachableNode(right);
 
       right.accept(_resolver);
       right = node.rightOperand;
 
+      _resolver.nullSafetyDeadCodeVerifier?.flowEnd(right);
       flow?.logicalBinaryOp_end(node, right, isAnd: true);
     } else {
       _promoteManager.visitBinaryExpression_and_rhs(
@@ -296,47 +227,54 @@ class BinaryExpressionResolver {
     _checkNonBoolOperand(left, '&&');
     _checkNonBoolOperand(right, '&&');
 
-    _resolve1(node);
-    _resolve2(node);
+    _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
   }
 
   void _resolveLogicalOr(BinaryExpressionImpl node) {
     var left = node.leftOperand;
-    Expression right = node.rightOperand;
+    var right = node.rightOperand;
     var flow = _flowAnalysis?.flow;
 
     InferenceContext.setType(left, _typeProvider.boolType);
     InferenceContext.setType(right, _typeProvider.boolType);
 
-    // TODO(scheglov) Do we need these checks for null?
-    left?.accept(_resolver);
+    left.accept(_resolver);
     left = node.leftOperand;
 
     flow?.logicalBinaryOp_rightBegin(left, isAnd: false);
-    _flowAnalysis?.checkUnreachableNode(right);
+    _resolver.checkUnreachableNode(right);
 
     right.accept(_resolver);
     right = node.rightOperand;
 
+    _resolver.nullSafetyDeadCodeVerifier?.flowEnd(right);
     flow?.logicalBinaryOp_end(node, right, isAnd: false);
 
     _checkNonBoolOperand(left, '||');
     _checkNonBoolOperand(right, '||');
 
-    _resolve1(node);
-    _resolve2(node);
+    _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
   }
 
-  void _resolveOtherOperator(BinaryExpressionImpl node) {
-    Expression left = node.leftOperand;
-    Expression right = node.rightOperand;
+  /// If the given [type] is a type parameter, resolve it to the type that should
+  /// be used when looking up members. Otherwise, return the original type.
+  ///
+  /// TODO(scheglov) this is duplicate
+  DartType _resolveTypeParameter(DartType type) =>
+      type?.resolveToBound(_typeProvider.objectType);
 
-    // TODO(scheglov) Do we need these checks for null?
-    left?.accept(_resolver);
+  void _resolveUnsupportedOperator(BinaryExpressionImpl node) {
+    _inferenceHelper.recordStaticType(node, DynamicTypeImpl.instance);
+  }
 
-    // Call ElementResolver.visitBinaryExpression to resolve the user-defined
-    // operator method, if applicable.
-    _resolve1(node);
+  void _resolveUserDefinable(BinaryExpressionImpl node) {
+    var left = node.leftOperand;
+    var right = node.rightOperand;
+
+    left.accept(_resolver);
+
+    var operator = node.operator;
+    _resolveUserDefinableElement(node, operator.lexeme);
 
     var invokeType = node.staticInvokeType;
     if (invokeType != null && invokeType.parameters.isNotEmpty) {
@@ -346,18 +284,91 @@ class BinaryExpressionResolver {
       InferenceContext.setType(right, rightParam.type);
     }
 
-    // TODO(scheglov) Do we need these checks for null?
-    right?.accept(_resolver);
+    right.accept(_resolver);
 
-    _resolve2(node);
+    _resolveUserDefinableType(node);
   }
 
-  /// If the given [type] is a type parameter, resolve it to the type that should
-  /// be used when looking up members. Otherwise, return the original type.
-  ///
-  /// TODO(scheglov) this is duplicate
-  DartType _resolveTypeParameter(DartType type) =>
-      type?.resolveToBound(_typeProvider.objectType);
+  void _resolveUserDefinableElement(
+    BinaryExpression node,
+    String methodName, {
+    bool promoteLeftTypeToNonNull = false,
+  }) {
+    Expression leftOperand = node.leftOperand;
+
+    if (leftOperand is ExtensionOverride) {
+      ExtensionElement extension = leftOperand.extensionName.staticElement;
+      MethodElement member = extension.getMethod(methodName);
+      if (member == null) {
+        _errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
+          node.operator,
+          [methodName, extension.name],
+        );
+      }
+      node.staticElement = member;
+      return;
+    }
+
+    var leftType = _getStaticType(leftOperand);
+
+    if (identical(leftType, NeverTypeImpl.instance)) {
+      _resolver.errorReporter.reportErrorForNode(
+        HintCode.RECEIVER_OF_TYPE_NEVER,
+        leftOperand,
+      );
+      return;
+    }
+
+    if (promoteLeftTypeToNonNull) {
+      leftType = _typeSystem.promoteToNonNull(leftType);
+    }
+
+    ResolutionResult result = _typePropertyResolver.resolve(
+      receiver: leftOperand,
+      receiverType: leftType,
+      name: methodName,
+      receiverErrorNode: leftOperand,
+      nameErrorNode: node,
+    );
+
+    node.staticElement = result.getter;
+    node.staticInvokeType = result.getter?.type;
+    if (_shouldReportInvalidMember(leftType, result)) {
+      if (leftOperand is SuperExpression) {
+        _errorReporter.reportErrorForToken(
+          StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+          node.operator,
+          [methodName, leftType],
+        );
+      } else {
+        _errorReporter.reportErrorForToken(
+          StaticTypeWarningCode.UNDEFINED_OPERATOR,
+          node.operator,
+          [methodName, leftType],
+        );
+      }
+    }
+  }
+
+  void _resolveUserDefinableType(BinaryExpressionImpl node) {
+    if (identical(node.leftOperand.staticType, NeverTypeImpl.instance)) {
+      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
+      return;
+    }
+
+    DartType staticType =
+        node.staticInvokeType?.returnType ?? DynamicTypeImpl.instance;
+    if (node.leftOperand is! ExtensionOverride) {
+      staticType = _typeSystem.refineBinaryExpressionType(
+        _getStaticType(node.leftOperand),
+        node.operator.type,
+        node.rightOperand.staticType,
+        staticType,
+      );
+    }
+    _inferenceHelper.recordStaticType(node, staticType);
+  }
 
   /// Return `true` if we should report an error for the lookup [result] on
   /// the [type].

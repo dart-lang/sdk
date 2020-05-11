@@ -26,7 +26,7 @@ class DeserializationEnvironment<T extends Node> {
 
   T addBinder(String name, T node) {
     if (usedNames.contains(name)) {
-      throw StateError("name '$name' is already declared in this scope");
+      throw StateError("Name '${name}' is already declared in this scope.");
     }
     usedNames.add(name);
     return binders[name] = node;
@@ -115,7 +115,7 @@ class DartString extends TextSerializer<String> {
 
   String readFrom(Iterator<Object> stream, DeserializationState _) {
     if (stream.current is! String) {
-      throw StateError("expected an atom, found a list");
+      throw StateError("Expected an atom, found a list: '${stream.current}'.");
     }
     String result = json.decode(stream.current);
     stream.moveNext();
@@ -132,7 +132,7 @@ class DartInt extends TextSerializer<int> {
 
   int readFrom(Iterator<Object> stream, DeserializationState _) {
     if (stream.current is! String) {
-      throw StateError("expected an atom, found a list");
+      throw StateError("Expected an atom, found a list: '${stream.current}'.");
     }
     int result = int.parse(stream.current);
     stream.moveNext();
@@ -149,7 +149,7 @@ class DartDouble extends TextSerializer<double> {
 
   double readFrom(Iterator<Object> stream, DeserializationState _) {
     if (stream.current is! String) {
-      throw StateError("expected an atom, found a list");
+      throw StateError("Expected an atom, found a list: '${stream.current}'.");
     }
     double result = double.parse(stream.current);
     stream.moveNext();
@@ -166,7 +166,7 @@ class DartBool extends TextSerializer<bool> {
 
   bool readFrom(Iterator<Object> stream, DeserializationState _) {
     if (stream.current is! String) {
-      throw StateError("expected an atom, found a list");
+      throw StateError("Expected an atom, found a list: '${stream.current}'.");
     }
     bool result;
     if (stream.current == "true") {
@@ -174,7 +174,7 @@ class DartBool extends TextSerializer<bool> {
     } else if (stream.current == "false") {
       result = false;
     } else {
-      throw StateError("expected 'true' or 'false', found '${stream.current}'");
+      throw StateError("Expected 'true' or 'false', found '${stream.current}'");
     }
     stream.moveNext();
     return result;
@@ -185,6 +185,19 @@ class DartBool extends TextSerializer<bool> {
   }
 }
 
+class UriSerializer extends TextSerializer<Uri> {
+  const UriSerializer();
+
+  Uri readFrom(Iterator<Object> stream, DeserializationState state) {
+    String uriAsString = const DartString().readFrom(stream, state);
+    return Uri.parse(uriAsString);
+  }
+
+  void writeTo(StringBuffer buffer, Uri object, SerializationState state) {
+    const DartString().writeTo(buffer, object.toString(), state);
+  }
+}
+
 // == Serializers for tagged (disjoint) unions.
 //
 // They require a function mapping serializables to a tag string.  This is
@@ -192,53 +205,61 @@ class DartBool extends TextSerializer<bool> {
 // A tagged union of serializer/deserializers.
 class Case<T extends Node> extends TextSerializer<T> {
   final Tagger<T> tagger;
-  final List<String> tags;
-  final List<TextSerializer<T>> serializers;
+  final List<String> _tags;
+  final List<TextSerializer<T>> _serializers;
 
-  Case(this.tagger, this.tags, this.serializers);
+  Case(this.tagger, Map<String, TextSerializer<T>> tagsAndSerializers)
+      : _tags = tagsAndSerializers.keys.toList(),
+        _serializers = tagsAndSerializers.values.toList();
 
   Case.uninitialized(this.tagger)
-      : tags = [],
-        serializers = [];
+      : _tags = [],
+        _serializers = [];
+
+  void registerTags(Map<String, TextSerializer<T>> tagsAndSerializers) {
+    _tags.addAll(tagsAndSerializers.keys);
+    _serializers.addAll(tagsAndSerializers.values);
+  }
 
   T readFrom(Iterator<Object> stream, DeserializationState state) {
     if (stream.current is! Iterator) {
-      throw StateError("expected list, found atom");
+      throw StateError("Expected list, found atom: '${stream.current}'.");
     }
     Iterator nested = stream.current;
     nested.moveNext();
     if (nested.current is! String) {
-      throw StateError("expected atom, found list");
+      throw StateError("Expected atom, found list: '${nested.current}'.");
     }
     String tag = nested.current;
-    for (int i = 0; i < tags.length; ++i) {
-      if (tags[i] == tag) {
+    for (int i = 0; i < _tags.length; ++i) {
+      if (_tags[i] == tag) {
         nested.moveNext();
-        T result = serializers[i].readFrom(nested, state);
+        T result = _serializers[i].readFrom(nested, state);
         if (nested.moveNext()) {
-          throw StateError("extra cruft in tagged '${tag}'");
+          throw StateError(
+              "Extra data in tagged '${tag}': '${nested.current}'.");
         }
         stream.moveNext();
         return result;
       }
     }
-    throw StateError("unrecognized tag '${tag}'");
+    throw StateError("Unrecognized tag '${tag}'.");
   }
 
   void writeTo(StringBuffer buffer, T object, SerializationState state) {
     String tag = tagger.tag(object);
-    for (int i = 0; i < tags.length; ++i) {
-      if (tags[i] == tag) {
+    for (int i = 0; i < _tags.length; ++i) {
+      if (_tags[i] == tag) {
         buffer.write("(${tag}");
-        if (!serializers[i].isEmpty) {
+        if (!_serializers[i].isEmpty) {
           buffer.write(" ");
         }
-        serializers[i].writeTo(buffer, object, state);
+        _serializers[i].writeTo(buffer, object, state);
         buffer.write(")");
         return;
       }
     }
-    throw StateError("unrecognized tag '${tag}");
+    throw StateError("Unrecognized tag '${tag}'.");
   }
 }
 
@@ -249,7 +270,7 @@ class Wrapped<S, K> extends TextSerializer<K> {
   final K Function(S) wrap;
   final TextSerializer<S> contents;
 
-  Wrapped(this.unwrap, this.wrap, this.contents);
+  const Wrapped(this.unwrap, this.wrap, this.contents);
 
   K readFrom(Iterator<Object> stream, DeserializationState state) {
     return wrap(contents.readFrom(stream, state));
@@ -381,7 +402,7 @@ class ListSerializer<T> extends TextSerializer<List<T>> {
 
   List<T> readFrom(Iterator<Object> stream, DeserializationState state) {
     if (stream.current is! Iterator) {
-      throw StateError("expected a list, found an atom");
+      throw StateError("Expected a list, found an atom: '${stream.current}'.");
     }
     Iterator<Object> list = stream.current;
     list.moveNext();

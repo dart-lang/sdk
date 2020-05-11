@@ -1,0 +1,11 @@
+// @dart = 2.6
+class A extends B {
+  set foo(newFoo) {}
+}
+
+class B {
+  num get foo => null;
+  set foo(dynamic newFoo) {}
+}
+
+main() {}

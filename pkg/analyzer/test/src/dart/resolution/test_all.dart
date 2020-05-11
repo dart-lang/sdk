@@ -50,6 +50,7 @@ import 'prefixed_identifier_test.dart' as prefixed_identifier;
 import 'property_access_test.dart' as property_access;
 import 'simple_identifier_test.dart' as simple_identifier;
 import 'top_type_inference_test.dart' as top_type_inference;
+import 'try_statement_test.dart' as try_statement;
 import 'type_inference/test_all.dart' as type_inference;
 import 'type_name_test.dart' as type_name;
 import 'yield_statement_test.dart' as yield_statement;
@@ -99,6 +100,7 @@ main() {
     property_access.main();
     simple_identifier.main();
     top_type_inference.main();
+    try_statement.main();
     type_name.main();
     type_inference.main();
     yield_statement.main();

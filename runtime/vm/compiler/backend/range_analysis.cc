@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/range_analysis.h"
 
 #include "vm/bit_vector.h"
@@ -2771,7 +2769,7 @@ void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  ASSERT(RawObject::IsStringClassId(class_id()));
+  ASSERT(IsStringClassId(class_id()));
   RangeBoundary zero = RangeBoundary::FromConstant(0);
   // Take the number of loaded characters into account when determining the
   // range of the result.
@@ -3045,5 +3043,3 @@ bool CheckBoundBase::IsRedundant(bool use_loops) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

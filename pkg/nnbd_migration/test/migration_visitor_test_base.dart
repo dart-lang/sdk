@@ -193,15 +193,20 @@ mixin EdgeTester {
     return {for (var edge in getEdges(anyNode, graph.never)) edge.sourceNode};
   }
 
+  /// Asserts that a dummy edge exists from [source] to always.
+  NullabilityEdge assertDummyEdge(Object source) =>
+      assertEdge(source, graph.always, hard: false, checkable: false);
+
   /// Asserts that an edge exists with a node matching [source] and a node
   /// matching [destination], and with the given [hard]ness and [guards].
   ///
   /// [source] and [destination] are converted to [NodeMatcher] objects if they
   /// aren't already.  In practice this means that the caller can pass in either
-  //  /// a [NodeMatcher] or a [NullabilityNode].
+  /// a [NodeMatcher] or a [NullabilityNode].
   NullabilityEdge assertEdge(Object source, Object destination,
       {@required bool hard,
       bool checkable = true,
+      bool isSetupAssignment = false,
       Object guards = isEmpty,
       Object codeReference}) {
     var edges = getEdges(source, destination);
@@ -213,6 +218,7 @@ mixin EdgeTester {
       var edge = edges[0];
       expect(edge.isHard, hard);
       expect(edge.isCheckable, checkable);
+      expect(edge.isSetupAssignment, isSetupAssignment);
       expect(edge.guards, guards);
       if (codeReference != null) {
         expect(edge.codeReference, codeReference);
@@ -292,8 +298,6 @@ class InstrumentedVariables extends Variables {
 
   final _expressionChecks = <Expression, ExpressionChecksOrigin>{};
 
-  final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
-
   InstrumentedVariables(NullabilityGraph graph, TypeProvider typeProvider)
       : super(graph, typeProvider);
 
@@ -308,11 +312,6 @@ class InstrumentedVariables extends Variables {
   /// Gets the [DecoratedType] associated with the given [expression].
   DecoratedType decoratedExpressionType(Expression expression) =>
       _decoratedExpressionTypes[_normalizeExpression(expression)];
-
-  /// Gets the [NullabilityNode] associated with the possibility that
-  /// [parameter] may be optional.
-  NullabilityNode possiblyOptionalParameter(DefaultFormalParameter parameter) =>
-      _possiblyOptional[parameter];
 
   @override
   void recordConditionalDiscard(
@@ -331,13 +330,6 @@ class InstrumentedVariables extends Variables {
       Source source, Expression expression, ExpressionChecksOrigin origin) {
     super.recordExpressionChecks(source, expression, origin);
     _expressionChecks[_normalizeExpression(expression)] = origin;
-  }
-
-  @override
-  void recordPossiblyOptional(
-      Source source, DefaultFormalParameter parameter, NullabilityNode node) {
-    _possiblyOptional[parameter] = node;
-    super.recordPossiblyOptional(source, parameter, node);
   }
 
   /// Unwraps any parentheses surrounding [expression].
@@ -420,10 +412,6 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
         .having((cr) => cr.line, 'line', location.lineNumber)
         .having((cr) => cr.column, 'column', location.columnNumber)
         .having((cr) => cr.function, 'function', function);
-  }
-
-  NullabilityNode possiblyOptionalParameter(String text) {
-    return variables.possiblyOptionalParameter(findNode.defaultParameter(text));
   }
 
   void setUp() {

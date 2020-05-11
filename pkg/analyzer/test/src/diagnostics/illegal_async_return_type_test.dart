@@ -24,7 +24,6 @@ int f() async {}
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38188')
   test_function_nonFuture_withReturn() async {
     await assertErrorsInCode('''
 int f() async {

@@ -475,6 +475,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
   DartType visit(DartType node) => node.accept(this);
 
+  DartType defaultDartType(DartType node) => node;
   DartType visitInvalidType(InvalidType node) => node;
   DartType visitDynamicType(DynamicType node) => node;
   DartType visitVoidType(VoidType node) => node;

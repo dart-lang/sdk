@@ -453,17 +453,17 @@ intptr_t JSONStream::NumObjectParameters() const {
   return parameter_keys_->Length();
 }
 
-RawObject* JSONStream::GetObjectParameterKey(intptr_t i) const {
+ObjectPtr JSONStream::GetObjectParameterKey(intptr_t i) const {
   ASSERT((i >= 0) && (i < NumObjectParameters()));
   return parameter_keys_->At(i);
 }
 
-RawObject* JSONStream::GetObjectParameterValue(intptr_t i) const {
+ObjectPtr JSONStream::GetObjectParameterValue(intptr_t i) const {
   ASSERT((i >= 0) && (i < NumObjectParameters()));
   return parameter_values_->At(i);
 }
 
-RawObject* JSONStream::LookupObjectParam(const char* c_key) const {
+ObjectPtr JSONStream::LookupObjectParam(const char* c_key) const {
   const String& key = String::Handle(String::New(c_key));
   Object& test = Object::Handle();
   const intptr_t num_object_parameters = NumObjectParameters();

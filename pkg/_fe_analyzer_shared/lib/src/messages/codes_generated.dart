@@ -1290,6 +1290,35 @@ const MessageCode messageConstEvalStartingPoint = const MessageCode(
     message: r"""Constant evaluation error:""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateConstEvalTruncateError = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""Binary operator '#string ~/ #string2' results is Infinity or NaN.""",
+    withArguments: _withArgumentsConstEvalTruncateError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeConstEvalTruncateError =
+    const Code<Message Function(String string, String string2)>(
+  "ConstEvalTruncateError",
+  templateConstEvalTruncateError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalTruncateError(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeConstEvalTruncateError,
+      message:
+          """Binary operator '${string} ~/ ${string2}' results is Infinity or NaN.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalUnevaluated = messageConstEvalUnevaluated;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2879,29 +2908,33 @@ const MessageCode messageExpectedUri =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String string,
         String
-            string)> templateExperimentNotEnabled = const Template<
-        Message Function(String string)>(
+            string2)> templateExperimentNotEnabled = const Template<
+        Message Function(String string, String string2)>(
     messageTemplate:
-        r"""This requires the '#string' experiment to be enabled.""",
+        r"""This requires the '#string' language feature to be enabled.""",
     tipTemplate:
-        r"""Try enabling this experiment by adding it to the command line when compiling and running.""",
+        r"""Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'.""",
     withArguments: _withArgumentsExperimentNotEnabled);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeExperimentNotEnabled =
-    const Code<Message Function(String string)>(
+const Code<Message Function(String string, String string2)>
+    codeExperimentNotEnabled =
+    const Code<Message Function(String string, String string2)>(
         "ExperimentNotEnabled", templateExperimentNotEnabled,
         index: 48);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentNotEnabled(String string) {
+Message _withArgumentsExperimentNotEnabled(String string, String string2) {
   if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
   return new Message(codeExperimentNotEnabled,
-      message: """This requires the '${string}' experiment to be enabled.""",
+      message:
+          """This requires the '${string}' language feature to be enabled.""",
       tip:
-          """Try enabling this experiment by adding it to the command line when compiling and running.""",
-      arguments: {'string': string});
+          """Try updating your pubspec.yaml to set the minimum SDK constraint to ${string2} or higher, and running 'pub get'.""",
+      arguments: {'string': string, 'string2': string2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3405,9 +3438,6 @@ const MessageCode messageFastaUsageLong =
   --sdk=<sdk>
     Location of the SDK sources for use when compiling additional platform
     libraries.
-
-  --supermixin
-    Ignored for now.
 
   --single-root-scheme=String
   --single-root-base=<dir>

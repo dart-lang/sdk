@@ -145,11 +145,11 @@ different kernel AST for the same Dart programs.
 
 In order to re-generate expectations run tests with -D$kUpdateExpectations=true VM option:
 
-  tools/test.py -m release --vm-options -D$kUpdateExpectations=true pkg/vm
+  tools/test.py -m release --vm-options -D$kUpdateExpectations=true pkg/vm/
 
 In order to dump actual results into .actual files run tests with -D$kDumpActualResult=true VM option:
 
-  tools/test.py -m release --vm-options -D$kDumpActualResult=true pkg/vm
+  tools/test.py -m release --vm-options -D$kDumpActualResult=true pkg/vm/
 
 """);
     }

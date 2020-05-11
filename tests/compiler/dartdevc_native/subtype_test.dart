@@ -4,7 +4,8 @@
 
 // @dart = 2.6
 
-import 'dart:async';
+import 'dart:_runtime' show typeRep;
+import 'dart:async' show FutureOr;
 
 import 'runtime_utils.dart';
 
@@ -22,122 +23,128 @@ class F extends E<B, B> {}
 
 void main() {
   // A <: dynamic
-  checkProperSubtype(A, dynamic);
+  checkProperSubtype(typeRep<A>(), typeRep<dynamic>());
   // A <: Object
-  checkProperSubtype(A, Object);
-  // TODO(nshahan) Test void as top? A <: void
+  checkProperSubtype(typeRep<A>(), typeRep<Object>());
+  // A <: Object
+  checkProperSubtype(typeRep<A>(), typeRep<void>());
 
   // Null <: A
-  checkProperSubtype(Null, A);
+  checkProperSubtype(typeRep<Null>(), typeRep<A>());
 
   // FutureOr<Null> <: Future<Null>
-  checkSubtype(futureOrOf(Null), generic1(Future, Null));
+  checkSubtype(typeRep<FutureOr<Null>>(), typeRep<Future<Null>>());
   // Future<Null> <: FutureOr<Null>
-  checkSubtype(generic1(Future, Null), futureOrOf(Null));
+  checkSubtype(typeRep<Future<Null>>(), typeRep<FutureOr<Null>>());
   // Future<B> <: FutureOr<A>
-  checkProperSubtype(generic1(Future, B), futureOrOf(A));
+  checkProperSubtype(typeRep<Future<B>>(), typeRep<FutureOr<A>>());
   // B <: <: FutureOr<A>
-  checkProperSubtype(B, futureOrOf(A));
+  checkProperSubtype(typeRep<B>(), typeRep<FutureOr<A>>());
   // Future<B> <: Future<A>
-  checkProperSubtype(generic1(Future, B), generic1(Future, A));
+  checkProperSubtype(typeRep<Future<B>>(), typeRep<Future<A>>());
   // B <: A
-  checkProperSubtype(B, A);
+  checkProperSubtype(typeRep<B>(), typeRep<A>());
 
   // A <: A
-  checkSubtype(A, A);
+  checkSubtype(typeRep<A>(), typeRep<A>());
   // C <: B
-  checkProperSubtype(C, B);
+  checkProperSubtype(typeRep<C>(), typeRep<B>());
   // C <: A
-  checkProperSubtype(C, A);
+  checkProperSubtype(typeRep<C>(), typeRep<A>());
 
   // A -> B <: Function
-  checkProperSubtype(function1(B, A), Function);
+  checkProperSubtype(typeRep<B Function(A)>(), typeRep<Function>());
 
   // A -> B <: A -> B
-  checkSubtype(function1(B, A), function1(B, A));
+  checkSubtype(typeRep<B Function(A)>(), typeRep<B Function(A)>());
 
   // A -> B <: B -> B
-  checkProperSubtype(function1(B, A), function1(B, B));
-  // TODO(nshahan) Subtype check with covariant keyword?
+  checkProperSubtype(typeRep<B Function(A)>(), typeRep<B Function(B)>());
 
   // A -> B <: A -> A
-  checkSubtype(function1(B, A), function1(A, A));
+  checkSubtype(typeRep<B Function(A)>(), typeRep<A Function(A)>());
 
   // Generic Function Subtypes.
   // Bound is a built in type.
   // <T extends int> void -> void <: <T extends int> void -> void
-  checkSubtype(genericFunction(int), genericFunction(int));
+  checkSubtype(
+      genericFunction(typeRep<int>()), genericFunction(typeRep<int>()));
 
   // <T extends String> A -> T <: <T extends String> B -> T
-  checkProperSubtype(
-      functionGenericReturn(String, A), functionGenericReturn(String, B));
+  checkProperSubtype(functionGenericReturn(typeRep<String>(), typeRep<A>()),
+      functionGenericReturn(typeRep<String>(), typeRep<B>()));
 
   // <T extends double> T -> B <: <T extends double> T -> A
-  checkProperSubtype(
-      functionGenericArg(double, B), functionGenericArg(double, A));
+  checkProperSubtype(functionGenericArg(typeRep<double>(), typeRep<B>()),
+      functionGenericArg(typeRep<double>(), typeRep<A>()));
 
   // Bound is a function type.
   // <T extends A -> B> void -> void <: <T extends A -> B> void -> void
-  checkSubtype(
-      genericFunction(function1(B, A)), genericFunction(function1(B, A)));
+  checkSubtype(genericFunction(typeRep<B Function(A)>()),
+      genericFunction(typeRep<B Function(A)>()));
 
   // <T extends A -> B> A -> T <: <T extends A -> B> B -> T
-  checkProperSubtype(functionGenericReturn(function1(B, A), A),
-      functionGenericReturn(function1(B, A), B));
+  checkProperSubtype(
+      functionGenericReturn(typeRep<B Function(A)>(), typeRep<A>()),
+      functionGenericReturn(typeRep<B Function(A)>(), typeRep<B>()));
 
   // <T extends A -> B> T -> B <: <T extends A -> B> T -> A
-  checkProperSubtype(functionGenericArg(function1(B, A), B),
-      functionGenericArg(function1(B, A), A));
+  checkProperSubtype(functionGenericArg(typeRep<B Function(A)>(), typeRep<B>()),
+      functionGenericArg(typeRep<B Function(A)>(), typeRep<A>()));
 
   // Bound is a user defined class.
   // <T extends B> void -> void <: <T extends B> void -> void
-  checkSubtype(genericFunction(B), genericFunction(B));
+  checkSubtype(genericFunction(typeRep<B>()), genericFunction(typeRep<B>()));
 
   // <T extends B> A -> T <: <T extends B> B -> T
-  checkProperSubtype(functionGenericReturn(B, A), functionGenericReturn(B, B));
+  checkProperSubtype(functionGenericReturn(typeRep<B>(), typeRep<A>()),
+      functionGenericReturn(typeRep<B>(), typeRep<B>()));
 
   // <T extends B> T -> B <: <T extends B> T -> A
-  checkProperSubtype(functionGenericArg(B, B), functionGenericArg(B, A));
+  checkProperSubtype(functionGenericArg(typeRep<B>(), typeRep<B>()),
+      functionGenericArg(typeRep<B>(), typeRep<A>()));
 
   // Bound is a Future.
   // <T extends Future<B>> void -> void <: <T extends Future<B>> void -> void
-  checkSubtype(genericFunction(generic1(Future, B)),
-      genericFunction(generic1(Future, B)));
+  checkSubtype(genericFunction(typeRep<Future<B>>()),
+      genericFunction(typeRep<Future<B>>()));
 
   // <T extends Future<B>> A -> T <: <T extends Future<B>> B -> T
-  checkProperSubtype(functionGenericReturn(generic1(Future, B), A),
-      functionGenericReturn(generic1(Future, B), B));
+  checkProperSubtype(functionGenericReturn(typeRep<Future<B>>(), typeRep<A>()),
+      functionGenericReturn(typeRep<Future<B>>(), typeRep<B>()));
 
   // <T extends Future<B>> T -> B <: <T extends Future<B>> T -> A
-  checkProperSubtype(functionGenericArg(generic1(Future, B), B),
-      functionGenericArg(generic1(Future, B), A));
+  checkProperSubtype(functionGenericArg(typeRep<Future<B>>(), typeRep<B>()),
+      functionGenericArg(typeRep<Future<B>>(), typeRep<A>()));
 
   // Bound is a FutureOr.
   // <T extends FutureOr<B>> void -> void <:
   //    <T extends FutureOr<B>> void -> void
-  checkSubtype(genericFunction(futureOrOf(B)), genericFunction(futureOrOf(B)));
+  checkSubtype(genericFunction(typeRep<FutureOr<B>>()),
+      genericFunction(typeRep<FutureOr<B>>()));
 
   // <T extends FutureOr<B>> A -> T <: <T extends FutureOr<B>> B -> T
-  checkProperSubtype(functionGenericReturn(futureOrOf(B), A),
-      functionGenericReturn(futureOrOf(B), B));
+  checkProperSubtype(
+      functionGenericReturn(typeRep<FutureOr<B>>(), typeRep<A>()),
+      functionGenericReturn(typeRep<FutureOr<B>>(), typeRep<B>()));
 
   // <T extends FutureOr<B>> T -> B <: <T extends FutureOr<B>> T -> A
-  checkProperSubtype(functionGenericArg(futureOrOf(B), B),
-      functionGenericArg(futureOrOf(B), A));
+  checkProperSubtype(functionGenericArg(typeRep<FutureOr<B>>(), typeRep<B>()),
+      functionGenericArg(typeRep<FutureOr<B>>(), typeRep<A>()));
 
   // D <: D<B>
-  checkSubtype(D, generic1(D, B));
+  checkSubtype(typeRep<D>(), typeRep<D<B>>());
   // D<B> <: D
-  checkSubtype(generic1(D, B), D);
+  checkSubtype(typeRep<D<B>>(), typeRep<D>());
   // D<C> <: D<B>
-  checkProperSubtype(generic1(D, C), generic1(D, B));
+  checkSubtype(typeRep<D<C>>(), typeRep<D<B>>());
 
   // F <: E
-  checkProperSubtype(F, E);
+  checkProperSubtype(typeRep<F>(), typeRep<E>());
   // F <: E<A, A>
-  checkProperSubtype(F, generic2(E, A, A));
+  checkProperSubtype(typeRep<F>(), typeRep<E<A, A>>());
+  // E<B, B> <: E
+  checkProperSubtype(typeRep<E<B, B>>(), typeRep<E>());
   // // E<B, B> <: E<A, A>
-  checkProperSubtype(generic2(E, B, B), E);
-  // // E<B, B> <: E<A, A>
-  checkProperSubtype(generic2(E, B, B), generic2(E, A, A));
+  checkProperSubtype(typeRep<E<B, B>>(), typeRep<E<A, A>>());
 }

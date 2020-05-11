@@ -166,8 +166,8 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
   _FileStreamConsumer.fromStdio(int fd)
       : _openFuture = new Future.value(_File._openStdioSync(fd));
 
-  Future<File> addStream(Stream<List<int>> stream) {
-    Completer<File> completer = new Completer<File>.sync();
+  Future<File?> addStream(Stream<List<int>> stream) {
+    Completer<File?> completer = new Completer<File?>.sync();
     _openFuture.then((openedFile) {
       late StreamSubscription<List<int>> _subscription;
       void error(e, StackTrace stackTrace) {
@@ -770,7 +770,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (end == start) {
       return new Future.value(0);
     }
-    int length = end! - start;
+    int length = end - start;
     return _dispatch(_IOService.fileReadInto, [null, length]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readInto failed", path);
@@ -791,7 +791,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (end == start) {
       return 0;
     }
-    var result = _ops.readInto(buffer, start, end!);
+    var result = _ops.readInto(buffer, start, end);
     if (result is OSError) {
       throw new FileSystemException("readInto failed", path, result);
     }
@@ -834,7 +834,7 @@ class _RandomAccessFile implements RandomAccessFile {
     }
     _BufferAndStart result;
     try {
-      result = _ensureFastAndSerializableByteData(buffer, start, end!);
+      result = _ensureFastAndSerializableByteData(buffer, start, end);
     } catch (e) {
       return new Future.error(e);
     }
@@ -863,7 +863,7 @@ class _RandomAccessFile implements RandomAccessFile {
       return;
     }
     _BufferAndStart bufferAndStart =
-        _ensureFastAndSerializableByteData(buffer, start, end!);
+        _ensureFastAndSerializableByteData(buffer, start, end);
     var result = _ops.writeFrom(bufferAndStart.buffer, bufferAndStart.start,
         end - (start - bufferAndStart.start));
     if (result is OSError) {

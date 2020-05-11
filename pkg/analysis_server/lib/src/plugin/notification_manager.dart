@@ -9,11 +9,11 @@ import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/result_collector.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:path/path.dart';
 
 /// The object used to coordinate the results of notifications from the analysis
 /// server and multiple plugins.
@@ -24,8 +24,8 @@ class NotificationManager {
   /// The channel used to send notifications to the client.
   final ServerCommunicationChannel channel;
 
-  /// The resource provider used to get the path context.
-  final ResourceProvider provider;
+  /// The path context.
+  final Context pathContext;
 
   /// A list of the paths of files and directories that are included for
   /// analysis.
@@ -66,7 +66,7 @@ class NotificationManager {
   final ResultMerger merger = ResultMerger();
 
   /// Initialize a newly created notification manager.
-  NotificationManager(this.channel, this.provider) {
+  NotificationManager(this.channel, this.pathContext) {
     errors =
         ResultCollector<List<AnalysisError>>(serverId, predicate: _isIncluded);
     folding = ResultCollector<List<FoldingRegion>>(serverId);
@@ -277,8 +277,8 @@ class NotificationManager {
   bool _isIncluded(String path) {
     bool isIncluded() {
       for (var includedPath in includedPaths) {
-        if (provider.pathContext.isWithin(includedPath, path) ||
-            provider.pathContext.equals(includedPath, path)) {
+        if (pathContext.isWithin(includedPath, path) ||
+            pathContext.equals(includedPath, path)) {
           return true;
         }
       }
@@ -287,7 +287,7 @@ class NotificationManager {
 
     bool isExcluded() {
       for (var excludedPath in excludedPaths) {
-        if (provider.pathContext.isWithin(excludedPath, path)) {
+        if (pathContext.isWithin(excludedPath, path)) {
           return true;
         }
       }

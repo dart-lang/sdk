@@ -55,7 +55,9 @@ void testGetDataRequest() {
 void testGetInvalidHost() {
   asyncStart();
   var client = new HttpClient();
-  client.get("__SOMETHING_INVALID__", 8888, "/").catchError((error) {
+  Future<HttpClientRequest?>.value(
+          client.get("__SOMETHING_INVALID__", 8888, "/"))
+      .catchError((error) {
     client.close();
     asyncEnd();
   });

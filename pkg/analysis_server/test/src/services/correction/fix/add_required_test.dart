@@ -12,6 +12,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddRequiredTest);
+    defineReflectiveTests(AddRequiredWithNNBDTest);
   });
 }
 
@@ -33,6 +34,24 @@ void function({String param}) {
 void function({@required String param}) {
   assert(param != null);
 }
+''');
+  }
+}
+
+@reflectiveTest
+class AddRequiredWithNNBDTest extends FixProcessorTest {
+  @override
+  List<String> get experiments => ['non-nullable'];
+
+  @override
+  FixKind get kind => DartFixKind.ADD_REQUIRED2;
+
+  Future<void> test_withAssert() async {
+    await resolveTestUnit('''
+void function({String param}) {}
+''');
+    await assertHasFix('''
+void function({required String param}) {}
 ''');
   }
 }

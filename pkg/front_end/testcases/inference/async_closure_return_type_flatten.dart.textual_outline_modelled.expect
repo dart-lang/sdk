@@ -1,0 +1,8 @@
+library test;
+
+import 'dart:async';
+
+Future<int> futureInt = null;
+main() {}
+var f = () => futureInt;
+var g = () async => futureInt;

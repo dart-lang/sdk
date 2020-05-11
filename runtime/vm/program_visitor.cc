@@ -13,149 +13,271 @@
 
 namespace dart {
 
-void ProgramVisitor::VisitClasses(ClassVisitor* visitor) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-  GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
-  Library& lib = Library::Handle(zone);
-  Class& cls = Class::Handle(zone);
-  Object& entry = Object::Handle(zone);
-  GrowableObjectArray& patches = GrowableObjectArray::Handle(zone);
+class WorklistElement : public ZoneAllocated {
+ public:
+  WorklistElement(Zone* zone, const Object& object)
+      : object_(Object::Handle(zone, object.raw())), next_(nullptr) {}
+
+  ObjectPtr value() const { return object_.raw(); }
+
+  void set_next(WorklistElement* elem) { next_ = elem; }
+  WorklistElement* next() const { return next_; }
+
+ private:
+  const Object& object_;
+  WorklistElement* next_;
+
+  DISALLOW_COPY_AND_ASSIGN(WorklistElement);
+};
+
+// Implements a FIFO queue, using IsEmpty, Add, Remove operations.
+class Worklist : public ValueObject {
+ public:
+  explicit Worklist(Zone* zone)
+      : zone_(zone), first_(nullptr), last_(nullptr) {}
+
+  bool IsEmpty() const { return first_ == nullptr; }
+
+  void Add(const Object& value) {
+    auto element = new (zone_) WorklistElement(zone_, value);
+    if (first_ == nullptr) {
+      first_ = element;
+      ASSERT(last_ == nullptr);
+    } else {
+      ASSERT(last_ != nullptr);
+      last_->set_next(element);
+    }
+    last_ = element;
+    ASSERT(first_ != nullptr && last_ != nullptr);
+  }
+
+  ObjectPtr Remove() {
+    ASSERT(first_ != nullptr);
+    WorklistElement* result = first_;
+    first_ = first_->next();
+    if (first_ == nullptr) {
+      last_ = nullptr;
+    }
+    return result->value();
+  }
+
+ private:
+  Zone* const zone_;
+  WorklistElement* first_;
+  WorklistElement* last_;
+
+  DISALLOW_COPY_AND_ASSIGN(Worklist);
+};
+
+// Walks through the classes, functions, and code for the current program.
+//
+// Uses the heap object ID table to determine whether or not a given object
+// has been visited already.
+class ProgramWalker : public ValueObject {
+ public:
+  ProgramWalker(Zone* zone, Heap* heap, ClassVisitor* visitor)
+      : heap_(heap),
+        visitor_(visitor),
+        worklist_(zone),
+        class_object_(Object::Handle(zone)),
+        class_fields_(Array::Handle(zone)),
+        class_field_(Field::Handle(zone)),
+        class_functions_(Array::Handle(zone)),
+        class_function_(Function::Handle(zone)),
+        class_code_(Code::Handle(zone)),
+        function_code_(Code::Handle(zone)),
+        static_calls_array_(Array::Handle(zone)),
+        static_calls_table_entry_(Object::Handle(zone)),
+        worklist_entry_(Object::Handle(zone)) {}
+
+  ~ProgramWalker() { heap_->ResetObjectIdTable(); }
+
+  // Adds the given object to the worklist if it's an object type that the
+  // visitor can visit.
+  void AddToWorklist(const Object& object) {
+    // We don't visit null, non-heap objects, or objects in the VM heap.
+    if (object.IsNull() || object.IsSmi() || object.InVMIsolateHeap()) return;
+    // Check and set visited, even if we don't end up adding this to the list.
+    if (heap_->GetObjectId(object.raw()) != 0) return;
+    heap_->SetObjectId(object.raw(), 1);
+    if (object.IsClass() ||
+        (object.IsFunction() && visitor_->IsFunctionVisitor()) ||
+        (object.IsCode() && visitor_->IsCodeVisitor())) {
+      worklist_.Add(object);
+    }
+  }
+
+  void VisitWorklist() {
+    while (!worklist_.IsEmpty()) {
+      worklist_entry_ = worklist_.Remove();
+      if (worklist_entry_.IsClass()) {
+        VisitClass(Class::Cast(worklist_entry_));
+      } else if (worklist_entry_.IsFunction()) {
+        VisitFunction(Function::Cast(worklist_entry_));
+      } else if (worklist_entry_.IsCode()) {
+        VisitCode(Code::Cast(worklist_entry_));
+      } else {
+        FATAL1("Got unexpected object %s", worklist_entry_.ToCString());
+      }
+    }
+  }
+
+ private:
+  void VisitClass(const Class& cls) {
+    visitor_->VisitClass(cls);
+
+    if (!visitor_->IsFunctionVisitor()) return;
+
+    class_functions_ = cls.functions();
+    for (intptr_t j = 0; j < class_functions_.Length(); j++) {
+      class_function_ ^= class_functions_.At(j);
+      AddToWorklist(class_function_);
+      if (class_function_.HasImplicitClosureFunction()) {
+        class_function_ = class_function_.ImplicitClosureFunction();
+        AddToWorklist(class_function_);
+      }
+    }
+
+    class_functions_ = cls.invocation_dispatcher_cache();
+    for (intptr_t j = 0; j < class_functions_.Length(); j++) {
+      class_object_ = class_functions_.At(j);
+      if (class_object_.IsFunction()) {
+        class_function_ ^= class_functions_.At(j);
+        AddToWorklist(class_function_);
+      }
+    }
+
+    class_fields_ = cls.fields();
+    for (intptr_t j = 0; j < class_fields_.Length(); j++) {
+      class_field_ ^= class_fields_.At(j);
+      if (class_field_.HasInitializerFunction()) {
+        class_function_ = class_field_.InitializerFunction();
+        AddToWorklist(class_function_);
+      }
+    }
+
+    if (!visitor_->IsCodeVisitor()) return;
+
+    class_code_ = cls.allocation_stub();
+    if (!class_code_.IsNull()) AddToWorklist(class_code_);
+  }
+
+  void VisitFunction(const Function& function) {
+    ASSERT(visitor_->IsFunctionVisitor());
+    visitor_->AsFunctionVisitor()->VisitFunction(function);
+    if (!visitor_->IsCodeVisitor() || !function.HasCode()) return;
+    function_code_ = function.CurrentCode();
+    AddToWorklist(function_code_);
+  }
+
+  void VisitCode(const Code& code) {
+    ASSERT(visitor_->IsCodeVisitor());
+    visitor_->AsCodeVisitor()->VisitCode(code);
+
+    // In the precompiler, some entries in the static calls table may need
+    // to be visited as they may not be reachable from other sources.
+    //
+    // TODO(dartbug.com/41636): Figure out why walking the static calls table
+    // in JIT mode with the DedupInstructions visitor fails, so we can remove
+    // the check for AOT mode.
+    static_calls_array_ = code.static_calls_target_table();
+    if (FLAG_precompiled_mode && !static_calls_array_.IsNull()) {
+      StaticCallsTable static_calls(static_calls_array_);
+      for (auto& view : static_calls) {
+        static_calls_table_entry_ =
+            view.Get<Code::kSCallTableCodeOrTypeTarget>();
+        if (static_calls_table_entry_.IsCode()) {
+          AddToWorklist(Code::Cast(static_calls_table_entry_));
+        }
+      }
+    }
+  }
+
+  Heap* const heap_;
+  ClassVisitor* const visitor_;
+  Worklist worklist_;
+  Object& class_object_;
+  Array& class_fields_;
+  Field& class_field_;
+  Array& class_functions_;
+  Function& class_function_;
+  Code& class_code_;
+  Code& function_code_;
+  Array& static_calls_array_;
+  Object& static_calls_table_entry_;
+  Object& worklist_entry_;
+};
+
+void ProgramVisitor::WalkProgram(Zone* zone,
+                                 Isolate* isolate,
+                                 ClassVisitor* visitor) {
+  auto const object_store = isolate->object_store();
+  auto const heap = isolate->heap();
+  ProgramWalker walker(zone, heap, visitor);
+
+  // Walk through the libraries and patches, looking for visitable objects.
+  const auto& libraries =
+      GrowableObjectArray::Handle(zone, object_store->libraries());
+  auto& lib = Library::Handle(zone);
+  auto& cls = Class::Handle(zone);
+  auto& entry = Object::Handle(zone);
+  auto& patches = GrowableObjectArray::Handle(zone);
 
   for (intptr_t i = 0; i < libraries.Length(); i++) {
     lib ^= libraries.At(i);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      visitor->Visit(cls);
+      walker.AddToWorklist(cls);
     }
     patches = lib.used_scripts();
     for (intptr_t j = 0; j < patches.Length(); j++) {
       entry = patches.At(j);
-      if (entry.IsClass()) {
-        visitor->Visit(Class::Cast(entry));
-      }
-    }
-  }
-}
-
-class ClassFunctionVisitor : public ClassVisitor {
- public:
-  ClassFunctionVisitor(Zone* zone, FunctionVisitor* visitor)
-      : visitor_(visitor),
-        functions_(Array::Handle(zone)),
-        function_(Function::Handle(zone)),
-        object_(Object::Handle(zone)),
-        fields_(Array::Handle(zone)),
-        field_(Field::Handle(zone)) {}
-
-  void Visit(const Class& cls) {
-    functions_ = cls.functions();
-    for (intptr_t j = 0; j < functions_.Length(); j++) {
-      function_ ^= functions_.At(j);
-      visitor_->Visit(function_);
-      if (function_.HasImplicitClosureFunction()) {
-        function_ = function_.ImplicitClosureFunction();
-        visitor_->Visit(function_);
-      }
-    }
-
-    functions_ = cls.invocation_dispatcher_cache();
-    for (intptr_t j = 0; j < functions_.Length(); j++) {
-      object_ = functions_.At(j);
-      if (object_.IsFunction()) {
-        function_ ^= functions_.At(j);
-        visitor_->Visit(function_);
-      }
-    }
-
-    fields_ = cls.fields();
-    for (intptr_t j = 0; j < fields_.Length(); j++) {
-      field_ ^= fields_.At(j);
-      if (field_.is_static() && field_.HasInitializerFunction()) {
-        function_ = field_.InitializerFunction();
-        visitor_->Visit(function_);
-      }
+      walker.AddToWorklist(entry);
     }
   }
 
- private:
-  FunctionVisitor* visitor_;
-  Array& functions_;
-  Function& function_;
-  Object& object_;
-  Array& fields_;
-  Field& field_;
-};
-
-void ProgramVisitor::VisitFunctions(FunctionVisitor* visitor) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-
-  ClassFunctionVisitor class_visitor(zone, visitor);
-  VisitClasses(&class_visitor);
-
-  Function& function = Function::Handle(zone);
-  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
-      zone, isolate->object_store()->closure_functions());
-  ASSERT(!closures.IsNull());
-  for (intptr_t i = 0; i < closures.Length(); i++) {
-    function ^= closures.At(i);
-    visitor->Visit(function);
-    ASSERT(!function.HasImplicitClosureFunction());
-  }
-
-  const auto& global_object_pool = ObjectPool::Handle(
-      zone, isolate->object_store()->global_object_pool());
+  // If there's a global object pool, add any visitable objects.
+  const auto& global_object_pool =
+      ObjectPool::Handle(zone, object_store->global_object_pool());
   if (!global_object_pool.IsNull()) {
     auto& object = Object::Handle(zone);
     for (intptr_t i = 0; i < global_object_pool.Length(); i++) {
       auto const type = global_object_pool.TypeAt(i);
       if (type != ObjectPool::EntryType::kTaggedObject) continue;
       object = global_object_pool.ObjectAt(i);
-      if (!object.IsFunction()) continue;
-      visitor->Visit(Function::Cast(object));
+      walker.AddToWorklist(object);
     }
   }
-}
 
-class FunctionCodeVisitor : public FunctionVisitor {
- public:
-  FunctionCodeVisitor(Zone* zone, CodeVisitor* visitor)
-      : visitor_(visitor), code_(Code::Handle(zone)) {}
-
-  void Visit(const Function& function) {
-    if (!function.HasCode()) return;
-    code_ = function.CurrentCode();
-    visitor_->Visit(code_);
+  if (visitor->IsFunctionVisitor()) {
+    // Function objects not necessarily reachable from classes.
+    auto& function = Function::Handle(zone);
+    const auto& closures =
+        GrowableObjectArray::Handle(zone, object_store->closure_functions());
+    ASSERT(!closures.IsNull());
+    for (intptr_t i = 0; i < closures.Length(); i++) {
+      function ^= closures.At(i);
+      walker.AddToWorklist(function);
+      ASSERT(!function.HasImplicitClosureFunction());
+    }
   }
 
- private:
-  CodeVisitor* const visitor_;
-  Code& code_;
-};
-
-void ProgramVisitor::VisitCode(CodeVisitor* visitor) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-
-  FunctionCodeVisitor function_visitor(zone, visitor);
-  VisitFunctions(&function_visitor);
-
-  const auto& dispatch_table_entries = Array::Handle(
-      zone, isolate->object_store()->dispatch_table_code_entries());
-  if (!dispatch_table_entries.IsNull()) {
+  if (visitor->IsCodeVisitor()) {
+    // Code objects not necessarily reachable from functions.
     auto& code = Code::Handle(zone);
-    for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
-      code = Code::RawCast(dispatch_table_entries.At(i));
-      if (code.IsNull()) continue;
-      visitor->Visit(code);
+    const auto& dispatch_table_entries =
+        Array::Handle(zone, object_store->dispatch_table_code_entries());
+    if (!dispatch_table_entries.IsNull()) {
+      for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
+        code ^= dispatch_table_entries.At(i);
+        walker.AddToWorklist(code);
+      }
     }
   }
+
+  // Walk the program starting from any roots we added to the worklist.
+  walker.VisitWorklist();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -167,16 +289,6 @@ class Dedupper : public ValueObject {
  public:
   explicit Dedupper(Zone* zone) : zone_(zone), canonical_objects_(zone) {}
   virtual ~Dedupper() {}
-
-  void AddVMBaseObjects() {
-    const auto& object_table = Object::vm_isolate_snapshot_object_table();
-    auto& obj = Object::Handle(zone_);
-    for (intptr_t i = 0; i < object_table.Length(); i++) {
-      obj = object_table.At(i);
-      if (!ShouldAdd(obj)) continue;
-      AddCanonical(T::Cast(obj));
-    }
-  }
 
  protected:
   // Predicate for objects of type T. Must be overridden for class hierarchies
@@ -200,7 +312,17 @@ class Dedupper : public ValueObject {
     canonical_objects_.Insert(&T::ZoneHandle(zone_, obj.raw()));
   }
 
-  typename T::RawObjectType* Dedup(const T& obj) {
+  void AddVMBaseObjects() {
+    const auto& object_table = Object::vm_isolate_snapshot_object_table();
+    auto& obj = Object::Handle(zone_);
+    for (intptr_t i = 0; i < object_table.Length(); i++) {
+      obj = object_table.At(i);
+      if (!ShouldAdd(obj)) continue;
+      AddCanonical(T::Cast(obj));
+    }
+  }
+
+  typename T::ObjectPtrType Dedup(const T& obj) {
     if (ShouldAdd(obj)) {
       if (auto const canonical = canonical_objects_.LookupValue(&obj)) {
         return canonical->raw();
@@ -214,7 +336,7 @@ class Dedupper : public ValueObject {
   DirectChainedHashMap<S> canonical_objects_;
 };
 
-void ProgramVisitor::BindStaticCalls() {
+void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
   class BindStaticCallsVisitor : public CodeVisitor {
    public:
     explicit BindStaticCallsVisitor(Zone* zone)
@@ -223,8 +345,10 @@ void ProgramVisitor::BindStaticCalls() {
           target_(Object::Handle(zone)),
           target_code_(Code::Handle(zone)) {}
 
-    void Visit(const Code& code) {
+    void VisitCode(const Code& code) {
       table_ = code.static_calls_target_table();
+      if (table_.IsNull()) return;
+
       StaticCallsTable static_calls(table_);
       // We can only remove the target table in precompiled mode, since more
       // calls may be added later otherwise.
@@ -233,14 +357,17 @@ void ProgramVisitor::BindStaticCalls() {
         kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
         auto const kind = Code::KindField::decode(kind_and_offset_.Value());
         if (kind != Code::kCallViaCode) {
-          ASSERT(!FLAG_precompiled_mode || kind == Code::kPcRelativeCall);
+          ASSERT(kind == Code::kPcRelativeCall ||
+                 kind == Code::kPcRelativeTailCall ||
+                 kind == Code::kPcRelativeTTSCall);
           only_call_via_code = false;
           continue;
         }
 
         target_ = view.Get<Code::kSCallTableFunctionTarget>();
         if (target_.IsNull()) {
-          target_ = view.Get<Code::kSCallTableCodeTarget>();
+          target_ =
+              Code::RawCast(view.Get<Code::kSCallTableCodeOrTypeTarget>());
           ASSERT(!Code::Cast(target_).IsFunctionCode());
           // Allocation stub or AllocateContext or AllocateArray or ...
           continue;
@@ -283,18 +410,13 @@ void ProgramVisitor::BindStaticCalls() {
     Code& target_code_;
   };
 
-  auto const zone = Thread::Current()->zone();
   BindStaticCallsVisitor visitor(zone);
-  ProgramVisitor::VisitCode(&visitor);
+  WalkProgram(zone, isolate, &visitor);
 }
 
 DECLARE_FLAG(charp, write_v8_snapshot_profile_to);
 
-void ProgramVisitor::ShareMegamorphicBuckets() {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-
+void ProgramVisitor::ShareMegamorphicBuckets(Zone* zone, Isolate* isolate) {
   const GrowableObjectArray& table = GrowableObjectArray::Handle(
       zone, isolate->object_store()->megamorphic_cache_table());
   if (table.IsNull()) return;
@@ -424,7 +546,8 @@ class StackMapEntryKeyIntValueTrait {
 
 typedef DirectChainedHashMap<StackMapEntryKeyIntValueTrait> StackMapEntryIntMap;
 
-void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
+void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
+                                                          Isolate* isolate) {
   // Walks all the CSMs in Code objects and collects their entry information
   // for consolidation.
   class CollectStackMapEntriesVisitor : public CodeVisitor {
@@ -440,7 +563,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
       ASSERT(old_global_table_.IsNull() || old_global_table_.IsGlobalTable());
     }
 
-    void Visit(const Code& code) {
+    void VisitCode(const Code& code) {
       compressed_stackmaps_ = code.compressed_stackmaps();
       CompressedStackMapsIterator it(compressed_stackmaps_, old_global_table_);
       while (it.MoveNext()) {
@@ -460,7 +583,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
     // Creates a new global table of stack map information. Also adds the
     // offsets of encoded StackMapEntry objects to entry_offsets for use
     // when normalizing CompressedStackMaps.
-    RawCompressedStackMaps* CreateGlobalTable(
+    CompressedStackMapsPtr CreateGlobalTable(
         StackMapEntryIntMap* entry_offsets) {
       ASSERT(entry_offsets->IsEmpty());
       if (collected_entries_.length() == 0) return CompressedStackMaps::null();
@@ -505,18 +628,40 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
         public Dedupper<CompressedStackMaps,
                         PointerKeyValueTrait<const CompressedStackMaps>> {
    public:
-    NormalizeAndDedupCompressedStackMapsVisitor(
-        Zone* zone,
-        const CompressedStackMaps& global_table,
-        const StackMapEntryIntMap& entry_offsets)
+    NormalizeAndDedupCompressedStackMapsVisitor(Zone* zone, Isolate* isolate)
         : Dedupper(zone),
-          old_global_table_(global_table),
-          entry_offsets_(entry_offsets),
+          old_global_table_(CompressedStackMaps::Handle(
+              zone,
+              isolate->object_store()->canonicalized_stack_map_entries())),
+          entry_offsets_(zone),
           maps_(CompressedStackMaps::Handle(zone)) {
       ASSERT(old_global_table_.IsNull() || old_global_table_.IsGlobalTable());
+      // The stack map normalization and deduplication happens in two phases:
+      //
+      // 1) Visit all CompressedStackMaps (CSM) objects and collect individual
+      // entry info as canonicalized StackMapEntries (SMEs). Also record the
+      // frequency the same entry info was seen across all CSMs in each SME.
+
+      CollectStackMapEntriesVisitor collect_visitor(zone, old_global_table_);
+      WalkProgram(zone, isolate, &collect_visitor);
+
+      // The results of phase 1 are used to create a new global table with
+      // entries sorted by decreasing frequency, so that entries that appear
+      // more often in CSMs have smaller payload offsets (less bytes used in
+      // the LEB128 encoding). The new global table is put into place
+      // immediately, as we already have a handle on the old table.
+
+      const auto& new_global_table = CompressedStackMaps::Handle(
+          zone, collect_visitor.CreateGlobalTable(&entry_offsets_));
+      isolate->object_store()->set_canonicalized_stack_map_entries(
+          new_global_table);
+
+      // 2) Visit all CSMs and replace each with a canonicalized normalized
+      // version that uses the new global table for non-PC offset entry
+      // information. This part is done in VisitCode.
     }
 
-    void Visit(const Code& code) {
+    void VisitCode(const Code& code) {
       maps_ = code.compressed_stackmaps();
       if (maps_.IsNull()) return;
       // First check is to make sure [maps] hasn't already been normalized,
@@ -532,7 +677,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
 
    private:
     // Creates a normalized CSM from the given non-normalized CSM.
-    RawCompressedStackMaps* NormalizeEntries(const CompressedStackMaps& maps) {
+    CompressedStackMapsPtr NormalizeEntries(const CompressedStackMaps& maps) {
       GrowableArray<uint8_t> new_payload;
       CompressedStackMapsIterator it(maps, old_global_table_);
       intptr_t last_offset = 0;
@@ -549,42 +694,12 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
     }
 
     const CompressedStackMaps& old_global_table_;
-    const StackMapEntryIntMap& entry_offsets_;
+    StackMapEntryIntMap entry_offsets_;
     CompressedStackMaps& maps_;
   };
 
-  // The stack map deduplication happens in two phases:
-  // 1) Visit all CompressedStackMaps (CSM) objects and collect individual entry
-  //    info as canonicalized StackMapEntries (SMEs). Also record the number of
-  //    times the same entry info was seen across all CSMs in each SME.
-  //
-  // The results of phase 1 are used to create a new global table with entries
-  // sorted by decreasing frequency, so that entries that appear more often in
-  // CSMs have smaller payload offsets (less bytes used in the LEB128 encoding).
-  //
-  // 2) Visit all CSMs and replace each with a canonicalized normalized version
-  //    that uses the new global table for non-PC offset entry information.
-  Thread* const t = Thread::Current();
-  StackZone temp_zone(t);
-  HandleScope temp_handles(t);
-  Zone* zone = temp_zone.GetZone();
-  auto object_store = t->isolate()->object_store();
-  const auto& old_global_table = CompressedStackMaps::Handle(
-      zone, object_store->canonicalized_stack_map_entries());
-  CollectStackMapEntriesVisitor collect_visitor(zone, old_global_table);
-  ProgramVisitor::VisitCode(&collect_visitor);
-
-  // We retrieve the new offsets for CSM entries by creating the new global
-  // table now. We go ahead and put it in place, as we already have a handle
-  // on the old table that we can pass to the normalizing visitor.
-  StackMapEntryIntMap entry_offsets(zone);
-  const auto& new_global_table = CompressedStackMaps::Handle(
-      zone, collect_visitor.CreateGlobalTable(&entry_offsets));
-  object_store->set_canonicalized_stack_map_entries(new_global_table);
-
-  NormalizeAndDedupCompressedStackMapsVisitor dedup_visitor(
-      zone, old_global_table, entry_offsets);
-  ProgramVisitor::VisitCode(&dedup_visitor);
+  NormalizeAndDedupCompressedStackMapsVisitor dedup_visitor(zone, isolate);
+  WalkProgram(zone, isolate, &dedup_visitor);
 }
 
 class PcDescriptorsKeyValueTrait {
@@ -605,24 +720,28 @@ class PcDescriptorsKeyValueTrait {
   }
 };
 
-void ProgramVisitor::DedupPcDescriptors() {
+void ProgramVisitor::DedupPcDescriptors(Zone* zone, Isolate* isolate) {
   class DedupPcDescriptorsVisitor
       : public CodeVisitor,
-        public Dedupper<PcDescriptors, PcDescriptorsKeyValueTrait>,
-        public FunctionVisitor {
+        public Dedupper<PcDescriptors, PcDescriptorsKeyValueTrait> {
    public:
     explicit DedupPcDescriptorsVisitor(Zone* zone)
         : Dedupper(zone),
           bytecode_(Bytecode::Handle(zone)),
-          pc_descriptor_(PcDescriptors::Handle(zone)) {}
+          pc_descriptor_(PcDescriptors::Handle(zone)) {
+      if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
+        // Prefer existing objects in the VM isolate.
+        AddVMBaseObjects();
+      }
+    }
 
-    void Visit(const Code& code) {
+    void VisitCode(const Code& code) {
       pc_descriptor_ = code.pc_descriptors();
       pc_descriptor_ = Dedup(pc_descriptor_);
       code.set_pc_descriptors(pc_descriptor_);
     }
 
-    void Visit(const Function& function) {
+    void VisitFunction(const Function& function) {
       bytecode_ = function.bytecode();
       if (bytecode_.IsNull()) return;
       if (bytecode_.InVMIsolateHeap()) return;
@@ -636,16 +755,8 @@ void ProgramVisitor::DedupPcDescriptors() {
     PcDescriptors& pc_descriptor_;
   };
 
-  auto const zone = Thread::Current()->zone();
   DedupPcDescriptorsVisitor visitor(zone);
-  if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
-    // Prefer existing objects in the VM isolate.
-    visitor.AddVMBaseObjects();
-  }
-  // The function iteration handles the bytecode only, leaving code-related
-  // work for the code iteration.
-  ProgramVisitor::VisitFunctions(&visitor);
-  ProgramVisitor::VisitCode(&visitor);
+  WalkProgram(zone, isolate, &visitor);
 }
 
 class TypedDataKeyValueTrait {
@@ -674,7 +785,7 @@ class TypedDataDedupper : public Dedupper<TypedData, TypedDataKeyValueTrait> {
   bool IsCorrectType(const Object& obj) const { return obj.IsTypedData(); }
 };
 
-void ProgramVisitor::DedupDeoptEntries() {
+void ProgramVisitor::DedupDeoptEntries(Zone* zone, Isolate* isolate) {
   class DedupDeoptEntriesVisitor : public CodeVisitor,
                                    public TypedDataDedupper {
    public:
@@ -685,7 +796,7 @@ void ProgramVisitor::DedupDeoptEntries() {
           offset_(Smi::Handle(zone)),
           reason_and_flags_(Smi::Handle(zone)) {}
 
-    void Visit(const Code& code) {
+    void VisitCode(const Code& code) {
       deopt_table_ = code.deopt_info_array();
       if (deopt_table_.IsNull()) return;
       intptr_t length = DeoptTable::GetLength(deopt_table_);
@@ -707,12 +818,13 @@ void ProgramVisitor::DedupDeoptEntries() {
     Smi& reason_and_flags_;
   };
 
-  DedupDeoptEntriesVisitor visitor(Thread::Current()->zone());
-  ProgramVisitor::VisitCode(&visitor);
+  if (FLAG_precompiled_mode) return;
+  DedupDeoptEntriesVisitor visitor(zone);
+  WalkProgram(zone, isolate, &visitor);
 }
 
 #if defined(DART_PRECOMPILER)
-void ProgramVisitor::DedupCatchEntryMovesMaps() {
+void ProgramVisitor::DedupCatchEntryMovesMaps(Zone* zone, Isolate* isolate) {
   class DedupCatchEntryMovesMapsVisitor : public CodeVisitor,
                                           public TypedDataDedupper {
    public:
@@ -720,7 +832,7 @@ void ProgramVisitor::DedupCatchEntryMovesMaps() {
         : TypedDataDedupper(zone),
           catch_entry_moves_maps_(TypedData::Handle(zone)) {}
 
-    void Visit(const Code& code) {
+    void VisitCode(const Code& code) {
       catch_entry_moves_maps_ = code.catch_entry_moves_maps();
       catch_entry_moves_maps_ = Dedup(catch_entry_moves_maps_);
       code.set_catch_entry_moves_maps(catch_entry_moves_maps_);
@@ -731,8 +843,8 @@ void ProgramVisitor::DedupCatchEntryMovesMaps() {
   };
 
   if (!FLAG_precompiled_mode) return;
-  DedupCatchEntryMovesMapsVisitor visitor(Thread::Current()->zone());
-  ProgramVisitor::VisitCode(&visitor);
+  DedupCatchEntryMovesMapsVisitor visitor(zone);
+  WalkProgram(zone, isolate, &visitor);
 }
 
 class UnlinkedCallKeyValueTrait {
@@ -753,15 +865,20 @@ class UnlinkedCallKeyValueTrait {
   }
 };
 
-void ProgramVisitor::DedupUnlinkedCalls() {
+void ProgramVisitor::DedupUnlinkedCalls(Zone* zone, Isolate* isolate) {
   class DedupUnlinkedCallsVisitor
       : public CodeVisitor,
         public Dedupper<UnlinkedCall, UnlinkedCallKeyValueTrait> {
    public:
-    explicit DedupUnlinkedCallsVisitor(Zone* zone)
+    explicit DedupUnlinkedCallsVisitor(Zone* zone, Isolate* isolate)
         : Dedupper(zone),
           entry_(Object::Handle(zone)),
-          pool_(ObjectPool::Handle(zone)) {}
+          pool_(ObjectPool::Handle(zone)) {
+      auto& gop = ObjectPool::Handle(
+          zone, isolate->object_store()->global_object_pool());
+      ASSERT_EQUAL(!gop.IsNull(), FLAG_use_bare_instructions);
+      DedupPool(gop);
+    }
 
     void DedupPool(const ObjectPool& pool) {
       if (pool.IsNull()) return;
@@ -776,7 +893,7 @@ void ProgramVisitor::DedupUnlinkedCalls() {
       }
     }
 
-    void Visit(const Code& code) {
+    void VisitCode(const Code& code) {
       pool_ = code.object_pool();
       DedupPool(pool_);
     }
@@ -788,16 +905,7 @@ void ProgramVisitor::DedupUnlinkedCalls() {
 
   if (!FLAG_precompiled_mode) return;
 
-  auto const t = Thread::Current();
-  auto Z = t->zone();
-  auto const I = t->isolate();
-
-  DedupUnlinkedCallsVisitor deduper(Z);
-  auto& gop = ObjectPool::Handle(Z, I->object_store()->global_object_pool());
-  ASSERT_EQUAL(gop.IsNull(), !FLAG_use_bare_instructions);
-  if (FLAG_use_bare_instructions) {
-    deduper.DedupPool(gop);
-  }
+  DedupUnlinkedCallsVisitor deduper(zone, isolate);
 
   // Note: in bare instructions mode we can still have object pools attached
   // to code objects and these pools need to be deduplicated.
@@ -807,10 +915,10 @@ void ProgramVisitor::DedupUnlinkedCalls() {
   // to produce more informative snapshot profile.
   if (!FLAG_use_bare_instructions ||
       FLAG_write_v8_snapshot_profile_to != nullptr) {
-    VisitCode(&deduper);
+    WalkProgram(zone, isolate, &deduper);
   }
 }
-#endif  // !defined(DART_PRECOMPILER)
+#endif  // defined(DART_PRECOMPILER)
 
 class CodeSourceMapKeyValueTrait {
  public:
@@ -834,15 +942,20 @@ class CodeSourceMapKeyValueTrait {
   }
 };
 
-void ProgramVisitor::DedupCodeSourceMaps() {
+void ProgramVisitor::DedupCodeSourceMaps(Zone* zone, Isolate* isolate) {
   class DedupCodeSourceMapsVisitor
       : public CodeVisitor,
         public Dedupper<CodeSourceMap, CodeSourceMapKeyValueTrait> {
    public:
     explicit DedupCodeSourceMapsVisitor(Zone* zone)
-        : Dedupper(zone), code_source_map_(CodeSourceMap::Handle(zone)) {}
+        : Dedupper(zone), code_source_map_(CodeSourceMap::Handle(zone)) {
+      if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
+        // Prefer existing objects in the VM isolate.
+        AddVMBaseObjects();
+      }
+    }
 
-    void Visit(const Code& code) {
+    void VisitCode(const Code& code) {
       code_source_map_ = code.code_source_map();
       code_source_map_ = Dedup(code_source_map_);
       code.set_code_source_map(code_source_map_);
@@ -852,13 +965,8 @@ void ProgramVisitor::DedupCodeSourceMaps() {
     CodeSourceMap& code_source_map_;
   };
 
-  auto const zone = Thread::Current()->zone();
   DedupCodeSourceMapsVisitor visitor(zone);
-  if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
-    // Prefer existing objects in the VM isolate.
-    visitor.AddVMBaseObjects();
-  }
-  ProgramVisitor::VisitCode(&visitor);
+  WalkProgram(zone, isolate, &visitor);
 }
 
 class ArrayKeyValueTrait {
@@ -887,17 +995,18 @@ class ArrayKeyValueTrait {
   }
 };
 
-void ProgramVisitor::DedupLists() {
+void ProgramVisitor::DedupLists(Zone* zone, Isolate* isolate) {
   class DedupListsVisitor : public CodeVisitor,
-                            public Dedupper<Array, ArrayKeyValueTrait>,
-                            public FunctionVisitor {
+                            public Dedupper<Array, ArrayKeyValueTrait> {
    public:
     explicit DedupListsVisitor(Zone* zone)
         : Dedupper(zone),
           list_(Array::Handle(zone)),
           function_(Function::Handle(zone)) {}
 
-    void Visit(const Code& code) {
+    void VisitCode(const Code& code) {
+      if (!code.IsFunctionCode()) return;
+
       list_ = code.inlined_id_to_function();
       list_ = Dedup(list_);
       code.set_inlined_id_to_function(list_);
@@ -911,7 +1020,7 @@ void ProgramVisitor::DedupLists() {
       code.set_static_calls_target_table(list_);
     }
 
-    void Visit(const Function& function) {
+    void VisitFunction(const Function& function) {
       list_ = PrepareParameterTypes(function);
       list_ = Dedup(list_);
       function.set_parameter_types(list_);
@@ -924,7 +1033,7 @@ void ProgramVisitor::DedupLists() {
    private:
     bool IsCorrectType(const Object& obj) const { return obj.IsArray(); }
 
-    RawArray* PrepareParameterTypes(const Function& function) {
+    ArrayPtr PrepareParameterTypes(const Function& function) {
       list_ = function.parameter_types();
       // Preserve parameter types in the JIT. Needed in case of recompilation
       // in checked mode, or if available to mirrors, or for copied types to
@@ -942,7 +1051,7 @@ void ProgramVisitor::DedupLists() {
       return list_.raw();
     }
 
-    RawArray* PrepareParameterNames(const Function& function) {
+    ArrayPtr PrepareParameterNames(const Function& function) {
       list_ = function.parameter_names();
       // Preserve parameter names in case of recompilation for the JIT. Also
       // avoid attempting to change read-only VM objects for de-duplication.
@@ -961,9 +1070,8 @@ void ProgramVisitor::DedupLists() {
     Function& function_;
   };
 
-  DedupListsVisitor visitor(Thread::Current()->zone());
-  ProgramVisitor::VisitFunctions(&visitor);
-  ProgramVisitor::VisitCode(&visitor);
+  DedupListsVisitor visitor(zone);
+  WalkProgram(zone, isolate, &visitor);
 }
 
 // Traits for comparing two [Instructions] objects for equality, which is
@@ -1046,9 +1154,9 @@ class CodeKeyValueTrait {
     return Instructions::Equals(pair->instructions(), key->instructions());
   }
 };
-#endif  // defined(DART_PRECOMPILER)
+#endif
 
-void ProgramVisitor::DedupInstructions() {
+void ProgramVisitor::DedupInstructions(Zone* zone, Isolate* isolate) {
   class DedupInstructionsVisitor
       : public CodeVisitor,
         public Dedupper<Instructions, InstructionsKeyValueTrait>,
@@ -1056,111 +1164,118 @@ void ProgramVisitor::DedupInstructions() {
    public:
     explicit DedupInstructionsVisitor(Zone* zone)
         : Dedupper(zone),
-          function_(Function::Handle(zone)),
-          instructions_(Instructions::Handle(zone)) {}
+          code_(Code::Handle(zone)),
+          instructions_(Instructions::Handle(zone)) {
+      if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
+        // Prefer existing objects in the VM isolate.
+        Dart::vm_isolate()->heap()->VisitObjectsImagePages(this);
+      }
+    }
 
-    void VisitObject(RawObject* obj) {
+    void VisitObject(ObjectPtr obj) {
       if (!obj->IsInstructions()) return;
       instructions_ = Instructions::RawCast(obj);
       AddCanonical(instructions_);
     }
 
-    void Visit(const Code& code) {
+    void VisitFunction(const Function& function) {
+      if (!function.HasCode()) return;
+      code_ = function.CurrentCode();
+      // This causes the code to be visited once here and once directly in the
+      // ProgramWalker, but as long as the deduplication process is idempotent,
+      // the cached entry points won't change during the second visit.
+      VisitCode(code_);
+      function.SetInstructions(code_);  // Update cached entry point.
+    }
+
+    void VisitCode(const Code& code) {
       instructions_ = code.instructions();
       instructions_ = Dedup(instructions_);
+      code.set_instructions(instructions_);
+      if (code.IsDisabled()) {
+        instructions_ = code.active_instructions();
+        instructions_ = Dedup(instructions_);
+      }
       code.SetActiveInstructions(instructions_,
                                  code.UncheckedEntryPointOffset());
-      code.set_instructions(instructions_);
-      if (!code.IsFunctionCode()) return;
-      function_ = code.function();
-      if (function_.IsNull()) return;
-      function_.SetInstructions(code);  // Update cached entry point.
     }
 
    private:
-    Function& function_;
+    Code& code_;
     Instructions& instructions_;
   };
 
-  DedupInstructionsVisitor visitor(Thread::Current()->zone());
-  if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
-    // Prefer existing objects in the VM isolate.
-    Dart::vm_isolate()->heap()->VisitObjectsImagePages(&visitor);
-  }
-  ProgramVisitor::VisitCode(&visitor);
-}
-
-void ProgramVisitor::DedupInstructionsWithSameMetadata() {
 #if defined(DART_PRECOMPILER)
   class DedupInstructionsWithSameMetadataVisitor
       : public CodeVisitor,
-        public Dedupper<Code, CodeKeyValueTrait>,
-        public ObjectVisitor {
+        public Dedupper<Code, CodeKeyValueTrait> {
    public:
     explicit DedupInstructionsWithSameMetadataVisitor(Zone* zone)
         : Dedupper(zone),
           canonical_(Code::Handle(zone)),
-          function_(Function::Handle(zone)),
+          code_(Code::Handle(zone)),
           instructions_(Instructions::Handle(zone)) {}
 
-    void VisitObject(RawObject* obj) {
-      if (!obj->IsCode()) return;
-      canonical_ = Code::RawCast(obj);
-      AddCanonical(canonical_);
+    void VisitFunction(const Function& function) {
+      if (!function.HasCode()) return;
+      code_ = function.CurrentCode();
+      // This causes the code to be visited once here and once directly in the
+      // ProgramWalker, but as long as the deduplication process is idempotent,
+      // the cached entry points won't change during the second visit.
+      VisitCode(code_);
+      function.SetInstructions(code_);  // Update cached entry point.
     }
 
-    void Visit(const Code& code) {
+    void VisitCode(const Code& code) {
       if (code.IsDisabled()) return;
       canonical_ = Dedup(code);
       instructions_ = canonical_.instructions();
       code.SetActiveInstructions(instructions_,
                                  code.UncheckedEntryPointOffset());
       code.set_instructions(instructions_);
-      if (!code.IsFunctionCode()) return;
-      function_ = code.function();
-      if (function_.IsNull()) return;
-      function_.SetInstructions(code);  // Update cached entry point.
     }
 
    private:
     bool CanCanonicalize(const Code& code) const { return !code.IsDisabled(); }
 
     Code& canonical_;
-    Function& function_;
+    Code& code_;
     Instructions& instructions_;
   };
 
-  DedupInstructionsWithSameMetadataVisitor visitor(Thread::Current()->zone());
-  ProgramVisitor::VisitCode(&visitor);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    DedupInstructionsWithSameMetadataVisitor visitor(zone);
+    return WalkProgram(zone, isolate, &visitor);
+  }
 #endif  // defined(DART_PRECOMPILER)
+
+  DedupInstructionsVisitor visitor(zone);
+  WalkProgram(zone, isolate, &visitor);
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-void ProgramVisitor::Dedup() {
+void ProgramVisitor::Dedup(Thread* thread) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  Thread* thread = Thread::Current();
+  auto const isolate = thread->isolate();
   StackZone stack_zone(thread);
   HANDLESCOPE(thread);
+  auto const zone = thread->zone();
 
-  BindStaticCalls();
-  ShareMegamorphicBuckets();
-  NormalizeAndDedupCompressedStackMaps();
-  DedupPcDescriptors();
-  NOT_IN_PRECOMPILED(DedupDeoptEntries());
+  BindStaticCalls(zone, isolate);
+  ShareMegamorphicBuckets(zone, isolate);
+  NormalizeAndDedupCompressedStackMaps(zone, isolate);
+  DedupPcDescriptors(zone, isolate);
+  DedupDeoptEntries(zone, isolate);
 #if defined(DART_PRECOMPILER)
-  DedupCatchEntryMovesMaps();
-  DedupUnlinkedCalls();
+  DedupCatchEntryMovesMaps(zone, isolate);
+  DedupUnlinkedCalls(zone, isolate);
 #endif
-  DedupCodeSourceMaps();
-  DedupLists();
+  DedupCodeSourceMaps(zone, isolate);
+  DedupLists(zone, isolate);
 
   // Reduces binary size but obfuscates profiler results.
   if (FLAG_dedup_instructions) {
-    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-      DedupInstructionsWithSameMetadata();
-    } else {
-      DedupInstructions();
-    }
+    DedupInstructions(zone, isolate);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }

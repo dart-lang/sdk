@@ -1,0 +1,18 @@
+// @dart = 2.6
+const int foo = const int.fromEnvironment("fisk");
+
+class A {
+  final int bar;
+  const A(this.bar);
+}
+
+class B {
+  final A baz;
+  const B(this.baz);
+}
+
+class C {
+  fun() {}
+}
+
+main() {}

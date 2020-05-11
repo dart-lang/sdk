@@ -339,7 +339,13 @@ some more code
     }
   }, expectedResult: '''
 some code
-/*a.member: memberName:test1=b,test2=[c,d],test3=e*/
+/*a.member: memberName:
+ test1=b,
+ test2=[
+  c,
+  d],
+ test3=e
+*/
 /*b|c.member: memberName:
  test1=a,
  test2=[
@@ -349,6 +355,8 @@ some code
 */
 some more code
 ''');
+  // TODO(johnniwinther): Should new data reuse an existing encoding when that
+  // differs from the pretty printed encoding?
   testFeatures('''
 some code
 /*a.member: memberName:test1=b,test2=[c,d],test3=e*/
@@ -366,7 +374,14 @@ some more code
     }
   }, expectedResult: '''
 some code
-/*a|b.member: memberName:test1=b,test2=[c,d],test3=e*/
+/*a.member: memberName:test1=b,test2=[c,d],test3=e*/
+/*b.member: memberName:
+ test1=b,
+ test2=[
+  c,
+  d],
+ test3=e
+*/
 /*c.member: memberName:
  test1=a,
  test2=[
@@ -378,7 +393,52 @@ some more code
 ''');
   testFeatures('''
 some code
-/*a|b.member: memberName:test1=b,test2=[c,d],test3=e*/
+/*a.member: memberName:
+ test1=b,
+ test2=[
+  c,
+  d],
+ test3=e
+*/
+/*b|c.member: memberName:
+ test1=a,
+ test2=[
+  b,
+  c],
+ test3=d
+*/
+some more code
+''', actualData: {
+    'b': {
+      new MemberId('memberName'): 'test1=b,test2=[c,d],test3=e',
+    }
+  }, expectedResult: '''
+some code
+/*a|b.member: memberName:
+ test1=b,
+ test2=[
+  c,
+  d],
+ test3=e
+*/
+/*c.member: memberName:
+ test1=a,
+ test2=[
+  b,
+  c],
+ test3=d
+*/
+some more code
+''');
+  testFeatures('''
+some code
+/*a|b.member: memberName:
+ test1=b,
+ test2=[
+  c,
+  d],
+ test3=e
+*/
 /*c.member: memberName:
  test1=a,
  test2=[
@@ -393,7 +453,13 @@ some more code
     }
   }, expectedResult: '''
 some code
-/*member: memberName:test1=b,test2=[c,d],test3=e*/
+/*member: memberName:
+ test1=b,
+ test2=[
+  c,
+  d],
+ test3=e
+*/
 some more code
 ''');
 }

@@ -4,7 +4,6 @@
 library kernel.ast_to_binary;
 
 import 'dart:core' hide MapEntry;
-import 'dart:convert' show utf8;
 import 'dart:developer';
 import 'dart:io' show BytesBuilder;
 import 'dart:typed_data';
@@ -105,9 +104,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         (value >> 8) & 0xFF, value & 0xFF);
   }
 
-  void writeByteList(List<int> utf8Bytes) {
-    writeUInt30(utf8Bytes.length);
-    writeBytes(utf8Bytes);
+  void writeByteList(List<int> bytes) {
+    writeUInt30(bytes.length);
+    writeBytes(bytes);
   }
 
   int getBufferOffset() {
@@ -117,7 +116,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void writeStringTable(StringIndexer indexer) {
     _binaryOffsetForStringTable = getBufferOffset();
 
-    // Containers for the utf8 encoded strings.
+    // Containers for the WTF-8 encoded strings.
     final List<Uint8List> data = new List<Uint8List>();
     int totalLength = 0;
     const int minLength = 1 << 16;
@@ -141,24 +140,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
             index = 0;
             buffer = new Uint8List(newLength);
           }
-          newIndex = NotQuiteString.writeUtf8(buffer, index, key);
+          newIndex = _writeWtf8(buffer, index, key);
           if (newIndex != -1) break;
           requiredMinLength = allocateMinLength;
         }
-        if (newIndex < 0) {
-          // Utf8 encoding failed.
-          if (buffer != null && index > 0) {
-            data.add(new Uint8List.view(buffer.buffer, 0, index));
-            buffer = null;
-            index = 0;
-          }
-          List<int> converted = utf8.encoder.convert(key);
-          data.add(converted);
-          totalLength += converted.length;
-        } else {
-          totalLength += newIndex - index;
-          index = newIndex;
-        }
+        assert(newIndex >= 0);
+        totalLength += newIndex - index;
+        index = newIndex;
       }
       writeUInt30(totalLength);
     }
@@ -166,7 +154,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       data.add(Uint8List.view(buffer.buffer, 0, index));
     }
 
-    // Write the UTF-8 encoded strings.
+    // Write the WTF-8 encoded strings.
     for (int i = 0; i < data.length; ++i) {
       writeBytes(data[i]);
     }
@@ -586,9 +574,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (strings != null) {
       for (int i = 0; i < strings.length; i++) {
         String s = strings[i];
-        // This is slow, but we expect there to in general be no problems. If this
-        // turns out to be wrong we can optimize it as we do URLs for instance.
-        writeByteList(utf8.encoder.convert(s));
+        outputStringViaBuffer(s, new Uint8List(s.length * 3));
       }
     }
   }
@@ -730,7 +716,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     const int kernelFileAlignment = 8;
 
     // Keep this in sync with number of writeUInt32 below.
-    int numComponentIndexEntries = 7 + libraryOffsets.length + 3;
+    int numComponentIndexEntries = 8 + libraryOffsets.length + 3;
 
     int unalignedSize = getBufferOffset() + numComponentIndexEntries * 4;
     int padding =
@@ -760,6 +746,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     } else {
       writeUInt32(main.index + 1);
     }
+    writeUInt32(component.mode.index);
 
     assert(libraryOffsets.length == libraries.length);
     for (int offset in libraryOffsets) {
@@ -819,21 +806,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  void outputStringViaBuffer(String uriAsString, Uint8List buffer) {
-    if (uriAsString.length * 3 < buffer.length) {
-      int length = NotQuiteString.writeUtf8(buffer, 0, uriAsString);
-      if (length < 0) {
-        // Utf8 encoding failed.
-        writeByteList(utf8.encoder.convert(uriAsString));
-      } else {
-        writeUInt30(length);
-        for (int j = 0; j < length; j++) {
-          writeByte(buffer[j]);
-        }
+  void outputStringViaBuffer(String s, Uint8List buffer) {
+    int length = _writeWtf8(buffer, 0, s);
+    if (length >= 0) {
+      writeUInt30(length);
+      for (int j = 0; j < length; j++) {
+        writeByte(buffer[j]);
       }
     } else {
       // Uncommon case with very long url.
-      writeByteList(utf8.encoder.convert(uriAsString));
+      outputStringViaBuffer(s, new Uint8List(s.length * 3));
     }
   }
 
@@ -954,8 +936,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     libraryOffsets.add(getBufferOffset());
     writeByte(node.flags);
 
-    writeUInt30(node.languageVersionMajor);
-    writeUInt30(node.languageVersionMinor);
+    writeUInt30(node.languageVersion.major);
+    writeUInt30(node.languageVersion.minor);
 
     writeNonNullCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
@@ -2757,63 +2739,58 @@ class BytesSink implements Sink<List<int>> {
   }
 }
 
-class NotQuiteString {
-  /**
-   * Write [source] string into [target] starting at index [index].
-   *
-   * Optionally only write part of the input [source] starting at [start] and
-   * ending at [end].
-   *
-   * The output space needed is at most [source.length] * 3.
-   *
-   * Returns
-   *  * Non-negative on success (the new index in [target]).
-   *  * -1 when [target] doesn't have enough space. Note that [target] can be
-   *    polluted starting at [index].
-   *  * -2 on input error, i.e. an unpaired lead or tail surrogate.
-   */
-  static int writeUtf8(List<int> target, int index, String source,
-      [int start = 0, int end]) {
-    RangeError.checkValidIndex(index, target, null, target.length);
-    end = RangeError.checkValidRange(start, end, source.length);
-    if (start == end) return index;
-    int i = start;
-    int length = target.length;
-    do {
-      int codeUnit = source.codeUnitAt(i++);
-      while (codeUnit < 128) {
-        if (index >= length) return -1;
-        target[index++] = codeUnit;
-        if (i >= end) return index;
-        codeUnit = source.codeUnitAt(i++);
-      }
-      if (codeUnit < 0x800) {
-        index += 2;
-        if (index > length) return -1;
-        target[index - 2] = 0xC0 | (codeUnit >> 6);
-        target[index - 1] = 0x80 | (codeUnit & 0x3f);
-      } else if (codeUnit & 0xF800 != 0xD800) {
-        // Not a surrogate.
-        index += 3;
-        if (index > length) return -1;
-        target[index - 3] = 0xE0 | (codeUnit >> 12);
-        target[index - 2] = 0x80 | ((codeUnit >> 6) & 0x3f);
-        target[index - 1] = 0x80 | (codeUnit & 0x3f);
-      } else {
-        if (codeUnit >= 0xDC00) return -2; // Unpaired tail surrogate.
-        if (i >= end) return -2; // Unpaired lead surrogate.
-        int nextChar = source.codeUnitAt(i++);
-        if (nextChar & 0xFC00 != 0xDC00) return -2; // Unpaired lead surrogate.
-        index += 4;
-        if (index > length) return -1;
-        codeUnit = (codeUnit & 0x3FF) + 0x40;
-        target[index - 4] = 0xF0 | (codeUnit >> 8);
-        target[index - 3] = 0x80 | ((codeUnit >> 2) & 0x3F);
-        target[index - 2] =
-            0x80 | (((codeUnit & 3) << 4) | ((nextChar & 0x3FF) >> 6));
-        target[index - 1] = 0x80 | (nextChar & 0x3f);
-      }
-    } while (i < end);
-    return index;
-  }
+/**
+ * Write [source] string into [target] starting at index [index].
+ *
+ * The output space needed is at most [source.length] * 3.
+ *
+ * Returns
+ *  * Non-negative on success (the new index in [target]).
+ *  * -1 when [target] doesn't have enough space. Note that [target] can be
+ *    polluted starting at [index].
+ */
+int _writeWtf8(Uint8List target, int index, String source) {
+  int end = source.length;
+  if (end == 0) return index;
+  int length = target.length;
+  assert(index <= length);
+  int i = 0;
+  do {
+    int codeUnit = source.codeUnitAt(i++);
+    while (codeUnit < 128) {
+      // ASCII.
+      if (index >= length) return -1;
+      target[index++] = codeUnit;
+      if (i >= end) return index;
+      codeUnit = source.codeUnitAt(i++);
+    }
+    if (codeUnit < 0x800) {
+      // Two-byte sequence (11-bit unicode value).
+      index += 2;
+      if (index > length) return -1;
+      target[index - 2] = 0xC0 | (codeUnit >> 6);
+      target[index - 1] = 0x80 | (codeUnit & 0x3f);
+    } else if ((codeUnit & 0xFC00) == 0xD800 &&
+        i < end &&
+        (source.codeUnitAt(i) & 0xFC00) == 0xDC00) {
+      // Surrogate pair -> four-byte sequence (non-BMP unicode value).
+      index += 4;
+      if (index > length) return -1;
+      int codeUnit2 = source.codeUnitAt(i++);
+      int unicode = 0x10000 + ((codeUnit & 0x3FF) << 10) + (codeUnit2 & 0x3FF);
+      target[index - 4] = 0xF0 | (unicode >> 18);
+      target[index - 3] = 0x80 | ((unicode >> 12) & 0x3F);
+      target[index - 2] = 0x80 | ((unicode >> 6) & 0x3F);
+      target[index - 1] = 0x80 | (unicode & 0x3F);
+    } else {
+      // Three-byte sequence (16-bit unicode value), including lone
+      // surrogates.
+      index += 3;
+      if (index > length) return -1;
+      target[index - 3] = 0xE0 | (codeUnit >> 12);
+      target[index - 2] = 0x80 | ((codeUnit >> 6) & 0x3f);
+      target[index - 1] = 0x80 | (codeUnit & 0x3f);
+    }
+  } while (i < end);
+  return index;
 }

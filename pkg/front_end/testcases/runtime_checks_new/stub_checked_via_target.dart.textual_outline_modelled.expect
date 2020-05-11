@@ -1,0 +1,17 @@
+library test;
+
+abstract class I {
+  int f(covariant Object x);
+}
+
+class B {
+  int f(int x) {}
+}
+
+class C extends B implements I {}
+
+main() {}
+void expect(Object value, Object expected) {}
+void expectTypeError(void callback()) {}
+void g(C c) {}
+void test(C c, I i) {}

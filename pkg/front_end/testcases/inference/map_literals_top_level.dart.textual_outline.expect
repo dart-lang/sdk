@@ -1,0 +1,7 @@
+library test;
+
+var x1 = {1: 'x', 2: 'y'};
+test1() {}
+var x2 = {1: 'x', 2: 'y', 3.0: new RegExp('.')};
+test2() {}
+main() {}

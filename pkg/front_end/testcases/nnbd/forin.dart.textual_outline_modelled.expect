@@ -1,0 +1,3 @@
+error(Iterable<int>? i2, List<int>? l2, Object o1, Object? o2) {}
+main() {}
+ok(Iterable<int> i1, List<int> l1, dynamic d) {}

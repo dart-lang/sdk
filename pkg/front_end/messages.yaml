@@ -129,6 +129,9 @@ ConstEvalZeroDivisor:
 ConstEvalNegativeShift:
   template: "Binary operator '#string' on '#string2' requires non-negative operand, but was '#string3'."
 
+ConstEvalTruncateError:
+  template: "Binary operator '#string ~/ #string2' results is Infinity or NaN."
+
 ConstEvalInvalidMethodInvocation:
   template: "The method '#string' can't be invoked on '#constant' in a constant expression."
   analyzerCode: UNDEFINED_OPERATOR
@@ -233,8 +236,8 @@ Encoding:
 
 ExperimentNotEnabled:
   index: 48
-  template: "This requires the '#string' experiment to be enabled."
-  tip: "Try enabling this experiment by adding it to the command line when compiling and running."
+  template: "This requires the '#string' language feature to be enabled."
+  tip: "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 EmptyNamedParameterList:
@@ -1609,9 +1612,6 @@ FastaUsageLong:
       --sdk=<sdk>
         Location of the SDK sources for use when compiling additional platform
         libraries.
-
-      --supermixin
-        Ignored for now.
 
       --single-root-scheme=String
       --single-root-base=<dir>

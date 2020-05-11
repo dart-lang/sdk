@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_IA32_H_
 #define RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_IA32_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_
 #error Do not include assembler_ia32.h directly; use assembler.h instead.
 #endif
@@ -549,8 +553,6 @@ class Assembler : public AssemblerBase {
   void int3();
   void hlt();
 
-  static uword GetBreakInstructionFiller() { return 0xCCCCCCCC; }
-
   void j(Condition condition, Label* label, bool near = kFarJump);
   void j(Condition condition, const ExternalLabel* label);
 
@@ -601,6 +603,10 @@ class Assembler : public AssemblerBase {
   void Drop(intptr_t stack_elements);
 
   void LoadIsolate(Register dst);
+
+  void LoadUniqueObject(Register dst, const Object& object) {
+    LoadObject(dst, object, /*movable_referent=*/true);
+  }
 
   void LoadObject(Register dst,
                   const Object& object,
@@ -705,9 +711,7 @@ class Assembler : public AssemblerBase {
             CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void CallToRuntime();
 
-  void CallNullErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
-
-  void CallNullArgErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
+  void Call(Address target) { call(target); }
 
   void Jmp(const Code& code);
   void J(Condition condition, const Code& code);
@@ -743,6 +747,13 @@ class Assembler : public AssemblerBase {
                                            Register array,
                                            Register index,
                                            intptr_t extra_disp = 0);
+
+  void LoadFieldAddressForRegOffset(Register address,
+                                    Register instance,
+                                    Register offset_in_words_as_smi) {
+    static_assert(kSmiTagShift == 1, "adjust scale factor");
+    leal(address, FieldAddress(instance, offset_in_words_as_smi, TIMES_2, 0));
+  }
 
   static Address VMTagAddress() {
     return Address(THR, target::Thread::vm_tag_offset());

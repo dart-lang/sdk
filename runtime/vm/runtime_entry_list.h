@@ -34,7 +34,6 @@ namespace dart {
   V(NoSuchMethodFromCallStub)                                                  \
   V(NoSuchMethodFromPrologue)                                                  \
   V(InvokeNoSuchMethod)                                                        \
-  V(MegamorphicCacheMissHandler)                                               \
   V(OptimizeInvokedFunction)                                                   \
   V(TraceICCall)                                                               \
   V(PatchStaticCall)                                                           \
@@ -54,11 +53,13 @@ namespace dart {
   V(UpdateFieldCid)                                                            \
   V(InitInstanceField)                                                         \
   V(InitStaticField)                                                           \
+  V(LateInitializationError)                                                   \
   V(CompileFunction)                                                           \
   V(CompileInterpretedFunction)                                                \
-  V(MonomorphicMiss)                                                           \
-  V(SingleTargetMiss)                                                          \
-  V(UnlinkedCall)
+  V(SwitchableCallMiss)
+
+// Note: Leaf runtime function have C linkage, so they cannot pass C++ struct
+// values like ObjectPtr.
 
 #define LEAF_RUNTIME_ENTRY_LIST(V)                                             \
   V(void, PrintStopMessage, const char*)                                       \
@@ -66,9 +67,9 @@ namespace dart {
   V(void, DeoptimizeFillFrame, uword)                                          \
   V(void, StoreBufferBlockProcess, Thread*)                                    \
   V(void, MarkingStackBlockProcess, Thread*)                                   \
-  V(void, RememberCard, RawObject*, RawObject**)                               \
-  V(RawObject*, AddAllocatedObjectToRememberedSet, RawObject* object,          \
-    Thread* thread)                                                            \
+  V(void, RememberCard, uword /*ObjectPtr*/, ObjectPtr*)                       \
+  V(uword /*ObjectPtr*/, AddAllocatedObjectToRememberedSet,                    \
+    uword /*ObjectPtr*/ object, Thread* thread)                                \
   V(double, LibcPow, double, double)                                           \
   V(double, DartModulo, double, double)                                        \
   V(double, LibcFloor, double)                                                 \
@@ -82,12 +83,12 @@ namespace dart {
   V(double, LibcAsin, double)                                                  \
   V(double, LibcAtan, double)                                                  \
   V(double, LibcAtan2, double, double)                                         \
-  V(RawBool*, CaseInsensitiveCompareUCS2, RawString*, RawSmi*, RawSmi*,        \
-    RawSmi*)                                                                   \
-  V(RawBool*, CaseInsensitiveCompareUTF16, RawString*, RawSmi*, RawSmi*,       \
-    RawSmi*)                                                                   \
+  V(uword /*BoolPtr*/, CaseInsensitiveCompareUCS2, uword /*StringPtr*/,        \
+    uword /*SmiPtr*/, uword /*SmiPtr*/, uword /*SmiPtr*/)                      \
+  V(uword /*BoolPtr*/, CaseInsensitiveCompareUTF16, uword /*StringPtr*/,       \
+    uword /*SmiPtr*/, uword /*SmiPtr*/, uword /*SmiPtr*/)                      \
   V(void, EnterSafepoint)                                                      \
-  V(void, ExitSafepoint)                                                       \
+  V(void, ExitSafepoint)
 
 }  // namespace dart
 

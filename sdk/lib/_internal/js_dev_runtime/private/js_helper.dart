@@ -70,14 +70,7 @@ class SyncIterable<E> extends IterableBase<E> {
 }
 
 class Primitives {
-  @NoInline()
-  static int _parseIntError(String source, int handleError(String source)) {
-    if (handleError == null) throw FormatException(source);
-    return handleError(source);
-  }
-
-  static int parseInt(
-      @nullCheck String source, int _radix, int handleError(String source)) {
+  static int parseInt(@nullCheck String source, int _radix) {
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
     // TODO(jmesserly): this isn't reified List<String>, but it's safe to use as
     // long as we use it locally and don't expose it to user code.
@@ -89,7 +82,7 @@ class Primitives {
       // TODO(sra): It might be that the match failed due to unrecognized U+0085
       // spaces.  We could replace them with U+0020 spaces and try matching
       // again.
-      return _parseIntError(source, handleError);
+      return null;
     }
     String decimalMatch = match[decimalIndex];
     if (_radix == null) {
@@ -101,7 +94,7 @@ class Primitives {
         // Cannot fail because we know that the digits are all hex.
         return JS<int>('!', r'parseInt(#, 16)', source);
       }
-      return _parseIntError(source, handleError);
+      return null;
     }
     @notNull
     var radix = _radix;
@@ -138,7 +131,7 @@ class Primitives {
       for (int i = 0; i < digitsPart.length; i++) {
         int characterCode = digitsPart.codeUnitAt(i) | 0x20;
         if (characterCode > maxCharCode) {
-          return _parseIntError(source, handleError);
+          return null;
         }
       }
     }
@@ -147,17 +140,7 @@ class Primitives {
     return JS<int>('!', r'parseInt(#, #)', source, radix);
   }
 
-  @NoInline()
-  static double _parseDoubleError(
-      String source, double handleError(String source)) {
-    if (handleError == null) {
-      throw FormatException('Invalid double', source);
-    }
-    return handleError(source);
-  }
-
-  static double parseDouble(
-      @nullCheck String source, double handleError(String source)) {
+  static double parseDouble(@nullCheck String source) {
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
     // - [+/-]NaN
@@ -169,15 +152,15 @@ class Primitives {
         r'/^\s*[+-]?(?:Infinity|NaN|'
             r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
         source)) {
-      return _parseDoubleError(source, handleError);
+      return null;
     }
-    num result = JS('!', r'parseFloat(#)', source);
+    var result = JS<double>('!', r'parseFloat(#)', source);
     if (result.isNaN) {
       var trimmed = source.trim();
       if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
         return result;
       }
-      return _parseDoubleError(source, handleError);
+      return null;
     }
     return result;
   }

@@ -69,8 +69,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     Set<String> includedElementNames,
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
   ) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     //
     // Allow plugins to start computing fixes.
     //
@@ -93,6 +91,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       performance.logStartTime(COMPUTE_SUGGESTIONS_TAG);
 
       var manager = DartCompletionManager(
+        dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(request.result),
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,

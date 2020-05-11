@@ -68,12 +68,12 @@ type Pair<T0, T1> {
 ```
 
 A string table consists of an array of end offsets and a payload array of
-strings encoded as UTF-8.  The array of end offsets maps a string index to the
+strings encoded as WTF-8.  The array of end offsets maps a string index to the
 offset of the _next_ string in the table or the offset of the end of the array
 for the last string.  These offsets are relative to the string payload array.
-Thus, string number 0 consists of the UTF-8 encoded string stretching from
+Thus, string number 0 consists of the WTF-8 encoded string stretching from
 offset 0 (inclusive) to endOffset[0] (exclusive); and string number N for N > 0
-consists of the UTF-8 encoded string stretching from offset endOffset[N-1]
+consists of the WTF-8 encoded string stretching from offset endOffset[N-1]
 (inclusive) to endOffset[N] (exclusive).
 
 ``` scala
@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 40;
+  UInt32 formatVersion = 42;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -180,6 +180,7 @@ type ComponentIndex {
   UInt32 binaryOffsetForStringTable;
   UInt32 binaryOffsetForConstantTable;
   UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.
+  UInt32 compilationMode; // enum NonNullableByDefaultCompiledMode { Disabled = 0, Weak = 1, Strong = 2, Agnostic = 3 } with a fixed-size integer.
   UInt32[libraryCount + 1] libraryOffsets;
   UInt32 libraryCount;
   UInt32 componentFileSizeInBytes;
@@ -370,7 +371,7 @@ type Field extends Member {
   FileOffset fileEndOffset;
   UInt flags (isFinal, isConst, isStatic, hasImplicitGetter, hasImplicitSetter,
                 isCovariant, isGenericCovariantImpl, isLate, isExtensionMember,
-                isNonNullableByDefault);
+                isNonNullableByDefault, isInternalImplementation);
   Name name;
   List<Expression> annotations;
   DartType type;

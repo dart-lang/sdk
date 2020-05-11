@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/il_deserializer.h"
 
 #include "vm/compiler/backend/il_serializer.h"
@@ -800,10 +798,6 @@ Instruction* FlowGraphDeserializer::ParseInstruction(SExpList* list) {
 
   if (inst == nullptr) return nullptr;
   if (env != nullptr) env->DeepCopyTo(zone(), inst);
-  if (auto const lifetime_sexp =
-          CheckInteger(list->ExtraLookupValue("lifetime_position"))) {
-    inst->set_lifetime_position(lifetime_sexp->value());
-  }
   return inst;
 }
 
@@ -1019,10 +1013,10 @@ ConstantInstr* FlowGraphDeserializer::DeserializeConstant(
 DebugStepCheckInstr* FlowGraphDeserializer::DeserializeDebugStepCheck(
     SExpList* sexp,
     const InstrInfo& info) {
-  auto kind = RawPcDescriptors::kAnyKind;
+  auto kind = PcDescriptorsLayout::kAnyKind;
   if (auto const kind_sexp = CheckSymbol(Retrieve(sexp, "stub_kind"))) {
-    if (!RawPcDescriptors::ParseKind(kind_sexp->value(), &kind)) {
-      StoreError(kind_sexp, "not a valid RawPcDescriptors::Kind name");
+    if (!PcDescriptorsLayout::ParseKind(kind_sexp->value(), &kind)) {
+      StoreError(kind_sexp, "not a valid PcDescriptorsLayout::Kind name");
       return nullptr;
     }
   }
@@ -1044,7 +1038,12 @@ InstanceCallInstr* FlowGraphDeserializer::DeserializeInstanceCall(
     SExpList* sexp,
     const InstrInfo& info) {
   auto& interface_target = Function::ZoneHandle(zone());
+  auto& tearoff_interface_target = Function::ZoneHandle(zone());
   if (!ParseDartValue(Retrieve(sexp, "interface_target"), &interface_target)) {
+    return nullptr;
+  }
+  if (!ParseDartValue(Retrieve(sexp, "tearoff_interface_target"),
+                      &tearoff_interface_target)) {
     return nullptr;
   }
   auto& function_name = String::ZoneHandle(zone());
@@ -1054,6 +1053,8 @@ InstanceCallInstr* FlowGraphDeserializer::DeserializeInstanceCall(
     if (!ParseDartValue(name_sexp, &function_name)) return nullptr;
   } else if (!interface_target.IsNull()) {
     function_name = interface_target.name();
+  } else if (!tearoff_interface_target.IsNull()) {
+    function_name = tearoff_interface_target.name();
   }
 
   auto token_kind = Token::Kind::kILLEGAL;
@@ -1077,7 +1078,7 @@ InstanceCallInstr* FlowGraphDeserializer::DeserializeInstanceCall(
   auto const inst = new (zone()) InstanceCallInstr(
       info.token_pos, function_name, token_kind, call_info.inputs,
       call_info.type_args_len, call_info.argument_names, checked_arg_count,
-      info.deopt_id, interface_target);
+      info.deopt_id, interface_target, tearoff_interface_target);
 
   if (call_info.result_type != nullptr) {
     inst->SetResultType(zone(), *call_info.result_type);
@@ -1640,13 +1641,13 @@ bool FlowGraphDeserializer::ParseFunction(SExpList* list, Object* out) {
   auto& function = Function::Cast(*out);
   // Check the kind expected by the S-expression if one was specified.
   if (auto const kind_sexp = CheckSymbol(list->ExtraLookupValue("kind"))) {
-    RawFunction::Kind kind;
-    if (!RawFunction::ParseKind(kind_sexp->value(), &kind)) {
+    FunctionLayout::Kind kind;
+    if (!FunctionLayout::ParseKind(kind_sexp->value(), &kind)) {
       StoreError(kind_sexp, "unexpected function kind");
       return false;
     }
     if (function.kind() != kind) {
-      auto const kind_str = RawFunction::KindToCString(function.kind());
+      auto const kind_str = FunctionLayout::KindToCString(function.kind());
       StoreError(list, "retrieved function has kind %s", kind_str);
       return false;
     }
@@ -2489,5 +2490,3 @@ void FlowGraphDeserializer::ReportError() const {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

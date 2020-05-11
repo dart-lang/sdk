@@ -125,7 +125,7 @@ _platform_sdk_snapshots = [
   ],
   [
     "dartdev",
-    "../utils/dartdev",
+    "../utils/dartdev:generate_dartdev_snapshot",
   ],
   [
     "dartdoc",
@@ -170,7 +170,7 @@ _full_sdk_snapshots = [
   ],
   [
     "dartdev",
-    "../utils/dartdev",
+    "../utils/dartdev:generate_dartdev_snapshot",
   ],
   [
     "dartdevc",

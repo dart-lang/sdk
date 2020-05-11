@@ -5,13 +5,15 @@
 #ifndef RUNTIME_VM_COMPILER_FRONTEND_BASE_FLOW_GRAPH_BUILDER_H_
 #define RUNTIME_VM_COMPILER_FRONTEND_BASE_FLOW_GRAPH_BUILDER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include <initializer_list>
 
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/object.h"
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -275,8 +277,9 @@ class BaseFlowGraphBuilder {
                          bool negate = false);
   Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
                                TargetEntryInstr** otherwise_entry);
-  Fragment Return(TokenPosition position,
-                  intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex);
+  Fragment Return(
+      TokenPosition position,
+      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
   Fragment CheckStackOverflow(TokenPosition position,
                               intptr_t stack_depth,
                               intptr_t loop_depth);
@@ -451,5 +454,4 @@ class BaseFlowGraphBuilder {
 }  // namespace kernel
 }  // namespace dart
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_COMPILER_FRONTEND_BASE_FLOW_GRAPH_BUILDER_H_

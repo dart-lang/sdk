@@ -328,6 +328,9 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
   }
 
   String _windowsArgumentEscape(String argument) {
+    if (argument.isEmpty) {
+      return '""';
+    }
     var result = argument;
     if (argument.contains('\t') ||
         argument.contains(' ') ||

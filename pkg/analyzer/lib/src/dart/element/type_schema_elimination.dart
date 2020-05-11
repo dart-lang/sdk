@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:meta/meta.dart';
 
 /// Visitor that computes least and greatest closures of a type schema.

@@ -72,7 +72,7 @@ class ObjectLocator : public ObjectVisitor {
   explicit ObjectLocator(IsolateGroupReloadContext* context)
       : context_(context), count_(0) {}
 
-  void VisitObject(RawObject* obj) {
+  void VisitObject(ObjectPtr obj) {
     InstanceMorpher* morpher =
         context_->instance_morpher_by_cid_.LookupValue(obj->GetClassId());
     if (morpher != NULL) {
@@ -186,13 +186,13 @@ InstanceMorpher::InstanceMorpher(
       before_(zone, 16),
       after_(zone, 16) {}
 
-void InstanceMorpher::AddObject(RawObject* object) {
+void InstanceMorpher::AddObject(ObjectPtr object) {
   ASSERT(object->GetClassId() == cid_);
   const Instance& instance = Instance::Cast(Object::Handle(Z, object));
   before_.Add(&instance);
 }
 
-RawInstance* InstanceMorpher::Morph(const Instance& instance) const {
+InstancePtr InstanceMorpher::Morph(const Instance& instance) const {
   // Code can reference constants / canonical objects either directly in the
   // instruction stream (ia32) or via an object pool.
   //
@@ -281,13 +281,13 @@ void ReasonForCancelling::Report(IsolateGroupReloadContext* context) {
   context->ReportError(error);
 }
 
-RawError* ReasonForCancelling::ToError() {
+ErrorPtr ReasonForCancelling::ToError() {
   // By default create the error returned from ToString.
   const String& message = String::Handle(ToString());
   return LanguageError::New(message);
 }
 
-RawString* ReasonForCancelling::ToString() {
+StringPtr ReasonForCancelling::ToString() {
   UNREACHABLE();
   return NULL;
 }
@@ -314,7 +314,7 @@ void ClassReasonForCancelling::AppendTo(JSONArray* array) {
   jsobj.AddProperty("message", message.ToCString());
 }
 
-RawError* IsolateGroupReloadContext::error() const {
+ErrorPtr IsolateGroupReloadContext::error() const {
   ASSERT(!reasons_to_cancel_reload_.is_empty());
   // Report the first error to the surroundings.
   return reasons_to_cancel_reload_.At(0)->ToError();
@@ -350,7 +350,7 @@ class ClassMapTraits {
 
   static uword Hash(const Object& obj) {
     uword class_name_hash = String::HashRawSymbol(Class::Cast(obj).Name());
-    RawLibrary* raw_library = Class::Cast(obj).library();
+    LibraryPtr raw_library = Class::Cast(obj).library();
     if (raw_library == Library::null()) {
       return class_name_hash;
     }
@@ -516,8 +516,8 @@ class Aborted : public ReasonForCancelling {
  private:
   const Error& error_;
 
-  RawError* ToError() { return error_.raw(); }
-  RawString* ToString() {
+  ErrorPtr ToError() { return error_.raw(); }
+  StringPtr ToString() {
     return String::NewFormatted("%s", error_.ToErrorCString());
   }
 };
@@ -688,6 +688,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     kernel::KernelLoader::FindModifiedLibraries(
         kernel_program.get(), first_isolate_, modified_libs_, force_reload,
         &skip_reload, p_num_received_classes, p_num_received_procedures);
+    modified_libs_transitive_ = new (Z) BitVector(Z, num_old_libs_);
+    BuildModifiedLibrariesClosure(modified_libs_);
 
     ASSERT(num_saved_libs_ == -1);
     num_saved_libs_ = 0;
@@ -746,6 +748,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   });
   // Renumbering the libraries has invalidated this.
   modified_libs_ = nullptr;
+  modified_libs_transitive_ = nullptr;
 
   if (FLAG_gc_during_reload) {
     // We use kLowMemory to force the GC to compact, which is more likely to
@@ -960,6 +963,108 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   return success;
 }
 
+/// Copied in from https://dart-review.googlesource.com/c/sdk/+/77722.
+static void PropagateLibraryModified(
+    const ZoneGrowableArray<ZoneGrowableArray<intptr_t>*>* imported_by,
+    intptr_t lib_index,
+    BitVector* modified_libs) {
+  ZoneGrowableArray<intptr_t>* dep_libs = (*imported_by)[lib_index];
+  for (intptr_t i = 0; i < dep_libs->length(); i++) {
+    intptr_t dep_lib_index = (*dep_libs)[i];
+    if (!modified_libs->Contains(dep_lib_index)) {
+      modified_libs->Add(dep_lib_index);
+      PropagateLibraryModified(imported_by, dep_lib_index, modified_libs);
+    }
+  }
+}
+
+/// Copied in from https://dart-review.googlesource.com/c/sdk/+/77722.
+void IsolateGroupReloadContext::BuildModifiedLibrariesClosure(
+    BitVector* modified_libs) {
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(first_isolate_->object_store()->libraries());
+  Library& lib = Library::Handle();
+  intptr_t num_libs = libs.Length();
+
+  // Construct the imported-by graph.
+  ZoneGrowableArray<ZoneGrowableArray<intptr_t>*>* imported_by = new (zone_)
+      ZoneGrowableArray<ZoneGrowableArray<intptr_t>*>(zone_, num_libs);
+  imported_by->SetLength(num_libs);
+  for (intptr_t i = 0; i < num_libs; i++) {
+    (*imported_by)[i] = new (zone_) ZoneGrowableArray<intptr_t>(zone_, 0);
+  }
+  Array& ports = Array::Handle();
+  Namespace& ns = Namespace::Handle();
+  Library& target = Library::Handle();
+  String& target_url = String::Handle();
+
+  for (intptr_t lib_idx = 0; lib_idx < num_libs; lib_idx++) {
+    lib ^= libs.At(lib_idx);
+    ASSERT(lib_idx == lib.index());
+    if (lib.is_dart_scheme()) {
+      // We don't care about imports among dart scheme libraries.
+      continue;
+    }
+
+    // Add imports to the import-by graph.
+    ports = lib.imports();
+    for (intptr_t import_idx = 0; import_idx < ports.Length(); import_idx++) {
+      ns ^= ports.At(import_idx);
+      if (!ns.IsNull()) {
+        target = ns.library();
+        target_url = target.url();
+        if (!target_url.StartsWith(Symbols::DartExtensionScheme())) {
+          (*imported_by)[target.index()]->Add(lib.index());
+        }
+      }
+    }
+
+    // Add exports to the import-by graph.
+    ports = lib.exports();
+    for (intptr_t export_idx = 0; export_idx < ports.Length(); export_idx++) {
+      ns ^= ports.At(export_idx);
+      if (!ns.IsNull()) {
+        target = ns.library();
+        (*imported_by)[target.index()]->Add(lib.index());
+      }
+    }
+
+    // Add prefixed imports to the import-by graph.
+    DictionaryIterator entries(lib);
+    Object& entry = Object::Handle();
+    LibraryPrefix& prefix = LibraryPrefix::Handle();
+    while (entries.HasNext()) {
+      entry = entries.GetNext();
+      if (entry.IsLibraryPrefix()) {
+        prefix ^= entry.raw();
+        ports = prefix.imports();
+        for (intptr_t import_idx = 0; import_idx < ports.Length();
+             import_idx++) {
+          ns ^= ports.At(import_idx);
+          if (!ns.IsNull()) {
+            target = ns.library();
+            (*imported_by)[target.index()]->Add(lib.index());
+          }
+        }
+      }
+    }
+  }
+
+  for (intptr_t lib_idx = 0; lib_idx < num_libs; lib_idx++) {
+    lib ^= libs.At(lib_idx);
+    if (lib.is_dart_scheme() || modified_libs_transitive_->Contains(lib_idx)) {
+      // We don't consider dart scheme libraries during reload.  If
+      // the modified libs set already contains this library, then we
+      // have already visited it.
+      continue;
+    }
+    if (modified_libs->Contains(lib_idx)) {
+      modified_libs_transitive_->Add(lib_idx);
+      PropagateLibraryModified(imported_by, lib_idx, modified_libs_transitive_);
+    }
+  }
+}
+
 void IsolateGroupReloadContext::GetRootLibUrl(const char* root_script_url) {
   const auto& old_root_lib =
       Library::Handle(first_isolate_->object_store()->root_library());
@@ -1040,7 +1145,7 @@ void IsolateReloadContext::ReloadPhase1AllocateStorageMapsAndCheckpoint() {
   }
 }
 
-RawObject* IsolateReloadContext::ReloadPhase2LoadKernel(
+ObjectPtr IsolateReloadContext::ReloadPhase2LoadKernel(
     kernel::Program* program,
     const String& root_lib_url) {
   Thread* thread = Thread::Current();
@@ -1235,7 +1340,7 @@ void IsolateReloadContext::CheckpointClasses() {
 
   // Copy the class table for isolate.
   ClassTable* class_table = I->class_table();
-  RawClass** saved_class_table = nullptr;
+  ClassPtr* saved_class_table = nullptr;
   class_table->CopyBeforeHotReload(&saved_class_table, &saved_num_cids_);
 
   // Copy classes into saved_class_table_ first. Make sure there are no
@@ -1381,6 +1486,9 @@ void IsolateReloadContext::CheckpointLibraries() {
   Library& lib = Library::Handle();
   UnorderedHashSet<LibraryMapTraits> old_libraries_set(
       old_libraries_set_storage_);
+
+  group_reload_context_->saved_libs_transitive_updated_ = new (Z)
+      BitVector(Z, group_reload_context_->modified_libs_transitive_->length());
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     if (group_reload_context_->modified_libs_->Contains(i)) {
@@ -1390,6 +1498,11 @@ void IsolateReloadContext::CheckpointLibraries() {
       // We are preserving this library across the reload, assign its new index
       lib.set_index(new_libs.Length());
       new_libs.Add(lib, Heap::kOld);
+
+      if (group_reload_context_->modified_libs_transitive_->Contains(i)) {
+        // Remember the new index.
+        group_reload_context_->saved_libs_transitive_updated_->Add(lib.index());
+      }
     }
     // Add old library to old libraries set.
     bool already_present = old_libraries_set.Insert(lib);
@@ -1569,7 +1682,10 @@ void IsolateReloadContext::CommitBeforeInstanceMorphing() {
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib = Library::RawCast(libs.At(i));
       // Mark the library dirty if it comes after the libraries we saved.
-      library_infos_[i].dirty = i >= group_reload_context_->num_saved_libs_;
+      library_infos_[i].dirty =
+          i >= group_reload_context_->num_saved_libs_ ||
+          group_reload_context_->saved_libs_transitive_updated_->Contains(
+              lib.index());
     }
   }
 }
@@ -1768,8 +1884,8 @@ void IsolateReloadContext::ValidateReload() {
   }
 }
 
-RawClass* IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
-  RawClass** class_table = saved_class_table_.load(std::memory_order_acquire);
+ClassPtr IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
+  ClassPtr* class_table = saved_class_table_.load(std::memory_order_acquire);
   if (class_table != NULL) {
     ASSERT(cid > 0);
     ASSERT(cid < saved_num_cids_);
@@ -1791,7 +1907,7 @@ intptr_t IsolateGroupReloadContext::GetClassSizeForHeapWalkAt(classid_t cid) {
 }
 
 void IsolateReloadContext::DiscardSavedClassTable(bool is_rollback) {
-  RawClass** local_saved_class_table =
+  ClassPtr* local_saved_class_table =
       saved_class_table_.load(std::memory_order_relaxed);
   I->class_table()->ResetAfterHotReload(local_saved_class_table,
                                         saved_num_cids_, is_rollback);
@@ -1813,10 +1929,10 @@ void IsolateGroupReloadContext::VisitObjectPointers(
 void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(from(), to());
 
-  RawClass** saved_class_table =
+  ClassPtr* saved_class_table =
       saved_class_table_.load(std::memory_order_relaxed);
   if (saved_class_table != NULL) {
-    auto class_table = reinterpret_cast<RawObject**>(&(saved_class_table[0]));
+    auto class_table = reinterpret_cast<ObjectPtr*>(&(saved_class_table[0]));
     visitor->VisitPointers(class_table, saved_num_cids_);
   }
 }
@@ -1883,22 +1999,22 @@ class InvalidationCollector : public ObjectVisitor {
         instances_(instances) {}
   virtual ~InvalidationCollector() {}
 
-  void VisitObject(RawObject* obj) {
+  void VisitObject(ObjectPtr obj) {
     intptr_t cid = obj->GetClassId();
     if (cid == kFunctionCid) {
       const Function& func =
-          Function::Handle(zone_, static_cast<RawFunction*>(obj));
+          Function::Handle(zone_, static_cast<FunctionPtr>(obj));
       if (!func.ForceOptimize()) {
         // Force-optimized functions cannot deoptimize.
         functions_->Add(&func);
       }
     } else if (cid == kKernelProgramInfoCid) {
       kernel_infos_->Add(&KernelProgramInfo::Handle(
-          zone_, static_cast<RawKernelProgramInfo*>(obj)));
+          zone_, static_cast<KernelProgramInfoPtr>(obj)));
     } else if (cid == kFieldCid) {
-      fields_->Add(&Field::Handle(zone_, static_cast<RawField*>(obj)));
+      fields_->Add(&Field::Handle(zone_, static_cast<FieldPtr>(obj)));
     } else if (cid > kNumPredefinedCids) {
-      instances_->Add(&Instance::Handle(zone_, static_cast<RawInstance*>(obj)));
+      instances_->Add(&Instance::Handle(zone_, static_cast<InstancePtr>(obj)));
     }
   }
 
@@ -2086,11 +2202,8 @@ class FieldInvalidator {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     bool null_safety = isolate->null_safety();
+    HANDLESCOPE(thread);
     for (intptr_t i = 0; i < instances.length(); i++) {
-      // This handle scope does run very frequently, but is a net-win by
-      // preventing us from spending too much time in malloc for new handle
-      // blocks.
-      HANDLESCOPE(thread);
       CheckInstance(null_safety, *instances[i]);
     }
   }
@@ -2124,6 +2237,10 @@ class FieldInvalidator {
     }
     value_ ^= instance.GetField(field);
     if (value_.raw() == Object::sentinel().raw()) {
+      if (field.is_late()) {
+        // Late fields already have lazy initialization logic.
+        return;
+      }
       // Needs guard for initialization.
       ASSERT(!FLAG_identity_reload);
       field.set_needs_load_guard(true);
@@ -2250,8 +2367,7 @@ void IsolateReloadContext::InvalidateWorld() {
   RunInvalidationVisitors();
 }
 
-RawClass* IsolateReloadContext::OldClassOrNull(
-    const Class& replacement_or_new) {
+ClassPtr IsolateReloadContext::OldClassOrNull(const Class& replacement_or_new) {
   UnorderedHashSet<ClassMapTraits> old_classes_set(old_classes_set_storage_);
   Class& cls = Class::Handle();
   cls ^= old_classes_set.GetOrNull(replacement_or_new);
@@ -2259,7 +2375,7 @@ RawClass* IsolateReloadContext::OldClassOrNull(
   return cls.raw();
 }
 
-RawString* IsolateReloadContext::FindLibraryPrivateKey(
+StringPtr IsolateReloadContext::FindLibraryPrivateKey(
     const Library& replacement_or_new) {
   const Library& old = Library::Handle(OldLibraryOrNull(replacement_or_new));
   if (old.IsNull()) {
@@ -2273,7 +2389,7 @@ RawString* IsolateReloadContext::FindLibraryPrivateKey(
   return old.private_key();
 }
 
-RawLibrary* IsolateReloadContext::OldLibraryOrNull(
+LibraryPtr IsolateReloadContext::OldLibraryOrNull(
     const Library& replacement_or_new) {
   UnorderedHashSet<LibraryMapTraits> old_libraries_set(
       old_libraries_set_storage_);
@@ -2291,7 +2407,7 @@ RawLibrary* IsolateReloadContext::OldLibraryOrNull(
 
 // Attempt to find the pair to |replacement_or_new| with the knowledge that
 // the base url prefix has moved.
-RawLibrary* IsolateReloadContext::OldLibraryOrNullBaseMoved(
+LibraryPtr IsolateReloadContext::OldLibraryOrNullBaseMoved(
     const Library& replacement_or_new) {
   const String& url_prefix =
       String::Handle(group_reload_context_->root_url_prefix_);

@@ -1,0 +1,12 @@
+library test;
+
+abstract class B {
+  void foo();
+}
+
+abstract class C extends B {
+  void bar();
+}
+
+main() {}
+void f<T extends B>(T a) {}

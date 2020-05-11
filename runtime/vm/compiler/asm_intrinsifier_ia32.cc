@@ -9,7 +9,7 @@
 // Dart method was intrinsified.
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_IA32.
-#if defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(TARGET_ARCH_IA32)
 
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
@@ -135,9 +135,9 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* EDI: allocation size. */                                                  \
   {                                                                            \
     Label size_tag_overflow, done;                                             \
-    __ cmpl(EDI, Immediate(target::RawObject::kSizeTagMaxSizeTag));            \
+    __ cmpl(EDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));         \
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);                     \
-    __ shll(EDI, Immediate(target::RawObject::kTagBitsSizeTagPos -             \
+    __ shll(EDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -          \
                            target::ObjectAlignment::kObjectAlignmentLog2));    \
     __ jmp(&done, Assembler::kNearJump);                                       \
                                                                                \
@@ -1682,7 +1682,7 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ j(NOT_EQUAL, &not_double);
 
   __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::object_store_offset()));
+  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::double_type_offset()));
   __ ret();
 
@@ -1692,7 +1692,7 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   JumpIfNotInteger(assembler, EAX, &not_integer);
 
   __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::object_store_offset()));
+  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::int_type_offset()));
   __ ret();
 
@@ -1703,7 +1703,7 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   JumpIfNotString(assembler, EAX, &use_declaration_type);
 
   __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::object_store_offset()));
+  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::string_type_offset()));
   __ ret();
 
@@ -2075,9 +2075,9 @@ static void TryAllocateOneByteString(Assembler* assembler,
   // EDI: allocation size.
   {
     Label size_tag_overflow, done;
-    __ cmpl(EDI, Immediate(target::RawObject::kSizeTagMaxSizeTag));
+    __ cmpl(EDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EDI, Immediate(target::RawObject::kTagBitsSizeTagPos -
+    __ shll(EDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
 
@@ -2355,4 +2355,4 @@ void AsmIntrinsifier::SetAsyncThreadStackTrace(Assembler* assembler,
 }  // namespace compiler
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(TARGET_ARCH_IA32)

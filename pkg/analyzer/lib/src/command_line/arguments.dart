@@ -57,11 +57,9 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
 }
 
 /**
- * Use the given [resourceProvider], [contentCache] and command-line [args] to
- * create a context builder.
+ * Use the command-line [args] to create a context builder.
  */
-ContextBuilderOptions createContextBuilderOptions(ArgResults args,
-    {bool trackCacheDependencies}) {
+ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
   ContextBuilderOptions builderOptions = ContextBuilderOptions();
   builderOptions.argResults = args;
   //
@@ -77,9 +75,6 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args,
   //
   AnalysisOptionsImpl defaultOptions = AnalysisOptionsImpl();
   applyAnalysisOptionFlags(defaultOptions, args);
-  if (trackCacheDependencies != null) {
-    defaultOptions.trackCacheDependencies = trackCacheDependencies;
-  }
   builderOptions.defaultOptions = defaultOptions;
   //
   // Declared variables.

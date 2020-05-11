@@ -6,13 +6,12 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
+    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 
 /// A contributor that produces suggestions based on the instance members of a
@@ -23,7 +22,7 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 class TypeMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var containingLibrary = request.libraryElement;
     // Gracefully degrade if the library could not be determined, such as with a
     // detached part file or source change.
@@ -75,7 +74,6 @@ class TypeMemberContributor extends DartCompletionContributor {
         }
       }
     }
-    String containingMethodName;
     List<InterfaceType> mixins;
     List<InterfaceType> superclassConstraints;
     if (expression is SuperExpression && type is InterfaceType) {
@@ -83,16 +81,6 @@ class TypeMemberContributor extends DartCompletionContributor {
       mixins = (type as InterfaceType).mixins;
       superclassConstraints = (type as InterfaceType).superclassConstraints;
       type = (type as InterfaceType).superclass;
-      // Determine the name of the containing method because the most likely
-      // completion is a super expression with same name.
-      var containingMethod =
-          expression.thisOrAncestorOfType<MethodDeclaration>();
-      if (containingMethod != null) {
-        var id = containingMethod.name;
-        if (id != null) {
-          containingMethodName = id.name;
-        }
-      }
     }
     if (type == null || type.isDynamic) {
       // Suggest members from object if target is "dynamic".
@@ -101,14 +89,11 @@ class TypeMemberContributor extends DartCompletionContributor {
 
     // Build the suggestions.
     if (type is InterfaceType) {
-      var builder = _SuggestionBuilder(request);
-      builder.buildSuggestions(type, containingMethodName,
+      var memberBuilder = _SuggestionBuilder(request, builder);
+      memberBuilder.buildSuggestions(type,
           mixins: mixins, superclassConstraints: superclassConstraints);
-      return builder.suggestions.toList();
-    }
-    if (type is FunctionType) {
-      var builder = _SuggestionBuilder(request);
-      return [builder._createFunctionCallSuggestion()];
+    } else if (type is FunctionType) {
+      builder.suggestFunctionCall();
     }
 
     return const <CompletionSuggestion>[];
@@ -238,12 +223,13 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 /// an interface type.
 class _SuggestionBuilder extends MemberSuggestionBuilder {
   /// Initialize a newly created suggestion builder.
-  _SuggestionBuilder(DartCompletionRequest request) : super(request);
+  _SuggestionBuilder(DartCompletionRequest request, SuggestionBuilder builder)
+      : super(request, builder);
 
   /// Return completion suggestions for 'dot' completions on the given [type].
   /// If the 'dot' completion is a super expression, then [containingMethodName]
   /// is the name of the method in which the completion is requested.
-  void buildSuggestions(InterfaceType type, String containingMethodName,
+  void buildSuggestions(InterfaceType type,
       {List<InterfaceType> mixins, List<InterfaceType> superclassConstraints}) {
     // Visit all of the types in the class hierarchy, collecting possible
     // completions.  If multiple elements are found that complete to the same
@@ -266,45 +252,19 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
         // Exclude static methods when completion on an instance.
         if (!method.isStatic) {
           addSuggestionForMethod(
-              method: method,
-              containingMethodName: containingMethodName,
-              inheritanceDistance: inheritanceDistance);
+              method: method, inheritanceDistance: inheritanceDistance);
         }
       }
       for (var accessor in targetType.accessors) {
         if (!accessor.isStatic) {
           addSuggestionForAccessor(
-              accessor: accessor,
-              containingMethodName: containingMethodName,
-              inheritanceDistance: inheritanceDistance);
+              accessor: accessor, inheritanceDistance: inheritanceDistance);
         }
       }
       if (targetType.isDartCoreFunction) {
-        addCompletionSuggestion(_createFunctionCallSuggestion());
+        builder.suggestFunctionCall();
       }
     }
-  }
-
-  CompletionSuggestion _createFunctionCallSuggestion() {
-    const callString = 'call()';
-    final element = protocol.Element(
-        protocol.ElementKind.METHOD, callString, protocol.Element.makeFlags(),
-        location: null,
-        typeParameters: null,
-        parameters: null,
-        returnType: 'void');
-    return CompletionSuggestion(
-      CompletionSuggestionKind.INVOCATION,
-      request.useNewRelevance ? Relevance.callFunction : DART_RELEVANCE_HIGH,
-      callString,
-      callString.length,
-      0,
-      false,
-      false,
-      displayText: callString,
-      element: element,
-      returnType: 'void',
-    );
   }
 
   /// Get a list of [InterfaceType]s that should be searched to find the

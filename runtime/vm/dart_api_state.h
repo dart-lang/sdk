@@ -127,8 +127,8 @@ class ApiZone {
 class LocalHandle {
  public:
   // Accessors.
-  RawObject* raw() const { return raw_; }
-  void set_raw(RawObject* raw) { raw_ = raw; }
+  ObjectPtr raw() const { return raw_; }
+  void set_raw(ObjectPtr raw) { raw_ = raw; }
   static intptr_t raw_offset() { return OFFSET_OF(LocalHandle, raw_); }
 
   Dart_Handle apiHandle() { return reinterpret_cast<Dart_Handle>(this); }
@@ -137,7 +137,7 @@ class LocalHandle {
   LocalHandle() {}
   ~LocalHandle() {}
 
-  RawObject* raw_;
+  ObjectPtr raw_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
   DISALLOW_COPY_AND_ASSIGN(LocalHandle);
 };
@@ -151,11 +151,11 @@ void ProtectedHandleCallback(void* peer);
 class PersistentHandle {
  public:
   // Accessors.
-  RawObject* raw() const { return raw_; }
-  void set_raw(RawObject* ref) { raw_ = ref; }
+  ObjectPtr raw() const { return raw_; }
+  void set_raw(ObjectPtr ref) { raw_ = ref; }
   void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
   void set_raw(const Object& object) { raw_ = object.raw(); }
-  RawObject** raw_addr() { return &raw_; }
+  ObjectPtr* raw_addr() { return &raw_; }
   Dart_PersistentHandle apiHandle() {
     return reinterpret_cast<Dart_PersistentHandle>(this);
   }
@@ -172,14 +172,16 @@ class PersistentHandle {
 
   // Overload the raw_ field as a next pointer when adding freed
   // handles to the free list.
-  PersistentHandle* Next() { return reinterpret_cast<PersistentHandle*>(raw_); }
+  PersistentHandle* Next() {
+    return reinterpret_cast<PersistentHandle*>(static_cast<uword>(raw_));
+  }
   void SetNext(PersistentHandle* free_list) {
-    raw_ = reinterpret_cast<RawObject*>(free_list);
+    raw_ = static_cast<ObjectPtr>(reinterpret_cast<uword>(free_list));
     ASSERT(!raw_->IsHeapObject());
   }
   void FreeHandle(PersistentHandle* free_list) { SetNext(free_list); }
 
-  RawObject* raw_;
+  ObjectPtr raw_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
   DISALLOW_COPY_AND_ASSIGN(PersistentHandle);
 };
@@ -196,8 +198,8 @@ class FinalizablePersistentHandle {
       intptr_t external_size);
 
   // Accessors.
-  RawObject* raw() const { return raw_; }
-  RawObject** raw_addr() { return &raw_; }
+  ObjectPtr raw() const { return raw_; }
+  ObjectPtr* raw_addr() { return &raw_; }
   static intptr_t raw_offset() {
     return OFFSET_OF(FinalizablePersistentHandle, raw_);
   }
@@ -265,7 +267,7 @@ class FinalizablePersistentHandle {
   friend class FinalizablePersistentHandles;
 
   FinalizablePersistentHandle()
-      : raw_(NULL), peer_(NULL), external_data_(0), callback_(NULL) {}
+      : raw_(nullptr), peer_(NULL), external_data_(0), callback_(NULL) {}
   ~FinalizablePersistentHandle() {}
 
   static void Finalize(IsolateGroup* isolate_group,
@@ -274,10 +276,11 @@ class FinalizablePersistentHandle {
   // Overload the raw_ field as a next pointer when adding freed
   // handles to the free list.
   FinalizablePersistentHandle* Next() {
-    return reinterpret_cast<FinalizablePersistentHandle*>(raw_);
+    return reinterpret_cast<FinalizablePersistentHandle*>(
+        static_cast<uword>(raw_));
   }
   void SetNext(FinalizablePersistentHandle* free_list) {
-    raw_ = reinterpret_cast<RawObject*>(free_list);
+    raw_ = static_cast<ObjectPtr>(reinterpret_cast<uword>(free_list));
     ASSERT(!raw_->IsHeapObject());
   }
   void FreeHandle(FinalizablePersistentHandle* free_list) {
@@ -292,7 +295,7 @@ class FinalizablePersistentHandle {
     callback_ = NULL;
   }
 
-  void set_raw(RawObject* raw) { raw_ = raw; }
+  void set_raw(ObjectPtr raw) { raw_ = raw; }
   void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
   void set_raw(const Object& object) { raw_ = object.raw(); }
 
@@ -327,7 +330,7 @@ class FinalizablePersistentHandle {
     return raw_->IsSmiOrOldObject() ? Heap::kOld : Heap::kNew;
   }
 
-  RawObject* raw_;
+  ObjectPtr raw_;
   void* peer_;
   uword external_data_;
   Dart_WeakPersistentHandleFinalizer callback_;

@@ -6,7 +6,7 @@ library fasta.target_implementation;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Library, Source;
+import 'package:kernel/ast.dart' show Library, Source, Version;
 
 import 'package:kernel/target/targets.dart' as backend show Target;
 
@@ -169,36 +169,30 @@ abstract class TargetImplementation extends Target {
     return rewriteSeverity(severity, message.code, fileUri);
   }
 
-  String get currentSdkVersion {
+  String get currentSdkVersionString {
     return CompilerContext.current.options.currentSdkVersion;
   }
 
-  int _currentSdkVersionMajor;
-  int _currentSdkVersionMinor;
-  int get currentSdkVersionMajor {
-    if (_currentSdkVersionMajor != null) return _currentSdkVersionMajor;
+  Version _currentSdkVersion;
+  Version get currentSdkVersion {
+    if (_currentSdkVersion != null) return _currentSdkVersion;
     _parseCurrentSdkVersion();
-    return _currentSdkVersionMajor;
-  }
-
-  int get currentSdkVersionMinor {
-    if (_currentSdkVersionMinor != null) return _currentSdkVersionMinor;
-    _parseCurrentSdkVersion();
-    return _currentSdkVersionMinor;
+    return _currentSdkVersion;
   }
 
   void _parseCurrentSdkVersion() {
     bool good = false;
-    if (currentSdkVersion != null) {
-      List<String> dotSeparatedParts = currentSdkVersion.split(".");
+    if (currentSdkVersionString != null) {
+      List<String> dotSeparatedParts = currentSdkVersionString.split(".");
       if (dotSeparatedParts.length >= 2) {
-        _currentSdkVersionMajor = int.tryParse(dotSeparatedParts[0]);
-        _currentSdkVersionMinor = int.tryParse(dotSeparatedParts[1]);
+        _currentSdkVersion = new Version(int.tryParse(dotSeparatedParts[0]),
+            int.tryParse(dotSeparatedParts[1]));
         good = true;
       }
     }
     if (!good) {
-      throw new StateError("Unparsable sdk version given: $currentSdkVersion");
+      throw new StateError(
+          "Unparsable sdk version given: $currentSdkVersionString");
     }
   }
 

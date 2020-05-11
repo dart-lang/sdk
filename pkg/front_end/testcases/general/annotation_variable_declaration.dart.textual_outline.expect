@@ -1,0 +1,18 @@
+const int foo = 42;
+
+class Bar {
+  const Bar();
+  const Bar.named(x);
+}
+
+class Baz {
+  Baz(@foo constructorFormal);
+  factory Baz.bazFactory(@foo factoryFormal) => null;
+  fisk(@foo formal1, @Bar() formal2, @Bar.named(foo) formal3,
+      @foo @Bar.named(foo) formal4,
+      [@foo optional]) {}
+  hest({@foo named}) => null;
+}
+
+typedef hest_t({@foo named});
+main() {}

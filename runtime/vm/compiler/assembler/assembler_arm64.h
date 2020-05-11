@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM64_H_
 #define RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM64_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_
 #error Do not include assembler_arm64.h directly; use assembler.h instead.
 #endif
@@ -468,7 +472,7 @@ class Assembler : public AssemblerBase {
   void Drop(intptr_t stack_elements) {
     ASSERT(stack_elements >= 0);
     if (stack_elements > 0) {
-      add(SP, SP, Operand(stack_elements * target::kWordSize));
+      AddImmediate(SP, SP, stack_elements * target::kWordSize);
     }
   }
 
@@ -1034,11 +1038,6 @@ class Assembler : public AssemblerBase {
   // Breakpoint.
   void brk(uint16_t imm) { EmitExceptionGenOp(BRK, imm); }
 
-  static uword GetBreakInstructionFiller() {
-    const intptr_t encoding = ExceptionGenOpEncoding(BRK, 0);
-    return encoding << 32 | encoding;
-  }
-
   // Double floating point.
   bool fmovdi(VRegister vd, double immd) {
     int64_t imm64 = bit_cast<int64_t, double>(immd);
@@ -1406,16 +1405,17 @@ class Assembler : public AssemblerBase {
   }
   void BranchLinkToRuntime();
 
-  void CallNullErrorShared(bool save_fpu_registers);
-
-  void CallNullArgErrorShared(bool save_fpu_registers);
-
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
   void BranchLinkWithEquivalence(
       const Code& code,
       const Object& equivalence,
       CodeEntryKind entry_kind = CodeEntryKind::kNormal);
+
+  void Call(Address target) {
+    ldr(LR, target);
+    blr(LR);
+  }
 
   void AddImmediate(Register dest, int64_t imm) {
     AddImmediate(dest, dest, imm);
@@ -1571,6 +1571,9 @@ class Assembler : public AssemblerBase {
   }
   void CompareObject(Register reg, const Object& object);
 
+  void ExtractClassIdFromTags(Register result, Register tags);
+  void ExtractInstanceSizeFromTags(Register result, Register tags);
+
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
   void CompareClassId(Register object,
@@ -1580,7 +1583,8 @@ class Assembler : public AssemblerBase {
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
-  void SetupDartSP();
+  // Reserve specifies how much space to reserve for the Dart stack.
+  void SetupDartSP(intptr_t reserve = 4096);
   void SetupCSPFromThread(Register thr);
   void RestoreCSP();
 
@@ -1657,8 +1661,8 @@ class Assembler : public AssemblerBase {
   // the code can be used.
   //
   // The neccessary information for the "linker" (i.e. the relocation
-  // information) is stored in [RawCode::static_calls_target_table_]: an entry
-  // of the form
+  // information) is stored in [CodeLayout::static_calls_target_table_]: an
+  // entry of the form
   //
   //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
   //
@@ -1668,6 +1672,11 @@ class Assembler : public AssemblerBase {
   // destination.  It can be used e.g. for calling into the middle of a
   // function.
   void GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target = 0);
+
+  // This emits an PC-relative tail call of the form "b <offset>".
+  //
+  // See also above for the pc-relative call.
+  void GenerateUnRelocatedPcRelativeTailCall(intptr_t offset_into_target = 0);
 
   Address ElementAddressForIntIndex(bool is_external,
                                     intptr_t cid,
@@ -1707,6 +1716,10 @@ class Assembler : public AssemblerBase {
                                         bool index_unboxed,
                                         Register array,
                                         Register index);
+
+  void LoadFieldAddressForRegOffset(Register address,
+                                    Register instance,
+                                    Register offset_in_words_as_smi);
 
   // Returns object data offset for address calculation; for heap objects also
   // accounts for the tag.

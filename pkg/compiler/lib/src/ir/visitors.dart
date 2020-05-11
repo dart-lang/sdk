@@ -130,6 +130,12 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
             .skip(node.requiredParameterCount)
             .toList()),
         node.namedParameters.map((n) => n.name).toList(),
+        _options.useLegacySubtyping
+            ? const <String>{}
+            : node.namedParameters
+                .where((n) => n.isRequired)
+                .map((n) => n.name)
+                .toSet(),
         node.namedParameters.map((n) => visitType(n.type)).toList(),
         typeVariables ?? const <FunctionTypeVariable>[]);
     DartType type = _convertNullability(functionType, node.nullability);

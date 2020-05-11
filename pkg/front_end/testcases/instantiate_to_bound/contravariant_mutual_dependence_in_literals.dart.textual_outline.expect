@@ -1,0 +1,10 @@
+class D<X extends void Function(X, Y), Y extends void Function(X, Y)> {}
+
+var ld = <D>[];
+var md = <D, D>{};
+
+class E<X extends void Function(X)> {}
+
+var le = <E>[];
+var me = <E, E>{};
+main() {}

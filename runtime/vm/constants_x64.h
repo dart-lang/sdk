@@ -153,11 +153,52 @@ struct TypeTestABI {
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
       (1 << kSubtypeTestCacheReg);
+
+  // For call to InstanceOfStub.
+  static const Register kResultReg = RAX;
 };
 
 // ABI for InitStaticFieldStub.
 struct InitStaticFieldABI {
   static const Register kFieldReg = RAX;
+};
+
+// ABI for InitInstanceFieldStub.
+struct InitInstanceFieldABI {
+  static const Register kInstanceReg = RAX;
+  static const Register kFieldReg = RBX;
+};
+
+// Registers used inside the implementation of InitLateInstanceFieldStub.
+struct InitLateInstanceFieldInternalRegs {
+  static const Register kFunctionReg = RAX;
+  static const Register kInitializerResultReg = RAX;
+  static const Register kInstanceReg = RBX;
+  static const Register kFieldReg = RDX;
+  static const Register kAddressReg = RCX;
+  static const Register kScratchReg = RSI;
+};
+
+// ABI for ThrowStub.
+struct ThrowABI {
+  static const Register kExceptionReg = RAX;
+};
+
+// ABI for ReThrowStub.
+struct ReThrowABI {
+  static const Register kExceptionReg = RAX;
+  static const Register kStackTraceReg = RBX;
+};
+
+// ABI for AssertBooleanStub.
+struct AssertBooleanABI {
+  static const Register kObjectReg = RAX;
+};
+
+// ABI for RangeErrorStub.
+struct RangeErrorABI {
+  static const Register kLengthReg = RAX;
+  static const Register kIndexReg = RBX;
 };
 
 // Registers used inside the implementation of type testing stubs.
@@ -376,6 +417,8 @@ class Instr {
 // The largest multibyte nop we will emit.  This could go up to 15 if it
 // becomes important to us.
 const int MAX_NOP_SIZE = 8;
+
+const uword kBreakInstructionFiller = 0xCCCCCCCCCCCCCCCCL;
 
 }  // namespace dart
 

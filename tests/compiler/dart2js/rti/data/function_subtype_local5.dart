@@ -21,12 +21,12 @@ class C<T> {
   void test(String nameOfT, bool expectedResult) {
     // TODO(johnniwinther): Optimize local function type signature need.
 
-    /*strong.needsSignature*/
-    /*omit.needsSignature*/
+    /*spec:nnbd-off.needsSignature*/
+    /*prod:nnbd-off.needsSignature*/
     int foo(bool a, [String b]) => null;
 
-    /*strong.needsSignature*/
-    /*omit.needsSignature*/
+    /*spec:nnbd-off.needsSignature*/
+    /*prod:nnbd-off.needsSignature*/
     int baz(bool a, {String b}) => null;
 
     Expect.equals(expectedResult, foo is Foo<T>, 'foo is Foo<$nameOfT>');

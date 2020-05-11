@@ -102,8 +102,8 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
     return completer.future;
   }
 
-  Future<RawSocket> runClient(Socket socket) {
-    Completer<RawSocket> completer = new Completer<RawSocket>();
+  Future<RawSocket?> runClient(Socket socket) {
+    Completer<RawSocket?> completer = new Completer<RawSocket?>();
     var dataReceived = <int>[];
     socket.listen((data) {
       dataReceived.addAll(data);

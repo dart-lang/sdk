@@ -15,7 +15,7 @@ import '../../../protocol_server.dart'
 class LibraryPrefixContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     if (!request.includeIdentifiers) {
       return const <CompletionSuggestion>[];
     }
@@ -36,13 +36,15 @@ class LibraryPrefixContributor extends DartCompletionContributor {
       if (completion != null && completion.isNotEmpty) {
         var libraryElement = element.importedLibrary;
         if (libraryElement != null) {
-          var relevance =
-              useNewRelevance ? Relevance.prefix : DART_RELEVANCE_DEFAULT;
-          var suggestion = createSuggestion(libraryElement,
+          var relevance = useNewRelevance
+              ? Relevance.prefix
+              : (libraryElement.hasDeprecated
+                  ? DART_RELEVANCE_LOW
+                  : DART_RELEVANCE_DEFAULT);
+          var suggestion = createSuggestion(request, libraryElement,
               completion: completion,
               kind: CompletionSuggestionKind.IDENTIFIER,
-              relevance: relevance,
-              useNewRelevance: useNewRelevance);
+              relevance: relevance);
           if (suggestion != null) {
             suggestions.add(suggestion);
           }

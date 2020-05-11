@@ -18,7 +18,7 @@ import 'package:kernel/kernel.dart'
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
-import 'package:kernel/type_environment.dart' show SubtypeTester;
+import 'package:kernel/src/types.dart' show Types;
 
 import 'package:vm/bytecode/gen_bytecode.dart'
     show createFreshComponentWithBytecode, generateBytecode;
@@ -78,7 +78,7 @@ compileEntryPoint(List<String> arguments) async {
     stopwatch.stop();
 
     elapsedTimes.add(stopwatch.elapsedMilliseconds.toDouble());
-    List<Object> typeChecks = SubtypeTester.typeChecks;
+    List<Object> typeChecks = Types.typeChecksForTesting;
     if (typeChecks?.isNotEmpty ?? false) {
       BenchMaker.writeTypeChecks("type_checks.json", typeChecks);
     }
@@ -186,7 +186,7 @@ class BatchCompiler {
       options.sdkSummaryComponent = platformComponent;
     }
     CompileTask task = new CompileTask(c, ticker);
-    await task.compile(omitPlatform: true);
+    await task.compile(omitPlatform: true, supportAdditionalDills: false);
     CanonicalName root = platformComponent.root;
     for (Library library in platformComponent.libraries) {
       library.parent = platformComponent;
@@ -220,7 +220,7 @@ Future<KernelTarget> outline(List<String> arguments) async {
       }
       CompileTask task =
           new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
-      return await task.buildOutline(c.options.output);
+      return await task.buildOutline(output: c.options.output);
     });
   });
 }
@@ -292,15 +292,31 @@ class CompileTask {
     return dFile;
   }
 
-  Future<KernelTarget> buildOutline([Uri output]) async {
+  Future<KernelTarget> buildOutline(
+      {Uri output, bool supportAdditionalDills: true}) async {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     ticker.logMs("Read packages file");
     DillTarget dillTarget = createDillTarget(uriTranslator);
     KernelTarget kernelTarget = createKernelTarget(dillTarget, uriTranslator);
-    Uri platform = c.options.sdkSummary;
-    if (platform != null) {
-      _appendDillForUri(dillTarget, platform);
+
+    if (supportAdditionalDills) {
+      Component sdkSummary = await c.options.loadSdkSummary(null);
+      if (sdkSummary != null) {
+        dillTarget.loader.appendLibraries(sdkSummary);
+      }
+
+      CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
+      for (Component additionalDill
+          in await c.options.loadAdditionalDills(nameRoot)) {
+        dillTarget.loader.appendLibraries(additionalDill);
+      }
+    } else {
+      Uri platform = c.options.sdkSummary;
+      if (platform != null) {
+        _appendDillForUri(dillTarget, platform);
+      }
     }
+
     kernelTarget.setEntryPoints(c.options.inputs);
     await dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();
@@ -314,8 +330,10 @@ class CompileTask {
     return kernelTarget;
   }
 
-  Future<Uri> compile({bool omitPlatform: false}) async {
-    KernelTarget kernelTarget = await buildOutline();
+  Future<Uri> compile(
+      {bool omitPlatform: false, bool supportAdditionalDills: true}) async {
+    KernelTarget kernelTarget =
+        await buildOutline(supportAdditionalDills: supportAdditionalDills);
     Uri uri = c.options.output;
     Component component =
         await kernelTarget.buildComponent(verify: c.options.verify);
@@ -328,7 +346,8 @@ class CompileTask {
       Component userCode = new Component(
           nameRoot: component.root,
           uriToSource: new Map<Uri, Source>.from(component.uriToSource));
-      userCode.mainMethodName = component.mainMethodName;
+      userCode.setMainMethodAndMode(
+          component.mainMethodName, true, component.mode);
       for (Library library in component.libraries) {
         if (library.importUri.scheme != "dart") {
           userCode.libraries.add(library);
@@ -346,10 +365,11 @@ class CompileTask {
 
 /// Load the [Component] from the given [uri] and append its libraries
 /// to the [dillTarget].
-void _appendDillForUri(DillTarget dillTarget, Uri uri) {
+Component _appendDillForUri(DillTarget dillTarget, Uri uri) {
   var bytes = new File.fromUri(uri).readAsBytesSync();
   var platformComponent = loadComponentFromBytes(bytes);
   dillTarget.loader.appendLibraries(platformComponent, byteCount: bytes.length);
+  return platformComponent;
 }
 
 Future<void> compilePlatform(List<String> arguments) async {

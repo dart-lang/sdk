@@ -704,6 +704,10 @@ Dart_Handle DartUtils::NewDartArgumentError(const char* message) {
   return NewDartExceptionWithMessage(kCoreLibURL, "ArgumentError", message);
 }
 
+Dart_Handle DartUtils::NewDartFormatException(const char* message) {
+  return NewDartExceptionWithMessage(kCoreLibURL, "FormatException", message);
+}
+
 Dart_Handle DartUtils::NewDartUnsupportedError(const char* message) {
   return NewDartExceptionWithMessage(kCoreLibURL, "UnsupportedError", message);
 }

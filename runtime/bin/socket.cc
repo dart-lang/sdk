@@ -1258,7 +1258,7 @@ static void SignalSocketFinalizer(void* isolate_data,
                                   void* data) {
   Socket* socket = reinterpret_cast<Socket*>(data);
   if (socket->fd() >= 0) {
-    Process::ClearSignalHandler(socket->fd(), socket->isolate_port());
+    Process::ClearSignalHandlerByFd(socket->fd(), socket->isolate_port());
     const int64_t flags = 1 << kCloseCommand;
     socket->Retain();
     EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),

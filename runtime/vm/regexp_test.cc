@@ -12,7 +12,7 @@
 
 namespace dart {
 
-static RawArray* Match(const String& pat, const String& str) {
+static ArrayPtr Match(const String& pat, const String& str) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const RegExp& regexp =

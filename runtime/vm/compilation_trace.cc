@@ -27,7 +27,7 @@ CompilationTraceSaver::CompilationTraceSaver(Zone* zone)
       lib_(Library::Handle(zone)),
       uri_(String::Handle(zone)) {}
 
-void CompilationTraceSaver::Visit(const Function& function) {
+void CompilationTraceSaver::VisitFunction(const Function& function) {
   if (!function.HasCode()) {
     return;  // Not compiled.
   }
@@ -79,8 +79,7 @@ static char* FindCharacter(char* str, char goal, char* limit) {
   return NULL;
 }
 
-RawObject* CompilationTraceLoader::CompileTrace(uint8_t* buffer,
-                                                intptr_t size) {
+ObjectPtr CompilationTraceLoader::CompileTrace(uint8_t* buffer, intptr_t size) {
   // First compile functions named in the trace.
   char* cursor = reinterpret_cast<char*>(buffer);
   char* limit = cursor + size;
@@ -125,7 +124,7 @@ RawObject* CompilationTraceLoader::CompileTrace(uint8_t* buffer,
     arguments_descriptor = ArgumentsDescriptor::NewBoxed(kTypeArgsLen, argc);
     dispatcher = closure_class.GetInvocationDispatcher(
         Symbols::Call(), arguments_descriptor,
-        RawFunction::kInvokeFieldDispatcher, true /* create_if_absent */);
+        FunctionLayout::kInvokeFieldDispatcher, true /* create_if_absent */);
     error_ = CompileFunction(dispatcher);
     if (error_.IsError()) {
       return error_.raw();
@@ -160,9 +159,9 @@ RawObject* CompilationTraceLoader::CompileTrace(uint8_t* buffer,
 //    compile the getter, create its method extractor and compile that.
 //  - If looking for a getter and we only have a const field, evaluate the const
 //    field.
-RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
-                                                 const char* cls_cstr,
-                                                 const char* func_cstr) {
+ObjectPtr CompilationTraceLoader::CompileTriple(const char* uri_cstr,
+                                                const char* cls_cstr,
+                                                const char* func_cstr) {
   uri_ = Symbols::New(thread_, uri_cstr);
   class_name_ = Symbols::New(thread_, cls_cstr);
   function_name_ = Symbols::New(thread_, func_cstr);
@@ -363,7 +362,7 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
   return Object::null();
 }
 
-RawObject* CompilationTraceLoader::CompileFunction(const Function& function) {
+ObjectPtr CompilationTraceLoader::CompileFunction(const Function& function) {
   if (function.is_abstract() || function.HasCode()) {
     return Object::null();
   }
@@ -505,7 +504,7 @@ void TypeFeedbackSaver::SaveFields() {
   }
 }
 
-void TypeFeedbackSaver::Visit(const Function& function) {
+void TypeFeedbackSaver::VisitFunction(const Function& function) {
   if (!function.HasCode()) {
     return;  // Not compiled.
   }
@@ -612,7 +611,7 @@ TypeFeedbackLoader::~TypeFeedbackLoader() {
   delete[] cid_map_;
 }
 
-RawObject* TypeFeedbackLoader::LoadFeedback(ReadStream* stream) {
+ObjectPtr TypeFeedbackLoader::LoadFeedback(ReadStream* stream) {
   stream_ = stream;
 
   error_ = CheckHeader();
@@ -656,7 +655,7 @@ RawObject* TypeFeedbackLoader::LoadFeedback(ReadStream* stream) {
   return Error::null();
 }
 
-RawObject* TypeFeedbackLoader::CheckHeader() {
+ObjectPtr TypeFeedbackLoader::CheckHeader() {
   const char* expected_version = Version::SnapshotString();
   ASSERT(expected_version != NULL);
   const intptr_t version_len = strlen(expected_version);
@@ -710,7 +709,7 @@ RawObject* TypeFeedbackLoader::CheckHeader() {
   return Error::null();
 }
 
-RawObject* TypeFeedbackLoader::LoadClasses() {
+ObjectPtr TypeFeedbackLoader::LoadClasses() {
   num_cids_ = ReadInt();
 
   cid_map_ = new intptr_t[num_cids_];
@@ -731,7 +730,7 @@ RawObject* TypeFeedbackLoader::LoadClasses() {
   return Error::null();
 }
 
-RawObject* TypeFeedbackLoader::LoadFields() {
+ObjectPtr TypeFeedbackLoader::LoadFields() {
   for (intptr_t cid = kNumPredefinedCids; cid < num_cids_; cid++) {
     cls_ = ReadClassByName();
     bool skip = cls_.IsNull();
@@ -799,7 +798,7 @@ RawObject* TypeFeedbackLoader::LoadFields() {
   return Error::null();
 }
 
-RawObject* TypeFeedbackLoader::LoadFunction() {
+ObjectPtr TypeFeedbackLoader::LoadFunction() {
   bool skip = false;
 
   cls_ = ReadClassByName();
@@ -813,7 +812,7 @@ RawObject* TypeFeedbackLoader::LoadFunction() {
   }
 
   func_name_ = ReadString();  // Without private mangling.
-  RawFunction::Kind kind = static_cast<RawFunction::Kind>(ReadInt());
+  FunctionLayout::Kind kind = static_cast<FunctionLayout::Kind>(ReadInt());
   intptr_t token_pos = ReadInt();
   intptr_t usage = ReadInt();
   intptr_t inlining_depth = ReadInt();
@@ -923,8 +922,8 @@ RawObject* TypeFeedbackLoader::LoadFunction() {
   return Error::null();
 }
 
-RawFunction* TypeFeedbackLoader::FindFunction(RawFunction::Kind kind,
-                                              intptr_t token_pos) {
+FunctionPtr TypeFeedbackLoader::FindFunction(FunctionLayout::Kind kind,
+                                             intptr_t token_pos) {
   if (cls_name_.Equals(Symbols::TopLevel())) {
     func_ = lib_.LookupFunctionAllowPrivate(func_name_);
   } else {
@@ -933,7 +932,7 @@ RawFunction* TypeFeedbackLoader::FindFunction(RawFunction::Kind kind,
 
   if (!func_.IsNull()) {
     // Found regular method.
-  } else if (kind == RawFunction::kMethodExtractor) {
+  } else if (kind == FunctionLayout::kMethodExtractor) {
     ASSERT(Field::IsGetterName(func_name_));
     // Without private mangling:
     String& name = String::Handle(zone_, Field::NameFromGetter(func_name_));
@@ -945,7 +944,7 @@ RawFunction* TypeFeedbackLoader::FindFunction(RawFunction::Kind kind,
     } else {
       func_ = Function::null();
     }
-  } else if (kind == RawFunction::kDynamicInvocationForwarder) {
+  } else if (kind == FunctionLayout::kDynamicInvocationForwarder) {
     // Without private mangling:
     String& name = String::Handle(
         zone_, Function::DemangleDynamicInvocationForwarderName(func_name_));
@@ -957,7 +956,7 @@ RawFunction* TypeFeedbackLoader::FindFunction(RawFunction::Kind kind,
     } else {
       func_ = Function::null();
     }
-  } else if (kind == RawFunction::kClosureFunction) {
+  } else if (kind == FunctionLayout::kClosureFunction) {
     // Note this lookup relies on parent functions appearing before child
     // functions in the serialized feedback, so the parent will have already
     // been unoptimized compilated and the child function created and added to
@@ -984,7 +983,7 @@ RawFunction* TypeFeedbackLoader::FindFunction(RawFunction::Kind kind,
   }
 
   if (!func_.IsNull()) {
-    if (kind == RawFunction::kImplicitClosureFunction) {
+    if (kind == FunctionLayout::kImplicitClosureFunction) {
       func_ = func_.ImplicitClosureFunction();
     }
     if (func_.is_abstract() || (func_.kind() != kind)) {
@@ -995,7 +994,7 @@ RawFunction* TypeFeedbackLoader::FindFunction(RawFunction::Kind kind,
   return func_.raw();
 }
 
-RawClass* TypeFeedbackLoader::ReadClassByName() {
+ClassPtr TypeFeedbackLoader::ReadClassByName() {
   uri_ = ReadString();
   cls_name_ = ReadString();
 
@@ -1021,7 +1020,7 @@ RawClass* TypeFeedbackLoader::ReadClassByName() {
   return cls_.raw();
 }
 
-RawString* TypeFeedbackLoader::ReadString() {
+StringPtr TypeFeedbackLoader::ReadString() {
   intptr_t len = stream_->ReadUnsigned();
   const char* cstr =
       reinterpret_cast<const char*>(stream_->AddressOfCurrentPosition());

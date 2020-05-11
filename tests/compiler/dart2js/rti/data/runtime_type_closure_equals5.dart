@@ -6,36 +6,36 @@
 
 import 'package:expect/expect.dart';
 
-/*omit.class: Class1:needsArgs*/
-/*strong.class: Class1:direct,explicit=[Class1.T],needsArgs*/
+/*prod:nnbd-off.class: Class1:needsArgs*/
+/*spec:nnbd-off.class: Class1:direct,explicit=[Class1.T],needsArgs*/
 class Class1<T> {
-  /*strong.member: Class1.:*/
-  /*omit.member: Class1.:*/
+  /*spec:nnbd-off.member: Class1.:*/
+  /*prod:nnbd-off.member: Class1.:*/
   Class1();
 
-  /*strong.member: Class1.method1a:needsSignature*/
-  /*omit.member: Class1.method1a:needsSignature*/
+  /*spec:nnbd-off.member: Class1.method1a:needsSignature*/
+  /*prod:nnbd-off.member: Class1.method1a:needsSignature*/
   T method1a() => null;
 
-  /*strong.member: Class1.method1b:needsSignature*/
-  /*omit.member: Class1.method1b:needsSignature*/
+  /*spec:nnbd-off.member: Class1.method1b:needsSignature*/
+  /*prod:nnbd-off.member: Class1.method1b:needsSignature*/
   T method1b() => null;
 
-  /*strong.member: Class1.method2:needsSignature*/
-  /*omit.member: Class1.method2:needsSignature*/
+  /*spec:nnbd-off.member: Class1.method2:needsSignature*/
+  /*prod:nnbd-off.member: Class1.method2:needsSignature*/
   T method2(T t, String s) => t;
 }
 
-/*strong.class: Class2:*/
-/*omit.class: Class2:*/
+/*spec:nnbd-off.class: Class2:*/
+/*prod:nnbd-off.class: Class2:*/
 class Class2<T> {
-  /*strong.member: Class2.:*/
-  /*omit.member: Class2.:*/
+  /*spec:nnbd-off.member: Class2.:*/
+  /*prod:nnbd-off.member: Class2.:*/
   Class2();
 }
 
-/*strong.member: main:*/
-/*omit.member: main:*/
+/*spec:nnbd-off.member: main:*/
+/*prod:nnbd-off.member: main:*/
 main() {
   var c = new Class1<int>();
 

@@ -1,0 +1,20 @@
+library test;
+
+typedef void F<T>(T x);
+
+class B<T, U extends F<T>> {
+  B<T, F<T>> operator +(other) => null;
+}
+
+class C {
+  B<num, F<num>> x;
+  static B<num, F<num>> y;
+  B<num, F<num>> operator [](int i) => null;
+  void operator []=(int i, B<num, F<num>> v) {}
+}
+
+void test1(B<num, F<num>> b) {}
+void test2(C c) {}
+void test3(C c) {}
+void test4(C c) {}
+void main() {}

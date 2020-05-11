@@ -27,13 +27,13 @@ method2<T>(dynamic o) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Implicit as-cast is only required in strong mode.
+/// Implicit as-cast is only required in spec:nnbd-off mode.
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: method3:*/
 method3<T>(dynamic o) {
-  /*strong.fields=[T,o],free=[T,o]*/
-  /*omit.fields=[o],free=[o]*/
+  /*spec:nnbd-off|spec:nnbd-sdk.fields=[T,o],free=[T,o]*/
+  /*prod:nnbd-off|prod:nnbd-sdk.fields=[o],free=[o]*/
   T local() => o;
   return local;
 }

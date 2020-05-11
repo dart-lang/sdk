@@ -1,0 +1,12 @@
+// @dart = 2.6
+abstract class B {
+  String get f;
+}
+
+class A implements B {
+  final f;
+  A(this.f);
+}
+
+var a = new A("foo");
+main() => print(a);

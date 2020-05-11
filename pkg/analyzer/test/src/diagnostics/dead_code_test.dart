@@ -6,11 +6,13 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadCodeTest);
+    defineReflectiveTests(DeadCodeWithNullSafetyTest);
   });
 }
 
@@ -18,11 +20,12 @@ main() {
 class DeadCodeTest extends DriverResolutionTest with PackageMixin {
   test_afterForEachWithBreakLabel() async {
     await assertNoErrorsInCode(r'''
-f() {
+f(List<Object> values) {
   named: {
-    for (var x in [1]) {
-      if (x == null)
+    for (var x in values) {
+      if (x == 42) {
         break named;
+      }
     }
     return;
   }
@@ -36,7 +39,7 @@ f() {
 f() {
   named: {
     for (int i = 0; i < 7; i++) {
-      if (i == null)
+      if (i == 42)
         break named;
     }
     return;
@@ -428,6 +431,82 @@ f() {
     ]);
   }
 
+  test_documentationComment() async {
+    await assertNoErrorsInCode(r'''
+/// text
+int f() => 0;
+''');
+  }
+
+  test_flowEnd_forStatement() async {
+    await assertErrorsInCode(r'''
+main() {
+  for (var v in [0, 1, 2]) {
+    v;
+    return;
+    1;
+  }
+  2;
+}
+''', [
+      error(HintCode.DEAD_CODE, 61, 2),
+    ]);
+  }
+
+  test_flowEnd_ifStatement() async {
+    await assertErrorsInCode(r'''
+main(bool a) {
+  if (a) {
+    return;
+    1;
+  }
+  2;
+}
+''', [
+      error(HintCode.DEAD_CODE, 42, 2),
+    ]);
+  }
+
+  test_flowEnd_tryStatement_catchClause() async {
+    await assertErrorsInCode(r'''
+main() {
+  try {
+    1;
+  } catch (_) {
+    return;
+    2;
+  }
+  3;
+}
+''', [
+      error(HintCode.DEAD_CODE, 56, 2),
+    ]);
+  }
+
+  test_flowEnd_tryStatement_finally() async {
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [
+        error(HintCode.DEAD_CODE, 61, 11),
+      ],
+      legacy: [
+        error(HintCode.DEAD_CODE, 61, 2),
+        error(HintCode.DEAD_CODE, 70, 2),
+      ],
+    );
+    await assertErrorsInCode(r'''
+main() {
+  try {
+    1;
+  } finally {
+    2;
+    return;
+    3;
+  }
+  4;
+}
+''', expectedErrors);
+  }
+
   test_statementAfterAlwaysThrowsFunction() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
@@ -639,6 +718,33 @@ f() {
     ]);
   }
 
+  test_statementAfterReturn_function_local() async {
+    await assertErrorsInCode(r'''
+f() {
+  void g() {
+    print(1);
+    return;
+    print(2);
+  }
+  g();
+}''', [
+      error(HintCode.DEAD_CODE, 49, 9),
+    ]);
+  }
+
+  test_statementAfterReturn_functionExpression() async {
+    await assertErrorsInCode(r'''
+f() {
+  () {
+    print(1);
+    return;
+    print(2);
+  };
+}''', [
+      error(HintCode.DEAD_CODE, 43, 9),
+    ]);
+  }
+
   test_statementAfterReturn_ifStatement() async {
     await assertErrorsInCode(r'''
 f(bool b) {
@@ -697,6 +803,81 @@ f() {
   print(2);
 }''', [
       error(HintCode.DEAD_CODE, 41, 9),
+    ]);
+  }
+}
+
+@reflectiveTest
+class DeadCodeWithNullSafetyTest extends DeadCodeTest with WithNullSafetyMixin {
+  test_flowEnd_tryStatement_body() async {
+    await assertErrorsInCode(r'''
+Never foo() => throw 0;
+
+main() {
+  try {
+    foo();
+    1;
+  } catch (_) {
+    2;
+  }
+  3;
+}
+''', [
+      error(HintCode.DEAD_CODE, 57, 2),
+    ]);
+  }
+
+  test_returnTypeNever_function() async {
+    await assertErrorsInCode(r'''
+Never foo() => throw 0;
+
+main() {
+  foo();
+  1;
+}
+''', [
+      error(HintCode.DEAD_CODE, 45, 2),
+    ]);
+  }
+
+  test_returnTypeNever_getter() async {
+    await assertErrorsInCode(r'''
+Never get foo => throw 0;
+
+main() {
+  foo;
+  2;
+}
+''', [
+      error(HintCode.DEAD_CODE, 45, 2),
+    ]);
+  }
+
+  @FailingTest(reason: '@alwaysThrows is not supported in flow analysis')
+  @override
+  test_statementAfterAlwaysThrowsFunction() async {
+    return super.test_statementAfterAlwaysThrowsFunction();
+  }
+
+  @FailingTest(reason: '@alwaysThrows is not supported in flow analysis')
+  @override
+  test_statementAfterAlwaysThrowsMethod() async {
+    return super.test_statementAfterAlwaysThrowsMethod();
+  }
+
+  test_switchStatement_exhaustive() async {
+    await assertErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo foo) {
+  switch (foo) {
+    case Foo.a: return 0;
+    case Foo.b: return 1;
+  }
+  return -1;
+}
+''', [
+      error(HintCode.DEAD_CODE, 111, 10),
     ]);
   }
 }

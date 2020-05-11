@@ -6,8 +6,6 @@
 
 #include "platform/safe_stack.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
-#include "vm/compiler/jit/compiler.h"
 #include "vm/debugger.h"
 #include "vm/dispatch_table.h"
 #include "vm/heap/safepoint.h"
@@ -19,16 +17,21 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/frontend/bytecode_reader.h"
+#include "vm/compiler/jit/compiler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 
 DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, precompiled_mode);
 
 // A cache of VM heap allocated arguments descriptors.
-RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
+ArrayPtr ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 
-RawObject* DartEntry::InvokeFunction(const Function& function,
-                                     const Array& arguments) {
+ObjectPtr DartEntry::InvokeFunction(const Function& function,
+                                    const Array& arguments) {
   ASSERT(Thread::Current()->IsMutatorThread());
   const int kTypeArgsLen = 0;  // No support to pass type args to generic func.
   const Array& arguments_descriptor = Array::Handle(
@@ -96,10 +99,10 @@ class SuspendLongJumpScope : public ThreadStackResource {
   LongJumpScope* saved_long_jump_base_;
 };
 
-RawObject* DartEntry::InvokeFunction(const Function& function,
-                                     const Array& arguments,
-                                     const Array& arguments_descriptor,
-                                     uword current_sp) {
+ObjectPtr DartEntry::InvokeFunction(const Function& function,
+                                    const Array& arguments,
+                                    const Array& arguments_descriptor,
+                                    uword current_sp) {
   // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation
   // and never start the VM service isolate. So we should never end up invoking
   // any dart code in the Dart 2.0 AOT compiler.
@@ -133,7 +136,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   if (!function.HasCode()) {
     if (FLAG_enable_interpreter && function.IsBytecodeAllowed(zone)) {
       if (!function.HasBytecode()) {
-        RawError* error =
+        ErrorPtr error =
             kernel::BytecodeReader::ReadFunctionBytecode(thread, function);
         if (error != Error::null()) {
           return error;
@@ -168,11 +171,21 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   return InvokeCode(code, arguments_descriptor, arguments, thread);
 }
 
+extern "C" {
+// Note: The invocation stub follows the C ABI, so we cannot pass C++ struct
+// values like ObjectPtr. In some calling conventions (IA32), ObjectPtr is
+// passed/returned different from a pointer.
+typedef uword /*ObjectPtr*/ (*invokestub)(const Code& target_code,
+                                          const Array& arguments_descriptor,
+                                          const Array& arguments,
+                                          Thread* thread);
+}
+
 NO_SANITIZE_SAFE_STACK
-RawObject* DartEntry::InvokeCode(const Code& code,
-                                 const Array& arguments_descriptor,
-                                 const Array& arguments,
-                                 Thread* thread) {
+ObjectPtr DartEntry::InvokeCode(const Code& code,
+                                const Array& arguments_descriptor,
+                                const Array& arguments,
+                                Thread* thread) {
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
 
@@ -181,17 +194,18 @@ RawObject* DartEntry::InvokeCode(const Code& code,
   SuspendLongJumpScope suspend_long_jump_scope(thread);
   TransitionToGenerated transition(thread);
 #if defined(USING_SIMULATOR)
-  return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
+  return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
       reinterpret_cast<intptr_t>(entrypoint), reinterpret_cast<intptr_t>(&code),
       reinterpret_cast<intptr_t>(&arguments_descriptor),
       reinterpret_cast<intptr_t>(&arguments),
       reinterpret_cast<intptr_t>(thread)));
 #else
-  return entrypoint(code, arguments_descriptor, arguments, thread);
+  return static_cast<ObjectPtr>(
+      entrypoint(code, arguments_descriptor, arguments, thread));
 #endif
 }
 
-RawObject* DartEntry::InvokeClosure(const Array& arguments) {
+ObjectPtr DartEntry::InvokeClosure(const Array& arguments) {
   const int kTypeArgsLen = 0;  // No support to pass type args to generic func.
 
   // Closures always have boxed parameters
@@ -200,8 +214,8 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments) {
   return InvokeClosure(arguments, arguments_descriptor);
 }
 
-RawObject* DartEntry::InvokeClosure(const Array& arguments,
-                                    const Array& arguments_descriptor) {
+ObjectPtr DartEntry::InvokeClosure(const Array& arguments,
+                                   const Array& arguments_descriptor) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const ArgumentsDescriptor args_desc(arguments_descriptor);
@@ -266,10 +280,10 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
                             arguments_descriptor);
 }
 
-RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
-                                         const String& target_name,
-                                         const Array& arguments,
-                                         const Array& arguments_descriptor) {
+ObjectPtr DartEntry::InvokeNoSuchMethod(const Instance& receiver,
+                                        const String& target_name,
+                                        const Array& arguments,
+                                        const Array& arguments_descriptor) {
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   ASSERT(receiver.raw() == arguments.At(args_desc.FirstArgIndex()));
   // Allocate an Invocation object.
@@ -337,7 +351,7 @@ intptr_t ArgumentsDescriptor::PositionalCount() const {
   return Smi::Value(Smi::RawCast(array_.At(kPositionalCountIndex)));
 }
 
-RawString* ArgumentsDescriptor::NameAt(intptr_t index) const {
+StringPtr ArgumentsDescriptor::NameAt(intptr_t index) const {
   const intptr_t offset =
       kFirstNamedEntryIndex + (index * kNamedEntrySize) + kNameOffset;
   String& result = String::Handle();
@@ -356,7 +370,7 @@ bool ArgumentsDescriptor::MatchesNameAt(intptr_t index,
   return NameAt(index) == other.raw();
 }
 
-RawArray* ArgumentsDescriptor::GetArgumentNames() const {
+ArrayPtr ArgumentsDescriptor::GetArgumentNames() const {
   const intptr_t num_named_args = NamedCount();
   if (num_named_args == 0) {
     return Array::null();
@@ -376,11 +390,11 @@ RawArray* ArgumentsDescriptor::GetArgumentNames() const {
   return names.raw();
 }
 
-RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
-                                   intptr_t num_arguments,
-                                   intptr_t size_arguments,
-                                   const Array& optional_arguments_names,
-                                   Heap::Space space) {
+ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,
+                                  intptr_t num_arguments,
+                                  intptr_t size_arguments,
+                                  const Array& optional_arguments_names,
+                                  Heap::Space space) {
   const intptr_t num_named_args =
       optional_arguments_names.IsNull() ? 0 : optional_arguments_names.Length();
   if (num_named_args == 0) {
@@ -450,10 +464,10 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
   return descriptor.raw();
 }
 
-RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
-                                   intptr_t num_arguments,
-                                   intptr_t size_arguments,
-                                   Heap::Space space) {
+ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,
+                                  intptr_t num_arguments,
+                                  intptr_t size_arguments,
+                                  Heap::Space space) {
   ASSERT(type_args_len >= 0);
   ASSERT(num_arguments >= 0);
 
@@ -465,11 +479,11 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
                       space);
 }
 
-RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
-                                            intptr_t num_arguments,
-                                            intptr_t size_arguments,
-                                            bool canonicalize,
-                                            Heap::Space space) {
+ArrayPtr ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
+                                           intptr_t num_arguments,
+                                           intptr_t size_arguments,
+                                           bool canonicalize,
+                                           Heap::Space space) {
   // Build the arguments descriptor array, which consists of the length of the
   // type argument vector, total argument count; the positional argument count;
   // and a terminating null to simplify iterating in generated code.
@@ -523,10 +537,10 @@ void ArgumentsDescriptor::Cleanup() {
   }
 }
 
-RawObject* DartLibraryCalls::InstanceCreate(const Library& lib,
-                                            const String& class_name,
-                                            const String& constructor_name,
-                                            const Array& arguments) {
+ObjectPtr DartLibraryCalls::InstanceCreate(const Library& lib,
+                                           const String& class_name,
+                                           const String& constructor_name,
+                                           const Array& arguments) {
   const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(class_name));
   ASSERT(!cls.IsNull());
   // For now, we only support a non-parameterized or raw type.
@@ -555,7 +569,7 @@ RawObject* DartLibraryCalls::InstanceCreate(const Library& lib,
   return exception_object.raw();
 }
 
-RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
+ObjectPtr DartLibraryCalls::ToString(const Instance& receiver) {
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;  // Receiver.
   ArgumentsDescriptor args_desc(Array::Handle(
@@ -571,7 +585,7 @@ RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
   return result.raw();
 }
 
-RawObject* DartLibraryCalls::HashCode(const Instance& receiver) {
+ObjectPtr DartLibraryCalls::HashCode(const Instance& receiver) {
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;  // Receiver.
   ArgumentsDescriptor args_desc(Array::Handle(
@@ -587,8 +601,8 @@ RawObject* DartLibraryCalls::HashCode(const Instance& receiver) {
   return result.raw();
 }
 
-RawObject* DartLibraryCalls::Equals(const Instance& left,
-                                    const Instance& right) {
+ObjectPtr DartLibraryCalls::Equals(const Instance& left,
+                                   const Instance& right) {
   const int kTypeArgsLen = 0;
   const int kNumArguments = 2;
   ArgumentsDescriptor args_desc(Array::Handle(
@@ -607,7 +621,7 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
 }
 
 // On success, returns a RawInstance.  On failure, a RawError.
-RawObject* DartLibraryCalls::IdentityHashCode(const Instance& object) {
+ObjectPtr DartLibraryCalls::IdentityHashCode(const Instance& object) {
   const int kNumArguments = 1;
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -624,7 +638,7 @@ RawObject* DartLibraryCalls::IdentityHashCode(const Instance& object) {
   return result.raw();
 }
 
-RawObject* DartLibraryCalls::LookupHandler(Dart_Port port_id) {
+ObjectPtr DartLibraryCalls::LookupHandler(Dart_Port port_id) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Function& function = Function::Handle(
@@ -651,8 +665,8 @@ RawObject* DartLibraryCalls::LookupHandler(Dart_Port port_id) {
   return result.raw();
 }
 
-RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
-                                           const Instance& message) {
+ObjectPtr DartLibraryCalls::HandleMessage(const Object& handler,
+                                          const Instance& message) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -690,7 +704,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
   return result.raw();
 }
 
-RawObject* DartLibraryCalls::DrainMicrotaskQueue() {
+ObjectPtr DartLibraryCalls::DrainMicrotaskQueue() {
   Zone* zone = Thread::Current()->zone();
   Library& isolate_lib = Library::Handle(zone, Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
@@ -703,7 +717,7 @@ RawObject* DartLibraryCalls::DrainMicrotaskQueue() {
   return result.raw();
 }
 
-RawObject* DartLibraryCalls::EnsureScheduleImmediate() {
+ObjectPtr DartLibraryCalls::EnsureScheduleImmediate() {
   Zone* zone = Thread::Current()->zone();
   const Library& async_lib = Library::Handle(zone, Library::AsyncLibrary());
   ASSERT(!async_lib.IsNull());
@@ -717,9 +731,9 @@ RawObject* DartLibraryCalls::EnsureScheduleImmediate() {
   return result.raw();
 }
 
-RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
-                                      const Instance& key,
-                                      const Instance& value) {
+ObjectPtr DartLibraryCalls::MapSetAt(const Instance& map,
+                                     const Instance& key,
+                                     const Instance& value) {
   const int kTypeArgsLen = 0;
   const int kNumArguments = 3;
   ArgumentsDescriptor args_desc(Array::Handle(

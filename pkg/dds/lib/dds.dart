@@ -7,15 +7,31 @@
 library dds;
 
 import 'dart:async';
+import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:async/async.dart';
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:meta/meta.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
+import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+part 'src/binary_compatible_peer.dart';
+part 'src/client.dart';
+part 'src/client_manager.dart';
+part 'src/constants.dart';
 part 'src/dds_impl.dart';
+part 'src/isolate_manager.dart';
+part 'src/named_lookup.dart';
+part 'src/rpc_error_codes.dart';
+part 'src/stream_manager.dart';
 
 /// An intermediary between a Dart VM service and its clients that offers
 /// additional functionality on top of the standard VM service protocol.
@@ -24,7 +40,8 @@ part 'src/dds_impl.dart';
 /// for details.
 abstract class DartDevelopmentService {
   /// Creates a [DartDevelopmentService] instance which will communicate with a
-  /// VM service.
+  /// VM service. Requires the target VM service to have no other connected
+  /// clients.
   ///
   /// [remoteVmServiceUri] is the address of the VM service that this
   /// development service will communicate with.
@@ -84,4 +101,12 @@ abstract class DartDevelopmentService {
   /// Set to `true` if this instance of [DartDevelopmentService] is accepting
   /// requests.
   bool get isRunning;
+}
+
+class DartDevelopmentServiceException implements Exception {
+  DartDevelopmentServiceException._(this.message);
+
+  String toString() => 'DartDevelopmentServiceException: $message';
+
+  final String message;
 }

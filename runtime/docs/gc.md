@@ -27,6 +27,10 @@ On 64-bit architectures, the header of heap objects also contains a 32-bit ident
 
 See [Cheney's algorithm](https://en.wikipedia.org/wiki/Cheney's_algorithm).
 
+## Parallel Scavenge
+
+FLAG_scavenger_tasks (default 2) workers are started on separate threads. Each worker competes to process parts of the root set (including the remembered set). When a worker copies an object to to-space, it allocates from a worker-local bump allocation region. The same worker will process the copied object. When a worker promotes an object to old-space, it allocates from a worker-local freelist, which uses bump allocation for large free blocks. The promoted object is added to a work list that implements work stealing, so some other worker may process the promoted object. After the object is evacuated, the worker using a compare-and-swap to install the forwarding pointer into the from-space object's header. If it loses the race, it un-allocates the to-space or old-space object it just allocated, and uses the winner's object to update the pointer it was processing. Workers run until all of the work set have been processed, and every worker have processed its to-space objects and local part of the promoted work list.
+
 ## Mark-Sweep
 
 All objects have a bit in their header called the mark bit. At the start of a collection cycle, all objects have this bit clear.
@@ -50,6 +54,8 @@ Some phases of GC require that the heap is not being used by a mutator; we call 
 To perform these operations, all mutators need to temporarily stop accessing the heap; we say that these mutators have reached a "safepoint". A mutator that has reached a safepoint will not resume accessing the heap (leave the safepoint) until the safepoint operation is complete. In addition to not accessing the heap, a mutator at a safepoint must not hold any pointers into the heap unless these pointers can be visited by the GC. For code in the VM runtime, this last property means holding only handles and no RawObject pointers. Examples of places that might enter a safepoint include allocations, stack overflow checks, and transitions between compiled code and the runtime and native code.
 
 Note that a mutator can be at a safepoint without being suspended. It might be performing a long task that doesn't access the heap. It will, however, need to wait for any safepoint operation to complete in order to leave its safepoint and resume accessing the heap.
+
+Because a safepoint operation excludes excution of Dart code, it is sometimes used for non-GC tasks that requires only this property. For example, when a background compilation has completed and wants to install its result, it uses a safepoint operation to ensure no Dart execution sees the intermediate states during installation.
 
 ## Concurrent Marking
 

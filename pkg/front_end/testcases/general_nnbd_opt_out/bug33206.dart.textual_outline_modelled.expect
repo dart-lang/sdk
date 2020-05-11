@@ -1,0 +1,19 @@
+// @dart = 2.6
+import 'dart:async';
+
+Future<List<Object>> f1() async {}
+Future<Object> f3() async {}
+Future<X> foo() async {}
+Future<void> main() async {}
+List<Object> f2() => [2];
+
+class X {
+  X(this.x, this.y);
+  final x;
+  final y;
+  toString() => "X($x, $y)";
+}
+
+class Y {
+  f(_) {}
+}

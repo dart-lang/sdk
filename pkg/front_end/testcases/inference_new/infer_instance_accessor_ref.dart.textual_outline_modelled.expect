@@ -1,0 +1,19 @@
+library test;
+
+class A {
+  B b;
+}
+
+class B {
+  C get c => null;
+  void set c(C value) {}
+}
+
+class C {}
+
+class D extends C {}
+
+main() {}
+var a = new A();
+var x = a.b.c;
+var y = a.b.c ??= new D();

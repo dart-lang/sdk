@@ -1,0 +1,12 @@
+// @dart = 2.6
+class Class {
+  Class _field;
+}
+extension Extension ;
+on Class (){ }
+main() { }
+void propertyAccess(Class c) { }
+void indexAccess(Class c) { }
+void operatorAccess(Class c) { }
+void ifNull(Class c) { }
+void throws(void Function() f) { }

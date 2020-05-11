@@ -89,7 +89,7 @@ class DataProvider {
       listSize -= sentCount - targetCount;
       sentCount = targetCount;
     }
-    controller.add(new List(listSize));
+    controller.add(new List.filled(listSize, null));
     int ms = listSize * 1000 ~/ bytesPerSecond;
     Duration duration = new Duration(milliseconds: ms);
     if (!controller.isPaused) {

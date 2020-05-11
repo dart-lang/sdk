@@ -63,6 +63,9 @@ final allFixes = <DartFixInfo>[
   LintFixInfo.preferAdjacentStringConcatenation,
   LintFixInfo.preferCollectionLiterals,
   LintFixInfo.preferConditionalAssignment,
+  LintFixInfo.preferConstConstructors,
+  LintFixInfo.preferConstConstructorsInImmutables,
+  LintFixInfo.preferConstDeclarations,
   LintFixInfo.preferContains,
   LintFixInfo.preferEqualForDefaultValues,
   LintFixInfo.preferFinalFields,
@@ -322,6 +325,24 @@ class LintFixInfo extends DartFixInfo {
     isPedantic: true,
   );
 
+  static final preferConstConstructors = LintFixInfo(
+    'prefer_const_constructors',
+    DartFixKind.ADD_CONST,
+    'Make the instantiation const.',
+  );
+
+  static final preferConstConstructorsInImmutables = LintFixInfo(
+    'prefer_const_constructors_in_immutables',
+    DartFixKind.ADD_CONST,
+    'Make the constructor const.',
+  );
+
+  static final preferConstDeclarations = LintFixInfo(
+    'prefer_const_declarations',
+    DartFixKind.REPLACE_FINAL_WITH_CONST,
+    'Make the declaration const.',
+  );
+
   static final preferContains = LintFixInfo(
     'prefer_contains',
     DartFixKind.CONVERT_TO_CONTAINS,
@@ -423,7 +444,7 @@ class LintFixInfo extends DartFixInfo {
   static final preferSingleQuotes = LintFixInfo(
     'prefer_single_quotes',
     DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING,
-    'Convert strings using a dobule quote to use a single quote.',
+    'Convert strings using a double quote to use a single quote.',
     isPedantic: true,
   );
 

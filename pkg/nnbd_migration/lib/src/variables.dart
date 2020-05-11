@@ -26,7 +26,7 @@ import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
-import 'package:nnbd_migration/src/potential_modification.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 
 /// Data structure used by [Variables.spanForUniqueIdentifier] to return an
 /// offset/end pair.
@@ -57,11 +57,11 @@ class Variables {
 
   final _expressionChecks = <Source, Map<int, ExpressionChecks>>{};
 
-  final _lateHints = <Source, Set<int>>{};
+  final _lateHints = <Source, Map<int, HintComment>>{};
 
-  final _nullCheckHints = <Source, Set<int>>{};
+  final _nullCheckHints = <Source, Map<int, HintComment>>{};
 
-  final _potentialModifications = <Source, List<PotentialModification>>{};
+  final _nullabilityHints = <Source, Map<int, HintComment>>{};
 
   final _unnecessaryCasts = <Source, Set<int>>{};
 
@@ -167,20 +167,26 @@ class Variables {
   ConditionalDiscard getConditionalDiscard(Source source, AstNode node) =>
       (_conditionalDiscards[source] ?? {})[node.offset];
 
-  Map<Source, List<PotentialModification>> getPotentialModifications() =>
-      _potentialModifications;
-
-  /// Queries whether the given [expression] is followed by a null check hint
-  /// (`/*!*/`).  See [recordNullCheckHint].
-  bool hasNullCheckHint(Source source, Expression expression) {
-    return (_nullCheckHints[source] ?? {})
-        .contains(uniqueIdentifierForSpan(expression.offset, expression.end));
+  /// If the given [node] is preceded by a `/*late*/` hint, returns the
+  /// HintComment for it; otherwise returns `null`.  See [recordLateHint].
+  HintComment getLateHint(Source source, VariableDeclarationList node) {
+    return (_lateHints[source] ?? {})[node.offset];
   }
 
-  /// Queries whether the given [node] is preceded by a `/*late*/` hint.  See
-  /// [recordLateHint].
-  bool isLateHinted(Source source, VariableDeclarationList node) {
-    return (_lateHints[source] ?? {}).contains(node.offset);
+  /// If the given [node] is followed by a `/*?*/` or /*!*/ hint, returns the
+  /// HintComment for it; otherwise returns `null`.  See
+  /// [recordNullabilityHint].
+  HintComment getNullabilityHint(Source source, TypeAnnotation node) {
+    return (_nullabilityHints[source] ??
+        {})[uniqueIdentifierForSpan(node.offset, node.end)];
+  }
+
+  /// If the given [expression] is followed by a null check hint (`/*!*/`),
+  /// returns the HintComment for it; otherwise returns `null`.  See
+  /// [recordNullCheckHint].
+  HintComment getNullCheckHint(Source source, Expression expression) {
+    return (_nullCheckHints[source] ??
+        {})[(uniqueIdentifierForSpan(expression.offset, expression.end))];
   }
 
   /// Records conditional discard information for the given AST node (which is
@@ -188,8 +194,6 @@ class Variables {
   void recordConditionalDiscard(
       Source source, AstNode node, ConditionalDiscard conditionalDiscard) {
     (_conditionalDiscards[source] ??= {})[node.offset] = conditionalDiscard;
-    _addPotentialModification(
-        source, ConditionalModification(node, conditionalDiscard));
   }
 
   /// Associates a [class_] with decorated type information for the superclasses
@@ -220,11 +224,9 @@ class Variables {
   void recordDecoratedExpressionType(Expression node, DecoratedType type) {}
 
   /// Associates decorated type information with the given [type] node.
-  void recordDecoratedTypeAnnotation(Source source, TypeAnnotation node,
-      DecoratedType type, PotentiallyAddQuestionSuffix potentialModification) {
+  void recordDecoratedTypeAnnotation(
+      Source source, TypeAnnotation node, DecoratedType type) {
     instrumentation?.explicitTypeNullability(source, node, type.node);
-    if (potentialModification != null)
-      _addPotentialModification(source, potentialModification);
     var id = uniqueIdentifierForSpan(node.offset, node.end);
     (_decoratedTypeAnnotations[source] ??= {})[id] = type;
     postmortemFileWriter?.storeFileDecorations(source.fullName, id, type);
@@ -233,31 +235,31 @@ class Variables {
   /// Associates a set of nullability checks with the given expression [node].
   void recordExpressionChecks(
       Source source, Expression expression, ExpressionChecksOrigin origin) {
-    _addPotentialModification(source, origin.checks);
     (_expressionChecks[source] ??=
             {})[uniqueIdentifierForSpan(expression.offset, expression.end)] =
         origin.checks;
   }
 
   /// Records that the given [node] was preceded by a `/*late*/` hint.
-  void recordLateHint(Source source, VariableDeclarationList node) {
-    (_lateHints[source] ??= {}).add(node.offset);
+  void recordLateHint(
+      Source source, VariableDeclarationList node, HintComment hint) {
+    (_lateHints[source] ??= {})[node.offset] = hint;
+  }
+
+  /// Records that the given [node] was followed by a `/*?*/` or `/*!*/` hint.
+  void recordNullabilityHint(
+      Source source, TypeAnnotation node, HintComment hintComment) {
+    (_nullabilityHints[source] ??=
+        {})[uniqueIdentifierForSpan(node.offset, node.end)] = hintComment;
   }
 
   /// Records that the given [expression] is followed by a null check hint
   /// (`/*!*/`), for later recall by [hasNullCheckHint].
-  void recordNullCheckHint(Source source, Expression expression) {
-    (_nullCheckHints[source] ??= {})
-        .add(uniqueIdentifierForSpan(expression.offset, expression.end));
-  }
-
-  /// Records that [node] is associated with the question of whether the named
-  /// [parameter] should be optional (should not have a `required`
-  /// annotation added to it).
-  void recordPossiblyOptional(
-      Source source, DefaultFormalParameter parameter, NullabilityNode node) {
-    var modification = PotentiallyAddRequired(parameter, node);
-    _addPotentialModification(source, modification);
+  void recordNullCheckHint(
+      Source source, Expression expression, HintComment hintComment) {
+    (_nullCheckHints[source] ??=
+            {})[uniqueIdentifierForSpan(expression.offset, expression.end)] =
+        hintComment;
   }
 
   /// Records the fact that prior to migration, an unnecessary cast existed at
@@ -341,11 +343,6 @@ class Variables {
   bool wasUnnecessaryCast(Source source, AsExpression node) =>
       (_unnecessaryCasts[source] ?? const {})
           .contains(uniqueIdentifierForSpan(node.offset, node.end));
-
-  void _addPotentialModification(
-      Source source, PotentialModification potentialModification) {
-    (_potentialModifications[source] ??= []).add(potentialModification);
-  }
 
   /// Creates a decorated type for the given [element], which should come from
   /// an already-migrated library (or the SDK).

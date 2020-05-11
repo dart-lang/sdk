@@ -6,8 +6,6 @@
 
 #include "vm/compiler/frontend/bytecode_reader.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 namespace dart {
 namespace kernel {
 
@@ -63,7 +61,7 @@ void BytecodeScopeBuilder::BuildScopes() {
   parsed_function_->set_scope(scope_);
 
   switch (function.kind()) {
-    case RawFunction::kImplicitClosureFunction: {
+    case FunctionLayout::kImplicitClosureFunction: {
       ASSERT(function.NumImplicitParameters() == 1);
 
       LocalVariable* closure_parameter = MakeVariable(
@@ -78,8 +76,8 @@ void BytecodeScopeBuilder::BuildScopes() {
       break;
     }
 
-    case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitSetter: {
+    case FunctionLayout::kImplicitGetter:
+    case FunctionLayout::kImplicitSetter: {
       const bool is_setter = function.IsImplicitSetterFunction();
       const bool is_method = !function.IsStaticFunction();
       const Field& field = Field::Handle(Z, function.accessor_field());
@@ -107,25 +105,14 @@ void BytecodeScopeBuilder::BuildScopes() {
             }
           }
         }
-      } else {
-        if (field.is_late()) {
-          // LoadLateField uses expression_temp_var.
-          needs_expr_temp = true;
-        }
       }
       break;
     }
-    case RawFunction::kImplicitStaticGetter: {
+    case FunctionLayout::kImplicitStaticGetter: {
       ASSERT(!IsStaticFieldGetterGeneratedAsInitializer(function, Z));
-      const Field& field = Field::Handle(Z, function.accessor_field());
-      const bool lib_is_nnbd = function.nnbd_mode() == NNBDMode::kOptedInLib;
-      if (field.is_late() || lib_is_nnbd) {
-        // LoadLateField uses expression_temp_var.
-        needs_expr_temp = true;
-      }
       break;
     }
-    case RawFunction::kDynamicInvocationForwarder: {
+    case FunctionLayout::kDynamicInvocationForwarder: {
       // Create [this] variable.
       MakeReceiverVariable(/* is_parameter = */ true);
 
@@ -135,7 +122,7 @@ void BytecodeScopeBuilder::BuildScopes() {
       AddParameters(function, LocalVariable::kDoTypeCheck);
       break;
     }
-    case RawFunction::kMethodExtractor: {
+    case FunctionLayout::kMethodExtractor: {
       // Add a receiver parameter.  Though it is captured, we emit code to
       // explicitly copy it to a fixed offset in a freshly-allocated context
       // instead of using the generic code for regular functions.
@@ -195,5 +182,3 @@ LocalVariable* BytecodeScopeBuilder::MakeReceiverVariable(bool is_parameter) {
 
 }  // namespace kernel
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

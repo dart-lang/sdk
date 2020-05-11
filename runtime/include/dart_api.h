@@ -530,7 +530,6 @@ typedef struct {
   bool load_vmservice_library;
   bool unsafe_trust_strong_mode_types;
   bool copy_parent_code;
-  bool null_safety;
 } Dart_IsolateFlags;
 
 /**
@@ -571,10 +570,7 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  *   eventually run.  This is provided for advisory purposes only to
  *   improve debugging messages.  The main function is not invoked by
  *   this function.
- * \param package_root The package root path for this isolate to resolve
- *   package imports against. Only one of package_root and package_map
- *   parameters is non-NULL. If neither parameter is passed the package
- *   resolution of the parent isolate should be used.
+ * \param package_root Ignored.
  * \param package_map The package map for this isolate to resolve package
  *   imports against. The array contains alternating keys and values,
  *   terminated by a NULL key. Only one of package_root and package_map

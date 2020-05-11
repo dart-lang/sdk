@@ -234,8 +234,6 @@ linter:
     // being returned.
     AnalysisOptionsImpl defaultOptions = AnalysisOptionsImpl();
     defaultOptions.dart2jsHint = !defaultOptions.dart2jsHint;
-    defaultOptions.enableLazyAssignmentOperators =
-        !defaultOptions.enableLazyAssignmentOperators;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptions options = builder.createDefaultOptions();
     _expectEqualOptions(options, defaultOptions);
@@ -614,10 +612,8 @@ linter:
 
   void test_getAnalysisOptions_default_noOverrides() {
     AnalysisOptionsImpl defaultOptions = AnalysisOptionsImpl();
-    defaultOptions.enableLazyAssignmentOperators = true;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
-    expected.enableLazyAssignmentOperators = true;
     String path = convertPath('/some/directory/path');
     String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     newFile(filePath, content: '''
@@ -830,28 +826,19 @@ environment:
   void _expectEqualOptions(
       AnalysisOptionsImpl actual, AnalysisOptionsImpl expected) {
     // TODO(brianwilkerson) Consider moving this to AnalysisOptionsImpl.==.
-    expect(actual.analyzeFunctionBodiesPredicate,
-        same(expected.analyzeFunctionBodiesPredicate));
     expect(actual.dart2jsHint, expected.dart2jsHint);
-    expect(actual.enableLazyAssignmentOperators,
-        expected.enableLazyAssignmentOperators);
     expect(actual.enableTiming, expected.enableTiming);
-    expect(actual.generateImplicitErrors, expected.generateImplicitErrors);
-    expect(actual.generateSdkErrors, expected.generateSdkErrors);
     expect(actual.hint, expected.hint);
     expect(actual.lint, expected.lint);
     expect(
       actual.lintRules.map((l) => l.name),
       unorderedEquals(expected.lintRules.map((l) => l.name)),
     );
-    expect(actual.preserveComments, expected.preserveComments);
     expect(actual.strongMode, expected.strongMode);
     expect(actual.implicitCasts, expected.implicitCasts);
     expect(actual.implicitDynamic, expected.implicitDynamic);
     expect(actual.strictInference, expected.strictInference);
     expect(actual.strictRawTypes, expected.strictRawTypes);
-    expect(actual.trackCacheDependencies, expected.trackCacheDependencies);
-    expect(actual.disableCacheFlushing, expected.disableCacheFlushing);
   }
 
   Uri _relativeUri(String path, {String from}) {

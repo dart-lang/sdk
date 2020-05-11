@@ -215,6 +215,7 @@ class DartTypeNodeWriter
     _sink.writeInt(node.namedParameters.length);
     for (ir.NamedType parameter in node.namedParameters) {
       _sink.writeString(parameter.name);
+      _sink.writeBool(parameter.isRequired);
       _sink._writeDartTypeNode(parameter.type, functionTypeVariables);
     }
     _sink._writeDartTypeNode(node.typedefType, functionTypeVariables,

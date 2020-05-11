@@ -66,7 +66,6 @@ library;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class Super extends core::Object {
   field core::int* superInstanceField = null;
@@ -87,7 +86,7 @@ class C extends self::Super {
     core::String* local;
     dynamic untypedLocal;
     {
-      core::Iterator<core::String*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::String*>*>(<core::String*>[]).{core::Iterable::iterator};
+      core::Iterator<core::String*>* :sync-for-iterator = <core::String*>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::String* #t1 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -96,7 +95,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t2 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -105,7 +104,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[]).{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::int* #t3 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -114,7 +113,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -123,7 +122,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<core::double*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::double*>*>(<core::double*>[]).{core::Iterable::iterator};
+      core::Iterator<core::double*>* :sync-for-iterator = <core::double*>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::double* #t5 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -132,7 +131,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t6 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -141,7 +140,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<core::bool*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::bool*>*>(<core::bool*>[]).{core::Iterable::iterator};
+      core::Iterator<core::bool*>* :sync-for-iterator = <core::bool*>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::bool* #t7 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -150,7 +149,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t8 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -159,7 +158,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[]).{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::int* #t9 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -168,7 +167,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t10 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -178,7 +177,7 @@ class C extends self::Super {
     }
     self::C* c = new self::C::•();
     {
-      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[]).{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::int* #t11 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -187,7 +186,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t12 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -196,7 +195,7 @@ class C extends self::Super {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t13 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -209,7 +208,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t14 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -222,7 +221,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t15 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -239,7 +238,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
     for (main() in []) {}
          ^^^^";
       {
-        core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+        core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
           final dynamic #t16 = :sync-for-iterator.{core::Iterator::current};
           {
@@ -256,7 +255,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
     for (var x, y in <int>[]) {
          ^^^";
       {
-        core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[]).{core::Iterable::iterator};
+        core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[].{core::Iterable::iterator};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
           final core::int* #t17 = :sync-for-iterator.{core::Iterator::current};
           {
@@ -272,7 +271,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t18 = :sync-for-iterator.{core::Iterator::current};
         {

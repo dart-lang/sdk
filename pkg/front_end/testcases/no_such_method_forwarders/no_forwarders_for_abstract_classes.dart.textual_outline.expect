@@ -1,0 +1,8 @@
+abstract class A {
+  noSuchMethod(i) => null;
+  void foo();
+}
+
+class B extends A {}
+
+main() {}

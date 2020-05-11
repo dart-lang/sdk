@@ -1,0 +1,12 @@
+library test;
+
+class C {
+  void m(@Foo(const []) x) {}
+}
+
+class Foo {
+  const Foo(List<String> l);
+}
+
+main() {}
+void f(@Foo(const []) x) {}

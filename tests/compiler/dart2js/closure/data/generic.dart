@@ -58,12 +58,12 @@ class Class1<T> {
     }
 
     var local2 =
-        /*strong.fields=[S,this],free=[S,this],hasThis*/
-        /*omit.hasThis*/
+        /*spec:nnbd-off|spec:nnbd-sdk.fields=[S,this],free=[S,this],hasThis*/
+        /*prod:nnbd-off|prod:nnbd-sdk.hasThis*/
         (o) {
       return
-          /*strong.fields=[S,this],free=[S,this],hasThis*/
-          /*omit.hasThis*/
+          /*spec:nnbd-off|spec:nnbd-sdk.fields=[S,this],free=[S,this],hasThis*/
+          /*prod:nnbd-off|prod:nnbd-sdk.hasThis*/
           () => new Map<T, S>();
     };
     return local2(local<double>());

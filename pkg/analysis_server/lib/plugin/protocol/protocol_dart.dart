@@ -102,8 +102,7 @@ ElementKind convertElementToElementKind(engine.Element element) {
   if (element is engine.ClassElement) {
     if (element.isEnum) {
       return ElementKind.ENUM;
-    }
-    if (element.isMixin) {
+    } else if (element.isMixin) {
       return ElementKind.MIXIN;
     }
   }

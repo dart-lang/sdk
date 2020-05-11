@@ -1,0 +1,12 @@
+// @dart = 2.6
+import "package:expect/expect.dart";
+
+class A {
+  var x, y;
+  A(this.x)
+      : y = (() {
+          x = 3;
+        });
+}
+
+main() {}

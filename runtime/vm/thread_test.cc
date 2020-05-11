@@ -85,8 +85,8 @@ class ObjectCounter : public ObjectPointerVisitor {
   explicit ObjectCounter(IsolateGroup* isolate_group, const Object* obj)
       : ObjectPointerVisitor(isolate_group), obj_(obj), count_(0) {}
 
-  virtual void VisitPointers(RawObject** first, RawObject** last) {
-    for (RawObject** current = first; current <= last; ++current) {
+  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+    for (ObjectPtr* current = first; current <= last; ++current) {
       if (*current == obj_->raw()) {
         ++count_;
       }
@@ -465,8 +465,8 @@ static Function* CreateFunction(const char* name) {
   const String& function_name =
       String::ZoneHandle(Symbols::New(Thread::Current(), name));
   Function& function = Function::ZoneHandle(Function::New(
-      function_name, RawFunction::kRegularFunction, true, false, false, false,
-      false, owner_class, TokenPosition::kNoSource));
+      function_name, FunctionLayout::kRegularFunction, true, false, false,
+      false, false, owner_class, TokenPosition::kNoSource));
   return &function;
 }
 

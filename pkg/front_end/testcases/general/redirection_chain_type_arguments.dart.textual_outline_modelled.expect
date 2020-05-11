@@ -1,0 +1,18 @@
+import 'package:expect/expect.dart';
+
+class A<T> {
+  A.empty();
+  factory A() = B<T, num>;
+}
+
+class B<U, W> extends A<U> {
+  B.empty() : super.empty();
+  factory B() = C<U, W, String>;
+}
+
+class C<V, S, R> extends B<V, S> {
+  C() : super.empty();
+  toString() => "${V},${S},${R}";
+}
+
+main() {}

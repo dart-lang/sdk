@@ -8,9 +8,6 @@ import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
-/// Version to use if a package doesn't constrain the language version.
-final defaultVersion = Version(2, 7, 0);
-
 final repoRoot = p.dirname(p.dirname(p.fromUri(Platform.script)));
 final configFilePath = p.join(repoRoot, '.dart_tool/package_config.json');
 
@@ -34,6 +31,7 @@ void main(List<String> args) {
     packageDirectory('pkg/front_end/testcases/general_nnbd_opt_out/'),
     packageDirectory('pkg/front_end/testcases/late_lowering/'),
     packageDirectory('pkg/front_end/testcases/nnbd/'),
+    packageDirectory('pkg/front_end/testcases/nonfunction_type_aliases/'),
   ];
 
   var packages = [
@@ -74,18 +72,20 @@ Iterable<Map<String, String>> makePackageConfigs(
     List<String> packageDirs) sync* {
   for (var packageDir in packageDirs) {
     var version = pubspecLanguageVersion(packageDir);
-    if (version == null) {
-      print('Warning: Unknown language version for ${p.basename(packageDir)}.');
-      version = defaultVersion;
-    }
-
     var hasLibDirectory = Directory(p.join(packageDir, 'lib')).existsSync();
+
+    // TODO(rnystrom): Currently, the pre-built SDK does not allow language
+    // version 2.9.0. Until that's fixed, if we see that version, just write
+    // no version at all so that implementations use the current language
+    // version.
+    if (version.toString() == '2.9.0') version = null;
 
     yield {
       'name': p.basename(packageDir),
       'rootUri': p.relative(packageDir, from: p.dirname(configFilePath)),
       if (hasLibDirectory) 'packageUri': 'lib/',
-      'languageVersion': '${version.major}.${version.minor}'
+      if (version != null)
+        'languageVersion': '${version.major}.${version.minor}'
     };
   }
 }

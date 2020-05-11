@@ -56,10 +56,45 @@ class ForEachElementWithNnbdTest extends ForEachElementTest {
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  test_optIn_fromOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A implements Iterable<int> {
+  Iterator<int> iterator => throw 0;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import 'a.dart';
+
+main(A a) {
+  for (var v in a) {
+    v;
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest
 class ForLoopElementTest extends DriverResolutionTest {
+  test_condition_rewrite() async {
+    await assertNoErrorsInCode(r'''
+main(bool Function() b) {
+  <int>[for (; b(); ) 0];
+}
+''');
+
+    assertFunctionExpressionInvocation(
+      findNode.functionExpressionInvocation('b()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'bool Function()',
+      type: 'bool',
+    );
+  }
+
   test_declaredVariableScope() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -75,22 +110,6 @@ main() {
     assertElement(
       findNode.simple('i]; // 2'),
       findNode.simple('i = 1.1;').staticElement,
-    );
-  }
-
-  test_condition_rewrite() async {
-    await assertNoErrorsInCode(r'''
-main(bool Function() b) {
-  <int>[for (; b(); ) 0];
-}
-''');
-
-    assertFunctionExpressionInvocation(
-      findNode.functionExpressionInvocation('b()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'bool Function()',
-      type: 'bool',
     );
   }
 }

@@ -27,7 +27,12 @@ def parseArgs():
         default=os.path.join(outDir, 'logs'),
         metavar='DIR',
         dest='logDir',
-        help='Directory to output restuls.json and logs.json to.')
+        help='Directory to output results.json and logs.json to.')
+    parser.add_argument(
+        '-n',
+        metavar='NAME',
+        dest='configuration_name',
+        help='Name of the configuration to use in the results.')
     return parser.parse_args()
 
 
@@ -137,10 +142,10 @@ def pickOne(d):
 
 # Diff the results of a test for each version and construct a new test result
 # that reports whether the test results match for each version.
-def diffResults(results):
+def diffResults(results, configuration_name):
     outResult = pickOne(results)
     exp = results[None]['result'] if None in results else None
-    outResult['configuration'] = 'dartkb-abi-linux-release-x64'
+    outResult['configuration'] = configuration_name
     outResult['expected'] = exp
     outResult['result'] = exp
     outResult['matches'] = True
@@ -158,12 +163,12 @@ def diffResults(results):
 
 # Create a log entry for a test that has diffs. Concatenate all the log records
 # and include which tests failed.
-def makeLog(diffs, results, logRecords):
+def makeLog(diffs, results, logRecords, configuration_name):
     result = pickOne(results)
     logs = ["%s: %s" % (str(v), l['log']) for v, l in logRecords.items()]
     return {
         'name': result['name'],
-        'configuration': 'dartkb-abi-linux-release-x64',
+        'configuration': configuration_name,
         'result': result['result'],
         'log': '\n\n\n'.join([repr(diffs)] + logs),
     }
@@ -179,12 +184,15 @@ def diffAllResults(tests, flags):
     with open(resultFileName, 'w') as resultFile:
         with open(logFileName, 'w') as logFile:
             for name, results in allResults.items():
-                outResult, diffs = diffResults(results)
+                outResult, diffs = diffResults(results,
+                                               flags.configuration_name)
                 resultFile.write(json.dumps(outResult) + '\n')
                 if diffs:
                     logRecords = allLogs[name] if name in allLogs else []
                     logFile.write(
-                        json.dumps(makeLog(diffs, results, logRecords)) + '\n')
+                        json.dumps(
+                            makeLog(diffs, results, logRecords, flags.
+                                    configuration_name)) + '\n')
     print('Log files emitted to %s and %s' % (resultFileName, logFileName))
 
 

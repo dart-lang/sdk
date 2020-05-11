@@ -1,0 +1,14 @@
+class A extends Object with M implements I {}
+
+class B extends Object with M implements I {}
+
+class I {
+  dynamic noSuchMethod(Invocation i) => null;
+  void foo();
+}
+
+class M {
+  dynamic noSuchMethod(Invocation i) => null;
+}
+
+main() {}

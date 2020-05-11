@@ -4,24 +4,24 @@
 
 // @dart = 2.7
 
-/*strong.class: Class:*/
-/*omit.class: Class:*/
+/*spec:nnbd-off.class: Class:*/
+/*prod:nnbd-off.class: Class:*/
 class Class<T> {
-  /*strong.member: Class.:*/
-  /*omit.member: Class.:*/
+  /*spec:nnbd-off.member: Class.:*/
+  /*prod:nnbd-off.member: Class.:*/
   Class();
 }
 
-/*strong.member: method1:*/
-/*omit.member: method1:*/
+/*spec:nnbd-off.member: method1:*/
+/*prod:nnbd-off.member: method1:*/
 method1() {}
 
-/*strong.member: method2:*/
-/*omit.member: method2:*/
+/*spec:nnbd-off.member: method2:*/
+/*prod:nnbd-off.member: method2:*/
 method2(int i, String s) => i;
 
-/*strong.member: main:*/
-/*omit.member: main:*/
+/*spec:nnbd-off.member: main:*/
+/*prod:nnbd-off.member: main:*/
 main() {
   print('${method1.runtimeType}');
   method2(0, '');

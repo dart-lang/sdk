@@ -1,0 +1,14 @@
+// @dart = 2.6
+library opted_out_lib;
+
+import 'issue41498b_lib.dart' as opt_in;
+
+typedef void LegacyFoo();
+
+class C {
+  static void test() {}
+  void test2() {}
+}
+
+test() {}
+main() {}

@@ -15,7 +15,7 @@ class RefreshEvent {
 class NavRefreshElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavRefreshElement>('nav-refresh');
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavRefreshElement> _r;
 
   Stream<RenderedEvent<NavRefreshElement>> get onRendered => _r.onRendered;
 

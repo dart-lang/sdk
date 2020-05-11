@@ -1,0 +1,7 @@
+library test;
+
+class C {
+  C(Object o) : assert(o);
+}
+
+main() {}

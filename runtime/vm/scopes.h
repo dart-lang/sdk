@@ -10,7 +10,6 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/allocation.h"
-#include "vm/compiler/backend/slot.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -21,6 +20,7 @@ namespace dart {
 
 class CompileType;
 class LocalScope;
+class Slot;
 
 // Indices of [LocalVariable]s are abstract and have little todo with the
 // actual frame layout!
@@ -237,7 +237,7 @@ class LocalVarDescriptorsBuilder : public ValueObject {
  public:
   struct VarDesc {
     const String* name;
-    RawLocalVarDescriptors::VarInfo info;
+    LocalVarDescriptorsLayout::VarInfo info;
   };
 
   LocalVarDescriptorsBuilder() : vars_(8) {}
@@ -255,7 +255,7 @@ class LocalVarDescriptorsBuilder : public ValueObject {
       ZoneGrowableArray<intptr_t>* context_level_array);
 
   // Finish building LocalVarDescriptor object.
-  RawLocalVarDescriptors* Done();
+  LocalVarDescriptorsPtr Done();
 
  private:
   GrowableArray<VarDesc> vars_;
@@ -462,13 +462,13 @@ class LocalScope : public ZoneAllocated {
 
   // Creates variable info for the scope and all its nested scopes.
   // Must be called after AllocateVariables() has been called.
-  RawLocalVarDescriptors* GetVarDescriptors(
+  LocalVarDescriptorsPtr GetVarDescriptors(
       const Function& func,
       ZoneGrowableArray<intptr_t>* context_level_array);
 
   // Create a ContextScope object describing all captured variables referenced
   // from this scope and belonging to outer scopes.
-  RawContextScope* PreserveOuterScope(int current_context_level) const;
+  ContextScopePtr PreserveOuterScope(int current_context_level) const;
 
   // Mark all local variables that are accessible from this scope up to
   // top_scope (included) as captured unless they are marked as forced to stack.
@@ -482,7 +482,7 @@ class LocalScope : public ZoneAllocated {
 
   // Create a ContextScope object which will capture "this" for an implicit
   // closure object.
-  static RawContextScope* CreateImplicitClosureScope(const Function& func);
+  static ContextScopePtr CreateImplicitClosureScope(const Function& func);
 
  private:
   // Allocate the variable in the current context, possibly updating the current

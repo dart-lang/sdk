@@ -17,8 +17,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 class FieldFormalContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var node = request.target.containingNode;
+    // TODO(brianwilkerson) We should suggest field formal parameters even if
+    //  the user hasn't already typed the `this.` prefix, by including the
+    //  prefix in the completion.
     if (node is! FieldFormalParameter) {
       return const <CompletionSuggestion>[];
     }
@@ -29,10 +32,11 @@ class FieldFormalContributor extends DartCompletionContributor {
     }
 
     // Compute the list of fields already referenced in the constructor.
+    // TODO(brianwilkerson) This doesn't include fields in initializers, which
+    //  shouldn't be suggested.
     var referencedFields = <String>[];
     for (var param in constructor.parameters.parameters) {
-      if (param is DefaultFormalParameter &&
-          param.parameter is FieldFormalParameter) {
+      if (param is DefaultFormalParameter) {
         param = (param as DefaultFormalParameter).parameter;
       }
       if (param is FieldFormalParameter) {
@@ -52,29 +56,21 @@ class FieldFormalContributor extends DartCompletionContributor {
     }
 
     // Add suggestions for fields that are not already referenced.
-    var relevance = request.useNewRelevance
-        ? Relevance.fieldFormalParameter
-        : DART_RELEVANCE_LOCAL_FIELD;
-    var suggestions = <CompletionSuggestion>[];
     for (var member in enclosingClass.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (var variable in member.fields.variables) {
-          var fieldId = variable.name;
-          if (fieldId != null) {
-            var fieldName = fieldId.name;
+          var field = variable.name.staticElement;
+          if (field != null) {
+            var fieldName = field.name;
             if (fieldName != null && fieldName.isNotEmpty) {
               if (!referencedFields.contains(fieldName)) {
-                var suggestion = createSuggestion(fieldId.staticElement,
-                    relevance: relevance);
-                if (suggestion != null) {
-                  suggestions.add(suggestion);
-                }
+                builder.suggestFieldFormalParameter(field);
               }
             }
           }
         }
       }
     }
-    return suggestions;
+    return const <CompletionSuggestion>[];
   }
 }

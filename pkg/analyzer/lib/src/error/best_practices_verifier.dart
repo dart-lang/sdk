@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -85,21 +84,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     this._currentLibrary,
     CompilationUnit unit,
     String content, {
-    TypeSystemImpl typeSystem,
+    @required TypeSystemImpl typeSystem,
     @required InheritanceManager3 inheritanceManager,
-    ResourceProvider resourceProvider,
-    DeclaredVariables declaredVariables,
-    AnalysisOptions analysisOptions,
+    @required ResourceProvider resourceProvider,
+    @required DeclaredVariables declaredVariables,
+    @required AnalysisOptions analysisOptions,
   })  : _nullType = typeProvider.nullType,
-        _typeSystem = typeSystem ??
-            TypeSystemImpl(
-              implicitCasts: true,
-              isNonNullableByDefault: false,
-              strictInference: false,
-              typeProvider: typeProvider,
-            ),
-        _isNonNullableByDefault =
-            unit.featureSet.isEnabled(Feature.non_nullable),
+        _typeSystem = typeSystem,
+        _isNonNullableByDefault = typeSystem.isNonNullableByDefault,
         _strictInference =
             (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
@@ -239,6 +231,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _checkForDeprecatedMemberUse(node.staticElement, node);
     _checkForInvariantNullComparison(node);
     super.visitBinaryExpression(node);
+  }
+
+  @override
+  void visitCatchClause(CatchClause node) {
+    super.visitCatchClause(node);
+    _checkForNullableTypeInCatchClause(node);
   }
 
   @override
@@ -1160,6 +1158,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             HintCode.MISSING_RETURN, errorNode, [returnType]);
       }
+    }
+  }
+
+  void _checkForNullableTypeInCatchClause(CatchClause node) {
+    if (!_isNonNullableByDefault) {
+      return;
+    }
+
+    var type = node.exceptionType;
+    if (type == null) {
+      return;
+    }
+
+    if (_typeSystem.isPotentiallyNullable(type.type)) {
+      _errorReporter.reportErrorForNode(
+        HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
+        type,
+      );
     }
   }
 

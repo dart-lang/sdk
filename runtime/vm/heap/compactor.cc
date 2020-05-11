@@ -279,10 +279,10 @@ void GCCompactor::Compact(HeapPage* pages,
       // If we have external typed data we can simply return, since the backing
       // store lives in C-heap and will not move. Otherwise we have to update
       // the inner pointer.
-      if (RawObject::IsTypedDataClassId(cid)) {
-        raw_view->RecomputeDataFieldForInternalTypedData();
+      if (IsTypedDataClassId(cid)) {
+        raw_view->ptr()->RecomputeDataFieldForInternalTypedData();
       } else {
-        ASSERT(RawObject::IsExternalTypedDataClassId(cid));
+        ASSERT(IsExternalTypedDataClassId(cid));
       }
     }
   }
@@ -470,9 +470,9 @@ uword CompactorTask::PlanBlock(uword first_object,
   intptr_t block_dead_size = 0;
   uword current = first_object;
   while (current < block_end) {
-    RawObject* obj = RawObject::FromAddr(current);
-    intptr_t size = obj->HeapSize();
-    if (obj->IsMarked()) {
+    ObjectPtr obj = ObjectLayout::FromAddr(current);
+    intptr_t size = obj->ptr()->HeapSize();
+    if (obj->ptr()->IsMarked()) {
       forwarding_block->RecordLive(current, size);
       ASSERT(static_cast<intptr_t>(forwarding_block->Lookup(current)) ==
              block_live_size);
@@ -500,9 +500,9 @@ uword CompactorTask::SlideBlock(uword first_object,
 
   uword old_addr = first_object;
   while (old_addr < block_end) {
-    RawObject* old_obj = RawObject::FromAddr(old_addr);
-    intptr_t size = old_obj->HeapSize();
-    if (old_obj->IsMarked()) {
+    ObjectPtr old_obj = ObjectLayout::FromAddr(old_addr);
+    intptr_t size = old_obj->ptr()->HeapSize();
+    if (old_obj->ptr()->IsMarked()) {
       uword new_addr = forwarding_block->Lookup(old_addr);
       if (new_addr != free_current_) {
         // The only situation where these two don't match is if we are moving
@@ -521,7 +521,7 @@ uword CompactorTask::SlideBlock(uword first_object,
         free_end_ = free_page_->object_end();
         ASSERT(free_current_ == new_addr);
       }
-      RawObject* new_obj = RawObject::FromAddr(new_addr);
+      ObjectPtr new_obj = ObjectLayout::FromAddr(new_addr);
 
       // Fast path for no movement. There's often a large block of objects at
       // the beginning that don't move.
@@ -530,12 +530,12 @@ uword CompactorTask::SlideBlock(uword first_object,
         memmove(reinterpret_cast<void*>(new_addr),
                 reinterpret_cast<void*>(old_addr), size);
 
-        if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
-          reinterpret_cast<RawTypedData*>(new_obj)->RecomputeDataField();
+        if (IsTypedDataClassId(new_obj->GetClassId())) {
+          static_cast<TypedDataPtr>(new_obj)->ptr()->RecomputeDataField();
         }
       }
-      new_obj->ClearMarkBit();
-      new_obj->VisitPointers(compactor_);
+      new_obj->ptr()->ClearMarkBit();
+      new_obj->ptr()->VisitPointers(compactor_);
 
       ASSERT(free_current_ == new_addr);
       free_current_ += size;
@@ -592,13 +592,13 @@ void GCCompactor::SetupImagePageBoundaries() {
 }
 
 DART_FORCE_INLINE
-void GCCompactor::ForwardPointer(RawObject** ptr) {
-  RawObject* old_target = *ptr;
+void GCCompactor::ForwardPointer(ObjectPtr* ptr) {
+  ObjectPtr old_target = *ptr;
   if (old_target->IsSmiOrNewObject()) {
     return;  // Not moved.
   }
 
-  uword old_addr = RawObject::ToAddr(old_target);
+  uword old_addr = ObjectLayout::ToAddr(old_target);
   for (intptr_t i = 0; i < kMaxImagePages; i++) {
     if ((old_addr - image_page_ranges_[i].base) < image_page_ranges_[i].size) {
       return;  // Not moved (unaligned image page).
@@ -611,19 +611,19 @@ void GCCompactor::ForwardPointer(RawObject** ptr) {
     return;  // Not moved (VM isolate, large page, code page).
   }
 
-  RawObject* new_target =
-      RawObject::FromAddr(forwarding_page->Lookup(old_addr));
+  ObjectPtr new_target =
+      ObjectLayout::FromAddr(forwarding_page->Lookup(old_addr));
   ASSERT(!new_target->IsSmiOrNewObject());
   *ptr = new_target;
 }
 
-void GCCompactor::VisitTypedDataViewPointers(RawTypedDataView* view,
-                                             RawObject** first,
-                                             RawObject** last) {
+void GCCompactor::VisitTypedDataViewPointers(TypedDataViewPtr view,
+                                             ObjectPtr* first,
+                                             ObjectPtr* last) {
   // First we forward all fields of the typed data view.
-  RawObject* old_backing = view->ptr()->typed_data_;
+  ObjectPtr old_backing = view->ptr()->typed_data_;
   VisitPointers(first, last);
-  RawObject* new_backing = view->ptr()->typed_data_;
+  ObjectPtr new_backing = view->ptr()->typed_data_;
 
   const bool backing_moved = old_backing != new_backing;
   if (backing_moved) {
@@ -644,8 +644,8 @@ void GCCompactor::VisitTypedDataViewPointers(RawTypedDataView* view,
     // The backing store didn't move, we therefore don't need to update the
     // inner pointer.
     if (view->ptr()->data_ == 0) {
-      ASSERT(ValueFromRawSmi(view->ptr()->offset_in_bytes_) == 0 &&
-             ValueFromRawSmi(view->ptr()->length_) == 0 &&
+      ASSERT(RawSmiValue(view->ptr()->offset_in_bytes_) == 0 &&
+             RawSmiValue(view->ptr()->length_) == 0 &&
              view->ptr()->typed_data_ == Object::null());
     }
   }
@@ -653,8 +653,8 @@ void GCCompactor::VisitTypedDataViewPointers(RawTypedDataView* view,
 
 // N.B.: This pointer visitor is not idempotent. We must take care to visit
 // each pointer exactly once.
-void GCCompactor::VisitPointers(RawObject** first, RawObject** last) {
-  for (RawObject** ptr = first; ptr <= last; ptr++) {
+void GCCompactor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  for (ObjectPtr* ptr = first; ptr <= last; ptr++) {
     ForwardPointer(ptr);
   }
 }

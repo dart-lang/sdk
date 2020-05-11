@@ -1,0 +1,9 @@
+// @dart = 2.6
+class A {
+  A() : this();
+  A.bar() : this.foo();
+  A.baz() : this.foo();
+  A.foo() : this.bar();
+}
+
+main() {}

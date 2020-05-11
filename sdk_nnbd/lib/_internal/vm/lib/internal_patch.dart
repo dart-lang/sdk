@@ -9,12 +9,19 @@
 
 import "dart:core" hide Symbol;
 
+import "dart:isolate" show SendPort;
 import "dart:typed_data" show Int32List;
 
 /// These are the additional parts of this patch library:
 // part "class_id_fasta.dart";
 // part "print_patch.dart";
 // part "symbol_patch.dart";
+
+// On the VM, we don't make the entire legacy weak mode check
+// const to avoid having a constant in the platform libraries
+// which evaluates differently in weak vs strong mode.
+@patch
+bool typeAcceptsNull<T>() => (const <Null>[]) is List<int> || null is T;
 
 @patch
 List<T> makeListFixedLength<T>(List<T> growableList)
@@ -45,7 +52,6 @@ class VMLibraryHooks {
   // Implementation of package root/map provision.
   static var packageRootString;
   static var packageConfigString;
-  static var packageRootUriFuture;
   static var packageConfigUriFuture;
   static var resolvePackageUriFuture;
 
@@ -128,3 +134,6 @@ T unsafeCast<T>(Object? v) native "Internal_unsafeCast";
 // This is implemented by a recognized method, but in bytecode through a native.
 @pragma('vm:prefer-inline')
 void reachabilityFence(Object object) native "Internal_reachabilityFence";
+
+void sendAndExit(SendPort sendPort, var message)
+    native "SendPortImpl_sendAndExitInternal_";

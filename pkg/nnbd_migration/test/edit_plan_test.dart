@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -57,6 +58,62 @@ class EditPlanTest extends AbstractSingleUnitTest {
 
   NodeProducingEditPlan extract(AstNode inner, AstNode outer) =>
       planner.extract(outer, planner.passThrough(inner));
+
+  Future<void> test_acceptLateHint() async {
+    var code = '/* late */ int x = 0;';
+    await analyze(code);
+    var hint = getPrefixHint(findNode.simple('int').token);
+    var changes = checkPlan(
+        planner.acceptLateHint(
+            planner.passThrough(findNode.simple('int')), hint),
+        'late int x = 0;');
+    expect(changes.keys, unorderedEquals([0, 7]));
+    expect(changes[7], hasLength(1));
+    expect(changes[7][0].length, 3);
+  }
+
+  Future<void> test_acceptLateHint_space_needed_after() async {
+    var code = '/* late */int x = 0;';
+    await analyze(code);
+    var hint = getPrefixHint(findNode.simple('int').token);
+    checkPlan(
+        planner.acceptLateHint(
+            planner.passThrough(findNode.simple('int')), hint),
+        'late int x = 0;');
+  }
+
+  Future<void> test_acceptLateHint_space_needed_before() async {
+    var code = '@deprecated/* late */ int x = 0;';
+    await analyze(code);
+    var hint = getPrefixHint(findNode.simple('int').token);
+    checkPlan(
+        planner.acceptLateHint(
+            planner.passThrough(findNode.simple('int')), hint),
+        '@deprecated late int x = 0;');
+  }
+
+  Future<void> test_acceptNullabilityOrNullCheckHint() async {
+    var code = 'int /*?*/ x = 0;';
+    await analyze(code);
+    var intRef = findNode.simple('int');
+    var typeName = planner.passThrough(intRef);
+    checkPlan(
+        planner.acceptNullabilityOrNullCheckHint(
+            typeName, getPostfixHint(intRef.token)),
+        'int? x = 0;');
+  }
+
+  Future<void> test_acceptNullabilityOrNullCheckHint_inside_extract() async {
+    var code = 'f(x) => 3 * x /*!*/ * 4;';
+    await analyze(code);
+    var xRef = findNode.simple('x /*');
+    checkPlan(
+        planner.extract(
+            xRef.parent.parent,
+            planner.acceptNullabilityOrNullCheckHint(
+                planner.passThrough(xRef), getPostfixHint(xRef.token))),
+        'f(x) => x!;');
+  }
 
   Future<void> test_addBinaryPostfix_assignment_right_associative() async {
     await analyze('_f(a, b, c) => a = b;');
@@ -185,6 +242,48 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'f(x) => x = () => null;');
   }
 
+  Future<void> test_addCommentPostfix_before_closer() async {
+    await analyze('f(g) => g(0);');
+    checkPlan(
+        planner.addCommentPostfix(
+            planner.passThrough(findNode.integerLiteral('0')), '/* zero */'),
+        'f(g) => g(0 /* zero */);');
+  }
+
+  Future<void> test_addCommentPostfix_before_other() async {
+    await analyze('f() => 0.isEven;');
+    checkPlan(
+        planner.addCommentPostfix(
+            planner.passThrough(findNode.integerLiteral('0')), '/* zero */'),
+        'f() => 0 /* zero */ .isEven;');
+  }
+
+  Future<void> test_addCommentPostfix_before_semicolon() async {
+    await analyze('f() => 0;');
+    checkPlan(
+        planner.addCommentPostfix(
+            planner.passThrough(findNode.integerLiteral('0')), '/* zero */'),
+        'f() => 0 /* zero */;');
+  }
+
+  Future<void> test_addCommentPostfix_before_space() async {
+    await analyze('f() => 0 + 1;');
+    checkPlan(
+        planner.addCommentPostfix(
+            planner.passThrough(findNode.integerLiteral('0')), '/* zero */'),
+        'f() => 0 /* zero */ + 1;');
+  }
+
+  Future<void> test_addCommentPostfix_informative() async {
+    await analyze('f() => 0.isEven;');
+    checkPlan(
+        planner.addCommentPostfix(
+            planner.passThrough(findNode.integerLiteral('0')), '/* zero */',
+            isInformative: true),
+        'f() => 0.isEven;',
+        expectedIncludingInformative: 'f() => 0 /* zero */ .isEven;');
+  }
+
   Future<void> test_addUnaryPostfix_inner_precedence_add_parens() async {
     await analyze('f(x) => -x;');
     checkPlan(
@@ -286,6 +385,50 @@ class EditPlanTest extends AbstractSingleUnitTest {
       expect(plan.endsInCascade, false);
       checkPlan(plan, 'f(a, c) => a..b = (c = 1..isEven);');
     }
+  }
+
+  Future<void> test_dropNullabilityHint() async {
+    var code = 'int /*!*/ x = 0;';
+    await analyze(code);
+    var intRef = findNode.simple('int');
+    var typeName = planner.passThrough(intRef);
+    checkPlan(
+        planner.dropNullabilityHint(typeName, getPostfixHint(intRef.token)),
+        'int x = 0;');
+  }
+
+  Future<void> test_dropNullabilityHint_space_before_must_be_kept() async {
+    var code = 'int /*!*/x = 0;';
+    await analyze(code);
+    var intRef = findNode.simple('int');
+    var typeName = planner.passThrough(intRef);
+    var changes = checkPlan(
+        planner.dropNullabilityHint(typeName, getPostfixHint(intRef.token)),
+        'int x = 0;');
+    expect(changes.keys, unorderedEquals([code.indexOf('/*')]));
+  }
+
+  Future<void> test_dropNullabilityHint_space_needed() async {
+    var code = 'int/*!*/x = 0;';
+    await analyze(code);
+    var intRef = findNode.simple('int');
+    var typeName = planner.passThrough(intRef);
+    checkPlan(
+        planner.dropNullabilityHint(typeName, getPostfixHint(intRef.token)),
+        'int x = 0;');
+  }
+
+  Future<void> test_dropNullabilityHint_tight_no_space_needed() async {
+    // We try to minimize how much we alter the source code, so we don't insert
+    // a space in this example even though it would look prettier to do so.
+    var code = 'void Function()/*!*/x = () {};';
+    await analyze(code);
+    var functionType = findNode.genericFunctionType('Function');
+    var typeName = planner.passThrough(functionType);
+    checkPlan(
+        planner.dropNullabilityHint(
+            typeName, getPostfixHint(functionType.endToken)),
+        'void Function()x = () {};');
   }
 
   Future<void> test_explainNonNullable() async {
@@ -390,6 +533,25 @@ class EditPlanTest extends AbstractSingleUnitTest {
         planner.surround(planner.passThrough(testUnit),
             suffix: [AtomicEdit.insert(' var y = 0;')]),
         'var x = 0; var y = 0;');
+  }
+
+  Future<void> test_informativeMessageForToken() async {
+    await analyze('f(x) => x + 1;');
+    var sum = findNode.binary('+');
+    var info = _MockInfo();
+    var changes = checkPlan(
+        planner.passThrough(sum, innerPlans: [
+          planner.informativeMessageForToken(sum, sum.operator, info: info)
+        ]),
+        'f(x) => x + 1;',
+        expectedIncludingInformative: 'f(x) => x  1;');
+    var expectedOffset = sum.operator.offset;
+    expect(changes.keys, unorderedEquals([expectedOffset]));
+    expect(changes[expectedOffset], hasLength(1));
+    expect(changes[expectedOffset][0].length, '+'.length);
+    expect(changes[expectedOffset][0].replacement, '');
+    expect(changes[expectedOffset][0].isInformative, isTrue);
+    expect(changes[expectedOffset][0].info, same(info));
   }
 
   Future<void> test_insertText() async {
@@ -1122,8 +1284,8 @@ C<int, String>? c;
     await analyze('var x = 1;');
     var variableDeclarationList = findNode.variableDeclarationList('var x');
     checkPlan(
-        planner.replaceToken(variableDeclarationList,
-            variableDeclarationList.keyword, [AtomicEdit.insert('int')]),
+        planner.replaceToken(
+            variableDeclarationList, variableDeclarationList.keyword, 'int'),
         'int x = 1;');
   }
 
@@ -1436,6 +1598,10 @@ g(a, c) => a..b = throw (c..d);
         () => testUnit.accept(_PrecedenceChecker(testUnit.lineInfo, testCode)),
         throwsA(TypeMatcher<TestFailure>()));
   }
+}
+
+class _MockInfo implements AtomicEditInfo {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _PrecedenceChecker extends UnifyingAstVisitor<void> {

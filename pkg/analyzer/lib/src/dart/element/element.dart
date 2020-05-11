@@ -4072,7 +4072,7 @@ class ExtensionElementImpl extends ElementImpl
   @override
   String get name {
     if (linkedNode != null) {
-      return (linkedNode as ExtensionDeclaration).name?.name ?? '';
+      return (linkedNode as ExtensionDeclaration).name?.name;
     }
     return super.name;
   }

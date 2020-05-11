@@ -50,20 +50,18 @@ namespace dart {
 class FlowGraph;
 class Function;
 class Library;
-class RawFunction;
-class RawLibrary;
 
-RawLibrary* LoadTestScript(const char* script,
-                           Dart_NativeEntryResolver resolver = nullptr,
-                           const char* lib_uri = RESOLVED_USER_TEST_URI);
+LibraryPtr LoadTestScript(const char* script,
+                          Dart_NativeEntryResolver resolver = nullptr,
+                          const char* lib_uri = RESOLVED_USER_TEST_URI);
 
-RawFunction* GetFunction(const Library& lib, const char* name);
-RawClass* GetClass(const Library& lib, const char* name);
-RawTypeParameter* GetClassTypeParameter(const Class& klass, const char* name);
-RawTypeParameter* GetFunctionTypeParameter(const Function& fun,
-                                           const char* name);
+FunctionPtr GetFunction(const Library& lib, const char* name);
+ClassPtr GetClass(const Library& lib, const char* name);
+TypeParameterPtr GetClassTypeParameter(const Class& klass, const char* name);
+TypeParameterPtr GetFunctionTypeParameter(const Function& fun,
+                                          const char* name);
 
-RawObject* Invoke(const Library& lib, const char* name);
+ObjectPtr Invoke(const Library& lib, const char* name);
 
 class TestPipeline : public ValueObject {
  public:
@@ -253,17 +251,20 @@ class FlowGraphBuilderHelper {
     return flow_graph_.GetConstant(Double::Handle(Double::NewCanonical(value)));
   }
 
+  static Definition* const kPhiSelfReference;
+
   PhiInstr* Phi(JoinEntryInstr* join,
                 std::initializer_list<std::pair<BlockEntryInstr*, Definition*>>
-                    incomming) {
-    auto phi = new PhiInstr(join, incomming.size());
-    for (size_t i = 0; i < incomming.size(); i++) {
+                    incoming) {
+    auto phi = new PhiInstr(join, incoming.size());
+    for (size_t i = 0; i < incoming.size(); i++) {
       auto input = new Value(flow_graph_.constant_dead());
       phi->SetInputAt(i, input);
       input->definition()->AddInputUse(input);
     }
-    for (auto pair : incomming) {
-      pending_phis_.Add({phi, pair.first, pair.second});
+    for (auto pair : incoming) {
+      pending_phis_.Add({phi, pair.first,
+                         pair.second == kPhiSelfReference ? phi : pair.second});
     }
     return phi;
   }
@@ -288,7 +289,7 @@ class FlowGraphBuilderHelper {
   static FlowGraph& MakeDummyGraph(Thread* thread) {
     const Function& func = Function::ZoneHandle(Function::New(
         String::Handle(Symbols::New(thread, "dummy")),
-        RawFunction::kRegularFunction,
+        FunctionLayout::kRegularFunction,
         /*is_static=*/true,
         /*is_const=*/false,
         /*is_abstract=*/false,

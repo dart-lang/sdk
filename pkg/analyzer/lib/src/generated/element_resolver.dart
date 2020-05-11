@@ -703,15 +703,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return;
     }
     //
-    // The name dynamic denotes a Type object even though dynamic is not a
-    // class.
-    //
-    if (node.name == 'dynamic') {
-      node.staticElement = _dynamicType.element;
-      node.staticType = _typeType;
-      return;
-    }
-    //
     // Otherwise, the node should be resolved.
     //
     Element element = _resolveSimpleIdentifier(node);

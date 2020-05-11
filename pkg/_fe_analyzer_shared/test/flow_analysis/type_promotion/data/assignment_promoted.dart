@@ -16,6 +16,15 @@ typeOfInterest_is(Object x) {
   /*int*/ x;
 }
 
+typeOfInterest_is_nullable(Object? x) {
+  if (x is int?) {
+  } else {
+    x = 1;
+    /*int*/ x;
+  }
+  x;
+}
+
 typeOfInterest_isNot(Object x) {
   if (x is! int) {
     x = 1;
@@ -24,9 +33,22 @@ typeOfInterest_isNot(Object x) {
   /*int*/ x;
 }
 
-notATypeOfInterest_nullability(Object? x) {
-  x = 1;
+typeOfInterest_isNot_nullable(Object? x) {
+  if (x is! int?) {
+    x = 1;
+    /*int*/ x;
+  }
   x;
+}
+
+typeOfInterest_declaredNullable_exact(int? x) {
+  x = 1;
+  /*int*/ x;
+}
+
+typeOfInterest_declaredNullable_subtype(Object? x) {
+  x = 1;
+  /*Object*/ x;
 }
 
 typeOfInterest_notEqualNull(Object? x) {

@@ -4,7 +4,6 @@
 
 #include "vm/heap/sweeper.h"
 
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/globals.h"
 #include "vm/heap/freelist.h"
 #include "vm/heap/heap.h"
@@ -29,31 +28,30 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
 
   while (current < end) {
     intptr_t obj_size;
-    RawObject* raw_obj = RawObject::FromAddr(current);
+    ObjectPtr raw_obj = ObjectLayout::FromAddr(current);
     ASSERT(HeapPage::Of(raw_obj) == page);
-    if (raw_obj->IsMarked()) {
+    if (raw_obj->ptr()->IsMarked()) {
       // Found marked object. Clear the mark bit and update swept bytes.
-      raw_obj->ClearMarkBit();
-      obj_size = raw_obj->HeapSize();
+      raw_obj->ptr()->ClearMarkBit();
+      obj_size = raw_obj->ptr()->HeapSize();
       used_in_bytes += obj_size;
     } else {
-      uword free_end = current + raw_obj->HeapSize();
+      uword free_end = current + raw_obj->ptr()->HeapSize();
       while (free_end < end) {
-        RawObject* next_obj = RawObject::FromAddr(free_end);
-        if (next_obj->IsMarked()) {
+        ObjectPtr next_obj = ObjectLayout::FromAddr(free_end);
+        if (next_obj->ptr()->IsMarked()) {
           // Reached the end of the free block.
           break;
         }
         // Expand the free block by the size of this object.
-        free_end += next_obj->HeapSize();
+        free_end += next_obj->ptr()->HeapSize();
       }
       obj_size = free_end - current;
       if (is_executable) {
         uword cursor = current;
         uword end = current + obj_size;
         while (cursor < end) {
-          *reinterpret_cast<uword*>(cursor) =
-              compiler::Assembler::GetBreakInstructionFiller();
+          *reinterpret_cast<uword*>(cursor) = kBreakInstructionFiller;
           cursor += kWordSize;
         }
       } else {
@@ -82,21 +80,21 @@ intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
   ASSERT(!page->is_image_page());
 
   intptr_t words_to_end = 0;
-  RawObject* raw_obj = RawObject::FromAddr(page->object_start());
+  ObjectPtr raw_obj = ObjectLayout::FromAddr(page->object_start());
   ASSERT(HeapPage::Of(raw_obj) == page);
-  if (raw_obj->IsMarked()) {
-    raw_obj->ClearMarkBit();
-    words_to_end = (raw_obj->HeapSize() >> kWordSizeLog2);
+  if (raw_obj->ptr()->IsMarked()) {
+    raw_obj->ptr()->ClearMarkBit();
+    words_to_end = (raw_obj->ptr()->HeapSize() >> kWordSizeLog2);
   }
 #ifdef DEBUG
   // Array::MakeFixedLength creates trailing filler objects,
   // but they are always unreachable. Verify that they are not marked.
-  uword current = RawObject::ToAddr(raw_obj) + raw_obj->HeapSize();
+  uword current = ObjectLayout::ToAddr(raw_obj) + raw_obj->ptr()->HeapSize();
   uword end = page->object_end();
   while (current < end) {
-    RawObject* cur_obj = RawObject::FromAddr(current);
-    ASSERT(!cur_obj->IsMarked());
-    intptr_t obj_size = cur_obj->HeapSize();
+    ObjectPtr cur_obj = ObjectLayout::FromAddr(current);
+    ASSERT(!cur_obj->ptr()->IsMarked());
+    intptr_t obj_size = cur_obj->ptr()->HeapSize();
     memset(reinterpret_cast<void*>(current), Heap::kZapByte, obj_size);
     current += obj_size;
   }
@@ -111,20 +109,17 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
                         HeapPage* first,
                         HeapPage* last,
                         HeapPage* large_first,
-                        HeapPage* large_last,
-                        FreeList* freelist)
+                        HeapPage* large_last)
       : task_isolate_group_(isolate_group),
         old_space_(old_space),
         first_(first),
         last_(last),
         large_first_(large_first),
-        large_last_(large_last),
-        freelist_(freelist) {
+        large_last_(large_last) {
     ASSERT(task_isolate_group_ != NULL);
     ASSERT(first_ != NULL);
     ASSERT(old_space_ != NULL);
     ASSERT(last_ != NULL);
-    ASSERT(freelist_ != NULL);
     MonitorLocker ml(old_space_->tasks_lock());
     old_space_->set_tasks(old_space_->tasks() + 1);
     old_space_->set_phase(PageSpace::kSweepingLarge);
@@ -169,6 +164,8 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
         ml.NotifyAll();
       }
 
+      intptr_t shard = 0;
+      const intptr_t num_shards = Utils::Maximum(FLAG_scavenger_tasks, 1);
       page = first_;
       prev_page = NULL;
       while (page != NULL) {
@@ -181,7 +178,9 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
           next_page = page->next();
         }
         ASSERT(page->type() == HeapPage::kData);
-        bool page_in_use = sweeper.SweepPage(page, freelist_, false);
+        shard = (shard + 1) % num_shards;
+        bool page_in_use =
+            sweeper.SweepPage(page, old_space_->DataFreeList(shard), false);
         if (page_in_use) {
           prev_page = page;
         } else {
@@ -215,7 +214,6 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
   HeapPage* last_;
   HeapPage* large_first_;
   HeapPage* large_last_;
-  FreeList* freelist_;
 };
 
 void GCSweeper::SweepConcurrent(IsolateGroup* isolate_group,
@@ -226,7 +224,7 @@ void GCSweeper::SweepConcurrent(IsolateGroup* isolate_group,
                                 FreeList* freelist) {
   bool result = Dart::thread_pool()->Run<ConcurrentSweeperTask>(
       isolate_group, isolate_group->heap()->old_space(), first, last,
-      large_first, large_last, freelist);
+      large_first, large_last);
   ASSERT(result);
 }
 

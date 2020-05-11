@@ -1,0 +1,13 @@
+library test;
+
+class A {
+  B<int> b;
+}
+
+class B<T> {
+  B(T x);
+}
+
+var t1 = new A()..b = new B(1);
+var t2 = <B<int>>[new B(2)];
+main() {}

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM64.
-#if defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(TARGET_ARCH_ARM64)
 
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
@@ -149,9 +149,9 @@ static int GetScaleFactor(intptr_t size) {
   /* R1: new object end address. */                                            \
   /* R2: allocation size. */                                                   \
   {                                                                            \
-    __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);            \
+    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);         \
     __ LslImmediate(R2, R2,                                                    \
-                    target::RawObject::kTagBitsSizeTagPos -                    \
+                    target::ObjectLayout::kTagBitsSizeTagPos -                 \
                         target::ObjectAlignment::kObjectAlignmentLog2);        \
     __ csel(R2, ZR, R2, HI);                                                   \
                                                                                \
@@ -1648,21 +1648,21 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ b(&not_double, NE);
 
   __ LoadIsolate(R0);
-  __ LoadFromOffset(R0, R0, target::Isolate::object_store_offset());
+  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::double_type_offset());
   __ ret();
 
   __ Bind(&not_double);
   JumpIfNotInteger(assembler, R1, R0, &not_integer);
   __ LoadIsolate(R0);
-  __ LoadFromOffset(R0, R0, target::Isolate::object_store_offset());
+  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::int_type_offset());
   __ ret();
 
   __ Bind(&not_integer);
   JumpIfNotString(assembler, R1, R0, &use_declaration_type);
   __ LoadIsolate(R0);
-  __ LoadFromOffset(R0, R0, target::Isolate::object_store_offset());
+  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::string_type_offset());
   __ ret();
 
@@ -2131,10 +2131,10 @@ static void TryAllocateOneByteString(Assembler* assembler,
   // R1: new object end address.
   // R2: allocation size.
   {
-    const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
+    const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
 
-    __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);
+    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
     __ LslImmediate(R2, R2, shift);
     __ csel(R2, R2, ZR, LS);
 
@@ -2418,4 +2418,4 @@ void AsmIntrinsifier::SetAsyncThreadStackTrace(Assembler* assembler,
 }  // namespace compiler
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(TARGET_ARCH_ARM64)

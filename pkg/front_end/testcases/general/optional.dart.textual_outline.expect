@@ -1,0 +1,28 @@
+class Foo {
+  method(x, [y, z]) {}
+}
+
+abstract class External {
+  String externalMethod(int x, [int y, int z]);
+  void listen(Listener listener);
+}
+
+external External createExternal();
+
+abstract class Listener {
+  void event(String input, [int x, int y]);
+}
+
+class TestListener extends Listener {
+  void event(input, [x, y]) {}
+}
+
+class ExtendedListener extends Listener {
+  void event(input, [x, y, z]) {}
+}
+
+class InvalidListener {
+  void event(input, [x]) {}
+}
+
+main() {}

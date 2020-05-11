@@ -1,0 +1,21 @@
+class A {}
+
+class B extends A {}
+
+class C {
+  void f(A x) {}
+}
+
+class D extends C {
+  void f(x) {}
+}
+
+class E extends D {
+  void f(A x) {}
+}
+
+class F extends D {
+  void f(B x) {}
+}
+
+main() {}

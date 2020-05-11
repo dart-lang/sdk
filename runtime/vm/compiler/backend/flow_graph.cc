@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/flow_graph.h"
 
 #include "vm/bit_vector.h"
@@ -412,7 +410,7 @@ bool FlowGraph::IsReceiver(Definition* def) const {
 
 FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     InstanceCallInstr* call,
-    RawFunction::Kind kind) const {
+    FunctionLayout::Kind kind) const {
   if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
     // Even if class or function are private, lazy class finalization
     // may later add overriding methods.
@@ -474,7 +472,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   }
 
   const String& method_name =
-      (kind == RawFunction::kMethodExtractor)
+      (kind == FunctionLayout::kMethodExtractor)
           ? String::Handle(zone(), Field::NameFromGetter(call->function_name()))
           : call->function_name();
 
@@ -1236,8 +1234,10 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
                                   GrowableArray<Definition*>* env) {
   Environment* deopt_env =
       Environment::From(zone(), *env, num_direct_parameters_, parsed_function_);
-  if (instr->IsClosureCall()) {
-    // Trim extra input of ClosureCall instruction.
+  if (instr->IsClosureCall() || instr->IsInitInstanceField()) {
+    // Trim extra inputs of ClosureCall and InitInstanceField instructions.
+    // Inputs of those instructions are not pushed onto the stack at the
+    // point where deoptimization can occur.
     deopt_env =
         deopt_env->DeepCopy(zone(), deopt_env->Length() - instr->InputCount() +
                                         instr->ArgumentCount());
@@ -1619,6 +1619,12 @@ void FlowGraph::RemoveRedefinitions(bool keep_checks) {
         check->ReplaceUsesWith(check->index()->definition());
         check->ClearSSATempIndex();
       } else if (auto check = instruction->AsCheckNull()) {
+        check->ReplaceUsesWith(check->value()->definition());
+        check->ClearSSATempIndex();
+      } else if (auto check = instruction->AsAssertAssignable()) {
+        check->ReplaceUsesWith(check->value()->definition());
+        check->ClearSSATempIndex();
+      } else if (auto check = instruction->AsAssertBoolean()) {
         check->ReplaceUsesWith(check->value()->definition());
         check->ClearSSATempIndex();
       }
@@ -2378,10 +2384,18 @@ void FlowGraph::RenameUsesDominatedByRedefinitions() {
        block_it.Advance()) {
     for (ForwardInstructionIterator instr_it(block_it.Current());
          !instr_it.Done(); instr_it.Advance()) {
-      RedefinitionInstr* redefinition = instr_it.Current()->AsRedefinition();
-      if (redefinition != NULL) {
-        Definition* original = redefinition->value()->definition();
-        RenameDominatedUses(original, redefinition, redefinition);
+      Definition* definition = instr_it.Current()->AsDefinition();
+      // CheckArrayBound instructions have their own mechanism for ensuring
+      // proper dependencies, so we don't rewrite those here.
+      if (definition != nullptr && !definition->IsCheckArrayBound()) {
+        Value* redefined = definition->RedefinedValue();
+        if (redefined != nullptr) {
+          if (!definition->HasSSATemp()) {
+            AllocateSSAIndexes(definition);
+          }
+          Definition* original = redefined->definition();
+          RenameDominatedUses(original, definition, definition);
+        }
       }
     }
   }
@@ -2689,5 +2703,3 @@ void FlowGraph::InsertPushArguments() {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

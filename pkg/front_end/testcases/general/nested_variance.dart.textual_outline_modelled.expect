@@ -1,0 +1,49 @@
+F<X> toF<X>(X x) => null;
+
+class A<X> {}
+
+class Acon<X extends Fcon<Y>, Y> {}
+
+class AconBound<X extends FconBound<Y>, Y extends num> {}
+
+class AconCyclicBound<X extends FconCyclicBound<Y>, Y extends A<Y>> {}
+
+class AconCyclicCoBound<X extends FconCyclicCoBound<Y>, Y extends Function(Y)> {
+}
+
+class Acov<X extends Fcov<Y>, Y> {}
+
+class AcovBound<X extends FcovBound<Y>, Y extends num> {}
+
+class AcovCyclicBound<X extends FcovCyclicBound<Y>, Y extends A<Y>> {}
+
+class AcovCyclicCoBound<X extends FcovCyclicCoBound<Y>, Y extends Function(Y)> {
+}
+
+class Ainv<X extends Finv<Y>, Y> {}
+
+class AinvBound<X extends FinvBound<Y>, Y extends num> {}
+
+class AinvCyclicBound<X extends FinvCyclicBound<Y>, Y extends A<Y>> {}
+
+class AinvCyclicCoBound<X extends FinvCyclicCoBound<Y>, Y extends Function(Y)> {
+}
+
+class B<X> {}
+
+main() {}
+typedef F<X> = void Function<Y extends X>();
+typedef Fcon<X> = Function(X);
+typedef FconBound<X extends num> = Function(X);
+typedef FconCyclicBound<X extends A<X>> = Function(X);
+typedef FconCyclicCoBound<X extends Function(X)> = Function(X);
+typedef Fcov<X> = X Function();
+typedef FcovBound<X extends num> = X Function();
+typedef FcovCyclicBound<X extends A<X>> = X Function();
+typedef FcovCyclicCoBound<X extends Function(X)> = X Function();
+typedef Finv<X> = X Function(X);
+typedef FinvBound<X extends num> = X Function(X);
+typedef FinvCyclicBound<X extends A<X>> = X Function(X);
+typedef FinvCyclicCoBound<X extends Function(X)> = X Function(X);
+void testNested() {}
+void testTypeAliasAsTypeArgument() {}

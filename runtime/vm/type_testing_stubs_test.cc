@@ -47,8 +47,8 @@ static void RunTTSTest(
   const auto& symbol = String::Handle(
       Symbols::New(thread, OS::SCreate(thread->zone(), "TTSTest")));
   const auto& function = Function::Handle(
-      Function::New(symbol, RawFunction::kRegularFunction, false, false, false,
-                    false, false, klass, TokenPosition::kNoSource));
+      Function::New(symbol, FunctionLayout::kRegularFunction, false, false,
+                    false, false, false, klass, TokenPosition::kNoSource));
   compiler::ObjectPoolBuilder pool_builder;
   const auto& invoke_tts = Code::Handle(
       StubCode::Generate("InvokeTTS", &pool_builder, &GenerateInvokeTTSStub));

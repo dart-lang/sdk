@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
@@ -60,9 +61,11 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
 
   @override
   void graphEdge(EdgeInfo edge, EdgeOriginInfo originInfo) {
-    expect(test.edgeOrigin, isNot(contains(edge)));
-    test.edges.add(edge);
-    test.edgeOrigin[edge] = originInfo;
+    if (edge.destinationNode != test.always) {
+      expect(test.edgeOrigin, isNot(contains(edge)));
+      test.edges.add(edge);
+      test.edgeOrigin[edge] = originInfo;
+    }
   }
 
   @override
@@ -132,13 +135,15 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
 
   Source source;
 
-  Future<void> analyze(String content, {bool removeViaComments = false}) async {
+  Future<void> analyze(String content,
+      {bool removeViaComments = false, bool warnOnWeakCode = true}) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     newFile(sourcePath, content: content);
     var listener = new TestMigrationListener();
     var migration = NullabilityMigration(listener,
         instrumentation: _InstrumentationClient(this),
-        removeViaComments: removeViaComments);
+        removeViaComments: removeViaComments,
+        warnOnWeakCode: warnOnWeakCode);
     var result = await session.getResolvedUnit(sourcePath);
     source = result.unit.declaredElement.source;
     findNode = FindNode(content, result.unit);
@@ -146,6 +151,13 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
     migration.processInput(result);
     migration.finalizeInput(result);
     migration.finish();
+  }
+
+  void assertEdit(AtomicEdit edit,
+      {dynamic description = anything, dynamic fixReasons = anything}) {
+    var info = edit.info;
+    expect(info.description, description);
+    expect(info.fixReasons, fixReasons);
   }
 
   Future<void> test_explicitTypeNullability() async {
@@ -208,79 +220,78 @@ f(List<int> x) {}
   }
 
   Future<void> test_fix_reason_add_required_function() async {
-    await analyze('_f({int/*!*/ i) {}');
+    var content = '_f({int/*!*/ i) {}';
+    await analyze(content);
     var intAnnotation = findNode.typeAnnotation('int');
-    expect(changes, isNotEmpty);
-    for (var change in changes.values) {
-      expect(change, isNotEmpty);
-      for (var edit in change) {
-        var info = edit.info;
-        expect(info.description,
-            NullabilityFixDescription.addRequired(null, '_f', 'i'));
-        expect(info.fixReasons.single,
-            same(explicitTypeNullability[intAnnotation]));
-      }
-    }
+    var intPos = content.indexOf('int');
+    var commentPos = content.indexOf('/*');
+    expect(changes.keys, unorderedEquals([intPos, commentPos]));
+    assertEdit(changes[intPos].single,
+        description: NullabilityFixDescription.addRequired(null, '_f', 'i'),
+        fixReasons: {
+          FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
+        });
   }
 
   Future<void> test_fix_reason_add_required_method() async {
-    await analyze('class C { _f({int/*!*/ i) {} }');
+    var content = 'class C { _f({int/*!*/ i) {} }';
+    await analyze(content);
     var intAnnotation = findNode.typeAnnotation('int');
-    expect(changes, isNotEmpty);
-    for (var change in changes.values) {
-      expect(change, isNotEmpty);
-      for (var edit in change) {
-        var info = edit.info;
-        expect(info.description,
-            NullabilityFixDescription.addRequired('C', '_f', 'i'));
-        expect(info.fixReasons.single,
-            same(explicitTypeNullability[intAnnotation]));
-      }
-    }
+    var intPos = content.indexOf('int');
+    var commentPos = content.indexOf('/*');
+    expect(changes.keys, unorderedEquals([intPos, commentPos]));
+    assertEdit(changes[intPos].single,
+        description: NullabilityFixDescription.addRequired('C', '_f', 'i'),
+        fixReasons: {
+          FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
+        });
   }
 
   Future<void> test_fix_reason_discard_condition() async {
-    await analyze('''
+    var content = '''
 _f(int/*!*/ i) {
   if (i != null) {
     return i;
   }
 }
-''');
+''';
+    await analyze(content, warnOnWeakCode: false);
     var intAnnotation = findNode.typeAnnotation('int');
-    expect(changes, isNotEmpty);
-    for (var change in changes.values) {
-      expect(change, isNotEmpty);
-      for (var edit in change) {
-        var info = edit.info;
-        expect(info.description, NullabilityFixDescription.discardCondition);
-        expect(info.fixReasons.single,
-            same(explicitTypeNullability[intAnnotation]));
-      }
-    }
+    var commentPos = content.indexOf('/*');
+    var ifPos = content.indexOf('if');
+    var afterReturnPos = content.indexOf('i;') + 2;
+    expect(changes.keys, unorderedEquals([commentPos, ifPos, afterReturnPos]));
+    var expectedFixReasons = {
+      FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
+    };
+    assertEdit(changes[ifPos].single,
+        description: NullabilityFixDescription.discardCondition,
+        fixReasons: expectedFixReasons);
+    assertEdit(changes[afterReturnPos].single,
+        description: NullabilityFixDescription.discardCondition,
+        fixReasons: expectedFixReasons);
   }
 
   Future<void> test_fix_reason_discard_condition_no_block() async {
-    await analyze('''
+    var content = '''
 _f(int/*!*/ i) {
   if (i != null) return i;
 }
-''');
+''';
+    await analyze(content, warnOnWeakCode: false);
     var intAnnotation = findNode.typeAnnotation('int');
-    expect(changes, isNotEmpty);
-    for (var change in changes.values) {
-      expect(change, isNotEmpty);
-      for (var edit in change) {
-        var info = edit.info;
-        expect(info.description, NullabilityFixDescription.discardCondition);
-        expect(info.fixReasons.single,
-            same(explicitTypeNullability[intAnnotation]));
-      }
-    }
+    var commentPos = content.indexOf('/*');
+    var ifPos = content.indexOf('if');
+    expect(changes.keys, unorderedEquals([commentPos, ifPos]));
+    assertEdit(changes[ifPos].single,
+        description: NullabilityFixDescription.discardCondition,
+        fixReasons: {
+          FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
+        });
   }
 
   Future<void> test_fix_reason_discard_else() async {
-    await analyze('''
+    var content = '''
 _f(int/*!*/ i) {
   if (i != null) {
     return i;
@@ -288,47 +299,46 @@ _f(int/*!*/ i) {
     return 'null';
   }
 }
-''');
+''';
+    await analyze(content, warnOnWeakCode: false);
     var intAnnotation = findNode.typeAnnotation('int');
-    expect(changes, hasLength(2));
-    // Change #1: drop the if-condition.
-    var dropCondition = changes[findNode.statement('if').offset].single;
-    expect(dropCondition.isDeletion, true);
-    expect(dropCondition.info.description,
-        NullabilityFixDescription.discardCondition);
-    expect(dropCondition.info.fixReasons.single,
-        same(explicitTypeNullability[intAnnotation]));
-    // Change #2: drop the else.
-    var dropElse = changes[findNode.statement('return i').end].single;
-    expect(dropElse.isDeletion, true);
-    expect(dropElse.info.description, NullabilityFixDescription.discardElse);
-    expect(dropElse.info.fixReasons.single,
-        same(explicitTypeNullability[intAnnotation]));
+    var commentPos = content.indexOf('/*');
+    var ifPos = content.indexOf('if');
+    var afterReturnPos = content.indexOf('i;') + 2;
+    expect(changes.keys, unorderedEquals([commentPos, ifPos, afterReturnPos]));
+    var expectedFixReasons = {
+      FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
+    };
+    assertEdit(changes[ifPos].single,
+        description: NullabilityFixDescription.discardCondition,
+        fixReasons: expectedFixReasons);
+    assertEdit(changes[afterReturnPos].single,
+        description: NullabilityFixDescription.discardElse,
+        fixReasons: expectedFixReasons);
   }
 
   Future<void> test_fix_reason_discard_else_empty_then() async {
-    await analyze('''
+    var content = '''
 _f(int/*!*/ i) {
   if (i != null) {} else {
     return 'null';
   }
 }
-''');
+''';
+    await analyze(content, warnOnWeakCode: false);
     var intAnnotation = findNode.typeAnnotation('int');
-    expect(changes, isNotEmpty);
-    for (var change in changes.values) {
-      expect(change, isNotEmpty);
-      for (var edit in change) {
-        var info = edit.info;
-        expect(info.description, NullabilityFixDescription.discardIf);
-        expect(info.fixReasons.single,
-            same(explicitTypeNullability[intAnnotation]));
-      }
-    }
+    var commentPos = content.indexOf('/*');
+    var bodyPos = content.indexOf('i) {') + 4;
+    expect(changes.keys, unorderedEquals([commentPos, bodyPos]));
+    assertEdit(changes[bodyPos].single,
+        description: NullabilityFixDescription.discardIf,
+        fixReasons: {
+          FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
+        });
   }
 
   Future<void> test_fix_reason_discard_then() async {
-    await analyze('''
+    var content = '''
 _f(int/*!*/ i) {
   if (i == null) {
     return 'null';
@@ -336,39 +346,42 @@ _f(int/*!*/ i) {
     return i;
   }
 }
-''');
+''';
+    await analyze(content, warnOnWeakCode: false);
     var intAnnotation = findNode.typeAnnotation('int');
-    expect(changes, isNotEmpty);
-    for (var change in changes.values) {
-      expect(change, isNotEmpty);
-      for (var edit in change) {
-        var info = edit.info;
-        expect(info.description, NullabilityFixDescription.discardThen);
-        expect(info.fixReasons.single,
-            same(explicitTypeNullability[intAnnotation]));
-      }
-    }
+    var commentPos = content.indexOf('/*');
+    var ifPos = content.indexOf('if');
+    var afterReturnPos = content.indexOf('i;') + 2;
+    expect(changes.keys, unorderedEquals([commentPos, ifPos, afterReturnPos]));
+    var expectedFixReasons = {
+      FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
+    };
+    assertEdit(changes[ifPos].single,
+        description: NullabilityFixDescription.discardThen,
+        fixReasons: expectedFixReasons);
+    assertEdit(changes[afterReturnPos].single,
+        description: NullabilityFixDescription.discardThen,
+        fixReasons: expectedFixReasons);
   }
 
   Future<void> test_fix_reason_discard_then_no_else() async {
-    await analyze('''
+    var content = '''
 _f(int/*!*/ i) {
   if (i == null) {
     return 'null';
   }
 }
-''');
+''';
+    await analyze(content, warnOnWeakCode: false);
     var intAnnotation = findNode.typeAnnotation('int');
-    expect(changes, isNotEmpty);
-    for (var change in changes.values) {
-      expect(change, isNotEmpty);
-      for (var edit in change) {
-        var info = edit.info;
-        expect(info.description, NullabilityFixDescription.discardIf);
-        expect(info.fixReasons.single,
-            same(explicitTypeNullability[intAnnotation]));
-      }
-    }
+    var commentPos = content.indexOf('/*');
+    var bodyPos = content.indexOf('i) {') + 4;
+    expect(changes.keys, unorderedEquals([commentPos, bodyPos]));
+    assertEdit(changes[bodyPos].single,
+        description: NullabilityFixDescription.discardIf,
+        fixReasons: {
+          FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
+        });
   }
 
   Future<void> test_fix_reason_edge() async {
@@ -393,7 +406,7 @@ main() {
     expect(info.description, NullabilityFixDescription.checkExpression);
     var reasons = info.fixReasons;
     expect(reasons, hasLength(1));
-    var edge = reasons[0] as EdgeInfo;
+    var edge = reasons[FixReasonTarget.root] as EdgeInfo;
     expect(edge.sourceNode,
         same(explicitTypeNullability[findNode.typeAnnotation('int y')]));
     expect(edge.destinationNode,
@@ -417,34 +430,31 @@ int x = null;
     expect(info.description, NullabilityFixDescription.makeTypeNullable('int'));
     var reasons = info.fixReasons;
     expect(reasons, hasLength(1));
-    expect(reasons.single, same(explicitTypeNullability[intAnnotation]));
+    expect(reasons[FixReasonTarget.root],
+        same(explicitTypeNullability[intAnnotation]));
   }
 
   Future<void> test_fix_reason_remove_question_from_question_dot() async {
-    await analyze('_f(int/*!*/ i) => i?.isEven;');
-    expect(changes, isNotEmpty);
-    for (var change in changes.values) {
-      expect(change, isNotEmpty);
-      for (var edit in change) {
-        var info = edit.info;
-        expect(info.description, NullabilityFixDescription.removeNullAwareness);
-        expect(info.fixReasons, isEmpty);
-      }
-    }
+    var content = '_f(int/*!*/ i) => i?.isEven;';
+    await analyze(content, warnOnWeakCode: false);
+    var commentPos = content.indexOf('/*');
+    var questionDotPos = content.indexOf('?.');
+    expect(changes.keys, unorderedEquals([commentPos, questionDotPos]));
+    assertEdit(changes[questionDotPos].single,
+        description: NullabilityFixDescription.removeNullAwareness,
+        fixReasons: isEmpty);
   }
 
   Future<void>
       test_fix_reason_remove_question_from_question_dot_method() async {
-    await analyze('_f(int/*!*/ i) => i?.abs();');
-    expect(changes, isNotEmpty);
-    for (var change in changes.values) {
-      expect(change, isNotEmpty);
-      for (var edit in change) {
-        var info = edit.info;
-        expect(info.description, NullabilityFixDescription.removeNullAwareness);
-        expect(info.fixReasons, isEmpty);
-      }
-    }
+    var content = '_f(int/*!*/ i) => i?.abs();';
+    await analyze(content, warnOnWeakCode: false);
+    var commentPos = content.indexOf('/*');
+    var questionDotPos = content.indexOf('?.');
+    expect(changes.keys, unorderedEquals([commentPos, questionDotPos]));
+    assertEdit(changes[questionDotPos].single,
+        description: NullabilityFixDescription.removeNullAwareness,
+        fixReasons: isEmpty);
   }
 
   Future<void> test_fix_reason_remove_unnecessary_cast() async {
@@ -489,7 +499,7 @@ _f({@required int i}) {}
         var info = edit.info;
         expect(info.description,
             NullabilityFixDescription.addRequired(null, '_f', 'i'));
-        expect(info.fixReasons.single,
+        expect(info.fixReasons[FixReasonTarget.root],
             same(explicitTypeNullability[intAnnotation]));
       }
     }
@@ -991,8 +1001,8 @@ abstract class Derived extends Base {
             .node;
     expect(
         edges.where((e) =>
-            e.sourceNode == derivedParamArgNode &&
-            e.destinationNode == baseParamArgNode),
+            e.sourceNode == baseParamArgNode &&
+            e.destinationNode == derivedParamArgNode),
         hasLength(1));
   }
 

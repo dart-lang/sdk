@@ -1,0 +1,7 @@
+class Class {
+  int? field;
+  int? method() => field;
+  Class operator +(Class other) => new Class();
+}
+
+main() {}

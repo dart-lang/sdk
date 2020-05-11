@@ -59,8 +59,8 @@ const int pendingVariance = -1;
 // variables.  For that case if the type has its declaration set to null and its
 // name matches that of the variable, it's interpreted as an occurrence of a
 // type variable.
-int computeVariance(TypeVariableBuilder variable, TypeBuilder type,
-    LibraryBuilder libraryBuilder) {
+int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
+    TypeBuilder type, LibraryBuilder libraryBuilder) {
   if (type is NamedTypeBuilder) {
     assert(type.declaration != null);
     TypeDeclarationBuilder declaration = type.declaration;
@@ -79,7 +79,7 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type,
                 result,
                 Variance.combine(
                     declaration.cls.typeParameters[i].variance,
-                    computeVariance(
+                    computeTypeVariableBuilderVariance(
                         variable, type.arguments[i], libraryBuilder)));
           }
         }
@@ -97,7 +97,7 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type,
               TypeVariableBuilder declarationTypeVariable =
                   declaration.typeVariables[i];
               declarationTypeVariable.variance = visitMarker;
-              int computedVariance = computeVariance(
+              int computedVariance = computeTypeVariableBuilderVariance(
                   declarationTypeVariable, declaration.type, libraryBuilder);
               declarationTypeVariableVariance =
                   declarationTypeVariable.variance = computedVariance;
@@ -120,7 +120,7 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type,
             result = Variance.meet(
                 result,
                 Variance.combine(
-                    computeVariance(
+                    computeTypeVariableBuilderVariance(
                         variable, type.arguments[i], libraryBuilder),
                     declarationTypeVariableVariance));
           }
@@ -132,7 +132,9 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type,
     int result = Variance.unrelated;
     if (type.returnType != null) {
       result = Variance.meet(
-          result, computeVariance(variable, type.returnType, libraryBuilder));
+          result,
+          computeTypeVariableBuilderVariance(
+              variable, type.returnType, libraryBuilder));
     }
     if (type.typeVariables != null) {
       for (TypeVariableBuilder typeVariable in type.typeVariables) {
@@ -141,7 +143,8 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type,
         // of [computeVariance] below is made to simply figure out if [variable]
         // occurs in the bound.
         if (typeVariable.bound != null &&
-            computeVariance(variable, typeVariable.bound, libraryBuilder) !=
+            computeTypeVariableBuilderVariance(
+                    variable, typeVariable.bound, libraryBuilder) !=
                 Variance.unrelated) {
           result = Variance.invariant;
         }
@@ -151,8 +154,10 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type,
       for (FormalParameterBuilder formal in type.formals) {
         result = Variance.meet(
             result,
-            Variance.combine(Variance.contravariant,
-                computeVariance(variable, formal.type, libraryBuilder)));
+            Variance.combine(
+                Variance.contravariant,
+                computeTypeVariableBuilderVariance(
+                    variable, formal.type, libraryBuilder)));
       }
     }
     return result;

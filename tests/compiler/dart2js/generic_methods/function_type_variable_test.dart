@@ -69,32 +69,44 @@ main() {
     """));
 
     var types = env.types;
+    var options = env.compiler.options;
+
+    String printType(DartType type) => type.toStructuredText(
+        printLegacyStars: options.printLegacyStars,
+        useLegacySubtyping: options.useLegacySubtyping);
+
+    List<String> printTypes(List<DartType> types) =>
+        types.map(printType).toList();
 
     testToString(FunctionType type, String expectedToString) {
-      Expect.equals(expectedToString, type.toString());
+      Expect.equals(expectedToString, printType(type));
     }
 
     testBounds(FunctionType type, List<DartType> expectedBounds) {
       Expect.equals(expectedBounds.length, type.typeVariables.length,
-          "Unexpected type variable count in $type.");
+          "Unexpected type variable count in ${printType(type)}.");
       for (int i = 0; i < expectedBounds.length; i++) {
         Expect.equals(expectedBounds[i], type.typeVariables[i].bound,
-            "Unexpected ${i}th bound in $type.");
+            "Unexpected ${i}th bound in ${printType(type)}.");
       }
     }
 
     testInstantiate(FunctionType type, List<DartType> instantiation,
         String expectedToString) {
       DartType result = types.instantiate(type, instantiation);
-      Expect.equals(expectedToString, result.toString(),
-          "Unexpected instantiation of $type with $instantiation: $result");
+      String resultString = printType(result);
+      Expect.equals(
+          expectedToString,
+          resultString,
+          "Unexpected instantiation of ${printType(type)} with $instantiation: "
+          "$resultString");
     }
 
     void testSubst(List<DartType> arguments, List<DartType> parameters,
         DartType type1, String expectedToString) {
       DartType subst = types.subst(arguments, parameters, type1);
-      Expect.equals(expectedToString, subst.toString(),
-          "$type1.subst($arguments,$parameters)");
+      Expect.equals(expectedToString, printType(subst),
+          "${printType(type1)}.subst(${printTypes(arguments)},${printTypes(parameters)})");
     }
 
     testRelations(DartType a, DartType b,
@@ -102,19 +114,21 @@ main() {
       if (areEqual) {
         isSubtype = true;
       }
+      String aString = printType(a);
+      String bString = printType(b);
       Expect.equals(
           areEqual,
           a == b,
-          "Expected `$a` and `$b` to be ${areEqual ? 'equal' : 'non-equal'}, "
-          "but they are not.");
+          "Expected `$aString` and `$bString` to be "
+          "${areEqual ? 'equal' : 'non-equal'}, but they are not.");
       Expect.equals(
           isSubtype,
           env.isSubtype(a, b),
-          "Expected `$a` ${isSubtype ? '' : 'not '}to be a subtype of `$b`, "
-          "but it is${isSubtype ? ' not' : ''}.");
+          "Expected `$aString` ${isSubtype ? '' : 'not '}to be a subtype of "
+          "`$bString`, but it is${isSubtype ? ' not' : ''}.");
       if (isSubtype) {
         Expect.isTrue(env.isPotentialSubtype(a, b),
-            '$a <: $b but not a potential subtype.');
+            '$aString <: $bString but not a potential subtype.');
       }
     }
 
@@ -289,7 +303,7 @@ main() {
       Expect.isTrue(
           functionTypeVariables.isEmpty,
           "Function type variables found on constructor $constructor: "
-          "$functionTypeVariables");
+          "${printTypes(functionTypeVariables)}");
     });
   });
 }

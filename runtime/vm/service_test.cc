@@ -77,7 +77,7 @@ class ServiceTestMessageHandler : public MessageHandler {
   char* _msg;
 };
 
-static RawArray* Eval(Dart_Handle lib, const char* expr) {
+static ArrayPtr Eval(Dart_Handle lib, const char* expr) {
   const String& dummy_isolate_id = String::Handle(String::New("isolateId"));
   Dart_Handle expr_val;
   {
@@ -103,7 +103,7 @@ static RawArray* Eval(Dart_Handle lib, const char* expr) {
   return result.raw();
 }
 
-static RawArray* EvalF(Dart_Handle lib, const char* fmt, ...) {
+static ArrayPtr EvalF(Dart_Handle lib, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
   intptr_t len = Utils::VSNPrint(NULL, 0, fmt, args);
@@ -118,14 +118,14 @@ static RawArray* EvalF(Dart_Handle lib, const char* fmt, ...) {
   return Eval(lib, buffer);
 }
 
-static RawFunction* GetFunction(const Class& cls, const char* name) {
+static FunctionPtr GetFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(
       cls.LookupDynamicFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
 
-static RawClass* GetClass(const Library& lib, const char* name) {
+static ClassPtr GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.

@@ -61,10 +61,10 @@ class FlutterTarget extends VmTarget {
       ChangedStructureNotifier changedStructureNotifier}) {
     super.performPreConstantEvaluationTransformations(
         component, coreTypes, libraries, diagnosticReporter,
-        logger: logger);
+        logger: logger, changedStructureNotifier: changedStructureNotifier);
     if (flags.trackWidgetCreation) {
       if (_widgetTracker == null) {
-        _widgetTracker = WidgetCreatorTracker();
+        _widgetTracker = WidgetCreatorTracker(changedStructureNotifier);
       }
       _widgetTracker.transform(component, libraries);
     }

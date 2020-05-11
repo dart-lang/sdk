@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.30.0';
+const String vmServiceVersion = '3.33.0';
 
 /// @optional
 const String optional = 'optional';
@@ -194,6 +194,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'evaluate': const ['InstanceRef', 'ErrorRef'],
   'evaluateInFrame': const ['InstanceRef', 'ErrorRef'],
   'getAllocationProfile': const ['AllocationProfile'],
+  'getClassList': const ['ClassList'],
   'getClientName': const ['ClientName'],
   'getCpuSamples': const ['CpuSamples'],
   'getFlagList': const ['FlagList'],
@@ -496,6 +497,18 @@ abstract class VmServiceInterface {
   /// returned.
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool reset, bool gc});
+
+  /// The `getClassList` RPC is used to retrieve a `ClassList` containing all
+  /// classes for an isolate based on the isolate's `isolateId`.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// See [ClassList].
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<ClassList> getClassList(String isolateId);
 
   /// The `getClientName` RPC is used to retrieve the name associated with the
   /// currently connected VM service client. If no name was previously set
@@ -1183,7 +1196,8 @@ class VmServerConnection {
       }
       var method = request['method'] as String;
       if (method == null) {
-        throw RPCError(null, -32600, 'Invalid Request', request);
+        throw RPCError(
+            null, RPCError.kInvalidRequest, 'Invalid Request', request);
       }
       var params = request['params'] as Map;
       Response response;
@@ -1255,6 +1269,11 @@ class VmServerConnection {
             params['isolateId'],
             reset: params['reset'],
             gc: params['gc'],
+          );
+          break;
+        case 'getClassList':
+          response = await _serviceImplementation.getClassList(
+            params['isolateId'],
           );
           break;
         case 'getClientName':
@@ -1445,9 +1464,12 @@ class VmServerConnection {
           var id = params['streamId'];
           var existing = _streamSubscriptions.remove(id);
           if (existing == null) {
-            throw RPCError('streamCancel', 104, 'Stream not subscribed', {
-              'details': "The stream '$id' is not subscribed",
-            });
+            throw RPCError.withDetails(
+              'streamCancel',
+              104,
+              'Stream not subscribed',
+              details: "The stream '$id' is not subscribed",
+            );
           }
           await existing.cancel();
           response = Success();
@@ -1455,9 +1477,12 @@ class VmServerConnection {
         case 'streamListen':
           var id = params['streamId'];
           if (_streamSubscriptions.containsKey(id)) {
-            throw RPCError('streamListen', 103, 'Stream already subscribed', {
-              'details': "The stream '$id' is already subscribed",
-            });
+            throw RPCError.withDetails(
+              'streamListen',
+              103,
+              'Stream already subscribed',
+              details: "The stream '$id' is already subscribed",
+            );
           }
 
           var stream = id == 'Service'
@@ -1493,7 +1518,8 @@ class VmServerConnection {
             response = await _serviceImplementation.callServiceExtension(method,
                 isolateId: isolateId, args: args);
           } else {
-            throw RPCError(method, -32601, 'Method not found', request);
+            throw RPCError(
+                method, RPCError.kMethodNotFound, 'Method not found', request);
           }
       }
       if (response == null) {
@@ -1506,8 +1532,12 @@ class VmServerConnection {
       });
     } catch (e, st) {
       var error = e is RPCError
-          ? {'code': e.code, 'data': e.data, 'message': e.message}
-          : {'code': -32603, 'message': '$e\n$st'};
+          ? e.toMap()
+          : {
+              'code': RPCError.kInternalError,
+              'message': '${request['method']}: $e',
+              'data': {'details': '$st'},
+            };
       _responseSink.add({
         'jsonrpc': '2.0',
         'id': request['id'],
@@ -1701,6 +1731,10 @@ class VmService implements VmServiceInterface {
         if (reset != null && reset) 'reset': reset,
         if (gc != null && gc) 'gc': gc,
       });
+
+  @override
+  Future<ClassList> getClassList(String isolateId) =>
+      _call('getClassList', {'isolateId': isolateId});
 
   @override
   Future<ClientName> getClientName() => _call('getClientName');
@@ -1941,8 +1975,8 @@ class VmService implements VmServiceInterface {
     _streamSub.cancel();
     _completers.forEach((id, c) {
       final method = _methodCalls[id];
-      return c.completeError(
-          RPCError(method, -32000, 'Service connection disposed'));
+      return c.completeError(RPCError(
+          method, RPCError.kServerError, 'Service connection disposed'));
     });
     _completers.clear();
     if (_disposeHandler != null) {
@@ -1955,13 +1989,17 @@ class VmService implements VmServiceInterface {
 
   Future get onDone => _onDoneCompleter.future;
 
-  Future<T> _call<T>(String method, [Map args]) {
+  Future<T> _call<T>(String method, [Map args = const {}]) {
     String id = '${++_id}';
     Completer<T> completer = Completer<T>();
     _completers[id] = completer;
     _methodCalls[id] = method;
-    Map m = {'id': id, 'method': method};
-    if (args != null) m['params'] = args;
+    Map m = {
+      'jsonrpc': '2.0',
+      'id': id,
+      'method': method,
+      'params': args,
+    };
     String message = jsonEncode(m);
     _onSend.add(message);
     _writeMessage(message);
@@ -2057,7 +2095,7 @@ class VmService implements VmServiceInterface {
   }
 
   Future _processRequest(Map<String, dynamic> json) async {
-    final Map m = await _routeRequest(json['method'], json['params']);
+    final Map m = await _routeRequest(json['method'], json['params'] ?? {});
     m['id'] = json['id'];
     m['jsonrpc'] = '2.0';
     String message = jsonEncode(m);
@@ -2067,7 +2105,7 @@ class VmService implements VmServiceInterface {
 
   Future _processNotification(Map<String, dynamic> json) async {
     final String method = json['method'];
-    final Map params = json['params'];
+    final Map params = json['params'] ?? {};
     if (method == 'streamNotify') {
       String streamId = params['streamId'];
       _getEventController(streamId)
@@ -2078,23 +2116,22 @@ class VmService implements VmServiceInterface {
   }
 
   Future<Map> _routeRequest(String method, Map params) async {
+    if (!_services.containsKey(method)) {
+      RPCError error = RPCError(
+          method, RPCError.kMethodNotFound, 'method not found \'$method\'');
+      return {'error': error.toMap()};
+    }
+
     try {
-      if (_services.containsKey(method)) {
-        return await _services[method](params);
-      }
-      return {
-        'error': {
-          'code': -32601, // Method not found
-          'message': 'Method not found \'$method\''
-        }
-      };
+      return await _services[method](params);
     } catch (e, st) {
-      return {
-        'error': {
-          'code': -32000, // SERVER ERROR
-          'message': 'Unexpected Server Error $e\n$st'
-        }
-      };
+      RPCError error = RPCError.withDetails(
+        method,
+        RPCError.kServerError,
+        '$e',
+        details: '$st',
+      );
+      return {'error': error.toMap()};
     }
   }
 }
@@ -2102,6 +2139,21 @@ class VmService implements VmServiceInterface {
 typedef DisposeHandler = Future Function();
 
 class RPCError implements Exception {
+  /// Application specific error codes.
+  static const int kServerError = -32000;
+
+  /// The JSON sent is not a valid Request object.
+  static const int kInvalidRequest = -32600;
+
+  /// The method does not exist or is not available.
+  static const int kMethodNotFound = -32601;
+
+  /// Invalid method parameter(s), such as a mismatched type.
+  static const int kInvalidParams = -32602;
+
+  /// Internal JSON-RPC error.
+  static const int kInternalError = -32603;
+
   static RPCError parse(String callingMethod, dynamic json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }
@@ -2113,13 +2165,34 @@ class RPCError implements Exception {
 
   RPCError(this.callingMethod, this.code, this.message, [this.data]);
 
+  RPCError.withDetails(this.callingMethod, this.code, this.message,
+      {Object details})
+      : data = details == null ? null : <String, dynamic>{} {
+    if (details != null) {
+      data['details'] = details;
+    }
+  }
+
   String get details => data == null ? null : data['details'];
+
+  /// Return a map representation of this error suitable for converstion to
+  /// json.
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {
+      'code': code,
+      'message': message,
+    };
+    if (data != null) {
+      map['data'] = data;
+    }
+    return map;
+  }
 
   String toString() {
     if (details == null) {
-      return '${message} (${code}) from ${callingMethod}()';
+      return '$callingMethod: ($code) $message';
     } else {
-      return '${message} (${code}) from ${callingMethod}():\n${details}';
+      return '$callingMethod: ($code) $message\n$details';
     }
   }
 }
@@ -3514,7 +3587,6 @@ class Event extends Response {
   /// The status (success or failure) related to the event. This is provided for
   /// the event kinds:
   ///  - IsolateReloaded
-  ///  - IsolateSpawn
   @optional
   String status;
 
@@ -6352,7 +6424,9 @@ class Timeline extends Response {
   static Timeline parse(Map<String, dynamic> json) =>
       json == null ? null : Timeline._fromJson(json);
 
-  /// A list of timeline events.
+  /// A list of timeline events. No order is guarenteed for these events; in
+  /// particular, these events may be unordered with respect to their
+  /// timestamps.
   List<TimelineEvent> traceEvents;
 
   /// The start of the period of time in which traceEvents were collected.

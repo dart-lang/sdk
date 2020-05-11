@@ -16,6 +16,7 @@ import 'package:kernel/ast.dart'
         NamedType,
         NeverType,
         Nullability,
+        Statement,
         TreeNode,
         TypeParameter,
         TypeParameterType,
@@ -35,10 +36,14 @@ import '../builder/constructor_builder.dart';
 
 import '../kernel/forest.dart';
 
+import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
+
 import '../kernel/kernel_builder.dart'
     show ClassHierarchyBuilder, ImplicitFieldType;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import 'factor_type.dart';
 
 import 'type_inferrer.dart';
 
@@ -236,7 +241,7 @@ class FlowAnalysisResult {
 
   /// The list of [Expression]s representing variable accesses that occur before
   /// the corresponding variable has been definitely assigned.
-  final List<TreeNode> unassignedNodes = [];
+  final List<TreeNode> potentiallyUnassignedNodes = [];
 
   /// The list of [Expression]s representing variable accesses that occur when
   /// the corresponding variable has been definitely unassigned.
@@ -252,6 +257,19 @@ class TypeOperationsCfe
   final TypeEnvironment typeEnvironment;
 
   TypeOperationsCfe(this.typeEnvironment);
+
+  @override
+  DartType factor(DartType from, DartType what) {
+    return factorType(typeEnvironment, from, what);
+  }
+
+  @override
+  bool isLocalVariableWithoutDeclaredType(VariableDeclaration variable) {
+    return variable is VariableDeclarationImpl &&
+        variable.parent is Statement &&
+        variable.isImplicitlyTyped &&
+        !variable.hasDeclaredInitializer;
+  }
 
   // TODO(dmitryas): Consider checking for mutual subtypes instead of ==.
   @override

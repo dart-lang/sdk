@@ -132,13 +132,15 @@ class ProcessedOptions {
   }
 
   List<int> _sdkSummaryBytes;
+  bool _triedLoadingSdkSummary = false;
 
   /// Get the bytes of the SDK outline, if any.
   Future<List<int>> loadSdkSummaryBytes() async {
-    if (_sdkSummaryBytes == null) {
+    if (_sdkSummaryBytes == null && !_triedLoadingSdkSummary) {
       if (sdkSummary == null) return null;
       FileSystemEntity entry = fileSystem.entityForUri(sdkSummary);
       _sdkSummaryBytes = await _readAsBytes(entry);
+      _triedLoadingSdkSummary = true;
     }
     return _sdkSummaryBytes;
   }
@@ -364,8 +366,10 @@ class ProcessedOptions {
       // TODO(sigmund): throttle # of concurrent operations.
       List<List<int>> allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
-      _additionalDillComponents =
-          allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
+      _additionalDillComponents = allBytes
+          .where((bytes) => bytes != null)
+          .map((bytes) => loadComponent(bytes, nameRoot))
+          .toList();
     }
     return _additionalDillComponents;
   }
@@ -726,7 +730,7 @@ class ProcessedOptions {
               .withArguments(error.uri, error.message)
               .withoutLocation(),
           Severity.error);
-      return new Uint8List(0);
+      return null;
     }
   }
 }

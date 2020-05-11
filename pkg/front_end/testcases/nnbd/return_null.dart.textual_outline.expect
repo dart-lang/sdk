@@ -1,0 +1,19 @@
+import 'dart:async';
+
+String returnImplicit() {}
+String returnExplicit() {}
+String returnMixed(bool b) {}
+Future returnAsync1() async {}
+FutureOr returnAsync2() async {}
+FutureOr<int> returnAsync3() async {}
+FutureOr<int?> returnAsync4() async {}
+returnAsync5() async {}
+Future<int?> returnAsync6() async {}
+Future<int?> returnAsync7() async {}
+Iterable yieldSync() sync* {}
+Stream yieldAsync() async* {}
+enum Enum { a, b }
+Enum caseReturn1(Enum e) {}
+Enum caseReturn2(Enum e) {}
+localFunctions() {}
+main() {}

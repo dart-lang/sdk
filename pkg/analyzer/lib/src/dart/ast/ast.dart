@@ -2031,18 +2031,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   int languageVersionMinor;
 
   @override
-  LanguageVersionToken get languageVersionToken {
-    CommentToken comment = beginToken.precedingComments;
-    while (comment != null) {
-      if (comment is LanguageVersionToken) {
-        return comment;
-      }
-      comment = comment.next;
-    }
-    return null;
-  }
-
-  @override
   final FeatureSet featureSet;
 
   /// Initialize a newly created compilation unit to have the given directives
@@ -2082,6 +2070,18 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   set element(CompilationUnitElement element) {
     declaredElement = element;
+  }
+
+  @override
+  LanguageVersionToken get languageVersionToken {
+    CommentToken comment = beginToken.precedingComments;
+    while (comment != null) {
+      if (comment is LanguageVersionToken) {
+        return comment;
+      }
+      comment = comment.next;
+    }
+    return null;
   }
 
   @override
@@ -2385,6 +2385,10 @@ class ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
         case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
         case CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL:
+        case CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT:
+        case CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
+        case CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
+        case CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
           hasConstError = true;
       }
     }

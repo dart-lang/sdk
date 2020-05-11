@@ -225,7 +225,7 @@ class Listener implements UnescapeErrorListener {
   /// - on type
   /// - body
   void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token token) {
+      Token extensionKeyword, Token onKeyword, Token endToken) {
     logEvent('ExtensionDeclaration');
   }
 
@@ -1213,7 +1213,7 @@ class Listener implements UnescapeErrorListener {
   void reportVarianceModifierNotEnabled(Token variance) {
     if (variance != null) {
       handleRecoverableError(
-          templateExperimentNotEnabled.withArguments('variance'),
+          templateExperimentNotEnabled.withArguments('variance', '2.9'),
           variance,
           variance);
     }
@@ -1245,6 +1245,12 @@ class Listener implements UnescapeErrorListener {
 
   void endWhileStatement(Token whileKeyword, Token endToken) {
     logEvent("WhileStatement");
+  }
+
+  void beginAsOperatorType(Token operator) {}
+
+  void endAsOperatorType(Token operator) {
+    logEvent("AsOperatorType");
   }
 
   void handleAsOperator(Token operator) {
@@ -1356,6 +1362,12 @@ class Listener implements UnescapeErrorListener {
   void handleIndexedExpression(
       Token question, Token openSquareBracket, Token closeSquareBracket) {
     logEvent("IndexedExpression");
+  }
+
+  void beginIsOperatorType(Token operator) {}
+
+  void endIsOperatorType(Token operator) {
+    logEvent("IsOperatorType");
   }
 
   void handleIsOperator(Token isOperator, Token not) {

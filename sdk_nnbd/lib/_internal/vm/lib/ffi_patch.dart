@@ -64,10 +64,13 @@ dynamic _asExternalTypedData(Pointer ptr, int count)
 // implementation, since that would pull the callback trampoline into JIT
 // snapshots. The callback trampolines can only be serialized into AOT snapshots
 // because they embed the addresses of runtime routines in JIT mode.
-Object _nativeCallbackFunction<NS extends Function>(Function target,
+//
+// Function objects returned by this native method are not Dart instances,
+// so we need to use top type as a return type to avoid type check.
+dynamic _nativeCallbackFunction<NS extends Function>(Function target,
     Object exceptionalReturn) native "Ffi_nativeCallbackFunction";
 
-Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(Object function)
+Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(dynamic function)
     native "Ffi_pointerFromFunction";
 
 @patch

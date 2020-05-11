@@ -43,14 +43,10 @@ library /*isNonNullableByDefault*/;
 // final s10 = s7.length;
 //                ^^^^^^
 //
-// pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: The setter 'length' isn't defined for the class 'int?'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'length'.
-// final s11 = s5.length = 0;
-//                ^^^^^^
-//
-// pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: Property 'length' cannot be accessed on 'int?' because it is potentially null.
+// pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: Property 'length' cannot be accessed on 'List<dynamic>?' because it is potentially null.
+//  - 'List' is from 'dart:core'.
 // Try accessing using ?. instead.
-// final s11 = s5.length = 0;
+// final s11 = s7.length = 0;
 //                ^^^^^^
 //
 // pkg/front_end/testcases/nnbd/issue41102.dart:43:13: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
@@ -62,7 +58,7 @@ library /*isNonNullableByDefault*/;
 // final s14 = (s13)();
 //                  ^
 //
-// pkg/front_end/testcases/nnbd/issue41102.dart:49:19: Error: Can't throw a value of 'Null?' since it is neither dynamic nor non-nullable.
+// pkg/front_end/testcases/nnbd/issue41102.dart:49:19: Error: Can't throw a value of 'Null' since it is neither dynamic nor non-nullable.
 // final s15 = throw null;
 //                   ^
 //
@@ -72,7 +68,7 @@ import "dart:core" as core;
 
 import "dart:async";
 
-static final field asy::StreamTransformer<dynamic, dynamic> t = new asy::_StreamHandlerTransformer::•<dynamic, dynamic>(handleData: (dynamic data, asy::EventSink<dynamic> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::add}(data)), handleDone: (asy::EventSink<dynamic> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::close}()));
+static final field asy::StreamTransformer<core::Object?, core::Object?> t = new asy::_StreamHandlerTransformer::•<core::Object?, core::Object?>(handleData: (core::Object? data, asy::EventSink<core::Object?> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::add}(data)), handleDone: (asy::EventSink<core::Object?> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::close}()));
 static final field core::List<dynamic> s1 = <dynamic>[];
 static final field core::int? s2 = let final core::List<dynamic> #t1 = self::s1 in #t1.{core::List::==}(null) ?{core::int?} null : #t1.{core::List::length};
 static final field core::List<core::int> s3 = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:17:16: Error: Can't use the default List constructor.
@@ -111,13 +107,11 @@ static final field core::int s10 = let final<BottomType> #t10 = invalid-expressi
 Try accessing using ?. instead.
 final s10 = s7.length;
                ^^^^^^" in self::s7.{core::List::length};
-static final field core::int s11 = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: Property 'length' cannot be accessed on 'int?' because it is potentially null.
+static final field core::int s11 = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: Property 'length' cannot be accessed on 'List<dynamic>?' because it is potentially null.
+ - 'List' is from 'dart:core'.
 Try accessing using ?. instead.
-final s11 = s5.length = 0;
-               ^^^^^^" in invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: The setter 'length' isn't defined for the class 'int?'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'length'.
-final s11 = s5.length = 0;
-               ^^^^^^";
+final s11 = s7.length = 0;
+               ^^^^^^" in self::s7.{core::List::length} = 0;
 static final field core::int s12 = let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:43:13: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
 final s12 = -s5;
             ^" in self::s5.{core::int::unary-}();
@@ -126,7 +120,7 @@ static final field core::int s14 = let final<BottomType> #t13 = invalid-expressi
 Try calling using ?.call instead.
 final s14 = (s13)();
                  ^" in self::s13.call();
-static final field Never s15 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:49:19: Error: Can't throw a value of 'Null?' since it is neither dynamic nor non-nullable.
+static final field Never s15 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:49:19: Error: Can't throw a value of 'Null' since it is neither dynamic nor non-nullable.
 final s15 = throw null;
                   ^" as{TypeError,ForDynamic,ForNonNullableByDefault} Never;
 static method main() → void {}

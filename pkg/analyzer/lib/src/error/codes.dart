@@ -483,16 +483,88 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try marking the function body with either 'async' or 'async*'.");
 
   /**
-   * It is an error if the body of a method, function, getter, or function
-   * expression with a potentially non-nullable return type may completely
-   * normally.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a method or function has a
+  // return type that's <a href=”#potentially-non-nullable”>potentially
+  // non-nullable</a> but would implicitly return `null` if control reached the
+  // end of the function.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the method `m` has an
+  // implicit return of `null` inserted at the end of the method, but the method
+  // is declared to not return `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   int [!m!](int t) {
+  //     print(t);
+  //   }
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the method `m` has an
+  // implicit return of `null` inserted at the end of the method, but because
+  // the class `C` can be instantiated with a non-nullable type argument, the
+  // method is effectively declared to not return `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C<T> {
+  //   T [!m!](T t) {
+  //     print(t);
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If there's a reasonable value that can be returned, then add a return
+  // statement at the end of the method:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C<T> {
+  //   T m(T t) {
+  //     print(t);
+  //     return t;
+  //   }
+  // }
+  // ```
+  //
+  // If the method won't reach the implicit return, then add a throw at the end
+  // of the method:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C<T> {
+  //   T m(T t) {
+  //     print(t);
+  //     throw '';
+  //   }
+  // }
+  // ```
+  //
+  // If the method intentionally returns `null` at the end, then change the
+  // return type so that it's valid to return `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C<T> {
+  //   T? m(T t) {
+  //     print(t);
+  //   }
+  // }
+  // ```
   static const CompileTimeErrorCode BODY_MIGHT_COMPLETE_NORMALLY =
       CompileTimeErrorCode(
           'BODY_MIGHT_COMPLETE_NORMALLY',
-          "The body might complete normally, which would cause 'null' to be "
-              "returned, but the return type is a potentially "
-              "non-nullable type.",
+          "The body might complete normally, causing 'null' to be returned, "
+              "but the return type is a potentially non-nullable type.",
           correction:
               "Try adding either a return or a throw statement at the end.");
 
@@ -625,11 +697,59 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The switch case expression type '{0}' can't override the == "
               "operator.");
 
-  /// Given a switch statement which switches over an expression `e` of type
-  /// `T`, where the cases are dispatched based on expressions `e0` ... `ek`:
-  ///
-  /// It is an error if any of the `ei` evaluate to a value whose static type
-  /// is not a subtype of `T`.
+  /**
+   * Parameters:
+   * 0: the type of the case expression
+   * 1: the type of the switch expression
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the expression following `case`
+  // in a switch statement has a static type that isn't a subtype of the static
+  // type of the expression following `switch`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `1` is an `int`, which
+  // isn't a subtype of `String` (the type of `s`):
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(String s) {
+  //   switch (s) {
+  //     case [!1!]:
+  //       break;
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the value of the case expression is wrong, then change the case
+  // expression so that it has the required type:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(String s) {
+  //   switch (s) {
+  //     case '1':
+  //       break;
+  //   }
+  // }
+  // ```
+  //
+  // If the value of the case expression is correct, then change the switch
+  // expression to have the required type:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(int s) {
+  //   switch (s) {
+  //     case 1:
+  //       break;
+  //   }
+  // }
+  // ```
   static const CompileTimeErrorCode
       CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE =
       CompileTimeErrorCode(
@@ -1348,12 +1468,53 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "A continue label resolves to switch, must be loop or switch member");
 
   /**
-   * It is an error to call the default `List` constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it finds a use of the default
+  // constructor for the class `List` in code that has opted in to null safety.
+  //
+  // #### Example
+  //
+  // Assuming the following code is opted in to null safety, it produces this
+  // diagnostic because it uses the default `List` constructor:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // var l = [!List<int>!]();
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If no initial size is provided, then convert the code to use a list
+  // literal:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // var l = <int>[];
+  // ```
+  //
+  // If an initial size needs to be provided and there is a single reasonable
+  // initial value for the elements, then use `List.filled`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // var l = List.filled(3, 0);
+  // ```
+  //
+  // If an initial size needs to be provided but each element needs to be
+  // computed, then use `List.generate`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // var l = List.generate(3, (i) => i);
+  // ```
   static const CompileTimeErrorCode DEFAULT_LIST_CONSTRUCTOR =
       CompileTimeErrorCode('DEFAULT_LIST_CONSTRUCTOR',
-          "It is an error to call the default List constructor.",
-          correction: "Try using 'List.filled' or 'List.generate'.");
+          "Calling the default 'List' constructor causes an error.",
+          correction: "Try using a list literal, 'List.filled' or "
+              "'List.generate'.");
 
   /**
    * 6.2.1 Required Formals: By means of a function signature that names the
@@ -1427,17 +1588,46 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "extensions.");
 
   /**
-   * It is a compile time error to read a local variable marked `late` when the
-   * variable is definitely unassigned. This includes all forms of reads,
-   * including implicit reads via the composite assignment operators as well
-   * as pre and post-fix operators.
-   *
    * Parameters:
    * 0: the name of the variable that is invalid
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when
+  // [definite assignment](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md)
+  // analysis shows that a local variable that's marked as `late` is read before
+  // being assigned.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `x` was not assigned a
+  // value before being read:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(bool b) {
+  //   late int x;
+  //   print([!x!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Assign a value to the variable before reading from it:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(bool b) {
+  //   late int x;
+  //   x = b ? 1 : 0;
+  //   print(x);
+  // }
+  // ```
   static const CompileTimeErrorCode DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE =
-      CompileTimeErrorCode('DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE',
-          "The late local variable '{0}' is definitely unassigned.",
+      CompileTimeErrorCode(
+          'DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE',
+          "The late local variable '{0}' is definitely unassigned at this "
+              "point.",
           correction:
               "Ensure that it is assigned on necessary execution paths.");
 
@@ -1566,19 +1756,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * 18.3 Parts: It's a compile-time error if the same library contains two part
-   * directives with the same URI.
-   *
-   * Parameters:
-   * 0: the URI of the duplicate part
-   */
-  static const CompileTimeErrorCode DUPLICATE_PART = CompileTimeErrorCode(
-      'DUPLICATE_PART',
-      "The library already contains a part with the uri '{0}'.",
-      correction:
-          "Try removing all but one of the duplicated part directives.");
-
-  /**
    * Parameters:
    * 0: the name of the parameter that was duplicated
    */
@@ -1634,6 +1811,24 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "correcting one of the names to reference a different named "
               "parameter.",
           hasPublishedDocs: true);
+
+  /**
+   * 18.3 Parts: It's a compile-time error if the same library contains two part
+   * directives with the same URI.
+   *
+   * Parameters:
+   * 0: the URI of the duplicate part
+   */
+  static const CompileTimeErrorCode DUPLICATE_PART = CompileTimeErrorCode(
+      'DUPLICATE_PART',
+      "The library already contains a part with the uri '{0}'.",
+      correction:
+          "Try removing all but one of the duplicated part directives.");
+
+  static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
+      CompileTimeErrorCode('ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
+          "The name of the enum constant can't be the same as the enum's name.",
+          correction: "Try renaming the constant.");
 
   /**
    * No parameters.
@@ -1725,18 +1920,61 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The library '{0}' is internal and can't be exported.");
 
   /**
-   * It is an error for an opted-in library to re-export symbols which are
-   * defined in a legacy library.
-   *
    * Parameters:
    * 0: the name of a symbol defined in a legacy library
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a library that was opted in to
+  // null safety exports another library, and the exported library is opted out
+  // of null safety.
+  //
+  // #### Example
+  //
+  // Given a library that is opted out of null safety:
+  //
+  // ```dart
+  // %uri="lib/optedOut.dart"
+  // // @dart = 2.8
+  // String s;
+  // ```
+  //
+  // The following code produces this diagnostic because it's exporting symbols
+  // from an opted-out library:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // export [!'optedOut.dart'!];
+  //
+  // class C {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you're able to do so, migrate the exported library so that it doesn't
+  // need to opt out:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // String? s;
+  // ```
+  //
+  // If you can't migrate the library, then remove the export:
+  //
+  // ```dart
+  // class C {}
+  // ```
+  //
+  // If the exported library (the one that is opted out) itself exports an
+  // opted-in library, then it's valid for your library to indirectly export the
+  // symbols from the opted-in library. You can do so by adding a hide
+  // combinator to the export directive in your library that hides all of the
+  // names declared in the opted-out library.
   static const CompileTimeErrorCode EXPORT_LEGACY_SYMBOL = CompileTimeErrorCode(
       'EXPORT_LEGACY_SYMBOL',
       "The symbol '{0}' is defined in a legacy library, and can't be "
           "re-exported from a non-nullable by default library.",
-      correction: "Use show / hide combinators to avoid exporting these"
-          "symbols, or migrate the legacy library.");
+      correction: "Try removing the export or migrating the legacy library.");
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at
@@ -3544,63 +3782,104 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  /* #### Description
+  // #### Description
   //
-  // The analyzer produces this diagnostic when an optional parameter doesn't
-  // have a default value, but has a
-  // <a href=”#potentially-non-nullable”>potentially non-nullable</a> type.
-  // Optional parameters that have no explicit default value have an implicit
-  // default value of `null`. If the type of the parameter doesn't allow the
-  // parameter to have a value of null, then the implicit default value is not
-  // valid.
+  // The analyzer produces this diagnostic when an optional parameter, whether
+  // positional or named, has a <a href=”#potentially-non-nullable”>potentially
+  // non-nullable</a> type and doesn't specify a default value. Optional
+  // parameters that have no explicit default value have an implicit default
+  // value of `null`. If the type of the parameter doesn't allow the parameter
+  // to have a value of `null`, then the implicit default value isn't valid.
   //
-  // #### Examples
+  // #### Example
   //
-  // The following code generates this diagnostic:
+  // The following code produces this diagnostic because `x` can't be `null`,
+  // and no non-`null` default value is specified:
   //
   // ```dart
-  // void log({String [!message!]}) {}
+  // %experiments=non-nullable
+  // void f([int [!x!]]) {}
+  // ```
+  //
+  // As does this:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void g({int [!x!]}) {}
   // ```
   //
   // #### Common fixes
   //
-  // If the parameter can have the value `null`, then add a question mark after
-  // the type annotation:
+  // If you want to use `null` to indicate that no value was provided, then you
+  // need to make the type nullable:
   //
   // ```dart
-  // void log({String? message}) {}
+  // %experiments=non-nullable
+  // void f([int? x]) {}
+  // void g({int? x}) {}
   // ```
   //
   // If the parameter can't be null, then either provide a default value:
   //
   // ```dart
-  // void log({String message = ''}) {}
+  // %experiments=non-nullable
+  // void f([int x = 1]) {}
+  // void g({int x = 2}) {}
   // ```
   //
-  // or add the `required` modifier to the parameter:
+  // or make the parameter a required parameter:
   //
   // ```dart
-  // void log({required String message}) {}
-  // ``` */
+  // %experiments=non-nullable
+  // void f(int x) {}
+  // void g({required int x}) {}
+  // ```
   static const CompileTimeErrorCode MISSING_DEFAULT_VALUE_FOR_PARAMETER =
       CompileTimeErrorCode(
           'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
           "The parameter '{0}' can't have a value of 'null' because of its "
-              "type, so it must either be a required parameter or have a "
-              "default value.",
+              "type, and no non-null default value is provided.",
           correction:
               "Try adding either a default value or the 'required' modifier.");
 
   /**
-   * It is an error if a named parameter that is marked as being required is
-   * not bound to an argument at a call site.
-   *
    * Parameters:
    * 0: the name of the parameter
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an invocation of a function is
+  // missing a required named parameter.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the invocation of `f`
+  // doesn't include a value for the required named parameter `end`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(int start, {required int end}) {}
+  // void g() {
+  //   [!f!](3);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Add a named argument corresponding to the missing required parameter:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(int start, {required int end}) {}
+  // void g() {
+  //   f(3, end: 5);
+  // }
+  // ```
   static const CompileTimeErrorCode MISSING_REQUIRED_ARGUMENT =
-      CompileTimeErrorCode('MISSING_REQUIRED_ARGUMENT',
-          "The named parameter '{0}' is required but was not provided.",
+      CompileTimeErrorCode(
+          'MISSING_REQUIRED_ARGUMENT',
+          "The named parameter '{0}' is required, but there's no corresponding "
+              "argument.",
           correction: "Try adding the required argument.");
 
   /**
@@ -4373,22 +4652,135 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       "Factory bodies can't use 'async', 'async*', or 'sync*'.");
 
   /**
-   * It is an error if a potentially non-nullable local variable which has no
-   * initializer expression and is not marked `late` is used before it is
-   * definitely assigned.
-   *
    * Parameters:
    * 0: the name of the variable that is invalid
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a local variable is referenced
+  // and has all these characteristics:
+  // - Has a type that's <a href=”#potentially-non-nullable”>potentially
+  //   non-nullable</a>.
+  // - Doesn't have an initializer.
+  // - Isn't marked as `late`.
+  // - The analyzer can't prove that the local variable will be assigned before
+  //   the reference based on the specification of
+  //   [definite assignment](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md).
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `x` can't have a value
+  // of `null`, but is referenced before a value was assigned to it:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // String f() {
+  //   int x;
+  //   return [!x!].toString();
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the assignment to `x`
+  // might not be executed, so it might have a value of `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int g(bool b) {
+  //   int x;
+  //   if (b) {
+  //     x = 1;
+  //   }
+  //   return [!x!] * 2;
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the analyzer can't
+  // prove, based on definite assignment analysis, that `x` won't be referenced
+  // without having a value assigned to it:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int h(bool b) {
+  //   int x;
+  //   if (b) {
+  //     x = 1;
+  //   }
+  //   if (b) {
+  //     return [!x!] * 2;
+  //   }
+  //   return 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If `null` is a valid value, then make the variable nullable:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // String f() {
+  //   int? x;
+  //   return x!.toString();
+  // }
+  // ```
+  //
+  // If `null` isn’t a valid value, and there's a reasonable default value, then
+  // add an initializer:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int g(bool b) {
+  //   int x = 2;
+  //   if (b) {
+  //     x = 1;
+  //   }
+  //   return x * 2;
+  // }
+  // ```
+  //
+  // Otherwise, ensure that a value was assigned on every possible code path
+  // before the value is accessed:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int g(bool b) {
+  //   int x;
+  //   if (b) {
+  //     x = 1;
+  //   } else {
+  //     x = 2;
+  //   }
+  //   return x * 2;
+  // }
+  // ```
+  //
+  // You can also mark the variable as `late`, which removes the diagnostic, but
+  // if the variable isn't assigned a value before it's accessed, then it
+  // results in an exception being thrown at runtime. This approach should only
+  // be used if you're sure that the variable will always be assigned, even
+  // though the analyzer can't prove it based on definite assignment analysis.
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int h(bool b) {
+  //   late int x;
+  //   if (b) {
+  //     x = 1;
+  //   }
+  //   if (b) {
+  //     return x * 2;
+  //   }
+  //   return 0;
+  // }
+  // ```
   static const CompileTimeErrorCode
       NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE =
       CompileTimeErrorCode(
           'NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
           "The non-nullable local variable '{0}' must be assigned before it "
               "can be used.",
-          correction: "Try giving it an initializer expression, "
-              "or ensure that it is assigned on every execution path, "
-              "or mark it 'late'.");
+          correction: "Try giving it an initializer expression, or ensure that "
+              "it's assigned on every execution path.");
 
   /**
    * Parameters:
@@ -4434,14 +4826,82 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       NOT_ENOUGH_POSITIONAL_ARGUMENTS;
 
   /**
-   * It is an error if an instance field with potentially non-nullable type has
-   * no initializer expression and is not initialized in a constructor via an
-   * initializing formal or an initializer list entry, unless the field is
-   * marked with the `late` modifier.
-   *
    * Parameters:
    * 0: the name of the field that is not initialized
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a field is declared and has all
+  // these characteristics:
+  // - Has a type that's <a href=”#potentially-non-nullable”>potentially
+  //   non-nullable</a>
+  // - Doesn't have an initializer
+  // - Isn't marked as `late`
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `x` is implicitly
+  // initialized to `null` when it isn't allowed to be `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   int [!x!];
+  // }
+  // ```
+  //
+  // Similarly, the following code produces this diagnostic because `x` is
+  // implicitly initialized to `null`, when it isn't allowed to be `null`, by
+  // one of the constructors, even though it's initialized by other
+  // constructors:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   int x;
+  //
+  //   C(this.x);
+  //
+  //   [!C!].n();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If there's a reasonable default value for the field that’s the same for all
+  // instances, then add an initializer expression:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   int x = 0;
+  // }
+  // ```
+  //
+  // If the value of the field should be provided when an instance is created,
+  // then add a constructor that sets the value of the field or update an
+  // existing constructor:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   int x;
+  //
+  //   C(this.x);
+  // }
+  // ```
+  //
+  // You can also mark the field as `late`, which removes the diagnostic, but if
+  // the field isn't assigned a value before it's accessed, then it results in
+  // an exception being thrown at runtime. This approach should only be used if
+  // you're sure that the field will always be assigned before it's referenced.
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   late int x;
+  // }
+  // ```
   static const CompileTimeErrorCode
       NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD = CompileTimeErrorCode(
           'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
@@ -4451,11 +4911,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "or mark it 'late'.");
 
   /**
-   * It is an error if an instance field with potentially non-nullable type has
-   * no initializer expression and is not initialized in a constructor via an
-   * initializing formal or an initializer list entry, unless the field is
-   * marked with the `late` modifier.
-   *
    * Parameters:
    * 0: the name of the field that is not initialized
    */
@@ -4470,12 +4925,66 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "or mark it 'late'.");
 
   /**
-   * It is an error if a static field or top-level variable with potentially
-   * non-nullable type has no initializer expression.
-   *
    * Parameters:
    * 0: the name of the variable that is invalid
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a static field or top-level
+  // variable has a type that's non-nullable and doesn't have an initializer.
+  // Fields and variables that don't have an initializer are normally
+  // initialized to `null`, but the type of the field or variable doesn't allow
+  // it to be set to `null`, so an explicit initializer must be provided.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the field `f` can't be
+  // initialized to `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   static int [!f!];
+  // }
+  // ```
+  //
+  // Similarly, the following code produces this diagnostic because the
+  // top-level variable `v` can't be initialized to `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int [!v!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the field or variable can't be initialized to `null`, then add an
+  // initializer that sets it to a non-null value:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   static int f = 0;
+  // }
+  // ```
+  //
+  // If the field or variable should be initialized to `null`, then change the
+  // type to be nullable:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int? v;
+  // ```
+  //
+  // If the field or variable can't be initialized in the declaration but will
+  // always be initialized before it's referenced, then mark it as being `late`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   static late int f;
+  // }
+  // ```
   static const CompileTimeErrorCode NOT_INITIALIZED_NON_NULLABLE_VARIABLE =
       CompileTimeErrorCode('NOT_INITIALIZED_NON_NULLABLE_VARIABLE',
           "The non-nullable variable '{0}' must be initialized.",
@@ -4544,6 +5053,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       'NOT_MAP_SPREAD', "Spread elements in map literals must implement 'Map'.",
       hasPublishedDocs: true);
 
+  /**
+   * No parameters.
+   */
   static const CompileTimeErrorCode NOT_NULL_AWARE_NULL_SPREAD =
       CompileTimeErrorCode(
           'NOT_NULL_AWARE_NULL_SPREAD',
@@ -4551,74 +5063,164 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "spread.");
 
   /**
-   * It is an error if the type `T` in the on-catch clause `on T catch` is
-   * potentially nullable.
-   */
-  static const CompileTimeErrorCode NULLABLE_TYPE_IN_CATCH_CLAUSE =
-      CompileTimeErrorCode(
-          'NULLABLE_TYPE_IN_CATCH_CLAUSE',
-          "A nullable type can't be used in an 'on' clause because it isn't "
-              "valid to throw 'null'.",
-          correction: "Try removing the question mark.");
-
-  /**
    * No parameters.
    */
-  /* #### Description
+  // #### Description
   //
   // The analyzer produces this diagnostic when a class declaration uses an
-  // extends clause to specify a superclass, and the type that's specified is a
-  // nullable type.
+  // extends clause to specify a superclass, and the superclass is followed by a
+  // `?`.
   //
-  // The reason the supertype is a _type_ rather than a class name is to allow
-  // you to control the signatures of the members to be inherited from the
-  // supertype, such as by specifying type arguments. However, the nullability
-  // of a type doesn't change the signatures of any members, so there isn't any
-  // reason to allow the nullability to be specified when used in the extends
-  // clause.
+  // It isn't valid to specify a nullable superclass because doing so would have
+  // no meaning; it wouldn't change either the interface or implementation being
+  // inherited by the class containing the extends clause.
   //
-  // #### Examples
+  // Note, however, that it _is_ valid to use a nullable type as a type argument
+  // to the superclass, such as `class A extends B<C?> {}`.
   //
-  // The following code generates this diagnostic:
+  // #### Example
+  //
+  // The following code produces this diagnostic because `A?` is a nullable
+  // type, and nullable types can't be used in an extends clause:
   //
   // ```dart
-  // class Invalid extends [!Duration?!] {}
+  // %experiments=non-nullable
+  // class A {}
+  // class B extends [!A?!] {}
   // ```
   //
   // #### Common fixes
   //
-  // The most common fix is to remove the question mark:
+  // Remove the question mark from the type:
   //
   // ```dart
-  // class Invalid extends Duration {}
-  // ``` */
+  // %experiments=non-nullable
+  // class A {}
+  // class B extends A {}
+  // ```
   static const CompileTimeErrorCode NULLABLE_TYPE_IN_EXTENDS_CLAUSE =
       CompileTimeErrorCode('NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
           "A class can't extend a nullable type.",
           correction: "Try removing the question mark.");
 
   /**
-   * It is a compile-time error for a class to extend, implement, or mixin a
-   * type of the form T? for any T.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a class or mixin declaration has
+  // an implements clause, and an interface is followed by a `?`.
+  //
+  // It isn't valid to specify a nullable interface because doing so would have
+  // no meaning; it wouldn't change the interface being inherited by the class
+  // containing the implements clause.
+  //
+  // Note, however, that it _is_ valid to use a nullable type as a type argument
+  // to the interface, such as `class A implements B<C?> {}`.
+  //
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `A?` is a nullable
+  // type, and nullable types can't be used in an implements clause:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class A {}
+  // class B implements [!A?!] {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the question mark from the type:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class A {}
+  // class B implements A {}
+  // ```
   static const CompileTimeErrorCode NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE =
       CompileTimeErrorCode('NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
           "A class or mixin can't implement a nullable type.",
           correction: "Try removing the question mark.");
 
   /**
-   * It is a compile-time error for a class to extend, implement, or mixin a
-   * type of the form T? for any T.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a mixin declaration uses an on
+  // clause to specify a superclass constraint, and the class that's specified
+  // is followed by a `?`.
+  //
+  // It isn't valid to specify a nullable superclass constraint because doing so
+  // would have no meaning; it wouldn't change the interface being depended on
+  // by the mixin containing the on clause.
+  //
+  // Note, however, that it _is_ valid to use a nullable type as a type argument
+  // to the superclass constraint, such as `mixin A on B<C?> {}`.
+  //
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `A?` is a nullable type
+  // and nullable types can't be used in an on clause:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {}
+  // mixin M on [!C?!] {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the question mark from the type:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {}
+  // mixin M on C {}
+  // ```
   static const CompileTimeErrorCode NULLABLE_TYPE_IN_ON_CLAUSE =
       CompileTimeErrorCode('NULLABLE_TYPE_IN_ON_CLAUSE',
           "A mixin can't have a nullable type as a superclass constraint.",
           correction: "Try removing the question mark.");
 
   /**
-   * It is a compile-time error for a class to extend, implement, or mixin a
-   * type of the form T? for any T.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a class or mixin declaration has
+  // a with clause, and a mixin is followed by a `?`.
+  //
+  // It isn't valid to specify a nullable mixin because doing so would have no
+  // meaning; it wouldn't change either the interface or implementation being
+  // inherited by the class containing the with clause.
+  //
+  // Note, however, that it _is_ valid to use a nullable type as a type argument
+  // to the mixin, such as `class A with B<C?> {}`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `A?` is a nullable
+  // type, and nullable types can't be used in a with clause:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // mixin M {}
+  // class C with [!M?!] {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the question mark from the type:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // mixin M {}
+  // class C with M {}
+  // ```
   static const CompileTimeErrorCode NULLABLE_TYPE_IN_WITH_CLAUSE =
       CompileTimeErrorCode('NULLABLE_TYPE_IN_WITH_CLAUSE',
           "A class or mixin can't mix in a nullable type.",
@@ -4892,6 +5494,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try redirecting to a different constructor.");
 
   /**
+   * A factory constructor can't redirect to a non-generative constructor of an
+   * abstract class.
+   */
+  static const CompileTimeErrorCode REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR =
+      CompileTimeErrorCode(
+          'REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
+          "The redirecting constructor '{0}' can't redirect to a constructor "
+              "of the abstract class '{1}'.",
+          correction: "Try redirecting to a constructor of a different class.");
+
+  /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with
    * the const modifier but <i>k'</i> is not a constant constructor.
    */
@@ -5162,6 +5775,42 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('SWITCH_CASE_COMPLETES_NORMALLY',
           "The 'case' should not complete normally.",
           correction: "Try adding 'break', or 'return', etc.");
+
+  /**
+   * Parameters:
+   * 0: the type that can't be thrown
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the type of the expression in a
+  // throw expression is not assignable to `Object`. It’s not valid to throw
+  // `null`, so it isn't valid to use an expression that might evaluate to
+  // `null`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `s` might be `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(String? s) {
+  //   throw [!s!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Add an explicit null check to the expression:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(String? s) {
+  //   throw s!;
+  // }
+  // ```
+  static const CompileTimeErrorCode THROW_OF_INVALID_TYPE = CompileTimeErrorCode(
+      'THROW_OF_INVALID_TYPE',
+      "The type '{0}' of the thrown expression must be assignable to 'Object'.");
 
   /**
    * Parameters:
@@ -7756,15 +8405,90 @@ class StaticWarningCode extends AnalyzerErrorCode {
       INSTANTIATE_ABSTRACT_CLASS;
 
   /**
-   * It is a warning to use null aware operators '??' or '??=' on an
-   * expression of type `T` if `T` is strictly non-nullable.
-   *
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic in two cases.
+  //
+  // The first is when the left operand of an `??` operator can't be `null`.
+  // The right operand is only evaluated if the left operand has the value
+  // `null`, and because the left operand can't be `null`, the right operand is
+  // never evaluated.
+  //
+  // The second is when the left-hand side of an assignment using the `??=`
+  // operator can't be `null`. The right-hand side is only evaluated if the
+  // left-hand side has the value `null`, and because the left-hand side can't
+  // be `null`, the right-hand side is never evaluated.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `x` can't be `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int f(int x) {
+  //   return x ?? [!0!];
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because `f` can't be `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   int f = -1;
+  //
+  //   void m(int x) {
+  //     f ??= [!x!];
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the diagnostic is reported for an `??` operator, then remove the `??`
+  // operator and the right operand:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int f(int x) {
+  //   return x;
+  // }
+  // ```
+  //
+  // If the diagnostic is reported for an assignment, and the assignment isn't
+  // needed, then remove the assignment:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   int f = -1;
+  //
+  //   void m(int x) {
+  //   }
+  // }
+  // ```
+  //
+  // If the assignment is needed, but should be based on a different condition,
+  // then rewrite the code to use `=` and the different condition:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   int f = -1;
+  //
+  //   void m(int x) {
+  //     if (f < 0) {
+  //       f = x;
+  //     }
+  //   }
+  // }
+  // ```
   static const StaticWarningCode DEAD_NULL_AWARE_EXPRESSION = StaticWarningCode(
       'DEAD_NULL_AWARE_EXPRESSION',
       "The left operand can't be null, so the right operand is never executed.",
-      correction: "Try removing the right operand.",
+      correction: "Try removing the operator and the right operand.",
       errorSeverity: ErrorSeverity.WARNING);
 
   /**
@@ -8128,6 +8852,45 @@ class StaticWarningCode extends AnalyzerErrorCode {
    * 0: The null-aware operator that is invalid
    * 1: The non-null-aware operator that can replace the invalid operator
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a null-aware operator (`?.`,
+  // `?..`, `?[`, `?..[`, or `...?`) is used on a target that's known to be
+  // non-nullable.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `s` can't be `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int? getLength(String s) {
+  //   return s[!?.!]length;
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because `a` can't be `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // var a = [];
+  // var b = [[!...?!]a];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the null-aware operator with a non-null-aware equivalent, such as
+  // replacing '?.' with  '.':
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int getLength(String s) {
+  //   return s.length;
+  // }
+  // ```
+  //
+  // (Note that the return type was also changed to be non-nullable, which might
+  // not be appropriate in some cases.)
   static const StaticWarningCode INVALID_NULL_AWARE_OPERATOR =
       StaticWarningCode(
           'INVALID_NULL_AWARE_OPERATOR',
@@ -8168,24 +8931,40 @@ class StaticWarningCode extends AnalyzerErrorCode {
           errorSeverity: ErrorSeverity.WARNING);
 
   /**
-   * For the purposes of experimenting with potential non-null type semantics.
-   *
-   * Whereas [UNCHECKED_USE_OF_NULLABLE] refers to using a value of type T? as
-   * if it were a T, this refers to using a value of type [Null] itself. These
-   * occur at many of the same times ([Null] is a potentially nullable type) but
-   * it indicates a different type of programmer error and has different
-   * corrections.
-   *
    * No parameters.
    */
-  static const StaticWarningCode INVALID_USE_OF_NULL_VALUE =
-      StaticWarningCodeWithUniqueName(
-          'USE_OF_NULLABLE_VALUE',
-          'INVALID_USE_OF_NULL_VALUE',
-          "This expression is invalid as it will always be null.",
-          correction:
-              "Try changing the type, or casting, to a more useful type like "
-              "dynamic.");
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an expression whose value will
+  // always be `null` is dererenced.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `x` will always be
+  // `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int f(Null x) {
+  //   return [!x!].length;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the value is allowed to be something other than `null`, then change the
+  // type of the expression:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int f(String? x) {
+  //   return x!.length;
+  // }
+  // ```
+  static const StaticWarningCode INVALID_USE_OF_NULL_VALUE = StaticWarningCode(
+      'INVALID_USE_OF_NULL_VALUE',
+      "An expression whose value is always 'null' can't be dereferenced.",
+      correction: "Try changing the type of the expression.");
 
   /**
    * Parameters:
@@ -8864,7 +9643,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
       StaticWarningCode(
           'REDIRECT_TO_INVALID_RETURN_TYPE',
           "The return type '{0}' of the redirected constructor isn't "
-              "assignable to '{1}'.",
+              "a subtype of '{1}'.",
           correction: "Try redirecting to a different constructor.",
           hasPublishedDocs: true);
 
@@ -9131,29 +9910,111 @@ class StaticWarningCode extends AnalyzerErrorCode {
       CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER;
 
   /**
-   * For the purposes of experimenting with potential non-null type semantics.
-   *
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an expression whose type is
+  // <a href=”#potentially-non-nullable”>potentially non-nullable</a> is
+  // dereferenced without first verifying that the value isn't `null`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `s` can be `null` at
+  // the point where it's referenced:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(String? s) {
+  //   if ([!s!].length > 3) {
+  //     // ...
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the value really can be `null`, then add a test to ensure that members
+  // are only accessed when the value isn't `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(String? s) {
+  //   if (s != null && s.length > 3) {
+  //     // ...
+  //   }
+  // }
+  // ```
+  //
+  // If the expression is a variable and the value should never be `null`, then
+  // change the type of the variable to be non-nullable:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(String s) {
+  //   if (s.length > 3) {
+  //     // ...
+  //   }
+  // }
+  // ```
+  //
+  // If you believe that the value of the expression should never be `null`, but
+  // you can't change the type of the variable, and you're willing to risk
+  // having an exception thrown at runtime if you're wrong, then you can assert
+  // that the value isn't null:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(String? s) {
+  //   if (s!.length > 3) {
+  //     // ...
+  //   }
+  // }
+  // ```
   static const StaticWarningCode UNCHECKED_USE_OF_NULLABLE_VALUE =
-      StaticWarningCodeWithUniqueName(
-          'USE_OF_NULLABLE_VALUE',
+      StaticWarningCode(
           'UNCHECKED_USE_OF_NULLABLE_VALUE',
-          "The expression is nullable and must be null-checked before it can "
-              "be used.",
+          "An expression whose value can be 'null' must be null-checked before "
+              "it can be dereferenced.",
           correction:
-              "Try checking that the value isn't null before using it.");
+              "Try checking that the value isn't 'null' before dereferencing "
+              "it.");
 
   /**
-   * When the '!' operator is used on a value that we know to be non-null,
-   * it is unnecessary.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the operand of the `!` operator
+  // can't be `null`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `x` can't be `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int f(int x) {
+  //   return x[!!!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the null check operator (`!`):
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int f(int x) {
+  //   return x;
+  // }
+  // ```
   static const StaticWarningCode UNNECESSARY_NON_NULL_ASSERTION =
       StaticWarningCode(
           'UNNECESSARY_NON_NULL_ASSERTION',
-          "The '!' will have no effect because the target expression cannot be"
+          "The '!' will have no effect because the target expression can't be"
               " null.",
-          correction: "Try removing the '!' operator here.",
+          correction: "Try removing the '!' operator.",
           errorSeverity: ErrorSeverity.WARNING);
 
   /**

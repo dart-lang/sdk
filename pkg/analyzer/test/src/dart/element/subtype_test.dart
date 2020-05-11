@@ -6,16 +6,13 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
-import '../../../generated/test_analysis_context.dart';
+import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -5965,28 +5962,9 @@ class _SubtypingCompoundTestBase extends _SubtypingTestBase {
   }
 }
 
-@reflectiveTest
-class _SubtypingTestBase with ElementsTypesMixin {
-  @override
-  TypeProvider typeProvider;
-
-  TypeSystemImpl typeSystem;
-
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting();
-  }
-
-  void setUp() {
-    var analysisContext = TestAnalysisContext(
-      featureSet: testFeatureSet,
-    );
-    typeProvider = analysisContext.typeProviderNonNullableByDefault;
-    typeSystem = analysisContext.typeSystemNonNullableByDefault;
-  }
-}
+class _SubtypingTestBase extends AbstractTypeSystemNullSafetyTest {}
 
 class _TypeParameterCollector extends DartTypeVisitor<void> {
-//  final Set<TypeParameterElement> typeParameters = {};
   final Set<String> typeParameters = {};
 
   /// We don't need to print bounds for these type parameters, because

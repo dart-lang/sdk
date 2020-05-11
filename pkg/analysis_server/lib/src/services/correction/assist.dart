@@ -28,15 +28,15 @@ class DartAssistContextImpl implements DartAssistContext {
 /// An enumeration of possible assist kinds.
 class DartAssistKind {
   static const ADD_DIAGNOSTIC_PROPERTY_REFERENCE = AssistKind(
-      'ADD_DIAGNOSTIC_PROPERTY_REFERENCE',
+      'dart.assist.add.diagnosticPropertyReference',
       30,
       'Add a debug reference to this property');
   static const ADD_NOT_NULL_ASSERT = AssistKind(
-      'dart.assist.addNotNullAssert', 30, 'Add a not-null assertion');
+      'dart.assist.add.notNullAssert', 30, 'Add a not-null assertion');
   static const ADD_RETURN_TYPE =
-      AssistKind('dart.assist.addReturnType', 30, 'Add return type');
+      AssistKind('dart.assist.add.returnType', 30, 'Add return type');
   static const ADD_TYPE_ANNOTATION =
-      AssistKind('dart.assist.addTypeAnnotation', 30, 'Add type annotation');
+      AssistKind('dart.assist.add.typeAnnotation', 30, 'Add type annotation');
   static const ASSIGN_TO_LOCAL_VARIABLE = AssistKind(
       'dart.assist.assignToVariable', 30, 'Assign value to new local variable');
   static const CONVERT_CLASS_TO_MIXIN = AssistKind(
@@ -82,9 +82,9 @@ class DartAssistKind {
       30,
       'Convert to field formal parameter');
   static const CONVERT_TO_FOR_ELEMENT = AssistKind(
-      'dart.assist.convertToForElement', 30, "Convert to a 'for' element");
+      'dart.assist.convert.toForElement', 30, "Convert to a 'for' element");
   static const CONVERT_TO_IF_ELEMENT = AssistKind(
-      'dart.assist.convertToIfElement', 30, "Convert to an 'if' element");
+      'dart.assist.convert.toIfElement', 30, "Convert to an 'if' element");
   static const CONVERT_TO_INT_LITERAL = AssistKind(
       'dart.assist.convert.toIntLiteral', 30, 'Convert to an int literal');
   static const CONVERT_TO_LIST_LITERAL = AssistKind(
@@ -107,6 +107,10 @@ class DartAssistKind {
       'dart.assist.convert.relativeToPackageImport',
       30,
       "Convert to 'package:' import");
+  static const CONVERT_TO_RELATIVE_IMPORT = AssistKind(
+      'dart.assist.convert.packageToRelativeImport',
+      30,
+      'Convert to a relative import');
   static const CONVERT_TO_SET_LITERAL = AssistKind(
       'dart.assist.convert.toSetLiteral', 30, 'Convert to set literal',
       associatedErrorCodes: <String>['prefer_collection_literals']);
@@ -115,7 +119,7 @@ class DartAssistKind {
       30,
       'Convert to single quoted string');
   static const CONVERT_TO_SPREAD =
-      AssistKind('dart.assist.convertToSpread', 30, 'Convert to a spread');
+      AssistKind('dart.assist.convert.toSpread', 30, 'Convert to a spread');
   static const ENCAPSULATE_FIELD =
       AssistKind('dart.assist.encapsulateField', 30, 'Encapsulate field');
   static const EXCHANGE_OPERANDS =
@@ -163,7 +167,7 @@ class DartAssistKind {
       AssistKind('dart.assist.flutter.removeWidget', 35, 'Remove this widget');
 
   static const IMPORT_ADD_SHOW = AssistKind(
-      'dart.assist.addShowCombinator', 30, "Add explicit 'show' combinator");
+      'dart.assist.add.showCombinator', 30, "Add explicit 'show' combinator");
   static const INLINE_INVOCATION =
       AssistKind('dart.assist.inline', 30, "Inline invocation of '{0}'");
   static const INTRODUCE_LOCAL_CAST_TYPE = AssistKind(
@@ -180,7 +184,7 @@ class DartAssistKind {
       'dart.assist.joinVariableDeclaration', 30, 'Join variable declaration');
   static const REMOVE_TYPE_ANNOTATION = AssistKind(
       // todo (pq): unify w/ fix
-      'dart.assist.removeTypeAnnotation',
+      'dart.assist.remove.typeAnnotation',
       29,
       'Remove type annotation');
   static const REPLACE_CONDITIONAL_WITH_IF_ELSE = AssistKind(
@@ -192,9 +196,7 @@ class DartAssistKind {
       30,
       "Replace 'if-else' with conditional ('c ? x : y')");
   static const REPLACE_WITH_VAR = AssistKind(
-      'dart.assist.convert.replaceWithVar',
-      30,
-      "Replace type annotation with 'var'");
+      'dart.assist.replace.withVar', 30, "Replace type annotation with 'var'");
   static const SHADOW_FIELD = AssistKind('dart.assist.shadowField', 30,
       'Create a local variable that shadows the field');
   static const SORT_CHILD_PROPERTY_LAST = AssistKind(
@@ -224,5 +226,5 @@ class DartAssistKind {
   static const SURROUND_WITH_WHILE =
       AssistKind('dart.assist.surround.while', 24, "Surround with 'while'");
   static const USE_CURLY_BRACES =
-      AssistKind('USE_CURLY_BRACES', 30, 'Use curly braces');
+      AssistKind('dart.assist.surround.curlyBraces', 30, 'Use curly braces');
 }

@@ -6,13 +6,19 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
 mixin ElementsTypesMixin {
+  LibraryElementImpl get testLibrary => null;
+
   InterfaceType get boolNone {
     var element = typeProvider.boolElement;
     return interfaceTypeNone(element);
@@ -157,6 +163,7 @@ mixin ElementsTypesMixin {
     List<MethodElement> methods = const [],
   }) {
     var element = ClassElementImpl(name, 0);
+    element.enclosingElement = testLibrary;
     element.typeParameters = typeParameters;
     element.supertype = superType ?? typeProvider.objectType;
     element.interfaces = interfaces;
@@ -387,6 +394,30 @@ mixin ElementsTypesMixin {
     );
   }
 
+  LibraryElementImpl library_({
+    @required String uriStr,
+    @required TypeSystemImpl typeSystem,
+    AnalysisContext analysisContext,
+    AnalysisSessionImpl analysisSession,
+  }) {
+    var library = LibraryElementImpl(analysisContext, analysisSession, uriStr,
+        -1, 0, typeSystem.isNonNullableByDefault);
+    library.typeSystem = typeSystem;
+    library.typeProvider = typeSystem.typeProvider;
+
+    var uri = Uri.parse(uriStr);
+    var source = _MockSource(uri);
+
+    var definingUnit = CompilationUnitElementImpl();
+    definingUnit.source = source;
+    definingUnit.librarySource = source;
+
+    definingUnit.enclosingElement = library;
+    library.definingCompilationUnit = definingUnit;
+
+    return library;
+  }
+
   InterfaceType listNone(DartType type) {
     return typeProvider.listElement.instantiate(
       typeArguments: [type],
@@ -404,6 +435,27 @@ mixin ElementsTypesMixin {
   InterfaceType listStar(DartType type) {
     return typeProvider.listElement.instantiate(
       typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
+  InterfaceType mapNone(DartType key, DartType value) {
+    return typeProvider.mapElement.instantiate(
+      typeArguments: [key, value],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceType mapQuestion(DartType key, DartType value) {
+    return typeProvider.mapElement.instantiate(
+      typeArguments: [key, value],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceType mapStar(DartType key, DartType value) {
+    return typeProvider.mapElement.instantiate(
+      typeArguments: [key, value],
       nullabilitySuffix: NullabilitySuffix.star,
     );
   }
@@ -429,6 +481,7 @@ mixin ElementsTypesMixin {
     List<InterfaceType> interfaces = const [],
   }) {
     var element = MixinElementImpl(name, 0);
+    element.enclosingElement = testLibrary;
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints ?? [typeProvider.objectType];
     element.interfaces = interfaces;
@@ -537,16 +590,6 @@ mixin ElementsTypesMixin {
     return element;
   }
 
-  TypeParameterTypeImpl typeParameterType(
-    TypeParameterElement element, {
-    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
-  }) {
-    return TypeParameterTypeImpl(
-      element: element,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   TypeParameterTypeImpl typeParameterTypeNone(TypeParameterElement element) {
     return element.instantiate(nullabilitySuffix: NullabilitySuffix.none);
   }
@@ -559,4 +602,14 @@ mixin ElementsTypesMixin {
   TypeParameterTypeImpl typeParameterTypeStar(TypeParameterElement element) {
     return element.instantiate(nullabilitySuffix: NullabilitySuffix.star);
   }
+}
+
+class _MockSource implements Source {
+  @override
+  final Uri uri;
+
+  _MockSource(this.uri);
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

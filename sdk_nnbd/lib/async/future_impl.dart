@@ -41,7 +41,7 @@ abstract class _Completer<T> implements Completer<T> {
 class _AsyncCompleter<T> extends _Completer<T> {
   void complete([FutureOr<T>? value]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
-    future._asyncComplete(value as FutureOr<T>);
+    future._asyncComplete(value == null ? value as dynamic : value);
   }
 
   void _completeError(Object error, StackTrace stackTrace) {
@@ -52,7 +52,7 @@ class _AsyncCompleter<T> extends _Completer<T> {
 class _SyncCompleter<T> extends _Completer<T> {
   void complete([FutureOr<T>? value]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
-    future._complete(value as FutureOr<T>);
+    future._complete(value == null ? value as dynamic : value);
   }
 
   void _completeError(Object error, StackTrace stackTrace) {
@@ -116,19 +116,19 @@ class _FutureListener<S, T> {
 
   FutureOr<T> Function(S) get _onValue {
     assert(handlesValue);
-    return callback as FutureOr<T> Function(S);
+    return callback as dynamic;
   }
 
   Function? get _onError => errorCallback;
 
   _FutureErrorTest get _errorTest {
     assert(hasErrorTest);
-    return callback as _FutureErrorTest;
+    return callback as dynamic;
   }
 
   _FutureAction get _whenCompleteAction {
     assert(handlesComplete);
-    return callback as _FutureAction;
+    return callback as dynamic;
   }
 
   /// Whether this listener has an error callback.
@@ -158,7 +158,7 @@ class _FutureListener<S, T> {
           errorCallback, asyncError.error, asyncError.stackTrace);
     } else {
       return _zone.runUnary<dynamic, Object>(
-          errorCallback as dynamic Function(Object), asyncError.error);
+          errorCallback as dynamic, asyncError.error);
     }
   }
 
@@ -511,8 +511,11 @@ class _Future<T> implements Future<T> {
       }
     } else {
       _FutureListener? listeners = _removeListeners();
-      // TODO(lrn): Remove cast when type promotion works.
-      _setValue(value as T); // Value promoted to T.
+      // TODO(40014): Remove cast when type promotion works.
+      // This would normally be `as T` but we use `as dynamic` to make the
+      // unneeded check be implict to match dart2js unsound optimizations in the
+      // user code.
+      _setValue(value as dynamic); // Value promoted to T.
       _propagateToListeners(this, listeners);
     }
   }
@@ -551,10 +554,17 @@ class _Future<T> implements Future<T> {
       _chainFuture(value);
       return;
     }
+    // TODO(40014): Remove cast when type promotion works.
+    // This would normally be `as T` but we use `as dynamic` to make the
+    // unneeded check be implict to match dart2js unsound optimizations in the
+    // user code.
+    _asyncCompleteWithValue(value as dynamic); // Value promoted to T.
+  }
+
+  void _asyncCompleteWithValue(T value) {
     _setPendingComplete();
     _zone.scheduleMicrotask(() {
-      // TODO(lrn): Remove cast when type promotion works.
-      _completeWithValue(value as T); // Value promoted to T.
+      _completeWithValue(value);
     });
   }
 
@@ -663,15 +673,15 @@ class _Future<T> implements Future<T> {
             listenerHasError = true;
             return;
           }
-          if (completeResult is Future) {
-            if (completeResult is _Future && completeResult._isComplete) {
-              if (completeResult._hasError) {
-                listenerValueOrError = completeResult._error;
-                listenerHasError = true;
-              }
-              // Otherwise use the existing result of source.
-              return;
+          if (completeResult is _Future && completeResult._isComplete) {
+            if (completeResult._hasError) {
+              listenerValueOrError = completeResult._error;
+              listenerHasError = true;
             }
+            // Otherwise use the existing result of source.
+            return;
+          }
+          if (completeResult is Future) {
             // We have to wait for the completeResult future to complete
             // before knowing if it's an error or we should use the result
             // of source.

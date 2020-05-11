@@ -43,6 +43,8 @@ anyone
 ap
 api
 app
+apparently
+applicable
 arg
 args
 argument1
@@ -105,6 +107,7 @@ bit2
 bj
 blob
 blocking
+bmp
 bn
 bo
 bodied
@@ -141,6 +144,7 @@ caret
 carets
 carriage
 cascades
+casing
 cast
 casted
 casts
@@ -151,6 +155,7 @@ char
 charcode
 chars
 checkpoint
+chunks
 ci
 ck
 cl
@@ -205,6 +210,7 @@ condensed
 config
 configs
 configured
+consideration
 constness
 consult
 consumers
@@ -236,6 +242,7 @@ cwd
 cyclically
 d
 d11e
+d7c
 dag
 dangerous
 dangling
@@ -300,7 +307,6 @@ disjoint
 dispatched
 divided
 dmitryas
-dupdate
 doc
 docs
 dom
@@ -313,6 +319,7 @@ dq
 dquote
 dst
 dummy
+dupdate
 e
 easy
 ecma
@@ -343,6 +350,7 @@ eq
 equation
 erasure
 es
+established
 estimate
 eval
 excludes
@@ -363,6 +371,7 @@ extracts
 f
 faced
 factor
+factored
 fangorn
 fasta
 favoring
@@ -481,6 +490,7 @@ implementers
 imply
 implying
 importantly
+inapplicable
 inc
 incomparable
 inconsistency
@@ -570,6 +580,7 @@ llub
 lm
 locationd
 logging
+logically
 lots
 lp
 lparen
@@ -590,12 +601,14 @@ maintaining
 mangled
 manipulation
 markdown
+masking
 matcher
 mb
 md
 me
 merely
 meta
+metadata's
 method10a
 method10b
 method1a
@@ -631,6 +644,7 @@ mk
 mm
 mn
 mockito
+modelling
 momentarily
 monomorphic
 morebottom
@@ -684,6 +698,7 @@ nulls
 o
 oauth
 obj
+obligated
 observatory
 observe
 obstruct
@@ -704,6 +719,7 @@ org
 orphans
 ors
 os
+outputting
 overlap
 overloader
 overshadowed
@@ -885,6 +901,7 @@ room
 rooted
 roughly
 rounding
+roundtrip
 rparen
 rpc
 rs
@@ -919,6 +936,7 @@ shadowed
 shallow
 shas
 shelf
+shifts
 showing
 shrinking
 shru
@@ -948,6 +966,7 @@ socket
 sole
 solely
 somewhat
+sortable
 sourcemap
 spaced
 sparse
@@ -974,6 +993,7 @@ stdio
 stdout
 stmt
 str
+streak
 streaming
 strict
 stringified
@@ -1040,6 +1060,7 @@ tester
 testers
 testing
 tex
+textualize
 tflite
 th
 therein
@@ -1193,6 +1214,7 @@ wn
 worthwhile
 writeln
 wrt
+wtf
 www
 x
 x0
@@ -1233,6 +1255,7 @@ xm
 xn
 xnon
 xor
+xor's
 xpotentially
 xs
 xss

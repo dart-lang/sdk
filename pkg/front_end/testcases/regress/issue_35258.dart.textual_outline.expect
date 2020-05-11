@@ -1,0 +1,7 @@
+main() {}
+
+class C {
+  final d;
+  C() {}
+  C(this.d) {}
+}

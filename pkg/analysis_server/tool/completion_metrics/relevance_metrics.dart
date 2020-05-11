@@ -138,6 +138,10 @@ class RelevanceData {
   /// A table mapping counter names to counts.
   Map<String, int> simpleCounts = {};
 
+  /// A table mapping the length of identifiers to the number of identifiers
+  /// found of that length.
+  Map<int, int> identifierLengths = {};
+
   /// A table mapping distances from an identifier to the nearest previous token
   /// with the same lexeme to the number of times that distance was found.
   Map<int, int> tokenDistances = {};
@@ -187,6 +191,11 @@ class RelevanceData {
     var contextMap = byElementKind.putIfAbsent(context, () => {});
     var key = kind.name;
     contextMap[key] = (contextMap[key] ?? 0) + 1;
+  }
+
+  /// Record that an identifier of the given [length] was found.
+  void recordIdentifierOfLength(int length) {
+    identifierLengths[length] = (identifierLengths[length] ?? 0) + 1;
   }
 
   /// Record information about the distance between recurring tokens.
@@ -1243,6 +1252,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    data.recordIdentifierOfLength(node.name.length);
+    super.visitSimpleIdentifier(node);
+  }
+
+  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     // There are no completions.
     super.visitSimpleStringLiteral(node);
@@ -2013,21 +2028,22 @@ class RelevanceMetricsComputer {
       }
     }
 
-    sink.writeln('');
+    sink.writeln();
     _writeCounts(sink, data.simpleCounts);
-    sink.writeln('');
+    sink.writeln();
     _writeSideBySide(sink, [data.byTokenType, data.byElementKind],
         ['Token Types', 'Element Kinds']);
-    sink.writeln('');
+    sink.writeln();
     sink.writeln('Type relationships');
     _writeSideBySide(sink, [first, whole], ['First Token', 'Whole Expression']);
     _writeContextMap(sink, rest);
-    sink.writeln('');
+    sink.writeln();
     sink.writeln('Structural indicators');
     _writeContextMap(sink, data.byDistance);
-    sink.writeln('');
+    sink.writeln();
     sink.writeln('Distance to member (left) by depth of target class (top)');
     _writeMatrix(sink, data.distanceByDepthMap);
+    _writeIdentifierLengths(sink, data.identifierLengths);
     _writeTokenData(sink, data.tokenDistances);
   }
 
@@ -2218,6 +2234,14 @@ class RelevanceMetricsComputer {
     }
   }
 
+  /// Write information about the [lengths] of identifiers to the given [sink].
+  void _writeIdentifierLengths(StringSink sink, Map<int, int> lengths) {
+    sink.writeln();
+    var column = _convertMap('identifier lengths', lengths);
+    var table = _convertColumnsToRows([column]).toList();
+    _writeTable(sink, table);
+  }
+
   /// Write the given [matrix] to the [sink]. The keys of the outer map will be
   /// the row titles; the keys of the inner map will be the column titles.
   void _writeMatrix(StringSink sink, Map<int, Map<int, int>> matrix) {
@@ -2310,7 +2334,7 @@ class RelevanceMetricsComputer {
       secondColumn.add('  $percent%: $i');
     }
 
-    sink.writeln('');
+    sink.writeln();
     sink.writeln('Token stream analysis');
     var table = _convertColumnsToRows([firstColumn, secondColumn]).toList();
     _writeTable(sink, table);

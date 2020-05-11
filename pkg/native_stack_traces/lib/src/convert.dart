@@ -8,7 +8,8 @@ import "dart:math";
 import 'constants.dart' as constants;
 import "dwarf.dart";
 
-String _stackTracePiece(CallInfo call, int depth) => "#${depth}\t${call}";
+String _stackTracePiece(CallInfo call, int depth) =>
+    "#${depth.toString().padRight(6)} ${call}";
 
 // A pattern matching the last line of the non-symbolic stack trace header.
 //
@@ -55,42 +56,66 @@ class StackTraceHeader {
 ///   - The virtual address of the program counter, if the snapshot was
 ///     loaded as a dynamic library, otherwise not present.
 ///   - The location of the virtual address, which is one of the following:
-///     - A dynamic symbol name, a plus sign, and a hexadecimal offset.
+///     - A dynamic symbol name, a plus sign, and an integer offset.
 ///     - The path to the snapshot, if it was loaded as a dynamic library,
 ///       otherwise the string "<unknown>".
-const _symbolREString = r'(?:(?<symbol>' +
+const _symbolOffsetREString = r'(?<symbol>' +
     constants.vmSymbolName +
     r'|' +
     constants.isolateSymbolName +
-    r')\+0x(?<offset>[\da-f]+))';
+    r')\+(?<offset>(?:0x)?[\da-f]+)';
+final _symbolOffsetRE = RegExp(_symbolOffsetREString);
 final _traceLineRE = RegExp(
-    r'    #(\d{2}) abs (?<address>[\da-f]+)(?: virt ([\da-f]+))? (?:' +
-        _symbolREString +
-        r'|.*)$');
+    r'    #(\d{2}) abs (?<address>[\da-f]+)(?: virt ([\da-f]+))? (?<rest>.*)$');
+
+/// Parses strings of the format <static symbol>+<integer offset>, where
+/// <static symbol> is one of the static symbols used for Dart instruction
+/// sections.
+///
+/// Unless forceHexadecimal is true, an integer offset without a "0x" prefix or
+/// any hexdecimal digits will be parsed as decimal.
+///
+/// Returns null if the string is not of the expected format.
+PCOffset tryParseSymbolOffset(String s, [bool forceHexadecimal = false]) {
+  final match = _symbolOffsetRE.firstMatch(s);
+  if (match == null) return null;
+  final symbolString = match.namedGroup('symbol');
+  final offsetString = match.namedGroup('offset');
+  int offset;
+  if (!forceHexadecimal && !offsetString.startsWith("0x")) {
+    offset = int.tryParse(offsetString);
+  }
+  if (offset == null) {
+    final digits = offsetString.startsWith("0x")
+        ? offsetString.substring(2)
+        : offsetString;
+    offset = int.tryParse(digits, radix: 16);
+  }
+  if (offset == null) return null;
+  switch (symbolString) {
+    case constants.vmSymbolName:
+      return PCOffset(offset, InstructionsSection.vm);
+    case constants.isolateSymbolName:
+      return PCOffset(offset, InstructionsSection.isolate);
+    default:
+      break;
+  }
+  return null;
+}
 
 PCOffset _retrievePCOffset(StackTraceHeader header, RegExpMatch match) {
   if (match == null) return null;
-  // Try using the symbol information first, since we don't need the header
+  final restString = match.namedGroup('rest');
+  // Try checking for symbol information first, since we don't need the header
   // information to translate it.
-  final symbolString = match.namedGroup('symbol');
-  final offsetString = match.namedGroup('offset');
-  if (symbolString != null && offsetString != null) {
-    final offset = int.tryParse(offsetString, radix: 16);
-    if (offset != null) {
-      switch (symbolString) {
-        case constants.vmSymbolName:
-          return PCOffset(offset, InstructionsSection.vm);
-        case constants.isolateSymbolName:
-          return PCOffset(offset, InstructionsSection.isolate);
-        default:
-          break;
-      }
-    }
+  if (restString.isNotEmpty) {
+    final offset = tryParseSymbolOffset(restString);
+    if (offset != null) return offset;
   }
   // If we're parsing the absolute address, we can only convert it into
   // a PCOffset if we saw the instructions line of the stack trace header.
-  final addressString = match.namedGroup('address');
-  if (addressString != null && header != null) {
+  if (header != null) {
+    final addressString = match.namedGroup('address');
     final address = int.tryParse(addressString, radix: 16);
     return header.offsetOf(address);
   }

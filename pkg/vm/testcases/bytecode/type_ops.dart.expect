@@ -625,8 +625,13 @@ Function 'foo7', reflectable, debuggable, forwarding-stub
 Bytecode {
   Entry                2
   CheckFunctionTypeArgs 1, r0
+  JumpIfNotZeroTypeArgs L1
+  Push                 FP[-8]
+  LoadTypeArgumentsField CP#0
+  PopLocal             r0
+L1:
   CheckStack           0
-  JumpIfUnchecked      L1
+  JumpIfUnchecked      L2
   Push                 FP[-8]
   LoadTypeArgumentsField CP#0
   Push                 r0
@@ -642,7 +647,7 @@ Bytecode {
   PushConstant         CP#4
   AssertAssignable     0, CP#5
   Drop1
-L1:
+L2:
   Push                 FP[-6]
   PushConstant         CP#6
   PushNull
@@ -660,6 +665,7 @@ L1:
 }
 Parameter flags: [0, 1, 2]
 Forwarding stub target: CP#11
+Default function type arguments: CP#12
 ConstantPool {
   [0] = TypeArgumentsField #lib::H
   [1] = Type #lib::H::foo7::TypeParam/0
@@ -673,6 +679,7 @@ ConstantPool {
   [9] = DirectCall '#lib::G::foo7', ArgDesc num-args 4, num-type-args 1, names []
   [10] = Reserved
   [11] = ObjectRef #lib::G::foo7
+  [12] = ObjectRef < #lib::H::TypeParam/0 >
 }
 
 
@@ -745,7 +752,7 @@ ConstantPool {
       : super #lib::G::•()
       ;
     method foo8<generic-covariant-impl Q extends #lib::H::T* = #lib::H::T*>(#lib::H::foo8::Q* a, covariant dart.core::int* b, generic-covariant-impl #lib::H::T* c) → void {}
-    forwarding-stub method foo7<generic-covariant-impl Q extends #lib::H::T*>(#lib::H::foo7::Q* a, covariant dart.core::num* b, generic-covariant-impl #lib::H::T* c) → void
+    forwarding-stub method foo7<generic-covariant-impl Q extends #lib::H::T* = #lib::H::T*>(#lib::H::foo7::Q* a, covariant dart.core::num* b, generic-covariant-impl #lib::H::T* c) → void
       return super.{#lib::G::foo7}<#lib::H::foo7::Q*>(a, b, c);
   }
   static field dart.core::List<dart.core::Iterable<dynamic>*>* globalVar;

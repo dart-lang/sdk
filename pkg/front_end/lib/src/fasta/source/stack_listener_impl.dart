@@ -81,8 +81,10 @@ abstract class StackListenerImpl extends StackListener {
         addProblem(messageNonNullableOptOut, token.charOffset, token.charCount);
       }
     } else {
-      addProblem(templateExperimentNotEnabled.withArguments('non-nullable'),
-          token.offset, noLength);
+      addProblem(
+          templateExperimentNotEnabled.withArguments('non-nullable', '2.9'),
+          token.offset,
+          noLength);
     }
   }
 

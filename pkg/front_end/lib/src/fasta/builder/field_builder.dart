@@ -674,12 +674,14 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         new Field(null, fileUri: fileUri, reference: referenceFrom?.reference)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
-          ..isNonNullableByDefault = true;
+          ..isNonNullableByDefault = true
+          ..isInternalImplementation = true;
     _lateIsSetField = new Field(null,
         fileUri: fileUri, reference: lateIsSetReferenceFrom?.reference)
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = true;
+      ..isNonNullableByDefault = true
+      ..isInternalImplementation = true;
     _lateGetter = new Procedure(
         null, ProcedureKind.Getter, new FunctionNode(null),
         fileUri: fileUri, reference: getterReferenceFrom?.reference)
@@ -936,11 +938,14 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) {
     List<ClassMember> list = <ClassMember>[
-      new _LateFieldClassMember(fieldBuilder, field),
-      new _LateFieldClassMember(fieldBuilder, _lateGetter)
+      new _LateFieldClassMember(fieldBuilder, field,
+          isInternalImplementation: true),
+      new _LateFieldClassMember(fieldBuilder, _lateGetter,
+          isInternalImplementation: false)
     ];
     if (_lateIsSetField != null) {
-      list.add(new _LateFieldClassMember(fieldBuilder, _lateIsSetField));
+      list.add(new _LateFieldClassMember(fieldBuilder, _lateIsSetField,
+          isInternalImplementation: true));
     }
     return list;
   }
@@ -950,11 +955,11 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     List<ClassMember> list = <ClassMember>[];
     if (_lateIsSetField != null) {
       list.add(new _LateFieldClassMember(fieldBuilder, _lateIsSetField,
-          forSetter: true));
+          forSetter: true, isInternalImplementation: true));
     }
     if (_lateSetter != null) {
       list.add(new _LateFieldClassMember(fieldBuilder, _lateSetter,
-          forSetter: true));
+          forSetter: true, isInternalImplementation: false));
     }
     return list;
   }
@@ -1106,8 +1111,12 @@ class _LateFieldClassMember implements ClassMember {
   @override
   final bool forSetter;
 
+  @override
+  final bool isInternalImplementation;
+
   _LateFieldClassMember(this.fieldBuilder, this._member,
-      {this.forSetter: false});
+      {this.forSetter: false, this.isInternalImplementation})
+      : assert(isInternalImplementation != null);
 
   Member getMember(ClassHierarchyBuilder hierarchy) {
     fieldBuilder._ensureType(hierarchy);

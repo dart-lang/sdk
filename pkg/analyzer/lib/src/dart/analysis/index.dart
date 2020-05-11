@@ -445,7 +445,9 @@ class _IndexAssembler {
       element = element.enclosingElement;
     }
     if (element?.enclosingElement is CompilationUnitElement) {
-      nameIdUnitMember = _getStringInfo(element.name);
+      // Unnamed extensions have a null `name`, but _StringInfo instances must
+      // have non-null values.
+      nameIdUnitMember = _getStringInfo(element.name ?? '');
     }
     return _ElementInfo(unitId, nameIdUnitMember, nameIdClassMember,
         nameIdParameter, info.kind);

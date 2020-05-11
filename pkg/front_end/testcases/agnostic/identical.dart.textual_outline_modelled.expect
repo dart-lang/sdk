@@ -1,0 +1,4 @@
+const a = <int>[];
+const b = <int?>[];
+const c = identical(a, b);
+main() {}

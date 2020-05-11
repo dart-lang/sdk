@@ -264,58 +264,76 @@ class ParameterStructure {
   /// debugging data stream.
   static const String tag = 'parameter-structure';
 
-  /// The number of required (positional) parameters.
-  final int requiredParameters;
+  /// The number of required positional parameters.
+  final int requiredPositionalParameters;
 
   /// The number of positional parameters.
   final int positionalParameters;
 
-  /// The named parameters sorted alphabetically.
+  /// All named parameters sorted alphabetically.
   final List<String> namedParameters;
+
+  /// The required named parameters.
+  final Set<String> requiredNamedParameters;
 
   /// The number of type parameters.
   final int typeParameters;
 
-  const ParameterStructure(this.requiredParameters, this.positionalParameters,
-      this.namedParameters, this.typeParameters);
+  const ParameterStructure(
+      this.requiredPositionalParameters,
+      this.positionalParameters,
+      this.namedParameters,
+      this.requiredNamedParameters,
+      this.typeParameters);
 
-  const ParameterStructure.getter() : this(0, 0, const <String>[], 0);
+  const ParameterStructure.getter()
+      : this(0, 0, const <String>[], const <String>{}, 0);
 
-  const ParameterStructure.setter() : this(1, 1, const <String>[], 0);
+  const ParameterStructure.setter()
+      : this(1, 1, const <String>[], const <String>{}, 0);
 
   factory ParameterStructure.fromType(FunctionType type) {
     return new ParameterStructure(
         type.parameterTypes.length,
         type.parameterTypes.length + type.optionalParameterTypes.length,
         type.namedParameters,
+        type.requiredNamedParameters,
         type.typeVariables.length);
   }
 
   /// Deserializes a [ParameterStructure] object from [source].
   factory ParameterStructure.readFromDataSource(DataSource source) {
     source.begin(tag);
-    int requiredParameters = source.readInt();
+    int requiredPositionalParameters = source.readInt();
     int positionalParameters = source.readInt();
     List<String> namedParameters = source.readStrings();
+    Set<String> requiredNamedParameters =
+        source.readStrings(emptyAsNull: true)?.toSet() ?? const <String>{};
     int typeParameters = source.readInt();
     source.end(tag);
-    return new ParameterStructure(requiredParameters, positionalParameters,
-        namedParameters, typeParameters);
+    return new ParameterStructure(
+        requiredPositionalParameters,
+        positionalParameters,
+        namedParameters,
+        requiredNamedParameters,
+        typeParameters);
   }
 
   /// Serializes this [ParameterStructure] to [sink].
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
-    sink.writeInt(requiredParameters);
+    sink.writeInt(requiredPositionalParameters);
     sink.writeInt(positionalParameters);
     sink.writeStrings(namedParameters);
+    sink.writeStrings(requiredNamedParameters);
     sink.writeInt(typeParameters);
     sink.end(tag);
   }
 
   /// The number of optional parameters (positional or named).
   int get optionalParameters =>
-      positionalParameters - requiredParameters + namedParameters.length;
+      (positionalParameters - requiredPositionalParameters) +
+      (namedParameters.length - requiredNamedParameters.length);
 
   /// The total number of parameters (required or optional).
   int get totalParameters => positionalParameters + namedParameters.length;
@@ -323,32 +341,38 @@ class ParameterStructure {
   /// Returns the [CallStructure] corresponding to a call site passing all
   /// parameters both required and optional.
   CallStructure get callStructure {
-    return new CallStructure(positionalParameters + namedParameters.length,
-        namedParameters, typeParameters);
+    return new CallStructure(totalParameters, namedParameters, typeParameters);
   }
 
   @override
   int get hashCode => Hashing.listHash(
       namedParameters,
-      Hashing.objectHash(
-          positionalParameters,
+      Hashing.setHash(
+          requiredNamedParameters,
           Hashing.objectHash(
-              requiredParameters, Hashing.objectHash(typeParameters))));
+              positionalParameters,
+              Hashing.objectHash(requiredPositionalParameters,
+                  Hashing.objectHash(typeParameters)))));
 
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ParameterStructure) return false;
-    if (requiredParameters != other.requiredParameters ||
+    if (requiredPositionalParameters != other.requiredPositionalParameters ||
         positionalParameters != other.positionalParameters ||
         typeParameters != other.typeParameters ||
-        namedParameters.length != other.namedParameters.length) {
+        namedParameters.length != other.namedParameters.length ||
+        requiredNamedParameters.length !=
+            other.requiredNamedParameters.length) {
       return false;
     }
     for (int i = 0; i < namedParameters.length; i++) {
       if (namedParameters[i] != other.namedParameters[i]) {
         return false;
       }
+    }
+    for (String name in requiredNamedParameters) {
+      if (!other.requiredNamedParameters.contains(name)) return false;
     }
     return true;
   }
@@ -363,9 +387,10 @@ class ParameterStructure {
     }
     sb.write('(');
     sb.write(positionalParameters);
-    if (namedParameters.length > 0) {
+    for (var name in namedParameters) {
       sb.write(',');
-      sb.write(namedParameters.join(','));
+      if (requiredNamedParameters.contains(name)) sb.write('req ');
+      sb.write(name);
     }
     sb.write(')');
     return sb.toString();
@@ -375,13 +400,13 @@ class ParameterStructure {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('ParameterStructure(');
-    sb.write('requiredParameters=$requiredParameters,');
+    sb.write('requiredPositionalParameters=$requiredPositionalParameters,');
     sb.write('positionalParameters=$positionalParameters,');
     sb.write('namedParameters={${namedParameters.join(',')}},');
+    sb.write('requiredNamedParameters={${requiredNamedParameters.join(',')}},');
     sb.write('typeParameters=$typeParameters)');
     return sb.toString();
   }
 
-  int get size =>
-      positionalParameters + typeParameters + namedParameters.length;
+  int get size => totalParameters + typeParameters;
 }

@@ -155,24 +155,42 @@ class RecursiveContinuationRewriter extends Transformer {
     //  }
     final CoreTypes coreTypes = staticTypeContext.typeEnvironment.coreTypes;
 
-    // TODO(39565): We should be able to use forInElementType.
-    helper.unsafeCast;
-    final DartType iterableType =
-        stmt.iterable.getStaticType(staticTypeContext);
-    final DartType iterationType = iterableType is InterfaceType
-        ? staticTypeContext.typeEnvironment.forInElementType(stmt, iterableType)
-        : DynamicType();
-    final expectedIterableType = InterfaceType(
-        coreTypes.iterableClass, Nullability.legacy, [iterationType]);
-    final iteratorType = InterfaceType(
-        coreTypes.iteratorClass, Nullability.legacy, [iterationType]);
+    DartType iterableType = stmt.iterable.getStaticType(staticTypeContext);
+    while (iterableType is TypeParameterType) {
+      TypeParameterType typeParameterType = iterableType;
+      iterableType =
+          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
+    }
 
-    // TODO(39566): Iterable expression is not always well typed in the AST.
-    final typedIterable = StaticInvocation(helper.unsafeCast,
-        Arguments([stmt.iterable], types: [expectedIterableType]));
+    // The CFE might invoke this transformation despite the program having
+    // compile-time errors. So we will not transform this [stmt] if the
+    // `stmt.iterable` is not a subtype of non-nullable/legacy Iterable.
+    if (iterableType is! InterfaceType ||
+        !staticTypeContext.typeEnvironment.isSubtypeOf(
+            iterableType,
+            coreTypes.iterableRawType(staticTypeContext.nonNullable),
+            staticTypeContext.isNonNullableByDefault
+                ? SubtypeCheckMode.withNullabilities
+                : SubtypeCheckMode.ignoringNullabilities)) {
+      return super.visitForInStatement(stmt);
+    }
+
+    final DartType iterationType = staticTypeContext.typeEnvironment
+        .forInElementType(stmt, (iterableType as InterfaceType));
+
+    // The NNBD sdk declares that Iterable.get:iterator returns a non-nullable
+    // `Iterator<E>`.
+    assert(const [
+      Nullability.nonNullable,
+      Nullability.legacy
+    ].contains(coreTypes.iterableGetIterator.function.returnType.nullability));
+
+    final iteratorType = InterfaceType(coreTypes.iteratorClass,
+        staticTypeContext.nonNullable, [iterationType]);
+
     final iterator = VariableDeclaration(':sync-for-iterator',
         initializer: PropertyGet(
-            typedIterable, Name('iterator'), coreTypes.iterableGetIterator)
+            stmt.iterable, Name('iterator'), coreTypes.iterableGetIterator)
           ..fileOffset = stmt.iterable.fileOffset,
         type: iteratorType)
       ..fileOffset = stmt.iterable.fileOffset;
@@ -382,14 +400,16 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
 }
 
 abstract class AsyncRewriterBase extends ContinuationRewriterBase {
-  final VariableDeclaration nestedClosureVariable =
-      new VariableDeclaration(":async_op");
-  final VariableDeclaration stackTraceVariable =
-      new VariableDeclaration(ContinuationVariables.asyncStackTraceVar);
-  final VariableDeclaration thenContinuationVariable =
-      new VariableDeclaration(":async_op_then");
-  final VariableDeclaration catchErrorContinuationVariable =
-      new VariableDeclaration(":async_op_error");
+  final VariableDeclaration stackTraceVariable;
+
+  // :async_op has type ([dynamic result, dynamic e, StackTrace? s]) -> dynamic
+  final VariableDeclaration nestedClosureVariable;
+
+  // :async_op_then has type (dynamic result) -> dynamic
+  final VariableDeclaration thenContinuationVariable;
+
+  // :async_op_error has type (Object e, StackTrace s) -> dynamic
+  final VariableDeclaration catchErrorContinuationVariable;
 
   LabeledStatement labeledBody;
 
@@ -397,7 +417,24 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
   AsyncRewriterBase(HelperNodes helper, FunctionNode enclosingFunction,
       StaticTypeContext staticTypeContext)
-      : super(helper, enclosingFunction, staticTypeContext) {}
+      : stackTraceVariable =
+            VariableDeclaration(ContinuationVariables.asyncStackTraceVar),
+        nestedClosureVariable = VariableDeclaration(":async_op",
+            type: FunctionType([
+              const DynamicType(),
+              const DynamicType(),
+              helper.coreTypes.stackTraceRawType(staticTypeContext.nullable),
+            ], const DynamicType(), staticTypeContext.nonNullable,
+                requiredParameterCount: 0)),
+        thenContinuationVariable = VariableDeclaration(":async_op_then",
+            type: FunctionType(const [const DynamicType()], const DynamicType(),
+                staticTypeContext.nonNullable)),
+        catchErrorContinuationVariable = VariableDeclaration(":async_op_error",
+            type: FunctionType([
+              helper.coreTypes.objectRawType(staticTypeContext.nonNullable),
+              helper.coreTypes.stackTraceRawType(staticTypeContext.nonNullable),
+            ], const DynamicType(), staticTypeContext.nonNullable)),
+        super(helper, enclosingFunction, staticTypeContext) {}
 
   void setupAsyncContinuations(List<Statement> statements) {
     expressionRewriter = new ExpressionLifter(this);
@@ -476,7 +513,9 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     --currentTryDepth;
 
     var exceptionVariable = new VariableDeclaration(":exception");
-    var stackTraceVariable = new VariableDeclaration(":stack_trace");
+    var stackTraceVariable = new VariableDeclaration(":stack_trace",
+        type:
+            helper.coreTypes.stackTraceRawType(staticTypeContext.nonNullable));
 
     return new TryCatch(
       buildReturn(labeledBody),
@@ -845,8 +884,9 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       //   }
       var valueVariable = stmt.variable;
 
-      var streamVariable =
-          new VariableDeclaration(':stream', initializer: stmt.iterable);
+      var streamVariable = new VariableDeclaration(':stream',
+          initializer: stmt.iterable,
+          type: stmt.iterable.getStaticType(staticTypeContext));
 
       var asyncStarListenHelper = new ExpressionStatement(new StaticInvocation(
           helper.asyncStarListenHelper,
@@ -1173,7 +1213,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     var startStatement = new ExpressionStatement(new MethodInvocation(
         new VariableGet(completerVariable),
         new Name('start'),
-        new Arguments([new VariableGet(nestedClosureVariable)]))
+        new Arguments([new VariableGet(nestedClosureVariable)]),
+        helper.asyncAwaitCompleterStartProcedure)
       ..fileOffset = enclosingFunction.fileOffset);
     statements.add(startStatement);
     // return :async_completer.future;
@@ -1243,6 +1284,7 @@ class HelperNodes {
   final Class asyncAwaitCompleterClass;
   final Member completerCompleteError;
   final Member asyncAwaitCompleterConstructor;
+  final Member asyncAwaitCompleterStartProcedure;
   final Member completeOnAsyncReturn;
   final Member completerFuture;
   final Library coreLibrary;
@@ -1283,6 +1325,7 @@ class HelperNodes {
       this.asyncAwaitCompleterClass,
       this.completerCompleteError,
       this.asyncAwaitCompleterConstructor,
+      this.asyncAwaitCompleterStartProcedure,
       this.completeOnAsyncReturn,
       this.completerFuture,
       this.coreLibrary,
@@ -1323,6 +1366,7 @@ class HelperNodes {
         coreTypes.asyncAwaitCompleterClass,
         coreTypes.completerCompleteError,
         coreTypes.asyncAwaitCompleterConstructor,
+        coreTypes.asyncAwaitCompleterStartProcedure,
         coreTypes.completeOnAsyncReturn,
         coreTypes.completerFuture,
         coreTypes.coreLibrary,

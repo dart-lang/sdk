@@ -180,6 +180,15 @@ class PcRelativeTrampolineJumpPattern : public ValueObject {
   uword pattern_start_;
 };
 
+class PcRelativeTailCallPattern : public PcRelativeTrampolineJumpPattern {
+ public:
+  static const intptr_t kLowerCallingRange = -(1ul << 31) + kLengthInBytes;
+  static const intptr_t kUpperCallingRange = (1ul << 31) - 1;
+
+  explicit PcRelativeTailCallPattern(uword pc)
+      : PcRelativeTrampolineJumpPattern(pc) {}
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_INSTRUCTIONS_X64_H_

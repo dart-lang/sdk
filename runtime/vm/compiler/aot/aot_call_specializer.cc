@@ -851,7 +851,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   if (has_one_target) {
     const Function& target = targets.FirstTarget();
-    RawFunction::Kind function_kind = target.kind();
+    FunctionLayout::Kind function_kind = target.kind();
     if (flow_graph()->CheckForInstanceCall(instr, function_kind) ==
         FlowGraph::ToCheck::kNoCheck) {
       StaticCallInstr* call = StaticCallInstr::FromCall(
@@ -1300,9 +1300,28 @@ void AotCallSpecializer::ReplaceInstanceCallsWithDispatchTableCalls() {
   }
 }
 
-void AotCallSpecializer::TryReplaceWithDispatchTableCall(
+const Function& AotCallSpecializer::InterfaceTargetForTableDispatch(
     InstanceCallBaseInstr* call) {
   const Function& interface_target = call->interface_target();
+  if (!interface_target.IsNull()) {
+    return interface_target;
+  }
+
+  // Dynamic call or tearoff.
+  const Function& tearoff_interface_target = call->tearoff_interface_target();
+  if (!tearoff_interface_target.IsNull()) {
+    // Tearoff.
+    return Function::ZoneHandle(
+        Z, tearoff_interface_target.GetMethodExtractor(call->function_name()));
+  }
+
+  // Dynamic call.
+  return Function::null_function();
+}
+
+void AotCallSpecializer::TryReplaceWithDispatchTableCall(
+    InstanceCallBaseInstr* call) {
+  const Function& interface_target = InterfaceTargetForTableDispatch(call);
   if (interface_target.IsNull()) {
     // Dynamic call.
     return;
@@ -1333,7 +1352,7 @@ void AotCallSpecializer::TryReplaceWithDispatchTableCall(
   InsertBefore(call, load_cid, call->env(), FlowGraph::kValue);
 
   auto dispatch_table_call = DispatchTableCallInstr::FromCall(
-      Z, call, new (Z) Value(load_cid), selector);
+      Z, call, new (Z) Value(load_cid), interface_target, selector);
   call->ReplaceWith(dispatch_table_call, current_iterator());
 }
 

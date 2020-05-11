@@ -1,0 +1,4 @@
+extension Extension ;
+on String (){ }
+main() { }
+errors() { }

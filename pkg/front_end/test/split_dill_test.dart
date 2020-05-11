@@ -38,7 +38,8 @@ main() async {
     Component libComponent = new Component(nameRoot: component.root);
     libComponent.libraries.add(lib);
     libComponent.uriToSource.addAll(component.uriToSource);
-    libComponent.mainMethod = component.mainMethod;
+    libComponent.setMainMethodAndMode(
+        component.mainMethodName, true, component.mode);
     libComponents.add(serializeComponent(libComponent));
   }
   print("Serialized ${libComponents.length} separate library components "

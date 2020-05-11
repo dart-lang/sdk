@@ -269,12 +269,20 @@ class LibraryAnalyzer {
     }
 
     var content = _getFileContent(file.path);
-    unit.accept(BestPracticesVerifier(
-        errorReporter, _typeProvider, _libraryElement, unit, content,
+    unit.accept(
+      BestPracticesVerifier(
+        errorReporter,
+        _typeProvider,
+        _libraryElement,
+        unit,
+        content,
+        declaredVariables: _declaredVariables,
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         resourceProvider: _resourceProvider,
-        analysisOptions: _context.analysisOptions));
+        analysisOptions: _context.analysisOptions,
+      ),
+    );
 
     unit.accept(OverrideVerifier(
       _inheritance,

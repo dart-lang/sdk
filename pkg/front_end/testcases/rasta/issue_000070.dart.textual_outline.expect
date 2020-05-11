@@ -1,0 +1,17 @@
+import "package:expect/expect.dart";
+
+class A<N, S, U> {
+  final List<U> field;
+  A(N n, S s) : field = new List<U>() {}
+  A.empty() : field = null {}
+  factory A.f(S s) {}
+  const A.c(U u, S s) : field = const [null];
+  List<U> get getter {}
+  void set setter(S s) {}
+}
+
+abstract class J<Aa, B> {}
+
+abstract class I<H, C, K> extends J<C, K> {}
+
+main() {}

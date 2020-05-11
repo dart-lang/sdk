@@ -94,7 +94,7 @@ class UnknownType extends DartType {
 
   @override
   String toStringInternal() {
-    return "";
+    return "<unknown-type>";
   }
 }
 

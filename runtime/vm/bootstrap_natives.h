@@ -58,6 +58,7 @@ namespace dart {
   V(SendPortImpl_get_id, 1)                                                    \
   V(SendPortImpl_get_hashcode, 1)                                              \
   V(SendPortImpl_sendInternal_, 2)                                             \
+  V(SendPortImpl_sendAndExitInternal_, 2)                                      \
   V(Smi_bitAndFromSmi, 2)                                                      \
   V(Smi_bitNegate, 1)                                                          \
   V(Smi_bitLength, 1)                                                          \
@@ -316,8 +317,8 @@ namespace dart {
   V(Int32x4_setFlagZ, 2)                                                       \
   V(Int32x4_setFlagW, 2)                                                       \
   V(Int32x4_select, 3)                                                         \
-  V(Isolate_spawnFunction, 11)                                                 \
-  V(Isolate_spawnUri, 13)                                                      \
+  V(Isolate_spawnFunction, 10)                                                 \
+  V(Isolate_spawnUri, 12)                                                      \
   V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
   V(Isolate_getCurrentRootUriStr, 0)                                           \
   V(Isolate_sendOOB, 2)                                                        \
@@ -370,7 +371,6 @@ namespace dart {
   V(VMService_CancelStream, 1)                                                 \
   V(VMService_RequestAssets, 0)                                                \
   V(VMService_DecodeAssets, 1)                                                 \
-  V(VMService_spawnUriNotify, 2)                                               \
   V(Ffi_loadInt8, 2)                                                           \
   V(Ffi_loadInt16, 2)                                                          \
   V(Ffi_loadInt32, 2)                                                          \
@@ -487,8 +487,8 @@ class BootstrapNatives : public AllStatic {
   static const uint8_t* Symbol(Dart_NativeFunction* nf);
 
 #define DECLARE_BOOTSTRAP_NATIVE(name, ignored)                                \
-  static RawObject* DN_##name(Thread* thread, Zone* zone,                      \
-                              NativeArguments* arguments);
+  static ObjectPtr DN_##name(Thread* thread, Zone* zone,                       \
+                             NativeArguments* arguments);
 
   BOOTSTRAP_NATIVE_LIST(DECLARE_BOOTSTRAP_NATIVE)
 #if !defined(DART_PRECOMPILED_RUNTIME)

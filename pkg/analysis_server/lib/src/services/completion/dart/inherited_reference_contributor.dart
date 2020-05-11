@@ -8,8 +8,6 @@ import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -21,14 +19,14 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart'
 /// via an implicit target of `this`.
 class InheritedReferenceContributor extends DartCompletionContributor {
   /// The builder used to build the suggestions.
-  MemberSuggestionBuilder builder;
+  MemberSuggestionBuilder memberBuilder;
 
   /// The kind of suggestion to make.
   CompletionSuggestionKind kind;
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     if (!request.includeIdentifiers) {
       return const <CompletionSuggestion>[];
     }
@@ -40,8 +38,8 @@ class InheritedReferenceContributor extends DartCompletionContributor {
     var classOrMixin = member.parent;
     if (classOrMixin is ClassOrMixinDeclaration &&
         classOrMixin.declaredElement != null) {
-      builder = MemberSuggestionBuilder(request);
-      return _computeSuggestionsForClass(classOrMixin.declaredElement, request);
+      memberBuilder = MemberSuggestionBuilder(request, builder);
+      _computeSuggestionsForClass(classOrMixin.declaredElement, request);
     }
     return const <CompletionSuggestion>[];
   }
@@ -54,12 +52,12 @@ class InheritedReferenceContributor extends DartCompletionContributor {
       for (var accessor in type.accessors) {
         if (accessor.isGetter) {
           if (opType.includeReturnValueSuggestions) {
-            builder.addSuggestionForAccessor(
+            memberBuilder.addSuggestionForAccessor(
                 accessor: accessor, inheritanceDistance: inheritanceDistance);
           }
         } else {
           if (opType.includeVoidReturnSuggestions) {
-            builder.addSuggestionForAccessor(
+            memberBuilder.addSuggestionForAccessor(
                 accessor: accessor, inheritanceDistance: inheritanceDistance);
           }
         }
@@ -67,30 +65,29 @@ class InheritedReferenceContributor extends DartCompletionContributor {
     }
     for (var method in type.methods) {
       if (method.returnType == null) {
-        builder.addSuggestionForMethod(
+        memberBuilder.addSuggestionForMethod(
             method: method,
             inheritanceDistance: inheritanceDistance,
             kind: kind);
       } else if (!method.returnType.isVoid) {
         if (opType.includeReturnValueSuggestions) {
-          builder.addSuggestionForMethod(
+          memberBuilder.addSuggestionForMethod(
               method: method,
               inheritanceDistance: inheritanceDistance,
               kind: kind);
         }
       } else {
         if (opType.includeVoidReturnSuggestions) {
-          var suggestion = builder.addSuggestionForMethod(
+          memberBuilder.addSuggestionForMethod(
               method: method,
               inheritanceDistance: inheritanceDistance,
               kind: kind);
-          _updateFlutterSuggestions(request, method, suggestion);
         }
       }
     }
   }
 
-  List<CompletionSuggestion> _computeSuggestionsForClass(
+  void _computeSuggestionsForClass(
       ClassElement classElement, DartCompletionRequest request) {
     var isFunctionalArgument = request.target.isFunctionalArgument();
     kind = isFunctionalArgument
@@ -105,7 +102,6 @@ class InheritedReferenceContributor extends DartCompletionContributor {
       _addSuggestionsForType(type, request, inheritanceDistance,
           isFunctionalArgument: isFunctionalArgument);
     }
-    return builder.suggestions.toList();
   }
 
   /// Return the class member containing the target or `null` if the target is
@@ -121,40 +117,11 @@ class InheritedReferenceContributor extends DartCompletionContributor {
         if (!node.isStatic) {
           return node;
         }
+      } else if (node is ConstructorDeclaration) {
+        return node;
       }
       node = node.parent;
     }
     return null;
-  }
-
-  void _updateFlutterSuggestions(DartCompletionRequest request, Element element,
-      CompletionSuggestion suggestion) {
-    if (suggestion == null) {
-      return;
-    }
-    if (element is MethodElement &&
-        element.name == 'setState' &&
-        Flutter.of(request.result).isExactState(element.enclosingElement)) {
-      // Find the line indentation.
-      var indent = getRequestLineIndent(request);
-
-      // Let the user know that we are going to insert a complete statement.
-      suggestion.displayText = 'setState(() {});';
-
-      // Build the completion and the selection offset.
-      var buffer = StringBuffer();
-      buffer.writeln('setState(() {');
-      buffer.write('$indent  ');
-      suggestion.selectionOffset = buffer.length;
-      buffer.writeln();
-      buffer.write('$indent});');
-      suggestion.completion = buffer.toString();
-
-      // There are no arguments to fill.
-      suggestion.parameterNames = null;
-      suggestion.parameterTypes = null;
-      suggestion.requiredParameterCount = null;
-      suggestion.hasNamedParameters = null;
-    }
   }
 }

@@ -49,11 +49,14 @@ String decodeAllowMalformed2(List<int> inputBytes) {
   return utf8.decode(bytes);
 }
 
-final TESTS = [
+final TESTS0 = [
   // Unfinished UTF-8 sequences.
   [0xc3],
   [0xE2, 0x82],
-  [0xF0, 0xA4, 0xAD],
+  [0xF0, 0xA4, 0xAD]
+];
+
+final TESTS1 = [
   // Overlong encoding of euro-sign.
   [0xF0, 0x82, 0x82, 0xAC],
   // Other overlong/unfinished sequences.
@@ -80,11 +83,11 @@ final TESTS2 = [
   // Test that 0xC0|1, 0x80 does not eat the next character.
   [
     [0xC0, 0x80, 0x61],
-    "Xa"
+    "XXa"
   ],
   [
     [0xC1, 0x80, 0x61],
-    "Xa"
+    "XXa"
   ],
   // 0xF5 .. 0xFF never appear in valid UTF-8 sequences.
   [
@@ -223,44 +226,49 @@ final TESTS2 = [
 ];
 
 main() {
-  var allTests = TESTS.expand((test) {
+  var allTests = [...TESTS0, ...TESTS1].expand((test) {
     // Pairs of test and expected string output when malformed strings are
-    // allowed. Replacement character: U+FFFD
+    // allowed. Replacement character: U+FFFD, one per unfinished sequence or
+    // undecodable byte.
+    String replacement =
+        TESTS0.contains(test) ? "\u{FFFD}" : "\u{FFFD}" * test.length;
     return [
-      [test, "\u{FFFD}"],
+      [test, "${replacement}"],
       [
-        new List<int>.from([0x61])..addAll(test),
-        "a\u{FFFD}"
+        [0x61, ...test],
+        "a${replacement}"
       ],
       [
-        new List<int>.from([0x61])
-          ..addAll(test)
-          ..add(0x61),
-        "a\u{FFFD}a"
-      ],
-      [new List<int>.from(test)..add(0x61), "\u{FFFD}a"],
-      [new List<int>.from(test)..addAll(test), "\u{FFFD}\u{FFFD}"],
-      [
-        new List<int>.from(test)
-          ..add(0x61)
-          ..addAll(test),
-        "\u{FFFD}a\u{FFFD}"
+        [0x61, ...test, 0x61],
+        "a${replacement}a"
       ],
       [
-        new List<int>.from([0xc3, 0xa5])..addAll(test),
-        "å\u{FFFD}"
+        [...test, 0x61],
+        "${replacement}a"
       ],
       [
-        new List<int>.from([0xc3, 0xa5])..addAll(test)..addAll([0xc3, 0xa5]),
-        "å\u{FFFD}å"
+        [...test, ...test],
+        "${replacement}${replacement}"
       ],
       [
-        new List<int>.from(test)..addAll([0xc3, 0xa5]),
-        "\u{FFFD}å"
+        [...test, 0x61, ...test],
+        "${replacement}a${replacement}"
       ],
       [
-        new List<int>.from(test)..addAll([0xc3, 0xa5])..addAll(test),
-        "\u{FFFD}å\u{FFFD}"
+        [0xc3, 0xa5, ...test],
+        "å${replacement}"
+      ],
+      [
+        [0xc3, 0xa5, ...test, 0xc3, 0xa5],
+        "å${replacement}å"
+      ],
+      [
+        [...test, 0xc3, 0xa5],
+        "${replacement}å"
+      ],
+      [
+        [...test, 0xc3, 0xa5, ...test],
+        "${replacement}å${replacement}"
       ]
     ];
   });

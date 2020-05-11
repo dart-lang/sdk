@@ -9,15 +9,17 @@ import 'package:kernel/ast.dart';
 /// De-duplication of identical mixin applications.
 void transformComponent(Component component) {
   final deduplicateMixins = new DeduplicateMixinsTransformer();
-  final interfaceTargetResolver = InterfaceTargetResolver(deduplicateMixins);
+  final referenceUpdater = ReferenceUpdater(deduplicateMixins);
 
   // Deduplicate mixins and re-resolve super initializers.
   // (this is a shallow transformation)
   component.libraries.forEach(deduplicateMixins.visitLibrary);
 
-  // Do a deep transformation to re-resolve all interface targets that point to
-  // members of removed mixin application classes.
-
+  // Do a deep transformation to update references to the removed mixin
+  // application classes in the interface targets and types.
+  //
+  // Interface targets pointing to members of removed mixin application
+  // classes are re-resolved at the remaining mixin applications.
   // This is necessary iff the component was assembled from individual modular
   // kernel compilations:
   //
@@ -30,7 +32,11 @@ void transformComponent(Component component) {
   // TODO(dartbug.com/39375): Remove this extra O(N) pass over the AST if the
   // CFE decides to consistently let the interface target point to the mixin
   // class (instead of mixin application).
-  component.libraries.forEach(interfaceTargetResolver.visitLibrary);
+  //
+  // Types could also contain references to removed mixin applications due to
+  // LUB algorithm in CFE (calculating static type of a conditional expression)
+  // and type inference which can spread types and produce derived types.
+  component.libraries.forEach(referenceUpdater.visitLibrary);
 }
 
 class _DeduplicateMixinKey {
@@ -140,46 +146,55 @@ class DeduplicateMixinsTransformer extends Transformer {
       throw 'Unexpected node ${node.runtimeType}: $node';
 }
 
-/// Rewrites interface targets to point to the deduplicated mixin application
-/// class.
-class InterfaceTargetResolver extends RecursiveVisitor<TreeNode> {
+/// Rewrites references to the deduplicated mixin application
+/// classes. Updates interface targets and types.
+class ReferenceUpdater extends RecursiveVisitor<void> {
   final DeduplicateMixinsTransformer transformer;
+  final _visitedConstants = new Set<Constant>.identity();
 
-  InterfaceTargetResolver(this.transformer);
+  ReferenceUpdater(this.transformer);
 
-  defaultTreeNode(TreeNode node) {
-    node.visitChildren(this);
-    return node;
+  @override
+  visitLibrary(Library node) {
+    super.visitLibrary(node);
+    // Avoid accumulating too many constants in case of huge programs.
+    _visitedConstants.clear();
   }
 
+  @override
   visitPropertyGet(PropertyGet node) {
     node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
-    return super.visitPropertyGet(node);
+    super.visitPropertyGet(node);
   }
 
+  @override
   visitPropertySet(PropertySet node) {
     node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
-    return super.visitPropertySet(node);
+    super.visitPropertySet(node);
   }
 
+  @override
   visitMethodInvocation(MethodInvocation node) {
     node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
-    return super.visitMethodInvocation(node);
+    super.visitMethodInvocation(node);
   }
 
+  @override
   visitSuperPropertyGet(SuperPropertyGet node) {
     node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
-    return super.visitSuperPropertyGet(node);
+    super.visitSuperPropertyGet(node);
   }
 
+  @override
   visitSuperPropertySet(SuperPropertySet node) {
     node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
-    return super.visitSuperPropertySet(node);
+    super.visitSuperPropertySet(node);
   }
 
+  @override
   visitSuperMethodInvocation(SuperMethodInvocation node) {
     node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
-    return super.visitSuperMethodInvocation(node);
+    super.visitSuperMethodInvocation(node);
   }
 
   Member _resolveNewInterfaceTarget(Member m) {
@@ -204,6 +219,45 @@ class InterfaceTargetResolver extends RecursiveVisitor<TreeNode> {
     } else {
       throw 'Hit unexpected interface target which is not a Field/Procedure';
     }
+  }
+
+  @override
+  visitInterfaceType(InterfaceType node) {
+    node.className = _updateClassReference(node.className);
+    super.visitInterfaceType(node);
+  }
+
+  Reference _updateClassReference(Reference classRef) {
+    final Class c = classRef.asClass;
+    if (c != null && c.isAnonymousMixin) {
+      final Class replacement = transformer._duplicatedMixins[c];
+      if (replacement != null) {
+        return replacement.reference;
+      }
+    }
+    return classRef;
+  }
+
+  @override
+  defaultConstantReference(Constant node) {
+    // By default, RecursiveVisitor stops at constants. We need to go deeper
+    // into constants in order to update types which are only referenced from
+    // constants. However, constants are DAGs and not trees, so visiting
+    // the same constant multiple times should be avoided to prevent
+    // exponential running time.
+    if (_visitedConstants.add(node)) {
+      node.accept(this);
+    }
+  }
+
+  @override
+  visitClassReference(Class node) {
+    // Safeguard against any possible leaked uses of anonymous mixin
+    // applications which are not updated.
+    if (node.isAnonymousMixin && transformer._duplicatedMixins[node] != null) {
+      throw 'Unexpected reference to removed mixin application $node';
+    }
+    super.visitClassReference(node);
   }
 }
 

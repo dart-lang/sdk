@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -33,6 +34,52 @@ class FeatureSetProviderTest with ResourceProviderMixin {
 
     mockSdk = MockSdk(resourceProvider: resourceProvider);
     _createSourceFactory();
+  }
+
+  test_nested() {
+    var packages = Packages(
+      {
+        'aaa': Package(
+          name: 'aaa',
+          rootFolder: getFolder('/packages/aaa'),
+          libFolder: getFolder('/packages/aaa/lib'),
+          languageVersion: Version.parse('2.5.0'),
+        ),
+        'bbb': Package(
+          name: 'bbb',
+          rootFolder: getFolder('/packages/aaa/bbb'),
+          libFolder: getFolder('/packages/aaa/bbb/lib'),
+          languageVersion: Version.parse('2.6.0'),
+        ),
+        'ccc': Package(
+          name: 'ccc',
+          rootFolder: getFolder('/packages/ccc'),
+          libFolder: getFolder('/packages/ccc/lib'),
+          languageVersion: Version.parse('2.7.0'),
+        ),
+      },
+    );
+
+    provider = FeatureSetProvider.build(
+      resourceProvider: resourceProvider,
+      packages: packages,
+      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+    );
+
+    void check(String posixPath, Version expected) {
+      var path = convertPath(posixPath);
+      var uri = Uri.parse('package:aaa/a.dart');
+      expect(
+        provider.getLanguageVersion(path, uri),
+        expected,
+      );
+    }
+
+    check('/packages/aaa/a.dart', Version.parse('2.5.0'));
+    check('/packages/aaa/bbb/b.dart', Version.parse('2.6.0'));
+    check('/packages/ccc/c.dart', Version.parse('2.7.0'));
+    check('/packages/ddd/d.dart', ExperimentStatus.currentVersion);
   }
 
   test_packages() {
@@ -104,7 +151,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
           name: 'ccc',
           rootFolder: newFolder('/packages/ccc'),
           libFolder: newFolder('/packages/ccc/lib'),
-          languageVersion: Version(2, 8, 0),
+          languageVersion: Version(2, 9, 0),
         ),
       },
     );

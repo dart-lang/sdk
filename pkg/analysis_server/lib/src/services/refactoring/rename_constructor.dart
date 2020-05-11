@@ -56,8 +56,6 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // prepare references
     var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
@@ -110,8 +108,6 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   Future<void> _replaceSynthetic() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var classElement = element.enclosingElement;
 
     var result = await AnalysisSessionHelper(session)

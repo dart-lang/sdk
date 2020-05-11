@@ -1,0 +1,24 @@
+library test;
+
+class Base {
+  double doubleProp;
+  int intProp;
+  num numProp;
+}
+
+class Test1 extends Base {
+  void test() {}
+}
+
+class Test2 extends Base {
+  void test() {}
+}
+
+class Test3 extends Base {
+  void test3() {}
+}
+
+double getDouble() => 0.0;
+int getInt() => 0;
+main() {}
+num getNum() => 0;

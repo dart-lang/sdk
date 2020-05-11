@@ -59,9 +59,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
 // The syntax used is the same as that for FLAG_LIST below, as these flags are
 // automatically included in FLAG_LIST.
 #define VM_GLOBAL_FLAG_LIST(P, R, C, D)                                        \
-  P(dwarf_stack_traces, bool, false,                                           \
-    "Emit DWARF line number and inlining info"                                 \
-    "in dylib snapshots and don't symbolize stack traces.")                    \
+  P(dwarf_stack_traces_mode, bool, false,                                      \
+    "Use --[no-]dwarf-stack-traces instead.")                                  \
   P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   P(lazy_async_stacks, bool, false, "Reconstruct async stacks from listeners") \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
@@ -143,6 +142,9 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
+  P(scavenger_tasks, int, 2,                                                   \
+    "The number of tasks to spawn during scavenging (0 means "                 \
+    "perform all marking on main thread).")                                    \
   P(marker_tasks, int, 2,                                                      \
     "The number of tasks to spawn during old gen GC marking (0 means "         \
     "perform all marking on main thread).")                                    \
@@ -189,12 +191,10 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  P(null_safety, bool, false,                                                  \
-    "Respect the nullability of types in casts and instance checks.")          \
   P(use_table_dispatch, bool, true, "Enable dispatch table based calls.")      \
-  P(retain_dispatched_functions, bool, !USING_PRODUCT,                         \
-    "Serialize function objects for code in the dispatch table even if "       \
-    "not needed in the precompiled runtime")                                   \
+  P(retain_function_objects, bool, true,                                       \
+    "Serialize function objects for all code objects even if not otherwise "   \
+    "needed in the precompiled runtime.")                                      \
   P(enable_isolate_groups, bool, false, "Enable isolate group support.")       \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \

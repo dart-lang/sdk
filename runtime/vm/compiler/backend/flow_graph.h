@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_H_
 #define RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/growable_array.h"
@@ -156,11 +160,10 @@ class FlowGraph : public ZoneAllocated {
   }
 
   intptr_t CurrentContextEnvIndex() const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
     if (function().HasBytecode()) {
       return -1;
     }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
     return EnvIndex(parsed_function().current_context_var());
   }
 
@@ -233,7 +236,7 @@ class FlowGraph : public ZoneAllocated {
   // Return value indicates that the call needs no check at all,
   // just a null check, or a full class check.
   ToCheck CheckForInstanceCall(InstanceCallInstr* call,
-                               RawFunction::Kind kind) const;
+                               FunctionLayout::Kind kind) const;
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread()->zone(); }

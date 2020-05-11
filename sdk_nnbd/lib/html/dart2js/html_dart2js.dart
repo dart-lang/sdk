@@ -4049,7 +4049,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   String get cssFloat native;
 
-  set cssFloat(String value) native;
+  set cssFloat(String? value) native;
 
   String get cssText native;
 
@@ -10448,13 +10448,13 @@ class DocumentFragment extends Node
     implements NonElementParentNode, ParentNode {
   factory DocumentFragment() => document.createDocumentFragment();
 
-  factory DocumentFragment.html(String html,
+  factory DocumentFragment.html(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     return document.body!.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
   }
 
-  factory DocumentFragment.svg(String svgContent,
+  factory DocumentFragment.svg(String? svgContent,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     return new svg.SvgSvgElement().createFragment(svgContent,
         validator: validator, treeSanitizer: treeSanitizer);
@@ -10503,11 +10503,11 @@ class DocumentFragment extends Node
     return e.innerHtml;
   }
 
-  set innerHtml(String value) {
+  set innerHtml(String? value) {
     this.setInnerHtml(value);
   }
 
-  void setInnerHtml(String html,
+  void setInnerHtml(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     this.nodes.clear();
     append(document.body!.createFragment(html,
@@ -11795,6 +11795,10 @@ class _ChildrenElementList extends ListBase<Element>
     }
   }
 
+  void insertAll(int index, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
   void setAll(int index, Iterable<Element> iterable) {
     throw new UnimplementedError();
   }
@@ -11805,6 +11809,7 @@ class _ChildrenElementList extends ListBase<Element>
 
   Element removeAt(int index) {
     final result = this[index];
+    // TODO(41258): Remove null check after unfork/strong mode.
     if (result != null) {
       _element._removeChild(result);
     }
@@ -11813,9 +11818,7 @@ class _ChildrenElementList extends ListBase<Element>
 
   Element removeLast() {
     final result = this.last;
-    if (result != null) {
-      _element._removeChild(result);
-    }
+    _element._removeChild(result);
     return result;
   }
 
@@ -12661,7 +12664,7 @@ class Element extends Node
    * * [NodeValidator]
    *
    */
-  factory Element.html(String html,
+  factory Element.html(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     var fragment = document.body!.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
@@ -12881,6 +12884,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   String? getAttribute(String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     return _getAttribute(name);
@@ -12888,6 +12892,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   String? getAttributeNS(String? namespaceURI, String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
     assert(name != null, 'Attribute name cannot be null');
@@ -12896,6 +12901,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   bool hasAttribute(String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     return _hasAttribute(name);
@@ -12903,6 +12909,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   bool hasAttributeNS(String? namespaceURI, String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
     assert(name != null, 'Attribute name cannot be null');
@@ -12911,6 +12918,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void removeAttribute(String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     _removeAttribute(name);
@@ -12918,6 +12926,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void removeAttributeNS(String? namespaceURI, String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     _removeAttributeNS(namespaceURI, name);
@@ -12925,6 +12934,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void setAttribute(String name, String value) {
+    // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
@@ -12933,6 +12943,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void setAttributeNS(String? namespaceURI, String name, String value) {
+    // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
@@ -13615,7 +13626,7 @@ class Element extends Node
    * * [NodeValidator]
    * * [NodeTreeSanitizer]
    */
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (treeSanitizer == null) {
       if (validator == null) {
@@ -13663,7 +13674,7 @@ class Element extends Node
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
       _parseRange!.selectNodeContents(contextElement);
-      fragment = _parseRange!.createContextualFragment(html);
+      fragment = _parseRange!.createContextualFragment(html!);
     } else {
       contextElement._innerHtml = html;
 
@@ -13726,7 +13737,7 @@ class Element extends Node
    * This uses the default sanitization behavior to sanitize the HTML fragment,
    * use [setInnerHtml] to override the default behavior.
    */
-  set innerHtml(String html) {
+  set innerHtml(String? html) {
     this.setInnerHtml(html);
   }
 
@@ -13751,7 +13762,7 @@ class Element extends Node
    * * [NodeValidator]
    * * [NodeTreeSanitizer]
    */
-  void setInnerHtml(String html,
+  void setInnerHtml(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     text = null;
     if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
@@ -14551,7 +14562,7 @@ class Element extends Node
   String get _innerHtml native;
 
   @JSName('innerHTML')
-  set _innerHtml(String value) native;
+  set _innerHtml(String? value) native;
 
   @JSName('localName')
   String get _localName native;
@@ -19185,7 +19196,7 @@ class InputElement extends HtmlElement
 
   String get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
   DateTime get valueAsDate =>
       convertNativeToDart_DateTime(this._get_valueAsDate);
@@ -19266,7 +19277,7 @@ abstract class InputElementBase implements Element {
   set name(String value);
 
   String get value;
-  set value(String value);
+  set value(String? value);
 
   List<Node> get labels;
 
@@ -22514,7 +22525,7 @@ class Navigator extends NavigatorConcurrentHardware
         NavigatorOnLine,
         NavigatorAutomationInformation,
         NavigatorID {
-  List<Gamepad> getGamepads() {
+  List<Gamepad?> getGamepads() {
     var gamepadList = _getGamepads();
 
     // If no prototype we need one for the world to hookup to the proper Dart class.
@@ -22666,7 +22677,7 @@ class Navigator extends NavigatorConcurrentHardware
   @JSName('getGamepads')
   @Returns('_GamepadList')
   @Creates('_GamepadList')
-  List<Gamepad> _getGamepads() native;
+  List<Gamepad?> _getGamepads() native;
 
   Future<RelatedApplication> getInstalledRelatedApps() =>
       promiseToFuture<RelatedApplication>(
@@ -27847,7 +27858,7 @@ class ShadowRoot extends DocumentFragment implements DocumentOrShadowRoot {
   String get innerHtml native;
 
   @JSName('innerHTML')
-  set innerHtml(String value) native;
+  set innerHtml(String? value) native;
 
   String get mode native;
 
@@ -29255,7 +29266,7 @@ class TableCellElement extends HtmlElement {
 
   String get headers native;
 
-  set headers(String value) native;
+  set headers(String? value) native;
 
   int get rowSpan native;
 
@@ -29321,7 +29332,7 @@ class TableElement extends HtmlElement {
   @JSName('createTBody')
   TableSectionElement _nativeCreateTBody() native;
 
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
@@ -29412,7 +29423,7 @@ class TableRowElement extends HtmlElement {
   TableCellElement insertCell(int index) =>
       _insertCell(index) as TableCellElement;
 
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
@@ -29475,7 +29486,7 @@ class TableSectionElement extends HtmlElement {
 
   TableRowElement insertRow(int index) => _insertRow(index) as TableRowElement;
 
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
@@ -29570,7 +29581,7 @@ class TemplateElement extends HtmlElement {
    *
    * * <https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin>
    */
-  void setInnerHtml(String html,
+  void setInnerHtml(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     text = null;
     content.nodes.clear();
@@ -29712,7 +29723,7 @@ class TextAreaElement extends HtmlElement {
 
   String get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
   bool get willValidate native;
 
@@ -32703,7 +32714,7 @@ class Window extends EventTarget
   @Returns('Window|=Object')
   dynamic get _get_top native;
 
-  VisualViewport get visualViewport native;
+  VisualViewport? get visualViewport native;
 
   /**
    * The current window.
@@ -35685,7 +35696,7 @@ class _ElementAttributeMap extends _AttributeMap {
   _ElementAttributeMap(Element element) : super(element);
 
   bool containsKey(Object? key) {
-    return _element._hasAttribute(key as String);
+    return key is String && _element._hasAttribute(key);
   }
 
   String? operator [](Object? key) {
@@ -35711,8 +35722,8 @@ class _ElementAttributeMap extends _AttributeMap {
   // Inline this because almost all call sites of [remove] do not use [value],
   // and the annotations on the `getAttribute` call allow it to be removed.
   @pragma('dart2js:tryInline')
-  static String _remove(Element element, String key) {
-    String value = JS(
+  static String? _remove(Element element, String key) {
+    String? value = JS(
         // throws:null(1) is not accurate since [key] could be malformed, but
         // [key] is checked again by `removeAttributeNS`.
         'returns:String|Null;depends:all;effects:none;throws:null(1)',
@@ -35728,12 +35739,12 @@ class _ElementAttributeMap extends _AttributeMap {
  * Wrapper to expose namespaced attributes as a typed map.
  */
 class _NamespacedAttributeMap extends _AttributeMap {
-  final String _namespace;
+  final String? _namespace;
 
   _NamespacedAttributeMap(Element element, this._namespace) : super(element);
 
   bool containsKey(Object? key) {
-    return _element._hasAttributeNS(_namespace, key as String);
+    return key is String && _element._hasAttributeNS(_namespace, key);
   }
 
   String? operator [](Object? key) {
@@ -35761,8 +35772,8 @@ class _NamespacedAttributeMap extends _AttributeMap {
   // returned [value], and the annotations on the `getAttributeNS` call allow it
   // to be removed.
   @pragma('dart2js:tryInline')
-  static String _remove(String namespace, Element element, String key) {
-    String value = JS(
+  static String? _remove(String? namespace, Element element, String key) {
+    String? value = JS(
         // throws:null(1) is not accurate since [key] could be malformed, but
         // [key] is checked again by `removeAttributeNS`.
         'returns:String|Null;depends:all;effects:none;throws:null(1)',
@@ -36097,7 +36108,8 @@ abstract class CssClassSet implements Set<String> {
    * after the operation, and returns `false` if [value] is absent after the
    * operation.
    *
-   * If this corresponds to many elements, `null` is always returned.
+   * If this CssClassSet corresponds to many elements, `false` is always
+   * returned.
    *
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.  To toggle multiple classes, use
@@ -36131,7 +36143,8 @@ abstract class CssClassSet implements Set<String> {
    * If this CssClassSet corresponds to one element. Returns true if [value] was
    * added to the set, otherwise false.
    *
-   * If this corresponds to many elements, `null` is always returned.
+   * If this CssClassSet corresponds to many elements, `false` is always
+   * returned.
    *
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.  To add multiple classes use
@@ -40378,7 +40391,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       view = window;
     }
 
-    var eventObj;
+    dynamic eventObj;
 
     // Currently this works on everything but Safari. Safari throws an
     // "Attempting to change access mechanism for an unconfigurable property"
@@ -40622,14 +40635,15 @@ class _WrappedEvent implements Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void Function(T)? _wrapZone<T>(void Function(T) callback) {
+void Function(T)? _wrapZone<T>(void Function(T)? callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
   return Zone.current.bindUnaryCallbackGuarded(callback);
 }
 
-void Function(T1, T2)? _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
+void Function(T1, T2)? _wrapBinaryZone<T1, T2>(
+    void Function(T1, T2)? callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
@@ -40944,7 +40958,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   /// important attributes we want to check, remove it if it's not valid
   /// or not allowed, either as a whole or particular attributes.
   void _sanitizeElement(Element element, Node? parent, bool corrupted,
-      String text, String tag, Map attrs, String isAttr) {
+      String text, String tag, Map attrs, String? isAttr) {
     if (false != corrupted) {
       _removeNode(element, parent);
       window.console

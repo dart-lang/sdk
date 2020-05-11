@@ -26,17 +26,13 @@ import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/domain_kythe.dart';
 import 'package:analysis_server/src/domain_server.dart';
-import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
-import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -46,32 +42,23 @@ import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import 'package:analysis_server/src/utilities/file_string_sink.dart';
-import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
-import 'package:analysis_server/src/utilities/tee_string_sink.dart';
-import 'package:analyzer/dart/analysis/features.dart' as analyzer_features;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/overlay_file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
+import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
@@ -85,17 +72,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// be sent.
   final ServerCommunicationChannel channel;
 
-  /// The object used to manage sending a subset of notifications to the client.
-  /// The subset of notifications are those to which plugins may contribute.
-  /// This field is `null` when the new plugin support is disabled.
-  NotificationManager notificationManager;
-
-  /// The object used to manage the execution of plugins.
-  PluginManager pluginManager;
-
-  /// The [SearchEngine] for this server, may be `null` if indexing is disabled.
-  SearchEngine searchEngine;
-
   /// A flag indicating the value of the 'analyzing' parameter sent in the last
   /// status message to the client.
   bool statusAnalyzing = false;
@@ -103,15 +79,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// A list of the request handlers used to handle the requests sent to this
   /// server.
   List<RequestHandler> handlers;
-
-  /// The object used to manage the SDK's known to this server.
-  final DartSdkManager sdkManager;
-
-  /// The instrumentation service that is to be used by this analysis server.
-  final InstrumentationService instrumentationService;
-
-  /// The helper for tracking request / response statistics.
-  final RequestStatisticsHelper requestStatistics;
 
   /// A set of the [ServerService]s to send notifications for.
   Set<ServerService> serverServices = HashSet<ServerService>();
@@ -145,12 +112,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// `null`.
   Set<String> prevAnalyzedFiles;
 
-  /// The default options used to create new analysis contexts. This object is
-  /// also referenced by the ContextManager.
-  final AnalysisOptionsImpl defaultContextOptions = AnalysisOptionsImpl();
-
-  PerformanceLog _analysisPerformanceLogger;
-
   /// The controller for [onAnalysisSetChanged].
   final StreamController _onAnalysisSetChangedController =
       StreamController.broadcast(sync: true);
@@ -168,67 +129,29 @@ class AnalysisServer extends AbstractAnalysisServer {
     this.channel,
     ResourceProvider baseResourceProvider,
     AnalysisServerOptions options,
-    this.sdkManager,
+    DartSdkManager sdkManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
-    this.instrumentationService, {
-    this.requestStatistics,
+    InstrumentationService instrumentationService, {
+    RequestStatisticsHelper requestStatistics,
     DiagnosticServer diagnosticServer,
     this.detachableFileSystemManager,
-  }) : super(options, diagnosticServer, crashReportingAttachmentsBuilder,
-            baseResourceProvider) {
-    notificationManager = NotificationManager(channel, resourceProvider);
-
-    pluginManager = PluginManager(
-        resourceProvider,
-        _getByteStorePath(),
-        sdkManager.defaultSdkDirectory,
-        notificationManager,
-        instrumentationService);
-    var pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
-
-    defaultContextOptions.contextFeatures =
-        analyzer_features.FeatureSet.fromEnableFlags(
-            options.enabledExperiments);
-    defaultContextOptions.generateImplicitErrors = false;
-    defaultContextOptions.useFastaParser = options.useFastaParser;
-
-    {
-      var name = options.newAnalysisDriverLog;
-      StringSink sink = NullStringSink();
-      if (name != null) {
-        if (name == 'stdout') {
-          sink = io.stdout;
-        } else if (name.startsWith('file:')) {
-          var path = name.substring('file:'.length);
-          sink = FileStringSink(path);
-        }
-      }
-      if (requestStatistics != null) {
-        sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
-      }
-      _analysisPerformanceLogger = PerformanceLog(sink);
-    }
-
-    byteStore = createByteStore(resourceProvider);
-
-    analysisDriverScheduler = nd.AnalysisDriverScheduler(
-        _analysisPerformanceLogger,
-        driverWatcher: pluginWatcher);
-    analysisDriverScheduler.status.listen(sendStatusNotificationNew);
-    analysisDriverScheduler.start();
-
-    if (options.featureSet.completion) {
-      declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
-      declarationsTrackerData = DeclarationsTrackerData(declarationsTracker);
-      analysisDriverScheduler.outOfBandWorker =
-          CompletionLibrariesWorker(declarationsTracker);
-    }
-
-    contextManager = ContextManagerImpl(resourceProvider, sdkManager,
-        analyzedFilesGlobs, instrumentationService, defaultContextOptions);
+  }) : super(
+          options,
+          sdkManager,
+          diagnosticServer,
+          crashReportingAttachmentsBuilder,
+          baseResourceProvider,
+          instrumentationService,
+          NotificationManager(channel, baseResourceProvider.pathContext),
+          requestStatistics: requestStatistics,
+        ) {
     var contextManagerCallbacks =
         ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
+
+    analysisDriverScheduler.status.listen(sendStatusNotificationNew);
+    analysisDriverScheduler.start();
+
     _onAnalysisStartedController = StreamController.broadcast();
     onAnalysisStarted.first.then((_) {
       onAnalysisComplete.then((_) {
@@ -236,7 +159,6 @@ class AnalysisServer extends AbstractAnalysisServer {
         performance = performanceAfterStartup;
       });
     });
-    searchEngine = SearchEngineImpl(driverMap.values);
     var notification =
         ServerConnectedParams(PROTOCOL_VERSION, io.pid).toNotification();
     channel.sendNotification(notification);
@@ -664,22 +586,6 @@ class AnalysisServer extends AbstractAnalysisServer {
 //    });
   }
 
-  /// Return the path to the location of the byte store on disk, or `null` if
-  /// there is no on-disk byte store.
-  String _getByteStorePath() {
-    ResourceProvider provider = resourceProvider;
-    if (provider is OverlayResourceProvider) {
-      provider = (provider as OverlayResourceProvider).baseProvider;
-    }
-    if (provider is PhysicalResourceProvider) {
-      var stateLocation = provider.getStateLocation('.analysis-driver');
-      if (stateLocation != null) {
-        return stateLocation.path;
-      }
-    }
-    return null;
-  }
-
   /// Returns `true` if there is a subscription for the given [service] and
   /// [file].
   bool _hasAnalysisServiceSubscription(AnalysisService service, String file) {
@@ -691,8 +597,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   }
 
   Future<void> _scheduleAnalysisImplementedNotification() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var files = analysisServices[AnalysisService.IMPLEMENTED];
     if (files != null) {
       scheduleImplementedNotification(this, files);
@@ -941,7 +845,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
     builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
-    builder.performanceLog = analysisServer._analysisPerformanceLogger;
+    builder.performanceLog = analysisServer.analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;
     builder.enableIndex = true;
     return builder;

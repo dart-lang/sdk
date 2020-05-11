@@ -131,6 +131,20 @@ bool runProcess(String executable, List<String> arguments,
   return result.exitCode == 0;
 }
 
+Future<bool> runProcessAsync(String executable, List<String> arguments,
+    {String workingDirectory}) async {
+  if (dryRun) {
+    print("Dry run: run $executable ${arguments.join(' ')}");
+    return true;
+  }
+
+  var process = await Process.start(executable, arguments);
+  process.stdout.listen(stdout.add);
+  process.stderr.listen(stderr.add);
+
+  return (await process.exitCode) == 0;
+}
+
 /// Returns a list of the paths to all files within [dir], which is
 /// assumed to be relative to the SDK's "tests" directory and having file with
 /// an extension in [extensions].

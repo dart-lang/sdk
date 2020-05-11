@@ -1,0 +1,20 @@
+import 'mixin_from_opt_in_out_in_lib1.dart';
+import 'mixin_from_opt_in_out_in_lib2.dart';
+
+class DiB0 extends C0 implements B {}
+
+class DiBq0 extends C0 implements Bq {}
+
+class DwB0 extends C0 with B {}
+
+class DwBq0 extends C0 with Bq {}
+
+class DiB3 extends C3 implements B {}
+
+class DiBq3 extends C3 implements Bq {}
+
+class DwB3 extends C3 with B {}
+
+class DwBq3 extends C3 with Bq {}
+
+main() {}

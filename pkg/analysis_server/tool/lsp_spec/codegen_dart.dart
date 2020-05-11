@@ -348,24 +348,16 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('@override')
     ..writeIndentedln('bool operator ==(Object other) {')
     ..indent()
-    ..writeIndentedln('if (other is ${interface.name}) {')
+    // We want an exact type match, but also need `is` to have the analyzer
+    // promote the type to allow access to the fields on `other`.
+    ..writeIndentedln(
+        'if (other is ${interface.name} && other.runtimeType == ${interface.name}) {')
     ..indent()
     ..writeIndented('return ');
   for (var field in _getAllFields(interface)) {
-    final type = field.type;
-    if (type is ArrayType) {
-      final elementType = type.elementType;
-      final elementDartType = elementType.dartTypeWithTypeArgs;
-      buffer.write(
-          'listEqual(${field.name}, other.${field.name}, ($elementDartType a, $elementDartType b) => a == b) && ');
-    } else if (type is MapType) {
-      final valueType = type.valueType;
-      final valueDartType = valueType.dartTypeWithTypeArgs;
-      buffer.write(
-          'mapEqual(${field.name}, other.${field.name}, ($valueDartType a, $valueDartType b) => a == b) && ');
-    } else {
-      buffer.write('${field.name} == other.${field.name} && ');
-    }
+    final type = resolveTypeAlias(field.type);
+    _writeEqualsExpression(buffer, type, field.name, 'other.${field.name}');
+    buffer.write(' && ');
   }
   buffer
     ..writeln('true;')
@@ -374,6 +366,27 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}');
+}
+
+void _writeEqualsExpression(IndentableStringBuffer buffer, TypeBase type,
+    String thisName, String otherName) {
+  if (type is ArrayType) {
+    final elementType = type.elementType;
+    final elementDartType = elementType.dartTypeWithTypeArgs;
+    buffer.write(
+        'listEqual($thisName, $otherName, ($elementDartType a, $elementDartType b) => ');
+    _writeEqualsExpression(buffer, elementType, 'a', 'b');
+    buffer.write(')');
+  } else if (type is MapType) {
+    final valueType = type.valueType;
+    final valueDartType = valueType.dartTypeWithTypeArgs;
+    buffer.write(
+        'mapEqual($thisName, $otherName, ($valueDartType a, $valueDartType b) => ');
+    _writeEqualsExpression(buffer, valueType, 'a', 'b');
+    buffer.write(')');
+  } else {
+    buffer.write('$thisName == $otherName');
+  }
 }
 
 void _writeField(IndentableStringBuffer buffer, Field field) {

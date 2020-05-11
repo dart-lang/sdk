@@ -14,16 +14,12 @@
 
 namespace dart {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
 DECLARE_FLAG(bool, use_slow_path);
-#endif
 
 namespace compiler {
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
                      bool use_far_branches)
@@ -98,25 +94,6 @@ void Assembler::Call(const Code& target) {
 
 void Assembler::CallToRuntime() {
   call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
-}
-
-void Assembler::CallNullErrorShared(bool save_fpu_registers) {
-  uword entry_point_offset =
-      save_fpu_registers
-          ? target::Thread::null_error_shared_with_fpu_regs_entry_point_offset()
-          : target::Thread::
-                null_error_shared_without_fpu_regs_entry_point_offset();
-  call(Address(THR, entry_point_offset));
-}
-
-void Assembler::CallNullArgErrorShared(bool save_fpu_registers) {
-  const uword entry_point_offset =
-      save_fpu_registers
-          ? target::Thread::
-                null_arg_error_shared_with_fpu_regs_entry_point_offset()
-          : target::Thread::
-                null_arg_error_shared_without_fpu_regs_entry_point_offset();
-  call(Address(THR, entry_point_offset));
 }
 
 void Assembler::pushq(Register reg) {
@@ -1208,7 +1185,6 @@ void Assembler::Drop(intptr_t stack_elements, Register tmp) {
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(IsOriginalObject(object));
-  ASSERT(!target::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
   }
@@ -1243,18 +1219,23 @@ void Assembler::LoadObjectHelper(Register dst,
                                  bool is_unique) {
   ASSERT(IsOriginalObject(object));
 
-  intptr_t offset_from_thread;
-  if (target::CanLoadFromThread(object, &offset_from_thread)) {
-    movq(dst, Address(THR, offset_from_thread));
-  } else if (CanLoadFromObjectPool(object)) {
-    const intptr_t idx = is_unique ? object_pool_builder().AddObject(object)
-                                   : object_pool_builder().FindObject(object);
-    const int32_t offset = target::ObjectPool::element_offset(idx);
-    LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
-  } else {
-    ASSERT(target::IsSmi(object));
-    LoadImmediate(dst, Immediate(target::ToRawSmi(object)));
+  // `is_unique == true` effectively means object has to be patchable.
+  if (!is_unique) {
+    intptr_t offset;
+    if (target::CanLoadFromThread(object, &offset)) {
+      movq(dst, Address(THR, offset));
+      return;
+    }
   }
+  if (CanLoadFromObjectPool(object)) {
+    const int32_t offset = target::ObjectPool::element_offset(
+        is_unique ? object_pool_builder().AddObject(object)
+                  : object_pool_builder().FindObject(object));
+    LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
+    return;
+  }
+  ASSERT(target::IsSmi(object));
+  LoadImmediate(dst, Immediate(target::ToRawSmi(object)));
 }
 
 void Assembler::LoadObject(Register dst, const Object& object) {
@@ -1393,14 +1374,14 @@ void Assembler::StoreIntoObject(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
-  // Compare RawObject::StorePointer.
+  // Compare ObjectLayout::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     testq(value, Immediate(kSmiTagMask));
     j(ZERO, &done, kNearJump);
   }
   movb(TMP, FieldAddress(object, target::Object::tags_offset()));
-  shrl(TMP, Immediate(target::RawObject::kBarrierOverlapShift));
+  shrl(TMP, Immediate(target::ObjectLayout::kBarrierOverlapShift));
   andl(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
   testb(FieldAddress(value, target::Object::tags_offset()), TMP);
   j(ZERO, &done, kNearJump);
@@ -1445,14 +1426,14 @@ void Assembler::StoreIntoArray(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
-  // Compare RawObject::StorePointer.
+  // Compare ObjectLayout::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     testq(value, Immediate(kSmiTagMask));
     j(ZERO, &done, kNearJump);
   }
   movb(TMP, FieldAddress(object, target::Object::tags_offset()));
-  shrl(TMP, Immediate(target::RawObject::kBarrierOverlapShift));
+  shrl(TMP, Immediate(target::ObjectLayout::kBarrierOverlapShift));
   andl(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
   testb(FieldAddress(value, target::Object::tags_offset()), TMP);
   j(ZERO, &done, kNearJump);
@@ -1480,7 +1461,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
   testb(FieldAddress(object, target::Object::tags_offset()),
-        Immediate(1 << target::RawObject::kOldAndNotRememberedBit));
+        Immediate(1 << target::ObjectLayout::kOldAndNotRememberedBit));
   j(ZERO, &done, Assembler::kNearJump);
 
   Stop("Store buffer update is required");
@@ -1801,7 +1782,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   intptr_t start = CodeSize();
   Label have_cid, miss;
   Bind(&miss);
-  jmp(Address(THR, target::Thread::monomorphic_miss_entry_offset()));
+  jmp(Address(THR, target::Thread::switchable_call_miss_entry_offset()));
 
   // Ensure the monomorphic entry is 2-byte aligned (so GC can see them if we
   // store them in ICData / MegamorphicCache arrays)
@@ -1829,12 +1810,14 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   ASSERT(((CodeSize() - start) & kSmiTagMask) == kSmiTag);
 }
 
+// RBX - input: class id smi
+// RDX - input: receiver object
 void Assembler::MonomorphicCheckedEntryAOT() {
   has_monomorphic_entry_ = true;
   intptr_t start = CodeSize();
   Label have_cid, miss;
   Bind(&miss);
-  jmp(Address(THR, target::Thread::monomorphic_miss_entry_offset()));
+  jmp(Address(THR, target::Thread::switchable_call_miss_entry_offset()));
 
   // Ensure the monomorphic entry is 2-byte aligned (so GC can see them if we
   // store them in ICData / MegamorphicCache arrays)
@@ -1877,8 +1860,7 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      bool near_jump) {
   ASSERT(cid > 0);
   const intptr_t shared_table_offset =
-      target::Isolate::class_table_offset() +
-      target::ClassTable::shared_class_table_offset();
+      target::Isolate::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
@@ -1976,6 +1958,17 @@ void Assembler::TryAllocateArray(intptr_t cid,
 void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   buffer_.Emit<uint8_t>(0xe8);
+  buffer_.Emit<int32_t>(0);
+
+  PcRelativeCallPattern pattern(buffer_.contents() + buffer_.Size() -
+                                PcRelativeCallPattern::kLengthInBytes);
+  pattern.set_distance(offset_into_target);
+}
+
+void Assembler::GenerateUnRelocatedPcRelativeTailCall(
+    intptr_t offset_into_target) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  buffer_.Emit<uint8_t>(0xe9);
   buffer_.Emit<int32_t>(0);
 
   PcRelativeCallPattern pattern(buffer_.contents() + buffer_.Size() -
@@ -2110,20 +2103,39 @@ void Assembler::EmitGenericShift(bool wide,
   EmitOperand(rm, Operand(operand));
 }
 
+void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
+  ASSERT(sizeof(classid_t) == sizeof(uint16_t));
+  movl(result, tags);
+  shrl(result, Immediate(target::ObjectLayout::kClassIdTagPos));
+}
+
+void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
+  ASSERT(target::ObjectLayout::kSizeTagPos == 8);
+  ASSERT(target::ObjectLayout::kSizeTagSize == 8);
+  movzxw(result, tags);
+  shrl(result, Immediate(target::ObjectLayout::kSizeTagPos -
+                         target::ObjectAlignment::kObjectAlignmentLog2));
+  AndImmediate(result,
+               Immediate(Utils::NBitMask(target::ObjectLayout::kSizeTagSize)
+                         << target::ObjectAlignment::kObjectAlignmentLog2));
+}
+
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::RawObject::kClassIdTagPos == 16);
-  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
   ASSERT(sizeof(classid_t) == sizeof(uint16_t));
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::RawObject::kClassIdTagPos / kBitsPerByte;
+      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
   movzxw(result, FieldAddress(object, class_id_offset));
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
-  const intptr_t table_offset = target::Isolate::class_table_offset() +
-                                target::ClassTable::table_offset();
+  const intptr_t table_offset =
+      target::Isolate::cached_class_table_table_offset();
 
   LoadIsolate(result);
   movq(result, Address(result, table_offset));
@@ -2142,12 +2154,12 @@ void Assembler::SmiUntagOrCheckClass(Register object,
                                      intptr_t class_id,
                                      Label* is_smi) {
   ASSERT(kSmiTagShift == 1);
-  ASSERT(target::RawObject::kClassIdTagPos == 16);
-  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
   ASSERT(sizeof(classid_t) == sizeof(uint16_t));
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::RawObject::kClassIdTagPos / kBitsPerByte;
+      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
 
   // Untag optimistically. Tag bit is shifted into the CARRY.
   SmiUntag(object);
@@ -2282,8 +2294,6 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
                         target::Instance::DataOffsetFor(cid));
   }
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace compiler
 }  // namespace dart

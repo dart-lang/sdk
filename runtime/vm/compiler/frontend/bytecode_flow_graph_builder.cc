@@ -13,8 +13,6 @@
 #include "vm/stack_frame.h"
 #include "vm/stack_frame_kbc.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #define B (flow_graph_builder_)
 #define Z (zone_)
 
@@ -1639,7 +1637,7 @@ void BytecodeFlowGraphBuilder::BuildReturnTOS() {
   BuildDebugStepCheck();
   LoadStackSlots(1);
   ASSERT(code_.is_open());
-  intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex;
+  intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex;
   if (function().IsAsyncClosure() || function().IsAsyncGenClosure()) {
     if (pc_ == last_yield_point_pc_) {
       // The return might actually be a yield point, if so we need to attach the
@@ -1960,7 +1958,7 @@ intptr_t BytecodeFlowGraphBuilder::GetTryIndex(const PcDescriptors& descriptors,
                                                intptr_t pc) {
   const uword pc_offset =
       KernelBytecode::BytecodePcToOffset(pc, /* is_return_address = */ true);
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
+  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kAnyKind);
   intptr_t try_index = kInvalidTryIndex;
   while (iter.MoveNext()) {
     const intptr_t current_try_index = iter.TryIndex();
@@ -2052,7 +2050,7 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
     pc += (KernelBytecode::Next(instr) - instr);
   }
 
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
+  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kAnyKind);
   while (iter.MoveNext()) {
     const intptr_t start_pc = KernelBytecode::OffsetToBytecodePc(
         iter.PcOffset(), /* is_return_address = */ true);
@@ -2348,5 +2346,3 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
 
 }  // namespace kernel
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

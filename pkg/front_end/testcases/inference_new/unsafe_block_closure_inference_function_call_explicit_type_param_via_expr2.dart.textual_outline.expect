@@ -1,0 +1,7 @@
+library test;
+
+List<T> f<T>(T g()) => <T>[g()];
+var v = (f)(() {
+  return 1;
+});
+main() {}

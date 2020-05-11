@@ -12,20 +12,19 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/generic_inferrer.dart'
+    show GenericInferrer;
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/generated/resolver.dart'
-    show GenericInferrer, LibraryScope;
-import 'package:analyzer/src/generated/type_system.dart' show GenericInferrer;
 
 /// A contributor that produces suggestions based on the members of an
 /// extension.
 class ExtensionMemberContributor extends DartCompletionContributor {
-  MemberSuggestionBuilder builder;
+  MemberSuggestionBuilder memberBuilder;
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var containingLibrary = request.libraryElement;
     // Gracefully degrade if the library could not be determined, such as with a
     // detached part file or source change.
@@ -33,7 +32,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
-    builder = MemberSuggestionBuilder(request);
+    memberBuilder = MemberSuggestionBuilder(request, builder);
 
     // Recompute the target because resolution might have changed it.
     var expression = request.dotTarget;
@@ -55,7 +54,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
             for (var type in types) {
               double inheritanceDistance;
               if (request.useNewRelevance) {
-                inheritanceDistance = builder.request.featureComputer
+                inheritanceDistance = memberBuilder.request.featureComputer
                     .inheritanceDistanceFeature(
                         extendedType.element, type.element);
               }
@@ -65,7 +64,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         }
       }
 
-      return builder.suggestions.toList();
+      return const <CompletionSuggestion>[];
     }
 
     if (expression.isSynthetic) {
@@ -98,7 +97,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       _addExtensionMembers(containingLibrary, type);
       expression.staticType;
     }
-    return builder.suggestions.toList();
+    return const <CompletionSuggestion>[];
   }
 
   void _addExtensionMembers(LibraryElement containingLibrary, DartType type) {
@@ -109,8 +108,8 @@ class ExtensionMemberContributor extends DartCompletionContributor {
           _resolveExtendedType(containingLibrary, extension, type);
       if (extendedType != null && typeSystem.isSubtypeOf(type, extendedType)) {
         double inheritanceDistance;
-        if (builder.request.useNewRelevance) {
-          inheritanceDistance = builder.request.featureComputer
+        if (memberBuilder.request.useNewRelevance) {
+          inheritanceDistance = memberBuilder.request.featureComputer
               .inheritanceDistanceFeature(type.element, extendedType.element);
         }
         // TODO(brianwilkerson) We might want to apply the substitution to the
@@ -124,13 +123,13 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       ExtensionElement extension, double inheritanceDistance) {
     for (var method in extension.methods) {
       if (!method.isStatic) {
-        builder.addSuggestionForMethod(
+        memberBuilder.addSuggestionForMethod(
             method: method, inheritanceDistance: inheritanceDistance);
       }
     }
     for (var accessor in extension.accessors) {
       if (!accessor.isStatic) {
-        builder.addSuggestionForAccessor(
+        memberBuilder.addSuggestionForAccessor(
             accessor: accessor, inheritanceDistance: inheritanceDistance);
       }
     }
@@ -138,11 +137,11 @@ class ExtensionMemberContributor extends DartCompletionContributor {
 
   void _addTypeMembers(InterfaceType type, double inheritanceDistance) {
     for (var method in type.methods) {
-      builder.addSuggestionForMethod(
+      memberBuilder.addSuggestionForMethod(
           method: method, inheritanceDistance: inheritanceDistance);
     }
     for (var accessor in type.accessors) {
-      builder.addSuggestionForAccessor(
+      memberBuilder.addSuggestionForAccessor(
           accessor: accessor, inheritanceDistance: inheritanceDistance);
     }
   }

@@ -8,8 +8,8 @@
 /// environment variable set.
 
 import 'dart:async';
-import 'dart:io';
 
+import '../helpers/memory_compiler.dart';
 import '../helpers/memory_source_file_helper.dart';
 
 import "package:async_helper/async_helper.dart";
@@ -71,8 +71,6 @@ class DummyCompilerDiagnostics implements CompilerDiagnostics {
   }
 }
 
-final platformDir = Uri.parse(Platform.resolvedExecutable).resolve('.');
-
 class CustomCompiler extends CompilerImpl {
   CustomCompiler(List<String> options, Map<String, String> environment)
       : super(
@@ -80,9 +78,9 @@ class CustomCompiler extends CompilerImpl {
             const NullCompilerOutput(),
             const DummyCompilerDiagnostics(),
             CompilerOptions.parse(
-                ['--platform-binaries=$platformDir']..addAll(options),
-                librariesSpecificationUri:
-                    Uri.base.resolve("sdk/lib/libraries.json"))
+                ['--platform-binaries=$sdkPlatformBinariesPath']
+                  ..addAll(options),
+                librariesSpecificationUri: sdkLibrariesSpecificationUri)
               ..environment = environment);
 }
 

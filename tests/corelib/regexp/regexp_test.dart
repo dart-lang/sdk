@@ -32,10 +32,12 @@ void testEscape(str, regexp) {
   assertEquals("foo:bar:baz", str.split(regexp).join(":"));
 }
 
-void assertEquals(actual, expected, [message]) =>
+void assertEquals(actual, expected, [String message = ""]) =>
     Expect.equals(actual, expected, message);
-void assertTrue(actual, [message]) => Expect.isTrue(actual, message);
-void assertFalse(actual, [message]) => Expect.isFalse(actual, message);
+void assertTrue(actual, [String message = ""]) =>
+    Expect.isTrue(actual, message);
+void assertFalse(actual, [String message = ""]) =>
+    Expect.isFalse(actual, message);
 void assertThrows(fn) => Expect.throws(fn);
 
 void main() {

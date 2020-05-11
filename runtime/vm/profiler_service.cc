@@ -345,10 +345,9 @@ void ProfileCode::SetName(const char* name) {
   if (name == NULL) {
     name_ = NULL;
   }
-  intptr_t len = strlen(name);
-  name_ = Thread::Current()->zone()->Alloc<char>(len + 1);
+  intptr_t len = strlen(name) + 1;
+  name_ = Thread::Current()->zone()->Alloc<char>(len);
   strncpy(name_, name, len);
-  name_[len] = '\0';
 }
 
 void ProfileCode::GenerateAndSetSymbolName(const char* prefix) {

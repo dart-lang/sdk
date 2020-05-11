@@ -1,0 +1,5 @@
+class Typed<T> {
+  T<U> v;
+}
+
+main() {}

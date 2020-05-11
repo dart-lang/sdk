@@ -24,6 +24,8 @@ analyzer/test/src/dart/analysis/driver_kernel_test: Slow, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 analyzer/test/src/task/strong/checker_test: Slow, Pass
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
+dartdev/test/commands/analyze_test: Slow, Pass
+dartdev/test/commands/help_test: Slow, Pass
 dev_compiler/test/modular/*: Slow, Pass
 dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
@@ -81,6 +83,7 @@ modular_test/test/memory_pipeline_test: Slow, Pass
 modular_test/test/validate_pipeline_test: Slow, Pass
 modular_test/test/validate_suite_test: Slow, Pass
 nnbd_migration/test/*: SkipByDesign # Uses mirrors
+nnbd_migration/tool/*: SkipByDesign # Only meant to run on vm
 smith/test/*: SkipByDesign # Only meant to run on vm
 status_file/test/normalize_test: SkipByDesign # Uses dart:io
 status_file/test/parse_and_normalize_test: SkipByDesign # Uses dart:io
@@ -117,6 +120,7 @@ analyzer/test/src/task/strong/front_end_inference_test: Slow, Pass
 analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
 analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Slow, Pass
 analyzer_plugin/test/src/utilities/completion/optype_test: Slow, Pass
+dartdev/test/*: Slow, Pass
 mutation_observer: Skip # Skip tests on the VM if the package depends on dart:html
 
 [ $runtime != vm ]

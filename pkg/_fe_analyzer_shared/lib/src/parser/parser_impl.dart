@@ -1151,6 +1151,7 @@ class Parser {
   }
 
   Token parseWithClauseOpt(Token token) {
+    // <mixins> ::= with <typeNotVoidList>
     Token withKeyword = token.next;
     if (optional('with', withKeyword)) {
       token = parseTypeList(withKeyword);
@@ -1936,6 +1937,7 @@ class Parser {
   }
 
   Token parseClassExtendsOpt(Token token) {
+    // extends <typeNotVoid>
     Token next = token.next;
     if (optional('extends', next)) {
       Token extendsKeyword = next;
@@ -2480,7 +2482,7 @@ class Parser {
         reportRecoverableError(
             beforeType.next,
             codes.templateExperimentNotEnabled
-                .withArguments('extension-methods'));
+                .withArguments('extension-methods', '2.6'));
         token = rewriter.insertSyntheticToken(token, TokenType.SEMICOLON);
       } else {
         token = ensureSemicolon(token);
@@ -5468,8 +5470,10 @@ class Parser {
     if (optional('!', token.next)) {
       not = token = token.next;
     }
+    listener.beginIsOperatorType(operator);
     TypeInfo typeInfo = computeTypeAfterIsOrAs(token);
     token = typeInfo.ensureTypeNotVoid(token, this);
+    listener.endIsOperatorType(operator);
     listener.handleIsOperator(operator, not);
     return skipChainedAsIsOperators(token);
   }
@@ -5497,8 +5501,10 @@ class Parser {
   Token parseAsOperatorRest(Token token) {
     Token operator = token = token.next;
     assert(optional('as', operator));
+    listener.beginAsOperatorType(operator);
     TypeInfo typeInfo = computeTypeAfterIsOrAs(token);
     token = typeInfo.ensureTypeNotVoid(token, this);
+    listener.endAsOperatorType(operator);
     listener.handleAsOperator(operator);
     return skipChainedAsIsOperators(token);
   }

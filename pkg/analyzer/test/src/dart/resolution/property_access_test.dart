@@ -94,4 +94,108 @@ main(A? a) {
 
     assertType(findNode.cascade('a?'), 'A?');
   }
+
+  test_nullShorting_cascade2() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int? get foo => 0;
+}
+
+main() {
+  A a = A()..foo?.isEven;
+  a;
+}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('..foo?'),
+      element: findElement.getter('foo'),
+      type: 'int?',
+    );
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('.isEven'),
+      element: intElement.getGetter('isEven'),
+      type: 'bool',
+    );
+
+    assertType(findNode.cascade('A()'), 'A');
+  }
+
+  test_nullShorting_cascade3() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A? get foo => this;
+  A? get bar => this;
+  A? get baz => this;
+}
+
+main() {
+  A a = A()..foo?.bar?.baz;
+  a;
+}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('.foo'),
+      element: findElement.getter('foo'),
+      type: 'A?',
+    );
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('.bar'),
+      element: findElement.getter('bar'),
+      type: 'A?',
+    );
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('.baz'),
+      element: findElement.getter('baz'),
+      type: 'A?',
+    );
+
+    assertType(findNode.cascade('A()'), 'A');
+  }
+
+  test_nullShorting_cascade4() async {
+    await assertNoErrorsInCode(r'''
+A? get foo => A();
+
+class A {
+  A get bar => this;
+  A? get baz => this;
+  A get baq => this;
+}
+
+main() {
+  foo?.bar?..baz?.baq;
+}
+''');
+
+    assertSimpleIdentifier(
+      findNode.simple('foo?'),
+      element: findElement.topGet('foo'),
+      type: 'A?',
+    );
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('.bar'),
+      element: findElement.getter('bar'),
+      type: 'A?',
+    );
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('.baz'),
+      element: findElement.getter('baz'),
+      type: 'A?',
+    );
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('.baq'),
+      element: findElement.getter('baq'),
+      type: 'A',
+    );
+
+    assertType(findNode.cascade('foo?'), 'A?');
+  }
 }

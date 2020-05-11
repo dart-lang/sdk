@@ -1,0 +1,12 @@
+library test;
+
+int intValue = 0;
+num numValue = 0;
+double doubleValue = 0.0;
+var a = () => intValue + b;
+var b = a();
+var c = () => numValue + d;
+var d = c();
+var e = () => doubleValue + f;
+var f = e();
+main() {}

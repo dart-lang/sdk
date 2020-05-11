@@ -248,7 +248,6 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Future<int*>*', 'FutureOr<num*>*');
     isSubtype('Future<int*>*', 'FutureOr<Object*>*');
     isSubtype('FutureOr<int*>*', 'FutureOr<int*>*');
-    isSubtype('FutureOr<int*>*', 'FutureOr<num*>*');
     isSubtype('FutureOr<int*>*', 'Object*');
     isSubtype('Null', 'FutureOr<num?>');
     isSubtype('Null', 'FutureOr<num>?');
@@ -264,6 +263,14 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Future<num?>', 'FutureOr<num?>?');
     isSubtype('FutureOr<X>', 'FutureOr<Future<X>>',
         typeParameters: 'X extends Future<Future<X>>');
+
+    isSubtype('FutureOr<int*>*', 'FutureOr<num*>*');
+    isSubtype('FutureOr<A>', 'FutureOr<B>', typeParameters: 'B,A extends B');
+
+    isSubtype('X', 'FutureOr<int>',
+        typeParameters: 'X extends FutureOr<int*>*');
+    isSubtype('X*', 'FutureOr<int>',
+        typeParameters: 'X extends FutureOr<int*>*');
 
     isSubtype('num?', 'FutureOr<FutureOr<FutureOr<num>>?>');
     isSubtype('Future<num>?', 'FutureOr<FutureOr<FutureOr<num>>?>');
@@ -281,6 +288,16 @@ abstract class SubtypeTest<T, E> {
 
     isSubtype('FutureOr<num>?', 'FutureOr<num?>');
     isObliviousSubtype('FutureOr<num?>', 'FutureOr<num>?');
+
+    isSubtype('List<FutureOr<List<dynamic>>>',
+        'List<FutureOr<List<FutureOr<dynamic>>>>');
+    isSubtype('List<FutureOr<List<FutureOr<dynamic>>>>',
+        'List<FutureOr<List<dynamic>>>');
+
+    isSubtype('X', 'FutureOr<List<X>>',
+        typeParameters: 'X extends FutureOr<List<X>>');
+    isNotSubtype('X', 'FutureOr<List<X>>',
+        typeParameters: 'X extends List<FutureOr<X>>');
 
     isSubtype('dynamic', 'FutureOr<Object?>');
     isSubtype('dynamic', 'FutureOr<Object>?');

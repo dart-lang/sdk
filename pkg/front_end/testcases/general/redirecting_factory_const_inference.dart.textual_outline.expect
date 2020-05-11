@@ -1,0 +1,18 @@
+class _X<T> {
+  const factory _X() = _Y<T>;
+}
+
+class _Y<T> implements _X<T> {
+  const _Y();
+}
+
+class A<T> {
+  _X<T> x;
+  A(this.x);
+}
+
+class B<T> extends A<T> {
+  B() : super(const _X());
+}
+
+main() {}

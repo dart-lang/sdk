@@ -1,7 +1,6 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 import "dart:collection" as col;
 
 class Class extends core::Object {
@@ -15,7 +14,7 @@ class Class extends core::Object {
       #t1.{core::List::add}(node);
       final core::Iterable<core::String*>* #t2 = let final core::Iterable<core::String*>* #t3 = let final core::Set<core::String*>* #t4 = this.{self::Class::map}.{core::Map::[]}(node) in #t4.{core::Object::==}(null) ?{core::Iterable<core::String*>*} null : #t4.{core::Iterable::expand}<core::String*>((core::String* node) → core::List<core::String*>* => this.{self::Class::method}(node, set)) in #t3.{core::Object::==}(null) ?{core::List<core::String*>*} null : #t3.{core::Iterable::toList}();
       if(!#t2.{core::Object::==}(null)) {
-        core::Iterator<core::String*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::String*>*>(#t2).{core::Iterable::iterator};
+        core::Iterator<core::String*>* :sync-for-iterator = #t2.{core::Iterable::iterator};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
           final core::String* #t5 = :sync-for-iterator.{core::Iterator::current};
           #t1.{core::List::add}(#t5);

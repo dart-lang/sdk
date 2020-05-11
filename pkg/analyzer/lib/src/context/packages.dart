@@ -158,4 +158,20 @@ class Packages {
 
   /// Return the [Package] with the given [name], or `null`.
   Package operator [](String name) => _map[name];
+
+  /// Return the inner-most [Package] that contains  the [path], `null` if none.
+  Package packageForPath(String path) {
+    Package result;
+    int resultPathLength;
+    for (var package in packages) {
+      if (package.rootFolder.contains(path)) {
+        var packagePathLength = package.rootFolder.path.length;
+        if (result == null || resultPathLength < packagePathLength) {
+          result = package;
+          resultPathLength = packagePathLength;
+        }
+      }
+    }
+    return result;
+  }
 }

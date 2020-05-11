@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('migrate', defineMigrateTests);
+  group('migrate', defineMigrateTests, timeout: longTimeout);
 }
 
 // TODO(jcollins-g): Set to true and/or remove when when NNBD is enabled in the

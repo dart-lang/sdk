@@ -1,0 +1,9 @@
+import "issue41496_lib.dart";
+
+LegacyFoo f1;
+
+class C {
+  static LegacyFoo f2;
+}
+
+main() {}

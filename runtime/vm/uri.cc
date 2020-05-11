@@ -369,10 +369,7 @@ static const char* MergePaths(const char* base_path, const char* ref_path) {
   buffer[truncated_base_len] = '/';
 
   // Copy the ref_path.
-  strncpy((buffer + truncated_base_len + 1), ref_path, ref_path_len);
-
-  // Add the trailing '\0'.
-  buffer[len] = '\0';
+  strncpy((buffer + truncated_base_len + 1), ref_path, ref_path_len + 1);
 
   return buffer;
 }

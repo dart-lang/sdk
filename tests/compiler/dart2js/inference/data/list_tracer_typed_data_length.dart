@@ -6,7 +6,7 @@
 
 import 'dart:typed_data';
 
-// TODO(johnniwinther): Fix inference for strong mode. List elements should not
+// TODO(johnniwinther): Fix inference for spec:nnbd-off mode. List elements should not
 // be [empty].
 
 /*member: myList:Container([null|exact=NativeFloat32List], element: [subclass=JSNumber], length: 42)*/

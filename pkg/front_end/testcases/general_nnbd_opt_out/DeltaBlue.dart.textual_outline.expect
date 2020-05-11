@@ -1,0 +1,154 @@
+// @dart = 2.6
+main() {}
+
+class DeltaBlue {
+  void run() {}
+}
+
+class Strength {
+  final int value;
+  final String name;
+  const Strength(this.value, this.name);
+  Strength nextWeaker() => const <Strength>[
+        STRONG_PREFERRED,
+        PREFERRED,
+        STRONG_DEFAULT,
+        NORMAL,
+        WEAK_DEFAULT,
+        WEAKEST
+      ][value];
+  static bool stronger(Strength s1, Strength s2) {}
+  static bool weaker(Strength s1, Strength s2) {}
+  static Strength weakest(Strength s1, Strength s2) {}
+  static Strength strongest(Strength s1, Strength s2) {}
+}
+
+const REQUIRED = const Strength(0, "required");
+const STRONG_PREFERRED = const Strength(1, "strongPreferred");
+const PREFERRED = const Strength(2, "preferred");
+const STRONG_DEFAULT = const Strength(3, "strongDefault");
+const NORMAL = const Strength(4, "normal");
+const WEAK_DEFAULT = const Strength(5, "weakDefault");
+const WEAKEST = const Strength(6, "weakest");
+
+abstract class Constraint {
+  final Strength strength;
+  const Constraint(this.strength);
+  bool isSatisfied();
+  void markUnsatisfied();
+  void addToGraph();
+  void removeFromGraph();
+  void chooseMethod(int mark);
+  void markInputs(int mark);
+  bool inputsKnown(int mark);
+  Variable output();
+  void execute();
+  void recalculate();
+  void addConstraint() {}
+  Constraint satisfy(mark) {}
+  void destroyConstraint() {}
+  bool isInput() => false;
+}
+
+abstract class UnaryConstraint extends Constraint {
+  final Variable myOutput;
+  bool satisfied = false;
+  UnaryConstraint(this.myOutput, Strength strength) : super(strength) {}
+  void addToGraph() {}
+  void chooseMethod(int mark) {}
+  bool isSatisfied() => satisfied;
+  void markInputs(int mark) {}
+  Variable output() => myOutput;
+  void recalculate() {}
+  void markUnsatisfied() {}
+  bool inputsKnown(int mark) => true;
+  void removeFromGraph() {}
+}
+
+class StayConstraint extends UnaryConstraint {
+  StayConstraint(Variable v, Strength str) : super(v, str);
+  void execute() {}
+}
+
+class EditConstraint extends UnaryConstraint {
+  EditConstraint(Variable v, Strength str) : super(v, str);
+  bool isInput() => true;
+  void execute() {}
+}
+
+const int NONE = 1;
+const int FORWARD = 2;
+const int BACKWARD = 0;
+
+abstract class BinaryConstraint extends Constraint {
+  Variable v1;
+  Variable v2;
+  int direction = NONE;
+  BinaryConstraint(this.v1, this.v2, Strength strength) : super(strength) {}
+  void chooseMethod(int mark) {}
+  void addToGraph() {}
+  bool isSatisfied() => direction != NONE;
+  void markInputs(int mark) {}
+  Variable input() => direction == FORWARD ? v1 : v2;
+  Variable output() => direction == FORWARD ? v2 : v1;
+  void recalculate() {}
+  void markUnsatisfied() {}
+  bool inputsKnown(int mark) {}
+  void removeFromGraph() {}
+}
+
+class ScaleConstraint extends BinaryConstraint {
+  final Variable scale;
+  final Variable offset;
+  ScaleConstraint(
+      Variable src, this.scale, this.offset, Variable dest, Strength strength)
+      : super(src, dest, strength);
+  void addToGraph() {}
+  void removeFromGraph() {}
+  void markInputs(int mark) {}
+  void execute() {}
+  void recalculate() {}
+}
+
+class EqualityConstraint extends BinaryConstraint {
+  EqualityConstraint(Variable v1, Variable v2, Strength strength)
+      : super(v1, v2, strength);
+  void execute() {}
+}
+
+class Variable {
+  List<Constraint> constraints = <Constraint>[];
+  Constraint determinedBy;
+  int mark = 0;
+  Strength walkStrength = WEAKEST;
+  bool stay = true;
+  int value;
+  final String name;
+  Variable(this.name, this.value);
+  void addConstraint(Constraint c) {}
+  void removeConstraint(Constraint c) {}
+}
+
+class Planner {
+  int currentMark = 0;
+  void incrementalAdd(Constraint c) {}
+  void incrementalRemove(Constraint c) {}
+  int newMark() => ++currentMark;
+  Plan makePlan(List<Constraint> sources) {}
+  Plan extractPlanFromConstraints(List<Constraint> constraints) {}
+  bool addPropagate(Constraint c, int mark) {}
+  List<Constraint> removePropagateFrom(Variable out) {}
+  void addConstraintsConsumingTo(Variable v, List<Constraint> coll) {}
+}
+
+class Plan {
+  List<Constraint> list = <Constraint>[];
+  void addConstraint(Constraint c) {}
+  int size() => list.length;
+  void execute() {}
+}
+
+void chainTest(int n) {}
+void projectionTest(int n) {}
+void change(Variable v, int newValue) {}
+Planner planner;

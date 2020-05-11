@@ -1,0 +1,10 @@
+library test;
+
+class C<T> {
+  C.optional(void func([T x])) {}
+  C.named(void func({T x})) {}
+}
+
+void optional_toplevel([x = const [0]]) {}
+void named_toplevel({x: const [0]}) {}
+main() {}

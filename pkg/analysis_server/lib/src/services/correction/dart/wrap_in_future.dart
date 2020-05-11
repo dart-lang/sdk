@@ -35,4 +35,7 @@ class WrapInFuture extends CorrectionProducer {
           range.node(expression), 'Future.value($value)');
     });
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static WrapInFuture newInstance() => WrapInFuture();
 }

@@ -11,14 +11,31 @@ import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
+import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
+import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/shadow_field.dart';
+import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
 import 'package:analysis_server/src/services/correction/dart/split_and_condition.dart';
+import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
@@ -33,7 +50,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -64,56 +80,22 @@ class AssistProcessor extends BaseProcessor {
     if (!setupCompute()) {
       return assists;
     }
-    if (!_containsErrorCode(
-      {LintNames.always_specify_types, LintNames.type_annotate_public_apis},
-    )) {
-      await _addProposals_addTypeAnnotation();
-    }
     await _addProposal_addNotNullAssert();
     await _addProposal_assignToLocalVariable();
     await _addProposal_convertClassToMixin();
     await _addProposal_convertDocumentationIntoBlock();
-    if (!_containsErrorCode(
-      {LintNames.slash_for_doc_comments},
-    )) {
-      await _addProposal_convertDocumentationIntoLine();
-    }
     await _addProposal_convertIntoFinalField();
     await _addProposal_convertIntoGetter();
     await _addProposal_convertPartOfToUri();
     await _addProposal_convertToAsyncFunctionBody();
     await _addProposal_convertToBlockFunctionBody();
-    await _addProposal_convertToDoubleQuotedString();
-    if (!_containsErrorCode(
-      {LintNames.prefer_expression_function_bodies},
-    )) {
-      await _addProposal_convertToExpressionFunctionBody();
-    }
     await _addProposal_convertToFieldParameter();
     await _addProposal_convertToForIndexLoop();
-    if (!_containsErrorCode({LintNames.prefer_generic_function_type_aliases})) {
-      await _addProposal_convertToGenericFunctionSyntax();
-    }
-    if (!_containsErrorCode(
-      {LintNames.prefer_int_literals},
-    )) {
-      await _addProposal_convertToIntLiteral();
-    }
     await _addProposal_convertToIsNot_onIs();
     await _addProposal_convertToIsNot_onNot();
     await _addProposal_convertToIsNotEmpty();
     await _addProposal_convertToMultilineString();
     await _addProposal_convertToNormalParameter();
-    if (!_containsErrorCode(
-      {LintNames.avoid_relative_lib_imports},
-    )) {
-      await _addProposal_convertToPackageImport();
-    }
-    if (!_containsErrorCode(
-      {LintNames.prefer_single_quotes},
-    )) {
-      await _addProposal_convertToSingleQuotedString();
-    }
     await _addProposal_encapsulateField();
     await _addProposal_flutterConvertToChildren();
     await _addProposal_flutterConvertToStatefulWidget();
@@ -127,66 +109,17 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_flutterWrapWidget();
     await _addProposal_flutterWrapWidgets();
     await _addProposal_importAddShow();
-    if (!_containsErrorCode(
-      {LintNames.prefer_inlined_adds},
-    )) {
-      await _addProposal_inlineAdd();
-    }
     await _addProposal_introduceLocalTestedType();
     await _addProposal_invertIf();
     await _addProposal_joinIfStatementInner();
     await _addProposal_joinIfStatementOuter();
     await _addProposal_joinVariableDeclaration_onAssignment();
     await _addProposal_joinVariableDeclaration_onDeclaration();
-    await _addProposal_removeTypeAnnotation();
     await _addProposal_reparentFlutterList();
     await _addProposal_replaceConditionalWithIfElse();
     await _addProposal_replaceIfElseWithConditional();
-    if (!_containsErrorCode({LintNames.omit_local_variable_types})) {
-      await _addProposal_replaceWithVar();
-    }
-    if (!_containsErrorCode(
-      {LintNames.sort_child_properties_last},
-    )) {
-      await _addProposal_sortChildPropertyLast();
-    }
     await _addProposal_splitVariableDeclaration();
     await _addProposal_surroundWith();
-    if (!_containsErrorCode(
-      {LintNames.curly_braces_in_flow_control_structures},
-    )) {
-      await _addProposal_useCurlyBraces();
-    }
-    if (!_containsErrorCode(
-      {LintNames.diagnostic_describe_all_properties},
-    )) {
-      await _addProposal_addDiagnosticPropertyReference();
-    }
-    if (experimentStatus.control_flow_collections) {
-      if (!_containsErrorCode(
-        {LintNames.prefer_if_elements_to_conditional_expressions},
-      )) {
-        await _addProposal_convertConditionalExpressionToIfElement();
-      }
-      if (!_containsErrorCode(
-        {LintNames.prefer_for_elements_to_map_fromIterable},
-      )) {
-        await _addProposal_convertMapFromIterableToForLiteral();
-      }
-    }
-    if (experimentStatus.spread_collections) {
-      final preferSpreadsLintFound =
-          _containsErrorCode({LintNames.prefer_spread_collections});
-      final preferInlinedAddsLintFound =
-          _containsErrorCode({LintNames.prefer_inlined_adds});
-      if (!_containsErrorCode(
-        {LintNames.prefer_spread_collections},
-      )) {
-        await _addProposal_convertAddAllToSpread(
-            preferInlinedAdds: !preferInlinedAddsLintFound,
-            convertToSpreads: !preferSpreadsLintFound);
-      }
-    }
 
     await _addFromProducers();
 
@@ -198,23 +131,39 @@ class AssistProcessor extends BaseProcessor {
       return assists;
     }
 
+    var context = CorrectionProducerContext(
+      selectionOffset: selectionOffset,
+      selectionLength: selectionLength,
+      resolvedResult: resolvedResult,
+      workspace: workspace,
+    );
+
+    var setupSuccess = context.setupCompute();
+    if (!setupSuccess) {
+      return assists;
+    }
+
+    Future<void> compute(CorrectionProducer producer) async {
+      producer.configure(context);
+
+      var builder = _newDartChangeBuilder();
+      await producer.compute(builder);
+
+      _addAssistFromBuilder(builder, producer.assistKind,
+          args: producer.assistArguments);
+    }
+
     // Calculate only specific assists for edit.dartFix
     if (assistKind == DartAssistKind.CONVERT_CLASS_TO_MIXIN) {
       await _addProposal_convertClassToMixin();
     } else if (assistKind == DartAssistKind.CONVERT_TO_INT_LITERAL) {
-      await _addProposal_convertToIntLiteral();
+      await compute(ConvertToIntLiteral());
     } else if (assistKind == DartAssistKind.CONVERT_TO_SPREAD) {
-      if (experimentStatus.spread_collections) {
-        await _addProposal_convertAddAllToSpread();
-      }
+      await compute(ConvertAddAllToSpread());
     } else if (assistKind == DartAssistKind.CONVERT_TO_FOR_ELEMENT) {
-      if (experimentStatus.control_flow_collections) {
-        await _addProposal_convertMapFromIterableToForLiteral();
-      }
+      await compute(ConvertMapFromIterableToForLiteral());
     } else if (assistKind == DartAssistKind.CONVERT_TO_IF_ELEMENT) {
-      if (experimentStatus.control_flow_collections) {
-        await _addProposal_convertConditionalExpressionToIfElement();
-      }
+      await compute(ConvertConditionalExpressionToIfElement());
     }
     return assists;
   }
@@ -226,7 +175,6 @@ class AssistProcessor extends BaseProcessor {
     }
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
-      _coverageMarker();
       return;
     }
     change.id = kind.id;
@@ -271,6 +219,43 @@ class AssistProcessor extends BaseProcessor {
       {LintNames.always_declare_return_types},
     );
     await computeIfNotErrorCode(
+      AddDiagnosticPropertyReference(),
+      {LintNames.diagnostic_describe_all_properties},
+    );
+    await computeIfNotErrorCode(
+      AddTypeAnnotation(),
+      {LintNames.always_specify_types, LintNames.type_annotate_public_apis},
+    );
+    await computeIfNotErrorCode(
+      ConvertConditionalExpressionToIfElement(),
+      {LintNames.prefer_if_elements_to_conditional_expressions},
+    );
+    await computeIfNotErrorCode(
+      ConvertDocumentationIntoLine(),
+      {LintNames.slash_for_doc_comments},
+    );
+    await computeIfNotErrorCode(
+      ConvertMapFromIterableToForLiteral(),
+      {LintNames.prefer_for_elements_to_map_fromIterable},
+    );
+    await compute(ConvertToDoubleQuotes());
+    await computeIfNotErrorCode(
+      ConvertToSingleQuotes(),
+      {LintNames.prefer_single_quotes},
+    );
+    await computeIfNotErrorCode(
+      ConvertToExpressionFunctionBody(),
+      {LintNames.prefer_expression_function_bodies},
+    );
+    await computeIfNotErrorCode(
+      ConvertToGenericFunctionSyntax(),
+      {LintNames.prefer_generic_function_type_aliases},
+    );
+    await computeIfNotErrorCode(
+      ConvertToIntLiteral(),
+      {LintNames.prefer_int_literals},
+    );
+    await computeIfNotErrorCode(
       ConvertToListLiteral(),
       {LintNames.prefer_collection_literals},
     );
@@ -283,18 +268,41 @@ class AssistProcessor extends BaseProcessor {
       {LintNames.prefer_null_aware_operators},
     );
     await computeIfNotErrorCode(
+      ConvertToPackageImport(),
+      {LintNames.avoid_relative_lib_imports},
+    );
+    await computeIfNotErrorCode(
+      ConvertToRelativeImport(),
+      {LintNames.prefer_relative_imports},
+    );
+    await computeIfNotErrorCode(
       ConvertToSetLiteral(),
       {LintNames.prefer_collection_literals},
     );
     await compute(ExchangeOperands());
+    await computeIfNotErrorCode(
+      InlineInvocation(),
+      {LintNames.prefer_inlined_adds},
+    );
+    await compute(RemoveTypeAnnotation());
+    await computeIfNotErrorCode(
+      ReplaceWithVar(),
+      {LintNames.omit_local_variable_types},
+    );
     await compute(ShadowField());
+    await computeIfNotErrorCode(
+      SortChildPropertyLast(),
+      {LintNames.sort_child_properties_last},
+    );
     await compute(SplitAndCondition());
-  }
-
-  Future<void> _addProposal_addDiagnosticPropertyReference() async {
-    final changeBuilder = await createBuilder_addDiagnosticPropertyReference();
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE);
+    await computeIfNotErrorCode(
+      UseCurlyBraces(),
+      {LintNames.curly_braces_in_flow_control_structures},
+    );
+    await computeIfNotErrorCode(
+      ConvertAddAllToSpread(),
+      {LintNames.prefer_inlined_adds, LintNames.prefer_spread_collections},
+    );
   }
 
   Future<void> _addProposal_addNotNullAssert() async {
@@ -365,12 +373,10 @@ class AssistProcessor extends BaseProcessor {
           node is AssignmentExpression ||
           node is Statement ||
           node is ThrowExpression) {
-        _coverageMarker();
         return;
       }
     }
     if (expressionStatement == null) {
-      _coverageMarker();
       return;
     }
     // prepare expression
@@ -379,7 +385,6 @@ class AssistProcessor extends BaseProcessor {
     // prepare expression type
     var type = expression.staticType;
     if (type.isVoid) {
-      _coverageMarker();
       return;
     }
     // prepare excluded names
@@ -403,20 +408,6 @@ class AssistProcessor extends BaseProcessor {
       });
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
-    }
-  }
-
-  Future<void> _addProposal_convertAddAllToSpread(
-      {bool preferInlinedAdds = true, bool convertToSpreads = true}) async {
-    final change = await createBuilder_convertAddAllToSpread();
-    if (change != null) {
-      if (change.isLineInvocation && !preferInlinedAdds || !convertToSpreads) {
-        return;
-      }
-      final kind = change.isLineInvocation
-          ? DartAssistKind.INLINE_INVOCATION
-          : DartAssistKind.CONVERT_TO_SPREAD;
-      _addAssistFromBuilder(change.builder, kind, args: change.args);
     }
   }
 
@@ -475,12 +466,6 @@ class AssistProcessor extends BaseProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_CLASS_TO_MIXIN);
   }
 
-  Future<void> _addProposal_convertConditionalExpressionToIfElement() async {
-    final changeBuilder =
-        await createBuilder_convertConditionalExpressionToIfElement();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_IF_ELEMENT);
-  }
-
   Future<void> _addProposal_convertDocumentationIntoBlock() async {
     var comment = node.thisOrAncestorOfType<Comment>();
     if (comment == null || !comment.isDocumentation) {
@@ -510,12 +495,6 @@ class AssistProcessor extends BaseProcessor {
     });
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK);
-  }
-
-  Future<void> _addProposal_convertDocumentationIntoLine() async {
-    final changeBuilder = await createBuilder_convertDocumentationIntoLine();
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE);
   }
 
   Future<void> _addProposal_convertIntoFinalField() async {
@@ -635,12 +614,6 @@ class AssistProcessor extends BaseProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_INTO_GETTER);
   }
 
-  Future<void> _addProposal_convertMapFromIterableToForLiteral() async {
-    final changeBuilder =
-        await createBuilder_convertMapFromIterableToForLiteral();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_FOR_ELEMENT);
-  }
-
   Future<void> _addProposal_convertPartOfToUri() async {
     var directive = node.thisOrAncestorOfType<PartOfDirective>();
     if (directive == null || directive.libraryName == null) {
@@ -659,12 +632,11 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertToAsyncFunctionBody() async {
-    var body = getEnclosingFunctionBody();
+    var body = _getEnclosingFunctionBody();
     if (body == null ||
         body is EmptyFunctionBody ||
         body.isAsynchronous ||
         body.isGenerator) {
-      _coverageMarker();
       return;
     }
 
@@ -693,10 +665,9 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertToBlockFunctionBody() async {
-    var body = getEnclosingFunctionBody();
+    var body = _getEnclosingFunctionBody();
     // prepare expression body
     if (body is! ExpressionFunctionBody || body.isGenerator) {
-      _coverageMarker();
       return;
     }
 
@@ -705,7 +676,6 @@ class AssistProcessor extends BaseProcessor {
     // Return expressions can be quite large, e.g. Flutter build() methods.
     // It is surprising to see this Quick Assist deep in the function body.
     if (selectionOffset >= returnValue.offset) {
-      _coverageMarker();
       return;
     }
 
@@ -733,16 +703,6 @@ class AssistProcessor extends BaseProcessor {
     });
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.CONVERT_INTO_BLOCK_BODY);
-  }
-
-  Future<void> _addProposal_convertToDoubleQuotedString() async {
-    await _convertQuotes(false, DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
-  }
-
-  Future<void> _addProposal_convertToExpressionFunctionBody() async {
-    final changeBuilder = await createBuilder_convertToExpressionFunctionBody();
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
   }
 
   Future<void> _addProposal_convertToFieldParameter() async {
@@ -842,13 +802,11 @@ class AssistProcessor extends BaseProcessor {
             (node) => node is ForStatement && node.forLoopParts is ForEachParts)
         as ForStatement;
     if (forEachStatement == null) {
-      _coverageMarker();
       return;
     }
     ForEachParts forEachParts = forEachStatement.forLoopParts;
     if (selectionOffset < forEachStatement.offset ||
         forEachStatement.rightParenthesis.end < selectionOffset) {
-      _coverageMarker();
       return;
     }
     // loop should declare variable
@@ -856,7 +814,6 @@ class AssistProcessor extends BaseProcessor {
         ? forEachParts.loopVariable
         : null;
     if (loopVariable == null) {
-      _coverageMarker();
       return;
     }
     // iterable should be VariableElement
@@ -866,7 +823,6 @@ class AssistProcessor extends BaseProcessor {
         iterable.staticElement is VariableElement) {
       listName = iterable.name;
     } else {
-      _coverageMarker();
       return;
     }
     // iterable should be List
@@ -874,13 +830,11 @@ class AssistProcessor extends BaseProcessor {
       var iterableType = iterable.staticType;
       if (iterableType is! InterfaceType ||
           iterableType.element != typeProvider.listElement) {
-        _coverageMarker();
         return;
       }
     }
     // body should be Block
     if (forEachStatement.body is! Block) {
-      _coverageMarker();
       return;
     }
     Block body = forEachStatement.body;
@@ -896,7 +850,6 @@ class AssistProcessor extends BaseProcessor {
       } else if (!conflicts.contains('k')) {
         indexName = 'k';
       } else {
-        _coverageMarker();
         return;
       }
     }
@@ -917,17 +870,6 @@ class AssistProcessor extends BaseProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_INTO_FOR_INDEX);
   }
 
-  Future<void> _addProposal_convertToGenericFunctionSyntax() async {
-    var changeBuilder = await createBuilder_convertToGenericFunctionSyntax();
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
-  }
-
-  Future<void> _addProposal_convertToIntLiteral() async {
-    final changeBuilder = await createBuilder_convertToIntLiteral();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_INT_LITERAL);
-  }
-
   Future<void> _addProposal_convertToIsNot_onIs() async {
     // may be child of "is"
     var node = this.node;
@@ -936,30 +878,25 @@ class AssistProcessor extends BaseProcessor {
     }
     // prepare "is"
     if (node is! IsExpression) {
-      _coverageMarker();
       return;
     }
     var isExpression = node as IsExpression;
     if (isExpression.notOperator != null) {
-      _coverageMarker();
       return;
     }
     // prepare enclosing ()
     var parent = isExpression.parent;
     if (parent is! ParenthesizedExpression) {
-      _coverageMarker();
       return;
     }
     var parExpression = parent as ParenthesizedExpression;
     // prepare enclosing !()
     var parent2 = parent.parent;
     if (parent2 is! PrefixExpression) {
-      _coverageMarker();
       return;
     }
     var prefExpression = parent2 as PrefixExpression;
     if (prefExpression.operator.type != TokenType.BANG) {
-      _coverageMarker();
       return;
     }
 
@@ -987,31 +924,26 @@ class AssistProcessor extends BaseProcessor {
     }
     // prepare !()
     if (node is! PrefixExpression) {
-      _coverageMarker();
       return;
     }
     var prefExpression = node as PrefixExpression;
     // should be ! operator
     if (prefExpression.operator.type != TokenType.BANG) {
-      _coverageMarker();
       return;
     }
     // prepare !()
     var operand = prefExpression.operand;
     if (operand is! ParenthesizedExpression) {
-      _coverageMarker();
       return;
     }
     var parExpression = operand as ParenthesizedExpression;
     operand = parExpression.expression;
     // prepare "is"
     if (operand is! IsExpression) {
-      _coverageMarker();
       return;
     }
     var isExpression = operand as IsExpression;
     if (isExpression.notOperator != null) {
-      _coverageMarker();
       return;
     }
 
@@ -1051,31 +983,26 @@ class AssistProcessor extends BaseProcessor {
       }
     }
     if (isEmptyIdentifier == null) {
-      _coverageMarker();
       return;
     }
     // should be "isEmpty"
     var propertyElement = isEmptyIdentifier.staticElement;
     if (propertyElement == null || 'isEmpty' != propertyElement.name) {
-      _coverageMarker();
       return;
     }
     // should have "isNotEmpty"
     var propertyTarget = propertyElement.enclosingElement;
     if (propertyTarget == null ||
         getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
-      _coverageMarker();
       return;
     }
     // should be in PrefixExpression
     if (isEmptyAccess.parent is! PrefixExpression) {
-      _coverageMarker();
       return;
     }
     var prefixExpression = isEmptyAccess.parent as PrefixExpression;
     // should be !
     if (prefixExpression.operator.type != TokenType.BANG) {
-      _coverageMarker();
       return;
     }
 
@@ -1158,43 +1085,28 @@ class AssistProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addProposal_convertToPackageImport() async {
-    final changeBuilder = await createBuilder_convertToPackageImport();
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.CONVERT_TO_PACKAGE_IMPORT);
-  }
-
-  Future<void> _addProposal_convertToSingleQuotedString() async {
-    await _convertQuotes(true, DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
-  }
-
   Future<void> _addProposal_encapsulateField() async {
     // find FieldDeclaration
     var fieldDeclaration = node.thisOrAncestorOfType<FieldDeclaration>();
     if (fieldDeclaration == null) {
-      _coverageMarker();
       return;
     }
     // not interesting for static
     if (fieldDeclaration.isStatic) {
-      _coverageMarker();
       return;
     }
     // has a parse error
     var variableList = fieldDeclaration.fields;
     if (variableList.keyword == null && variableList.type == null) {
-      _coverageMarker();
       return;
     }
     // not interesting for final
     if (variableList.isFinal) {
-      _coverageMarker();
       return;
     }
     // should have exactly one field
     List<VariableDeclaration> fields = variableList.variables;
     if (fields.length != 1) {
-      _coverageMarker();
       return;
     }
     var field = fields.first;
@@ -1203,12 +1115,10 @@ class AssistProcessor extends BaseProcessor {
     // should have a public name
     var name = nameNode.name;
     if (Identifier.isPrivateName(name)) {
-      _coverageMarker();
       return;
     }
     // should be on the name
     if (nameNode != node) {
-      _coverageMarker();
       return;
     }
     var changeBuilder = _newDartChangeBuilder();
@@ -1281,7 +1191,6 @@ class AssistProcessor extends BaseProcessor {
           flutter.isWidgetExpression(parent2.expression)) {
         namedExp = parent2;
       } else {
-        _coverageMarker();
         return;
       }
     }
@@ -1299,14 +1208,12 @@ class AssistProcessor extends BaseProcessor {
     var widgetClass = node.thisOrAncestorOfType<ClassDeclaration>();
     var superclass = widgetClass?.extendsClause?.superclass;
     if (widgetClass == null || superclass == null) {
-      _coverageMarker();
       return;
     }
 
     // Don't spam, activate only from the `class` keyword to the class body.
     if (selectionOffset < widgetClass.classKeyword.offset ||
         selectionOffset > widgetClass.leftBracket.end) {
-      _coverageMarker();
       return;
     }
 
@@ -1322,14 +1229,12 @@ class AssistProcessor extends BaseProcessor {
       }
     }
     if (buildMethod == null) {
-      _coverageMarker();
       return;
     }
 
     // Must be a StatelessWidget subclasses.
     var widgetClassElement = widgetClass.declaredElement;
     if (!flutter.isExactlyStatelessWidgetType(widgetClassElement.supertype)) {
-      _coverageMarker();
       return;
     }
 
@@ -1686,14 +1591,12 @@ class AssistProcessor extends BaseProcessor {
   Future<void> _addProposal_flutterSwapWithChild() async {
     var parent = flutter.identifyNewExpression(node);
     if (!flutter.isWidgetCreation(parent)) {
-      _coverageMarker();
       return;
     }
 
     var childArgument = flutter.findChildArgument(parent);
     if (childArgument?.expression is! InstanceCreationExpression ||
         !flutter.isWidgetCreation(childArgument.expression)) {
-      _coverageMarker();
       return;
     }
     InstanceCreationExpression child = childArgument.expression;
@@ -1705,14 +1608,12 @@ class AssistProcessor extends BaseProcessor {
   Future<void> _addProposal_flutterSwapWithParent() async {
     var child = flutter.identifyNewExpression(node);
     if (!flutter.isWidgetCreation(child)) {
-      _coverageMarker();
       return;
     }
 
     // NamedExpression (child:), ArgumentList, InstanceCreationExpression
     var expr = child.parent?.parent?.parent;
     if (expr is! InstanceCreationExpression) {
-      _coverageMarker();
       return;
     }
     InstanceCreationExpression parent = expr;
@@ -1813,11 +1714,9 @@ class AssistProcessor extends BaseProcessor {
       List<String> leadingLines = const []}) async {
     var widgetExpr = flutter.identifyWidgetExpression(node);
     if (widgetExpr == null) {
-      _coverageMarker();
       return;
     }
     if (widgetValidator != null && !widgetValidator(widgetExpr)) {
-      _coverageMarker();
       return;
     }
     var widgetSrc = utils.getNodeText(widgetExpr);
@@ -1922,9 +1821,7 @@ class AssistProcessor extends BaseProcessor {
 
           builder.write(eol);
           builder.write(indentNew1);
-          builder.write('children: <');
-          builder.writeReference(widgetClassElement);
-          builder.write('>[');
+          builder.write('children: [');
           builder.write(eol);
 
           var newSrc = _replaceSourceIndent(src, indentOld, indentNew2);
@@ -1959,18 +1856,15 @@ class AssistProcessor extends BaseProcessor {
     // prepare ImportDirective
     var importDirective = node.thisOrAncestorOfType<ImportDirective>();
     if (importDirective == null) {
-      _coverageMarker();
       return;
     }
     // there should be no existing combinators
     if (importDirective.combinators.isNotEmpty) {
-      _coverageMarker();
       return;
     }
     // prepare whole import namespace
     ImportElement importElement = importDirective.element;
     if (importElement == null) {
-      _coverageMarker();
       return;
     }
     var namespace = getImportNamespace(importElement);
@@ -1988,7 +1882,6 @@ class AssistProcessor extends BaseProcessor {
     context.resolveResult.unit.accept(visitor);
     // ignore if unused
     if (referencedNames.isEmpty) {
-      _coverageMarker();
       return;
     }
     var changeBuilder = _newDartChangeBuilder();
@@ -1997,12 +1890,6 @@ class AssistProcessor extends BaseProcessor {
       builder.addSimpleInsertion(importDirective.end - 1, showCombinator);
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.IMPORT_ADD_SHOW);
-  }
-
-  Future<void> _addProposal_inlineAdd() async {
-    final changeBuilder = await createBuilder_inlineAdd();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.INLINE_INVOCATION,
-        args: ['add']);
   }
 
   Future<void> _addProposal_introduceLocalTestedType() async {
@@ -2014,7 +1901,6 @@ class AssistProcessor extends BaseProcessor {
     }
     // prepare IsExpression
     if (node is! IsExpression) {
-      _coverageMarker();
       return;
     }
     IsExpression isExpression = node;
@@ -2031,7 +1917,6 @@ class AssistProcessor extends BaseProcessor {
       } else if (statement is WhileStatement && statement.body is Block) {
         targetBlock = statement.body;
       } else {
-        _coverageMarker();
         return;
       }
       prefix = utils.getNodePrefix(statement);
@@ -2110,24 +1995,20 @@ class AssistProcessor extends BaseProcessor {
     }
     // prepare target "if" statement
     if (node is! IfStatement) {
-      _coverageMarker();
       return;
     }
     var targetIfStatement = node as IfStatement;
     if (targetIfStatement.elseStatement != null) {
-      _coverageMarker();
       return;
     }
     // prepare inner "if" statement
     var targetThenStatement = targetIfStatement.thenStatement;
     var innerStatement = getSingleStatement(targetThenStatement);
     if (innerStatement is! IfStatement) {
-      _coverageMarker();
       return;
     }
     var innerIfStatement = innerStatement as IfStatement;
     if (innerIfStatement.elseStatement != null) {
-      _coverageMarker();
       return;
     }
     // prepare environment
@@ -2170,30 +2051,25 @@ class AssistProcessor extends BaseProcessor {
     }
     // prepare target "if" statement
     if (node is! IfStatement) {
-      _coverageMarker();
       return;
     }
     var targetIfStatement = node as IfStatement;
     if (targetIfStatement.elseStatement != null) {
-      _coverageMarker();
       return;
     }
     // prepare outer "if" statement
     var parent = targetIfStatement.parent;
     if (parent is Block) {
       if ((parent as Block).statements.length != 1) {
-        _coverageMarker();
         return;
       }
       parent = parent.parent;
     }
     if (parent is! IfStatement) {
-      _coverageMarker();
       return;
     }
     var outerIfStatement = parent as IfStatement;
     if (outerIfStatement.elseStatement != null) {
-      _coverageMarker();
       return;
     }
     // prepare environment
@@ -2232,19 +2108,16 @@ class AssistProcessor extends BaseProcessor {
         (node.parent as AssignmentExpression).leftHandSide == node &&
         node.parent.parent is ExpressionStatement) {
     } else {
-      _coverageMarker();
       return;
     }
     var assignExpression = node.parent as AssignmentExpression;
     // check that binary expression is assignment
     if (assignExpression.operator.type != TokenType.EQ) {
-      _coverageMarker();
       return;
     }
     // prepare "declaration" statement
     var element = (node as SimpleIdentifier).staticElement;
     if (element == null) {
-      _coverageMarker();
       return;
     }
     var declOffset = element.nameOffset;
@@ -2256,19 +2129,16 @@ class AssistProcessor extends BaseProcessor {
         declNode.parent.parent is VariableDeclarationList &&
         declNode.parent.parent.parent is VariableDeclarationStatement) {
     } else {
-      _coverageMarker();
       return;
     }
     var decl = declNode.parent as VariableDeclaration;
     var declStatement = decl.parent.parent as VariableDeclarationStatement;
     // may be has initializer
     if (decl.initializer != null) {
-      _coverageMarker();
       return;
     }
     // check that "declaration" statement declared only one variable
     if (declStatement.variables.variables.length != 1) {
-      _coverageMarker();
       return;
     }
     // check that the "declaration" and "assignment" statements are
@@ -2277,7 +2147,6 @@ class AssistProcessor extends BaseProcessor {
     if (assignStatement.parent is Block &&
         assignStatement.parent == declStatement.parent) {
     } else {
-      _coverageMarker();
       return;
     }
     var block = assignStatement.parent as Block;
@@ -2286,7 +2155,6 @@ class AssistProcessor extends BaseProcessor {
     if (statements.indexOf(assignStatement) ==
         statements.indexOf(declStatement) + 1) {
     } else {
-      _coverageMarker();
       return;
     }
 
@@ -2304,20 +2172,17 @@ class AssistProcessor extends BaseProcessor {
     var declList = node.thisOrAncestorOfType<VariableDeclarationList>();
     if (declList != null && declList.variables.length == 1) {
     } else {
-      _coverageMarker();
       return;
     }
     var decl = declList.variables[0];
     // already initialized
     if (decl.initializer != null) {
-      _coverageMarker();
       return;
     }
     // prepare VariableDeclarationStatement in Block
     if (declList.parent is VariableDeclarationStatement &&
         declList.parent.parent is Block) {
     } else {
-      _coverageMarker();
       return;
     }
     var declStatement = declList.parent as VariableDeclarationStatement;
@@ -2330,28 +2195,24 @@ class AssistProcessor extends BaseProcessor {
       var declIndex = statements.indexOf(declStatement);
       if (declIndex < statements.length - 1) {
       } else {
-        _coverageMarker();
         return;
       }
       // next Statement should be assignment
       var assignStatement = statements[declIndex + 1];
       if (assignStatement is ExpressionStatement) {
       } else {
-        _coverageMarker();
         return;
       }
       var expressionStatement = assignStatement as ExpressionStatement;
       // expression should be assignment
       if (expressionStatement.expression is AssignmentExpression) {
       } else {
-        _coverageMarker();
         return;
       }
       assignExpression = expressionStatement.expression as AssignmentExpression;
     }
     // check that pure assignment
     if (assignExpression.operator.type != TokenType.EQ) {
-      _coverageMarker();
       return;
     }
 
@@ -2364,13 +2225,6 @@ class AssistProcessor extends BaseProcessor {
         changeBuilder, DartAssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
-  Future<void> _addProposal_removeTypeAnnotation() async {
-    // todo (pq): unify w/ fix (and then add a guard to not assist on lints:
-    // avoid_return_types_on_setters, type_init_formals)
-    final changeBuilder = await createBuilder_removeTypeAnnotation();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.REMOVE_TYPE_ANNOTATION);
-  }
-
   Future<void> _addProposal_reparentFlutterList() async {
     if (node is! ListLiteral) {
       return;
@@ -2378,13 +2232,11 @@ class AssistProcessor extends BaseProcessor {
     if ((node as ListLiteral).elements.any((CollectionElement exp) =>
         !(exp is InstanceCreationExpression &&
             flutter.isWidgetCreation(exp)))) {
-      _coverageMarker();
       return;
     }
     var literalSrc = utils.getNodeText(node);
     var newlineIdx = literalSrc.lastIndexOf(eol);
     if (newlineIdx < 0 || newlineIdx == literalSrc.length - 1) {
-      _coverageMarker();
       return; // Lists need to be in multi-line format already.
     }
     var indentOld = utils.getLinePrefix(node.offset + 1 + newlineIdx);
@@ -2422,7 +2274,6 @@ class AssistProcessor extends BaseProcessor {
     // may be on Statement with Conditional
     var statement = node.thisOrAncestorOfType<Statement>();
     if (statement == null) {
-      _coverageMarker();
       return;
     }
     // variable declaration
@@ -2520,7 +2371,6 @@ class AssistProcessor extends BaseProcessor {
   Future<void> _addProposal_replaceIfElseWithConditional() async {
     // should be "if"
     if (node is! IfStatement) {
-      _coverageMarker();
       return;
     }
     var ifStatement = node as IfStatement;
@@ -2528,7 +2378,6 @@ class AssistProcessor extends BaseProcessor {
     var thenStatement = getSingleStatement(ifStatement.thenStatement);
     var elseStatement = getSingleStatement(ifStatement.elseStatement);
     if (thenStatement == null || elseStatement == null) {
-      _coverageMarker();
       return;
     }
     Expression thenExpression;
@@ -2581,63 +2430,6 @@ class AssistProcessor extends BaseProcessor {
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
     }
-  }
-
-  Future<void> _addProposal_replaceWithVar() async {
-    /// Return `true` if the type in the [node] can be replaced with `var`.
-    bool canConvertVariableDeclarationList(VariableDeclarationList node) {
-      final staticType = node?.type?.type;
-      if (staticType == null || staticType.isDynamic) {
-        return false;
-      }
-      for (final child in node.variables) {
-        var initializer = child.initializer;
-        if (initializer == null || initializer.staticType != staticType) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    /// Return `true` if the given node can be replaced with `var`.
-    bool canReplaceWithVar() {
-      var parent = node.parent;
-      while (parent != null) {
-        if (parent is VariableDeclarationStatement) {
-          return canConvertVariableDeclarationList(parent.variables);
-        } else if (parent is ForPartsWithDeclarations) {
-          return canConvertVariableDeclarationList(parent.variables);
-        } else if (parent is ForEachPartsWithDeclaration) {
-          var loopVariableType = parent.loopVariable.type;
-          var staticType = loopVariableType?.type;
-          if (staticType == null || staticType.isDynamic) {
-            return false;
-          }
-          final iterableType = parent.iterable.staticType;
-          if (iterableType is InterfaceTypeImpl) {
-            var instantiatedType =
-                iterableType.asInstanceOf(typeProvider.iterableElement);
-            if (instantiatedType?.typeArguments?.first == staticType) {
-              return true;
-            }
-          }
-          return false;
-        }
-        parent = parent.parent;
-      }
-      return false;
-    }
-
-    if (canReplaceWithVar()) {
-      var changeBuilder = await createBuilder_replaceWithVar();
-      _addAssistFromBuilder(changeBuilder, DartAssistKind.REPLACE_WITH_VAR);
-    }
-  }
-
-  Future<void> _addProposal_sortChildPropertyLast() async {
-    final changeBuilder = await createBuilder_sortChildPropertyLast();
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.SORT_CHILD_PROPERTY_LAST);
   }
 
   Future<void> _addProposal_splitVariableDeclaration() async {
@@ -2924,24 +2716,6 @@ class AssistProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addProposal_useCurlyBraces() async {
-    final changeBuilder = await createBuilder_useCurlyBraces();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
-  }
-
-  Future<void> _addProposals_addTypeAnnotation() async {
-    var changeBuilder =
-        await createBuilder_addTypeAnnotation_DeclaredIdentifier();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_TYPE_ANNOTATION);
-
-    changeBuilder =
-        await createBuilder_addTypeAnnotation_SimpleFormalParameter();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_TYPE_ANNOTATION);
-
-    changeBuilder = await createBuilder_addTypeAnnotation_VariableDeclaration();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_TYPE_ANNOTATION);
-  }
-
   bool _containsErrorCode(Set<String> errorCodes) {
     final fileOffset = node.offset;
     for (var error in context.resolveResult.errors) {
@@ -3000,9 +2774,27 @@ class AssistProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _convertQuotes(bool fromDouble, AssistKind kind) async {
-    final changeBuilder = await createBuilder_convertQuotes(fromDouble);
-    _addAssistFromBuilder(changeBuilder, kind);
+  FunctionBody _getEnclosingFunctionBody() {
+    // This is duplicated from [CorrectionProducer] and should be replaced by
+    // that method when the assists that reference it are converted to be
+    // producers.
+    var closure = node.thisOrAncestorOfType<FunctionExpression>();
+    if (closure != null) {
+      return closure.body;
+    }
+    var function = node.thisOrAncestorOfType<FunctionDeclaration>();
+    if (function != null) {
+      return function.functionExpression.body;
+    }
+    var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
+    if (constructor != null) {
+      return constructor.body;
+    }
+    var method = node.thisOrAncestorOfType<MethodDeclaration>();
+    if (method != null) {
+      return method.body;
+    }
+    return null;
   }
 
   /// Returns the text of the given node in the unit.
@@ -3023,7 +2815,6 @@ class AssistProcessor extends BaseProcessor {
       InstanceCreationExpression child, AssistKind kind) async {
     // The child must have its own child.
     if (flutter.findChildArgument(child) == null) {
-      _coverageMarker();
       return;
     }
 
@@ -3098,13 +2889,6 @@ class AssistProcessor extends BaseProcessor {
     });
     _addAssistFromBuilder(changeBuilder, kind);
   }
-
-  /// This method does nothing, but we invoke it in places where Dart VM
-  /// coverage agent fails to provide coverage information - such as almost
-  /// all "return" statements.
-  ///
-  /// https://code.google.com/p/dart/issues/detail?id=19912
-  static void _coverageMarker() {}
 
   static String _replaceSourceIndent(
       String source, String indentOld, String indentNew) {

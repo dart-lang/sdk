@@ -18,7 +18,7 @@ class ReloadEvent {
 class NavReloadElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavReloadElement>('nav-reload');
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavReloadElement> _r;
 
   Stream<RenderedEvent<NavReloadElement>> get onRendered => _r.onRendered;
 

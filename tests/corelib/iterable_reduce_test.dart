@@ -26,7 +26,7 @@ main() {
   for (dynamic iterable in [
     const [1, 2, 3],
     [1, 2, 3],
-    new List(3)
+    new List<int?>.filled(3, null)
       ..[0] = 1
       ..[1] = 2
       ..[2] = 3,
@@ -88,7 +88,7 @@ main() {
   for (var iterable in [
     const [],
     [],
-    new List(0),
+    new List.empty(),
     {}.keys,
     {}.values,
     new Iterable.generate(0, (x) => x + 1),
@@ -119,7 +119,7 @@ main() {
   for (dynamic iterable in [
     const [1],
     [1],
-    new List(1)..[0] = 1,
+    new List.filled(1, 1),
     {1: 1}.keys,
     {1: 1}.values,
     new Iterable.generate(1, (x) => x + 1),

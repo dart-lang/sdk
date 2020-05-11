@@ -25,12 +25,12 @@ main(List<String> args) {
     print(' Test with enqueuer checks');
     print('------------------------------------------------------------------');
     await checkTests(dataDir, const ClosedWorldDataComputer(false),
-        args: args, testedConfigs: allStrongConfigs);
+        args: args, testedConfigs: allSpecConfigs);
     print('------------------------------------------------------------------');
     print(' Test without enqueuer checks');
     print('------------------------------------------------------------------');
     await checkTests(dataDir, const ClosedWorldDataComputer(true),
-        args: args, testedConfigs: allStrongConfigs);
+        args: args, testedConfigs: allSpecConfigs);
   });
 }
 

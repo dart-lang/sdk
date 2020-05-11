@@ -15,7 +15,8 @@ namespace dart {
 static const int kNumInitialReferences = 4;
 
 ApiMessageReader::ApiMessageReader(Message* msg)
-    : BaseReader(msg->IsRaw() ? reinterpret_cast<uint8_t*>(msg->raw_obj())
+    : BaseReader(msg->IsRaw() ? reinterpret_cast<uint8_t*>(
+                                    static_cast<uword>(msg->raw_obj()))
                               : msg->snapshot(),
                  msg->snapshot_length()),
       zone_(NULL),
@@ -49,8 +50,8 @@ Dart_CObject* ApiMessageReader::ReadMessage() {
     // Read the object out of the message.
     return ReadObject();
   } else {
-    const RawObject* raw_obj =
-        reinterpret_cast<const RawObject*>(CurrentBufferAddress());
+    const ObjectPtr raw_obj = static_cast<const ObjectPtr>(
+        reinterpret_cast<uword>(CurrentBufferAddress()));
     ASSERT(ApiObjectConverter::CanConvert(raw_obj));
     Dart_CObject* cobj =
         reinterpret_cast<Dart_CObject*>(allocator(sizeof(Dart_CObject)));
@@ -185,11 +186,11 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectArray(intptr_t length) {
 }
 
 Dart_CObject* ApiMessageReader::AllocateDartCObjectVmIsolateObj(intptr_t id) {
-  RawObject* raw = VmIsolateSnapshotObject(id);
+  ObjectPtr raw = VmIsolateSnapshotObject(id);
   intptr_t cid = raw->GetClassId();
   switch (cid) {
     case kOneByteStringCid: {
-      RawOneByteString* raw_str = reinterpret_cast<RawOneByteString*>(raw);
+      OneByteStringPtr raw_str = static_cast<OneByteStringPtr>(raw);
       const char* str = reinterpret_cast<const char*>(raw_str->ptr()->data());
       ASSERT(str != NULL);
       Dart_CObject* object = NULL;
@@ -207,7 +208,7 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectVmIsolateObj(intptr_t id) {
     }
 
     case kMintCid: {
-      const Mint& obj = Mint::Handle(reinterpret_cast<RawMint*>(raw));
+      const Mint& obj = Mint::Handle(static_cast<MintPtr>(raw));
       int64_t value64 = obj.value();
       if ((kMinInt32 <= value64) && (value64 <= kMaxInt32)) {
         return GetCanonicalMintObject(Dart_CObject_kInt32, value64);
@@ -323,9 +324,9 @@ intptr_t ApiMessageReader::NextAvailableObjectId() const {
   return backward_references_.length() + kMaxPredefinedObjectIds;
 }
 
-Dart_CObject* ApiMessageReader::CreateDartCObjectString(RawObject* raw) {
-  ASSERT(RawObject::IsOneByteStringClassId(raw->GetClassId()));
-  RawOneByteString* raw_str = reinterpret_cast<RawOneByteString*>(raw);
+Dart_CObject* ApiMessageReader::CreateDartCObjectString(ObjectPtr raw) {
+  ASSERT(IsOneByteStringClassId(raw->GetClassId()));
+  OneByteStringPtr raw_str = static_cast<OneByteStringPtr>(raw);
   intptr_t len = Smi::Value(raw_str->ptr()->length_);
   Dart_CObject* object = AllocateDartCObjectString(len);
   char* p = object->value.as_string;
@@ -848,7 +849,7 @@ void ApiMessageWriter::AddToForwardList(Dart_CObject* object) {
 
 void ApiMessageWriter::WriteSmi(int64_t value) {
   ASSERT(Smi::IsValid(value));
-  Write<RawObject*>(Smi::New(static_cast<intptr_t>(value)));
+  Write<ObjectPtr>(Smi::New(static_cast<intptr_t>(value)));
 }
 
 void ApiMessageWriter::WriteNullObject() {

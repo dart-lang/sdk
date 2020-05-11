@@ -16,7 +16,6 @@ import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
-import 'package:nnbd_migration/src/potential_modification.dart';
 import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
 import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
@@ -203,7 +202,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           '(${node.parent.parent.toSource()}) offset=${node.offset}');
     }
     decoratedType.node.trackPossiblyOptional();
-    _variables.recordPossiblyOptional(source, node, decoratedType.node);
     return null;
   }
 
@@ -421,8 +419,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (type.isVoid || type.isDynamic) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(target);
       var decoratedType = DecoratedType(type, nullabilityNode);
-      _variables.recordDecoratedTypeAnnotation(
-          source, node, decoratedType, null);
+      _variables.recordDecoratedTypeAnnotation(source, node, decoratedType);
       return decoratedType;
     }
     var typeArguments = const <DecoratedType>[];
@@ -495,23 +492,23 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           positionalParameters: positionalParameters,
           namedParameters: namedParameters);
     }
-    _variables.recordDecoratedTypeAnnotation(
-        source,
-        node,
-        decoratedType,
-        PotentiallyAddQuestionSuffix(
-            nullabilityNode, decoratedType.type, node.end));
-    switch (getPostfixHint(node)) {
-      case NullabilityComment.bang:
-        _graph.makeNonNullableUnion(
-            decoratedType.node, NullabilityCommentOrigin(source, node, false));
-        break;
-      case NullabilityComment.question:
-        _graph.makeNullableUnion(
-            decoratedType.node, NullabilityCommentOrigin(source, node, true));
-        break;
-      case NullabilityComment.none:
-        break;
+    _variables.recordDecoratedTypeAnnotation(source, node, decoratedType);
+    var hint = getPostfixHint(node.endToken);
+    if (hint != null) {
+      switch (hint.kind) {
+        case HintCommentKind.bang:
+          _graph.makeNonNullableUnion(decoratedType.node,
+              NullabilityCommentOrigin(source, node, false));
+          _variables.recordNullabilityHint(source, node, hint);
+          break;
+        case HintCommentKind.question:
+          _graph.makeNullableUnion(
+              decoratedType.node, NullabilityCommentOrigin(source, node, true));
+          _variables.recordNullabilityHint(source, node, hint);
+          break;
+        default:
+          break;
+      }
     }
     return decoratedType;
   }
@@ -545,12 +542,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     var typeAnnotation = node.type;
     var type = typeAnnotation?.accept(this);
-    switch (getPrefixHint(node.firstTokenAfterCommentAndMetadata)) {
-      case PrefixHintComment.late_:
-        _variables.recordLateHint(source, node);
-        break;
-      case PrefixHintComment.none:
-        break;
+    var hint = getPrefixHint(node.firstTokenAfterCommentAndMetadata);
+    if (hint != null && hint.kind == HintCommentKind.late_) {
+      _variables.recordLateHint(source, node, hint);
     }
     for (var variable in node.variables) {
       variable.metadata.accept(this);

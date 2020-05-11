@@ -17,7 +17,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 class NamedConstructorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var node = request.target.containingNode;
     var libraryElement = request.libraryElement;
     if (libraryElement == null) {
@@ -32,8 +32,7 @@ class NamedConstructorContributor extends DartCompletionContributor {
         if (type != null) {
           var element = type.element;
           if (element is ClassElement) {
-            return _buildSuggestions(
-                libraryElement, element, request.useNewRelevance);
+            _buildSuggestions(request, builder, libraryElement, element);
           }
         }
       }
@@ -41,27 +40,19 @@ class NamedConstructorContributor extends DartCompletionContributor {
     return const <CompletionSuggestion>[];
   }
 
-  List<CompletionSuggestion> _buildSuggestions(
-      LibraryElement libElem, ClassElement classElem, bool useNewRelevance) {
+  void _buildSuggestions(
+      DartCompletionRequest request,
+      SuggestionBuilder builder,
+      LibraryElement libElem,
+      ClassElement classElem) {
     var isLocalClassDecl = classElem.library == libElem;
-    var suggestions = <CompletionSuggestion>[];
     for (var constructor in classElem.constructors) {
       if (isLocalClassDecl || !constructor.isPrivate) {
         var name = constructor.name;
         if (name != null) {
-          var relevance = useNewRelevance
-              ? Relevance.namedConstructor
-              : DART_RELEVANCE_DEFAULT;
-          var suggestion = createSuggestion(constructor,
-              completion: name,
-              relevance: relevance,
-              useNewRelevance: useNewRelevance);
-          if (suggestion != null) {
-            suggestions.add(suggestion);
-          }
+          builder.suggestConstructor(constructor, hasClassName: true);
         }
       }
     }
-    return suggestions;
   }
 }

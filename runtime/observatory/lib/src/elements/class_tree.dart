@@ -29,7 +29,7 @@ class ClassTreeElement extends CustomElement implements Renderable {
     VirtualTreeElement.tag
   ]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<ClassTreeElement> _r;
 
   Stream<RenderedEvent<ClassTreeElement>> get onRendered => _r.onRendered;
 

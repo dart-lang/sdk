@@ -35,16 +35,11 @@ class FeatureSetProvider {
       return _sdkFeatureSet;
     }
 
-    for (var package in _packages.packages) {
-      if (package.rootFolder.contains(path)) {
-        var languageVersion = package.languageVersion;
-        if (languageVersion == null ||
-            languageVersion == ExperimentStatus.currentVersion) {
-          return _packageDefaultFeatureSet;
-        } else {
-          return _packageDefaultFeatureSet.restrictToVersion(languageVersion);
-        }
-      }
+    var package = _packages.packageForPath(path);
+    if (package != null) {
+      var languageVersion = package.languageVersion;
+      languageVersion ??= ExperimentStatus.currentVersion;
+      return _packageDefaultFeatureSet.restrictToVersion(languageVersion);
     }
 
     return _nonPackageDefaultFeatureSet;
@@ -52,13 +47,11 @@ class FeatureSetProvider {
 
   /// Return the language version configured for the file.
   Version getLanguageVersion(String path, Uri uri) {
-    for (var package in _packages.packages) {
-      if (package.rootFolder.contains(path)) {
-        var languageVersion = package.languageVersion;
-        if (languageVersion != null) {
-          return languageVersion;
-        }
-        break;
+    var package = _packages.packageForPath(path);
+    if (package != null) {
+      var languageVersion = package.languageVersion;
+      if (languageVersion != null) {
+        return languageVersion;
       }
     }
 

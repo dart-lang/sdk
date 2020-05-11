@@ -462,6 +462,9 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
 
   void visitNeverType(NeverType node) {
     sb.write('Never');
+    if (node.nullability != Nullability.nonNullable) {
+      sb.write(nullabilityToText(node.nullability, typeRepresentation));
+    }
   }
 
   void visitInterfaceType(InterfaceType node) {

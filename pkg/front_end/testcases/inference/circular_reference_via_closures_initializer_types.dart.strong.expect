@@ -9,6 +9,6 @@ library test;
 //
 import self as self;
 
-static field invalid-type x = (() → () →* invalid-type => self::y) as{TypeError} invalid-type;
+static field invalid-type x = () → () →* invalid-type => self::y;
 static field () →* invalid-type y = () → invalid-type => self::x;
 static method main() → dynamic {}

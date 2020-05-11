@@ -1023,6 +1023,14 @@ table CiderLinkedLibraryCycle {
   signature:[uint] (id: 0);
 }
 
+/// Errors for a single unit.
+table CiderUnitErrors {
+  errors:[AnalysisDriverUnitError] (id: 1);
+
+  /// The hash signature of this data.
+  signature:[uint] (id: 0);
+}
+
 /// Information about a compilation unit, contains the content hash
 /// and unlinked summary.
 table CiderUnlinkedUnit {
@@ -1211,6 +1219,8 @@ table LinkedNodeTypeFormalParameter {
 
 /// Information about a type substitution.
 table LinkedNodeTypeSubstitution {
+  isLegacy:bool (id: 2);
+
   typeArguments:[LinkedNodeType] (id: 1);
 
   typeParameters:[uint] (id: 0);

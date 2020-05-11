@@ -12,7 +12,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 class ViewFooterElement extends CustomElement implements Renderable {
   static const tag = const Tag<ViewFooterElement>('view-footer');
 
-  RenderingScheduler _r;
+  RenderingScheduler<ViewFooterElement> _r;
 
   Stream<RenderedEvent<ViewFooterElement>> get onRendered => _r.onRendered;
 

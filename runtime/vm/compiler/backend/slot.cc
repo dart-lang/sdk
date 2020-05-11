@@ -4,8 +4,6 @@
 
 #include "vm/compiler/backend/slot.h"
 
-#ifndef DART_PRECOMPILED_RUNTIME
-
 #include "vm/compiler/compiler_state.h"
 #include "vm/hash_map.h"
 #include "vm/parser.h"
@@ -120,9 +118,8 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
 
 // Note: should only be called with cids of array-like classes.
 const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
-  if (RawObject::IsExternalTypedDataClassId(array_cid) ||
-      RawObject::IsTypedDataClassId(array_cid) ||
-      RawObject::IsTypedDataViewClassId(array_cid)) {
+  if (IsExternalTypedDataClassId(array_cid) || IsTypedDataClassId(array_cid) ||
+      IsTypedDataViewClassId(array_cid)) {
     return GetNativeSlot(Kind::kTypedDataBase_length);
   }
   switch (array_cid) {
@@ -195,6 +192,11 @@ const Slot& Slot::Get(const Field& field,
     }
   }
 
+  AbstractType& type = AbstractType::ZoneHandle(zone, field.type());
+  if (type.IsStrictlyNonNullable()) {
+    is_nullable = false;
+  }
+
   bool used_guarded_state = false;
   if (field.guarded_cid() != kIllegalCid &&
       field.guarded_cid() != kDynamicCid) {
@@ -210,8 +212,6 @@ const Slot& Slot::Get(const Field& field,
     }
   }
 
-  AbstractType& type = AbstractType::ZoneHandle(zone, field.type());
-
   if (field.needs_load_guard()) {
     // Should be kept in sync with LoadStaticFieldInstr::ComputeType.
     type = Type::DynamicType();
@@ -222,11 +222,6 @@ const Slot& Slot::Get(const Field& field,
 
   if (field.is_non_nullable_integer()) {
     is_nullable = false;
-  }
-
-  if (field.is_late()) {
-    // TODO(dartbug.com/40796): Extend CompileType to handle lateness.
-    is_nullable = true;
   }
 
   const Slot& slot = SlotCache::Instance(thread).Canonicalize(Slot(
@@ -320,5 +315,3 @@ intptr_t Slot::Hashcode() const {
 }
 
 }  // namespace dart
-
-#endif  // DART_PRECOMPILED_RUNTIME

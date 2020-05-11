@@ -1,0 +1,13 @@
+library test;
+
+Function2<List<int>, String> g = ([llll = const [1]]) => "hello";
+
+class Foo {
+  Foo([this.x = const [1]]);
+  Foo.named([List<int> x = const [1]]);
+  List<int> x;
+}
+
+main() {}
+typedef T Function2<S, T>([S x]);
+void f([List<int> l = const [1]]) {}

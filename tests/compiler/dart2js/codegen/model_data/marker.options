@@ -1,2 +1,4 @@
-strong=tests/compiler/dart2js/codegen/model_test.dart
-omit=tests/compiler/dart2js/codegen/model_test.dart
+spec:nnbd-off=tests/compiler/dart2js/codegen/model_test.dart
+prod:nnbd-off=tests/compiler/dart2js/codegen/model_test.dart
+spec:nnbd-sdk=tests/compiler/dart2js/codegen/model_test.dart
+prod:nnbd-sdk=tests/compiler/dart2js/codegen/model_test.dart

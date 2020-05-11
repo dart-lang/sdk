@@ -385,7 +385,7 @@ ConstantPool {
   static method test_for_in(dart.core::List<dart.core::int*>* list) → dart.core::int* {
     dart.core::int* sum = 0;
     {
-      dart.core::Iterator<dart.core::int*>* :sync-for-iterator = dart._internal::unsafeCast<dart.core::Iterable<dart.core::int*>*>(list).{dart.core::Iterable::iterator};
+      dart.core::Iterator<dart.core::int*>* :sync-for-iterator = list.{dart.core::Iterable::iterator};
       for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
         dart.core::int* e = :sync-for-iterator.{dart.core::Iterator::current};
         {
@@ -399,7 +399,7 @@ ConstantPool {
     dart.core::int* sum = 0;
     dart.core::int* e = 42;
     {
-      dart.core::Iterator<dart.core::int*>* :sync-for-iterator = dart._internal::unsafeCast<dart.core::Iterable<dart.core::int*>*>(list).{dart.core::Iterable::iterator};
+      dart.core::Iterator<dart.core::int*>* :sync-for-iterator = list.{dart.core::Iterable::iterator};
       for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
         final dart.core::int* #t3 = :sync-for-iterator.{dart.core::Iterator::current};
         {

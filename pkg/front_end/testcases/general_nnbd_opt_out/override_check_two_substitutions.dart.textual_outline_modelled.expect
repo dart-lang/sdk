@@ -1,0 +1,10 @@
+// @dart = 2.6
+class A<T> {
+  void f<U>(Map<T, U> m) {}
+}
+
+class B extends A<String> {
+  void f<V>(Map<String, V> m) {}
+}
+
+main() {}

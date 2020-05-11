@@ -24,16 +24,16 @@ ForwardingCorpse* ForwardingCorpse::AsForwarder(uword addr, intptr_t size) {
   ForwardingCorpse* result = reinterpret_cast<ForwardingCorpse*>(addr);
 
   uint32_t tags = 0;
-  tags = RawObject::SizeTag::update(size, tags);
-  tags = RawObject::ClassIdTag::update(kForwardingCorpse, tags);
+  tags = ObjectLayout::SizeTag::update(size, tags);
+  tags = ObjectLayout::ClassIdTag::update(kForwardingCorpse, tags);
   bool is_old = (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
-  tags = RawObject::OldBit::update(is_old, tags);
-  tags = RawObject::OldAndNotMarkedBit::update(is_old, tags);
-  tags = RawObject::OldAndNotRememberedBit::update(is_old, tags);
-  tags = RawObject::NewBit::update(!is_old, tags);
+  tags = ObjectLayout::OldBit::update(is_old, tags);
+  tags = ObjectLayout::OldAndNotMarkedBit::update(is_old, tags);
+  tags = ObjectLayout::OldAndNotRememberedBit::update(is_old, tags);
+  tags = ObjectLayout::NewBit::update(!is_old, tags);
 
   result->tags_ = tags;
-  if (size > RawObject::SizeTag::kMaxSizeTag) {
+  if (size > ObjectLayout::SizeTag::kMaxSizeTag) {
     *result->SizeAddress() = size;
   }
   result->set_target(Object::null());
@@ -48,21 +48,21 @@ void ForwardingCorpse::Init() {
 // Free list elements are used as a marker for forwarding objects. This is
 // safe because we cannot reach free list elements from live objects. Ideally
 // forwarding objects would have their own class id. See TODO below.
-static bool IsForwardingObject(RawObject* object) {
+static bool IsForwardingObject(ObjectPtr object) {
   return object->IsHeapObject() && object->IsForwardingCorpse();
 }
 
-static RawObject* GetForwardedObject(RawObject* object) {
+static ObjectPtr GetForwardedObject(ObjectPtr object) {
   ASSERT(IsForwardingObject(object));
-  uword addr = reinterpret_cast<uword>(object) - kHeapObjectTag;
+  uword addr = static_cast<uword>(object) - kHeapObjectTag;
   ForwardingCorpse* forwarder = reinterpret_cast<ForwardingCorpse*>(addr);
   return forwarder->target();
 }
 
-static void ForwardObjectTo(RawObject* before_obj, RawObject* after_obj) {
-  const intptr_t size_before = before_obj->HeapSize();
+static void ForwardObjectTo(ObjectPtr before_obj, ObjectPtr after_obj) {
+  const intptr_t size_before = before_obj->ptr()->HeapSize();
 
-  uword corpse_addr = reinterpret_cast<uword>(before_obj) - kHeapObjectTag;
+  uword corpse_addr = static_cast<uword>(before_obj) - kHeapObjectTag;
   ForwardingCorpse* forwarder =
       ForwardingCorpse::AsForwarder(corpse_addr, size_before);
   forwarder->set_target(after_obj);
@@ -70,7 +70,7 @@ static void ForwardObjectTo(RawObject* before_obj, RawObject* after_obj) {
     FATAL("become: ForwardObjectTo failure.");
   }
   // Still need to be able to iterate over the forwarding corpse.
-  const intptr_t size_after = before_obj->HeapSize();
+  const intptr_t size_after = before_obj->ptr()->HeapSize();
   if (size_before != size_after) {
     FATAL("become: Before and after sizes do not match.");
   }
@@ -81,25 +81,25 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
   explicit ForwardPointersVisitor(Thread* thread)
       : ObjectPointerVisitor(thread->isolate_group()),
         thread_(thread),
-        visiting_object_(NULL) {}
+        visiting_object_(nullptr) {}
 
-  virtual void VisitPointers(RawObject** first, RawObject** last) {
-    for (RawObject** p = first; p <= last; p++) {
-      RawObject* old_target = *p;
+  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+    for (ObjectPtr* p = first; p <= last; p++) {
+      ObjectPtr old_target = *p;
       if (IsForwardingObject(old_target)) {
-        RawObject* new_target = GetForwardedObject(old_target);
-        if (visiting_object_ == NULL) {
+        ObjectPtr new_target = GetForwardedObject(old_target);
+        if (visiting_object_ == nullptr) {
           *p = new_target;
         } else {
-          visiting_object_->StorePointer(p, new_target);
+          visiting_object_->ptr()->StorePointer(p, new_target);
         }
       }
     }
   }
 
-  void VisitingObject(RawObject* obj) {
+  void VisitingObject(ObjectPtr obj) {
     visiting_object_ = obj;
-    if ((obj != NULL) && obj->IsOldObject() && obj->IsRemembered()) {
+    if ((obj != nullptr) && obj->IsOldObject() && obj->ptr()->IsRemembered()) {
       ASSERT(!obj->IsForwardingCorpse());
       ASSERT(!obj->IsFreeListElement());
       thread_->StoreBufferAddObjectGC(obj);
@@ -108,7 +108,7 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
 
  private:
   Thread* thread_;
-  RawObject* visiting_object_;
+  ObjectPtr visiting_object_;
 
   DISALLOW_COPY_AND_ASSIGN(ForwardPointersVisitor);
 };
@@ -118,9 +118,9 @@ class ForwardHeapPointersVisitor : public ObjectVisitor {
   explicit ForwardHeapPointersVisitor(ForwardPointersVisitor* pointer_visitor)
       : pointer_visitor_(pointer_visitor) {}
 
-  virtual void VisitObject(RawObject* obj) {
+  virtual void VisitObject(ObjectPtr obj) {
     pointer_visitor_->VisitingObject(obj);
-    obj->VisitPointers(pointer_visitor_);
+    obj->ptr()->VisitPointers(pointer_visitor_);
   }
 
  private:
@@ -182,25 +182,25 @@ void Become::MakeDummyObject(const Instance& instance) {
   ForwardObjectTo(instance.raw(), instance.raw());
 }
 
-static bool IsDummyObject(RawObject* object) {
+static bool IsDummyObject(ObjectPtr object) {
   if (!object->IsForwardingCorpse()) return false;
   return GetForwardedObject(object) == object;
 }
 
-void Become::CrashDump(RawObject* before_obj, RawObject* after_obj) {
+void Become::CrashDump(ObjectPtr before_obj, ObjectPtr after_obj) {
   OS::PrintErr("DETECTED FATAL ISSUE IN BECOME MAPPINGS\n");
 
-  OS::PrintErr("BEFORE ADDRESS: %p\n", before_obj);
+  OS::PrintErr("BEFORE ADDRESS: %#" Px "\n", static_cast<uword>(before_obj));
   OS::PrintErr("BEFORE IS HEAP OBJECT: %s\n",
                before_obj->IsHeapObject() ? "YES" : "NO");
   OS::PrintErr("BEFORE IN VMISOLATE HEAP OBJECT: %s\n",
-               before_obj->InVMIsolateHeap() ? "YES" : "NO");
+               before_obj->ptr()->InVMIsolateHeap() ? "YES" : "NO");
 
-  OS::PrintErr("AFTER ADDRESS: %p\n", after_obj);
+  OS::PrintErr("AFTER ADDRESS: %#" Px "\n", static_cast<uword>(after_obj));
   OS::PrintErr("AFTER IS HEAP OBJECT: %s\n",
                after_obj->IsHeapObject() ? "YES" : "NO");
   OS::PrintErr("AFTER IN VMISOLATE HEAP OBJECT: %s\n",
-               after_obj->InVMIsolateHeap() ? "YES" : "NO");
+               after_obj->ptr()->InVMIsolateHeap() ? "YES" : "NO");
 
   if (before_obj->IsHeapObject()) {
     OS::PrintErr("BEFORE OBJECT CLASS ID=%" Pd "\n", before_obj->GetClassId());
@@ -225,8 +225,8 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
   // Setup forwarding pointers.
   ASSERT(before.Length() == after.Length());
   for (intptr_t i = 0; i < before.Length(); i++) {
-    RawObject* before_obj = before.At(i);
-    RawObject* after_obj = after.At(i);
+    ObjectPtr before_obj = before.At(i);
+    ObjectPtr after_obj = after.At(i);
 
     if (before_obj == after_obj) {
       FATAL("become: Cannot self-forward");
@@ -239,7 +239,7 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
       CrashDump(before_obj, after_obj);
       FATAL("become: Cannot become immediates");
     }
-    if (before_obj->InVMIsolateHeap()) {
+    if (before_obj->ptr()->InVMIsolateHeap()) {
       CrashDump(before_obj, after_obj);
       FATAL("become: Cannot forward VM heap objects");
     }

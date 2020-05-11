@@ -11,8 +11,6 @@
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 namespace dart {
 namespace kernel {
 
@@ -823,7 +821,8 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
   JoinEntryInstr* nsm = BuildJoinEntry();
 
   Fragment failing(nsm);
-  const Code& nsm_handler = StubCode::CallClosureNoSuchMethod();
+  const Code& nsm_handler = Code::ZoneHandle(
+      Z, I->object_store()->call_closure_no_such_method_stub());
   failing += LoadArgDescriptor();
   failing += TailCall(nsm_handler);
 
@@ -972,7 +971,7 @@ Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
   return Fragment();
 #else
   return Fragment(new (Z) DebugStepCheckInstr(
-      position, RawPcDescriptors::kRuntimeCall, GetNextDeoptId()));
+      position, PcDescriptorsLayout::kRuntimeCall, GetNextDeoptId()));
 #endif
 }
 
@@ -1145,5 +1144,3 @@ Fragment BaseFlowGraphBuilder::InitConstantParameters() {
 
 }  // namespace kernel
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

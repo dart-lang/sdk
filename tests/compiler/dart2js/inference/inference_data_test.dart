@@ -25,7 +25,7 @@ main(List<String> args) {
         new Directory.fromUri(Platform.script.resolve('inference_data'));
     await checkTests(dataDir, const InferenceDataComputer(),
         args: args,
-        testedConfigs: [strongConfig],
+        testedConfigs: allSpecConfigs,
         options: [stopAfterTypeInference]);
   });
 }

@@ -43,8 +43,7 @@ void GenerateEmbedStringInCode(compiler::Assembler* assembler,
 // This is used to test Embedded Smi objects in the instructions.
 void GenerateEmbedSmiInCode(compiler::Assembler* assembler, intptr_t value) {
   const Smi& smi_object = Smi::ZoneHandle(Smi::New(value));
-  __ movq(RAX,
-          compiler::Immediate(reinterpret_cast<int64_t>(smi_object.raw())));
+  __ movq(RAX, compiler::Immediate(static_cast<int64_t>(smi_object.raw())));
   __ ret();
 }
 

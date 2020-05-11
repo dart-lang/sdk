@@ -181,4 +181,7 @@ class ConvertToSetLiteral extends CorrectionProducer {
     }
     return _hasUnambiguousElement(creation);
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static ConvertToSetLiteral newInstance() => ConvertToSetLiteral();
 }

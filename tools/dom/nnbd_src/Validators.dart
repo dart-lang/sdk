@@ -262,7 +262,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   /// important attributes we want to check, remove it if it's not valid
   /// or not allowed, either as a whole or particular attributes.
   void _sanitizeElement(Element element, Node? parent, bool corrupted,
-      String text, String tag, Map attrs, String isAttr) {
+      String text, String tag, Map attrs, String? isAttr) {
     if (false != corrupted) {
       _removeNode(element, parent);
       window.console

@@ -91,9 +91,8 @@ const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
 }
 
 bool NativeEntry::ReturnValueIsError(NativeArguments* arguments) {
-  RawObject* retval = arguments->ReturnValue();
-  return (retval->IsHeapObject() &&
-          RawObject::IsErrorClassId(retval->GetClassId()));
+  ObjectPtr retval = arguments->ReturnValue();
+  return (retval->IsHeapObject() && IsErrorClassId(retval->GetClassId()));
 }
 
 void NativeEntry::PropagateErrors(NativeArguments* arguments) {
@@ -137,7 +136,7 @@ void NativeEntry::BootstrapNativeCallWrapper(Dart_NativeArguments args,
     // Be careful holding return_value_unsafe without a handle here.
     // A return of Object::sentinel means the return value has already
     // been set.
-    RawObject* return_value_unsafe = reinterpret_cast<BootstrapNativeFunction>(
+    ObjectPtr return_value_unsafe = reinterpret_cast<BootstrapNativeFunction>(
         func)(thread, zone.GetZone(), arguments);
     if (return_value_unsafe != Object::sentinel().raw()) {
       ASSERT(return_value_unsafe->IsDartInstance());
@@ -310,9 +309,14 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       const Code& current_trampoline =
           Code::Handle(zone, CodePatcher::GetNativeCallAt(
                                  caller_frame->pc(), code, &current_function));
+      // Some other isolate(with code being shared in AOT) might have updated
+      // target function/trampoline already.
       ASSERT(current_function ==
-             reinterpret_cast<NativeFunction>(LinkNativeCall));
-      ASSERT(current_trampoline.raw() == StubCode::CallBootstrapNative().raw());
+                 reinterpret_cast<NativeFunction>(LinkNativeCall) ||
+             current_function == target_function);
+      ASSERT(current_trampoline.raw() ==
+                 StubCode::CallBootstrapNative().raw() ||
+             current_function == target_function);
     }
 #endif
 
@@ -372,7 +376,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 // Note: not GC safe. Use with care.
-NativeEntryData::Payload* NativeEntryData::FromTypedArray(RawTypedData* data) {
+NativeEntryData::Payload* NativeEntryData::FromTypedArray(TypedDataPtr data) {
   return reinterpret_cast<Payload*>(data->ptr()->data());
 }
 
@@ -384,7 +388,7 @@ void NativeEntryData::set_kind(MethodRecognizer::Kind value) const {
   FromTypedArray(data_.raw())->kind = value;
 }
 
-MethodRecognizer::Kind NativeEntryData::GetKind(RawTypedData* data) {
+MethodRecognizer::Kind NativeEntryData::GetKind(TypedDataPtr data) {
   return FromTypedArray(data)->kind;
 }
 
@@ -396,7 +400,7 @@ void NativeEntryData::set_trampoline(NativeFunctionWrapper value) const {
   FromTypedArray(data_.raw())->trampoline = value;
 }
 
-NativeFunctionWrapper NativeEntryData::GetTrampoline(RawTypedData* data) {
+NativeFunctionWrapper NativeEntryData::GetTrampoline(TypedDataPtr data) {
   return FromTypedArray(data)->trampoline;
 }
 
@@ -408,7 +412,7 @@ void NativeEntryData::set_native_function(NativeFunction value) const {
   FromTypedArray(data_.raw())->native_function = value;
 }
 
-NativeFunction NativeEntryData::GetNativeFunction(RawTypedData* data) {
+NativeFunction NativeEntryData::GetNativeFunction(TypedDataPtr data) {
   return FromTypedArray(data)->native_function;
 }
 
@@ -420,14 +424,14 @@ void NativeEntryData::set_argc_tag(intptr_t value) const {
   FromTypedArray(data_.raw())->argc_tag = value;
 }
 
-intptr_t NativeEntryData::GetArgcTag(RawTypedData* data) {
+intptr_t NativeEntryData::GetArgcTag(TypedDataPtr data) {
   return FromTypedArray(data)->argc_tag;
 }
 
-RawTypedData* NativeEntryData::New(MethodRecognizer::Kind kind,
-                                   NativeFunctionWrapper trampoline,
-                                   NativeFunction native_function,
-                                   intptr_t argc_tag) {
+TypedDataPtr NativeEntryData::New(MethodRecognizer::Kind kind,
+                                  NativeFunctionWrapper trampoline,
+                                  NativeFunction native_function,
+                                  intptr_t argc_tag) {
   const TypedData& data = TypedData::Handle(
       TypedData::New(kTypedDataUint8ArrayCid, sizeof(Payload), Heap::kOld));
   NativeEntryData native_entry(data);

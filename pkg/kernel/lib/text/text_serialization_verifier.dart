@@ -16,8 +16,6 @@ import '../text/text_serializer.dart'
         initializeSerializers,
         statementSerializer;
 
-import '../visitor.dart' show Visitor;
-
 const Uri noUri = null;
 
 const int noOffset = -1;
@@ -56,17 +54,256 @@ class TextRoundTripFailure extends TextSerializationVerificationFailure {
       : super(uri, offset);
 }
 
-class TextSerializationVerifier implements Visitor<void> {
+class VerificationState {
+  final VerificationState parent;
+
+  final Node node;
+
+  bool allChildrenAreSupported = true;
+  final List<Node> roundTripReadyNodes = [];
+
+  final Set<VariableDeclaration> variableDeclarations =
+      new Set<VariableDeclaration>.identity();
+  final Set<TypeParameter> typeParameters = new Set<TypeParameter>.identity();
+
+  final Set<VariableDeclaration> usedVariables =
+      new Set<VariableDeclaration>.identity();
+  final Set<TypeParameter> usedTypeParameters =
+      new Set<TypeParameter>.identity();
+
+  VerificationState(this.parent, this.node);
+
+  bool get isRoot => parent == null;
+
+  bool get isFullySupported => isSupported(node) && allChildrenAreSupported;
+
+  bool get hasSufficientScope {
+    return usedVariables.every((v) => variableDeclarations.contains(v)) &&
+        usedTypeParameters.every((p) => typeParameters.contains(p));
+  }
+
+  bool get isRoundTripReady => isFullySupported && hasSufficientScope;
+
+  bool isVariableDeclared(VariableDeclaration node) {
+    return variableDeclarations.contains(node) ||
+        !isRoot && parent.isVariableDeclared(node);
+  }
+
+  bool isTypeParameterDeclared(TypeParameter node) {
+    return typeParameters.contains(node) ||
+        !isRoot && parent.isTypeParameterDeclared(node);
+  }
+
+  void handleChild(VerificationState childState) {
+    allChildrenAreSupported =
+        allChildrenAreSupported && childState.isFullySupported;
+  }
+
+  void handleDeclarations() {
+    Node node = this.node;
+    if (node is VariableDeclaration) {
+      parent.variableDeclarations.add(node);
+    }
+    if (node is TypeParameter) {
+      parent.typeParameters.add(node);
+    }
+    if (node is VariableGet) {
+      usedVariables.add(node.variable);
+    }
+    if (node is VariableSet) {
+      usedVariables.add(node.variable);
+    }
+    if (node is TypeParameterType) {
+      usedTypeParameters.add(node.parameter);
+    }
+  }
+
+  /// Computes round-trip ready nodes or propagates them further in the stack.
+  ///
+  /// The returned nodes are the roots of maximal-by-inclusion subtrees that are
+  /// ready for the round-trip textual serialization.
+  List<Node> takeRoundTripReadyNodes() {
+    if (isRoot) {
+      // If the node is the root of the AST and is round-trip ready, return just
+      // the root because it's maximal-by-inclusion.
+      // Otherwise, return the nodes collected so far.
+      List<Node> result =
+          isRoundTripReady ? <Node>[node] : roundTripReadyNodes.toList();
+      roundTripReadyNodes.clear();
+      return result;
+    }
+
+    // The algorithm in this branch is based on the following observations:
+    //   - The isFullySupported property is monotonous.  That is, when traveling
+    //     from a leaf to the root, the property may only change its value from
+    //     true to false.
+    //   - The isRoundTripReady property is not monotonous because the sub-tree
+    //     that is ready for the round trip shouldn't contain free variables or
+    //     free type parameters.
+    //   - The isRoundTripReady property implies the isFullySupported property.
+
+    if (!isFullySupported) {
+      // We're out of the isFullySupported sub-tree, run the round trip on the
+      // nodes that are ready for it so far -- they are maximal-by-inclusion by
+      // construction.
+      List<Node> result = roundTripReadyNodes.toList();
+      roundTripReadyNodes.clear();
+      return result;
+    } else {
+      // We're still in the isFullySupported sub-tree.  It's to early to decide
+      // if the collected sub-trees or the node itself are maximal-by-inclusion.
+      // The decision should be made in one of the parent nodes.  So, we just
+      // propagate the information to the parent, returning an empty list for
+      // the current node.
+      if (isRoundTripReady) {
+        // The current tree is ready for the round trip.  Its sub-trees, which
+        // are also round-trip ready, are not maximal-by-inclusion.  So only the
+        // node itself is passed to the parent.
+        parent.roundTripReadyNodes.add(node);
+      } else {
+        // The node is not round-trip ready.  The round-trip ready sub-trees
+        // collected so far remain the candidates for being
+        // maximal-by-inclusion.
+        parent.roundTripReadyNodes.addAll(roundTripReadyNodes);
+      }
+      return const <Node>[];
+    }
+  }
+
+  /// Passes the necessary information to the parent when popped from the stack.
+  void mergeToParent() {
+    // Pass the free occurrences of variables and type parameters to the parent.
+    if (parent != null) {
+      parent.usedVariables
+          .addAll(usedVariables.difference(variableDeclarations));
+      parent.usedTypeParameters
+          .addAll(usedTypeParameters.difference(typeParameters));
+      parent.handleChild(this);
+    }
+  }
+
+  static bool isDartTypeSupported(DartType node) =>
+      node is InvalidType ||
+      node is DynamicType ||
+      node is VoidType ||
+      node is BottomType ||
+      node is FunctionType ||
+      node is TypeParameterType ||
+      node is InterfaceType;
+
+  static bool isExpressionSupported(Expression node) =>
+      node is StringLiteral ||
+      node is SymbolLiteral ||
+      node is IntLiteral ||
+      node is DoubleLiteral ||
+      node is BoolLiteral ||
+      node is NullLiteral ||
+      node is ListLiteral ||
+      node is SetLiteral ||
+      node is MapLiteral ||
+      node is TypeLiteral ||
+      node is InvalidExpression ||
+      node is Not ||
+      node is LogicalExpression ||
+      node is StringConcatenation ||
+      node is ThisExpression ||
+      node is Rethrow ||
+      node is Throw ||
+      node is AwaitExpression ||
+      node is ConditionalExpression ||
+      node is IsExpression ||
+      node is AsExpression ||
+      node is Let ||
+      node is PropertyGet ||
+      node is PropertySet ||
+      node is SuperPropertyGet ||
+      node is SuperPropertySet ||
+      node is MethodInvocation ||
+      node is SuperMethodInvocation ||
+      node is VariableGet ||
+      node is VariableSet ||
+      node is StaticGet ||
+      node is StaticSet ||
+      node is DirectPropertyGet ||
+      node is DirectPropertySet ||
+      node is StaticInvocation ||
+      node is DirectMethodInvocation ||
+      node is ConstructorInvocation ||
+      node is FunctionExpression;
+
+  static bool isStatementSupported(Statement node) =>
+      node is ExpressionStatement ||
+      node is ReturnStatement && node.expression != null;
+
+  static bool isSupported(Node node) =>
+      node is DartType && isDartTypeSupported(node) ||
+      node is Expression && isExpressionSupported(node) ||
+      node is Statement && isStatementSupported(node);
+}
+
+class TextSerializationVerifier extends RecursiveVisitor<void> {
+  static const bool showStackTrace = bool.fromEnvironment(
+      "text_serialization.showStackTrace",
+      defaultValue: false);
+
   /// List of errors produced during round trips on the visited nodes.
   final List<TextSerializationVerificationFailure> failures =
       <TextSerializationVerificationFailure>[];
+
+  /// List of status for all round-trip serialization attempts.
+  final List<RoundTripStatus> status = <RoundTripStatus>[];
+
+  final CanonicalName root;
 
   Uri lastSeenUri = noUri;
 
   int lastSeenOffset = noOffset;
 
-  TextSerializationVerifier() {
+  VerificationState _stateStackTop;
+
+  TextSerializationVerifier({CanonicalName root})
+      : root = root ?? new CanonicalName.root() {
     initializeSerializers();
+  }
+
+  VerificationState get currentState => _stateStackTop;
+
+  void pushStateFor(Node node) {
+    _stateStackTop = new VerificationState(_stateStackTop, node);
+  }
+
+  void dropState() {
+    if (_stateStackTop == null) {
+      throw new StateError("Attempting to remove a state from an empty stack.");
+    }
+    _stateStackTop = _stateStackTop.parent;
+  }
+
+  void verify(Node node) => node.accept(this);
+
+  void defaultNode(Node node) {
+    enterNode(node);
+    node.visitChildren(this);
+    exitNode(node);
+  }
+
+  void enterNode(node) {
+    storeLastSeenUriAndOffset(node);
+    pushStateFor(node);
+    currentState.handleDeclarations();
+  }
+
+  void exitNode(node) {
+    if (!identical(node, currentState.node)) {
+      throw new StateError("Trying to remove node '${node}' from the stack, "
+          "while another node '${currentState.node}' is on the top of it.");
+    }
+    List<Node> roundTripReadyNodes = currentState.takeRoundTripReadyNodes();
+    for (Node node in roundTripReadyNodes) {
+      status.add(makeRoundTripDispatch(node));
+    }
+    currentState.mergeToParent();
+    dropState();
   }
 
   void storeLastSeenUriAndOffset(Node node) {
@@ -85,15 +322,22 @@ class TextSerializationVerifier implements Visitor<void> {
     stream.moveNext();
     T result;
     try {
-      result = serializer.readFrom(
-          stream, new DeserializationState(null, new CanonicalName.root()));
-    } catch (exception) {
-      failures.add(
-          new TextDeserializationFailure(exception.toString(), uri, offset));
+      result =
+          serializer.readFrom(stream, new DeserializationState(null, root));
+    } catch (exception, stackTrace) {
+      String message =
+          showStackTrace ? "${exception}\n${stackTrace}" : "${exception}";
+      failures.add(new TextDeserializationFailure(message, uri, offset));
     }
     if (stream.moveNext()) {
       failures.add(new TextDeserializationFailure(
           "unexpected trailing text", uri, offset));
+    }
+    if (result == null) {
+      failures.add(new TextDeserializationFailure(
+          "Deserialization of the following returned null: '${input}'",
+          uri,
+          offset));
     }
     return result;
   }
@@ -103,949 +347,121 @@ class TextSerializationVerifier implements Visitor<void> {
     StringBuffer buffer = new StringBuffer();
     try {
       serializer.writeTo(buffer, node, new SerializationState(null));
-    } catch (exception) {
-      failures
-          .add(new TextSerializationFailure(exception.toString(), uri, offset));
+    } catch (exception, stackTrace) {
+      String message =
+          showStackTrace ? "${exception}\n${stackTrace}" : "${exception}";
+      failures.add(new TextSerializationFailure(message, uri, offset));
     }
     return buffer.toString();
   }
 
-  void makeExpressionRoundTrip(Expression node) {
-    Uri uri = noUri;
-    int offset = noOffset;
-    Location location = node.location;
-    if (location != null) {
-      uri = location.file;
-      offset = node.fileOffset;
+  RoundTripStatus makeRoundTripDispatch(Node node) {
+    if (node is DartType) {
+      return makeRoundTrip<DartType>(node, dartTypeSerializer);
+    } else if (node is Expression) {
+      return makeRoundTrip<Expression>(node, expressionSerializer);
+    } else if (node is Statement) {
+      return makeRoundTrip<Statement>(node, statementSerializer);
+    } else {
+      throw new StateError(
+          "Don't know how to make a round trip for a supported node '${node.runtimeType}'");
     }
+  }
 
-    String initial = writeNode(node, expressionSerializer, uri, offset);
+  RoundTripStatus makeRoundTrip<T extends Node>(
+      T node, TextSerializer<T> serializer) {
+    String initial = writeNode(node, serializer, lastSeenUri, lastSeenOffset);
 
     // Do the round trip.
-    Expression deserialized =
-        readNode(initial, expressionSerializer, uri, offset);
+    T deserialized = readNode(initial, serializer, lastSeenUri, lastSeenOffset);
+
+    // The error is reported elsewhere for the case of null.
+    if (deserialized == null) {
+      return new RoundTripStatus(false, node, initial);
+    }
+
     String serialized =
-        writeNode(deserialized, expressionSerializer, uri, offset);
+        writeNode(deserialized, serializer, lastSeenUri, lastSeenOffset);
 
     if (initial != serialized) {
-      failures.add(new TextRoundTripFailure(initial, serialized, uri, offset));
+      failures.add(new TextRoundTripFailure(
+          initial, serialized, lastSeenUri, lastSeenOffset));
+      return new RoundTripStatus(false, node, initial);
     }
+    return new RoundTripStatus(true, node, initial);
   }
+}
 
-  void makeDartTypeRoundTrip(DartType node) {
-    Uri uri = lastSeenUri;
-    int offset = lastSeenOffset;
+class RoundTripStatus implements Comparable<RoundTripStatus> {
+  final bool successful;
+  final Node node;
+  final String serialized;
 
-    String initial = writeNode(node, dartTypeSerializer, uri, offset);
+  RoundTripStatus(this.successful, this.node, this.serialized)
+      : assert(successful != null),
+        assert(node != null),
+        assert(serialized != null);
 
-    // Do the round trip.
-    DartType deserialized = readNode(initial, dartTypeSerializer, uri, offset);
-    String serialized =
-        writeNode(deserialized, dartTypeSerializer, uri, offset);
-
-    if (initial != serialized) {
-      failures.add(new TextRoundTripFailure(initial, serialized, uri, offset));
+  void printOn(StringBuffer sb) {
+    sb.writeln(
+        ";; -----------------------------------------------------------------------------");
+    sb.writeln("Status: ${successful ? "OK" : "ERROR"}");
+    sb.writeln("Node type: ${node.runtimeType}");
+    sb.writeln("Node: ${node.leakingDebugToString()}");
+    if (node is TreeNode) {
+      TreeNode treeNode = node;
+      sb.writeln("Parent type: ${treeNode.parent.runtimeType}");
+      sb.writeln("Parent: ${treeNode.parent.leakingDebugToString()}");
     }
+    sb.writeln("Serialized: ${serialized}");
+    sb.writeln();
   }
 
-  void makeStatementRoundTrip(Statement node) {
-    Uri uri = noUri;
-    int offset = noOffset;
-    Location location = node.location;
-    if (location != null) {
-      uri = location.file;
-      offset = node.fileOffset;
+  int compareTo(RoundTripStatus other) {
+    if (node is TreeNode && other.node is TreeNode) {
+      TreeNode thisNode = this.node;
+      TreeNode otherNode = other.node;
+      Uri thisUri = thisNode.location?.file;
+      Uri otherUri = otherNode.location?.file;
+      int thisOffset = thisNode.fileOffset;
+      int otherOffset = otherNode.fileOffset;
+
+      int compareUri;
+      if (thisUri == null && otherUri == null) {
+        compareUri = 0;
+      } else if (thisUri == null) {
+        compareUri = 1;
+      } else if (otherUri == null) {
+        return -1;
+      } else {
+        assert(thisUri != null && otherUri != null);
+        compareUri = thisUri.toString().compareTo(otherUri.toString());
+      }
+      if (compareUri != 0) return compareUri;
+
+      int compareOffset;
+      if (thisOffset == null && otherOffset == null) {
+        compareOffset = 0;
+      } else if (thisOffset == null) {
+        compareOffset = 1;
+      } else if (otherOffset == null) {
+        compareOffset = -1;
+      } else {
+        compareOffset = thisOffset = otherOffset;
+      }
+      if (compareOffset != 0) return compareOffset;
+
+      if (!successful && other.successful) {
+        return -1;
+      } else if (successful && !other.successful) {
+        return 1;
+      }
+
+      return serialized.compareTo(other.serialized);
+    } else if (node is TreeNode) {
+      return -1;
+    } else {
+      return 1;
     }
-
-    String initial = writeNode(node, statementSerializer, uri, offset);
-
-    // Do the round trip.
-    Statement deserialized =
-        readNode(initial, statementSerializer, uri, offset);
-    String serialized =
-        writeNode(deserialized, expressionSerializer, uri, offset);
-
-    if (initial != serialized) {
-      failures.add(new TextRoundTripFailure(initial, serialized, uri, offset));
-    }
-  }
-
-  @override
-  void defaultExpression(Expression node) {
-    throw new UnsupportedError("defaultExpression");
-  }
-
-  @override
-  void defaultMemberReference(Member node) {
-    throw new UnsupportedError("defaultMemberReference");
-  }
-
-  @override
-  void defaultConstantReference(Constant node) {
-    throw new UnsupportedError("defaultConstantReference");
-  }
-
-  @override
-  void defaultConstant(Constant node) {
-    throw new UnsupportedError("defaultConstant");
-  }
-
-  @override
-  void defaultDartType(DartType node) {
-    throw new UnsupportedError("defaultDartType");
-  }
-
-  @override
-  void defaultTreeNode(TreeNode node) {
-    throw new UnsupportedError("defaultTreeNode");
-  }
-
-  @override
-  void defaultNode(Node node) {
-    throw new UnsupportedError("defaultNode");
-  }
-
-  @override
-  void defaultInitializer(Initializer node) {
-    throw new UnsupportedError("defaultInitializer");
-  }
-
-  @override
-  void defaultMember(Member node) {
-    throw new UnsupportedError("defaultMember");
-  }
-
-  @override
-  void defaultStatement(Statement node) {
-    throw new UnsupportedError("defaultStatement");
-  }
-
-  @override
-  void defaultBasicLiteral(BasicLiteral node) {
-    throw new UnsupportedError("defaultBasicLiteral");
-  }
-
-  @override
-  void visitNamedType(NamedType node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitSupertype(Supertype node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitName(Name node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitRedirectingFactoryConstructorReference(
-      RedirectingFactoryConstructor node) {}
-
-  @override
-  void visitProcedureReference(Procedure node) {}
-
-  @override
-  void visitConstructorReference(Constructor node) {}
-
-  @override
-  void visitFieldReference(Field node) {}
-
-  @override
-  void visitTypeLiteralConstantReference(TypeLiteralConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitTearOffConstantReference(TearOffConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitPartialInstantiationConstantReference(
-      PartialInstantiationConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitInstanceConstantReference(InstanceConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitListConstantReference(ListConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitSetConstantReference(SetConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitMapConstantReference(MapConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitSymbolConstantReference(SymbolConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitStringConstantReference(StringConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitDoubleConstantReference(DoubleConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitIntConstantReference(IntConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitBoolConstantReference(BoolConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitNullConstantReference(NullConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitUnevaluatedConstantReference(UnevaluatedConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitTypedefReference(Typedef node) {}
-
-  @override
-  void visitClassReference(Class node) {}
-
-  @override
-  void visitTypeLiteralConstant(TypeLiteralConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitTearOffConstant(TearOffConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitPartialInstantiationConstant(PartialInstantiationConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitInstanceConstant(InstanceConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitListConstant(ListConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitSetConstant(SetConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitMapConstant(MapConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitInstanceCreation(InstanceCreation node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitFileUriExpression(FileUriExpression node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitSymbolConstant(SymbolConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitStringConstant(StringConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitDoubleConstant(DoubleConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitIntConstant(IntConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitBoolConstant(BoolConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitNullConstant(NullConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitUnevaluatedConstant(UnevaluatedConstant node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitTypedefType(TypedefType node) {
-    storeLastSeenUriAndOffset(node);
-    makeDartTypeRoundTrip(node);
-  }
-
-  @override
-  void visitTypeParameterType(TypeParameterType node) {
-    storeLastSeenUriAndOffset(node);
-    makeDartTypeRoundTrip(node);
-  }
-
-  @override
-  void visitFunctionType(FunctionType node) {
-    storeLastSeenUriAndOffset(node);
-    makeDartTypeRoundTrip(node);
-  }
-
-  @override
-  void visitInterfaceType(InterfaceType node) {
-    storeLastSeenUriAndOffset(node);
-    makeDartTypeRoundTrip(node);
-  }
-
-  @override
-  void visitBottomType(BottomType node) {
-    storeLastSeenUriAndOffset(node);
-    makeDartTypeRoundTrip(node);
-  }
-
-  @override
-  void visitNeverType(NeverType node) {
-    storeLastSeenUriAndOffset(node);
-    makeDartTypeRoundTrip(node);
-  }
-
-  @override
-  void visitVoidType(VoidType node) {
-    storeLastSeenUriAndOffset(node);
-    makeDartTypeRoundTrip(node);
-  }
-
-  @override
-  void visitDynamicType(DynamicType node) {
-    storeLastSeenUriAndOffset(node);
-    makeDartTypeRoundTrip(node);
-  }
-
-  @override
-  void visitInvalidType(InvalidType node) {
-    storeLastSeenUriAndOffset(node);
-    makeDartTypeRoundTrip(node);
-  }
-
-  @override
-  void visitComponent(Component node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitMapEntry(MapEntry node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitCatch(Catch node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitSwitchCase(SwitchCase node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitNamedExpression(NamedExpression node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitArguments(Arguments node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitFunctionNode(FunctionNode node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitTypeParameter(TypeParameter node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitTypedef(Typedef node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitLibraryPart(LibraryPart node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitCombinator(Combinator node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitLibraryDependency(LibraryDependency node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitLibrary(Library node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitAssertInitializer(AssertInitializer node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitLocalInitializer(LocalInitializer node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitRedirectingInitializer(RedirectingInitializer node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitSuperInitializer(SuperInitializer node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitFieldInitializer(FieldInitializer node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitInvalidInitializer(InvalidInitializer node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitClass(Class node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitExtension(Extension node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitField(Field node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitProcedure(Procedure node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitConstructor(Constructor node) {
-    storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitYieldStatement(YieldStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitTryFinally(TryFinally node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitTryCatch(TryCatch node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitReturnStatement(ReturnStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitIfStatement(IfStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitContinueSwitchStatement(ContinueSwitchStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitSwitchStatement(SwitchStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitForInStatement(ForInStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitDoStatement(DoStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitWhileStatement(WhileStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitBreakStatement(BreakStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitLabeledStatement(LabeledStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitAssertStatement(AssertStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitEmptyStatement(EmptyStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitAssertBlock(AssertBlock node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitBlock(Block node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitExpressionStatement(ExpressionStatement node) {
-    storeLastSeenUriAndOffset(node);
-    makeStatementRoundTrip(node);
-  }
-
-  @override
-  void visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitLoadLibrary(LoadLibrary node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitInstantiation(Instantiation node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitLet(Let node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitBlockExpression(BlockExpression node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitNullLiteral(NullLiteral node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitBoolLiteral(BoolLiteral node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitDoubleLiteral(DoubleLiteral node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitIntLiteral(IntLiteral node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitStringLiteral(StringLiteral node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitConstantExpression(ConstantExpression node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitAwaitExpression(AwaitExpression node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitMapLiteral(MapLiteral node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitSetLiteral(SetLiteral node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitListLiteral(ListLiteral node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitThrow(Throw node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitRethrow(Rethrow node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitThisExpression(ThisExpression node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitTypeLiteral(TypeLiteral node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitSymbolLiteral(SymbolLiteral node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitAsExpression(AsExpression node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitIsExpression(IsExpression node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitStringConcatenation(StringConcatenation node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitListConcatenation(ListConcatenation node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitSetConcatenation(SetConcatenation node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitMapConcatenation(MapConcatenation node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitConditionalExpression(ConditionalExpression node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitLogicalExpression(LogicalExpression node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitNot(Not node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitNullCheck(NullCheck node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitConstructorInvocation(ConstructorInvocation node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitStaticInvocation(StaticInvocation node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitSuperMethodInvocation(SuperMethodInvocation node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitDirectMethodInvocation(DirectMethodInvocation node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitStaticSet(StaticSet node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitStaticGet(StaticGet node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitSuperPropertySet(SuperPropertySet node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitSuperPropertyGet(SuperPropertyGet node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitDirectPropertySet(DirectPropertySet node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitDirectPropertyGet(DirectPropertyGet node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitPropertySet(PropertySet node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitPropertyGet(PropertyGet node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitVariableSet(VariableSet node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitVariableGet(VariableGet node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
-  }
-
-  @override
-  void visitInvalidExpression(InvalidExpression node) {
-    storeLastSeenUriAndOffset(node);
-    makeExpressionRoundTrip(node);
   }
 }

@@ -1,0 +1,6 @@
+class A {
+  dynamic noSuchMethod(Invocation i) {}
+  void foo();
+}
+
+main() {}

@@ -289,29 +289,34 @@ class _ServiceTesterRunner {
 
     final name = _getTestUri().pathSegments.last;
 
-    test(name, () async {
-      // Run vm tests.
-      if (vmTests != null) {
-        var testIndex = 1;
-        var totalTests = vmTests.length;
-        for (var t in vmTests) {
-          print('$name [$testIndex/$totalTests]');
-          await t(vm);
-          testIndex++;
+    test(
+      name,
+      () async {
+        // Run vm tests.
+        if (vmTests != null) {
+          var testIndex = 1;
+          var totalTests = vmTests.length;
+          for (var t in vmTests) {
+            print('$name [$testIndex/$totalTests]');
+            await t(vm);
+            testIndex++;
+          }
         }
-      }
 
-      // Run isolate tests.
-      if (isolateTests != null) {
-        var testIndex = 1;
-        var totalTests = isolateTests.length;
-        for (var t in isolateTests) {
-          print('$name [$testIndex/$totalTests]');
-          await t(vm, isolate);
-          testIndex++;
+        // Run isolate tests.
+        if (isolateTests != null) {
+          var testIndex = 1;
+          var totalTests = isolateTests.length;
+          for (var t in isolateTests) {
+            print('$name [$testIndex/$totalTests]');
+            await t(vm, isolate);
+            testIndex++;
+          }
         }
-      }
-    }, retry: 3);
+      },
+      retry: 0,
+      timeout: Timeout.none,
+    );
 
     tearDown(() {
       print('All service tests completed successfully.');

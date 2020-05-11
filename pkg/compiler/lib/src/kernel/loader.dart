@@ -118,6 +118,13 @@ class KernelLoaderTask extends CompilerTask {
       }
       if (component == null) return null;
 
+      // TODO(sigmund): remove after we unfork the sdk, and force null-safety to
+      // always be considered to be true.
+      if (component.libraries.any((lib) =>
+          lib.isNonNullableByDefault && lib.importUri.scheme == 'dart')) {
+        _options.useNullSafety = true;
+      }
+
       if (_options.cfeOnly) {
         measureSubtask('serialize dill', () {
           _reporter.log('Writing dill to ${_options.outputUri}');

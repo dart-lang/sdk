@@ -1,0 +1,6 @@
+library test;
+
+import 'dart:math';
+
+f() {}
+main() {}

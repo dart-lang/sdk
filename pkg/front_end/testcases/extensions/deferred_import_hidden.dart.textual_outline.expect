@@ -1,0 +1,4 @@
+import 'deferred_explicit_access_lib.dart' deferred as prefix hide Extension;
+
+main() async {}
+expect(expected, actual) {}

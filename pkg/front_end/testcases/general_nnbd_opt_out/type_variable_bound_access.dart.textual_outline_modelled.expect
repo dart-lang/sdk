@@ -1,0 +1,17 @@
+// @dart = 2.6
+class DynamicClass<T extends dynamic, S extends T> {
+  DynamicClass(this.field1, this.field2);
+  T field1;
+  T field2;
+  method() => field1 * field2;
+}
+
+class NumClass<T extends num, S extends T> {
+  NumClass(this.field1, this.field2);
+  S field2;
+  T field1;
+  num method1() => field1 * field2;
+  num method2() => field1 + field2.length;
+}
+
+main() {}

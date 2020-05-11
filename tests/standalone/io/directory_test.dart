@@ -196,8 +196,8 @@ class DirectoryTest {
           }
         }
 
-        long.delete().catchError(onError);
-        long.delete(recursive: true).catchError(onError);
+        Future<void>.value(long.delete()).catchError(onError);
+        Future<void>.value(long.delete(recursive: true)).catchError(onError);
       });
     });
   }
@@ -453,7 +453,7 @@ class DirectoryTest {
 class NestedTempDirectoryTest {
   List<Directory> createdDirectories;
 
-  NestedTempDirectoryTest.run() : createdDirectories = new List<Directory>() {
+  NestedTempDirectoryTest.run() : createdDirectories = <Directory>[] {
     Directory.systemTemp.createTemp('dart_directory').then(createPhaseCallback);
   }
 
@@ -511,7 +511,7 @@ testCreateTempError() {
 
   asyncStart();
   var future = new Directory(location).createTemp('dart_tempdir');
-  future.catchError((_) => asyncEnd());
+  Future<Directory?>.value(future).catchError((_) => asyncEnd());
 }
 
 testCreateExistingSync() {

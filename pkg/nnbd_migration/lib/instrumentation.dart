@@ -17,22 +17,25 @@ class CodeReference {
 
   final int column;
 
+  final int offset;
+
   /// Name of the enclosing function, or `null` if not known.
   String function;
 
-  CodeReference(this.path, this.line, this.column, this.function);
+  CodeReference(this.path, this.offset, this.line, this.column, this.function);
 
   /// Creates a [CodeReference] pointing to the given [node].
   factory CodeReference.fromAstNode(AstNode node) {
     var compilationUnit = node.thisOrAncestorOfType<CompilationUnit>();
     var source = compilationUnit.declaredElement.source;
     var location = compilationUnit.lineInfo.getLocation(node.offset);
-    return CodeReference(source.fullName, location.lineNumber,
+    return CodeReference(source.fullName, node.offset, location.lineNumber,
         location.columnNumber, _computeEnclosingName(node));
   }
 
   CodeReference.fromJson(dynamic json)
       : path = json['path'] as String,
+        offset = json['offset'] as int,
         line = json['line'] as int,
         column = json['col'] as int,
         function = json['function'] as String;
@@ -50,6 +53,7 @@ class CodeReference {
   Map<String, Object> toJson() {
     return {
       'path': path,
+      'offset': offset,
       'line': line,
       'col': column,
       if (function != null) 'function': function
@@ -218,7 +222,10 @@ abstract class EdgeOriginInfo {
 enum EdgeOriginKind {
   alreadyMigratedType,
   alwaysNullableType,
+  argumentErrorCheckNotNull,
   compoundAssignment,
+  // See [DummyOrigin].
+  dummy,
   dynamicAssignment,
   enumValue,
   expressionChecks,
@@ -235,8 +242,8 @@ enum EdgeOriginKind {
   instantiateToBounds,
   isCheckComponentType,
   isCheckMainType,
-  literal,
   listLengthConstructor,
+  literal,
   namedParameterNotSupplied,
   nonNullableBoolType,
   nonNullableObjectSuperclass,
@@ -245,6 +252,7 @@ enum EdgeOriginKind {
   nullabilityComment,
   optionalFormalParameter,
   parameterInheritance,
+  quiverCheckNotNull,
   returnTypeInheritance,
   stackTraceTypeOrigin,
   thisOrSuper,

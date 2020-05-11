@@ -51,7 +51,9 @@ Future<List<DiagnosticMessage>> outline(String objectHeader) async {
       }));
 
   fs.entityForUri(base.resolve("sdk/lib/core/core.dart")).writeAsStringSync(
-      defaultDartCoreSource.replaceAll("class Object {", "$objectHeader"));
+      defaultDartCoreSource
+          .replaceAll("class Object {", "$objectHeader")
+          .replaceAll("const Object();", ""));
 
   final List<DiagnosticMessage> messages = <DiagnosticMessage>[];
 

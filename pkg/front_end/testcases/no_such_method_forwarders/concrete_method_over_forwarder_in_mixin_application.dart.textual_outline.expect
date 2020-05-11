@@ -1,0 +1,15 @@
+abstract class I {
+  foo();
+}
+
+class A {
+  foo() {}
+}
+
+class B implements I {
+  noSuchMethod(_) => null;
+}
+
+class C extends A with B {}
+
+main() {}

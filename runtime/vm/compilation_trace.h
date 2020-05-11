@@ -15,7 +15,7 @@ namespace dart {
 class CompilationTraceSaver : public FunctionVisitor {
  public:
   explicit CompilationTraceSaver(Zone* zone);
-  void Visit(const Function& function);
+  void VisitFunction(const Function& function);
 
   void StealBuffer(uint8_t** buffer, intptr_t* buffer_length) {
     *buffer = reinterpret_cast<uint8_t*>(buf_.buffer());
@@ -35,13 +35,13 @@ class CompilationTraceLoader : public ValueObject {
  public:
   explicit CompilationTraceLoader(Thread* thread);
 
-  RawObject* CompileTrace(uint8_t* buffer, intptr_t buffer_length);
+  ObjectPtr CompileTrace(uint8_t* buffer, intptr_t buffer_length);
 
  private:
-  RawObject* CompileTriple(const char* uri_cstr,
-                           const char* cls_cstr,
-                           const char* func_cstr);
-  RawObject* CompileFunction(const Function& function);
+  ObjectPtr CompileTriple(const char* uri_cstr,
+                          const char* cls_cstr,
+                          const char* func_cstr);
+  ObjectPtr CompileFunction(const Function& function);
   void SpeculateInstanceCallTargets(const Function& function);
 
   Thread* thread_;
@@ -72,7 +72,7 @@ class TypeFeedbackSaver : public FunctionVisitor {
   void WriteHeader();
   void SaveClasses();
   void SaveFields();
-  void Visit(const Function& function);
+  void VisitFunction(const Function& function);
 
  private:
   void WriteClassByName(const Class& cls);
@@ -95,17 +95,17 @@ class TypeFeedbackLoader : public ValueObject {
   explicit TypeFeedbackLoader(Thread* thread);
   ~TypeFeedbackLoader();
 
-  RawObject* LoadFeedback(ReadStream* stream);
+  ObjectPtr LoadFeedback(ReadStream* stream);
 
  private:
-  RawObject* CheckHeader();
-  RawObject* LoadClasses();
-  RawObject* LoadFields();
-  RawObject* LoadFunction();
-  RawFunction* FindFunction(RawFunction::Kind kind, intptr_t token_pos);
+  ObjectPtr CheckHeader();
+  ObjectPtr LoadClasses();
+  ObjectPtr LoadFields();
+  ObjectPtr LoadFunction();
+  FunctionPtr FindFunction(FunctionLayout::Kind kind, intptr_t token_pos);
 
-  RawClass* ReadClassByName();
-  RawString* ReadString();
+  ClassPtr ReadClassByName();
+  StringPtr ReadString();
   intptr_t ReadInt() { return stream_->Read<int32_t>(); }
 
   Thread* thread_;

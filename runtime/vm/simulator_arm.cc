@@ -13,7 +13,6 @@
 
 #include "vm/simulator.h"
 
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/constants.h"
 #include "vm/cpu.h"
@@ -231,7 +230,7 @@ TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
   uword pc_offset = pc - code.PayloadStart();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
+  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
@@ -481,8 +480,7 @@ void SimulatorDebugger::Debug() {
             if (Isolate::Current()->heap()->Contains(value)) {
               OS::PrintErr("%s: \n", arg1);
 #if defined(DEBUG)
-              const Object& obj =
-                  Object::Handle(reinterpret_cast<RawObject*>(value));
+              const Object& obj = Object::Handle(static_cast<ObjectPtr>(value));
               obj.Print();
 #endif  // defined(DEBUG)
             } else {
@@ -1395,8 +1393,8 @@ void Simulator::SupervisorCall(Instr* instr) {
           ASSERT(sizeof(NativeArguments) == 4 * kWordSize);
           arguments.thread_ = reinterpret_cast<Thread*>(get_register(R0));
           arguments.argc_tag_ = get_register(R1);
-          arguments.argv_ = reinterpret_cast<RawObject**>(get_register(R2));
-          arguments.retval_ = reinterpret_cast<RawObject**>(get_register(R3));
+          arguments.argv_ = reinterpret_cast<ObjectPtr*>(get_register(R2));
+          arguments.retval_ = reinterpret_cast<ObjectPtr*>(get_register(R3));
           SimulatorRuntimeCall target =
               reinterpret_cast<SimulatorRuntimeCall>(external);
           target(arguments);
@@ -3647,7 +3645,7 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   int32_t code =
       *reinterpret_cast<int32_t*>(fp + kPcMarkerSlotFromFp * kWordSize);
   int32_t pp = (FLAG_precompiled_mode && FLAG_use_bare_instructions)
-                   ? reinterpret_cast<int32_t>(thread->global_object_pool())
+                   ? static_cast<int32_t>(thread->global_object_pool())
                    : *reinterpret_cast<int32_t*>(
                          (code + Code::object_pool_offset() - kHeapObjectTag));
 

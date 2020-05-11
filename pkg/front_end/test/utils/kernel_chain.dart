@@ -31,7 +31,8 @@ import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
 
-import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
+import 'package:front_end/src/fasta/messages.dart'
+    show DiagnosticMessageFromJson, LocatedMessage;
 
 import 'package:kernel/ast.dart' show Component, Library;
 
@@ -49,6 +50,7 @@ import 'package:kernel/text/ast_to_text.dart' show Printer;
 
 import 'package:kernel/text/text_serialization_verifier.dart'
     show
+        RoundTripStatus,
         TextDeserializationFailure,
         TextRoundTripFailure,
         TextSerializationFailure,
@@ -222,12 +224,15 @@ class MatchExpectation
     extends Step<ComponentResult, ComponentResult, MatchContext> {
   final String suffix;
   final bool serializeFirst;
+  final bool isLastMatchStep;
 
   /// Check if a textual representation of the component matches the expectation
   /// located at [suffix]. If [serializeFirst] is true, the input component will
   /// be serialized, deserialized, and the textual representation of that is
   /// compared. It is still the original component that is returned though.
-  const MatchExpectation(this.suffix, {this.serializeFirst: false});
+  const MatchExpectation(this.suffix,
+      {this.serializeFirst: false, this.isLastMatchStep})
+      : assert(isLastMatchStep != null);
 
   String get name => "match expectations";
 
@@ -259,16 +264,58 @@ class MatchExpectation
       component.adoptChildren();
     }
 
-    StringBuffer messages =
-        (context as dynamic).componentToDiagnostics[component];
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
     Iterable<Library> libraries =
         componentToText.libraries.where(result.isUserLibrary);
     Uri base = uri.resolve(".");
     Uri dartBase = Uri.base;
+
     StringBuffer buffer = new StringBuffer();
-    messages.clear();
+
+    List<Iterable<String>> errors =
+        (context as dynamic).componentToDiagnostics[component];
+    Set<String> reportedErrors = <String>{};
+    for (Iterable<String> message in errors) {
+      reportedErrors.add(message.join('\n'));
+    }
+    Set<String> problemsAsJson = <String>{};
+    void addProblemsAsJson(List<String> problems) {
+      if (problems != null) {
+        for (String jsonString in problems) {
+          DiagnosticMessage message =
+              new DiagnosticMessageFromJson.fromJson(jsonString);
+          problemsAsJson.add(message.plainTextFormatted.join('\n'));
+        }
+      }
+    }
+
+    addProblemsAsJson(componentToText.problemsAsJson);
+    libraries.forEach((Library library) {
+      addProblemsAsJson(library.problemsAsJson);
+    });
+
+    bool hasProblemsOutsideComponent = false;
+    for (String reportedError in reportedErrors) {
+      if (!problemsAsJson.contains(reportedError)) {
+        if (!hasProblemsOutsideComponent) {
+          buffer.writeln('//');
+          buffer.writeln('// Problems outside component:');
+        }
+        buffer.writeln('//');
+        buffer.writeln('// ${reportedError.split('\n').join('\n// ')}');
+        hasProblemsOutsideComponent = true;
+      }
+    }
+    if (hasProblemsOutsideComponent) {
+      buffer.writeln('//');
+    }
+    if (isLastMatchStep) {
+      // Clear errors only in the last match step. This is needed to verify
+      // problems reported outside the component in both the serialized and
+      // non-serialized step.
+      errors.clear();
+    }
     Printer printer = new Printer(buffer)
       ..writeProblemsAsJson(
           "Problems in component", componentToText.problemsAsJson);
@@ -299,6 +346,12 @@ class MatchExpectation
 
 class KernelTextSerialization
     extends Step<ComponentResult, ComponentResult, ChainContext> {
+  static const bool writeRoundTripStatus = bool.fromEnvironment(
+      "text_serialization.writeRoundTripStatus",
+      defaultValue: false);
+
+  static const String suffix = ".roundtrip";
+
   const KernelTextSerialization();
 
   String get name => "kernel text serialization";
@@ -318,24 +371,23 @@ class KernelTextSerialization
     return await CompilerContext.runWithOptions(options,
         (compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
-      TextSerializationVerifier verifier = new TextSerializationVerifier();
+      TextSerializationVerifier verifier =
+          new TextSerializationVerifier(root: component.root);
       for (Library library in component.libraries) {
         if (library.importUri.scheme != "dart" &&
             library.importUri.scheme != "package") {
-          library.accept(verifier);
+          verifier.verify(library);
         }
       }
       for (TextSerializationVerificationFailure failure in verifier.failures) {
         LocatedMessage message;
         if (failure is TextSerializationFailure) {
           message = templateUnspecified
-              .withArguments(
-                  "Failed to serialize a node: ${failure.message.isNotEmpty}")
+              .withArguments("Failed to serialize a node: ${failure.message}")
               .withLocation(failure.uri, failure.offset, 1);
         } else if (failure is TextDeserializationFailure) {
           message = templateUnspecified
-              .withArguments(
-                  "Failed to deserialize a node: ${failure.message.isNotEmpty}")
+              .withArguments("Failed to deserialize a node: ${failure.message}")
               .withLocation(failure.uri, failure.offset, 1);
         } else if (failure is TextRoundTripFailure) {
           String formattedInitial =
@@ -355,6 +407,20 @@ class KernelTextSerialization
               .withLocation(failure.uri, failure.offset, 1);
         }
         options.report(message, message.code.severity);
+      }
+
+      if (writeRoundTripStatus) {
+        Uri uri = component.uriToSource.keys
+            .firstWhere((uri) => uri?.scheme == "file");
+        String filename = "${uri.toFilePath()}${suffix}";
+        uri = new File(filename).uri;
+        StringBuffer buffer = new StringBuffer();
+        for (RoundTripStatus status in verifier.status) {
+          status.printOn(buffer);
+        }
+        await openWrite(uri, (IOSink sink) {
+          sink.write(buffer.toString());
+        });
       }
 
       if (verifier.failures.isNotEmpty) {

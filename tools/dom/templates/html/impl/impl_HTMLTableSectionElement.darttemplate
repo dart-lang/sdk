@@ -15,7 +15,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
   TableRowElement insertRow(int index) => _insertRow(index) $#NULLSAFECAST(as TableRowElement);
 
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String$NULLABLE html,
       {NodeValidator$NULLABLE validator,
        NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {

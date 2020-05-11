@@ -15,7 +15,6 @@ namespace dart {
 class DebugInfo;
 class Isolate;
 class LocalHandle;
-class RawError;
 class ReadOnlyHandles;
 class ThreadPool;
 namespace kernel {
@@ -55,11 +54,18 @@ class Dart : public AllStatic {
   // from SDK library sources.  If the snapshot_buffer is non-NULL,
   // initialize from a snapshot or a Kernel binary depending on the value of
   // from_kernel.  Otherwise, initialize from sources.
-  static RawError* InitializeIsolate(const uint8_t* snapshot_data,
-                                     const uint8_t* snapshot_instructions,
-                                     const uint8_t* kernel_buffer,
-                                     intptr_t kernel_buffer_size,
-                                     void* data);
+  static ErrorPtr InitializeIsolate(const uint8_t* snapshot_data,
+                                    const uint8_t* snapshot_instructions,
+                                    const uint8_t* kernel_buffer,
+                                    intptr_t kernel_buffer_size,
+                                    IsolateGroup* source_isolate_group,
+                                    void* data);
+  static ErrorPtr InitIsolateFromSnapshot(Thread* T,
+                                          Isolate* I,
+                                          const uint8_t* snapshot_data,
+                                          const uint8_t* snapshot_instructions,
+                                          const uint8_t* kernel_buffer,
+                                          intptr_t kernel_buffer_size);
   static void RunShutdownCallback();
   static void ShutdownIsolate(Isolate* isolate);
   static void ShutdownIsolate();
@@ -125,10 +131,6 @@ class Dart : public AllStatic {
     return entropy_source_callback_;
   }
 
-  // TODO(dartbug.com/40342): Delete these functions.
-  static void set_non_nullable_flag(bool value) { non_nullable_flag_ = value; }
-  static bool non_nullable_flag() { return true; }
-
  private:
   static constexpr const char* kVmIsolateName = "vm-isolate";
 
@@ -147,7 +149,6 @@ class Dart : public AllStatic {
   static Dart_FileWriteCallback file_write_callback_;
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_EntropySource entropy_source_callback_;
-  static bool non_nullable_flag_;
 };
 
 }  // namespace dart

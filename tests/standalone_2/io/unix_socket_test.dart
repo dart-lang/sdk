@@ -74,7 +74,7 @@ testBind(String name) async {
   var socket = await Socket.connect(address, server.port);
   socket.write(" socket content");
 
-  await socket.destroy();
+  socket.destroy();
   await server.close();
 }
 
@@ -138,7 +138,7 @@ Future testSourceAddressConnect(String name) async {
 }
 
 // Create socket in temp directory
-Future withTempDir(String prefix, void test(Directory dir)) async {
+Future withTempDir(String prefix, Future<void> test(Directory dir)) async {
   var tempDir = Directory.systemTemp.createTempSync(prefix);
   try {
     await test(tempDir);

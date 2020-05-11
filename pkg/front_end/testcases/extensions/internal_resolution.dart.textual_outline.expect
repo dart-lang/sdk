@@ -1,0 +1,9 @@
+class Class {
+  int field;
+}
+extension on ;
+Class (){ }
+extension on ;
+Class (){ }
+main() { }
+expect(expected, actual) { }

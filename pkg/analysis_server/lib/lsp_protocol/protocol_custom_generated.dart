@@ -76,7 +76,8 @@ class AnalyzerStatusParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is AnalyzerStatusParams) {
+    if (other is AnalyzerStatusParams &&
+        other.runtimeType == AnalyzerStatusParams) {
       return isAnalyzing == other.isAnalyzing && true;
     }
     return false;
@@ -166,7 +167,7 @@ class ClosingLabel implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ClosingLabel) {
+    if (other is ClosingLabel && other.runtimeType == ClosingLabel) {
       return range == other.range && label == other.label && true;
     }
     return false;
@@ -355,7 +356,8 @@ class CompletionItemResolutionInfo implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionItemResolutionInfo) {
+    if (other is CompletionItemResolutionInfo &&
+        other.runtimeType == CompletionItemResolutionInfo) {
       return file == other.file &&
           offset == other.offset &&
           libId == other.libId &&
@@ -433,7 +435,8 @@ class DartDiagnosticServer implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DartDiagnosticServer) {
+    if (other is DartDiagnosticServer &&
+        other.runtimeType == DartDiagnosticServer) {
       return port == other.port && true;
     }
     return false;
@@ -580,7 +583,7 @@ class Element implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Element) {
+    if (other is Element && other.runtimeType == Element) {
       return range == other.range &&
           name == other.name &&
           kind == other.kind &&
@@ -816,7 +819,7 @@ class FlutterOutline implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FlutterOutline) {
+    if (other is FlutterOutline && other.runtimeType == FlutterOutline) {
       return kind == other.kind &&
           label == other.label &&
           className == other.className &&
@@ -944,7 +947,8 @@ class FlutterOutlineAttribute implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FlutterOutlineAttribute) {
+    if (other is FlutterOutlineAttribute &&
+        other.runtimeType == FlutterOutlineAttribute) {
       return name == other.name &&
           label == other.label &&
           valueRange == other.valueRange &&
@@ -1085,7 +1089,7 @@ class Outline implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Outline) {
+    if (other is Outline && other.runtimeType == Outline) {
       return element == other.element &&
           range == other.range &&
           codeRange == other.codeRange &&
@@ -1188,7 +1192,8 @@ class PublishClosingLabelsParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PublishClosingLabelsParams) {
+    if (other is PublishClosingLabelsParams &&
+        other.runtimeType == PublishClosingLabelsParams) {
       return uri == other.uri &&
           listEqual(labels, other.labels,
               (ClosingLabel a, ClosingLabel b) => a == b) &&
@@ -1286,7 +1291,8 @@ class PublishFlutterOutlineParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PublishFlutterOutlineParams) {
+    if (other is PublishFlutterOutlineParams &&
+        other.runtimeType == PublishFlutterOutlineParams) {
       return uri == other.uri && outline == other.outline && true;
     }
     return false;
@@ -1379,7 +1385,8 @@ class PublishOutlineParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PublishOutlineParams) {
+    if (other is PublishOutlineParams &&
+        other.runtimeType == PublishOutlineParams) {
       return uri == other.uri && outline == other.outline && true;
     }
     return false;

@@ -1075,8 +1075,33 @@ class C implements A, B {
 ''');
 
     _assertInheritedMap('C', r'''
-B.foo: void Function({required int a})
+A.foo: void Function({int a})
 ''');
+  }
+
+  test_getMember_mixin_notMerge_replace() async {
+    await resolveTestCode('''
+class A<T> {
+  T foo() => throw 0;
+}
+
+mixin M<T> {
+  T foo() => throw 1;
+}
+
+class X extends A<dynamic> with M<Object?> {}
+class Y extends A<Object?> with M<dynamic> {}
+''');
+    _assertGetMember2(
+      className: 'X',
+      name: 'foo',
+      expected: 'M.foo: Object? Function()',
+    );
+    _assertGetMember2(
+      className: 'Y',
+      name: 'foo',
+      expected: 'M.foo: dynamic Function()',
+    );
   }
 
   test_getMember_optIn_inheritsOptIn() async {
@@ -1201,12 +1226,38 @@ class B extends A {
   int bar(int a) => 0;
 }
 ''');
-    _assertGetMember(
+    _assertGetMember2(
       className: 'B',
       name: 'foo',
       expected: 'A.foo: int* Function(int*, int*)*',
     );
-    _assertGetMember(
+
+    _assertGetMember2(
+      className: 'B',
+      name: 'bar',
+      expected: 'B.bar: int* Function(int*)*',
+    );
+  }
+
+  test_getMember_optOut_mixesOptIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  int foo(int a, int? b) => 0;
+}
+''');
+    await resolveTestCode('''
+// @dart = 2.6
+import 'a.dart';
+class B with A {
+  int bar(int a) => 0;
+}
+''');
+    _assertGetMember2(
+      className: 'B',
+      name: 'foo',
+      expected: 'A.foo: int* Function(int*, int*)*',
+    );
+    _assertGetMember2(
       className: 'B',
       name: 'bar',
       expected: 'B.bar: int* Function(int*)*',
@@ -1301,6 +1352,26 @@ class _InheritanceManager3Base extends DriverResolutionTest {
     });
 
     _assertExecutable(member, expected);
+  }
+
+  void _assertGetMember2({
+    @required String className,
+    @required String name,
+    String expected,
+  }) {
+    _assertGetMember(
+      className: className,
+      name: name,
+      expected: expected,
+      concrete: false,
+    );
+
+    _assertGetMember(
+      className: className,
+      name: name,
+      expected: expected,
+      concrete: true,
+    );
   }
 
   void _assertInheritedConcreteMap(String className, String expected) {

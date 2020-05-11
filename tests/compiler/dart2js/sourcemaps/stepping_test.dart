@@ -16,6 +16,8 @@ import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/stepping_helper.dart';
 
+import '../helpers/memory_compiler.dart';
+
 void main(List<String> args) {
   ArgParser argParser = new ArgParser(allowTrailingOptions: true);
   argParser.addFlag('debug', abbr: 'd', defaultsTo: false);
@@ -77,7 +79,7 @@ Future runTest(AnnotatedCode annotatedCode, String config,
   CompilationResult compilationResult = await entry.internalMain(arguments);
   Expect.isTrue(compilationResult.isSuccess);
   List<String> scriptD8Command = [
-    'sdk/lib/_internal/js_runtime/lib/preambles/d8.js',
+    '$sdkPath/_internal/js_runtime/lib/preambles/d8.js',
     outputFile
   ];
   ProcessResult result = runD8AndStep(dir.path, annotatedCode, scriptD8Command);

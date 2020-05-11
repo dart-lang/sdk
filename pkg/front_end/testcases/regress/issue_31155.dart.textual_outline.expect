@@ -1,0 +1,10 @@
+class A {
+}
+class B {
+}
+class C {
+  var f = Map<A, B;
+  operator> (){ }
+  ;
+}
+void main() { }

@@ -102,7 +102,9 @@ class TypeConstraint {
 
 class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     with StandardBounds {
-  TypeSchemaEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy)
+  final ClassHierarchy hierarchy;
+
+  TypeSchemaEnvironment(CoreTypes coreTypes, this.hierarchy)
       : super(coreTypes, hierarchy);
 
   Class get functionClass => coreTypes.functionClass;
@@ -364,7 +366,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       unwrappedSupertype =
           (unwrappedSupertype as InterfaceType).typeArguments.single;
     }
-    if (subtype == coreTypes.nullType && unwrappedSupertype is UnknownType) {
+    if (unwrappedSupertype is UnknownType) {
       return const IsSubtypeOf.always();
     }
     return super.performNullabilityAwareSubtypeCheck(subtype, supertype);
@@ -432,11 +434,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // e.g. `Iterable<?>`
       if (constraint.lower is! UnknownType) {
         return grounded
-            ? leastClosure(constraint.lower, bottomType)
+            ? leastClosure(constraint.lower, const DynamicType(), bottomType)
             : constraint.lower;
       } else {
         return grounded
-            ? greatestClosure(constraint.upper, bottomType)
+            ? greatestClosure(constraint.upper, const DynamicType(), bottomType)
             : constraint.upper;
       }
     } else {
@@ -448,11 +450,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // e.g. `Iterable<?>`
       if (constraint.upper is! UnknownType) {
         return grounded
-            ? greatestClosure(constraint.upper, bottomType)
+            ? greatestClosure(constraint.upper, const DynamicType(), bottomType)
             : constraint.upper;
       } else {
         return grounded
-            ? leastClosure(constraint.lower, bottomType)
+            ? leastClosure(constraint.lower, const DynamicType(), bottomType)
             : constraint.lower;
       }
     }

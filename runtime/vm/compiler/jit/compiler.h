@@ -6,7 +6,7 @@
 #define RUNTIME_VM_COMPILER_JIT_COMPILER_H_
 
 #include "vm/allocation.h"
-#include "vm/compiler/compiler_state.h"
+#include "vm/compiler/api/deopt_id.h"
 #include "vm/growable_array.h"
 #include "vm/runtime_entry.h"
 #include "vm/thread_pool.h"
@@ -24,7 +24,6 @@ class IndirectGotoInstr;
 class Library;
 class ParsedFunction;
 class QueueElement;
-class RawInstance;
 class Script;
 class SequenceNode;
 
@@ -82,13 +81,13 @@ class Compiler : public AllStatic {
   //
   // Returns the raw code object if compilation succeeds.  Otherwise returns a
   // RawError.  Also installs the generated code on the function.
-  static RawObject* CompileFunction(Thread* thread, const Function& function);
+  static ObjectPtr CompileFunction(Thread* thread, const Function& function);
 
   // Generates unoptimized code if not present, current code is unchanged.
   // Bytecode is considered unoptimized code.
   // TODO(regis): Revisit when deoptimizing mixed bytecode and jitted code.
-  static RawError* EnsureUnoptimizedCode(Thread* thread,
-                                         const Function& function);
+  static ErrorPtr EnsureUnoptimizedCode(Thread* thread,
+                                        const Function& function);
 
   // Generates optimized code for function.
   //
@@ -96,9 +95,9 @@ class Compiler : public AllStatic {
   // there is a compilation error.  If optimization fails, but there is no
   // error, returns null.  Any generated code is installed unless we are in
   // OSR mode.
-  static RawObject* CompileOptimizedFunction(Thread* thread,
-                                             const Function& function,
-                                             intptr_t osr_id = kNoOSRDeoptId);
+  static ObjectPtr CompileOptimizedFunction(Thread* thread,
+                                            const Function& function,
+                                            intptr_t osr_id = kNoOSRDeoptId);
 
   // Generates local var descriptors and sets it in 'code'. Do not call if the
   // local var descriptor already exists.
@@ -107,10 +106,10 @@ class Compiler : public AllStatic {
   // Eagerly compiles all functions in a class.
   //
   // Returns Error::null() if there is no compilation error.
-  static RawError* CompileAllFunctions(const Class& cls);
+  static ErrorPtr CompileAllFunctions(const Class& cls);
 
   // Eagerly read all bytecode.
-  static RawError* ReadAllBytecode(const Class& cls);
+  static ErrorPtr ReadAllBytecode(const Class& cls);
 
   // Notify the compiler that background (optimized) compilation has failed
   // because the mutator thread changed the state (e.g., deoptimization,

@@ -64,4 +64,7 @@ class WrapInText extends CorrectionProducer {
       }
     }
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static WrapInText newInstance() => WrapInText();
 }

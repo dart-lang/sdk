@@ -465,6 +465,20 @@ abstract class CiderLinkedLibraryCycle extends base.SummaryClass {
   List<int> get signature;
 }
 
+/// Errors for a single unit.
+@TopLevel('CUEr')
+abstract class CiderUnitErrors extends base.SummaryClass {
+  factory CiderUnitErrors.fromBuffer(List<int> buffer) =>
+      generated.readCiderUnitErrors(buffer);
+
+  @Id(1)
+  List<AnalysisDriverUnitError> get errors;
+
+  /// The hash signature of this data.
+  @Id(0)
+  List<int> get signature;
+}
+
 /// Information about a compilation unit, contains the content hash
 /// and unlinked summary.
 @TopLevel('CUUN')
@@ -1825,6 +1839,9 @@ enum LinkedNodeTypeKind {
 
 /// Information about a type substitution.
 abstract class LinkedNodeTypeSubstitution extends base.SummaryClass {
+  @Id(2)
+  bool get isLegacy;
+
   @Id(1)
   List<LinkedNodeType> get typeArguments;
 

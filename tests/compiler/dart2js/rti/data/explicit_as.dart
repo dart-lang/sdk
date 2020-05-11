@@ -4,8 +4,8 @@
 
 // @dart = 2.7
 
-/*strong.class: C:direct,explicit=[C.T,C<String>],needsArgs*/
-/*omit.class: C:*/
+/*spec:nnbd-off.class: C:direct,explicit=[C.T,C<String>],needsArgs*/
+/*prod:nnbd-off.class: C:*/
 class C<T> {
   T field;
 }

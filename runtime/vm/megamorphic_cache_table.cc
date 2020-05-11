@@ -13,9 +13,9 @@
 
 namespace dart {
 
-RawMegamorphicCache* MegamorphicCacheTable::Lookup(Thread* thread,
-                                                   const String& name,
-                                                   const Array& descriptor) {
+MegamorphicCachePtr MegamorphicCacheTable::Lookup(Thread* thread,
+                                                  const String& name,
+                                                  const Array& descriptor) {
   Isolate* isolate = thread->isolate();
   // Multiple compilation threads could access this lookup.
   SafepointMutexLocker ml(isolate->megamorphic_mutex());
@@ -44,10 +44,10 @@ RawMegamorphicCache* MegamorphicCacheTable::Lookup(Thread* thread,
   return cache.raw();
 }
 
-RawFunction* MegamorphicCacheTable::miss_handler(Isolate* isolate) {
-  ASSERT(isolate->object_store()->megamorphic_miss_function() !=
+FunctionPtr MegamorphicCacheTable::miss_handler(Isolate* isolate) {
+  ASSERT(isolate->object_store()->megamorphic_call_miss_function() !=
          Function::null());
-  return isolate->object_store()->megamorphic_miss_function();
+  return isolate->object_store()->megamorphic_call_miss_function();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -56,8 +56,8 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   // normal Dart function.
   compiler::ObjectPoolBuilder object_pool_builder;
   const Code& code = Code::Handle(StubCode::Generate(
-      "_stub_MegamorphicMiss", &object_pool_builder,
-      compiler::StubCodeCompiler::GenerateMegamorphicMissStub));
+      "_stub_MegamorphicCallMiss", &object_pool_builder,
+      compiler::StubCodeCompiler::GenerateMegamorphicCallMissStub));
 
   const auto& object_pool =
       ObjectPool::Handle(ObjectPool::NewFromBuilder(object_pool_builder));
@@ -69,14 +69,14 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   code.set_exception_handlers(Object::empty_exception_handlers());
   const Class& cls =
       Class::Handle(Type::Handle(Type::DartFunctionType()).type_class());
-  const Function& function = Function::Handle(
-      Function::New(Symbols::MegamorphicMiss(), RawFunction::kRegularFunction,
-                    true,   // Static, but called as a method.
-                    false,  // Not const.
-                    false,  // Not abstract.
-                    false,  // Not external.
-                    false,  // Not native.
-                    cls, TokenPosition::kNoSource));
+  const Function& function = Function::Handle(Function::New(
+      Symbols::MegamorphicCallMiss(), FunctionLayout::kRegularFunction,
+      true,   // Static, but called as a method.
+      false,  // Not const.
+      false,  // Not abstract.
+      false,  // Not external.
+      false,  // Not native.
+      cls, TokenPosition::kNoSource));
   function.set_result_type(Type::Handle(Type::DynamicType()));
   function.set_is_debuggable(false);
   function.set_is_visible(false);
@@ -84,9 +84,9 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   // For inclusion in Snapshot::kFullJIT.
   function.set_unoptimized_code(code);
 
-  ASSERT(isolate->object_store()->megamorphic_miss_function() ==
+  ASSERT(isolate->object_store()->megamorphic_call_miss_function() ==
          Function::null());
-  isolate->object_store()->SetMegamorphicMissHandler(code, function);
+  isolate->object_store()->SetMegamorphicCallMissHandler(code, function);
 }
 
 void MegamorphicCacheTable::ReInitMissHandlerCode(
@@ -95,14 +95,15 @@ void MegamorphicCacheTable::ReInitMissHandlerCode(
   ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
 
   const Code& code = Code::Handle(StubCode::Generate(
-      "_stub_MegamorphicMiss", wrapper,
-      compiler::StubCodeCompiler::GenerateMegamorphicMissStub));
+      "_stub_MegamorphicCallMiss", wrapper,
+      compiler::StubCodeCompiler::GenerateMegamorphicCallMissStub));
   code.set_exception_handlers(Object::empty_exception_handlers());
 
   auto object_store = isolate->object_store();
-  auto& function = Function::Handle(object_store->megamorphic_miss_function());
+  auto& function =
+      Function::Handle(object_store->megamorphic_call_miss_function());
   function.AttachCode(code);
-  object_store->SetMegamorphicMissHandler(code, function);
+  object_store->SetMegamorphicCallMissHandler(code, function);
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

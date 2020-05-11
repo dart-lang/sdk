@@ -28,12 +28,12 @@ class TypeSchemaEliminationTest {
 
   DartType greatestClosure(DartType schema) {
     return typeSchemaElimination.greatestClosure(
-        schema, const NeverType(Nullability.nonNullable));
+        schema, const DynamicType(), const NeverType(Nullability.nonNullable));
   }
 
   DartType leastClosure(DartType schema) {
     return typeSchemaElimination.leastClosure(
-        schema, const NeverType(Nullability.nonNullable));
+        schema, const DynamicType(), const NeverType(Nullability.nonNullable));
   }
 
   void test_greatestClosure_contravariant() {

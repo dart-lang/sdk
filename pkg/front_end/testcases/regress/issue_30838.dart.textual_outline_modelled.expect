@@ -1,0 +1,11 @@
+Foo<int> bar() => foo;
+
+class A {
+  Foo<int> f;
+  void test() {}
+}
+
+int foo<T>(T x) => 3;
+main() {}
+typedef Foo<S> = S Function<T>(T x);
+void test1() {}

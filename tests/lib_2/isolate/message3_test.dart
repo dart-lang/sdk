@@ -60,7 +60,11 @@ class D extends C with M {
 }
 
 class E {
+  // Make sure E.fun is not removed by the tree shaker, as this test verifies
+  // that an object with a tear-off in E.fun cannot be sent.
+  @pragma("vm:entry-point")
   Function fun;
+
   E(this.fun);
 
   static fooFun() => 499;

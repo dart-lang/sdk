@@ -14,5 +14,32 @@ class CallableGetter extends core::Object {
   get call() → dynamic
     ;
 }
+static field (dynamic) →* dynamic closure;
+static field dynamic int1;
+static field dynamic int2;
+static field dynamic int3;
+static field dynamic int4;
+static field self::Callable* callable;
+static field dynamic string1;
+static field dynamic string2;
+static field dynamic string3;
+static field dynamic string4;
+static field self::CallableGetter* callableGetter;
+static field dynamic string5;
+static field dynamic string6;
+static field dynamic string7;
+static field dynamic string8;
+static field dynamic nothing1;
+static field dynamic nothing2;
+static field dynamic nothing3;
+static field dynamic nothing4;
+static field dynamic nothing5;
+static field dynamic nothing6;
+static field dynamic nothing7;
+static field dynamic nothing8;
+static field dynamic nothing9;
+static field dynamic nothing10;
+static field dynamic nothing11;
+static field dynamic nothing12;
 static method main() → dynamic
   ;

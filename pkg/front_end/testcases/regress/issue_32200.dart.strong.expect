@@ -19,5 +19,5 @@ class Foo extends core::Object {
 }
 static method main() → dynamic {
   self::Foo* instance = new self::Foo::•();
-  instance.{self::Foo::self} = instance as{TypeError} invalid-type;
+  instance.{self::Foo::self} = instance;
 }

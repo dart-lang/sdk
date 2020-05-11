@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef DART_PRECOMPILED_RUNTIME
 #include "vm/compiler/call_specializer.h"
 
 #include "vm/compiler/backend/flow_graph_compiler.h"
@@ -742,16 +741,12 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
   if (field.needs_load_guard()) {
     return false;
   }
-  if (field.is_late()) {
-    // TODO(http://dartbug.com/40447): Inline implicit getters for late fields.
-    return false;
-  }
   if (should_clone_fields_) {
     field = field.CloneFromOriginal();
   }
 
-  switch (
-      flow_graph()->CheckForInstanceCall(call, RawFunction::kImplicitGetter)) {
+  switch (flow_graph()->CheckForInstanceCall(call,
+                                             FunctionLayout::kImplicitGetter)) {
     case FlowGraph::ToCheck::kCheckNull:
       AddCheckNull(call->Receiver(), call->function_name(), call->deopt_id(),
                    call->env(), call);
@@ -771,9 +766,19 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
 
 void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
                                                    const Field& field) {
+  ASSERT(field.is_instance());
+  Definition* receiver = call->ArgumentAt(0);
+
+  if (field.NeedsInitializationCheckOnLoad()) {
+    InsertBefore(call,
+                 new (Z) InitInstanceFieldInstr(new (Z) Value(receiver), field,
+                                                call->deopt_id()),
+                 call->env(), FlowGraph::kEffect);
+  }
+
   const Slot& slot = Slot::Get(field, &flow_graph()->parsed_function());
-  LoadFieldInstr* load = new (Z) LoadFieldInstr(
-      new (Z) Value(call->ArgumentAt(0)), slot, call->token_pos());
+  LoadFieldInstr* load =
+      new (Z) LoadFieldInstr(new (Z) Value(receiver), slot, call->token_pos());
 
   // Discard the environment from the original instruction because the load
   // can't deoptimize.
@@ -796,7 +801,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     return false;
   }
   const Function& target = targets.FirstTarget();
-  if (target.kind() != RawFunction::kImplicitSetter) {
+  if (target.kind() != FunctionLayout::kImplicitSetter) {
     // Non-implicit setter are inlined like normal method calls.
     return false;
   }
@@ -806,8 +811,8 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     field = field.CloneFromOriginal();
   }
 
-  switch (
-      flow_graph()->CheckForInstanceCall(instr, RawFunction::kImplicitSetter)) {
+  switch (flow_graph()->CheckForInstanceCall(instr,
+                                             FunctionLayout::kImplicitSetter)) {
     case FlowGraph::ToCheck::kCheckNull:
       AddCheckNull(instr->Receiver(), instr->function_name(), instr->deopt_id(),
                    instr->env(), instr);
@@ -862,7 +867,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 
   // Build an AssertAssignable if necessary.
   const AbstractType& dst_type = AbstractType::ZoneHandle(zone(), field.type());
-  if (I->argument_type_checks() && !dst_type.IsTopTypeForAssignability()) {
+  if (I->argument_type_checks() && !dst_type.IsTopTypeForSubtyping()) {
     // Compute if we need to type check the value. Always type check if
     // at a dynamic invocation.
     bool needs_check = true;
@@ -957,7 +962,7 @@ bool CallSpecializer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     return false;
   }
   const Function& target = targets.FirstTarget();
-  if (target.kind() != RawFunction::kImplicitGetter) {
+  if (target.kind() != FunctionLayout::kImplicitGetter) {
     // Non-implicit getters are inlined like normal methods by conventional
     // inlining in FlowGraphInliner.
     return false;
@@ -1064,7 +1069,7 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 // (ic_data.NumberOfChecks() * 2) entries
 // An instance-of test returning all same results can be converted to a class
 // check.
-RawBool* CallSpecializer::InstanceOfAsBool(
+BoolPtr CallSpecializer::InstanceOfAsBool(
     const ICData& ic_data,
     const AbstractType& type,
     ZoneGrowableArray<intptr_t>* results) const {
@@ -1110,7 +1115,8 @@ RawBool* CallSpecializer::InstanceOfAsBool(
       const AbstractType& unwrapped_type =
           AbstractType::Handle(type.UnwrapFutureOr());
       ASSERT(unwrapped_type.IsInstantiated());
-      is_subtype = unwrapped_type.IsTopType() || unwrapped_type.IsNullable() ||
+      is_subtype = unwrapped_type.IsTopTypeForInstanceOf() ||
+                   unwrapped_type.IsNullable() ||
                    (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType());
     } else {
       is_subtype =
@@ -1178,7 +1184,8 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
       return false;
     }
   }
-  if (type.IsNullable() || type.IsTopType() || type.IsNeverType()) {
+  if (type.IsNullable() || type.IsTopTypeForInstanceOf() ||
+      type.IsNeverType()) {
     // A class id check is not sufficient, since a null instance also satisfies
     // the test against a nullable type.
     // TODO(regis): Add a null check in addition to the class id check?
@@ -1534,9 +1541,8 @@ bool TypedDataSpecializer::HasThirdPartyImplementor(
     // instances of the [implementor_].
     if (implementor_.is_finalized()) {
       const classid_t cid = implementor_.id();
-      if (!RawObject::IsTypedDataClassId(cid) &&
-          !RawObject::IsTypedDataViewClassId(cid) &&
-          !RawObject::IsExternalTypedDataClassId(cid)) {
+      if (!IsTypedDataClassId(cid) && !IsTypedDataViewClassId(cid) &&
+          !IsExternalTypedDataClassId(cid)) {
         return true;
       }
     }
@@ -1794,4 +1800,3 @@ void CallSpecializer::ReplaceInstanceCallsWithDispatchTableCalls() {
 }
 
 }  // namespace dart
-#endif  // DART_PRECOMPILED_RUNTIME

@@ -11,17 +11,24 @@ import 'dart:typed_data';
 import 'package:benchmark_harness/benchmark_harness.dart' show BenchmarkBase;
 import 'package:meta/meta.dart';
 
+import 'runtime/tests/vm/dart/export_sendAndExit_helper.dart' show sendAndExit;
+
 class JsonDecodingBenchmark {
   JsonDecodingBenchmark(this.name,
-      {@required this.sample, @required this.numTasks});
+      {@required this.sample,
+      @required this.numTasks,
+      @required this.useSendAndExit});
 
   Future<void> report() async {
     final stopwatch = Stopwatch()..start();
-    final decodedFutures = <Future>[];
-    for (int i = 0; i < numTasks; i++) {
-      decodedFutures.add(decodeJson(sample));
+    // Benchmark harness counts 10 iterations as one.
+    for (int i = 0; i < 10; i++) {
+      final decodedFutures = <Future>[];
+      for (int i = 0; i < numTasks; i++) {
+        decodedFutures.add(decodeJson(useSendAndExit, sample));
+      }
+      await Future.wait(decodedFutures);
     }
-    await Future.wait(decodedFutures);
 
     print("$name(RunTime): ${stopwatch.elapsedMicroseconds} us.");
   }
@@ -29,6 +36,7 @@ class JsonDecodingBenchmark {
   final String name;
   final Uint8List sample;
   final int numTasks;
+  final bool useSendAndExit;
 }
 
 Uint8List createSampleJson(final size) {
@@ -41,27 +49,42 @@ Uint8List createSampleJson(final size) {
 }
 
 class JsonDecodeRequest {
+  final bool useSendAndExit;
   final SendPort sendPort;
   final Uint8List encodedJson;
-  const JsonDecodeRequest(this.sendPort, this.encodedJson);
+  const JsonDecodeRequest(this.useSendAndExit, this.sendPort, this.encodedJson);
 }
 
-Future<Map> decodeJson(Uint8List encodedJson) async {
+Future<Map> decodeJson(bool useSendAndExit, Uint8List encodedJson) async {
   final port = ReceivePort();
   final inbox = StreamIterator<dynamic>(port);
-  final workerExitedPort = ReceivePort();
-  await Isolate.spawn(
-      jsonDecodingIsolate, JsonDecodeRequest(port.sendPort, encodedJson),
-      onExit: workerExitedPort.sendPort);
+  final completer = Completer<bool>();
+  final workerExitedPort = RawReceivePort((v) {
+    completer.complete(true);
+  });
+  final workerErroredPort = RawReceivePort((v) {
+    stderr.writeln('worker errored out $v');
+    completer.completeError(true);
+  });
+  await Isolate.spawn(jsonDecodingIsolate,
+      JsonDecodeRequest(useSendAndExit, port.sendPort, encodedJson),
+      onError: workerErroredPort.sendPort, onExit: workerExitedPort.sendPort);
+  await completer.future;
+  workerExitedPort.close();
+  workerErroredPort.close();
   await inbox.moveNext();
   final decodedJson = inbox.current;
-  await workerExitedPort.first;
   port.close();
   return decodedJson;
 }
 
 Future<void> jsonDecodingIsolate(JsonDecodeRequest request) async {
-  request.sendPort.send(json.decode(utf8.decode(request.encodedJson)));
+  final result = json.decode(utf8.decode(request.encodedJson));
+  if (request.useSendAndExit) {
+    sendAndExit(request.sendPort, result);
+  } else {
+    request.sendPort.send(result);
+  }
 }
 
 class SyncJsonDecodingBenchmark extends BenchmarkBase {
@@ -118,6 +141,13 @@ Future<void> main() async {
     for (final iterations in <int>[1, 4]) {
       await JsonDecodingBenchmark(
               "IsolateJson.Decode${config.suffix}x$iterations",
+              useSendAndExit: false,
+              sample: config.sample,
+              numTasks: iterations)
+          .report();
+      await JsonDecodingBenchmark(
+              "IsolateJson.SendAndExit_Decode${config.suffix}x$iterations",
+              useSendAndExit: true,
               sample: config.sample,
               numTasks: iterations)
           .report();

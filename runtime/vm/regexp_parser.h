@@ -228,7 +228,7 @@ class RegExpParser : public ValueObject {
   // to avoid complicating cases in which references come before the capture.
   void PatchNamedBackReferences();
 
-  RawArray* CreateCaptureNameMap();
+  ArrayPtr CreateCaptureNameMap();
 
   // Returns true iff the pattern contains named captures. May call
   // ScanForCaptures to look ahead at the remaining pattern.

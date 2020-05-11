@@ -16,7 +16,8 @@ import '../../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CanBeConstConstructorTest);
-    defineReflectiveTests(CanBeConstTest);
+    defineReflectiveTests(CanBeConstInstanceCreationTest);
+    defineReflectiveTests(CanBeConstTypedLiteralTest);
     defineReflectiveTests(EvaluateExpressionTest);
     defineReflectiveTests(PubDependencyTest);
   });
@@ -149,7 +150,7 @@ class C {
 }
 
 @reflectiveTest
-class CanBeConstTest extends AbstractLinterContextTest {
+class CanBeConstInstanceCreationTest extends AbstractLinterContextTest {
   void assertCanBeConst(String snippet, bool expectedResult) {
     var node = findNode.instanceCreation(snippet);
     expect(context.canBeConst(node), expectedResult);
@@ -208,6 +209,23 @@ f<U>() => A<U>();
     assertCanBeConst("A<U>", false);
   }
 
+  void test_true_computeDependencies() async {
+    newFile('/test/lib/a.dart', content: r'''
+const a = 0;
+''');
+
+    await resolve('''
+import 'a.dart';
+
+class A {
+  const A(int a);
+}
+
+A f() => A(a);
+''');
+    assertCanBeConst('A(a)', true);
+  }
+
   void test_true_constConstructorArg() async {
     await resolve('''
 class A {
@@ -245,6 +263,102 @@ import 'a.dart';
 A f() => A();
 ''');
     assertCanBeConst("A();", true);
+  }
+}
+
+@reflectiveTest
+class CanBeConstTypedLiteralTest extends AbstractLinterContextTest {
+  void assertCanBeConst(String snippet, bool expectedResult) {
+    var node = findNode.typedLiteral(snippet);
+    expect(context.canBeConst(node), expectedResult);
+  }
+
+  void test_listLiteral_false_methodInvocation() async {
+    await resolve('''
+f() => [g()];
+int g() => 0;
+''');
+    assertCanBeConst('[', false);
+  }
+
+  void test_listLiteral_false_typeParameter() async {
+    await resolve('''
+class A<T> {
+  const A();
+}
+
+f<U>() => [A<U>()];
+''');
+    assertCanBeConst('[', false);
+  }
+
+  void test_listLiteral_true_computeDependencies() async {
+    newFile('/test/lib/a.dart', content: r'''
+const a = 0;
+''');
+
+    await resolve('''
+import 'a.dart';
+
+f() => [a];
+''');
+    assertCanBeConst('[', true);
+  }
+
+  void test_listLiteral_true_constConstructor() async {
+    await resolve('''
+class A {
+  const A();
+}
+
+f() => [A()];
+''');
+    assertCanBeConst('[', true);
+  }
+
+  void test_listLiteral_true_integerLiteral() async {
+    await resolve('''
+f() => [1, 2, 3];
+''');
+    assertCanBeConst('[', true);
+  }
+
+  void test_mapLiteral_false_methodInvocation_key() async {
+    await resolve('''
+f() => {g(): 0};
+int g() => 0;
+''');
+    assertCanBeConst('{', false);
+  }
+
+  void test_mapLiteral_false_methodInvocation_value() async {
+    await resolve('''
+f() => {0: g()};
+int g() => 0;
+''');
+    assertCanBeConst('{', false);
+  }
+
+  void test_mapLiteral_true_integerLiteral() async {
+    await resolve('''
+f() => {1: 2, 3: 4};
+''');
+    assertCanBeConst('{', true);
+  }
+
+  void test_setLiteral_false_methodInvocation() async {
+    await resolve('''
+f() => {g()};
+int g() => 0;
+''');
+    assertCanBeConst('{', false);
+  }
+
+  void test_setLiteral_true_integerLiteral() async {
+    await resolve('''
+f() => {1, 2, 3};
+''');
+    assertCanBeConst('{', true);
   }
 }
 

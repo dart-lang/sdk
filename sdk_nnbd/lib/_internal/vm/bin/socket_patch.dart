@@ -89,6 +89,11 @@ class InternetAddress {
       InternetAddress address, String host) {
     return (address as _InternetAddress)._cloneWithNewHost(host);
   }
+
+  @patch
+  static InternetAddress? tryParse(String address) {
+    return _InternetAddress.tryParse(address);
+  }
 }
 
 @patch
@@ -253,6 +258,16 @@ class _InternetAddress implements InternetAddress {
       return _InternetAddress(
           InternetAddressType._from(type), address, null, rawAddress);
     }
+  }
+
+  static _InternetAddress? tryParse(String address) {
+    checkNotNullable(address, "address");
+    var addressBytes = _parse(address);
+    if (addressBytes == null) return null;
+    var type = addressBytes.length == _IPv4AddrLength
+        ? InternetAddressType.IPv4
+        : InternetAddressType.IPv6;
+    return _InternetAddress(type, address, null, addressBytes);
   }
 
   factory _InternetAddress.fixed(int id) {
@@ -1446,7 +1461,7 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
         controller.add(_RawSocket(socket));
         if (controller.isPaused) return;
       }
-    }), error: zone.bindBinaryCallbackGuarded((Object e, StackTrace st) {
+    }), error: zone.bindBinaryCallbackGuarded((Object e, StackTrace? st) {
       controller.addError(e, st);
       controller.close();
     }), destroyed: () {
@@ -1560,7 +1575,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
           _controller.add(RawSocketEvent.closed);
           _controller.close();
         },
-        error: zone.bindBinaryCallbackGuarded((Object e, StackTrace st) {
+        error: zone.bindBinaryCallbackGuarded((Object e, StackTrace? st) {
           _controller.addError(e, st);
           _socket.close();
         }));
@@ -2113,7 +2128,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
           _controller.add(RawSocketEvent.closed);
           _controller.close();
         },
-        error: zone.bindBinaryCallbackGuarded((Object e, StackTrace st) {
+        error: zone.bindBinaryCallbackGuarded((Object e, StackTrace? st) {
           _controller.addError(e, st);
           _socket.close();
         }));
@@ -2187,9 +2202,9 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
   void set multicastHops(int value) =>
       _socket.setOption(SocketOption._ipMulticastHops, value);
 
-  NetworkInterface get multicastInterface => throw "Not implemented";
+  NetworkInterface get multicastInterface => throw UnimplementedError();
   void set multicastInterface(NetworkInterface? value) =>
-      throw "Not implemented";
+      throw UnimplementedError();
 
   bool get broadcastEnabled => _socket.getOption(SocketOption._ipBroadcast);
   void set broadcastEnabled(bool value) =>

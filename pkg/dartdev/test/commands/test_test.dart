@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('test', defineTest);
+  group('test', defineTest, timeout: longTimeout);
 }
 
 void defineTest() {

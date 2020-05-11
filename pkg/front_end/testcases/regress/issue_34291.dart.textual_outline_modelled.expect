@@ -1,0 +1,6 @@
+import "issue_34291_lib.dart" as lib;
+
+class B {}
+
+lib.A<B> foo() {}
+main() {}

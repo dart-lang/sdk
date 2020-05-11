@@ -26,6 +26,7 @@ import 'package:kernel/ast.dart'
         Library,
         Name,
         NamedExpression,
+        NonNullableByDefaultCompiledMode,
         NullLiteral,
         Procedure,
         RedirectingInitializer,
@@ -395,11 +396,29 @@ class KernelTarget extends TargetImplementation {
         AmbiguousBuilder problem = declaration;
         declaration = problem.getFirstDeclaration();
       }
+      NonNullableByDefaultCompiledMode compiledMode = null;
+      if (enableNonNullable) {
+        switch (loader.nnbdMode) {
+          case NnbdMode.Weak:
+            compiledMode = NonNullableByDefaultCompiledMode.Weak;
+            break;
+          case NnbdMode.Strong:
+            compiledMode = NonNullableByDefaultCompiledMode.Strong;
+            break;
+          case NnbdMode.Agnostic:
+            compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
+            break;
+        }
+      } else {
+        compiledMode = NonNullableByDefaultCompiledMode.Disabled;
+      }
       if (declaration is ProcedureBuilder) {
-        component.mainMethod = declaration.actualProcedure;
+        component.setMainMethodAndMode(
+            declaration.actualProcedure?.reference, true, compiledMode);
       } else if (declaration is DillMemberBuilder) {
         if (declaration.member is Procedure) {
-          component.mainMethod = declaration.member;
+          component.setMainMethodAndMode(
+              declaration.member?.reference, true, compiledMode);
         }
       }
     }
@@ -1054,7 +1073,8 @@ class KernelTarget extends TargetImplementation {
         loader.coreTypes,
         loader.libraries,
         new KernelDiagnosticReporter(loader),
-        logger: (String msg) => ticker.logMs(msg));
+        logger: (String msg) => ticker.logMs(msg),
+        changedStructureNotifier: changedStructureNotifier);
 
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);

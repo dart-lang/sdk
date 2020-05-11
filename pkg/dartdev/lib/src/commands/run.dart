@@ -12,8 +12,8 @@ import '../sdk.dart';
 
 class RunCommand extends DartdevCommand<int> {
   final ArgParser argParser = ArgParser.allowAnything();
-
-  RunCommand({bool verbose = false}) : super('run', '''
+  final bool verbose;
+  RunCommand({this.verbose = false}) : super('run', '''
 Run a Dart file.''');
 
   @override
@@ -25,7 +25,11 @@ Run a Dart file.''');
     // execute [run] below.  Without this, the 'dart help run' reports the
     // command pub with no commands or flags.
     final command = sdk.dart;
-    final args = ['--help'];
+    final args = [
+      '--disable-dart-dev',
+      '--help',
+      if (verbose) '--verbose',
+    ];
 
     log.trace('$command ${args.first}');
 
@@ -49,7 +53,8 @@ Run a Dart file.''');
 
     // Starting in ProcessStartMode.inheritStdio mode means the child process
     // can detect support for ansi chars.
-    var process = await Process.start(sdk.dart, args,
+    final process = await Process.start(
+        sdk.dart, ['--disable-dart-dev', ...args],
         mode: ProcessStartMode.inheritStdio);
     return process.exitCode;
   }

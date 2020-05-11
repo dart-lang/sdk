@@ -668,10 +668,10 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
   }
 }
 
-RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
-                                              const AbstractType& type,
-                                              FinalizationKind finalization,
-                                              PendingTypes* pending_types) {
+AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
+                                             const AbstractType& type,
+                                             FinalizationKind finalization,
+                                             PendingTypes* pending_types) {
   // Only the 'root' type of the graph can be canonicalized, after all depending
   // types have been bound checked.
   ASSERT((pending_types == NULL) || (finalization < kCanonicalize));
@@ -1186,7 +1186,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
 }
 
-RawError* ClassFinalizer::LoadClassMembers(const Class& cls) {
+ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
   ASSERT(Thread::Current()->IsMutatorThread());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -1474,21 +1474,21 @@ class CidRewriteVisitor : public ObjectVisitor {
     return old_to_new_cids_[cid];
   }
 
-  void VisitObject(RawObject* obj) {
+  void VisitObject(ObjectPtr obj) {
     if (obj->IsClass()) {
-      RawClass* cls = Class::RawCast(obj);
+      ClassPtr cls = Class::RawCast(obj);
       cls->ptr()->id_ = Map(cls->ptr()->id_);
     } else if (obj->IsField()) {
-      RawField* field = Field::RawCast(obj);
+      FieldPtr field = Field::RawCast(obj);
       field->ptr()->guarded_cid_ = Map(field->ptr()->guarded_cid_);
       field->ptr()->is_nullable_ = Map(field->ptr()->is_nullable_);
     } else if (obj->IsTypeParameter()) {
-      RawTypeParameter* param = TypeParameter::RawCast(obj);
+      TypeParameterPtr param = TypeParameter::RawCast(obj);
       param->ptr()->parameterized_class_id_ =
           Map(param->ptr()->parameterized_class_id_);
     } else if (obj->IsType()) {
-      RawType* type = Type::RawCast(obj);
-      RawObject* id = type->ptr()->type_class_id_;
+      TypePtr type = Type::RawCast(obj);
+      ObjectPtr id = type->ptr()->type_class_id_;
       if (!id->IsHeapObject()) {
         type->ptr()->type_class_id_ =
             Smi::New(Map(Smi::Value(Smi::RawCast(id))));
@@ -1499,7 +1499,7 @@ class CidRewriteVisitor : public ObjectVisitor {
       if (old_cid != new_cid) {
         // Don't touch objects that are unchanged. In particular, Instructions,
         // which are write-protected.
-        obj->SetClassId(new_cid);
+        obj->ptr()->SetClassId(new_cid);
       }
     }
   }
@@ -1519,7 +1519,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
     // The [HeapIterationScope] also safepoints all threads.
     HeapIterationScope his(T);
 
-    IG->class_table()->Remap(old_to_new_cid);
+    IG->shared_class_table()->Remap(old_to_new_cid);
     IG->ForEachIsolate(
         [&](Isolate* I) {
           I->set_remapping_cids(true);
@@ -1558,30 +1558,30 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 // In the Dart VM heap the following instances directly use cids for the
 // computation of canonical hash codes:
 //
-//    * RawType (due to RawType::type_class_id_)
-//    * RawTypeParameter (due to RawTypeParameter::parameterized_class_id_)
+//    * RawType (due to TypeLayout::type_class_id_)
+//    * RawTypeParameter (due to TypeParameterLayout::parameterized_class_id_)
 //
 // The following instances use cids for the computation of canonical hash codes
 // indirectly:
 //
-//    * RawTypeRef (due to RawTypeRef::type_->type_class_id)
-//    * RawType (due to RawType::signature_'s result/parameter types)
+//    * RawTypeRef (due to TypeRefLayout::type_->type_class_id)
+//    * RawType (due to TypeLayout::signature_'s result/parameter types)
 //    * RawTypeArguments (due to type references)
 //    * RawInstance (due to instance fields)
 //    * RawArray (due to type arguments & array entries)
 //
 // Caching of the canonical hash codes happens for:
 //
-//    * RawType::hash_
-//    * RawTypeParameter::hash_
-//    * RawTypeArguments::hash_
+//    * TypeLayout::hash_
+//    * TypeParameterLayout::hash_
+//    * TypeArgumentsLayout::hash_
 //    * RawInstance (weak table)
 //    * RawArray (weak table)
 //
 // No caching of canonical hash codes (i.e. it gets re-computed every time)
 // happens for:
 //
-//    * RawTypeRef (computed via RawTypeRef::type_->type_class_id)
+//    * RawTypeRef (computed via TypeRefLayout::type_->type_class_id)
 //
 // Usages of canonical hash codes are:
 //
@@ -1596,7 +1596,7 @@ class ClearTypeHashVisitor : public ObjectVisitor {
         type_(Type::Handle(zone)),
         type_args_(TypeArguments::Handle(zone)) {}
 
-  void VisitObject(RawObject* obj) {
+  void VisitObject(ObjectPtr obj) {
     if (obj->IsTypeParameter()) {
       type_param_ ^= obj;
       type_param_.SetHash(0);
@@ -1699,8 +1699,27 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
     }
   }
 
-  class ClearCodeFunctionVisitor : public FunctionVisitor {
-    void Visit(const Function& function) {
+  auto const thread = Thread::Current();
+  auto const isolate = thread->isolate();
+  StackZone stack_zone(thread);
+  HANDLESCOPE(thread);
+  auto const zone = thread->zone();
+
+  class ClearCodeVisitor : public FunctionVisitor {
+   public:
+    ClearCodeVisitor(Zone* zone, bool force)
+        : force_(force),
+          bytecode_(Bytecode::Handle(zone)),
+          pool_(ObjectPool::Handle(zone)),
+          entry_(Object::Handle(zone)) {}
+
+    void VisitClass(const Class& cls) {
+      if (force_ || cls.id() >= kNumPredefinedCids) {
+        cls.DisableAllocationStub();
+      }
+    }
+
+    void VisitFunction(const Function& function) {
       bytecode_ = function.bytecode();
       if (!bytecode_.IsNull()) {
         pool_ = bytecode_.object_pool();
@@ -1720,41 +1739,27 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
       function.ClearICDataArray();
     }
 
-    Bytecode& bytecode_ = Bytecode::Handle();
-    ObjectPool& pool_ = ObjectPool::Handle();
-    Object& entry_ = Object::Handle();
-  };
-  ClearCodeFunctionVisitor function_visitor;
-  ProgramVisitor::VisitFunctions(&function_visitor);
-
-  class ClearCodeClassVisitor : public ClassVisitor {
-   public:
-    explicit ClearCodeClassVisitor(bool force) : force_(force) {}
-
-    void Visit(const Class& cls) {
-      if (force_ || cls.id() >= kNumPredefinedCids) {
-        cls.DisableAllocationStub();
-      }
-    }
-
    private:
-    bool force_;
+    const bool force_;
+    Bytecode& bytecode_;
+    ObjectPool& pool_;
+    Object& entry_;
   };
-  ClearCodeClassVisitor class_visitor(including_nonchanging_cids);
-  ProgramVisitor::VisitClasses(&class_visitor);
+
+  ClearCodeVisitor visitor(zone, including_nonchanging_cids);
+  ProgramVisitor::WalkProgram(zone, isolate, &visitor);
 
   // Apart from normal function code and allocation stubs we have two global
   // code objects to clear.
   if (including_nonchanging_cids) {
-    auto thread = Thread::Current();
-    auto object_store = thread->isolate()->object_store();
-    auto& null_code = Code::Handle(thread->zone());
+    auto object_store = isolate->object_store();
+    auto& null_code = Code::Handle(zone);
     object_store->set_build_method_extractor_code(null_code);
 
-    auto& miss_function = Function::Handle(
-        thread->zone(), object_store->megamorphic_miss_function());
+    auto& miss_function =
+        Function::Handle(zone, object_store->megamorphic_call_miss_function());
     miss_function.ClearCode();
-    object_store->SetMegamorphicMissHandler(null_code, miss_function);
+    object_store->SetMegamorphicCallMissHandler(null_code, miss_function);
   }
 #endif  // !DART_PRECOMPILED_RUNTIME
 }

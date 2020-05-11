@@ -1,0 +1,10 @@
+class C {
+  C(List<int> ell)
+      : s = {
+          for (var e in ell)
+            if (e.isOdd) 2 * e
+        };
+  final Set<int> s;
+}
+
+main() {}

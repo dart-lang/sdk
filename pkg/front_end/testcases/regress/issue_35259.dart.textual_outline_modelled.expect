@@ -1,0 +1,6 @@
+class Supertype {
+  factory Supertype() = Unresolved;
+  factory Supertype() = Unresolved;
+}
+
+main() {}

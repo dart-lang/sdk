@@ -1,0 +1,8 @@
+library test;
+
+class C {
+  int x;
+}
+
+void f(C c) {}
+main() {}

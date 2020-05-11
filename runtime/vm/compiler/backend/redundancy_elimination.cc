@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/redundancy_elimination.h"
 
 #include "vm/bit_vector.h"
@@ -1245,6 +1243,18 @@ static PhiPlaceMoves* ComputePhiMoves(
   return phi_moves;
 }
 
+DART_FORCE_INLINE static void SetPlaceId(Instruction* instr, intptr_t id) {
+  instr->SetPassSpecificId(CompilerPass::kCSE, id);
+}
+
+DART_FORCE_INLINE static intptr_t GetPlaceId(const Instruction* instr) {
+  return instr->GetPassSpecificId(CompilerPass::kCSE);
+}
+
+DART_FORCE_INLINE static bool HasPlaceId(const Instruction* instr) {
+  return instr->HasPassSpecificId(CompilerPass::kCSE);
+}
+
 enum CSEMode { kOptimizeLoads, kOptimizeStores };
 
 static AliasedSet* NumberPlaces(
@@ -1282,7 +1292,7 @@ static AliasedSet* NumberPlaces(
         }
       }
 
-      instr->set_place_id(result->id());
+      SetPlaceId(instr, result->id());
     }
   }
 
@@ -1309,8 +1319,8 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
                                 intptr_t loop_header_index,
                                 Instruction* instr) {
   return IsLoadEliminationCandidate(instr) && (sets != NULL) &&
-         instr->HasPlaceId() && ((*sets)[loop_header_index] != NULL) &&
-         (*sets)[loop_header_index]->Contains(instr->place_id());
+         HasPlaceId(instr) &&
+         (*sets)[loop_header_index]->Contains(GetPlaceId(instr));
 }
 
 LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
@@ -1659,7 +1669,7 @@ class LoadOptimizer : public ValueObject {
             // instruction that still points to the old place with a more
             // generic alias.
             const intptr_t old_alias_id = aliased_set_->LookupAliasId(
-                aliased_set_->places()[instr->place_id()]->ToAlias());
+                aliased_set_->places()[GetPlaceId(instr)]->ToAlias());
             killed = aliased_set_->GetKilledSet(old_alias_id);
           }
 
@@ -1678,7 +1688,7 @@ class LoadOptimizer : public ValueObject {
                   if (FLAG_trace_optimization) {
                     THR_Print("Removing redundant store to place %" Pd
                               " in block B%" Pd "\n",
-                              instr->place_id(), block->block_id());
+                              GetPlaceId(instr), block->block_id());
                   }
                   instr_it.RemoveCurrentFromGraph();
                   continue;
@@ -1711,8 +1721,8 @@ class LoadOptimizer : public ValueObject {
           // load forwarding.
           const Place* canonical = aliased_set_->LookupCanonical(&place);
           if ((canonical != NULL) &&
-              (canonical->id() != instr->AsDefinition()->place_id())) {
-            instr->AsDefinition()->set_place_id(canonical->id());
+              (canonical->id() != GetPlaceId(instr->AsDefinition()))) {
+            SetPlaceId(instr->AsDefinition(), canonical->id());
           }
         }
 
@@ -1751,11 +1761,11 @@ class LoadOptimizer : public ValueObject {
             intptr_t place_id = 0;
             if (auto load = use->instruction()->AsLoadField()) {
               slot = &load->slot();
-              place_id = load->place_id();
+              place_id = GetPlaceId(load);
             } else if (auto store =
                            use->instruction()->AsStoreInstanceField()) {
               slot = &store->slot();
-              place_id = store->place_id();
+              place_id = GetPlaceId(store);
             }
 
             if (slot != nullptr) {
@@ -1789,7 +1799,7 @@ class LoadOptimizer : public ValueObject {
           continue;
         }
 
-        const intptr_t place_id = defn->place_id();
+        const intptr_t place_id = GetPlaceId(defn);
         if (gen->Contains(place_id)) {
           // This is a locally redundant load.
           ASSERT((out_values != NULL) && ((*out_values)[place_id] != NULL));
@@ -1965,7 +1975,7 @@ class LoadOptimizer : public ValueObject {
               (in_[preorder_number]->Contains(place_id))) {
             PhiInstr* phi = new (Z)
                 PhiInstr(block->AsJoinEntry(), block->PredecessorCount());
-            phi->set_place_id(place_id);
+            SetPlaceId(phi, place_id);
             pending_phis.Add(phi);
             in_value = phi;
           }
@@ -2103,14 +2113,14 @@ class LoadOptimizer : public ValueObject {
     // Incoming values are different. Phi is required to merge.
     PhiInstr* phi =
         new (Z) PhiInstr(block->AsJoinEntry(), block->PredecessorCount());
-    phi->set_place_id(place_id);
+    SetPlaceId(phi, place_id);
     FillPhiInputs(phi);
     return phi;
   }
 
   void FillPhiInputs(PhiInstr* phi) {
     BlockEntryInstr* block = phi->GetBlock();
-    const intptr_t place_id = phi->place_id();
+    const intptr_t place_id = GetPlaceId(phi);
 
     for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
       BlockEntryInstr* pred = block->PredecessorAt(i);
@@ -2154,9 +2164,9 @@ class LoadOptimizer : public ValueObject {
 
       for (intptr_t i = 0; i < loads->length(); i++) {
         Definition* load = (*loads)[i];
-        if (!in->Contains(load->place_id())) continue;  // No incoming value.
+        if (!in->Contains(GetPlaceId(load))) continue;  // No incoming value.
 
-        Definition* replacement = MergeIncomingValues(block, load->place_id());
+        Definition* replacement = MergeIncomingValues(block, GetPlaceId(load));
         ASSERT(replacement != NULL);
 
         // Sets of outgoing values are not linked into use lists so
@@ -2606,17 +2616,17 @@ class StoreOptimizer : public LivenessAnalysis {
 
         // Handle stores.
         if (is_store) {
-          if (kill->Contains(instr->place_id())) {
-            if (!live_in->Contains(instr->place_id()) &&
+          if (kill->Contains(GetPlaceId(instr))) {
+            if (!live_in->Contains(GetPlaceId(instr)) &&
                 CanEliminateStore(instr)) {
               if (FLAG_trace_optimization) {
                 THR_Print("Removing dead store to place %" Pd " in block B%" Pd
                           "\n",
-                          instr->place_id(), block->block_id());
+                          GetPlaceId(instr), block->block_id());
               }
               instr_it.RemoveCurrentFromGraph();
             }
-          } else if (!live_in->Contains(instr->place_id())) {
+          } else if (!live_in->Contains(GetPlaceId(instr))) {
             // Mark this store as down-ward exposed: They are the only
             // candidates for the global store elimination.
             if (exposed_stores == NULL) {
@@ -2628,8 +2638,8 @@ class StoreOptimizer : public LivenessAnalysis {
             exposed_stores->Add(instr);
           }
           // Interfering stores kill only loads from the same place.
-          kill->Add(instr->place_id());
-          live_in->Remove(instr->place_id());
+          kill->Add(GetPlaceId(instr));
+          live_in->Remove(GetPlaceId(instr));
           continue;
         }
 
@@ -2690,11 +2700,11 @@ class StoreOptimizer : public LivenessAnalysis {
         }
         // Eliminate a downward exposed store if the corresponding place is not
         // in live-out.
-        if (!live_out->Contains(instr->place_id()) &&
+        if (!live_out->Contains(GetPlaceId(instr)) &&
             CanEliminateStore(instr)) {
           if (FLAG_trace_optimization) {
             THR_Print("Removing dead store to place %" Pd " block B%" Pd "\n",
-                      instr->place_id(), block->block_id());
+                      GetPlaceId(instr), block->block_id());
           }
           instr->RemoveFromGraph(/* ignored */ false);
         }
@@ -3316,6 +3326,18 @@ class TryCatchAnalyzer : public ValueObject {
     EliminateDeadParameters();
   }
 
+  static intptr_t GetParameterId(const Instruction* instr) {
+    return instr->GetPassSpecificId(CompilerPass::kTryCatchOptimization);
+  }
+
+  static void SetParameterId(Instruction* instr, intptr_t id) {
+    instr->SetPassSpecificId(CompilerPass::kTryCatchOptimization, id);
+  }
+
+  static bool HasParameterId(Instruction* instr) {
+    return instr->HasPassSpecificId(CompilerPass::kTryCatchOptimization);
+  }
+
   // Assign sequential ids to each ParameterInstr in each CatchEntryBlock.
   // Collect reverse mapping from try indexes to corresponding catches.
   void NumberCatchEntryParameters() {
@@ -3324,7 +3346,7 @@ class TryCatchAnalyzer : public ValueObject {
           *catch_entry->initial_definitions();
       for (auto idef : idefs) {
         if (idef->IsParameter()) {
-          idef->set_place_id(parameter_info_.length());
+          SetParameterId(idef, parameter_info_.length());
           parameter_info_.Add(new ParameterInfo(idef->AsParameter()));
         }
       }
@@ -3363,14 +3385,14 @@ class TryCatchAnalyzer : public ValueObject {
             // already present in the list.
             bool found = false;
             for (auto other_defn :
-                 parameter_info_[param->place_id()]->incoming) {
+                 parameter_info_[GetParameterId(param)]->incoming) {
               if (other_defn == defn) {
                 found = true;
                 break;
               }
             }
             if (!found) {
-              parameter_info_[param->place_id()]->incoming.Add(defn);
+              parameter_info_[GetParameterId(param)]->incoming.Add(defn);
             }
           }
         }
@@ -3410,7 +3432,7 @@ class TryCatchAnalyzer : public ValueObject {
     while (!worklist_.IsEmpty()) {
       Definition* defn = worklist_.RemoveLast();
       if (ParameterInstr* param = defn->AsParameter()) {
-        auto s = parameter_info_[param->place_id()];
+        auto s = parameter_info_[GetParameterId(param)];
         for (auto input : s->incoming) {
           MarkLive(input);
         }
@@ -3431,8 +3453,8 @@ class TryCatchAnalyzer : public ValueObject {
         worklist_.Add(phi);
       }
     } else if (ParameterInstr* param = defn->AsParameter()) {
-      if (param->place_id() != -1) {
-        auto input_s = parameter_info_[param->place_id()];
+      if (HasParameterId(param)) {
+        auto input_s = parameter_info_[GetParameterId(param)];
         if (!input_s->alive) {
           input_s->alive = true;
           worklist_.Add(param);
@@ -3466,7 +3488,7 @@ class TryCatchAnalyzer : public ValueObject {
 
         for (intptr_t env_idx = 0; env_idx < idefs.length(); ++env_idx) {
           if (ParameterInstr* param = idefs[env_idx]->AsParameter()) {
-            if (!parameter_info_[param->place_id()]->alive) {
+            if (!parameter_info_[GetParameterId(param)]->alive) {
               env->ValueAt(env_idx)->BindToEnvironment(
                   flow_graph_->constant_null());
             }
@@ -3816,5 +3838,3 @@ void CheckStackOverflowElimination::EliminateStackOverflow(FlowGraph* graph) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

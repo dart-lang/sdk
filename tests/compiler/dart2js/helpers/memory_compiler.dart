@@ -8,6 +8,7 @@ library dart2js.test.memory_compiler;
 
 import 'dart:async';
 
+import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:compiler/compiler.dart' show DiagnosticHandler;
 import 'package:compiler/compiler_new.dart'
     show CompilationResult, CompilerDiagnostics, CompilerOutput, Diagnostic;
@@ -23,6 +24,21 @@ import 'memory_source_file_helper.dart';
 export 'output_collector.dart';
 export 'package:compiler/compiler_new.dart' show CompilationResult;
 export 'diagnostic_helper.dart';
+
+bool isDart2jsNnbd =
+    Platform.environment['DART_CONFIGURATION'] == 'ReleaseX64NNBD';
+
+String sdkPath = isDart2jsNnbd ? 'sdk_nnbd/lib' : 'sdk/lib';
+
+String sdkLibrariesSpecificationPath = '$sdkPath/libraries.json';
+
+Uri sdkLibrariesSpecificationUri =
+    Uri.base.resolve(sdkLibrariesSpecificationPath);
+
+Uri sdkPlatformBinariesUri =
+    Uri.parse(nativeToUriPath(Platform.resolvedExecutable)).resolve('.');
+
+String sdkPlatformBinariesPath = sdkPlatformBinariesUri.toString();
 
 class MultiDiagnostics implements CompilerDiagnostics {
   final List<CompilerDiagnostics> diagnosticsList;
@@ -107,7 +123,7 @@ CompilerImpl compilerFor(
     Uri librariesSpecificationUri,
     Uri packageConfig}) {
   retainDataForTesting = true;
-  librariesSpecificationUri ??= Uri.base.resolve('sdk/lib/libraries.json');
+  librariesSpecificationUri ??= sdkLibrariesSpecificationUri;
 
   if (packageConfig == null) {
     if (Platform.packageConfig != null) {

@@ -7,6 +7,8 @@
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'pkg/front_end/tool/fasta generate-experimental-flags' to update.
 
+import 'package:kernel/kernel.dart' show Version;
+
 enum ExperimentalFlag {
   constantUpdate2018,
   controlFlowCollections,
@@ -19,24 +21,15 @@ enum ExperimentalFlag {
   variance,
 }
 
-const int enableConstantUpdate2018MajorVersion = 2;
-const int enableConstantUpdate2018MinorVersion = 4;
-const int enableControlFlowCollectionsMajorVersion = 2;
-const int enableControlFlowCollectionsMinorVersion = 2;
-const int enableExtensionMethodsMajorVersion = 2;
-const int enableExtensionMethodsMinorVersion = 6;
-const int enableNonNullableMajorVersion = 2;
-const int enableNonNullableMinorVersion = 8;
-const int enableNonfunctionTypeAliasesMajorVersion = 2;
-const int enableNonfunctionTypeAliasesMinorVersion = 8;
-const int enableSetLiteralsMajorVersion = 2;
-const int enableSetLiteralsMinorVersion = 2;
-const int enableSpreadCollectionsMajorVersion = 2;
-const int enableSpreadCollectionsMinorVersion = 2;
-const int enableTripleShiftMajorVersion = 2;
-const int enableTripleShiftMinorVersion = 8;
-const int enableVarianceMajorVersion = 2;
-const int enableVarianceMinorVersion = 8;
+const Version enableConstantUpdate2018Version = const Version(2, 4);
+const Version enableControlFlowCollectionsVersion = const Version(2, 2);
+const Version enableExtensionMethodsVersion = const Version(2, 6);
+const Version enableNonNullableVersion = const Version(2, 9);
+const Version enableNonfunctionTypeAliasesVersion = const Version(2, 9);
+const Version enableSetLiteralsVersion = const Version(2, 2);
+const Version enableSpreadCollectionsVersion = const Version(2, 2);
+const Version enableTripleShiftVersion = const Version(2, 9);
+const Version enableVarianceVersion = const Version(2, 9);
 
 ExperimentalFlag parseExperimentalFlag(String flag) {
   switch (flag) {

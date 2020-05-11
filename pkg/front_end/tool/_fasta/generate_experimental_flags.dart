@@ -59,8 +59,9 @@ String generateKernelFile() {
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'pkg/front_end/tool/fasta generate-experimental-flags' to update.
 
-  int defaultLanguageVersionMajor = $currentVersionMajor;
-  int defaultLanguageVersionMinor = $currentVersionMinor;
+import "ast.dart";
+
+Version defaultLanguageVersion = const Version($currentVersionMajor, $currentVersionMinor);
 ''');
 
   return new DartFormatter().format("$sb");
@@ -91,6 +92,8 @@ String generateCfeFile() {
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'pkg/front_end/tool/fasta generate-experimental-flags' to update.
+
+import 'package:kernel/kernel.dart' show Version;
 ''');
 
   Map<dynamic, dynamic> features = yaml['features'];
@@ -122,12 +125,9 @@ enum ExperimentalFlag {
       major = int.parse(split[0]);
       minor = int.parse(split[1]);
     }
-    sb.writeln('  const int enable'
+    sb.writeln('  const Version enable'
         '${keyToIdentifier(key, upperCaseFirst: true)}'
-        'MajorVersion = $major;');
-    sb.writeln('  const int enable'
-        '${keyToIdentifier(key, upperCaseFirst: true)}'
-        'MinorVersion = $minor;');
+        'Version = const Version($major, $minor);');
   }
 
   sb.write('''

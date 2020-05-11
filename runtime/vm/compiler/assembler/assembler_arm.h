@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM_H_
 #define RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_
 #error Do not include assembler_arm.h directly; use assembler.h instead.
 #endif
@@ -589,8 +593,6 @@ class Assembler : public AssemblerBase {
            B4 | (imm16 & 0xf);
   }
 
-  static uword GetBreakInstructionFiller() { return BkptEncoding(0); }
-
   // Floating point instructions (VFPv3-D16 and VFPv3-D32 profiles).
   void vmovsr(SRegister sn, Register rt, Condition cond = AL);
   void vmovrs(Register rt, SRegister sn, Condition cond = AL);
@@ -735,10 +737,6 @@ class Assembler : public AssemblerBase {
                   CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void BranchLinkToRuntime();
 
-  void CallNullErrorShared(bool save_fpu_registers);
-
-  void CallNullArgErrorShared(bool save_fpu_registers);
-
   // Branch and link to an entry address. Call sequence can be patched.
   void BranchLinkPatchable(const Code& code,
                            CodeEntryKind entry_kind = CodeEntryKind::kNormal);
@@ -752,6 +750,11 @@ class Assembler : public AssemblerBase {
 
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);
+
+  void Call(Address target) {
+    ldr(LR, target);
+    blx(LR);
+  }
 
   // Add signed immediate value to rd. May clobber IP.
   void AddImmediate(Register rd, int32_t value, Condition cond = AL) {
@@ -820,7 +823,7 @@ class Assembler : public AssemblerBase {
   void LoadWordFromPoolOffset(Register rd,
                               int32_t offset,
                               Register pp,
-                              Condition cond);
+                              Condition cond = AL);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);
@@ -899,6 +902,9 @@ class Assembler : public AssemblerBase {
 
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
+
+  void ExtractClassIdFromTags(Register result, Register tags);
+  void ExtractInstanceSizeFromTags(Register result, Register tags);
 
   void LoadClassId(Register result, Register object, Condition cond = AL);
   void LoadClassById(Register result, Register class_id);
@@ -1165,6 +1171,10 @@ class Assembler : public AssemblerBase {
                                      Register array,
                                      Register index);
 
+  void LoadFieldAddressForRegOffset(Register address,
+                                    Register instance,
+                                    Register offset_in_words_as_smi);
+
   void LoadHalfWordUnaligned(Register dst, Register addr, Register tmp);
   void LoadHalfWordUnsignedUnaligned(Register dst, Register addr, Register tmp);
   void StoreHalfWordUnaligned(Register src, Register addr, Register tmp);
@@ -1192,13 +1202,13 @@ class Assembler : public AssemblerBase {
                         Register temp1,
                         Register temp2);
 
-  // This emits an PC-relative call of the form "blr <offset>".  The offset
-  // is not yet known and needs therefore relocation to the right place before
-  // the code can be used.
+  // This emits an PC-relative call of the form "blr.<cond> <offset>".  The
+  // offset is not yet known and needs therefore relocation to the right place
+  // before the code can be used.
   //
   // The neccessary information for the "linker" (i.e. the relocation
-  // information) is stored in [RawCode::static_calls_target_table_]: an entry
-  // of the form
+  // information) is stored in [CodeLayout::static_calls_target_table_]: an
+  // entry of the form
   //
   //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
   //
@@ -1209,6 +1219,12 @@ class Assembler : public AssemblerBase {
   // function.
   void GenerateUnRelocatedPcRelativeCall(Condition cond = AL,
                                          intptr_t offset_into_target = 0);
+
+  // This emits an PC-relative tail call of the form "b.<cond> <offset>".
+  //
+  // See also above for the pc-relative call.
+  void GenerateUnRelocatedPcRelativeTailCall(Condition cond = AL,
+                                             intptr_t offset_into_target = 0);
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);

@@ -31,7 +31,6 @@ class JSONStream;
 class Object;
 class ObjectPointerVisitor;
 class Isolate;
-class RawArray;
 class Thread;
 class TimelineEvent;
 class TimelineEventBlock;
@@ -867,6 +866,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 #endif
 
   TimelineEventBlock* head_;
+  TimelineEventBlock* tail_;
   intptr_t block_index_;
 
   friend class TimelineTestHelper;

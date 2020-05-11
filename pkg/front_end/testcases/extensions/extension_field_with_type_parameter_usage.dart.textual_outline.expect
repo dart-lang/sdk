@@ -1,0 +1,3 @@
+extension E<U> ( ){ }
+on String (){ }
+main() { }

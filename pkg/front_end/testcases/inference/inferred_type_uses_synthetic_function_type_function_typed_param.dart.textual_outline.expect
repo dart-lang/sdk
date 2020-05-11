@@ -1,0 +1,6 @@
+library test;
+
+int f(int x(String y)) => null;
+String g(int x(String y)) => null;
+var v = [f, g];
+main() {}

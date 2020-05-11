@@ -97,12 +97,12 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     if (_isStringKey(key)) {
       var strings = _strings;
       if (strings == null) return null;
-      LinkedHashMapCell cell = _getTableCell(strings, key);
+      LinkedHashMapCell? cell = _getTableCell(strings, key);
       return JS('', '#', cell == null ? null : cell.hashMapCellValue);
     } else if (_isNumericKey(key)) {
       var nums = _nums;
       if (nums == null) return null;
-      LinkedHashMapCell cell = _getTableCell(nums, key);
+      LinkedHashMapCell? cell = _getTableCell(nums, key);
       return JS('', '#', cell == null ? null : cell.hashMapCellValue);
     } else {
       return internalGet(key);
@@ -221,7 +221,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
 
   V? _removeHashTableEntry(var table, Object? key) {
     if (table == null) return null;
-    LinkedHashMapCell cell = _getTableCell(table, key);
+    LinkedHashMapCell? cell = _getTableCell(table, key);
     if (cell == null) return null;
     _unlinkCell(cell);
     _deleteTableEntry(table, key);
@@ -289,7 +289,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     return JS('int', '# & 0x3ffffff', key.hashCode);
   }
 
-  List<LinkedHashMapCell> _getBucket(var table, var key) {
+  List<LinkedHashMapCell>? _getBucket(var table, var key) {
     var hash = internalComputeHashCode(key);
     return _getTableBucket(table, hash);
   }
@@ -306,11 +306,11 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
 
   String toString() => MapBase.mapToString(this);
 
-  LinkedHashMapCell _getTableCell(var table, var key) {
+  LinkedHashMapCell? _getTableCell(var table, var key) {
     return JS('var', '#[#]', table, key);
   }
 
-  List<LinkedHashMapCell> _getTableBucket(var table, var key) {
+  List<LinkedHashMapCell>? _getTableBucket(var table, var key) {
     return JS('var', '#[#]', table, key);
   }
 
@@ -324,7 +324,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
   }
 
   bool _containsTableEntry(var table, var key) {
-    LinkedHashMapCell cell = _getTableCell(table, key);
+    LinkedHashMapCell? cell = _getTableCell(table, key);
     return cell != null;
   }
 
@@ -344,12 +344,12 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
 
 class Es6LinkedHashMap<K, V> extends JsLinkedHashMap<K, V> {
   @override
-  LinkedHashMapCell _getTableCell(var table, var key) {
+  LinkedHashMapCell? _getTableCell(var table, var key) {
     return JS('var', '#.get(#)', table, key);
   }
 
   @override
-  List<LinkedHashMapCell> _getTableBucket(var table, var key) {
+  List<LinkedHashMapCell>? _getTableBucket(var table, var key) {
     return JS('var', '#.get(#)', table, key);
   }
 

@@ -39,7 +39,7 @@ static const intptr_t kBlocksPerPage = kPageSize / kBlockSize;
 // A page containing old generation objects.
 class HeapPage {
  public:
-  enum PageType { kData = 0, kExecutable, kNumPageTypes };
+  enum PageType { kExecutable = 0, kData };
 
   HeapPage* next() const { return next_; }
   void set_next(HeapPage* next) { next_ = next; }
@@ -65,7 +65,7 @@ class HeapPage {
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
-  RawObject* FindObject(FindObjectVisitor* visitor) const;
+  ObjectPtr FindObject(FindObjectVisitor* visitor) const;
 
   void WriteProtect(bool read_only);
 
@@ -76,11 +76,10 @@ class HeapPage {
   // Warning: This does not work for objects on image pages because image pages
   // are not aligned. However, it works for objects on large pages, because
   // only one object is allocated per large page.
-  static HeapPage* Of(RawObject* obj) {
+  static HeapPage* Of(ObjectPtr obj) {
     ASSERT(obj->IsHeapObject());
     ASSERT(obj->IsOldObject());
-    return reinterpret_cast<HeapPage*>(reinterpret_cast<uword>(obj) &
-                                       kPageMask);
+    return reinterpret_cast<HeapPage*>(static_cast<uword>(obj) & kPageMask);
   }
 
   // Warning: This does not work for addresses on image pages or on large pages.
@@ -89,16 +88,16 @@ class HeapPage {
   }
 
   // Warning: This does not work for objects on image pages.
-  static RawObject* ToExecutable(RawObject* obj) {
+  static ObjectPtr ToExecutable(ObjectPtr obj) {
     HeapPage* page = Of(obj);
     VirtualMemory* memory = page->memory_;
     const intptr_t alias_offset = memory->AliasOffset();
     if (alias_offset == 0) {
       return obj;  // Not aliased.
     }
-    uword addr = RawObject::ToAddr(obj);
+    uword addr = ObjectLayout::ToAddr(obj);
     if (memory->Contains(addr)) {
-      return RawObject::FromAddr(addr + alias_offset);
+      return ObjectLayout::FromAddr(addr + alias_offset);
     }
     // obj is executable.
     ASSERT(memory->ContainsAlias(addr));
@@ -106,16 +105,16 @@ class HeapPage {
   }
 
   // Warning: This does not work for objects on image pages.
-  static RawObject* ToWritable(RawObject* obj) {
+  static ObjectPtr ToWritable(ObjectPtr obj) {
     HeapPage* page = Of(obj);
     VirtualMemory* memory = page->memory_;
     const intptr_t alias_offset = memory->AliasOffset();
     if (alias_offset == 0) {
       return obj;  // Not aliased.
     }
-    uword addr = RawObject::ToAddr(obj);
+    uword addr = ObjectLayout::ToAddr(obj);
     if (memory->ContainsAlias(addr)) {
-      return RawObject::FromAddr(addr - alias_offset);
+      return ObjectLayout::FromAddr(addr - alias_offset);
     }
     // obj is writable.
     ASSERT(memory->Contains(addr));
@@ -134,7 +133,7 @@ class HeapPage {
     return OFFSET_OF(HeapPage, card_table_);
   }
 
-  void RememberCard(RawObject* const* slot) {
+  void RememberCard(ObjectPtr const* slot) {
     ASSERT(Contains(reinterpret_cast<uword>(slot)));
     if (card_table_ == NULL) {
       card_table_ = reinterpret_cast<uint8_t*>(
@@ -303,8 +302,8 @@ class PageSpace {
     bool is_protected =
         (type == HeapPage::kExecutable) && FLAG_write_protect_code;
     bool is_locked = false;
-    return TryAllocateInternal(size, type, growth_policy, is_protected,
-                               is_locked);
+    return TryAllocateInternal(size, &freelists_[type], type, growth_policy,
+                               is_protected, is_locked);
   }
 
   bool NeedsGarbageCollection() const {
@@ -362,8 +361,8 @@ class PageSpace {
 
   void VisitRememberedCards(ObjectPointerVisitor* visitor) const;
 
-  RawObject* FindObject(FindObjectVisitor* visitor,
-                        HeapPage::PageType type) const;
+  ObjectPtr FindObject(FindObjectVisitor* visitor,
+                       HeapPage::PageType type) const;
 
   // Collect the garbage in the page space using mark-sweep or mark-compact.
   void CollectGarbage(bool compact, bool finalize);
@@ -415,16 +414,18 @@ class PageSpace {
   void FreeExternal(intptr_t size);
 
   // Bulk data allocation.
-  void AcquireDataLock();
-  void ReleaseDataLock();
-#if defined(DEBUG)
-  bool CurrentThreadOwnsDataLock();
-#endif
+  FreeList* DataFreeList(intptr_t i = 0) {
+    return &freelists_[HeapPage::kData + i];
+  }
+  void AcquireLock(FreeList* freelist);
+  void ReleaseLock(FreeList* freelist);
 
-  uword TryAllocateDataLocked(intptr_t size, GrowthPolicy growth_policy) {
+  uword TryAllocateDataLocked(FreeList* freelist,
+                              intptr_t size,
+                              GrowthPolicy growth_policy) {
     bool is_protected = false;
     bool is_locked = true;
-    return TryAllocateInternal(size, HeapPage::kData, growth_policy,
+    return TryAllocateInternal(size, freelist, HeapPage::kData, growth_policy,
                                is_protected, is_locked);
   }
 
@@ -443,9 +444,19 @@ class PageSpace {
   void set_phase(Phase val) { phase_ = val; }
 
   // Attempt to allocate from bump block rather than normal freelist.
-  uword TryAllocateDataBumpLocked(intptr_t size);
-  // Prefer small freelist blocks, then chip away at the bump block.
-  uword TryAllocatePromoLocked(intptr_t size);
+  uword TryAllocateDataBumpLocked(intptr_t size) {
+    return TryAllocateDataBumpLocked(&freelists_[HeapPage::kData], size);
+  }
+  uword TryAllocateDataBumpLocked(FreeList* freelist, intptr_t size);
+  DART_FORCE_INLINE
+  uword TryAllocatePromoLocked(FreeList* freelist, intptr_t size) {
+    uword result = freelist->TryAllocateBumpLocked(size);
+    if (result != 0) {
+      return result;
+    }
+    return TryAllocatePromoLockedSlow(freelist, size);
+  }
+  uword TryAllocatePromoLockedSlow(FreeList* freelist, intptr_t size);
 
   void SetupImagePage(void* pointer, uword size, bool is_executable);
 
@@ -459,7 +470,7 @@ class PageSpace {
     enable_concurrent_mark_ = enable_concurrent_mark;
   }
 
-  bool IsObjectFromImagePages(RawObject* object);
+  bool IsObjectFromImagePages(ObjectPtr object);
 
   void MergeOtherPageSpace(PageSpace* other);
 
@@ -481,11 +492,13 @@ class PageSpace {
   };
 
   uword TryAllocateInternal(intptr_t size,
+                            FreeList* freelist,
                             HeapPage::PageType type,
                             GrowthPolicy growth_policy,
                             bool is_protected,
                             bool is_locked);
   uword TryAllocateInFreshPage(intptr_t size,
+                               FreeList* freelist,
                                HeapPage::PageType type,
                                GrowthPolicy growth_policy,
                                bool is_locked);
@@ -535,9 +548,15 @@ class PageSpace {
             (increase_in_words <= free_capacity_in_words));
   }
 
-  FreeList freelist_[HeapPage::kNumPageTypes];
+  Heap* const heap_;
 
-  Heap* heap_;
+  // One list for executable pages at freelists_[HeapPage::kExecutable].
+  // FLAG_scavenger_tasks count of lists for data pages starting at
+  // freelists_[HeapPage::kData]. The sweeper inserts into the data page
+  // freelists round-robin. The scavenger workers each use one of the data
+  // page freelists without locking.
+  const intptr_t num_freelists_;
+  FreeList* freelists_;
 
   // Use ExclusivePageIterator for safe access to these.
   mutable Mutex pages_lock_;
@@ -548,11 +567,6 @@ class PageSpace {
   HeapPage* large_pages_ = nullptr;
   HeapPage* large_pages_tail_ = nullptr;
   HeapPage* image_pages_ = nullptr;
-
-  // A block of memory in a data page, managed by bump allocation. The remainder
-  // is kept formatted as a FreeListElement, but is not in any freelist.
-  uword bump_top_;
-  uword bump_end_;
 
   // Various sizes being tracked for this generation.
   intptr_t max_capacity_in_words_;

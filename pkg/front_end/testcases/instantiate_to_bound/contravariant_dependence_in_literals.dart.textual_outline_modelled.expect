@@ -1,0 +1,5 @@
+class C<X extends num, Y extends void Function(X)> {}
+
+main() {}
+var lc = <C>[];
+var mc = <C, C>{};

@@ -67,7 +67,7 @@ DEFINE_NATIVE_ENTRY(Double_div, 0, 2) {
   return Double::New(left / right);
 }
 
-static RawInteger* DoubleToInteger(double val, const char* error_msg) {
+static IntegerPtr DoubleToInteger(double val, const char* error_msg) {
   if (isinf(val) || isnan(val)) {
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, String::Handle(String::New(error_msg)));

@@ -263,7 +263,7 @@ abstract class Stream<T> {
    */
   factory Stream.periodic(Duration period,
       [T computation(int computationCount)?]) {
-    if (computation == null && null is! T) {
+    if (computation == null && !typeAcceptsNull<T>()) {
       throw ArgumentError.value(null, "computation",
           "Must not be omitted when the event type is non-nullable");
     }
@@ -523,10 +523,8 @@ abstract class Stream<T> {
           subscription.pause();
           newValue.then(add, onError: addError).whenComplete(resume);
         } else {
-          if (newValue is! E) {
-            throw "unreachable"; // TODO(lrn): Remove when type promotion works.
-          }
-          controller.add(newValue);
+          // TODO(40014): Remove cast when type promotion works.
+          controller.add(newValue as dynamic);
         }
       });
       controller.onCancel = subscription.cancel;
@@ -1076,7 +1074,9 @@ abstract class Stream<T> {
    * The [futureValue] must not be omitted if `null` is not assignable to [E].
    */
   Future<E> drain<E>([E? futureValue]) {
-    futureValue = futureValue as E;
+    if (futureValue == null) {
+      futureValue = futureValue as E;
+    }
     return listen(null, cancelOnError: true).asFuture<E>(futureValue);
   }
 

@@ -2551,7 +2551,8 @@ ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
-  EXPECT_EQ(Object::null(), test->InvokeWithCodeAndThread<RawObject*>());
+  EXPECT_EQ(static_cast<uword>(Object::null()),
+            test->InvokeWithCodeAndThread<uword>());
 }
 
 // PushObject null.
@@ -2566,7 +2567,8 @@ ASSEMBLER_TEST_GENERATE(PushObjectNull, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(PushObjectNull, test) {
-  EXPECT_EQ(Object::null(), test->InvokeWithCodeAndThread<RawObject*>());
+  EXPECT_EQ(static_cast<uword>(Object::null()),
+            test->InvokeWithCodeAndThread<uword>());
 }
 
 // CompareObject null.
@@ -2584,7 +2586,8 @@ ASSEMBLER_TEST_GENERATE(CompareObjectNull, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(CompareObjectNull, test) {
-  EXPECT_EQ(Bool::True().raw(), test->InvokeWithCodeAndThread<RawObject*>());
+  EXPECT_EQ(static_cast<uword>(Bool::True().raw()),
+            test->InvokeWithCodeAndThread<uword>());
 }
 
 ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
@@ -2597,7 +2600,8 @@ ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
-  EXPECT_EQ(Bool::True().raw(), test->InvokeWithCodeAndThread<RawObject*>());
+  EXPECT_EQ(static_cast<uword>(Bool::True().raw()),
+            test->InvokeWithCodeAndThread<uword>());
 }
 
 ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
@@ -2610,7 +2614,8 @@ ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadObjectFalse, test) {
-  EXPECT_EQ(Bool::False().raw(), test->InvokeWithCodeAndThread<RawObject*>());
+  EXPECT_EQ(static_cast<uword>(Bool::False().raw()),
+            test->InvokeWithCodeAndThread<uword>());
 }
 
 ASSEMBLER_TEST_GENERATE(CSelTrue, assembler) {
@@ -4554,6 +4559,29 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ Pop(CODE_REG);
   __ RestoreCSP();
   __ ret();
+}
+
+// Push numbers from kMaxPushedNumber to 0 to the stack then drop top
+// kMaxPushedNumber elements. This should leave just kMaxPushedNumber on the
+// stack.
+const intptr_t kMaxPushedNumber = 913;
+
+ASSEMBLER_TEST_GENERATE(Drop, assembler) {
+  __ SetupDartSP((kMaxPushedNumber + 1) * target::kWordSize);
+  for (intptr_t i = kMaxPushedNumber; i >= 0; i--) {
+    __ PushImmediate(i);
+  }
+  __ Drop(kMaxPushedNumber);
+  __ PopRegister(R0);
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Drop, test) {
+  EXPECT(test != NULL);
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMaxPushedNumber,
+            EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
 }  // namespace compiler

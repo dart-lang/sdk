@@ -11,14 +11,14 @@ If you'd like to improve the documentation, you have three options:
       click that icon to report a bug on the page.
     * To report an API doc bug,
       [create an SDK issue](https://github.com/dart-lang/sdk/issues/new?title=API%20doc%20issue:).
-  * Contribute to the Dart developer websites such as [www.dartlang.org](https://www.dartlang.org) (repo: [dart-lang/site-www](https://github.com/dart-lang/site-www)) and [webdev.dartlang.org](https://webdev.dartlang.org) (repo: [dart-lang/site-webdev](https://github.com/dart-lang/site-webdev)). For more information, see [Writing for Dart and Flutter websites](https://github.com/dart-lang/site-shared/wiki/Writing-for-Dart-and-Flutter-websites).
-  * Improve the API reference docs at [api.dartlang.org](https://api.dartlang.org) by editing doc comments in the [Dart SDK repo](https://github.com/dart-lang/sdk/tree/master/sdk/lib). For more information on how to write API docs, see [Effective Dart: Documentation](https://www.dartlang.org/guides/language/effective-dart/documentation).
+  * Contribute to the Dart developer websites such as [dart.dev](https://dart.dev) (repo: [dart-lang/site-www](https://github.com/dart-lang/site-www)) and [dart.dev/web](https://dart.dev/web) (repo: [dart-lang/site-webdev](https://github.com/dart-lang/site-webdev)). For more information, see [Writing for Dart and Flutter websites](https://github.com/dart-lang/site-shared/wiki/Writing-for-Dart-and-Flutter-websites).
+  * Improve the API reference docs at [api.dart.dev](https://api.dart.dev) by editing doc comments in the [Dart SDK repo](https://github.com/dart-lang/sdk/tree/master/sdk/lib). For more information on how to write API docs, see [Effective Dart: Documentation](https://dart.dev/guides/language/effective-dart/documentation).
 
 ## Before you contribute
 
 Before we can use your code, you must sign the [Google Individual Contributor License Agreement](https://developers.google.com/open-source/cla/individual) (CLA), which you can do online.  The CLA is necessary mainly because you own the copyright to your changes, even after your contribution becomes part of our codebase, so we need your permission to use and distribute your code.  We also need to be sure of various other things—for instance that you'll tell us if you know that your code infringes on other people's patents.  You don't have to sign the CLA until after you've submitted your code for review and a member has approved it, but you must do it before we can put your code into our codebase.
 
-Before you start working on a larger contribution, you should get in touch with us first through the  [Dart Issue Tracker](http://dartbug.com) with your idea so that we can help out and possibly guide you. Coordinating up front makes it much easier to avoid frustration later on.
+Before you start working on a larger contribution, you should get in touch with us first through the  [Dart Issue Tracker](https://dartbug.com) with your idea so that we can help out and possibly guide you. Coordinating up front makes it much easier to avoid frustration later on.
 
 All submissions, including submissions by project members, require review.  We use the same code-review tools and process as the chromium project.  In order to submit a patch, you need to get the [depot\_tools](http://dev.chromium.org/developers/how-tos/depottools).
 

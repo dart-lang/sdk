@@ -10,7 +10,7 @@ import 'dart:collection' show Queue;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Class, DartType, Library;
+import 'package:kernel/ast.dart' show Class, DartType, Library, Version;
 import 'package:package_config/package_config.dart';
 
 import 'scope.dart';
@@ -145,17 +145,14 @@ abstract class Loader {
             target.uriTranslator.packages.packageOf(fileUri);
       }
       bool hasPackageSpecifiedLanguageVersion = false;
-      int packageSpecifiedLanguageVersionMajor;
-      int packageSpecifiedLanguageVersionMinor;
+      Version version;
       if (packageForLanguageVersion != null &&
           packageForLanguageVersion.languageVersion != null) {
         hasPackageSpecifiedLanguageVersion = true;
         if (packageForLanguageVersion.languageVersion
             is! InvalidLanguageVersion) {
-          packageSpecifiedLanguageVersionMajor =
-              packageForLanguageVersion.languageVersion.major;
-          packageSpecifiedLanguageVersionMinor =
-              packageForLanguageVersion.languageVersion.minor;
+          version = new Version(packageForLanguageVersion.languageVersion.major,
+              packageForLanguageVersion.languageVersion.minor);
         }
       }
       LibraryBuilder library = target.createLibraryBuilder(
@@ -166,9 +163,7 @@ abstract class Loader {
       }
 
       if (hasPackageSpecifiedLanguageVersion) {
-        library.setLanguageVersion(packageSpecifiedLanguageVersionMajor,
-            packageSpecifiedLanguageVersionMinor,
-            explicit: false);
+        library.setLanguageVersion(version, explicit: false);
       }
       if (uri.scheme == "dart" && uri.path == "core") {
         coreLibrary = library;

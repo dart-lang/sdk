@@ -299,11 +299,11 @@ bool IRRegExpMacroAssembler::CanReadUnaligned() {
   return kEnableUnalignedAccesses && !slow_safe();
 }
 
-RawArray* IRRegExpMacroAssembler::Execute(const RegExp& regexp,
-                                          const String& input,
-                                          const Smi& start_offset,
-                                          bool sticky,
-                                          Zone* zone) {
+ArrayPtr IRRegExpMacroAssembler::Execute(const RegExp& regexp,
+                                         const String& input,
+                                         const Smi& start_offset,
+                                         bool sticky,
+                                         Zone* zone) {
   const intptr_t cid = input.GetClassId();
   const Function& fun = Function::Handle(regexp.function(cid, sticky));
   ASSERT(!fun.IsNull());
@@ -682,10 +682,10 @@ void IRRegExpMacroAssembler::Backtrack() {
 // If the BlockLabel does not yet contain a block, it is created.
 // If there is a current instruction, append a goto to the bound block.
 void IRRegExpMacroAssembler::BindBlock(BlockLabel* label) {
-  ASSERT(!label->IsBound());
+  ASSERT(!label->is_bound());
   ASSERT(label->block()->next() == NULL);
 
-  label->SetBound(block_id_.Alloc());
+  label->BindTo(block_id_.Alloc());
   blocks_.Add(label->block());
 
   if (current_instruction_ != NULL) {
@@ -1752,7 +1752,7 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
                                                intptr_t characters) {
   // Bind the pattern as the load receiver.
   Value* pattern_val = BindLoadLocal(*string_param_);
-  if (RawObject::IsExternalStringClassId(specialization_cid_)) {
+  if (IsExternalStringClassId(specialization_cid_)) {
     // The data of an external string is stored through one indirection.
     intptr_t external_offset = 0;
     if (specialization_cid_ == kExternalOneByteStringCid) {

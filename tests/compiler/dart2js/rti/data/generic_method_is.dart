@@ -4,8 +4,8 @@
 
 // @dart = 2.7
 
-/*strong.member: method:direct,explicit=[method.T],needsArgs*/
-/*omit.member: method:direct,explicit=[method.T],needsArgs*/
+/*spec:nnbd-off.member: method:direct,explicit=[method.T],needsArgs*/
+/*prod:nnbd-off.member: method:direct,explicit=[method.T],needsArgs*/
 method<T>(T t) => t is T;
 
 main() {

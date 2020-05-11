@@ -10,8 +10,7 @@ typedef bool F<R>(R a);
 
 method<S>() {
   return
-      /*strong.fields=[S],free=[S]*/
-      /*omit.fields=[S],free=[S]*/
+      /*fields=[S],free=[S]*/
       () {
     F<S> c = f;
     return c;

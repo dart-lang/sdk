@@ -62,6 +62,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         TypeParameterImpl;
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 const _invalidCollectionElement = _InvalidCollectionElement._();
 
@@ -603,11 +604,15 @@ class AstBuilder extends StackListener {
       reportErrorIfSuper(right);
       push(ast.binaryExpression(left, operatorToken, right));
       if (!enableTripleShift && operatorToken.type == TokenType.GT_GT_GT) {
+        var feature = ExperimentalFeatures.triple_shift;
         handleRecoverableError(
-            templateExperimentNotEnabled
-                .withArguments(EnableString.triple_shift),
-            operatorToken,
-            operatorToken);
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          operatorToken,
+          operatorToken,
+        );
       }
     }
   }
@@ -699,6 +704,8 @@ class AstBuilder extends StackListener {
       prefixOrName = name.prefix;
       period = name.period;
       nameOrNull = name.identifier;
+    } else if (name is _OperatorName) {
+      prefixOrName = name.name;
     } else {
       throw UnimplementedError(
           'name is an instance of ${name.runtimeType} in endClassConstructor');
@@ -2259,6 +2266,14 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void beginAsOperatorType(Token asOperator) {}
+
+  @override
+  void endAsOperatorType(Token asOperator) {
+    debugEvent("AsOperatorType");
+  }
+
+  @override
   void handleAsOperator(Token asOperator) {
     assert(optional('as', asOperator));
     debugEvent("AsOperator");
@@ -2282,10 +2297,15 @@ class AstBuilder extends StackListener {
     }
     push(ast.assignmentExpression(lhs, token, rhs));
     if (!enableTripleShift && token.type == TokenType.GT_GT_GT_EQ) {
+      var feature = ExperimentalFeatures.triple_shift;
       handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(EnableString.triple_shift),
-          token,
-          token);
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        token,
+        token,
+      );
     }
   }
 
@@ -2817,6 +2837,14 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void beginIsOperatorType(Token asOperator) {}
+
+  @override
+  void endIsOperatorType(Token asOperator) {
+    debugEvent("IsOperatorType");
+  }
+
+  @override
   void handleIsOperator(Token isOperator, Token not) {
     assert(optional('is', isOperator));
     assert(optionalOrNull('!', not));
@@ -3310,11 +3338,15 @@ class AstBuilder extends StackListener {
       push(ast.spreadElement(
           spreadOperator: spreadToken, expression: expression));
     } else {
+      var feature = Feature.spread_collections;
       handleRecoverableError(
-          templateExperimentNotEnabled
-              .withArguments(EnableString.spread_collections),
-          spreadToken,
-          spreadToken);
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(feature.firstSupportedVersion),
+        ),
+        spreadToken,
+        spreadToken,
+      );
       push(_invalidCollectionElement);
     }
   }
@@ -3529,11 +3561,15 @@ class AstBuilder extends StackListener {
         body: entry as CollectionElement,
       ));
     } else {
+      var feature = Feature.control_flow_collections;
       handleRecoverableError(
-          templateExperimentNotEnabled
-              .withArguments(EnableString.control_flow_collections),
-          forToken,
-          forToken);
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(feature.firstSupportedVersion),
+        ),
+        forToken,
+        forToken,
+      );
       push(_invalidCollectionElement);
     }
   }
@@ -3558,11 +3594,15 @@ class AstBuilder extends StackListener {
         elseElement: elseElement,
       ));
     } else {
+      var feature = ExperimentalFeatures.control_flow_collections;
       handleRecoverableError(
-          templateExperimentNotEnabled
-              .withArguments(EnableString.control_flow_collections),
-          ifToken,
-          ifToken);
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(feature.firstSupportedVersion),
+        ),
+        ifToken,
+        ifToken,
+      );
       push(_invalidCollectionElement);
     }
   }
@@ -3570,10 +3610,15 @@ class AstBuilder extends StackListener {
   void reportErrorIfNullableType(Token questionMark) {
     if (questionMark != null) {
       assert(optional('?', questionMark));
+      var feature = ExperimentalFeatures.non_nullable;
       handleRecoverableError(
-          templateExperimentNotEnabled.withArguments('non-nullable'),
-          questionMark,
-          questionMark);
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        questionMark,
+        questionMark,
+      );
     }
   }
 
@@ -3587,16 +3632,28 @@ class AstBuilder extends StackListener {
 
   void reportNonNullableModifierError(Token modifierToken) {
     if (modifierToken != null) {
+      var feature = ExperimentalFeatures.non_nullable;
       handleRecoverableError(
-          templateExperimentNotEnabled.withArguments('non-nullable'),
-          modifierToken,
-          modifierToken);
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        modifierToken,
+        modifierToken,
+      );
     }
   }
 
   void reportNonNullAssertExpressionNotEnabled(Token bang) {
+    var feature = ExperimentalFeatures.non_nullable;
     handleRecoverableError(
-        templateExperimentNotEnabled.withArguments('non-nullable'), bang, bang);
+      templateExperimentNotEnabled.withArguments(
+        feature.enableString,
+        _versionAsString(ExperimentStatus.currentVersion),
+      ),
+      bang,
+      bang,
+    );
   }
 
   Comment _findComment(List<Annotation> metadata, Token tokenAfterMetadata) {
@@ -3667,6 +3724,10 @@ class AstBuilder extends StackListener {
     } else {
       return ParameterKind.REQUIRED;
     }
+  }
+
+  static String _versionAsString(Version version) {
+    return '${version.major}.${version.minor}.${version.patch}';
   }
 }
 

@@ -14,10 +14,6 @@ namespace dart {
 // Forward declaration.
 class Code;
 class ICData;
-class RawArray;
-class RawCode;
-class RawFunction;
-class RawObject;
 
 #if defined(TARGET_ARCH_IA32)
 // Stack-allocated class to create a scope where the specified region
@@ -47,13 +43,13 @@ class CodePatcher : public AllStatic {
 
   // Return the target address of the static call before return_address
   // in given code.
-  static RawCode* GetStaticCallTargetAt(uword return_address, const Code& code);
+  static CodePtr GetStaticCallTargetAt(uword return_address, const Code& code);
 
   // Get instance call information. Returns the call target and sets the output
   // parameter data if non-NULL.
-  static RawCode* GetInstanceCallAt(uword return_address,
-                                    const Code& caller_code,
-                                    Object* data);
+  static CodePtr GetInstanceCallAt(uword return_address,
+                                   const Code& caller_code,
+                                   Object* data);
 
   // Change the state of an instance call by patching the corresponding object
   // pool entries (non-IA32) or instructions (IA32).
@@ -61,12 +57,17 @@ class CodePatcher : public AllStatic {
                                   const Code& caller_code,
                                   const Object& data,
                                   const Code& target);
+  static void PatchInstanceCallAtWithMutatorsStopped(Thread* thread,
+                                                     uword return_address,
+                                                     const Code& caller_code,
+                                                     const Object& data,
+                                                     const Code& target);
 
   // Return target of an unoptimized static call and its ICData object
   // (calls target via a stub).
-  static RawFunction* GetUnoptimizedStaticCallAt(uword return_address,
-                                                 const Code& code,
-                                                 ICData* ic_data);
+  static FunctionPtr GetUnoptimizedStaticCallAt(uword return_address,
+                                                const Code& code,
+                                                ICData* ic_data);
 
   static void InsertDeoptimizationCallAt(uword start);
 
@@ -78,14 +79,19 @@ class CodePatcher : public AllStatic {
                                     const Code& caller_code,
                                     const Object& data,
                                     const Code& target);
-  static RawObject* GetSwitchableCallDataAt(uword return_address,
-                                            const Code& caller_code);
-  static RawCode* GetSwitchableCallTargetAt(uword return_address,
-                                            const Code& caller_code);
+  static void PatchSwitchableCallAtWithMutatorsStopped(Thread* thread,
+                                                       uword return_address,
+                                                       const Code& caller_code,
+                                                       const Object& data,
+                                                       const Code& target);
+  static ObjectPtr GetSwitchableCallDataAt(uword return_address,
+                                           const Code& caller_code);
+  static CodePtr GetSwitchableCallTargetAt(uword return_address,
+                                           const Code& caller_code);
 
-  static RawCode* GetNativeCallAt(uword return_address,
-                                  const Code& caller_code,
-                                  NativeFunction* target);
+  static CodePtr GetNativeCallAt(uword return_address,
+                                 const Code& caller_code,
+                                 NativeFunction* target);
 
   static void PatchNativeCallAt(uword return_address,
                                 const Code& caller_code,

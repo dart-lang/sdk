@@ -28,6 +28,7 @@ import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:collection/collection.dart';
+import 'package:convert/convert.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
@@ -54,6 +55,9 @@ class FileState {
    */
   final Source source;
 
+  /// Files that reference this file.
+  final List<FileState> referencingFiles = [];
+
   final List<FileState> importedFiles = [];
   final List<FileState> exportedFiles = [];
   final List<FileState> partedFiles = [];
@@ -61,6 +65,7 @@ class FileState {
   final Set<FileState> directReferencedLibraries = Set();
   final List<FileState> libraryFiles = [];
 
+  List<int> _digest;
   bool _exists;
   List<int> _apiSignature;
   UnlinkedUnit2 unlinked2;
@@ -69,6 +74,8 @@ class FileState {
   FileState._(this._fsState, this.path, this.uri, this.source);
 
   List<int> get apiSignature => _apiSignature;
+
+  List<int> get digest => _digest;
 
   bool get exists => _exists;
 
@@ -81,8 +88,33 @@ class FileState {
     return _libraryCycle;
   }
 
+  LineInfo get lineInfo => LineInfo(unlinked2.lineStarts);
+
+  /// The resolved signature of the file, that depends on the [libraryCycle]
+  /// signature, and the content of the file.
+  String get resolvedSignature {
+    var signatureBuilder = ApiSignature();
+    signatureBuilder.addString(path);
+    signatureBuilder.addBytes(libraryCycle.signature);
+
+    var content = getContent();
+    signatureBuilder.addString(content);
+
+    return signatureBuilder.toHex();
+  }
+
   /// Return the [uri] string.
   String get uriStr => uri.toString();
+
+  /// Return the content of the file, the empty string if cannot be read.
+  String getContent() {
+    try {
+      var resource = _fsState._resourceProvider.getFile(path);
+      return resource.readAsStringSync();
+    } catch (_) {
+      return '';
+    }
+  }
 
   void internal_setLibraryCycle(LibraryCycle cycle, String signature) {
     _libraryCycle = cycle;
@@ -123,8 +155,13 @@ class FileState {
   }
 
   void refresh() {
-    var digest = utf8.encode(_fsState.getFileDigest(path));
-    _exists = digest.isNotEmpty;
+    _fsState.testView.refreshedFiles.add(path);
+
+    _fsState.timers.digest.run(() {
+      _digest = utf8.encode(_fsState.getFileDigest(path));
+      _exists = _digest.isNotEmpty;
+    });
+
     String unlinkedKey = path;
 
     // Prepare bytes of the unlinked bundle - existing or new.
@@ -136,27 +173,28 @@ class FileState {
       if (bytes != null) {
         var ciderUnlinkedUnit = CiderUnlinkedUnit.fromBuffer(bytes);
         if (!const ListEquality()
-            .equals(ciderUnlinkedUnit.contentDigest, digest)) {
+            .equals(ciderUnlinkedUnit.contentDigest, _digest)) {
           bytes = null;
         }
       }
 
       if (bytes == null || bytes.isEmpty) {
-        String content;
-        try {
-          content = _fsState._resourceProvider.getFile(path).readAsStringSync();
-        } catch (_) {
-          content = '';
-        }
-        var unit = parse(AnalysisErrorListener.NULL_LISTENER, content);
-        _fsState._logger.run('Create unlinked for $path', () {
-          var unlinkedBuilder = serializeAstCiderUnlinked(digest, unit);
+        var content = _fsState.timers.read.run(() {
+          return getContent();
+        });
+        var unit = _fsState.timers.parse.run(() {
+          return parse(AnalysisErrorListener.NULL_LISTENER, content);
+        });
+        _fsState.timers.unlinked.run(() {
+          var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
           bytes = unlinkedBuilder.toBuffer();
           _fsState._byteStore.put(unlinkedKey, bytes);
         });
 
-        unlinked2 = CiderUnlinkedUnit.fromBuffer(bytes).unlinkedUnit;
-        _prefetchDirectReferences(unlinked2);
+        _fsState.timers.prefetch.run(() {
+          unlinked2 = CiderUnlinkedUnit.fromBuffer(bytes).unlinkedUnit;
+          _prefetchDirectReferences(unlinked2);
+        });
       }
     }
 
@@ -188,6 +226,11 @@ class FileState {
     directReferencedLibraries..addAll(importedFiles)..addAll(exportedFiles);
   }
 
+  @override
+  String toString() {
+    return path;
+  }
+
   FileState _fileForRelativeUri(String relativeUri) {
     if (relativeUri.isEmpty) {
       return _fsState.unresolvedFile;
@@ -200,7 +243,10 @@ class FileState {
       return _fsState.unresolvedFile;
     }
 
-    return _fsState.getFileForUri(absoluteUri);
+    var file = _fsState.getFileForUri(absoluteUri);
+    file.referencingFiles.add(this);
+
+    return file;
   }
 
   void _prefetchDirectReferences(UnlinkedUnit2 unlinkedUnit2) {
@@ -335,6 +381,10 @@ class FileSystemState {
    */
   FileState _unresolvedFile;
 
+  final FileSystemStateTimers timers = FileSystemStateTimers();
+
+  final FileSystemStateTestView testView = FileSystemStateTestView();
+
   FileSystemState(
     this._logger,
     this._resourceProvider,
@@ -356,6 +406,29 @@ class FileSystemState {
       _unresolvedFile.refresh();
     }
     return _unresolvedFile;
+  }
+
+  /// Update the state to reflect the fact that the file with the given [path]
+  /// was changed. Specifically this means that we evict this file and every
+  /// file that referenced it.
+  void changeFile(String path, List<FileState> removedFiles) {
+    var file = _pathToFile.remove(path);
+    if (file == null) {
+      return;
+    }
+
+    removedFiles.add(file);
+    _uriToFile.remove(file.uri);
+
+    // The removed file does not reference other file anymore.
+    for (var referencedFile in file.directReferencedFiles) {
+      referencedFile.referencingFiles.remove(file);
+    }
+
+    // Recursively remove files that reference the removed file.
+    for (var reference in file.referencingFiles.toList()) {
+      changeFile(reference.path, removedFiles);
+    }
   }
 
   FileState getFileForPath(String path) {
@@ -402,6 +475,60 @@ class FileSystemState {
     }
     return source.fullName;
   }
+
+  void logStatistics() {
+    _logger.writeln(
+      '[files: ${_pathToFile.length}]'
+      '[digest: ${timers.digest.timer.elapsedMilliseconds} ms]'
+      '[read: ${timers.read.timer.elapsedMilliseconds} ms]'
+      '[parse: ${timers.parse.timer.elapsedMilliseconds} ms]'
+      '[unlinked: ${timers.unlinked.timer.elapsedMilliseconds} ms]'
+      '[prefetch: ${timers.prefetch.timer.elapsedMilliseconds} ms]',
+    );
+    timers.reset();
+  }
+}
+
+class FileSystemStateTestView {
+  final List<String> refreshedFiles = [];
+}
+
+class FileSystemStateTimer {
+  final Stopwatch timer = Stopwatch();
+
+  T run<T>(T Function() f) {
+    timer.start();
+    try {
+      return f();
+    } finally {
+      timer.stop();
+    }
+  }
+
+  Future<T> runAsync<T>(T Function() f) async {
+    timer.start();
+    try {
+      return f();
+    } finally {
+      timer.stop();
+    }
+  }
+}
+
+class FileSystemStateTimers {
+  final FileSystemStateTimer digest = FileSystemStateTimer();
+  final FileSystemStateTimer read = FileSystemStateTimer();
+  final FileSystemStateTimer parse = FileSystemStateTimer();
+  final FileSystemStateTimer unlinked = FileSystemStateTimer();
+  final FileSystemStateTimer prefetch = FileSystemStateTimer();
+
+  void reset() {
+    digest.timer.reset();
+    read.timer.reset();
+    parse.timer.reset();
+    unlinked.timer.reset();
+    prefetch.timer.reset();
+  }
 }
 
 /// Information about libraries that reference each other, so form a cycle.
@@ -420,10 +547,14 @@ class LibraryCycle {
   /// files that [libraries] reference (but we don't compute these files).
   List<int> signature;
 
-  // The hash for all the paths of the files in this cycle.
+  /// The hash of all the paths of the files in this cycle.
   String cyclePathsHash;
 
   LibraryCycle();
+
+  String get signatureStr {
+    return hex.encode(signature);
+  }
 
   @override
   String toString() {

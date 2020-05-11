@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -39,14 +40,25 @@ main() {
 
 class AbstractTypeTest with ElementsTypesMixin {
   TestAnalysisContext _analysisContext;
-  TypeProvider _typeProvider;
 
   @override
-  TypeProvider get typeProvider => _typeProvider;
+  LibraryElementImpl testLibrary;
+
+  @override
+  TypeProvider typeProvider;
+
+  TypeSystemImpl typeSystem;
 
   void setUp() {
     _analysisContext = TestAnalysisContext();
-    _typeProvider = _analysisContext.typeProviderLegacy;
+    typeProvider = _analysisContext.typeProviderLegacy;
+    typeSystem = _analysisContext.typeSystemLegacy;
+
+    testLibrary = library_(
+      uriStr: 'package:test/test.dart',
+      analysisSession: _analysisContext.analysisSession,
+      typeSystem: typeSystem,
+    );
   }
 }
 
@@ -1184,7 +1196,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
   void test_substitute2_equal() {
     ClassElementImpl definingClass = ElementFactory.classElement2("C", ["E"]);
     TypeParameterType parameterType =
-        typeParameterType(definingClass.typeParameters[0]);
+        typeParameterTypeStar(definingClass.typeParameters[0]);
     MethodElementImpl functionElement = MethodElementImpl('m', -1);
     String namedParameterName = "c";
     functionElement.parameters = <ParameterElement>[
@@ -1309,7 +1321,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
       typeParameters: [BE],
       interfaces: [
         A.instantiate(
-          typeArguments: [typeParameterType(BE)],
+          typeArguments: [typeParameterTypeStar(BE)],
           nullabilitySuffix: NullabilitySuffix.star,
         ),
       ],
@@ -1399,7 +1411,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     var AE = typeParameter('E');
     var A = class_(name: 'A', typeParameters: [AE]);
 
-    DartType typeAE = typeParameterType(AE);
+    DartType typeAE = typeParameterTypeStar(AE);
     String getterName = "g";
     PropertyAccessorElementImpl getterG =
         ElementFactory.getterElement(getterName, false, typeAE);
@@ -1461,7 +1473,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
       typeParameters: [F],
       interfaces: [
         A.instantiate(
-          typeArguments: [typeParameterType(F)],
+          typeArguments: [typeParameterTypeStar(F)],
           nullabilitySuffix: NullabilitySuffix.star,
         )
       ],
@@ -1520,7 +1532,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     //
     var E = typeParameter('E');
     var A = class_(name: 'A', typeParameters: [E]);
-    DartType typeE = typeParameterType(E);
+    DartType typeE = typeParameterTypeStar(E);
     String methodName = "m";
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeE, [typeE]);
@@ -1599,7 +1611,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
       typeParameters: [F],
       mixins: [
         interfaceTypeStar(A, typeArguments: [
-          typeParameterType(F),
+          typeParameterTypeStar(F),
         ]),
       ],
     );
@@ -1635,7 +1647,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     //
     var E = typeParameter('E');
     var A = class_(name: 'A', typeParameters: [E]);
-    DartType typeE = typeParameterType(E);
+    DartType typeE = typeParameterTypeStar(E);
     String setterName = "s";
     PropertyAccessorElementImpl setterS =
         ElementFactory.setterElement(setterName, false, typeE);
@@ -1683,7 +1695,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     var A = class_(name: 'A', typeParameters: [E]);
 
     var F = typeParameter('F');
-    var typeF = typeParameterType(F);
+    var typeF = typeParameterTypeStar(F);
 
     var B = class_(
       name: 'B',
@@ -1894,7 +1906,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     //
     var E = typeParameter('E');
     var A = class_(name: 'A', typeParameters: [E]);
-    DartType typeE = typeParameterType(E);
+    DartType typeE = typeParameterTypeStar(E);
     String methodName = "m";
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeE, [typeE]);
@@ -1905,7 +1917,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
       name: 'B',
       typeParameters: [F],
       superType: interfaceTypeStar(A, typeArguments: [
-        typeParameterType(F),
+        typeParameterTypeStar(F),
       ]),
     );
     LibraryElementImpl library =
@@ -2200,12 +2212,10 @@ main() {
     SimpleIdentifier argument = findNode.simple('C);');
     PropertyAccessorElementImpl getter = argument.staticElement;
     TopLevelVariableElement constant = getter.variable;
-    expect(constant.constantValue, isNull);
 
     DartObject value = constant.computeConstantValue();
     expect(value, isNotNull);
     expect(value.toIntValue(), 42);
-    expect(constant.constantValue, value);
   }
 }
 

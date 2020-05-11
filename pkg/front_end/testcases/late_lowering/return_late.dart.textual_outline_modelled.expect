@@ -1,0 +1,10 @@
+class Class<E> {
+  Class(this.field);
+  E returnTypeVariable() {}
+  final E field;
+}
+
+expect(expected, actual) {}
+int returnNonNullable(int value) {}
+int? returnNullable(int? value) {}
+main() {}

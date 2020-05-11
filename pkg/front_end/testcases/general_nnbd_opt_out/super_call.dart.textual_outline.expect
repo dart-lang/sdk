@@ -1,0 +1,11 @@
+// @dart = 2.6
+class A {
+  int call(int x) => x * 2;
+}
+
+class B extends A {
+  int call(int x) => x * 3;
+  int call_super() {}
+}
+
+main() {}

@@ -12,11 +12,9 @@ namespace compiler {
 
 namespace ffi {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
-RawFunction* NativeCallbackFunction(const Function& c_signature,
-                                    const Function& dart_target,
-                                    const Instance& exceptional_return) {
+FunctionPtr NativeCallbackFunction(const Function& c_signature,
+                                   const Function& dart_target,
+                                   const Instance& exceptional_return) {
   Thread* const thread = Thread::Current();
   const int32_t callback_id = thread->AllocateFfiCallbackId();
 
@@ -30,7 +28,7 @@ RawFunction* NativeCallbackFunction(const Function& c_signature,
   const Library& lib = Library::Handle(zone, Library::FfiLibrary());
   const Class& owner_class = Class::Handle(zone, lib.toplevel_class());
   const Function& function =
-      Function::Handle(zone, Function::New(name, RawFunction::kFfiTrampoline,
+      Function::Handle(zone, Function::New(name, FunctionLayout::kFfiTrampoline,
                                            /*is_static=*/true,
                                            /*is_const=*/false,
                                            /*is_abstract=*/false,
@@ -65,8 +63,6 @@ RawFunction* NativeCallbackFunction(const Function& c_signature,
 
   return function.raw();
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace ffi
 

@@ -1,0 +1,7 @@
+class Class {
+  void Function()? field;
+  void Function()? get getter => null;
+}
+
+error() {}
+main() {}

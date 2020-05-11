@@ -16,24 +16,24 @@
 
 namespace dart {
 
-void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
+void VerifyObjectVisitor::VisitObject(ObjectPtr raw_obj) {
   if (raw_obj->IsHeapObject()) {
-    uword raw_addr = RawObject::ToAddr(raw_obj);
+    uword raw_addr = ObjectLayout::ToAddr(raw_obj);
     if (raw_obj->IsFreeListElement() || raw_obj->IsForwardingCorpse()) {
-      if (raw_obj->IsOldObject() && raw_obj->IsMarked()) {
+      if (raw_obj->IsOldObject() && raw_obj->ptr()->IsMarked()) {
         FATAL1("Marked free list element encountered %#" Px "\n", raw_addr);
       }
     } else {
       switch (mark_expectation_) {
         case kForbidMarked:
-          if (raw_obj->IsOldObject() && raw_obj->IsMarked()) {
+          if (raw_obj->IsOldObject() && raw_obj->ptr()->IsMarked()) {
             FATAL1("Marked object encountered %#" Px "\n", raw_addr);
           }
           break;
         case kAllowMarked:
           break;
         case kRequireMarked:
-          if (raw_obj->IsOldObject() && !raw_obj->IsMarked()) {
+          if (raw_obj->IsOldObject() && !raw_obj->ptr()->IsMarked()) {
             FATAL1("Unmarked object encountered %#" Px "\n", raw_addr);
           }
           break;
@@ -44,16 +44,16 @@ void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
   raw_obj->Validate(isolate_group_);
 }
 
-void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
-  for (RawObject** current = first; current <= last; current++) {
-    RawObject* raw_obj = *current;
+void VerifyPointersVisitor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  for (ObjectPtr* current = first; current <= last; current++) {
+    ObjectPtr raw_obj = *current;
     if (raw_obj->IsHeapObject()) {
       if (!allocated_set_->Contains(raw_obj)) {
         if (raw_obj->IsInstructions() &&
             allocated_set_->Contains(HeapPage::ToWritable(raw_obj))) {
           continue;
         }
-        uword raw_addr = RawObject::ToAddr(raw_obj);
+        uword raw_addr = ObjectLayout::ToAddr(raw_obj);
         FATAL1("Invalid object pointer encountered %#" Px "\n", raw_addr);
       }
     }
@@ -63,7 +63,7 @@ void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
 void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
   FinalizablePersistentHandle* handle =
       reinterpret_cast<FinalizablePersistentHandle*>(addr);
-  RawObject* raw_obj = handle->raw();
+  ObjectPtr raw_obj = handle->raw();
   visitor_->VisitPointer(&raw_obj);
 }
 
@@ -88,7 +88,7 @@ void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
 VerifyCanonicalVisitor::VerifyCanonicalVisitor(Thread* thread)
     : thread_(thread), instanceHandle_(Instance::Handle(thread->zone())) {}
 
-void VerifyCanonicalVisitor::VisitObject(RawObject* obj) {
+void VerifyCanonicalVisitor::VisitObject(ObjectPtr obj) {
   // TODO(dartbug.com/36097): The heap walk can encounter canonical objects of
   // other isolates. We should either scan live objects from the roots of each
   // individual isolate, or wait until we are ready to share constants across
@@ -96,7 +96,7 @@ void VerifyCanonicalVisitor::VisitObject(RawObject* obj) {
   if (!FLAG_enable_isolate_groups) {
     if ((obj->GetClassId() >= kInstanceCid) &&
         (obj->GetClassId() != kTypeArgumentsCid)) {
-      if (obj->IsCanonical()) {
+      if (obj->ptr()->IsCanonical()) {
         instanceHandle_ ^= obj;
         const bool is_canonical = instanceHandle_.CheckIsCanonical(thread_);
         if (!is_canonical) {

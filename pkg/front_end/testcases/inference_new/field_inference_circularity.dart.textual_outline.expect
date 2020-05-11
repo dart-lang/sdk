@@ -1,0 +1,13 @@
+library test;
+
+class A {
+  var x = () => new B().x;
+  var y = () => new B().x;
+}
+
+class B extends A {
+  var x;
+  var y;
+}
+
+main() {}

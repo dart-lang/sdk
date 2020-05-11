@@ -1,12 +1,77 @@
-## 0.39.5-dev
+## 0.39.8
+* Deprecated `VariableElement.constantValue`, it does not guarantee that
+  the value has been computed. Use `computeConstantValue()` instead.
+* Deprecated the following members of `AnalysisOptions`:
+  `analyzeFunctionBodiesPredicate`, `disableCacheFlushing`,
+  `enableLazyAssignmentOperators`, `generateImplicitErrors`,
+  `generateSdkErrors`, `patchPaths`, `preserveComments`,
+  `trackCacheDependencies`, and `resetToDefaults`.
+* Bug fixes: #35716, #37048, #40014, #40957, #41479, #41521, #41551, #41555,
+  #41557, #41593, #41603, #41630, #41632, #41645.
+
+## 0.39.7
+* Added new error codes: ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING and
+  THROW_OF_INVALID_TYPE.
+* Changed error code NULLABLE_TYPE_IN_CATCH_CLAUSE to a hint.
+* Bug fixes: #40554, #41378, #41399, #41412, and, #41470.
+
+## 0.39.6
+* Added Window and DocumentFragment to analyzer's mock SDK.  These are required
+  for upcoming changes to the unsafe_html lint.
+
+## 0.39.5
 * Deprecated `ClassElement.instantiateToBounds()` and
   `FunctionTypeAliasElement.instantiateToBounds()`. With the null-safety
   feature, type arguments derived from type parameter bounds cannot be used as
   is, and might require erasing nullability, when the element is instantiated
   from a legacy library. Use `TypeSystem.instantiateToBounds2()` instead.
-* Deprecated `DeclaredVariables.getBool/getInt/getString()`. These methods
-  are used internally for constants computation, and should not be used by
-  clients.
+* Deprecated `DeclaredVariables.getBool/getInt/getString()` and
+  `TypeProvider.nullObject`. These methods are used internally for constants
+  computation, and should not be used by clients.
+* Deprecated `AstFactory.indexExpressionForCascade()`.  Please use
+  `indexExpressionForCascade2` instead.
+* Deprecated `AstFactory.indexExpressionForTarget()`.  Please use
+  `indexExpressionForTarget2` instead.
+* Deprecated `ClassElement.isOrInheritsProxy` and `ClassElement.isProxy`.  The
+  `@proxy` annotation is deprecated in the langauge, and will be removed.
+* Added new error codes: BODY_MIGHT_COMPLETE_NORMALLY,
+  CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+  DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
+  SWITCH_CASE_COMPLETES_NORMALLY, EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER,
+  FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER, GETTER_CONSTRUCTOR,
+  MEMBER_WITH_CLASS_NAME, SETTER_CONSTRUCTOR, TYPE_PARAMETER_ON_OPERATOR, and
+  VOID_WITH_TYPE_ARGUMENTS.
+* Renamed error code DEFAULT_LIST_CONSTRUCTOR_MISMATCH to
+  DEFAULT_LIST_CONSTRUCTOR.  This reflects a spec change: after null safety is
+  enabled, it will be an error to call the default `List` constructor under all
+  circumstances.
+* Added new warning code: INVALID_NULL_AWARE_OPERATOR.
+* Renamed warning code DEAD_NULL_COALESCE to DEAD_NULL_AWARE_EXPRESSION, to
+  reflect the fact that it applies both to if-null expressions (`??`) and
+  if-null compound assignment expressions (`??=`).
+* Split warning code MISMATCHED_GETTER_AND_SETTER_TYPES into two codes:
+  GETTER_NOT_ASSIGNABLE_SETTER_TYPES and GETTER_NOT_SUBTYPE_SETTER_TYPES.
+* Coalesced warning codes UNNECESSARY_NULL_AWARE_CALL and
+  UNNECESSARY_NULL_AWARE_SPREAD into one warning code:
+  INVALID_NULL_AWARE_OPERATOR.
+* Added new hint codes: EQUAL_ELEMENTS_IN_SET, EQUAL_KEYS_IN_MAP,
+  INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, UNNECESSARY_NULL_COMPARISON_FALSE,
+  and UNNECESSARY_NULL_COMPARISON_TRUE.
+* Downgraded warning INVALID_USE_OF_NEVER_VALUE to hint RECEIVER_OF_TYPE_NEVER.
+* Re-introduced strong mode codes: DYNAMIC_INVOKE, IMPLICIT_DYNAMIC_FIELD,
+  IMPLICIT_DYNAMIC_FUNCTION, IMPLICIT_DYNAMIC_INVOKE,
+  IMPLICIT_DYNAMIC_LIST_LITERAL, IMPLICIT_DYNAMIC_MAP_LITERAL,
+  IMPLICIT_DYNAMIC_METHOD, IMPLICIT_DYNAMIC_PARAMETER, IMPLICIT_DYNAMIC_RETURN,
+  IMPLICIT_DYNAMIC_TYPE, and IMPLICIT_DYNAMIC_VARIABLE.  These were removed in
+  version 0.39.3, but it turns out they are actually needed (see
+  https://github.com/dart-lang/sdk/issues/40129).
+* Fixed bugs 35940, 37122, 38554, 38666, 38791, 38990, 39059, 39597, 39694,
+  39762, 39791, 39833, 39875, 39876, 39917, 39939, 39976, 40033, 40055, 40057,
+  40110, 40129, 40221, 40279, 40283, 40287, 40299, 40304, 40316, 40333, 40392,
+  40394, 40396, 40398, 40413, 40414, 40460, 40482, 40500, 40538, 40546, 40547,
+  40572, 40578, 40603, 40609, 40677, 40689, 40701, 40704, 40734, 40764, 40837,
+  40865, 40915, 40931, 40941, 40955, 40956, 40958, 40959, 41019, 41036, 41050,
+  41095, 41130, and 41180.
 
 ## 0.39.4
 * Deprecated `DartType.name`, use `element` or `getDisplayString()` instead.

@@ -38,7 +38,7 @@ class OptimizationDataValidator
   const OptimizationDataValidator({this.strict: false});
 
   @override
-  String getText(OptimizationTestLog actualData) {
+  String getText(OptimizationTestLog actualData, [String indentation]) {
     Features features = new Features();
     for (OptimizationLogEntry entry in actualData.entries) {
       features.addElement(

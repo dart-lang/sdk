@@ -1,0 +1,9 @@
+library test;
+
+void f0(List<int> a) {}
+void f1({List<int> a}) {}
+void f2(Iterable<int> a) {}
+void f3(Iterable<Iterable<int>> a) {}
+void f4({Iterable<Iterable<int>> a}) {}
+void test() {}
+main() {}

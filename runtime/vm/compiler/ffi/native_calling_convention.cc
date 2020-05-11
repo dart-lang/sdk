@@ -16,8 +16,6 @@ namespace compiler {
 
 namespace ffi {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 // Argument #0 is the function pointer.
 const intptr_t kNativeParamsStartAt = 1;
 
@@ -133,6 +131,7 @@ class ArgumentAllocator : public ValueObject {
   }
 
   Register AllocateCpuRegister() {
+    RELEASE_ASSERT(cpu_regs_used >= 0);  // Avoids -Werror=array-bounds in GCC.
     ASSERT(cpu_regs_used < CallingConventions::kNumArgRegs);
 
     const auto result = CallingConventions::ArgumentRegisters[cpu_regs_used];
@@ -281,7 +280,7 @@ intptr_t NativeCallingConvention::num_args() const {
   return c_signature_.num_fixed_parameters() - kNativeParamsStartAt;
 }
 
-RawAbstractType* NativeCallingConvention::CType(intptr_t arg_index) const {
+AbstractTypePtr NativeCallingConvention::CType(intptr_t arg_index) const {
   if (arg_index == kResultIndex) {
     return c_signature_.result_type();
   }
@@ -302,8 +301,6 @@ intptr_t NativeCallingConvention::StackTopInBytes() const {
   }
   return Utils::RoundUp(max_height_in_bytes, compiler::target::kWordSize);
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace ffi
 

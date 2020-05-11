@@ -117,11 +117,12 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   Isolate::FlagsInitialize(&api_flags);
   Dart_Isolate isolate = NULL;
   if (len == 0) {
-    isolate =
-        Dart_CreateIsolateGroup(name, NULL, data_buffer, instr_buffer,
-                                &api_flags, group_data, isolate_data, &err);
+    isolate = Dart_CreateIsolateGroup(
+        /*script_uri=*/name, /*name=*/name, data_buffer, instr_buffer,
+        &api_flags, group_data, isolate_data, &err);
   } else {
-    isolate = Dart_CreateIsolateGroupFromKernel(name, NULL, data_buffer, len,
+    isolate = Dart_CreateIsolateGroupFromKernel(/*script_uri=*/name,
+                                                /*name=*/name, data_buffer, len,
                                                 &api_flags, group_data,
                                                 isolate_data, &err);
   }
@@ -155,6 +156,26 @@ void SetupCoreLibrariesForUnitTest() {
   Dart_ExitScope();
 
   RELEASE_ASSERT(!Dart_IsError(result));
+}
+
+Dart_Isolate TestCase::CreateTestIsolateInGroup(const char* name,
+                                                Dart_Isolate parent,
+                                                void* group_data,
+                                                void* isolate_data) {
+  char* error;
+#if defined(DART_PRECOMPILED_RUNTIME)
+  Isolate* result = CreateWithinExistingIsolateGroupAOT(
+      reinterpret_cast<Isolate*>(parent)->group(), name, &error);
+#else
+  Isolate* result = CreateWithinExistingIsolateGroup(
+      reinterpret_cast<Isolate*>(parent)->group(), name, &error);
+#endif
+  if (error != nullptr) {
+    OS::PrintErr("CreateTestIsolateInGroup failed: %s\n", error);
+    free(error);
+  }
+  EXPECT(result != nullptr);
+  return Api::CastIsolate(result);
 }
 
 struct TestLibEntry {
@@ -634,9 +655,9 @@ void AssemblerTest::Assemble() {
   const Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::ZoneHandle(
       Class::New(lib, function_name, script, TokenPosition::kMinSource));
-  Function& function = Function::ZoneHandle(
-      Function::New(function_name, RawFunction::kRegularFunction, true, false,
-                    false, false, false, cls, TokenPosition::kMinSource));
+  Function& function = Function::ZoneHandle(Function::New(
+      function_name, FunctionLayout::kRegularFunction, true, false, false,
+      false, false, cls, TokenPosition::kMinSource));
   code_ = Code::FinalizeCodeAndNotify(function, nullptr, assembler_,
                                       Code::PoolAttachment::kAttachPool);
   code_.set_owner(function);

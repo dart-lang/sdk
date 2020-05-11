@@ -6,16 +6,15 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
-import '../../../generated/test_analysis_context.dart';
+import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -924,6 +923,56 @@ class LowerBoundTest extends _BoundsTestBase {
     );
   }
 
+  test_futureOr() {
+    InterfaceType futureOrFunction(DartType T, String str) {
+      var result = futureOrNone(
+        functionTypeNone(returnType: voidNone, parameters: [
+          requiredParameter(type: T),
+        ]),
+      );
+      expect(result.getDisplayString(withNullability: true), str);
+      return result;
+    }
+
+    // DOWN(FutureOr<T1>, FutureOr<T2>) = FutureOr<S>, S = DOWN(T1, T2)
+    _checkGreatestLowerBound(
+      futureOrNone(intNone),
+      futureOrNone(numNone),
+      futureOrNone(intNone),
+    );
+    _checkGreatestLowerBound(
+      futureOrFunction(intNone, 'FutureOr<void Function(int)>'),
+      futureOrFunction(doubleNone, 'FutureOr<void Function(double)>'),
+      futureOrFunction(numNone, 'FutureOr<void Function(num)>'),
+    );
+
+    // DOWN(FutureOr<T1>, Future<T2>) = Future<S>, S = DOWN(T1, T2)
+    // DOWN(Future<T1>, FutureOr<T2>) = Future<S>, S = DOWN(T1, T2)
+    _checkGreatestLowerBound(
+      futureOrNone(numNone),
+      futureNone(intNone),
+      futureNone(intNone),
+    );
+    _checkGreatestLowerBound(
+      futureOrNone(intNone),
+      futureNone(numNone),
+      futureNone(intNone),
+    );
+
+    // DOWN(FutureOr<T1>, T2) = S, S = DOWN(T1, T2)
+    // DOWN(T1, FutureOr<T2>) = S, S = DOWN(T1, T2)
+    _checkGreatestLowerBound(
+      futureOrNone(numNone),
+      intNone,
+      intNone,
+    );
+    _checkGreatestLowerBound(
+      futureOrNone(intNone),
+      numNone,
+      intNone,
+    );
+  }
+
   test_identical() {
     void check(DartType type) {
       _checkGreatestLowerBound(type, type, type);
@@ -943,8 +992,67 @@ class LowerBoundTest extends _BoundsTestBase {
       _checkGreatestLowerBound(T1, T2, expected);
     }
 
+    check(intNone, intNone, intNone);
     check(numNone, intNone, intNone);
     check(doubleNone, intNone, neverNone);
+
+    check(listNone(intNone), listNone(intNone), listNone(intNone));
+    check(listNone(numNone), listNone(intNone), listNone(intNone));
+    check(listNone(doubleNone), listNone(intNone), neverNone);
+  }
+
+  void test_interfaceType2_interfaces() {
+    // class A
+    // class B implements A
+    // class C implements B
+    var A = class_(name: 'A');
+    var B = class_(name: 'B', interfaces: [interfaceTypeNone(A)]);
+    var C = class_(name: 'C', interfaces: [interfaceTypeNone(B)]);
+    _checkGreatestLowerBound(
+      interfaceTypeNone(A),
+      interfaceTypeNone(C),
+      interfaceTypeNone(C),
+    );
+  }
+
+  void test_interfaceType2_mixins() {
+    // class A
+    // class B
+    // class C
+    // class D extends A with B, C
+    var A = class_(name: 'A');
+    var typeA = interfaceTypeNone(A);
+
+    var B = class_(name: 'B');
+    var typeB = interfaceTypeNone(B);
+
+    var C = class_(name: 'C');
+    var typeC = interfaceTypeNone(C);
+
+    var D = class_(
+      name: 'D',
+      superType: interfaceTypeNone(A),
+      mixins: [typeB, typeC],
+    );
+    var typeD = interfaceTypeNone(D);
+
+    _checkGreatestLowerBound(typeA, typeD, typeD);
+    _checkGreatestLowerBound(typeB, typeD, typeD);
+    _checkGreatestLowerBound(typeC, typeD, typeD);
+  }
+
+  void test_interfaceType2_superType() {
+    // class A
+    // class B extends A
+    // class C extends B
+    var A = class_(name: 'A');
+    var B = class_(name: 'B', superType: interfaceTypeNone(A));
+    var C = class_(name: 'C', superType: interfaceTypeNone(B));
+    _checkGreatestLowerBound(
+      interfaceTypeNone(A),
+      interfaceTypeNone(C),
+      interfaceTypeNone(C),
+    );
   }
 
   test_none_question() {
@@ -1147,6 +1255,23 @@ class LowerBoundTest extends _BoundsTestBase {
     check(intQuestion, doubleQuestion, neverQuestion);
   }
 
+  test_self() {
+    var T = typeParameter('T');
+
+    List<DartType> types = [
+      dynamicType,
+      voidNone,
+      neverNone,
+      typeParameterTypeStar(T),
+      intNone,
+      functionTypeNone(returnType: voidNone),
+    ];
+
+    for (var type in types) {
+      _checkGreatestLowerBound(type, type, type);
+    }
+  }
+
   test_star_question() {
     void check(DartType T1, DartType T2, DartType expected) {
       _assertNullabilityQuestion(T1);
@@ -1195,6 +1320,8 @@ class LowerBoundTest extends _BoundsTestBase {
     check(voidNone, intStar);
     check(voidNone, listNone(intNone));
     check(voidNone, futureOrNone(intNone));
+    check(voidNone, neverNone);
+    check(voidNone, functionTypeNone(returnType: voidNone));
 
     check(dynamicNone, objectNone);
     check(dynamicNone, intNone);
@@ -1202,6 +1329,8 @@ class LowerBoundTest extends _BoundsTestBase {
     check(dynamicNone, intStar);
     check(dynamicNone, listNone(intNone));
     check(dynamicNone, futureOrNone(intNone));
+    check(dynamicNone, neverNone);
+    check(dynamicNone, functionTypeNone(returnType: voidNone));
 
     check(objectQuestion, objectNone);
     check(objectQuestion, intNone);
@@ -1209,6 +1338,8 @@ class LowerBoundTest extends _BoundsTestBase {
     check(objectQuestion, intStar);
     check(objectQuestion, listNone(intNone));
     check(objectQuestion, futureOrNone(intNone));
+    check(objectQuestion, neverNone);
+    check(objectQuestion, functionTypeNone(returnType: voidNone));
 
     check(objectStar, objectNone);
     check(objectStar, intNone);
@@ -1216,6 +1347,8 @@ class LowerBoundTest extends _BoundsTestBase {
     check(objectStar, intStar);
     check(objectStar, listNone(intNone));
     check(objectStar, futureOrNone(intNone));
+    check(objectStar, neverNone);
+    check(objectStar, functionTypeNone(returnType: voidNone));
 
     check(futureOrNone(voidNone), intNone);
     check(futureOrQuestion(voidNone), intNone);
@@ -1276,6 +1409,22 @@ class LowerBoundTest extends _BoundsTestBase {
     check(futureOrNone(voidNone), futureOrNone(objectStar));
     check(futureOrNone(dynamicNone), futureOrNone(objectQuestion));
     check(futureOrNone(dynamicNone), futureOrNone(objectStar));
+  }
+
+  test_typeParameter() {
+    void check({DartType bound, DartType T2}) {
+      var T1 = typeParameterTypeNone(
+        typeParameter('T', bound: bound),
+      );
+      _checkGreatestLowerBound(T1, T2, neverNone);
+    }
+
+    check(
+      bound: null,
+      T2: functionTypeNone(returnType: voidNone),
+    );
+    check(bound: null, T2: intNone);
+    check(bound: numNone, T2: intNone);
   }
 
   void _checkGreatestLowerBound(DartType T1, DartType T2, DartType expected,
@@ -2064,24 +2213,7 @@ actual: $resultStr
 }
 
 @reflectiveTest
-class _BoundsTestBase with ElementsTypesMixin {
-  @override
-  TypeProvider typeProvider;
-
-  TypeSystemImpl typeSystem;
-
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting();
-  }
-
-  void setUp() {
-    var analysisContext = TestAnalysisContext(
-      featureSet: testFeatureSet,
-    );
-    typeProvider = analysisContext.typeProviderNonNullableByDefault;
-    typeSystem = analysisContext.typeSystemNonNullableByDefault;
-  }
-
+class _BoundsTestBase extends AbstractTypeSystemNullSafetyTest {
   void _assertNotBottom(DartType type) {
     if (typeSystem.isBottom(type)) {
       fail('isBottom must be false: ' + _typeString(type));

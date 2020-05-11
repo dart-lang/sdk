@@ -50,6 +50,7 @@ class SetupCompilerOptions {
 
   static CompilerOptions getOptions() {
     var options = CompilerOptions()
+      ..verbose = false // set to true for debugging
       ..sdkRoot = sdkRoot
       ..target = DevCompilerTarget(TargetFlags())
       ..librariesSpecificationUri = Uri.base.resolve('sdk/lib/libraries.json')
@@ -240,7 +241,7 @@ class TestDriver {
     for (int line = 0; line < lines.length; line++) {
       var content = lines[line];
       if (placeholderRegExp.firstMatch(content) != null) {
-        return line;
+        return line + 1;
       }
     }
     return -1;
@@ -259,7 +260,7 @@ int main() {
           return ret;
         }
       }
-      main => 0;
+      main() => 0;
     ''';
 
     TestDriver driver;
@@ -331,6 +332,8 @@ int main() {
           return x;
         }
       }
+
+      main() => 0;
       ''';
 
     TestDriver driver;
@@ -649,6 +652,8 @@ int main() {
           return x;
         }
       }
+
+      main() => 0;
       ''';
 
     TestDriver driver;
@@ -825,6 +830,8 @@ int main() {
           return x;
         }
       }
+
+      main() => 0;
       ''';
 
     TestDriver driver;
@@ -1192,6 +1199,8 @@ int main() {
       outerClosure(3);
       return 0;
     }
+
+    main() => 0;
     ''';
 
     TestDriver driver;

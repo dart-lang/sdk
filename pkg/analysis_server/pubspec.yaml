@@ -8,6 +8,7 @@ dependencies:
   analyzer: any
   analyzer_plugin: any
   args: any
+  charcode: any
   convert: any
   crypto: any
   dart_style: any
@@ -16,6 +17,7 @@ dependencies:
   logging: any
   meta: any
   nnbd_migration: any
+  pub_semver: any
   source_span: any
   stream_channel: any
   package_config: any

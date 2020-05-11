@@ -1,0 +1,8 @@
+import 'from_agnostic_lib.dart';
+
+const c1 = identical(a, b);
+const c2 = {a: 0, b: 1};
+const c3 = {a, b};
+const c4 = a;
+const c5 = b;
+main() {}

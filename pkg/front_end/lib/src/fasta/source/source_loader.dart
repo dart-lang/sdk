@@ -42,7 +42,8 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         Reference,
         Supertype,
-        TreeNode;
+        TreeNode,
+        Version;
 
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, HandleAmbiguousSupertypes;
@@ -258,7 +259,7 @@ class SourceLoader extends Loader {
             enableNonNullable: library.isNonNullableByDefault),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
-      library.setLanguageVersion(version.major, version.minor,
+      library.setLanguageVersion(new Version(version.major, version.minor),
           offset: version.offset, length: version.length, explicit: true);
       scanner.configuration = new ScannerConfiguration(
           enableTripleShift: target.enableTripleShift,
@@ -925,7 +926,7 @@ class SourceLoader extends Loader {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
       Component component = computeFullComponent();
       hierarchy.coreTypes = coreTypes;
-      hierarchy.applyTreeChanges(const [], component.libraries,
+      hierarchy.applyTreeChanges(const [], component.libraries, const [],
           reissueAmbiguousSupertypesFor: component);
     }
     for (AmbiguousTypesRecord record in ambiguousTypesRecords) {
@@ -1238,33 +1239,76 @@ export 'dart:async' show Future, Stream;
 
 print(object) {}
 
-class Iterator {}
+class Iterator<E> {
+  bool moveNext() => null;
+  E get current => null;
+}
 
-class Iterable {}
+class Iterable<E> {
+  Iterator<E> get iterator => null;
+}
 
-class List extends Iterable {
+class List<E> extends Iterable {
+  factory List() => null;
   factory List.unmodifiable(elements) => null;
+  factory List.filled(int length, E fill, {bool growable = false}) => null;
+  void add(E) {}
+  E operator [](int index) => null;
 }
 
-class Map extends Iterable {
-  factory Map.unmodifiable(other) => null;
+class _GrowableList<E> {
+  factory _GrowableList() => null;
 }
+
+class _List<E> {
+  factory _List() => null;
+}
+
+class MapEntry<K, V> {
+  K key;
+  V value;
+}
+
+abstract class Map<K, V> extends Iterable {
+  factory Map.unmodifiable(other) => null;
+  Iterable<MapEntry<K, V>> get entries;
+  void operator []=(K key, V value) {}
+}
+
+abstract class _ImmutableMap<K, V> implements Map<K, V> {
+  dynamic _kvPairs;
+}
+
+abstract class pragma {
+  String name;
+  Object options;
+}
+
+class AbstractClassInstantiationError {}
 
 class NoSuchMethodError {
   NoSuchMethodError.withInvocation(receiver, invocation);
 }
 
+class StackTrace {}
+
 class Null {}
 
 class Object {
+  const Object();
   noSuchMethod(invocation) => null;
+  bool operator==(dynamic) {}
 }
 
 class String {}
 
 class Symbol {}
 
-class Set {}
+class Set<E> {
+  factory Set() = Set<E>._fake;
+  external factory Set._fake();
+  void add(E) {}
+}
 
 class Type {}
 
@@ -1296,6 +1340,10 @@ class Function {}
 const String defaultDartAsyncSource = """
 _asyncErrorWrapperHelper(continuation) {}
 
+void _asyncStarListenHelper(var object, var awaiter) {}
+
+void _asyncStarMoveNextHelper(var stream) {}
+
 _asyncStackTraceHelper(async_op) {}
 
 _asyncThenWrapperHelper(continuation) {}
@@ -1316,7 +1364,7 @@ class _AsyncStarStreamController {
   get stream => null;
 }
 
-class Completer {
+abstract class Completer {
   factory Completer.sync() => null;
 
   get future;
@@ -1326,7 +1374,7 @@ class Completer {
   completeError(error, [stackTrace]);
 }
 
-class Future {
+class Future<T> {
   factory Future.microtask(computation) => null;
 }
 
@@ -1339,6 +1387,8 @@ class _AsyncAwaitCompleter implements Completer {
   complete([value]) {}
 
   completeError(error, [stackTrace]) {}
+
+  void start(void Function() f) {}
 }
 
 class Stream {}
@@ -1367,6 +1417,8 @@ const String defaultDartInternalSource = """
 class Symbol {
   const Symbol(String name);
 }
+
+T unsafeCast<T>(Object v) {}
 """;
 
 /// A minimal implementation of dart:typed_data that is sufficient to create an

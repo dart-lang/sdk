@@ -28,7 +28,7 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 class LocalConstructorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var optype = (request as DartCompletionRequestImpl).opType;
 
     // Collect suggestions from the specific child [AstNode] that contains
@@ -136,11 +136,12 @@ class _Visitor extends LocalDeclarationVisitor {
       if (name != null && name.isNotEmpty) {
         completion = '$completion.$name';
       }
+      if (!useNewRelevance && element.hasDeprecated) {
+        relevance = DART_RELEVANCE_LOW;
+      }
 
-      var suggestion = createSuggestion(element,
-          completion: completion,
-          relevance: relevance,
-          useNewRelevance: useNewRelevance);
+      var suggestion = createSuggestion(request, element,
+          completion: completion, relevance: relevance);
       if (suggestion != null) {
         suggestions.add(suggestion);
       }

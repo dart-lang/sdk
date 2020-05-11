@@ -4,13 +4,11 @@
 
 import 'package:analyzer/error/error.dart';
 
-/**
- * Defines style and best practice recommendations.
- *
- * Unlike [HintCode]s, which are akin to traditional static warnings from a
- * compiler, lint recommendations focus on matters of style and practices that
- * might aggregated to define a project's style guide.
- */
+/// Defines style and best practice recommendations.
+///
+/// Unlike [HintCode]s, which are akin to traditional static warnings from a
+/// compiler, lint recommendations focus on matters of style and practices that
+/// might aggregated to define a project's style guide.
 class LintCode extends ErrorCode {
   const LintCode(String name, String message, {String correction})
       : super.temporary(name, message, correction: correction);
@@ -27,14 +25,24 @@ class LintCode extends ErrorCode {
   @override
   ErrorType get type => ErrorType.LINT;
 
-  /**
-   * Overridden so that [LintCode] and its subclasses share the same uniqueName
-   * pattern (we know how to identify a lint even if we don't know the specific
-   * subclass the lint's code is defined in.
-   */
+  /// Overridden so that [LintCode] and its subclasses share the same uniqueName
+  /// pattern (we know how to identify a lint even if we don't know the specific
+  /// subclass the lint's code is defined in.
   @override
   String get uniqueName => "LintCode.$name";
 
   @override
   String get url => 'https://dart-lang.github.io/linter/lints/$name.html';
+}
+
+/// Defines security-related best practice recommendations.
+///
+/// The primary difference from [LintCode]s is that these codes cannot be
+/// suppressed with `// ignore:` or `// ignore_for_file:` comments.
+class SecurityLintCode extends LintCode {
+  const SecurityLintCode(String name, String message, {String correction})
+      : super(name, message, correction: correction);
+
+  @override
+  bool get isIgnorable => false;
 }

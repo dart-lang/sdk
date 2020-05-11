@@ -1716,25 +1716,33 @@ typedef F = void Function();
   Future<void> test_variableDeclaration_late_hint_after_metadata() async {
     await analyze('@deprecated /*late*/ int i;');
     expect(
-        variables.isLateHinted(
+        variables.getLateHint(
             testSource, findNode.variableDeclarationList('int i')),
-        true);
+        isNotNull);
   }
 
   Future<void> test_variableDeclaration_late_hint_multiple_comments() async {
     await analyze('/*other*/ /*late*/ int i;');
     expect(
-        variables.isLateHinted(
+        variables.getLateHint(
             testSource, findNode.variableDeclarationList('int i')),
-        true);
+        isNotNull);
   }
 
   Future<void> test_variableDeclaration_late_hint_simple() async {
     await analyze('/*late*/ int i;');
     expect(
-        variables.isLateHinted(
+        variables.getLateHint(
             testSource, findNode.variableDeclarationList('int i')),
-        true);
+        isNotNull);
+  }
+
+  Future<void> test_variableDeclaration_late_hint_with_spaces() async {
+    await analyze('/* late */ int i;');
+    expect(
+        variables.getLateHint(
+            testSource, findNode.variableDeclarationList('int i')),
+        isNotNull);
   }
 
   Future<void> test_variableDeclaration_type_simple() async {

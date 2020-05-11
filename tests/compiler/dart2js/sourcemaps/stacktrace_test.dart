@@ -15,6 +15,8 @@ import 'package:compiler/src/dart2js.dart' as entry;
 
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 
+import '../helpers/memory_compiler.dart';
+
 void main(List<String> args) {
   ArgParser argParser = new ArgParser(allowTrailingOptions: true);
   argParser.addFlag('write-js', defaultsTo: false);
@@ -84,7 +86,8 @@ Future runTest(Test test, String config,
   return testStackTrace(test, config, (String input, String output) async {
     List<String> arguments = [
       '-o$output',
-      '--libraries-spec=sdk/lib/libraries.json',
+      '--platform-binaries=$sdkPlatformBinariesPath',
+      '--libraries-spec=$sdkLibrariesSpecificationPath',
       '--packages=${Platform.packageConfig}',
       Flags.testMode,
       '--enable-experiment=extension-methods',
@@ -95,7 +98,7 @@ Future runTest(Test test, String config,
     return compilationResult.isSuccess;
   },
       jsPreambles: (input, output) =>
-          ['sdk/lib/_internal/js_runtime/lib/preambles/d8.js'],
+          ['$sdkPath/_internal/js_runtime/lib/preambles/d8.js'],
       afterExceptions: testAfterExceptions,
       beforeExceptions: beforeExceptions,
       verbose: verbose,

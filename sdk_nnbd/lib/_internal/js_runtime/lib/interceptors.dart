@@ -184,7 +184,10 @@ getNativeInterceptor(object) {
 }
 
 // A JS String or Symbol.
-final JS_INTEROP_INTERCEPTOR_TAG = getIsolateAffinityTag(r'_$dart_js');
+dynamic _JS_INTEROP_INTERCEPTOR_TAG = null;
+get JS_INTEROP_INTERCEPTOR_TAG {
+  return _JS_INTEROP_INTERCEPTOR_TAG ??= getIsolateAffinityTag(r'_$dart_js');
+}
 
 lookupInterceptorByConstructor(constructor) {
   return constructor == null

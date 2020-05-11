@@ -1,0 +1,5 @@
+library test;
+
+enum E { v1 }
+final x = E.values;
+main() {}

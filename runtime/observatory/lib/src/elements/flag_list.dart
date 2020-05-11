@@ -28,7 +28,7 @@ class FlagListElement extends CustomElement implements Renderable {
     ViewFooterElement.tag,
   ]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<FlagListElement> _r;
 
   Stream<RenderedEvent<FlagListElement>> get onRendered => _r.onRendered;
 

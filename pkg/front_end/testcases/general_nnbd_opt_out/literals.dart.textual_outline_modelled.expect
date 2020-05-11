@@ -1,0 +1,10 @@
+// @dart = 2.6
+main() {}
+testBool() {}
+testDouble() {}
+testInt() {}
+testList() {}
+testMap() {}
+testNull() {}
+testString() {}
+testSymbol() {}

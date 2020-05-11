@@ -34,14 +34,12 @@ class Loader;
 class IsolateGroupData {
  public:
   IsolateGroupData(const char* url,
-                   const char* package_root,
                    const char* packages_file,
                    AppSnapshot* app_snapshot,
                    bool isolate_run_app_snapshot);
   ~IsolateGroupData();
 
   char* script_url;
-  char* package_root;
 
   const std::shared_ptr<uint8_t>& kernel_buffer() const {
     return kernel_buffer_;

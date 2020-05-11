@@ -414,14 +414,13 @@ class Primitives {
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
-    int nonDecimalHexIndex = 4;
     if (match == null) {
       // TODO(sra): It might be that the match failed due to unrecognized U+0085
       // spaces.  We could replace them with U+0020 spaces and try matching
       // again.
       return null;
     }
-    String decimalMatch = match[decimalIndex];
+    Object? decimalMatch = match[decimalIndex];
     if (radix == null) {
       if (decimalMatch != null) {
         // Cannot fail because we know that the digits are all decimal.
@@ -661,7 +660,6 @@ class Primitives {
     if (timerFrequency != 0) return;
     // Start with low-resolution. We overwrite the fields if we find better.
     timerFrequency = 1000;
-    timerTicks = dateNow;
     if (JS('bool', 'typeof window == "undefined"')) return;
     var window = JS('var', 'window');
     if (window == null) return;
@@ -673,7 +671,7 @@ class Primitives {
   }
 
   static int timerFrequency = 0;
-  static late int Function() timerTicks;
+  static int Function() timerTicks = dateNow; // Low-resolution version.
 
   static String? currentUri() {
     requiresPreamble();
@@ -1191,7 +1189,11 @@ class Primitives {
       List keys = JS('JSArray', r'Object.keys(#)', defaultValues);
       if (namedArguments == null) {
         for (String key in keys) {
-          arguments.add(JS('var', '#[#]', defaultValues, key));
+          var defaultValue = JS('var', '#[#]', defaultValues, key);
+          if (isRequired(defaultValue)) {
+            return functionNoSuchMethod(function, arguments, namedArguments);
+          }
+          arguments.add(defaultValue);
         }
       } else {
         int used = 0;
@@ -1200,7 +1202,11 @@ class Primitives {
             used++;
             arguments.add(namedArguments[key]);
           } else {
-            arguments.add(JS('var', r'#[#]', defaultValues, key));
+            var defaultValue = JS('var', '#[#]', defaultValues, key);
+            if (isRequired(defaultValue)) {
+              return functionNoSuchMethod(function, arguments, namedArguments);
+            }
+            arguments.add(defaultValue);
           }
         }
         if (used != namedArguments.length) {
@@ -3552,3 +3558,12 @@ const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
 String testingGetPlatformEnvironmentVariable() {
   return testPlatformEnvironmentVariableValue;
 }
+
+// These are used to indicate that a named parameter is required when lazily
+// retrieving default values via [JsGetName.DEFAULT_VALUES_PROPERTY].
+class _Required {
+  const _Required();
+}
+
+const kRequiredSentinel = const _Required();
+bool isRequired(Object? value) => identical(kRequiredSentinel, value);

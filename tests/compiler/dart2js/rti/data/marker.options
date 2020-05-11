@@ -1,2 +1,4 @@
-strong=tests/compiler/dart2js/rti/rti_need_test_helper.dart
-omit=tests/compiler/dart2js/rti/rti_need_test_helper.dart
+spec:nnbd-off=tests/compiler/dart2js/rti/rti_need_test_helper.dart
+prod:nnbd-off=tests/compiler/dart2js/rti/rti_need_test_helper.dart
+spec:nnbd-sdk=tests/compiler/dart2js/rti/rti_need_test_helper.dart
+prod:nnbd-sdk=tests/compiler/dart2js/rti/rti_need_test_helper.dart

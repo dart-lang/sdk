@@ -79,6 +79,7 @@ class CoreTypes {
   Class _asyncAwaitCompleterClass;
   Class _futureOrClass;
   Constructor _asyncAwaitCompleterConstructor;
+  Procedure _asyncAwaitCompleterStartProcedure;
   Procedure _completeOnAsyncReturnProcedure;
   Procedure _completerCompleteError;
   Constructor _syncIterableDefaultConstructor;
@@ -259,6 +260,11 @@ class CoreTypes {
   Constructor get asyncAwaitCompleterConstructor {
     return _asyncAwaitCompleterConstructor ??=
         index.getMember('dart:async', '_AsyncAwaitCompleter', '');
+  }
+
+  Procedure get asyncAwaitCompleterStartProcedure {
+    return _asyncAwaitCompleterStartProcedure ??=
+        index.getMember('dart:async', '_AsyncAwaitCompleter', 'start');
   }
 
   Member get completeOnAsyncReturn {

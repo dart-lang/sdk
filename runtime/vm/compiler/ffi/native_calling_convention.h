@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_FFI_NATIVE_CALLING_CONVENTION_H_
 #define RUNTIME_VM_COMPILER_FFI_NATIVE_CALLING_CONVENTION_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include <platform/globals.h>
 
 #include "vm/compiler/backend/locations.h"
@@ -38,7 +42,7 @@ class NativeCallingConvention : public ZoneAllocated {
   // The C Type (expressed in a Dart Type) of the argument at `arg_index`.
   //
   // Excluding the #0 argument which is the function pointer.
-  RawAbstractType* CType(intptr_t arg_index) const;
+  AbstractTypePtr CType(intptr_t arg_index) const;
 
   // The location of the argument at `arg_index`.
   const NativeLocation& Location(intptr_t arg_index) const {

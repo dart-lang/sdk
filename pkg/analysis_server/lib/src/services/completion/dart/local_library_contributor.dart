@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
-    show createSuggestion, ElementSuggestionBuilder;
+    show createSuggestion, ElementSuggestionBuilder, SuggestionBuilder;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -23,6 +23,7 @@ import '../../../protocol_server.dart'
 /// the source in which the completions are being requested.
 class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     with ElementSuggestionBuilder {
+  @override
   final DartCompletionRequest request;
 
   final OpType optype;
@@ -53,39 +54,39 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   void visitClassElement(ClassElement element) {
     if (optype.includeTypeNameSuggestions) {
       // if includeTypeNameSuggestions, then use the filter
-      var useNewRelevance = request.useNewRelevance;
       int relevance;
-      if (useNewRelevance) {
+      if (request.useNewRelevance) {
         relevance = _relevanceForType(element.thisType);
+      } else if (element.hasDeprecated) {
+        relevance = DART_RELEVANCE_LOW;
       } else {
         relevance = optype.typeNameSuggestionsFilter(
             _instantiateClassElement(element), DART_RELEVANCE_DEFAULT);
       }
       if (relevance != null) {
-        addSuggestion(element,
-            prefix: prefix,
-            relevance: relevance,
-            useNewRelevance: useNewRelevance);
+        addSuggestion(element, prefix: prefix, relevance: relevance);
       }
     }
     if (optype.includeConstructorSuggestions) {
-      var useNewRelevance = request.useNewRelevance;
       int relevance;
-      if (useNewRelevance) {
+      if (request.useNewRelevance) {
         relevance = _relevanceForType(element.thisType);
+      } else if (element.hasDeprecated) {
+        relevance = DART_RELEVANCE_LOW;
       } else {
         relevance = optype.returnValueSuggestionsFilter(
             _instantiateClassElement(element), DART_RELEVANCE_DEFAULT);
       }
-      _addConstructorSuggestions(element, relevance, useNewRelevance);
+      _addConstructorSuggestions(element, relevance);
     }
     if (optype.includeReturnValueSuggestions) {
       if (element.isEnum) {
         var enumName = element.displayName;
-        var useNewRelevance = request.useNewRelevance;
         int relevance;
-        if (useNewRelevance) {
+        if (request.useNewRelevance) {
           relevance = _relevanceForType(element.thisType);
+        } else if (element.hasDeprecated) {
+          relevance = DART_RELEVANCE_LOW;
         } else {
           relevance = optype.returnValueSuggestionsFilter(
               _instantiateClassElement(element), DART_RELEVANCE_DEFAULT);
@@ -95,8 +96,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
             addSuggestion(field,
                 prefix: prefix,
                 relevance: relevance,
-                elementCompletion: '$enumName.${field.name}',
-                useNewRelevance: useNewRelevance);
+                elementCompletion: '$enumName.${field.name}');
           }
         }
       }
@@ -116,17 +116,14 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   @override
   void visitExtensionElement(ExtensionElement element) {
     if (optype.includeReturnValueSuggestions) {
-      var useNewRelevance = request.useNewRelevance;
       int relevance;
-      if (useNewRelevance) {
+      if (request.useNewRelevance) {
         relevance = _relevanceForType(element.extendedType);
       } else {
-        relevance = DART_RELEVANCE_DEFAULT;
+        relevance =
+            element.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
       }
-      addSuggestion(element,
-          prefix: prefix,
-          relevance: relevance,
-          useNewRelevance: useNewRelevance);
+      addSuggestion(element, prefix: prefix, relevance: relevance);
     }
     element.visitChildren(this);
   }
@@ -141,28 +138,23 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       return;
     }
     var returnType = element.returnType;
-    var useNewRelevance = request.useNewRelevance;
     int relevance;
-    if (useNewRelevance) {
+    if (request.useNewRelevance) {
       relevance = _relevanceForType(returnType);
     } else {
-      relevance = element.library == containingLibrary
-          ? DART_RELEVANCE_LOCAL_FUNCTION
-          : DART_RELEVANCE_DEFAULT;
+      relevance = element.hasDeprecated
+          ? DART_RELEVANCE_LOW
+          : (element.library == containingLibrary
+              ? DART_RELEVANCE_LOCAL_FUNCTION
+              : DART_RELEVANCE_DEFAULT);
     }
     if (returnType != null && returnType.isVoid) {
       if (optype.includeVoidReturnSuggestions) {
-        addSuggestion(element,
-            prefix: prefix,
-            relevance: relevance,
-            useNewRelevance: useNewRelevance);
+        addSuggestion(element, prefix: prefix, relevance: relevance);
       }
     } else {
       if (optype.includeReturnValueSuggestions) {
-        addSuggestion(element,
-            prefix: prefix,
-            relevance: relevance,
-            useNewRelevance: useNewRelevance);
+        addSuggestion(element, prefix: prefix, relevance: relevance);
       }
     }
   }
@@ -170,21 +162,19 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   @override
   void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     if (optype.includeTypeNameSuggestions) {
-      var useNewRelevance = request.useNewRelevance;
       int relevance;
-      if (useNewRelevance) {
+      if (request.useNewRelevance) {
         // TODO(brianwilkerson) Figure out whether there are any features that
         //  ought to be used here and what the right default value is.
         relevance = 400;
       } else {
-        relevance = element.library == containingLibrary
-            ? DART_RELEVANCE_LOCAL_FUNCTION
-            : DART_RELEVANCE_DEFAULT;
+        relevance = element.hasDeprecated
+            ? DART_RELEVANCE_LOW
+            : (element.library == containingLibrary
+                ? DART_RELEVANCE_LOCAL_FUNCTION
+                : DART_RELEVANCE_DEFAULT);
       }
-      addSuggestion(element,
-          prefix: prefix,
-          relevance: relevance,
-          useNewRelevance: useNewRelevance);
+      addSuggestion(element, prefix: prefix, relevance: relevance);
     }
   }
 
@@ -198,10 +188,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   @override
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (optype.includeReturnValueSuggestions) {
-      var useNewRelevance = request.useNewRelevance;
       int relevance;
-      if (useNewRelevance) {
+      if (request.useNewRelevance) {
         relevance = _relevanceForType(element.returnType);
+      } else if (element.hasDeprecated) {
+        relevance = DART_RELEVANCE_LOW;
       } else {
         if (element.library == containingLibrary) {
           if (element.enclosingElement is ClassElement) {
@@ -213,35 +204,29 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
           relevance = DART_RELEVANCE_DEFAULT;
         }
       }
-      addSuggestion(element,
-          prefix: prefix,
-          relevance: relevance,
-          useNewRelevance: useNewRelevance);
+      addSuggestion(element, prefix: prefix, relevance: relevance);
     }
   }
 
   @override
   void visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (optype.includeReturnValueSuggestions) {
-      var useNewRelevance = request.useNewRelevance;
       int relevance;
-      if (useNewRelevance) {
+      if (request.useNewRelevance) {
         relevance = _relevanceForType(element.type);
       } else {
-        relevance = element.library == containingLibrary
-            ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
-            : DART_RELEVANCE_DEFAULT;
+        relevance = element.hasDeprecated
+            ? DART_RELEVANCE_LOW
+            : (element.library == containingLibrary
+                ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
+                : DART_RELEVANCE_DEFAULT);
       }
-      addSuggestion(element,
-          prefix: prefix,
-          relevance: relevance,
-          useNewRelevance: useNewRelevance);
+      addSuggestion(element, prefix: prefix, relevance: relevance);
     }
   }
 
   /// Add constructor suggestions for the given class.
-  void _addConstructorSuggestions(
-      ClassElement classElem, int relevance, bool useNewRelevance) {
+  void _addConstructorSuggestions(ClassElement classElem, int relevance) {
     var className = classElem.name;
     for (var constructor in classElem.constructors) {
       if (constructor.isPrivate) {
@@ -251,15 +236,14 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
         continue;
       }
 
-      var suggestion = createSuggestion(constructor,
-          relevance: relevance, useNewRelevance: useNewRelevance);
+      var completion = constructor.displayName;
+      completion = completion.isNotEmpty ? '$className.$completion' : className;
+      if (prefix != null && prefix.isNotEmpty) {
+        completion = '$prefix.$completion';
+      }
+      var suggestion = createSuggestion(request, constructor,
+          completion: completion, relevance: relevance);
       if (suggestion != null) {
-        var name = suggestion.completion;
-        name = name.isNotEmpty ? '$className.$name' : className;
-        if (prefix != null && prefix.isNotEmpty) {
-          name = '$prefix.$name';
-        }
-        suggestion.completion = name;
         suggestion.selectionOffset = suggestion.completion.length;
         suggestions.add(suggestion);
       }
@@ -301,7 +285,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
 class LocalLibraryContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     if (!request.includeIdentifiers) {
       return const <CompletionSuggestion>[];
     }

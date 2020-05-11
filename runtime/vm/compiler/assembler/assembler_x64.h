@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_X64_H_
 #define RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_X64_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_
 #error Do not include assembler_x64.h directly; use assembler.h instead.
 #endif
@@ -642,8 +646,6 @@ class Assembler : public AssemblerBase {
   // 'size' indicates size in bytes and must be in the range 1..8.
   void nop(int size = 1);
 
-  static uword GetBreakInstructionFiller() { return 0xCCCCCCCCCCCCCCCC; }
-
   void j(Condition condition, Label* label, bool near = kFarJump);
   void jmp(Register reg) { EmitUnaryL(reg, 0xFF, 4); }
   void jmp(const Address& address) { EmitUnaryL(address, 0xFF, 4); }
@@ -725,15 +727,13 @@ class Assembler : public AssemblerBase {
   void Call(const Code& stub_entry);
   void CallToRuntime();
 
-  void CallNullErrorShared(bool save_fpu_registers);
-
-  void CallNullArgErrorShared(bool save_fpu_registers);
-
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
   void CallWithEquivalence(const Code& code,
                            const Object& equivalence,
                            CodeEntryKind entry_kind = CodeEntryKind::kNormal);
+
+  void Call(Address target) { call(target); }
 
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   // TODO(koda): Add StackAddress/HeapAddress types to prevent misuse.
@@ -818,6 +818,9 @@ class Assembler : public AssemblerBase {
   // Call runtime function. Reserves shadow space on the stack before calling
   // if platform ABI requires that. Does not restore RSP after the call itself.
   void CallCFunction(Register reg);
+
+  void ExtractClassIdFromTags(Register result, Register tags);
+  void ExtractInstanceSizeFromTags(Register result, Register tags);
 
   // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
@@ -944,8 +947,8 @@ class Assembler : public AssemblerBase {
   // before the code can be used.
   //
   // The neccessary information for the "linker" (i.e. the relocation
-  // information) is stored in [RawCode::static_calls_target_table_]: an entry
-  // of the form
+  // information) is stored in [CodeLayout::static_calls_target_table_]: an
+  // entry of the form
   //
   //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
   //
@@ -955,6 +958,11 @@ class Assembler : public AssemblerBase {
   // destination.  It can be used e.g. for calling into the middle of a
   // function.
   void GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target = 0);
+
+  // This emits an PC-relative tail call of the form "jmp *[rip+<offset>]".
+  //
+  // See also above for the pc-relative call.
+  void GenerateUnRelocatedPcRelativeTailCall(intptr_t offset_into_target = 0);
 
   // Debugging and bringup support.
   void Breakpoint() override { int3(); }
@@ -970,6 +978,13 @@ class Assembler : public AssemblerBase {
                                            bool index_unboxed,
                                            Register array,
                                            Register index);
+
+  void LoadFieldAddressForRegOffset(Register address,
+                                    Register instance,
+                                    Register offset_in_words_as_smi) {
+    static_assert(kSmiTagShift == 1, "adjust scale factor");
+    leaq(address, FieldAddress(instance, offset_in_words_as_smi, TIMES_4, 0));
+  }
 
   static Address VMTagAddress();
 

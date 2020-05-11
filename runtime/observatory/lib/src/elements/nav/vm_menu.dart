@@ -15,7 +15,7 @@ class NavVMMenuElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavVMMenuElement>('nav-vm-menu',
       dependencies: const [NavMenuItemElement.tag]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavVMMenuElement> _r;
 
   Stream<RenderedEvent<NavVMMenuElement>> get onRendered => _r.onRendered;
 

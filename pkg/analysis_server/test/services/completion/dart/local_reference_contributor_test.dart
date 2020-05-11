@@ -1552,7 +1552,18 @@ main() {A a; a^..b}''');
 
   Future<void> test_CatchClause_typed() async {
     // Block  CatchClause  TryStatement
-    addTestSource('class A {a() {try{var x;} on E catch (e) {^}}}');
+    addTestSource('''
+class A {
+  a() {
+    try {
+      var x;
+    } on E catch (e) {
+      ^
+    }
+  }
+}
+class E {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -2150,6 +2161,30 @@ $docLines
     }
   }
 
+  Future<void> test_doc_macro() async {
+    dartdocInfo.addTemplateNamesAndValues([
+      'template_name'
+    ], [
+      '''
+Macro contents on
+multiple lines.
+'''
+    ]);
+    addTestSource('''
+/// {@macro template_name}
+///
+/// With an additional line.
+int x = 0;
+
+void main() {^}
+''');
+    await computeSuggestions();
+    var suggestion = assertSuggestTopLevelVar('x', 'int');
+    expect(suggestion.docSummary, 'Macro contents on\nmultiple lines.');
+    expect(suggestion.docComplete,
+        'Macro contents on\nmultiple lines.\n\n\nWith an additional line.');
+  }
+
   Future<void> test_doc_topLevel() async {
     var docLines = r'''
 /// My documentation.
@@ -2168,7 +2203,7 @@ $docLines
 class MyClass {}
 
 $docLines
-class MyClassTypeAlias = Object with MyClass;
+class MyMixinApplication = Object with MyClass;
 
 $docLines
 enum MyEnum {A, B, C}
@@ -2187,7 +2222,7 @@ main() {^}
       assertDoc(suggestion);
     }
     {
-      var suggestion = assertSuggestClassTypeAlias('MyClassTypeAlias');
+      var suggestion = assertSuggestClass('MyMixinApplication');
       assertDoc(suggestion);
     }
     {
@@ -2470,7 +2505,7 @@ class C {foo(){^} void bar() {}}''');
     assertSuggestMethod('bar', 'C', 'void',
         relevance: DART_RELEVANCE_LOCAL_METHOD);
     assertSuggestFunctionTypeAlias('F2', 'int');
-    assertSuggestClassTypeAlias('Clz');
+    assertSuggestClass('Clz');
     assertSuggestClass('C');
     assertNotSuggested('x');
     assertNotSuggested('_B');
@@ -2489,7 +2524,7 @@ class C {foo(){^} void bar() {}}''');
     assertNoSuggestions();
   }
 
-  Future<void> test_extendsClause() async {
+  Future<void> test_ExtendsClause() async {
     addTestSource('''
 class A {}
 mixin M {}
@@ -2498,6 +2533,35 @@ class B extends ^
     await computeSuggestions();
     assertSuggestClass('A');
     assertNotSuggested('M');
+  }
+
+  Future<void> test_ExtensionDeclaration_extendedType() async {
+    addTestSource('''
+class A {}
+extension E on ^
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('E');
+  }
+
+  Future<void> test_ExtensionDeclaration_extendedType2() async {
+    addTestSource('''
+class A {}
+extension E on ^ {}
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('E');
+  }
+
+  Future<void> test_ExtensionDeclaration_member() async {
+    addTestSource('''
+class A {}
+extension E on A { ^ }
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
   }
 
   Future<void> test_FieldDeclaration_name_typed() async {
@@ -2963,8 +3027,12 @@ class C2 { }
   Future<void> test_FunctionExpression_body_function() async {
     // Block  BlockFunctionBody  FunctionExpression
     addTestSource('''
-        void bar() { }
-        String foo(List args) {x.then((R b) {^});}''');
+void bar() { }
+String foo(List args) {
+  x.then((R b) {^});
+}
+class R {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -3017,7 +3085,15 @@ main() {
   Future<void> test_IfStatement() async {
     // SimpleIdentifier  IfStatement
     addTestSource('''
-        class A {var b; X _c; foo() {A a; if (true) ^}}''');
+class A {
+  var b;
+  X _c;
+  foo() {
+    A a; if (true) ^
+  }
+}
+class X {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -3048,7 +3124,16 @@ main(){var a; if (^)}''');
   Future<void> test_IfStatement_empty() async {
     // SimpleIdentifier  IfStatement
     addTestSource('''
-        class A {var b; X _c; foo() {A a; if (^) something}}''');
+class A {
+  var b;
+  X _c;
+  foo() {
+    A a;
+    if (^) something
+  }
+}
+class X {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -3063,13 +3148,22 @@ main(){var a; if (^)}''');
   Future<void> test_IfStatement_empty_private() async {
     // SimpleIdentifier  IfStatement
     addTestSource('''
-        class A {var b; X _c; foo() {A a; if (_^) something}}''');
+class A {
+  var b;
+  X _c;
+  foo() {
+    A a;
+    if (_^) something
+  }
+}
+class X {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertSuggestField('b', null, relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestField('_c', 'X', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestField('_c', 'X', relevance: DART_RELEVANCE_DEFAULT);
     assertNotSuggested('Object');
     assertSuggestClass('A');
     assertNotSuggested('==');
@@ -3686,7 +3780,16 @@ class B extends A {
 
   Future<void> test_MethodDeclaration_body_getters() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('class A {@deprecated X get f => 0; Z a() {^} get _g => 1;}');
+    addTestSource('''
+class A {
+  @deprecated
+  X get f => 0;
+  Z a() {^}
+  get _g => 1;
+}
+class X {}
+class Z {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -3751,7 +3854,15 @@ class A extends B {
 
   Future<void> test_MethodDeclaration_members() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('class A {@deprecated X f; Z _a() {^} var _g;}');
+    addTestSource('''
+class A {
+  @deprecated X f;
+  Z _a() {^}
+  var _g;
+}
+class X {}
+class Z {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -3782,13 +3893,22 @@ class A extends B {
 
   Future<void> test_MethodDeclaration_members_private() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('class A {@deprecated X f; Z _a() {_^} var _g;}');
+    addTestSource('''
+class A {
+  @deprecated
+  X f;
+  Z _a() {_^}
+  var _g;
+}
+class X {}
+class Z {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
-    var methodA = assertSuggestMethod('_a', 'A', 'Z',
-        relevance: DART_RELEVANCE_LOCAL_METHOD);
+    var methodA =
+        assertSuggestMethod('_a', 'A', 'Z', relevance: DART_RELEVANCE_DEFAULT);
     if (methodA != null) {
       expect(methodA.element.isDeprecated, isFalse);
       expect(methodA.element.isPrivate, isTrue);
@@ -3803,7 +3923,7 @@ class A extends B {
     // If user prefixed completion with '_' then suggestion of private members
     // should be the same as public members
     var getterG =
-        assertSuggestField('_g', null, relevance: DART_RELEVANCE_LOCAL_FIELD);
+        assertSuggestField('_g', null, relevance: DART_RELEVANCE_DEFAULT);
     if (getterG != null) {
       expect(getterG.element.isDeprecated, isFalse);
       expect(getterG.element.isPrivate, isTrue);
@@ -3814,7 +3934,14 @@ class A extends B {
 
   Future<void> test_MethodDeclaration_parameters_named() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('class A {@deprecated Z a(X x, _, b, {y: boo}) {^}}');
+    addTestSource('''
+class A {
+  @deprecated
+  Z a(X x, _, b, {y: boo}) {^}
+}
+class X {}
+class Z {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -3837,7 +3964,12 @@ class A extends B {
     addTestSource('''
 foo() { }
 void bar() { }
-class A {Z a(X x, [int y=1]) {^}}''');
+class A {
+  Z a(X x, [int y=1]) {^}
+}
+class X {}
+class Z {}
+''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -4530,7 +4662,7 @@ class X {foo(){A^.bar}}''');
     addTestSource('main() {var ab; var _ab; ^}');
     await computeSuggestions();
     assertSuggestLocalVariable('ab', null);
-    assertSuggestLocalVariable('_ab', null, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestLocalVariable('_ab', null);
   }
 
   Future<void> test_prioritization_private() async {
@@ -4544,7 +4676,7 @@ class X {foo(){A^.bar}}''');
     addTestSource('main() {var ab; var _ab; a^}');
     await computeSuggestions();
     assertSuggestLocalVariable('ab', null);
-    assertSuggestLocalVariable('_ab', null, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestLocalVariable('_ab', null);
   }
 
   Future<void> test_PropertyAccess_expression() async {

@@ -11,6 +11,9 @@ import 'dart:_foreign_helper' show JS;
 import 'dart:_runtime' as dart;
 
 @patch
+bool typeAcceptsNull<T>() => !dart.strictNullSafety || null is T;
+
+@patch
 class Symbol implements core.Symbol {
   @patch
   const Symbol(String name) : this._name = name;

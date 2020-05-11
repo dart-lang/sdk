@@ -11,8 +11,8 @@ import "package:expect/expect.dart";
 /*member: f:[subclass=JSInt]*/
 int f(
         int
-            /*strong.[null|subclass=Object]*/
-            /*omit.[null|subclass=JSInt]*/
+            /*spec:nnbd-off|spec:nnbd-sdk.[null|subclass=Object]*/
+            /*prod:nnbd-off|prod:nnbd-sdk.[null|subclass=JSInt]*/
             i) =>
     2 /*invoke: [exact=JSUInt31]*/ * i;
 

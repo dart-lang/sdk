@@ -206,7 +206,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     if (end == start) {
       return 0;
     }
-    var result = _nativeReadInto(buffer, start, end! - start);
+    var result = _nativeReadInto(buffer, start, end - start);
     if (result is OSError) {
       throw new SocketException("readIntoSync failed", osError: result);
     }
@@ -297,7 +297,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
       return;
     }
     _BufferAndStart bufferAndStart =
-        _ensureFastAndSerializableByteData(buffer, start, end!);
+        _ensureFastAndSerializableByteData(buffer, start, end);
     var result = _nativeWrite(bufferAndStart.buffer, bufferAndStart.start,
         end - (start - bufferAndStart.start));
     if (result is OSError) {

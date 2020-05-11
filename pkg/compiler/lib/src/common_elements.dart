@@ -353,6 +353,10 @@ abstract class CommonElements {
 
   ClassEntity get jsInvocationMirrorClass;
 
+  ClassEntity get requiredSentinelClass;
+
+  InterfaceType get requiredSentinelType;
+
   MemberEntity get invocationTypeArgumentGetter;
 
   /// Interface used to determine if an object has the JavaScript
@@ -520,13 +524,23 @@ abstract class CommonElements {
   FunctionEntity get specializedIsTop;
   FunctionEntity get specializedAsTop;
   FunctionEntity get specializedIsBool;
+  FunctionEntity get specializedAsBool;
+  FunctionEntity get specializedAsBoolLegacy;
   FunctionEntity get specializedAsBoolNullable;
+  FunctionEntity get specializedAsDouble;
+  FunctionEntity get specializedAsDoubleLegacy;
   FunctionEntity get specializedAsDoubleNullable;
   FunctionEntity get specializedIsInt;
+  FunctionEntity get specializedAsInt;
+  FunctionEntity get specializedAsIntLegacy;
   FunctionEntity get specializedAsIntNullable;
   FunctionEntity get specializedIsNum;
+  FunctionEntity get specializedAsNum;
+  FunctionEntity get specializedAsNumLegacy;
   FunctionEntity get specializedAsNumNullable;
   FunctionEntity get specializedIsString;
+  FunctionEntity get specializedAsString;
+  FunctionEntity get specializedAsStringLegacy;
   FunctionEntity get specializedAsStringNullable;
 
   FunctionEntity get instantiatedGenericFunctionTypeNewRti;
@@ -1546,6 +1560,13 @@ class CommonElementsImpl
   ClassEntity get jsInvocationMirrorClass =>
       _jsInvocationMirrorClass ??= _findHelperClass('JSInvocationMirror');
 
+  ClassEntity _requiredSentinelClass;
+  @override
+  ClassEntity get requiredSentinelClass =>
+      _requiredSentinelClass ??= _findHelperClass('_Required');
+  @override
+  InterfaceType get requiredSentinelType => _getRawType(requiredSentinelClass);
+
   MemberEntity _invocationTypeArgumentGetter;
   @override
   MemberEntity get invocationTypeArgumentGetter =>
@@ -2004,33 +2025,62 @@ class CommonElementsImpl
   FunctionEntity get specializedIsBool => _findRtiFunction('_isBool');
 
   @override
-  FunctionEntity get specializedAsBoolNullable =>
-      _findRtiFunction('_asBoolNullable');
+  FunctionEntity get specializedAsBool => _findRtiFunction('_asBool');
+
+  @override
+  FunctionEntity get specializedAsBoolLegacy => _findRtiFunction('_asBoolS');
+
+  @override
+  FunctionEntity get specializedAsBoolNullable => _findRtiFunction('_asBoolQ');
+
+  @override
+  FunctionEntity get specializedAsDouble => _findRtiFunction('_asDouble');
+
+  @override
+  FunctionEntity get specializedAsDoubleLegacy =>
+      _findRtiFunction('_asDoubleS');
 
   @override
   FunctionEntity get specializedAsDoubleNullable =>
-      _findRtiFunction('_asDoubleNullable');
+      _findRtiFunction('_asDoubleQ');
 
   @override
   FunctionEntity get specializedIsInt => _findRtiFunction('_isInt');
 
   @override
-  FunctionEntity get specializedAsIntNullable =>
-      _findRtiFunction('_asIntNullable');
+  FunctionEntity get specializedAsInt => _findRtiFunction('_asInt');
+
+  @override
+  FunctionEntity get specializedAsIntLegacy => _findRtiFunction('_asIntS');
+
+  @override
+  FunctionEntity get specializedAsIntNullable => _findRtiFunction('_asIntQ');
 
   @override
   FunctionEntity get specializedIsNum => _findRtiFunction('_isNum');
 
   @override
-  FunctionEntity get specializedAsNumNullable =>
-      _findRtiFunction('_asNumNullable');
+  FunctionEntity get specializedAsNum => _findRtiFunction('_asNum');
+
+  @override
+  FunctionEntity get specializedAsNumLegacy => _findRtiFunction('_asNumS');
+
+  @override
+  FunctionEntity get specializedAsNumNullable => _findRtiFunction('_asNumQ');
 
   @override
   FunctionEntity get specializedIsString => _findRtiFunction('_isString');
 
   @override
+  FunctionEntity get specializedAsString => _findRtiFunction('_asString');
+
+  @override
+  FunctionEntity get specializedAsStringLegacy =>
+      _findRtiFunction('_asStringS');
+
+  @override
   FunctionEntity get specializedAsStringNullable =>
-      _findRtiFunction('_asStringNullable');
+      _findRtiFunction('_asStringQ');
 
   @override
   FunctionEntity get instantiatedGenericFunctionTypeNewRti =>

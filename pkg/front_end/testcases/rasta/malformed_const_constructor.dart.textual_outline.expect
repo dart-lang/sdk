@@ -1,0 +1,6 @@
+class A {
+  const A() : x = 'foo' { }
+  :
+  x = 'foo' ;
+}
+main() { }

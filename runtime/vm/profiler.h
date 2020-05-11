@@ -456,11 +456,11 @@ class NativeAllocationSampleFilter : public SampleFilter {
 
 class AbstractCode {
  public:
-  explicit AbstractCode(RawObject* code) : code_(Object::Handle(code)) {
+  explicit AbstractCode(ObjectPtr code) : code_(Object::Handle(code)) {
     ASSERT(code_.IsNull() || code_.IsCode() || code_.IsBytecode());
   }
 
-  RawObject* raw() const { return code_.raw(); }
+  ObjectPtr raw() const { return code_.raw(); }
   const Object* handle() const { return &code_; }
 
   uword PayloadStart() const {
@@ -533,7 +533,7 @@ class AbstractCode {
     }
   }
 
-  RawObject* owner() const {
+  ObjectPtr owner() const {
     if (code_.IsCode()) {
       return Code::Cast(code_).owner();
     } else if (code_.IsBytecode()) {

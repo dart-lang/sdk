@@ -1,0 +1,15 @@
+mixin M1 {
+  int get m => 1;
+}
+mixin M2 extend M1 {
+}
+mixin M3 extends M1 {
+}
+class C1 {
+  int get c => 2;
+}
+class C2 extend C1 with M2 {
+}
+class C3 on C1 with M3 {
+}
+main() { }

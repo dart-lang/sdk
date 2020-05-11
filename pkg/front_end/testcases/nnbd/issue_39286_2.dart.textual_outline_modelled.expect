@@ -1,0 +1,13 @@
+class C {
+  C h() => this;
+  D? f() => new D();
+  int y = 42;
+}
+
+class D {
+  D g() => this;
+  String operator [](String s) {}
+}
+
+main() {}
+void test(C x) {}

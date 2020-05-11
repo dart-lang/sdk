@@ -153,6 +153,7 @@ class Server {
   final String? _serviceInfoFilename;
   HttpServer? _server;
   bool get running => _server != null;
+  bool acceptNewWebSocketConnections = true;
   int _port = -1;
 
   /// Returns the server address including the auth token.
@@ -354,11 +355,19 @@ class Server {
 
     final String path = result;
     if (path == WEBSOCKET_PATH) {
-      WebSocketTransformer.upgrade(request,
-              compression: CompressionOptions.compressionOff)
-          .then((WebSocket webSocket) {
-        WebSocketClient(webSocket, _service);
-      });
+      if (acceptNewWebSocketConnections) {
+        WebSocketTransformer.upgrade(request,
+                compression: CompressionOptions.compressionOff)
+            .then((WebSocket webSocket) {
+          WebSocketClient(webSocket, _service);
+        });
+      } else {
+        request.response.statusCode = HttpStatus.forbidden;
+        request.response.write('Cannot connect directly to the VM service as '
+            'a Dart Development Service (DDS) instance has taken control and '
+            'can be found at ${_service.ddsUri}.');
+        request.response.close();
+      }
       return;
     }
 

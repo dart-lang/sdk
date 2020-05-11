@@ -23,8 +23,36 @@ abstract class MixinInferrer {
   void infer(ClassHierarchy hierarchy, Class classNode);
 }
 
+/// Core interface for answering queries needed to compute the subtyping
+/// relation.
+abstract class ClassHierarchyBase {
+  CoreTypes get coreTypes;
+
+  /// Returns the instantiation of [superclass] that is implemented by [type],
+  /// or `null` if [type] does not implement [superclass] at all.
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes);
+
+  /// Returns the type arguments of the instantiation of [superclass] that is
+  /// implemented by [type], or `null` if [type] does not implement [superclass]
+  /// at all.
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass);
+
+  /// Returns the possibly abstract interface member of [class_] with the given
+  /// [name].
+  ///
+  /// If [setter] is `false`, only fields, methods, and getters with that name
+  /// will be found.  If [setter] is `true`, only non-final fields and setters
+  /// will be found.
+  ///
+  /// If multiple members with that name are inherited and not overridden, the
+  /// member from the first declared supertype is returned.
+  Member getInterfaceMember(Class class_, Name name, {bool setter: false});
+}
+
 /// Interface for answering various subclassing queries.
-abstract class ClassHierarchy {
+abstract class ClassHierarchy implements ClassHierarchyBase {
   factory ClassHierarchy(Component component, CoreTypes coreTypes,
       {HandleAmbiguousSupertypes onAmbiguousSupertypes,
       MixinInferrer mixinInferrer}) {
@@ -77,17 +105,6 @@ abstract class ClassHierarchy {
   Supertype getClassAsInstanceOf(Class class_, Class superclass);
 
   /// Returns the instantiation of [superclass] that is implemented by [type],
-  /// or `null` if [type] does not implement [superclass] at all.
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
-      Library clientLibrary, CoreTypes coreTypes);
-
-  /// Returns the type arguments of the instantiation of [superclass] that is
-  /// implemented by [type], or `null` if [type] does not implement [superclass]
-  /// at all.
-  List<DartType> getTypeArgumentsAsInstanceOf(
-      InterfaceType type, Class superclass);
-
-  /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass].  [superclass] must
   /// be a generic class.
   Supertype asInstantiationOf(Supertype type, Class superclass);
@@ -118,17 +135,6 @@ abstract class ClassHierarchy {
   ///
   /// The returned list should not be modified.
   List<Member> getDispatchTargets(Class class_, {bool setters: false});
-
-  /// Returns the possibly abstract interface member of [class_] with the given
-  /// [name].
-  ///
-  /// If [setter] is `false`, only fields, methods, and getters with that name
-  /// will be found.  If [setter] is `true`, only non-final fields and setters
-  /// will be found.
-  ///
-  /// If multiple members with that name are inherited and not overridden, the
-  /// member from the first declared supertype is returned.
-  Member getInterfaceMember(Class class_, Name name, {bool setter: false});
 
   /// Returns the list of members denoting the interface for [class_], which
   /// may include abstract members.
@@ -198,8 +204,10 @@ abstract class ClassHierarchy {
   ///
   /// Note, that it is the clients responsibility to mark all subclasses as
   /// changed too.
+  // TODO(johnniwinther): Support class hierarchy changes directly. Currently
+  // we can handle added superclasses but not removed superclasses.
   ClassHierarchy applyTreeChanges(Iterable<Library> removedLibraries,
-      Iterable<Library> ensureKnownLibraries,
+      Iterable<Library> ensureKnownLibraries, Iterable<Class> updatedClasses,
       {Component reissueAmbiguousSupertypesFor});
 
   /// This method is invoked by the client after a member change on classes:
@@ -795,30 +803,61 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   ClassHierarchy applyTreeChanges(Iterable<Library> removedLibraries,
-      Iterable<Library> ensureKnownLibraries,
+      Iterable<Library> ensureKnownLibraries, Iterable<Class> updatedClasses,
       {Component reissueAmbiguousSupertypesFor}) {
+    Set<_ClassInfo> changedClasses = <_ClassInfo>{};
+
+    void removeClass(Class cls) {
+      _ClassInfo info = _infoMap[cls];
+      if (info == null) return;
+      if (cls.supertype != null) {
+        _infoMap[cls.supertype.classNode]?.directExtenders?.remove(info);
+      }
+      if (cls.mixedInType != null) {
+        _infoMap[cls.mixedInType.classNode]?.directMixers?.remove(info);
+      }
+      for (Supertype supertype in cls.implementedTypes) {
+        _infoMap[supertype.classNode]?.directImplementers?.remove(info);
+        // Remove from directMixers too as the mixin transformation will
+        // "move" the type here.
+        if (cls.isAnonymousMixin || cls.isEliminatedMixin) {
+          _infoMap[supertype.classNode]?.directMixers?.remove(info);
+        }
+      }
+      _infoMap.remove(cls);
+      _recordedAmbiguousSupertypes.remove(cls);
+    }
+
+    void invalidateClass(_ClassInfo info) {
+      if (info == null) return;
+      if (!changedClasses.add(info)) return;
+      if (info.directExtenders != null) {
+        for (_ClassInfo i in info.directExtenders.toList()) {
+          invalidateClass(i);
+        }
+      }
+      if (info.directMixers != null) {
+        for (_ClassInfo i in info.directMixers.toList()) {
+          invalidateClass(i);
+        }
+      }
+      if (info.directImplementers != null) {
+        for (_ClassInfo i in info.directImplementers.toList()) {
+          invalidateClass(i);
+        }
+      }
+      removeClass(info.classNode);
+    }
+
+    for (Class cls in updatedClasses) {
+      invalidateClass(_infoMap[cls]);
+    }
+
     // Remove all references to the removed classes.
     for (Library lib in removedLibraries) {
       if (!knownLibraries.contains(lib)) continue;
       for (Class class_ in lib.classes) {
-        _ClassInfo info = _infoMap[class_];
-        if (class_.supertype != null) {
-          _infoMap[class_.supertype.classNode]?.directExtenders?.remove(info);
-        }
-        if (class_.mixedInType != null) {
-          _infoMap[class_.mixedInType.classNode]?.directMixers?.remove(info);
-        }
-        for (Supertype supertype in class_.implementedTypes) {
-          _infoMap[supertype.classNode]?.directImplementers?.remove(info);
-          // Remove from directMixers too as the mixin transformation will
-          // "move" the type here.
-          if (class_.isAnonymousMixin || class_.isEliminatedMixin) {
-            _infoMap[supertype.classNode]?.directMixers?.remove(info);
-          }
-        }
-
-        _infoMap.remove(class_);
-        _recordedAmbiguousSupertypes.remove(class_);
+        removeClass(class_);
       }
       knownLibraries.remove(lib);
     }
@@ -853,6 +892,10 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
             orderedList: addedClassesSorted);
       }
       knownLibraries.add(lib);
+    }
+    for (_ClassInfo info in changedClasses) {
+      _topologicalSortVisit(info.classNode, new Set<Class>(),
+          orderedList: addedClassesSorted);
     }
     _initializeTopologicallySortedClasses(
         addedClassesSorted, expectedStartIndex);

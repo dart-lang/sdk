@@ -104,7 +104,7 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
 
   int processBuffer(int bufferIndex) => throw new UnimplementedError();
 
-  String selectedProtocol() native "SecureSocket_GetSelectedProtocol";
+  String? selectedProtocol() native "SecureSocket_GetSelectedProtocol";
 
   void renegotiate(bool useSessionCache, bool requestClientCertificate,
       bool requireClientCertificate) native "SecureSocket_Renegotiate";

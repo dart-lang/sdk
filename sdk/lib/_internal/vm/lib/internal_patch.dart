@@ -11,6 +11,7 @@
 
 import "dart:core" hide Symbol;
 
+import "dart:isolate" show SendPort;
 import "dart:typed_data" show Int32List;
 
 /// These are the additional parts of this patch library:
@@ -47,7 +48,6 @@ class VMLibraryHooks {
   // Implementation of package root/map provision.
   static var packageRootString;
   static var packageConfigString;
-  static var packageRootUriFuture;
   static var packageConfigUriFuture;
   static var resolvePackageUriFuture;
 
@@ -130,3 +130,6 @@ T unsafeCast<T>(Object v) native "Internal_unsafeCast";
 // This is implemented by a recognized method, but in bytecode through a native.
 @pragma('vm:prefer-inline')
 void reachabilityFence(Object object) native "Internal_reachabilityFence";
+
+void sendAndExit(SendPort sendPort, var message)
+    native "SendPortImpl_sendAndExitInternal_";

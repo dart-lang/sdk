@@ -31,7 +31,7 @@ void main() {
     };
 
     test('general', () async {
-      CrashReportSender sender = new CrashReportSender(
+      CrashReportSender sender = new CrashReportSender.prod(
           analytics.trackingId, shouldSend,
           httpClient: mockClient);
 
@@ -43,7 +43,7 @@ void main() {
     });
 
     test('reportsSent', () async {
-      CrashReportSender sender = new CrashReportSender(
+      CrashReportSender sender = new CrashReportSender.prod(
           analytics.trackingId, shouldSend,
           httpClient: mockClient);
 
@@ -59,7 +59,7 @@ void main() {
     });
 
     test('contains message', () async {
-      CrashReportSender sender = new CrashReportSender(
+      CrashReportSender sender = new CrashReportSender.prod(
           analytics.trackingId, shouldSend,
           httpClient: mockClient);
 
@@ -73,7 +73,7 @@ void main() {
     });
 
     test('has attachments', () async {
-      CrashReportSender sender = new CrashReportSender(
+      CrashReportSender sender = new CrashReportSender.prod(
           analytics.trackingId, shouldSend,
           httpClient: mockClient);
 
@@ -94,7 +94,7 @@ void main() {
     });
 
     test('has ptime', () async {
-      CrashReportSender sender = new CrashReportSender(
+      CrashReportSender sender = new CrashReportSender.prod(
           analytics.trackingId, shouldSend,
           httpClient: mockClient);
 

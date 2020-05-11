@@ -45,7 +45,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilder {
   }
 
   @override
-  DartType buildThisType(LibraryBuilder library) {
+  DartType buildThisType() {
     return thisType ??= typedef.type;
   }
 

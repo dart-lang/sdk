@@ -1,0 +1,4 @@
+import 'dart:collection';
+
+LinkedListEntry y;
+main() {}

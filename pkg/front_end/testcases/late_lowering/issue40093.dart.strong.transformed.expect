@@ -14,14 +14,13 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method error() → dynamic {
   for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
     core::print(i);
   }
   {
-    core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int>[]).{core::Iterable::iterator};
+    core::Iterator<core::int*> :sync-for-iterator = <core::int>[].{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       core::int i = :sync-for-iterator.{core::Iterator::current};
       {

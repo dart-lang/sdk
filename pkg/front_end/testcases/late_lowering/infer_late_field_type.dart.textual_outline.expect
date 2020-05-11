@@ -1,0 +1,8 @@
+class A {
+  int? field;
+}
+class B implements A {
+  late ;
+  var field;
+}
+main() { }

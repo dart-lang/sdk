@@ -178,6 +178,10 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
         problem(
             currentParent, "Missing bound for type parameter '$parameter'.");
       }
+      if (parameter.defaultType == null) {
+        problem(currentParent,
+            "Missing default type for type parameter '$parameter'.");
+      }
       if (!typeParametersInScope.add(parameter)) {
         problem(parameter, "Type parameter '$parameter' redeclared.");
       }

@@ -75,6 +75,7 @@ class InheritanceManager3 {
         type.element,
         interface._inheritedMap,
         interface._overridden,
+        doTopMerge: false,
       );
     }
     return interface._inheritedMap;
@@ -106,19 +107,11 @@ class InheritanceManager3 {
     Map<Name, ExecutableElement> declared;
     Interface superInterface;
     Map<Name, ExecutableElement> implemented;
+    List<List<Conflict>> mixinsConflicts = [];
     try {
       // If a class declaration has a member declaration, the signature of that
       // member declaration becomes the signature in the interface.
       declared = _getTypeMembers(type);
-
-      for (var interface in type.interfaces.reversed) {
-        var interfaceObj = getInterface(interface);
-        _addCandidates(
-          namedCandidates,
-          interfaceObj,
-          isNonNullableByDefault: isNonNullableByDefault,
-        );
-      }
 
       if (classElement.isMixin) {
         var superClassCandidates = <Name, List<ExecutableElement>>{};
@@ -145,6 +138,7 @@ class InheritanceManager3 {
           classElement,
           superClass,
           superClassCandidates,
+          doTopMerge: true,
         );
         superImplemented.add(superClass);
       } else {
@@ -156,34 +150,108 @@ class InheritanceManager3 {
             isNonNullableByDefault: isNonNullableByDefault,
           );
 
-          implemented = superInterface.implemented;
+          if (isNonNullableByDefault) {
+            implemented = superInterface.implemented;
+          } else {
+            implemented = {};
+            for (var entry in superInterface.implemented.entries) {
+              implemented[entry.key] = Member.legacy(entry.value);
+            }
+          }
+
           superImplemented.add(implemented);
         } else {
           implemented = {};
         }
 
+        // TODO(scheglov) Handling of members for super and mixins is not
+        // optimal. We always have just one member for each name in super,
+        // multiple candidates happen only when we merge super and multiple
+        // interfaces. Consider using `Map<Name, ExecutableElement>` here.
         for (var mixin in type.mixins) {
+          var mixinElement = mixin.element;
           var interfaceObj = getInterface(mixin);
-          _addCandidates(
-            namedCandidates,
-            interfaceObj,
-            isNonNullableByDefault: isNonNullableByDefault,
-          );
+          // `class X extends S with M1, M2 {}` is semantically a sequence of:
+          //     class S&M1 extends S implements M1 {
+          //       // declared M1 members
+          //     }
+          //     class S&M2 extends S&M1 implements M2 {
+          //       // declared M2 members
+          //     }
+          //     class X extends S&M2 {
+          //       // declared X members
+          //     }
+          // So, each mixin always replaces members in the interface.
+          // And there are individual override conflicts for each mixin.
+          var candidatesFromSuperAndMixin = <Name, List<ExecutableElement>>{};
+          var mixinConflicts = <Conflict>[];
+          for (var name in interfaceObj.map.keys) {
+            var candidate = interfaceObj.map[name];
+
+            var currentList = namedCandidates[name];
+            if (currentList == null) {
+              namedCandidates[name] = [
+                isNonNullableByDefault ? candidate : Member.legacy(candidate),
+              ];
+              continue;
+            }
+
+            var current = currentList.single;
+            if (candidate.enclosingElement == mixinElement) {
+              namedCandidates[name] = [
+                isNonNullableByDefault ? candidate : Member.legacy(candidate),
+              ];
+              if (current.kind != candidate.kind) {
+                var currentIsGetter = current.kind == ElementKind.GETTER;
+                mixinConflicts.add(
+                  Conflict(
+                    name,
+                    [current, candidate],
+                    currentIsGetter ? current : candidate,
+                    currentIsGetter ? candidate : current,
+                  ),
+                );
+              }
+            } else {
+              candidatesFromSuperAndMixin[name] = [current, candidate];
+            }
+          }
+
+          // Merge members from the superclass and the mixin interface.
+          {
+            var map = <Name, ExecutableElement>{};
+            _findMostSpecificFromNamedCandidates(
+              classElement,
+              map,
+              candidatesFromSuperAndMixin,
+              doTopMerge: true,
+            );
+            for (var entry in map.entries) {
+              namedCandidates[entry.key] = [
+                isNonNullableByDefault
+                    ? entry.value
+                    : Member.legacy(entry.value),
+              ];
+            }
+          }
+
+          mixinsConflicts.add(mixinConflicts);
 
           implemented = <Name, ExecutableElement>{}..addAll(implemented);
-          implemented.addEntries(
-            interfaceObj.implemented.entries.where((entry) {
-              var executable = entry.value;
-              if (executable.isAbstract) {
-                return false;
-              }
-              var class_ = executable.enclosingElement;
-              return class_ is ClassElement && !class_.isDartCoreObject;
-            }),
-          );
+          _addMixinMembers(implemented, interfaceObj,
+              isNonNullableByDefault: isNonNullableByDefault);
 
           superImplemented.add(implemented);
         }
+      }
+
+      for (var interface in type.interfaces) {
+        var interfaceObj = getInterface(interface);
+        _addCandidates(
+          namedCandidates,
+          interfaceObj,
+          isNonNullableByDefault: isNonNullableByDefault,
+        );
       }
     } finally {
       _processingClasses.remove(classElement);
@@ -203,6 +271,7 @@ class InheritanceManager3 {
       classElement,
       map,
       namedCandidates,
+      doTopMerge: true,
     );
 
     var noSuchMethodForwarders = <Name>{};
@@ -224,6 +293,15 @@ class InheritanceManager3 {
       }
     }
 
+    /// TODO(scheglov) Instead of merging conflicts we could report them on
+    /// the corresponding mixins applied in the class.
+    for (var mixinConflicts in mixinsConflicts) {
+      if (mixinConflicts.isNotEmpty) {
+        conflicts ??= [];
+        conflicts.addAll(mixinConflicts);
+      }
+    }
+
     var interface = Interface._(
       map,
       declared,
@@ -235,6 +313,30 @@ class InheritanceManager3 {
     );
     _interfaces[type] = interface;
     return interface;
+  }
+
+  void _addMixinMembers(
+    Map<Name, ExecutableElement> implemented,
+    Interface mixin, {
+    @required bool isNonNullableByDefault,
+  }) {
+    for (var entry in mixin.implemented.entries) {
+      var executable = entry.value;
+      if (executable.isAbstract) {
+        continue;
+      }
+
+      var class_ = executable.enclosingElement;
+      if (class_ is ClassElement && class_.isDartCoreObject) {
+        continue;
+      }
+
+      if (!isNonNullableByDefault) {
+        executable = Member.legacy(executable);
+      }
+
+      implemented[entry.key] = executable;
+    }
   }
 
   /// Return the member with the given [name].
@@ -380,9 +482,11 @@ class InheritanceManager3 {
   /// such single most specific signature (i.e. no valid override), then add a
   /// new conflict description.
   List<Conflict> _findMostSpecificFromNamedCandidates(
-      ClassElement targetClass,
-      Map<Name, ExecutableElement> map,
-      Map<Name, List<ExecutableElement>> namedCandidates) {
+    ClassElement targetClass,
+    Map<Name, ExecutableElement> map,
+    Map<Name, List<ExecutableElement>> namedCandidates, {
+    @required bool doTopMerge,
+  }) {
     TypeSystemImpl typeSystem = targetClass.library.typeSystem;
 
     List<Conflict> conflicts;
@@ -407,13 +511,8 @@ class InheritanceManager3 {
         conflicts.add(conflict);
       }
 
-      // Candidates are recorded in forward order, so
-      // `class X extends S with M1, M2 implements I1, I2 {}` will record
-      // candidates from [I1, I2, S, M1, M2]. But during method lookup
-      // candidates should be considered in backward order, i.e. from `M2`,
-      // then from `M1`, then from `S`.
       var validOverrides = <ExecutableElement>[];
-      for (var i = candidates.length - 1; i >= 0; i--) {
+      for (var i = 0; i < candidates.length; i++) {
         var validOverride = candidates[i];
         var overrideHelper = CorrectOverrideHelper(
           library: targetClass.library,
@@ -437,7 +536,11 @@ class InheritanceManager3 {
         continue;
       }
 
-      map[name] = _topMerge(typeSystem, targetClass, validOverrides);
+      if (doTopMerge) {
+        map[name] = _topMerge(typeSystem, targetClass, validOverrides);
+      } else {
+        map[name] = validOverrides.first;
+      }
     }
 
     return conflicts;

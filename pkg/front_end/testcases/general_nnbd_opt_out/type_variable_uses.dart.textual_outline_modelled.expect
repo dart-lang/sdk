@@ -1,0 +1,8 @@
+// @dart = 2.6
+class C<T> {
+  C<T> instanceMethod() {}
+  const C();
+  static C<T> staticMethod() {}
+}
+
+main() {}

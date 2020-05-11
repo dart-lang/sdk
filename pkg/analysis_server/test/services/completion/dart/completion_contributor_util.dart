@@ -9,7 +9,9 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionManager, DartCompletionRequestImpl;
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
@@ -52,7 +54,9 @@ abstract class DartCompletionContributorTest
   @override
   Future<List<CompletionSuggestion>> computeContributedSuggestions(
       DartCompletionRequest request) async {
-    return contributor.computeSuggestions(request);
+    var builder = SuggestionBuilder(request);
+    var suggestions = await contributor.computeSuggestions(request, builder);
+    return [...suggestions, ...builder.suggestions];
   }
 
   DartCompletionContributor createContributor();
@@ -100,6 +104,9 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   int replacementOffset;
   int replacementLength;
 
+  /// The Dartdoc information passed to requests.
+  final DartdocDirectiveInfo dartdocInfo = DartdocDirectiveInfo();
+
   DartCompletionRequest request;
 
   List<CompletionSuggestion> suggestions;
@@ -130,6 +137,33 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
     addSource(testFile, content);
+  }
+
+  void assertCoreTypeSuggestions() {
+    assertSuggest('Comparable');
+    assertSuggest('Comparator');
+    assertSuggest('DateTime');
+    assertSuggest('Deprecated');
+    assertSuggest('Duration');
+    assertSuggest('Error');
+    assertSuggest('Exception');
+    assertSuggest('FormatException');
+    assertSuggest('Function');
+    assertSuggest('Future');
+    assertSuggest('Invocation');
+    assertSuggest('Iterable');
+    assertSuggest('Iterator');
+    assertSuggest('List');
+    assertSuggest('Map');
+    assertSuggest('MapEntry');
+    assertSuggest('Null');
+    assertSuggest('Object');
+    assertSuggest('Pattern');
+    assertSuggest('RegExp');
+    assertSuggest('Set');
+    assertSuggest('StackTrace');
+    assertSuggest('Stream');
+    assertSuggest('String');
   }
 
   void assertHasNoParameterInfo(CompletionSuggestion suggestion) {
@@ -544,7 +578,8 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
         useNewRelevance, CompletionPerformance());
 
     // Build the request
-    var request = await DartCompletionRequestImpl.from(baseRequest);
+    var request =
+        await DartCompletionRequestImpl.from(baseRequest, dartdocInfo);
 
     var range = request.target.computeReplacementRange(request.offset);
     replacementOffset = range.offset;

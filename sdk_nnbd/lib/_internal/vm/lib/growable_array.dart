@@ -108,7 +108,7 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   @pragma("vm:exact-result-type",
-      [_GrowableList, "result-type-uses-passed-type-arguments"])
+      <dynamic>[_GrowableList, "result-type-uses-passed-type-arguments"])
   factory _GrowableList._withData(_List data) native "GrowableList_allocate";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
