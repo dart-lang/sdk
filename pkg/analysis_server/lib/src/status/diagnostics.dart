@@ -785,10 +785,10 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     // sorted later.
     var server = socketServer.analysisServer;
     pages.add(MLCompletionPage(this, server));
+    pages.add(PluginsPage(this, server));
 
     if (server is AnalysisServer) {
       pages.add(CompletionPage(this, server));
-      pages.add(PluginsPage(this, server));
       pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
       pages.add(LspCompletionPage(this, server));
@@ -1200,7 +1200,7 @@ class NotFoundPage extends DiagnosticPage {
 
 class PluginsPage extends DiagnosticPageWithNav {
   @override
-  AnalysisServer server;
+  AbstractAnalysisServer server;
 
   PluginsPage(DiagnosticsSite site, this.server)
       : super(site, 'plugins', 'Plugins', description: 'Plugins in use.');
