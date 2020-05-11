@@ -513,7 +513,7 @@ def dart_vm_extra_builder(name, on_cq=False, location_regexp=None, **kwargs):
 
 def dart_vm_low_priority_builder(name, **kwargs):
     dart_vm_extra_builder(
-        name, priority=LOW, expiration_timeout=time.day, **kwargs)
+        name, channels=["try"], priority=LOW, expiration_timeout=time.day, **kwargs)
 
 
 nightly_builders = []
@@ -677,11 +677,15 @@ dart_vm_low_priority_builder(
 dart_vm_low_priority_builder(
     "vm-kernel-tsan-linux-release-x64", category="vm|misc|t")
 dart_vm_low_priority_builder(
+    "vm-kernel-ubsan-linux-release-x64", category="vm|misc|u")
+dart_vm_low_priority_builder(
     "vm-kernel-precomp-asan-linux-release-x64", category="vm|misc|aot|a")
 dart_vm_low_priority_builder(
     "vm-kernel-precomp-msan-linux-release-x64", category="vm|misc|aot|m")
 dart_vm_low_priority_builder(
     "vm-kernel-precomp-tsan-linux-release-x64", category="vm|misc|aot|t")
+dart_vm_low_priority_builder(
+    "vm-kernel-precomp-ubsan-linux-release-x64", category="vm|misc|aot|u")
 
 # vm|product
 dart_vm_extra_builder(
