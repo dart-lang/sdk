@@ -186,7 +186,7 @@ class OpType {
     if (_requiredType == null) {
       return;
     }
-    if (_requiredType.isDynamic || _requiredType.isObject) {
+    if (_requiredType.isDynamic || _requiredType.isDartCoreObject) {
       _requiredType = null;
       return;
     }

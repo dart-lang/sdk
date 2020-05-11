@@ -39,7 +39,7 @@ bool _isLegacyTop(DartType t, {@required bool orTrueTop}) {
     return _isLegacyTop((t as InterfaceType).typeArguments[0],
         orTrueTop: orTrueTop);
   }
-  if (t.isObject && t.nullabilitySuffix == NullabilitySuffix.none) {
+  if (t.isDartCoreObject && t.nullabilitySuffix == NullabilitySuffix.none) {
     return true;
   }
   return orTrueTop ? _isTop(t) : false;
@@ -50,7 +50,7 @@ bool _isTop(DartType t) {
     return _isTop((t as InterfaceType).typeArguments[0]);
   }
   return t.isDynamic ||
-      (t.isObject && t.nullabilitySuffix != NullabilitySuffix.none) ||
+      (t.isDartCoreObject && t.nullabilitySuffix != NullabilitySuffix.none) ||
       t.isVoid ||
       identical(t, UnknownInferredType.instance);
 }

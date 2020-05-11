@@ -658,7 +658,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       // `is Object` or `is! Object`
-      if (rhsType.isObject) {
+      if (rhsType.isDartCoreObject) {
         var nullability = rhsType.nullabilitySuffix;
         if (nullability == NullabilitySuffix.star ||
             nullability == NullabilitySuffix.question) {

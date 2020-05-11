@@ -416,7 +416,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else if (identical(t, other) ||
         other.isDynamic ||
         other.isDartCoreFunction ||
-        other.isObject) {
+        other.isDartCoreObject) {
       return true;
     } else if (other is! FunctionType) {
       return false;
@@ -830,6 +830,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return element.name == "Symbol" && element.library.isDartCore;
   }
 
+  @Deprecated('Use isDartCoreObject')
   @override
   bool get isObject => element.supertype == null && !element.isMixin;
 
@@ -1837,6 +1838,7 @@ abstract class TypeImpl implements DartType {
   @override
   bool get isDynamic => false;
 
+  @Deprecated('Use isDartCoreObject')
   @override
   bool get isObject => false;
 

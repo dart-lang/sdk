@@ -356,7 +356,7 @@ class ConstantEvaluationEngine {
           // manually insert a reference to the implicit superconstructor.
           InterfaceType superclass =
               (constant.returnType as InterfaceType).superclass;
-          if (superclass != null && !superclass.isObject) {
+          if (superclass != null && !superclass.isDartCoreObject) {
             ConstructorElement unnamedConstructor =
                 superclass.element.unnamedConstructor?.declaration;
             if (unnamedConstructor != null) {
@@ -736,7 +736,7 @@ class ConstantEvaluationEngine {
     }
     // Evaluate explicit or implicit call to super().
     InterfaceType superclass = definingClass.superclass;
-    if (superclass != null && !superclass.isObject) {
+    if (superclass != null && !superclass.isDartCoreObject) {
       ConstructorElement superConstructor =
           superclass.lookUpConstructor(superName, constructor.library);
       if (superConstructor != null) {

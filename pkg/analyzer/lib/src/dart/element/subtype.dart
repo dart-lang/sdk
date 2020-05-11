@@ -445,12 +445,12 @@ class SubtypeHelper {
     // Note: we should never reach `_isInterfaceSubtypeOf` with `i2 == Object`,
     // because top types are eliminated before `isSubtypeOf` calls this.
     // TODO(scheglov) Replace with assert().
-    if (identical(subType, superType) || superType.isObject) {
+    if (identical(subType, superType) || superType.isDartCoreObject) {
       return true;
     }
 
     // Object cannot subtype anything but itself (handled above).
-    if (subType.isObject) {
+    if (subType.isDartCoreObject) {
       return false;
     }
 

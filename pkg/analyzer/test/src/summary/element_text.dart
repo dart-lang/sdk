@@ -1045,7 +1045,7 @@ class _ElementWriter {
     }
     writeName(e);
     writeCodeRange(e);
-    if (e.bound != null && !e.bound.isObject) {
+    if (e.bound != null && !e.bound.isDartCoreObject) {
       buffer.write(' extends ');
       writeType(e.bound);
     }

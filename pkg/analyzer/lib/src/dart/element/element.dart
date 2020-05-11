@@ -777,7 +777,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (hasReferenceToSuper) {
       return false;
     }
-    if (!supertype.isObject) {
+    if (!supertype.isDartCoreObject) {
       return false;
     }
     for (ConstructorElement constructor in constructors) {

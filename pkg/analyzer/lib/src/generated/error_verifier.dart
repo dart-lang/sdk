@@ -1928,7 +1928,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (supertype == null) {
       return;
     }
-    if (supertype.isObject) {
+    if (supertype.isDartCoreObject) {
       return;
     }
     ConstructorElement unnamedConstructor =
@@ -3249,7 +3249,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       TypeName mixinName, ClassElement mixinElement) {
     InterfaceType mixinSupertype = mixinElement.supertype;
     if (mixinSupertype != null) {
-      if (!mixinSupertype.isObject ||
+      if (!mixinSupertype.isDartCoreObject ||
           !mixinElement.isMixinApplication && mixinElement.mixins.isNotEmpty) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
