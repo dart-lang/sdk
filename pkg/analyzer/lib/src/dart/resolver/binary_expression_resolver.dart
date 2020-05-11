@@ -264,6 +264,8 @@ class BinaryExpressionResolver {
       type?.resolveToBound(_typeProvider.objectType);
 
   void _resolveUnsupportedOperator(BinaryExpressionImpl node) {
+    node.leftOperand.accept(_resolver);
+    node.rightOperand.accept(_resolver);
     _inferenceHelper.recordStaticType(node, DynamicTypeImpl.instance);
   }
 
