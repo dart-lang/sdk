@@ -681,6 +681,7 @@ const List<ErrorCode> errorCodeValues = [
   ScannerErrorCode.MISSING_QUOTE,
   ScannerErrorCode.UNABLE_GET_CONTENT,
   ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING,
+  ScannerErrorCode.UNEXPECTED_TOKEN,
   ScannerErrorCode.UNSUPPORTED_OPERATOR,
   ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
   ScannerErrorCode.UNTERMINATED_STRING_LITERAL,

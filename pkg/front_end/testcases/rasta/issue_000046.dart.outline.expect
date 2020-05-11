@@ -2,6 +2,10 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/rasta/issue_000046.dart:6:19: Error: Can't find '(' to match ')'.
+//   C c = new Object)();
+//                   ^
+//
 // pkg/front_end/testcases/rasta/issue_000046.dart:6:13: Error: Expected '(' after this.
 //   C c = new Object)();
 //             ^^^^^^

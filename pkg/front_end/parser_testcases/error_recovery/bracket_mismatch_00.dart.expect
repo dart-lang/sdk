@@ -8,11 +8,15 @@ parser/error_recovery/bracket_mismatch_00:11:5: Expected ')' before this.
     ])
     ^
 
+parser/error_recovery/bracket_mismatch_00:11:5: Can't find '[' to match ']'.
+    ])
+    ^
+
 beginCompilationUnit(void)
   beginMetadataStar(void)
   endMetadataStar(0)
   beginTopLevelMember(void)
-    beginTopLevelMethod(, null)
+    beginTopLevelMethod(UnmatchedEndToken(]), null)
       handleVoidKeyword(void)
       handleIdentifier(good, topLevelFunctionDeclaration)
       handleNoTypeVariables(()
@@ -53,4 +57,6 @@ beginCompilationUnit(void)
       endBlockFunctionBody(1, {, })
     endTopLevelMethod(void, null, })
   endTopLevelDeclaration()
+  handleErrorToken(UnmatchedEndToken(]))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '[' to match ']'., null, {string: [, token: ]}], UnmatchedEndToken(]), UnmatchedEndToken(]))
 endCompilationUnit(2, )

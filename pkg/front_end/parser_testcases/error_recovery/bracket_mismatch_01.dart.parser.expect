@@ -34,7 +34,7 @@ D(),
 }
 }
 
-class[KeywordToken] C[StringToken] {[BeginToken]
+[UnmatchedEndToken]class[KeywordToken] C[StringToken] {[BeginToken]
 C[StringToken]([BeginToken]{[BeginToken]c[StringToken]}[SimpleToken])[SimpleToken];[SimpleToken]
 C[StringToken] m[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
 return[KeywordToken] C[StringToken]([BeginToken]

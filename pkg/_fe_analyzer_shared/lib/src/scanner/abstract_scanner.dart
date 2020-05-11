@@ -27,6 +27,7 @@ import 'characters.dart';
 import 'error_token.dart'
     show
         NonAsciiIdentifierToken,
+        UnmatchedEndToken,
         UnmatchedToken,
         UnsupportedOperator,
         UnterminatedString,
@@ -395,7 +396,9 @@ abstract class AbstractScanner implements Scanner {
       bool foundMatchingBrace, TokenType type, int openKind) {
     if (!foundMatchingBrace) {
       // No begin group. Leave the grouping stack alone and just continue.
-      appendPrecedenceToken(type);
+      Token ignoredToken = new Token(type, tokenStart, comments);
+      appendToken(ignoredToken);
+      prependErrorToken(new UnmatchedEndToken(ignoredToken));
       return advance();
     }
     appendPrecedenceToken(type);

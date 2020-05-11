@@ -20,6 +20,10 @@ parser/error_recovery/bracket_mismatch_01:27:9: Expected ')' before this.
         ]),
         ^
 
+parser/error_recovery/bracket_mismatch_01:27:9: Can't find '[' to match ']'.
+        ]),
+        ^
+
 beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)
@@ -228,4 +232,6 @@ beginCompilationUnit(class)
       endClassOrMixinBody(DeclarationKind.Class, 2, {, })
     endClassDeclaration(class, })
   endTopLevelDeclaration()
+  handleErrorToken(UnmatchedEndToken(]))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '[' to match ']'., null, {string: [, token: ]}], UnmatchedEndToken(]), UnmatchedEndToken(]))
 endCompilationUnit(2, )

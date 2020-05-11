@@ -4,6 +4,6 @@ void foo() {
 {foo();;);}
 }
 
-void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+[UnmatchedEndToken]void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
 {[BeginToken]foo[StringToken]([BeginToken])[SimpleToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken])[SimpleToken];[SimpleToken]}[SimpleToken]
 }[SimpleToken][SimpleToken]

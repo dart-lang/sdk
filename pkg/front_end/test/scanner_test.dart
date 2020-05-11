@@ -772,7 +772,9 @@ abstract class ScannerTestBase {
     var closeParen = closeBracket.next;
     expect(closeParen.next.type, TokenType.EOF);
     expect(openParen.endToken, same(closeParen));
-    listener.assertNoErrors();
+    listener.assertErrors([
+      new TestError(1, ScannerErrorCode.UNEXPECTED_TOKEN, [']']),
+    ]);
   }
 
   void test_mismatched_closer2() {
@@ -788,7 +790,7 @@ abstract class ScannerTestBase {
     //    ignored/unmatched (i.e. 2 recoveries).
     // 2) `[(])` where `]` is ignored/unmatched and `[` is unmatched (i.e.
     //    2 recoveries).
-    // Both options are "equally bad" and the first choise is made.
+    // Both options are "equally bad" and the first choice is made.
     ErrorListener listener = new ErrorListener();
     BeginToken openBracket = scanWithListener('[(])', listener);
     BeginToken openParen = openBracket.next;
@@ -803,6 +805,7 @@ abstract class ScannerTestBase {
     expect(openParen.endToken, same(closeParen));
     listener.assertErrors([
       new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(3, ScannerErrorCode.UNEXPECTED_TOKEN, [')']),
     ]);
   }
 

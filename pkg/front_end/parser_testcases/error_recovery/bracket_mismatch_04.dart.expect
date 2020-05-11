@@ -16,11 +16,15 @@ parser/error_recovery/bracket_mismatch_04:2:16: Unexpected token ';'.
   foo(() {bar());});
                ^
 
+parser/error_recovery/bracket_mismatch_04:2:16: Can't find '(' to match ')'.
+  foo(() {bar());});
+               ^
+
 beginCompilationUnit(void)
   beginMetadataStar(void)
   endMetadataStar(0)
   beginTopLevelMember(void)
-    beginTopLevelMethod(, null)
+    beginTopLevelMethod(UnmatchedEndToken()), null)
       handleVoidKeyword(void)
       handleIdentifier(foo, topLevelFunctionDeclaration)
       handleNoTypeVariables(()
@@ -61,4 +65,6 @@ beginCompilationUnit(void)
       endBlockFunctionBody(1, {, })
     endTopLevelMethod(void, null, })
   endTopLevelDeclaration()
+  handleErrorToken(UnmatchedEndToken()))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '(' to match ')'., null, {string: (, token: )}], UnmatchedEndToken()), UnmatchedEndToken()))
 endCompilationUnit(1, )

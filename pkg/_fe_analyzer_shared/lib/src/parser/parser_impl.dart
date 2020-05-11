@@ -3120,6 +3120,8 @@ class Parser {
     return token.type.isReservedWord;
   }
 
+  /// Whether [token] (the token right after a potential name) indicates it to
+  /// be a method or field definition.
   bool indicatesMethodOrField(Token token) {
     String value = token.stringValue;
     if (identical(value, ';') ||
@@ -4925,7 +4927,8 @@ class Parser {
   Token parseLiteralListSuffix(Token token, Token constKeyword) {
     Token beforeToken = token;
     Token beginToken = token = token.next;
-    assert(optional('[', token) || optional('[]', token));
+    assert(optional('[', token) || optional('[]', token),
+        "Token isn't as expected: ${token?.lexeme}");
     int count = 0;
     if (optional('[]', token)) {
       token = rewriteSquareBrackets(beforeToken).next;

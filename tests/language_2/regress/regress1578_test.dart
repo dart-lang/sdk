@@ -7,6 +7,9 @@
 ]~<)$
 // [error line 7, column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
+// [cfe] Can't find '[' to match ']'.
+// [error line 7, column 1, length 1]
+// [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
 // [cfe] Expected a declaration, but got ']'.
 // [error line 7, column 2, length 1]
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
@@ -16,6 +19,9 @@
 // [cfe] Expected a declaration, but got '<'.
 // ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
+// [cfe] Can't find '(' to match ')'.
+// ^
+// [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
 // [cfe] Expected a declaration, but got ')'.
 //  ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN

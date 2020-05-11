@@ -70,6 +70,14 @@ String closeBraceFor(String openBrace) {
   }[openBrace];
 }
 
+String openBraceFor(String closeBrace) {
+  return const {
+    ')': '(',
+    ']': '[',
+    '}': '{',
+  }[closeBrace];
+}
+
 String closeQuoteFor(String openQuote) {
   return const {
     '"': '"',

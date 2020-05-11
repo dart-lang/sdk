@@ -14,7 +14,7 @@ void bad() {
 ];
 }
 
-void[KeywordToken] good[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+[UnmatchedEndToken]void[KeywordToken] good[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
 [[BeginToken]
 ([BeginToken][[BeginToken]
 ][SimpleToken])[SimpleToken]

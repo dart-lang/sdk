@@ -5,7 +5,7 @@ foo(() {bar();;);});
 }
 
 
-void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+[UnmatchedEndToken]void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
 foo[StringToken]([BeginToken]([BeginToken])[SimpleToken] {[BeginToken]bar[StringToken]([BeginToken])[SimpleToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken])[SimpleToken];[SimpleToken]}[SimpleToken])[SimpleToken];[SimpleToken]
 }[SimpleToken]
 [SimpleToken]
