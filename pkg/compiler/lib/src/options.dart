@@ -334,7 +334,7 @@ class CompilerOptions implements DiagnosticOptions {
   bool experimentCallInstrumentation = false;
 
   /// Whether to use the new RTI representation (default).
-  bool useNewRti = true;
+  final bool useNewRti = true;
 
   /// Whether null-safety (non-nullable types) are enabled in the sdk.
   ///
@@ -436,7 +436,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
-      ..useNewRti = !_hasOption(options, Flags.useOldRti)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries = platformBinaries
@@ -501,10 +500,8 @@ class CompilerOptions implements DiagnosticOptions {
     }
 
     if (benchmarkingExperiment) {
-      // TODO(sra): Set flags implied by '--benchmarking-x'. At this time we
-      // use it to run the old-rti to continue comparing data with new-rti, but
-      // we should remove it once we start benchmarking NNBD.
-      useNewRti = false;
+      // Set flags implied by '--benchmarking-x'.
+      // TODO(sra): Use this for some NNBD variant.
     }
 
     if (_noLegacyJavaScript) legacyJavaScript = false;
