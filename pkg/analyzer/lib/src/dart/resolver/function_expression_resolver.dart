@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/generated/migration.dart';
@@ -34,8 +35,6 @@ class FunctionExpressionResolver {
 
   bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
 
-  TypeProvider get _typeProvider => _resolver.typeProvider;
-
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(FunctionExpression node) {
@@ -50,7 +49,6 @@ class FunctionExpressionResolver {
       _promoteManager.enterFunctionBody(body);
     }
 
-    DartType returnType;
     var contextType = InferenceContext.getContext(node);
     if (contextType is FunctionType) {
       contextType = _matchFunctionTypeParameters(
@@ -59,8 +57,7 @@ class FunctionExpressionResolver {
       );
       if (contextType is FunctionType) {
         _inferFormalParameterList(node.parameters, contextType);
-        returnType = _resolver.computeReturnOrYieldType(contextType.returnType);
-        InferenceContext.setType(body, returnType);
+        InferenceContext.setType(body, contextType.returnType);
       }
     }
 
@@ -69,8 +66,9 @@ class FunctionExpressionResolver {
 
     if (_flowAnalysis != null) {
       if (_flowAnalysis.flow != null && !isFunctionDeclaration) {
+        var bodyContext = BodyInferenceContext.of(node.body);
         _resolver.checkForBodyMayCompleteNormally(
-          returnType: returnType,
+          returnType: bodyContext.contextType,
           body: body,
           errorNode: body,
         );
@@ -79,29 +77,6 @@ class FunctionExpressionResolver {
       }
     } else {
       _promoteManager.exitFunctionBody();
-    }
-  }
-
-  /// Given a function body and its return type, compute the return type of
-  /// the entire function, taking into account whether the function body
-  /// is `sync*`, `async` or `async*`.
-  ///
-  /// See also [FunctionBody.isAsynchronous], [FunctionBody.isGenerator].
-  DartType _computeReturnTypeOfFunction(FunctionBody body, DartType type) {
-    if (body.isGenerator) {
-      InterfaceType generatedType = body.isAsynchronous
-          ? _typeProvider.streamType2(type)
-          : _typeProvider.iterableType2(type);
-      return _nonNullable(generatedType);
-    } else if (body.isAsynchronous) {
-      if (type.isDartAsyncFutureOr) {
-        type = (type as InterfaceType).typeArguments[0];
-      }
-      DartType futureType =
-          _typeProvider.futureType2(_typeSystem.flatten(type));
-      return _nonNullable(futureType);
-    } else {
-      return type;
     }
   }
 
@@ -163,11 +138,7 @@ class FunctionExpressionResolver {
   /// (in strong mode) a local function declaration.
   DartType _inferLocalFunctionReturnType(FunctionExpression node) {
     FunctionBody body = node.body;
-
-    DartType computedType =
-        InferenceContext.getContext(body) ?? DynamicTypeImpl.instance;
-
-    return _computeReturnTypeOfFunction(body, computedType);
+    return InferenceContext.getContext(body) ?? DynamicTypeImpl.instance;
   }
 
   /// Given a downward inference type [fnType], and the declared
@@ -211,17 +182,6 @@ class FunctionExpressionResolver {
         nullabilitySuffix: _resolver.noneOrStarSuffix,
       );
     }).toList());
-  }
-
-  /// Return the non-nullable variant of the [type] if NNBD is enabled, otherwise
-  /// return the type itself.
-  ///
-  /// TODO(scheglov) this is duplicate
-  DartType _nonNullable(DartType type) {
-    if (_isNonNullableByDefault) {
-      return _typeSystem.promoteToNonNull(type);
-    }
-    return type;
   }
 
   void _resolve2(FunctionExpression node) {

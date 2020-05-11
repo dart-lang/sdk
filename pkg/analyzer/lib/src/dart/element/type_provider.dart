@@ -346,7 +346,9 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  DartType get neverType => NeverTypeImpl.instance;
+  DartType get neverType => isNonNullableByDefault
+      ? NeverTypeImpl.instance
+      : NeverTypeImpl.instanceLegacy;
 
   @override
   Set<ClassElement> get nonSubtypableClasses => _nonSubtypableClasses ??= {
