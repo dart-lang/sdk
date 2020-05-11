@@ -45,7 +45,9 @@ import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:watcher/watcher.dart';
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
@@ -293,6 +295,37 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ));
   }
 
+  void onOverlayCreated(String path, String content) {
+    resourceProvider.setOverlay(path, content: content, modificationStamp: 0);
+
+    _afterOverlayChanged(path, plugin.AddContentOverlay(content));
+  }
+
+  void onOverlayDestroyed(String path) {
+    resourceProvider.removeOverlay(path);
+
+    _afterOverlayChanged(path, plugin.RemoveContentOverlay());
+  }
+
+  /// Updates an overlay on [path] by applying the [edits] to the current
+  /// overlay.
+  ///
+  /// If the result of applying the edits is already known, [newContent] can be
+  /// set to avoid doing that calculation twice.
+  void onOverlayUpdated(String path, Iterable<plugin.SourceEdit> edits,
+      {String newContent}) {
+    assert(resourceProvider.hasOverlay(path));
+    if (newContent == null) {
+      final oldContent = resourceProvider.getFile(path).readAsStringSync();
+      newContent = plugin.applySequenceOfEdits(oldContent, edits);
+    }
+
+    resourceProvider.setOverlay(path,
+        content: newContent, modificationStamp: 0);
+
+    _afterOverlayChanged(path, plugin.ChangeContentOverlay(edits));
+  }
+
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
     final params =
         PublishClosingLabelsParams(Uri.file(path).toString(), labels);
@@ -504,14 +537,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     setAnalysisRoots(newPaths.toList());
   }
 
-  void updateOverlay(String path, String contents) {
-    if (contents != null) {
-      resourceProvider.setOverlay(path,
-          content: contents, modificationStamp: 0);
-    } else {
-      resourceProvider.removeOverlay(path);
-    }
+  void _afterOverlayChanged(String path, dynamic changeForPlugins) {
     driverMap.values.forEach((driver) => driver.changeFile(path));
+    pluginManager.setAnalysisUpdateContentParams(
+      plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
+    );
 
     notifyDeclarationsTracker(path);
     notifyFlutterWidgetDescriptions(path);
