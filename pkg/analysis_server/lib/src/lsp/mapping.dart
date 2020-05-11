@@ -196,6 +196,14 @@ lsp.CompletionItem declarationToCompletionItem(
     case DeclarationKind.ENUM_CONSTANT:
       label = '${declaration.parent.name}.${declaration.name}';
       break;
+    case DeclarationKind.GETTER:
+    case DeclarationKind.FIELD:
+      label = declaration.parent != null &&
+              declaration.parent.name != null &&
+              declaration.parent.name.isNotEmpty
+          ? '${declaration.parent.name}.${declaration.name}'
+          : declaration.name;
+      break;
     case DeclarationKind.CONSTRUCTOR:
       label = declaration.parent.name;
       if (declaration.name.isNotEmpty) {

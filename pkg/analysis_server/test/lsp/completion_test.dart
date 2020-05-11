@@ -487,31 +487,6 @@ main() {
     expectAutoImportCompletion(resolvedCompletions, '../source_file3.dart');
   }
 
-  /// Ensure non-static fields are not included in completions
-  /// https://github.com/dart-lang/sdk/issues/41841
-  Future<void> test_suggestionSets_doNotIncludeUnrelatedInstanceFields() async {
-    // Create another library with a class that has some field.
-    newFile(
-      join(projectFolderPath, 'other_file.dart'),
-      content: 'class MyUnrelatedClass { DateTime myUnrelatedField; }',
-    );
-
-    // We don't have any instance of the class above, so do not expect its
-    // field to show up.
-    final content = 'main() => myUnrelatedFiel^';
-
-    final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
-    await openFile(mainFileUri, withoutMarkers(content));
-    await initialAnalysis;
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-
-    // This unrelated field should not be included in the completion list.
-    expect(res.any((c) => c.label.contains('myUnrelatedField')), isFalse);
-  }
-
   Future<void> test_suggestionSets_enumValues() async {
     newFile(
       join(projectFolderPath, 'source_file.dart'),
@@ -794,6 +769,77 @@ main() {
 import '../other_file.dart';
 
 part 'main.dart';'''));
+  }
+
+  Future<void> test_suggestionSets_members() async {
+    newFile(
+      join(projectFolderPath, 'source_file.dart'),
+      content: '''
+      class MyExportedClass {
+        DateTime myInstanceDateTime;
+        static DateTime myStaticDateTimeField;
+        static DateTime get myStaticDateTimeGetter => null;
+      }
+      ''',
+    );
+
+    final content = '''
+main() {
+  var a = MyExported^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completions =
+        res.where((c) => c.label.startsWith('MyExportedClass')).toList();
+    expect(
+        completions.map((c) => c.label),
+        unorderedEquals([
+          'MyExportedClass',
+          'MyExportedClass()',
+          // The instance field should not show up.
+          'MyExportedClass.myStaticDateTimeField',
+          'MyExportedClass.myStaticDateTimeGetter'
+        ]));
+
+    final completion = completions
+        .singleWhere((c) => c.label == 'MyExportedClass.myStaticDateTimeField');
+
+    // Resolve the completion item (via server) to get its edits. This is the
+    // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
+    // populate additional info (in our case, the additional edits for inserting
+    // the import).
+    final resolved = await resolveCompletion(completion);
+    expect(resolved, isNotNull);
+
+    // Ensure the detail field was update to show this will auto-import.
+    expect(
+        resolved.detail, startsWith("Auto import from '../source_file.dart'"));
+
+    // Ensure the edit was added on.
+    expect(resolved.textEdit, isNotNull);
+
+    // Apply both the main completion edit and the additionalTextEdits atomically.
+    final newContent = applyTextEdits(
+      withoutMarkers(content),
+      [resolved.textEdit].followedBy(resolved.additionalTextEdits).toList(),
+    );
+
+    // Ensure both edits were made - the completion, and the inserted import.
+    expect(newContent, equals('''
+import '../source_file.dart';
+
+main() {
+  var a = MyExportedClass.myStaticDateTimeField
+}
+    '''));
   }
 
   Future<void> test_suggestionSets_namedConstructors() async {
