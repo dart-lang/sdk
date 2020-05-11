@@ -367,12 +367,12 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(EAX));  // Value.
+  summary->set_in(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
   summary->set_in(1, Location::RegisterLocation(
                          TypeTestABI::kInstantiatorTypeArgumentsReg));
   summary->set_in(
       2, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
-  summary->set_out(0, Location::RegisterLocation(EAX));
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 

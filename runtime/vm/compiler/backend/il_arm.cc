@@ -667,10 +667,7 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                          TypeTestABI::kInstantiatorTypeArgumentsReg));
   summary->set_in(
       2, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
-
-  // TODO(http://dartbug.com/32787): Use Location::SameAsFirstInput() instead,
-  // once register allocator no longer hits assertion.
-  summary->set_out(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
+  summary->set_out(0, Location::SameAsFirstInput());
 
   if (using_stub) {
     // Let's reserve all registers except for the input ones.
