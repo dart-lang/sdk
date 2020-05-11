@@ -2722,12 +2722,7 @@ void FlowGraphAllocator::AllocateUnallocatedRanges() {
 
 bool FlowGraphAllocator::TargetLocationIsSpillSlot(LiveRange* range,
                                                    Location target) {
-  if (target.IsStackSlot() || target.IsDoubleStackSlot() ||
-      target.IsConstant()) {
-    ASSERT(GetLiveRange(range->vreg())->spill_slot().Equals(target));
-    return true;
-  }
-  return false;
+  return GetLiveRange(range->vreg())->spill_slot().Equals(target);
 }
 
 void FlowGraphAllocator::ConnectSplitSiblings(LiveRange* parent,
@@ -2843,11 +2838,7 @@ void FlowGraphAllocator::ResolveControlFlow() {
   // this will cause spilling to occur on the fast path (at the definition).
   for (intptr_t i = 0; i < spilled_.length(); i++) {
     LiveRange* range = spilled_[i];
-    if (range->assigned_location().IsStackSlot() ||
-        range->assigned_location().IsDoubleStackSlot() ||
-        range->assigned_location().IsConstant()) {
-      ASSERT(range->assigned_location().Equals(range->spill_slot()));
-    } else {
+    if (!range->assigned_location().Equals(range->spill_slot())) {
       AddMoveAt(range->Start() + 1, range->spill_slot(),
                 range->assigned_location());
     }
