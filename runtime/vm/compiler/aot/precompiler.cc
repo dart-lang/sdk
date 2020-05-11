@@ -2368,7 +2368,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
       const Function& function = parsed_function()->function();
 
-      CompilerState compiler_state(thread(), /*is_aot=*/true);
+      CompilerState compiler_state(thread(), /*is_aot=*/true,
+                                   CompilerState::ShouldTrace(function));
 
       {
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();

@@ -532,7 +532,8 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       FlowGraph* flow_graph = nullptr;
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
 
-      CompilerState compiler_state(thread(), /*is_aot=*/false);
+      CompilerState compiler_state(thread(), /*is_aot=*/false,
+                                   CompilerState::ShouldTrace(function));
 
       {
         if (optimized()) {

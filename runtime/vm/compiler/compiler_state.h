@@ -16,16 +16,27 @@
 
 namespace dart {
 
+class Function;
 class LocalScope;
 class LocalVariable;
 class SlotCache;
 class Slot;
 
+enum class CompilerTracing {
+  kOn,
+  kOff,
+};
+
 // Global compiler state attached to the thread.
 class CompilerState : public ThreadStackResource {
  public:
-  CompilerState(Thread* thread, bool is_aot)
-      : ThreadStackResource(thread), cha_(thread), is_aot_(is_aot) {
+  CompilerState(Thread* thread,
+                bool is_aot,
+                CompilerTracing tracing = CompilerTracing::kOn)
+      : ThreadStackResource(thread),
+        cha_(thread),
+        is_aot_(is_aot),
+        tracing_(tracing) {
     previous_ = thread->SetCompilerState(this);
   }
 
@@ -88,6 +99,12 @@ class CompilerState : public ThreadStackResource {
 
   bool is_aot() const { return is_aot_; }
 
+  bool should_trace() const { return tracing_ == CompilerTracing::kOn; }
+
+  static bool ShouldTrace() { return Current().should_trace(); }
+
+  static CompilerTracing ShouldTrace(const Function& func);
+
  private:
   CHA cha_;
   intptr_t deopt_id_ = 0;
@@ -100,7 +117,9 @@ class CompilerState : public ThreadStackResource {
   ZoneGrowableArray<ZoneGrowableArray<const Slot*>*>* dummy_slots_ = nullptr;
   ZoneGrowableArray<LocalVariable*>* dummy_captured_vars_ = nullptr;
 
-  bool is_aot_;
+  const bool is_aot_;
+
+  const CompilerTracing tracing_;
 
   CompilerState* previous_;
 };

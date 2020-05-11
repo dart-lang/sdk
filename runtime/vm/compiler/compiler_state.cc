@@ -6,6 +6,7 @@
 
 #include <functional>
 
+#include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/slot.h"
 #include "vm/growable_array.h"
 #include "vm/scopes.h"
@@ -68,6 +69,11 @@ const ZoneGrowableArray<const Slot*>& CompilerState::GetDummyContextSlots(
 
         return slots;
       });
+}
+
+CompilerTracing CompilerState::ShouldTrace(const Function& func) {
+  return FlowGraphPrinter::ShouldPrint(func) ? CompilerTracing::kOn
+                                             : CompilerTracing::kOff;
 }
 
 }  // namespace dart

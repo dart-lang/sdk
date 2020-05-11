@@ -16,10 +16,14 @@
 
 namespace dart {
 
-#if defined(DEBUG)
+#if !defined(PRODUCT)
+#define INCLUDE_LINEAR_SCAN_TRACING_CODE
+#endif
+
+#if defined(INCLUDE_LINEAR_SCAN_TRACING_CODE)
 #define TRACE_ALLOC(statement)                                                 \
   do {                                                                         \
-    if (FLAG_trace_ssa_allocator) statement;                                   \
+    if (FLAG_trace_ssa_allocator && CompilerState::ShouldTrace()) statement;   \
   } while (0)
 #else
 #define TRACE_ALLOC(statement)
@@ -2746,7 +2750,7 @@ void FlowGraphAllocator::ConnectSplitSiblings(LiveRange* parent,
   Location target;
   Location source;
 
-#if defined(DEBUG)
+#if defined(INCLUDE_LINEAR_SCAN_TRACING_CODE)
   LiveRange* source_cover = NULL;
   LiveRange* target_cover = NULL;
 #endif
@@ -2756,14 +2760,14 @@ void FlowGraphAllocator::ConnectSplitSiblings(LiveRange* parent,
     if (range->CanCover(source_pos)) {
       ASSERT(source.IsInvalid());
       source = range->assigned_location();
-#if defined(DEBUG)
+#if defined(INCLUDE_LINEAR_SCAN_TRACING_CODE)
       source_cover = range;
 #endif
     }
     if (range->CanCover(target_pos)) {
       ASSERT(target.IsInvalid());
       target = range->assigned_location();
-#if defined(DEBUG)
+#if defined(INCLUDE_LINEAR_SCAN_TRACING_CODE)
       target_cover = range;
 #endif
     }
@@ -2926,7 +2930,7 @@ void FlowGraphAllocator::AllocateRegisters() {
 
   BuildLiveRanges();
 
-  if (FLAG_print_ssa_liveranges) {
+  if (FLAG_print_ssa_liveranges && CompilerState::ShouldTrace()) {
     const Function& function = flow_graph_.function();
     THR_Print("-- [before ssa allocator] ranges [%s] ---------\n",
               function.ToFullyQualifiedCString());
@@ -2968,7 +2972,7 @@ void FlowGraphAllocator::AllocateRegisters() {
   intptr_t double_spill_slot_count = spill_slots_.length() * kDoubleSpillFactor;
   entry->set_spill_slot_count(cpu_spill_slot_count_ + double_spill_slot_count);
 
-  if (FLAG_print_ssa_liveranges) {
+  if (FLAG_print_ssa_liveranges && CompilerState::ShouldTrace()) {
     const Function& function = flow_graph_.function();
 
     THR_Print("-- [after ssa allocator] ranges [%s] ---------\n",
