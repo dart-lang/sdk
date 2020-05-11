@@ -338,33 +338,13 @@ _findPackagesConfiguration(bool traceLoading, Uri base) {
     while (true) {
       final dirUri = currentDir.uri;
 
-      // We prefer using `.packages` over `.dart_tool/package_config.json` so
-      // old users of `Isolate.packageConfig` which cannot handle the new format
-      // will continue to work (see https://github.com/dart-lang/sdk/issues/41748).
-      final packagesFile = dirUri.resolve(".packages");
-      if (traceLoading) {
-        _log("Checking for $packagesFile file.");
-      }
-      File file = File.fromUri(packagesFile);
-      bool exists = file.existsSync();
-      if (traceLoading) {
-        _log("$packagesFile exists: $exists");
-      }
-      if (exists) {
-        final String data = utf8.decode(file.readAsBytesSync());
-        if (traceLoading) {
-          _log("Loaded packages file from $packagesFile:\n$data");
-        }
-        return _parsePackagesFile(traceLoading, packagesFile, data);
-      }
-
-      // We fallback to using `.dart_tool/package_config.json` if it exists.
+      // We prefer using `.dart_tool/package_config.json` over `.packages`.
       final packageConfig = dirUri.resolve(".dart_tool/package_config.json");
       if (traceLoading) {
         _log("Checking for $packageConfig file.");
       }
-      file = File.fromUri(packageConfig);
-      exists = file.existsSync();
+      File file = File.fromUri(packageConfig);
+      bool exists = file.existsSync();
       if (traceLoading) {
         _log("$packageConfig exists: $exists");
       }
@@ -374,6 +354,24 @@ _findPackagesConfiguration(bool traceLoading, Uri base) {
           _log("Loaded package config file from $packageConfig:$data\n");
         }
         return _parsePackageConfig(traceLoading, packageConfig, data);
+      }
+
+      // We fallback to using `.packages` if it exists.
+      final packagesFile = dirUri.resolve(".packages");
+      if (traceLoading) {
+        _log("Checking for $packagesFile file.");
+      }
+      file = File.fromUri(packagesFile);
+      exists = file.existsSync();
+      if (traceLoading) {
+        _log("$packagesFile exists: $exists");
+      }
+      if (exists) {
+        final String data = utf8.decode(file.readAsBytesSync());
+        if (traceLoading) {
+          _log("Loaded packages file from $packagesFile:\n$data");
+        }
+        return _parsePackagesFile(traceLoading, packagesFile, data);
       }
 
       final parentDir = currentDir.parent;

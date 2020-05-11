@@ -14,20 +14,18 @@ main() async {
   // Make a folder structure that has both ".dart_tool/package_config.json" and
   // ".packages" and ensure VM prefers to use ".packages".
   await withTempDir((String tempDir) async {
-    // Setup ".packages" with "foo -> ..." mapping.
+    // Setup bogus ".packages" with "foo -> ..." with invalid mapping.
     final dotPackagesPath = path.join(tempDir, '.packages');
     final dotPackagesFile = File(dotPackagesPath);
-    await dotPackagesFile.writeAsString(buildDotPackages('foo'));
+    await dotPackagesFile.writeAsString(buildDotPackages('invalid'));
 
-    // Setup bogus ".dart_tool/package_config.json" with "invalid -> ..."
-    // mapping.
+    // Setup ".dart_tool/package_config.json".
     final dotDartToolDir = path.join(tempDir, '.dart_tool');
     await Directory(dotDartToolDir).create();
     final packageConfigJsonPath =
         path.join(dotDartToolDir, 'package_config.json');
     final packageConfigJsonFile = File(packageConfigJsonPath);
-    await packageConfigJsonFile
-        .writeAsString(buildPackageConfig('invalid', true));
+    await packageConfigJsonFile.writeAsString(buildPackageConfig('foo', true));
 
     final mainFile = path.join(tempDir, 'main.dart');
     await File(mainFile).writeAsString('''
@@ -36,7 +34,7 @@ import 'dart:isolate';
 
 main() async {
   final uri = await Isolate.packageConfig;
-  final expectedUri = Uri.parse('${dotPackagesFile.uri}');
+  final expectedUri = Uri.parse('${packageConfigJsonFile.uri}');
   if (uri != expectedUri) {
     throw 'VM should use .packages file (but used \$uri).';
   }
