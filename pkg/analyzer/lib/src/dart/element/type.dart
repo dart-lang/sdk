@@ -752,10 +752,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   int get hashCode {
-    ClassElement element = this.element;
-    if (element == null) {
-      return 0;
-    }
     return element.hashCode;
   }
 
@@ -766,127 +762,71 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   bool get isDartAsyncFuture {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Future" && element.library.isDartAsync;
   }
 
   @override
   bool get isDartAsyncFutureOr {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "FutureOr" && element.library.isDartAsync;
   }
 
   @override
   bool get isDartCoreBool {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "bool" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreDouble {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "double" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreFunction {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Function" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreInt {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "int" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreList {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "List" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreMap {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Map" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreNull {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Null" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreNum {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "num" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreObject {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Object" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreSet {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Set" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreString {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "String" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreSymbol {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Symbol" && element.library.isDartCore;
   }
 
