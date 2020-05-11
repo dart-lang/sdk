@@ -487,6 +487,31 @@ main() {
     expectAutoImportCompletion(resolvedCompletions, '../source_file3.dart');
   }
 
+  /// Ensure non-static fields are not included in completions
+  /// https://github.com/dart-lang/sdk/issues/41841
+  Future<void> test_suggestionSets_doNotIncludeUnrelatedInstanceFields() async {
+    // Create another library with a class that has some field.
+    newFile(
+      join(projectFolderPath, 'other_file.dart'),
+      content: 'class MyUnrelatedClass { DateTime myUnrelatedField; }',
+    );
+
+    // We don't have any instance of the class above, so do not expect its
+    // field to show up.
+    final content = 'main() => myUnrelatedFiel^';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    // This unrelated field should not be included in the completion list.
+    expect(res.any((c) => c.label.contains('myUnrelatedField')), isFalse);
+  }
+
   Future<void> test_suggestionSets_enumValues() async {
     newFile(
       join(projectFolderPath, 'source_file.dart'),

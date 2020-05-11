@@ -234,9 +234,19 @@ class CompletionHandler
         includedSuggestionRelevanceTags
             .forEach((t) => tagBoosts[t.tag] = t.relevanceBoost);
 
+        // Only specific types of child declarations should be included.
+        // This list matches what's in _protocolAvailableSuggestion in
+        // the DAS implementation.
+        bool shouldIncludeChild(Declaration child) =>
+            child.kind == DeclarationKind.CONSTRUCTOR ||
+            child.kind == DeclarationKind.ENUM_CONSTANT ||
+            (child.kind == DeclarationKind.GETTER && child.isStatic) ||
+            (child.kind == DeclarationKind.FIELD && child.isStatic);
+
         // Collect declarations and their children.
         final allDeclarations = library.declarations
-            .followedBy(library.declarations.expand((decl) => decl.children))
+            .followedBy(library.declarations
+                .expand((decl) => decl.children.where(shouldIncludeChild)))
             .toList();
 
         final setResults = allDeclarations
