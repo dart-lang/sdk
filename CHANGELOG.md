@@ -68,6 +68,13 @@ Updated the Linter to `0.1.115`, which includes:
 
 ### Dart VM
 
+## 2.8.2 - 2020-05-13
+
+This is a patch release that fixes an AOT compilation bug in global
+transformations which manifests as a NoSuchMethod exception
+(issue [flutter/flutter#56479][]).
+
+[flutter/flutter#56479]: https://github.com/flutter/flutter/issues/56479
 
 ## 2.8.1 - 2020-05-06
 
