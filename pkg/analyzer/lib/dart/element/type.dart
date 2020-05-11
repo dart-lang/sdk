@@ -68,6 +68,10 @@ abstract class DartType {
   /// dart:core library.
   bool get isDartCoreInt;
 
+  /// Returns `true` if this type represents the type 'Iterable' defined in the
+  /// dart:core library.
+  bool get isDartCoreIterable;
+
   /// Returns `true` if this type represents the type 'List' defined in the
   /// dart:core library.
   bool get isDartCoreList;
