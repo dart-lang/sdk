@@ -77,4 +77,7 @@ class ConvertToRelativeImport extends CorrectionProducer {
       );
     });
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static ConvertToRelativeImport newInstance() => ConvertToRelativeImport();
 }

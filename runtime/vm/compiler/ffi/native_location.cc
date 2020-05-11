@@ -305,6 +305,7 @@ DRegister NativeFpuRegistersLocation::fpu_as_d_reg() const {
     case kSingleFpuReg:
       return DRegisterOf(fpu_s_reg());
   }
+  UNREACHABLE();
 }
 
 SRegister NativeFpuRegistersLocation::fpu_as_s_reg() const {
@@ -316,6 +317,7 @@ SRegister NativeFpuRegistersLocation::fpu_as_s_reg() const {
     case kSingleFpuReg:
       return fpu_s_reg();
   }
+  UNREACHABLE();
 }
 
 bool NativeFpuRegistersLocation::IsLowestBits() const {

@@ -178,7 +178,7 @@ namespace dart {
   V(Object)                                                                    \
   CLASS_LIST_NO_OBJECT(V)
 
-enum ClassId {
+enum ClassId : intptr_t {
   // Illegal class id.
   kIllegalCid = 0,
 

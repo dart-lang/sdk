@@ -4,6 +4,18 @@
 
 ### Core libraries
 
+#### `dart:convert`
+
+*   **Breaking Change** [#41100][]: When encoding a string containing unpaired
+    surrogates as UTF-8, the unpaired surrogates will be encoded as replacement
+    characters (`U+FFFD`). When decoding UTF-8, encoded surrogates will be
+    treated as malformed input. When decoding UTF-8 with `allowMalformed: true`,
+    the number of replacement characters emitted for malformed input sequences
+    has been changed to match the [WHATWG encoding standard][].
+
+[#41100]: https://github.com/dart-lang/sdk/issues/41100
+[WHATWG encoding standard]: https://encoding.spec.whatwg.org/#utf-8-decoder
+
 #### `dart:html`
 
 *   **Breaking Change**: `CssClassSet.add()` previously returned `null` if the

@@ -155,6 +155,9 @@ class Zone {
   // implementation is in zone.cc.
   class Segment;
 
+  // Total size of all segments in [head_].
+  intptr_t small_segment_capacity_ = 0;
+
   // The current head segment; may be NULL.
   Segment* head_;
 

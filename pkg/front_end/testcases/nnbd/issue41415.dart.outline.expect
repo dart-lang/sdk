@@ -1,7 +1,5 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 
-import "package:expect/expect.dart";
-
 static method main() → dynamic
   ;

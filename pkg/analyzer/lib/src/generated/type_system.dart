@@ -374,7 +374,9 @@ abstract class TypeSystem implements public.TypeSystem {
           operator == TokenType.PERCENT_EQ ||
           operator == TokenType.PLUS_EQ ||
           operator == TokenType.STAR_EQ ||
-          operator == TokenType.TILDE_SLASH_EQ) {
+          operator == TokenType.TILDE_SLASH_EQ ||
+          operator == TokenType.PLUS_PLUS ||
+          operator == TokenType.MINUS_MINUS) {
         if (rightType.isDartCoreInt) {
           InterfaceTypeImpl intType = typeProvider.intType;
           if (isNonNullableByDefault) {
@@ -1402,7 +1404,9 @@ class TypeSystemImpl extends TypeSystem {
             operator == TokenType.STAR ||
             operator == TokenType.PLUS_EQ ||
             operator == TokenType.MINUS_EQ ||
-            operator == TokenType.STAR_EQ) {
+            operator == TokenType.STAR_EQ ||
+            operator == TokenType.PLUS_PLUS ||
+            operator == TokenType.MINUS_MINUS) {
           if (isNonNullableByDefault) {
             return promoteToNonNull(leftType as TypeImpl);
           }

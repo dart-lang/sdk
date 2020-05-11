@@ -613,9 +613,8 @@ static inline void USE(T) {}
 // type to another thus avoiding the warning.
 template <class D, class S>
 inline D bit_cast(const S& source) {
-  // Compile time assertion: sizeof(D) == sizeof(S). A compile error
-  // here means your D and S have different sizes.
-  DART_UNUSED typedef char VerifySizesAreEqual[sizeof(D) == sizeof(S) ? 1 : -1];
+  static_assert(sizeof(D) == sizeof(S),
+                "Source and destination must have the same size");
 
   D destination;
   // This use of memcpy is safe: source and destination cannot overlap.

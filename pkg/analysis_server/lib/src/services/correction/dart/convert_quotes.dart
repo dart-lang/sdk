@@ -76,6 +76,9 @@ class ConvertToDoubleQuotes extends ConvertQuotes {
 
   @override
   bool get fromDouble => false;
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static ConvertToDoubleQuotes newInstance() => ConvertToDoubleQuotes();
 }
 
 class ConvertToSingleQuotes extends ConvertQuotes {
@@ -89,4 +92,7 @@ class ConvertToSingleQuotes extends ConvertQuotes {
 
   @override
   bool get fromDouble => true;
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static ConvertToSingleQuotes newInstance() => ConvertToSingleQuotes();
 }

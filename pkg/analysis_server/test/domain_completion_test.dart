@@ -829,14 +829,14 @@ class B extends A {m() {^}}
     });
   }
 
-  Future<void> test_static() {
+  Future<void> test_static() async {
     addTestFile('class A {static b() {} c() {}} main() {A.^}');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
-      assertNoResult('c');
-    });
+    await getSuggestions();
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'b',
+        relevance: DART_RELEVANCE_INHERITED_METHOD);
+    assertNoResult('c');
   }
 
   Future<void> test_topLevel() {

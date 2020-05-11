@@ -1424,7 +1424,7 @@ The _streamId_ parameter may have the following published values:
 streamId | event types provided
 -------- | -----------
 VM | VMUpdate, VMFlagUpdate
-Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, IsolateSpawn, ServiceExtensionAdded
+Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, ServiceExtensionAdded
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
 GC | GC
 Extension | Extension
@@ -2043,7 +2043,6 @@ class Event extends Response {
   // The status (success or failure) related to the event.
   // This is provided for the event kinds:
   //   IsolateReloaded
-  //   IsolateSpawn
   string status [optional];
 
   // LogRecord data.

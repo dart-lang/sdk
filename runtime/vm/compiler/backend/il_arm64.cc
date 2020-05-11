@@ -1173,24 +1173,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Load the thread object. If we were called by a trampoline, the thread is
   // already loaded.
   if (FLAG_precompiled_mode) {
-    compiler::Label skip_reloc;
-    __ b(&skip_reloc);
-    compiler->InsertBSSRelocation(
-        BSS::Relocation::DRT_GetThreadForNativeCallback);
-    __ Bind(&skip_reloc);
-
-    __ adr(R0, compiler::Immediate(-compiler::target::kWordSize));
-
-    // R0 holds the address of the relocation.
-    __ ldr(R1, compiler::Address(R0));
-
-    // R1 holds the relocation itself: R0 - bss_start.
-    // R0 = R0 + (bss_start - R0) = bss_start
-    __ add(R0, R0, compiler::Operand(R1));
-
-    // R0 holds the start of the BSS section.
-    // Load the "get-thread" routine: *bss_start.
-    __ ldr(R1, compiler::Address(R0));
+    compiler->LoadBSSEntry(BSS::Relocation::DRT_GetThreadForNativeCallback, R1,
+                           R0);
   } else if (!NativeCallbackTrampolines::Enabled()) {
     // In JIT mode, we can just paste the address of the runtime entry into the
     // generated code directly. This is not a problem since we don't save
@@ -1728,7 +1712,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   switch (class_id()) {
     case kArrayCid:
-      ASSERT(!ShouldEmitStoreBarrier());   // Specially treated above.
+      ASSERT(!ShouldEmitStoreBarrier());  // Specially treated above.
       if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
         __ StoreIntoObjectNoBarrier(array, element_address, constant);

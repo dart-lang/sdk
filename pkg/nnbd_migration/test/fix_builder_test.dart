@@ -47,18 +47,6 @@ class FixBuilderTest extends EdgeBuilderTestBase {
       TypeMatcher<NodeChangeForDefaultFormalParameter>()
           .having((c) => c.addRequiredKeyword, 'addRequiredKeyword', true);
 
-  static final isCompoundAssignmentNullableSource =
-      TypeMatcher<NodeChangeForAssignment>().having(
-          (c) => c.isCompoundAssignmentWithNullableSource,
-          'isCompoundAssignmentWithNullableSource',
-          true);
-
-  static final isCompoundAssignmentBadCombinedType =
-      TypeMatcher<NodeChangeForAssignment>().having(
-          (c) => c.isCompoundAssignmentWithBadCombinedType,
-          'isCompoundAssignmentWithBadCombinedType',
-          true);
-
   static final isMakeNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
       .having((c) => c.makeNullable, 'makeNullable', true)
       .having((c) => c.nullabilityHint, 'nullabilityHint', isNull);
@@ -72,6 +60,12 @@ class FixBuilderTest extends EdgeBuilderTestBase {
 
   static final isExplainNonNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
       .having((c) => c.makeNullable, 'makeNullable', false);
+
+  static final isBadCombinedType = TypeMatcher<NodeChangeForAssignmentLike>()
+      .having((c) => c.hasBadCombinedType, 'hasBadCombinedType', true);
+
+  static final isNullableSource = TypeMatcher<NodeChangeForAssignmentLike>()
+      .having((c) => c.hasNullableSource, 'hasNullableSource', true);
 
   static final isNodeChangeForExpression =
       TypeMatcher<NodeChangeForExpression>();
@@ -1064,6 +1058,22 @@ f() => true;
     visitSubexpression(findNode.booleanLiteral('true'), 'bool');
   }
 
+  Future<void> test_compound_assignment_null_shorted_ok() async {
+    await analyze('''
+class C {
+  int/*!*/ x;
+}
+_f(C/*?*/ c) {
+  c?.x += 1;
+}
+''');
+    // Even though c?.x is nullable, it should not be a problem to use it as the
+    // LHS of a compound assignment, because null shorting will ensure that the
+    // assignment only happens if c is non-null.
+    var assignment = findNode.assignment('+=');
+    visitSubexpression(assignment, 'int?');
+  }
+
   Future<void> test_compound_assignment_nullable_result_bad() async {
     await analyze('''
 abstract class C {
@@ -1075,7 +1085,7 @@ f(C c) {
 ''');
     var assignment = findNode.assignment('+=');
     visitSubexpression(assignment, 'C?',
-        changes: {assignment: isCompoundAssignmentBadCombinedType});
+        changes: {assignment: isBadCombinedType});
   }
 
   Future<void> test_compound_assignment_nullable_result_ok() async {
@@ -1103,7 +1113,7 @@ _f(int/*?*/ x) {
 ''');
     var assignment = findNode.assignment('+=');
     visitSubexpression(assignment, 'int',
-        changes: {assignment: isCompoundAssignmentNullableSource});
+        changes: {assignment: isNullableSource});
   }
 
   Future<void> test_compound_assignment_potentially_nullable_source() async {
@@ -1116,7 +1126,25 @@ class C<T extends num/*?*/> {
 ''');
     var assignment = findNode.assignment('+=');
     visitSubexpression(assignment, 'T',
-        changes: {assignment: isCompoundAssignmentNullableSource});
+        changes: {assignment: isNullableSource});
+  }
+
+  Future<void> test_compound_assignment_promoted_ok() async {
+    await analyze('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+f(C/*?*/ x) {
+  if (x != null) {
+    x += 1;
+  }
+}
+''');
+    // The compound assignment is ok, because:
+    // - prior to the assignment, x's value is promoted to non-nullable
+    // - the nullable return value of operator+ is ok to assign to x, because it
+    //   un-does the promotion.
+    visitSubexpression(findNode.assignment('+='), 'C?');
   }
 
   Future<void> test_conditionalExpression_dead_else_remove() async {
@@ -1960,6 +1988,113 @@ _f(bool/*?*/ x) => ((x) != (null)) && x;
     visitSubexpression(findNode.binary('&&'), 'bool');
   }
 
+  Future<void> test_post_decrement_int_behavior() async {
+    await analyze('''
+_f(int x) => x--;
+''');
+    // It's not a problem that int.operator- returns `num` (which is not
+    // assignable to `int`) because the value implicitly passed to operator- has
+    // type `int`, so the static type of the result is `int`.
+    visitSubexpression(findNode.postfix('--'), 'int');
+  }
+
+  Future<void> test_post_increment_int_behavior() async {
+    await analyze('''
+_f(int x) => x++;
+''');
+    // It's not a problem that int.operator+ returns `num` (which is not
+    // assignable to `int`) because the value implicitly passed to operator- has
+    // type `int`, so the static type of the result is `int`.
+    visitSubexpression(findNode.postfix('++'), 'int');
+  }
+
+  Future<void> test_post_increment_null_shorted_ok() async {
+    await analyze('''
+class C {
+  int/*!*/ x;
+}
+_f(C/*?*/ c) {
+  c?.x++;
+}
+''');
+    // Even though c?.x is nullable, it should not be a problem to use it as the
+    // target of a post-increment, because null shorting will ensure that the
+    // increment only happens if c is non-null.
+    var increment = findNode.postfix('++');
+    visitSubexpression(increment, 'int?');
+  }
+
+  Future<void> test_post_increment_nullable_result_bad() async {
+    await analyze('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+f(C c) {
+  c++;
+}
+''');
+    var increment = findNode.postfix('++');
+    visitSubexpression(increment, 'C', changes: {increment: isBadCombinedType});
+  }
+
+  Future<void> test_post_increment_nullable_result_ok() async {
+    await analyze('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+abstract class D {
+  void set x(C/*?*/ value);
+  C/*!*/ get x;
+  f() {
+    x++;
+  }
+}
+''');
+    var increment = findNode.postfix('++');
+    visitSubexpression(increment, 'C');
+  }
+
+  Future<void> test_post_increment_nullable_source() async {
+    await analyze('''
+_f(int/*?*/ x) {
+  x++;
+}
+''');
+    var increment = findNode.postfix('++');
+    visitSubexpression(increment, 'int?',
+        changes: {increment: isNullableSource});
+  }
+
+  Future<void> test_post_increment_potentially_nullable_source() async {
+    await analyze('''
+class C<T extends num/*?*/> {
+  _f(T/*!*/ x) {
+    x++;
+  }
+}
+''');
+    var increment = findNode.postfix('++');
+    visitSubexpression(increment, 'T', changes: {increment: isNullableSource});
+  }
+
+  Future<void> test_post_increment_promoted_ok() async {
+    await analyze('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+f(C/*?*/ x) {
+  if (x != null) {
+    x++;
+  }
+}
+''');
+    // The increment is ok, because:
+    // - prior to the increment, x's value is promoted to non-nullable
+    // - the nullable return value of operator+ is ok to assign to x, because it
+    //   un-does the promotion.
+    visitSubexpression(findNode.postfix('++'), 'C');
+  }
+
   Future<void> test_postfixExpression_combined_nullable_noProblem() async {
     await analyze('''
 abstract class _C {
@@ -2077,6 +2212,115 @@ _f(_C/*!*/ x) => x++;
     visitSubexpression(findNode.postfix('++'), '_C');
   }
 
+  Future<void> test_pre_decrement_int_behavior() async {
+    await analyze('''
+_f(int x) => --x;
+''');
+    // It's not a problem that int.operator- returns `num` (which is not
+    // assignable to `int`) because the value implicitly passed to operator- has
+    // type `int`, so the static type of the result is `int`.
+    visitSubexpression(findNode.prefix('--'), 'int');
+  }
+
+  Future<void> test_pre_increment_int_behavior() async {
+    await analyze('''
+_f(int x) => ++x;
+''');
+    // It's not a problem that int.operator+ returns `num` (which is not
+    // assignable to `int`) because the value implicitly passed to operator- has
+    // type `int`, so the static type of the result is `int`.
+    visitSubexpression(findNode.prefix('++'), 'int');
+  }
+
+  Future<void> test_pre_increment_null_shorted_ok() async {
+    await analyze('''
+class C {
+  int/*!*/ x;
+}
+_f(C/*?*/ c) {
+  ++c?.x;
+}
+''');
+    // Even though c?.x is nullable, it should not be a problem to use it as the
+    // target of a pre-increment, because null shorting will ensure that the
+    // increment only happens if c is non-null.
+    var increment = findNode.prefix('++');
+    visitSubexpression(increment, 'int?');
+  }
+
+  Future<void> test_pre_increment_nullable_result_bad() async {
+    await analyze('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+f(C c) {
+  ++c;
+}
+''');
+    var increment = findNode.prefix('++');
+    visitSubexpression(increment, 'C?',
+        changes: {increment: isBadCombinedType});
+  }
+
+  Future<void> test_pre_increment_nullable_result_ok() async {
+    await analyze('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+abstract class D {
+  void set x(C/*?*/ value);
+  C/*!*/ get x;
+  f() {
+    ++x;
+  }
+}
+''');
+    var increment = findNode.prefix('++');
+    visitSubexpression(increment, 'C?');
+  }
+
+  Future<void> test_pre_increment_nullable_source() async {
+    await analyze('''
+_f(int/*?*/ x) {
+  ++x;
+}
+''');
+    var increment = findNode.prefix('++');
+    visitSubexpression(increment, 'int',
+        changes: {increment: isNullableSource});
+  }
+
+  Future<void> test_pre_increment_potentially_nullable_source() async {
+    await analyze('''
+class C<T extends num/*?*/> {
+  _f(T/*!*/ x) {
+    ++x;
+  }
+}
+''');
+    var increment = findNode.prefix('++');
+    visitSubexpression(increment, 'num',
+        changes: {increment: isNullableSource});
+  }
+
+  Future<void> test_pre_increment_promoted_ok() async {
+    await analyze('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+f(C/*?*/ x) {
+  if (x != null) {
+    ++x;
+  }
+}
+''');
+    // The increment is ok, because:
+    // - prior to the increment, x's value is promoted to non-nullable
+    // - the nullable return value of operator+ is ok to assign to x, because it
+    //   un-does the promotion.
+    visitSubexpression(findNode.prefix('++'), 'C?');
+  }
+
   Future<void> test_prefixedIdentifier_dynamic() async {
     await analyze('''
 Object/*!*/ _f(dynamic d) => d.x;
@@ -2191,7 +2435,6 @@ _f(bool/*?*/ x) => !x;
         changes: {findNode.simple('x;'): isNullCheck});
   }
 
-  @FailingTest(reason: 'TODO(paulberry)')
   Future<void> test_prefixExpression_combined_nullable_noProblem() async {
     await analyze('''
 abstract class _C {

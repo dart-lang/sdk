@@ -20,13 +20,9 @@ import 'type_schema.dart' show UnknownType;
 ///
 /// Note that the greatest closure of a type schema is always a supertype of any
 /// type which matches the schema.
-DartType greatestClosure(DartType schema, DartType bottomType) {
-  assert(bottomType == const NeverType(Nullability.nonNullable) ||
-      bottomType is InterfaceType &&
-          bottomType.classNode.enclosingLibrary.importUri.scheme == "dart" &&
-          bottomType.classNode.enclosingLibrary.importUri.path == "core" &&
-          bottomType.classNode.name == "Null");
-  return _TypeSchemaEliminationVisitor.run(false, schema, bottomType);
+DartType greatestClosure(
+    DartType schema, DartType topType, DartType bottomType) {
+  return _TypeSchemaEliminationVisitor.run(false, schema, topType, bottomType);
 }
 
 /// Returns the least closure of the given type [schema] with respect to `?`.
@@ -42,13 +38,8 @@ DartType greatestClosure(DartType schema, DartType bottomType) {
 ///
 /// Note that the least closure of a type schema is always a subtype of any type
 /// which matches the schema.
-DartType leastClosure(DartType schema, DartType bottomType) {
-  assert(bottomType == const NeverType(Nullability.nonNullable) ||
-      bottomType is InterfaceType &&
-          bottomType.classNode.enclosingLibrary.importUri.scheme == "dart" &&
-          bottomType.classNode.enclosingLibrary.importUri.path == "core" &&
-          bottomType.classNode.name == "Null");
-  return _TypeSchemaEliminationVisitor.run(true, schema, bottomType);
+DartType leastClosure(DartType schema, DartType topType, DartType bottomType) {
+  return _TypeSchemaEliminationVisitor.run(true, schema, topType, bottomType);
 }
 
 /// Visitor that computes least and greatest closures of a type schema.
@@ -57,11 +48,13 @@ DartType leastClosure(DartType schema, DartType bottomType) {
 /// type, otherwise it returns the result of substituting `?` with `Null` or
 /// `Object`, as appropriate.
 class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
+  final DartType topType;
   final DartType bottomType;
 
   bool isLeastClosure;
 
-  _TypeSchemaEliminationVisitor(this.isLeastClosure, this.bottomType);
+  _TypeSchemaEliminationVisitor(
+      this.isLeastClosure, this.topType, this.bottomType);
 
   void changeVariance() {
     isLeastClosure = !isLeastClosure;
@@ -70,7 +63,7 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
   @override
   DartType defaultDartType(DartType node) {
     if (node is UnknownType) {
-      return isLeastClosure ? bottomType : const DynamicType();
+      return isLeastClosure ? bottomType : topType;
     }
     return null;
   }
@@ -78,10 +71,21 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
   /// Runs an instance of the visitor on the given [schema] and returns the
   /// resulting type.  If the schema contains no instances of `?`, the original
   /// schema object is returned to avoid unnecessary allocation.
-  static DartType run(
-      bool isLeastClosure, DartType schema, DartType bottomType) {
+  static DartType run(bool isLeastClosure, DartType schema, DartType topType,
+      DartType bottomType) {
+    assert(topType == const DynamicType() ||
+        topType is InterfaceType &&
+            topType.nullability == Nullability.nullable &&
+            topType.classNode.enclosingLibrary.importUri.scheme == "dart" &&
+            topType.classNode.enclosingLibrary.importUri.path == "core" &&
+            topType.classNode.name == "Object");
+    assert(bottomType == const NeverType(Nullability.nonNullable) ||
+        bottomType is InterfaceType &&
+            bottomType.classNode.enclosingLibrary.importUri.scheme == "dart" &&
+            bottomType.classNode.enclosingLibrary.importUri.path == "core" &&
+            bottomType.classNode.name == "Null");
     _TypeSchemaEliminationVisitor visitor =
-        new _TypeSchemaEliminationVisitor(isLeastClosure, bottomType);
+        new _TypeSchemaEliminationVisitor(isLeastClosure, topType, bottomType);
     DartType result = schema.accept(visitor);
     assert(visitor.isLeastClosure == isLeastClosure);
     return result ?? schema;

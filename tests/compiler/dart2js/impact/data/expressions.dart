@@ -107,7 +107,7 @@ testPreInc(o) => ++o;
 */
 testPreDec(o) => --o;
 
-/*member: testIs:
+/*spec:nnbd-off.member: testIs:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -146,10 +146,53 @@ testPreDec(o) => --o;
   inst:JSBool,
   inst:JSNull,
   is:Class]
+*/
+/*spec:nnbd-sdk.member: testIs:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  is:Class*]
 */
 testIs() => null is Class;
 
-/*member: testIsGeneric:
+/*spec:nnbd-off.member: testIsGeneric:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -200,9 +243,63 @@ testIs() => null is Class;
   inst:JSUnmodifiableArray<dynamic>,
   is:GenericClass<int,String>]
 */
+/*spec:nnbd-sdk.member: testIsGeneric:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  is:GenericClass<int*,String*>*]
+*/
 testIsGeneric() => null is GenericClass<int, String>;
 
-/*member: testIsGenericRaw:
+/*spec:nnbd-off.member: testIsGenericRaw:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -241,10 +338,53 @@ testIsGeneric() => null is GenericClass<int, String>;
   inst:JSBool,
   inst:JSNull,
   is:GenericClass<dynamic,dynamic>]
+*/
+/*spec:nnbd-sdk.member: testIsGenericRaw:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  is:GenericClass<dynamic,dynamic>*]
 */
 testIsGenericRaw() => null is GenericClass;
 
-/*member: testIsGenericDynamic:
+/*spec:nnbd-off.member: testIsGenericDynamic:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -284,9 +424,52 @@ testIsGenericRaw() => null is GenericClass;
   inst:JSNull,
   is:GenericClass<dynamic,dynamic>]
 */
+/*spec:nnbd-sdk.member: testIsGenericDynamic:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  is:GenericClass<dynamic,dynamic>*]
+*/
 testIsGenericDynamic() => null is GenericClass<dynamic, dynamic>;
 
-/*member: testIsNot:
+/*spec:nnbd-off.member: testIsNot:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -326,9 +509,52 @@ testIsGenericDynamic() => null is GenericClass<dynamic, dynamic>;
   inst:JSNull,
   is:Class]
 */
+/*spec:nnbd-sdk.member: testIsNot:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  is:Class*]
+*/
 testIsNot() => null is! Class;
 
-/*member: testIsNotGeneric:
+/*spec:nnbd-off.member: testIsNotGeneric:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -379,9 +605,63 @@ testIsNot() => null is! Class;
   inst:JSUnmodifiableArray<dynamic>,
   is:GenericClass<int,String>]
 */
+/*spec:nnbd-sdk.member: testIsNotGeneric:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  is:GenericClass<int*,String*>*]
+*/
 testIsNotGeneric() => null is! GenericClass<int, String>;
 
-/*member: testIsNotGenericRaw:
+/*spec:nnbd-off.member: testIsNotGenericRaw:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -420,10 +700,53 @@ testIsNotGeneric() => null is! GenericClass<int, String>;
   inst:JSBool,
   inst:JSNull,
   is:GenericClass<dynamic,dynamic>]
+*/
+/*spec:nnbd-sdk.member: testIsNotGenericRaw:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  is:GenericClass<dynamic,dynamic>*]
 */
 testIsNotGenericRaw() => null is! GenericClass;
 
-/*member: testIsNotGenericDynamic:
+/*spec:nnbd-off.member: testIsNotGenericDynamic:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -463,9 +786,52 @@ testIsNotGenericRaw() => null is! GenericClass;
   inst:JSNull,
   is:GenericClass<dynamic,dynamic>]
 */
+/*spec:nnbd-sdk.member: testIsNotGenericDynamic:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  is:GenericClass<dynamic,dynamic>*]
+*/
 testIsNotGenericDynamic() => null is! GenericClass<dynamic, dynamic>;
 
-/*member: testIsTypedef:
+/*spec:nnbd-off.member: testIsTypedef:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -516,9 +882,63 @@ testIsNotGenericDynamic() => null is! GenericClass<dynamic, dynamic>;
   inst:JSUnmodifiableArray<dynamic>,
   is:dynamic Function()]
 */
+/*spec:nnbd-sdk.member: testIsTypedef:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  is:dynamic Function()*]
+*/
 testIsTypedef() => null is Typedef;
 
-/*member: testIsTypedefGeneric:
+/*spec:nnbd-off.member: testIsTypedefGeneric:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -569,9 +989,63 @@ testIsTypedef() => null is Typedef;
   inst:JSUnmodifiableArray<dynamic>,
   is:int Function(String)]
 */
+/*spec:nnbd-sdk.member: testIsTypedefGeneric:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  is:int* Function(String*)*]
+*/
 testIsTypedefGeneric() => null is GenericTypedef<int, String>;
 
-/*member: testIsTypedefGenericRaw:
+/*spec:nnbd-off.member: testIsTypedefGenericRaw:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -621,10 +1095,64 @@ testIsTypedefGeneric() => null is GenericTypedef<int, String>;
   inst:JSNull,
   inst:JSUnmodifiableArray<dynamic>,
   is:dynamic Function(dynamic)]
+*/
+/*spec:nnbd-sdk.member: testIsTypedefGenericRaw:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  is:dynamic Function(dynamic)*]
 */
 testIsTypedefGenericRaw() => null is GenericTypedef;
 
-/*member: testIsTypedefGenericDynamic:
+/*spec:nnbd-off.member: testIsTypedefGenericDynamic:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -675,9 +1203,63 @@ testIsTypedefGenericRaw() => null is GenericTypedef;
   inst:JSUnmodifiableArray<dynamic>,
   is:dynamic Function(dynamic)]
 */
+/*spec:nnbd-sdk.member: testIsTypedefGenericDynamic:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  is:dynamic Function(dynamic)*]
+*/
 testIsTypedefGenericDynamic() => null is GenericTypedef<dynamic, dynamic>;
 
-/*member: testIsTypedefDeep:
+/*spec:nnbd-off.member: testIsTypedefDeep:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -728,9 +1310,63 @@ testIsTypedefGenericDynamic() => null is GenericTypedef<dynamic, dynamic>;
   inst:JSUnmodifiableArray<dynamic>,
   is:List<int Function(dynamic Function(dynamic))>]
 */
+/*spec:nnbd-sdk.member: testIsTypedefDeep:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  is:List<int* Function(dynamic Function(dynamic)*)*>*]
+*/
 testIsTypedefDeep() => null is List<GenericTypedef<int, GenericTypedef>>;
 
-/*member: testAs:
+/*spec:nnbd-off.member: testAs:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -770,10 +1406,53 @@ testIsTypedefDeep() => null is List<GenericTypedef<int, GenericTypedef>>;
   inst:Closure,
   inst:JSBool]
 */
+/*spec:nnbd-sdk.member: testAs:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1),
+  throwRuntimeError(1)],
+ type=[
+  as:Class*,
+  inst:Closure,
+  inst:JSBool]
+*/
 // ignore: UNNECESSARY_CAST
 testAs(dynamic o) => o as Class;
 
-/*member: testAsGeneric:
+/*spec:nnbd-off.member: testAsGeneric:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -824,10 +1503,64 @@ testAs(dynamic o) => o as Class;
   inst:JSMutableArray<dynamic>,
   inst:JSUnmodifiableArray<dynamic>]
 */
+/*spec:nnbd-sdk.member: testAsGeneric:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2),
+  throwRuntimeError(1)],
+ type=[
+  as:GenericClass<int*,String*>*,
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSUnmodifiableArray<dynamic>]
+*/
 // ignore: UNNECESSARY_CAST
 testAsGeneric(dynamic o) => o as GenericClass<int, String>;
 
-/*member: testAsGenericRaw:
+/*spec:nnbd-off.member: testAsGenericRaw:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -867,10 +1600,53 @@ testAsGeneric(dynamic o) => o as GenericClass<int, String>;
   inst:Closure,
   inst:JSBool]
 */
+/*spec:nnbd-sdk.member: testAsGenericRaw:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1),
+  throwRuntimeError(1)],
+ type=[
+  as:GenericClass<dynamic,dynamic>*,
+  inst:Closure,
+  inst:JSBool]
+*/
 // ignore: UNNECESSARY_CAST
 testAsGenericRaw(dynamic o) => o as GenericClass;
 
-/*member: testAsGenericDynamic:
+/*spec:nnbd-off.member: testAsGenericDynamic:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -907,6 +1683,49 @@ testAsGenericRaw(dynamic o) => o as GenericClass;
   throwRuntimeError(1)],
  type=[
   as:GenericClass<dynamic,dynamic>,
+  inst:Closure,
+  inst:JSBool]
+*/
+/*spec:nnbd-sdk.member: testAsGenericDynamic:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1),
+  throwRuntimeError(1)],
+ type=[
+  as:GenericClass<dynamic,dynamic>*,
   inst:Closure,
   inst:JSBool]
 */
@@ -921,7 +1740,7 @@ testThrow() => throw '';
 /*member: testIfNotNull:dynamic=[Object.==,foo],type=[inst:JSNull]*/
 testIfNotNull(o) => o?.foo;
 
-/*member: testTypedIfNotNull:
+/*spec:nnbd-off.member: testTypedIfNotNull:
  dynamic=[
   Class.==,
   Class.field],
@@ -963,6 +1782,52 @@ testIfNotNull(o) => o?.foo;
   inst:JSBool,
   inst:JSNull,
   param:Class]
+*/
+/*spec:nnbd-sdk.member: testTypedIfNotNull:
+ dynamic=[
+  Class.==,
+  Class.field],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class*]
 */
 testTypedIfNotNull(Class o) => o?.field;
 

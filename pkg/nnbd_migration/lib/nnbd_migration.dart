@@ -147,6 +147,12 @@ class NullabilityFixDescription {
           'Changed a null-aware access into an ordinary access, because the target cannot be null',
       kind: NullabilityFixKind.removeDeadCode);
 
+  /// A null-aware assignment was removed because its LHS is non-nullable.
+  static const removeNullAwareAssignment = const NullabilityFixDescription._(
+      appliedMessage:
+          'Removed a null-aware assignment, because the target cannot be null',
+      kind: NullabilityFixKind.removeDeadCode);
+
   /// A message used to indicate a fix has been applied.
   final String appliedMessage;
 

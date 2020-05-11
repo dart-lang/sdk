@@ -13,6 +13,7 @@
 
 namespace dart {
 
+class DynamicSegment;
 class DynamicTable;
 class Section;
 class StringTable;
@@ -25,8 +26,8 @@ class Elf : public ZoneAllocated {
 
   static const intptr_t kPageSize = 4096;
 
-  intptr_t NextMemoryOffset() const;
-  intptr_t NextSectionIndex() const;
+  intptr_t NextMemoryOffset() const { return memory_offset_; }
+  intptr_t NextSectionIndex() const { return sections_.length(); }
   intptr_t AddText(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddROData(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddBSSData(const char* name, intptr_t size);
@@ -69,6 +70,7 @@ class Elf : public ZoneAllocated {
                             const char* name,
                             intptr_t size);
 
+  void FinalizeProgramTable();
   void ComputeFileOffsets();
   void WriteHeader();
   void WriteSectionTable();
@@ -86,6 +88,7 @@ class Elf : public ZoneAllocated {
 
   // Can only be created once the dynamic symbol table is complete.
   DynamicTable* dynamic_ = nullptr;
+  DynamicSegment* dynamic_segment_ = nullptr;
 
   // The static tables are lazily created when static symbols are added.
   StringTable* strtab_ = nullptr;

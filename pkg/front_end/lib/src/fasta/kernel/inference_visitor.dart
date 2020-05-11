@@ -22,7 +22,6 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
-import '../type_inference/type_schema_elimination.dart' show greatestClosure;
 import 'body_builder.dart' show combineStatements;
 import 'collections.dart'
     show
@@ -5869,7 +5868,7 @@ class LocalForInVariable implements ForInVariable {
 
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
     Expression rhs = inferrer.ensureAssignable(
-        greatestClosure(variableSet.variable.type, inferrer.bottomType),
+        inferrer.computeGreatestClosure(variableSet.variable.type),
         rhsType,
         variableSet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
@@ -5929,7 +5928,7 @@ class PropertyForInVariable implements ForInVariable {
   @override
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
     Expression rhs = inferrer.ensureAssignable(
-        greatestClosure(_writeType, inferrer.bottomType), rhsType, _rhs,
+        inferrer.computeGreatestClosure(_writeType), rhsType, _rhs,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
         isVoidAllowed: true);
 
@@ -5963,7 +5962,7 @@ class SuperPropertyForInVariable implements ForInVariable {
   @override
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
     Expression rhs = inferrer.ensureAssignable(
-        greatestClosure(_writeType, inferrer.bottomType),
+        inferrer.computeGreatestClosure(_writeType),
         rhsType,
         superPropertySet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
@@ -5988,7 +5987,7 @@ class StaticForInVariable implements ForInVariable {
   @override
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
     Expression rhs = inferrer.ensureAssignable(
-        greatestClosure(staticSet.target.setterType, inferrer.bottomType),
+        inferrer.computeGreatestClosure(staticSet.target.setterType),
         rhsType,
         staticSet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,

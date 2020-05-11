@@ -92,6 +92,9 @@ import 'package:path/path.dart';
 /// A predicate is a one-argument function that returns a boolean value.
 typedef ElementPredicate = bool Function(Element argument);
 
+/// A function that can be executed to create a correction producer.
+typedef ProducerGenerator = CorrectionProducer Function();
+
 /// A fix contributor that provides the default set of fixes for Dart files.
 class DartFixContributor implements FixContributor {
   @override
@@ -194,15 +197,163 @@ class DartFixContributor implements FixContributor {
 class FixProcessor extends BaseProcessor {
   static const int MAX_LEVENSHTEIN_DISTANCE = 3;
 
+  /// A map from the names of lint rules to a list of generators used to create
+  /// the correction producers used to build fixes for those diagnostics. The
+  /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
+  static const Map<String, List<ProducerGenerator>> lintProducerMap = {
+    LintNames.always_declare_return_types: [
+      AddReturnType.newInstance,
+    ],
+    LintNames.always_specify_types: [
+      AddTypeAnnotation.newInstance,
+    ],
+    LintNames.avoid_private_typedef_functions: [
+      InlineTypedef.newInstance,
+    ],
+    LintNames.avoid_relative_lib_imports: [
+      ConvertToPackageImport.newInstance,
+    ],
+    LintNames.avoid_returning_null_for_future: [
+      WrapInFuture.newInstance,
+    ],
+    LintNames.avoid_types_as_parameter_names: [
+      ConvertToOnType.newInstance,
+    ],
+    LintNames.curly_braces_in_flow_control_structures: [
+      UseCurlyBraces.newInstance,
+    ],
+    LintNames.diagnostic_describe_all_properties: [
+      AddDiagnosticPropertyReference.newInstance,
+    ],
+    LintNames.omit_local_variable_types: [
+      ReplaceWithVar.newInstance,
+    ],
+    LintNames.prefer_collection_literals: [
+      ConvertToListLiteral.newInstance,
+      ConvertToMapLiteral.newInstance,
+      ConvertToSetLiteral.newInstance,
+    ],
+    LintNames.prefer_contains: [
+      ConvertToContains.newInstance,
+    ],
+    LintNames.prefer_expression_function_bodies: [
+      ConvertToExpressionFunctionBody.newInstance,
+    ],
+    LintNames.prefer_for_elements_to_map_fromIterable: [
+      ConvertMapFromIterableToForLiteral.newInstance,
+    ],
+    LintNames.prefer_generic_function_type_aliases: [
+      ConvertToGenericFunctionSyntax.newInstance,
+    ],
+    LintNames.prefer_if_elements_to_conditional_expressions: [
+      ConvertConditionalExpressionToIfElement.newInstance,
+    ],
+    LintNames.prefer_inlined_adds: [
+      InlineInvocation.newInstance,
+    ],
+    LintNames.prefer_int_literals: [
+      ConvertToIntLiteral.newInstance,
+    ],
+    LintNames.prefer_interpolation_to_compose_strings: [
+      ReplaceWithInterpolation.newInstance,
+    ],
+    LintNames.prefer_iterable_whereType: [
+      ConvertToWhereType.newInstance,
+    ],
+    LintNames.prefer_null_aware_operators: [
+      ConvertToNullAware.newInstance,
+    ],
+    LintNames.prefer_relative_imports: [
+      ConvertToRelativeImport.newInstance,
+    ],
+    LintNames.prefer_single_quotes: [
+      ConvertToSingleQuotes.newInstance,
+    ],
+    LintNames.prefer_spread_collections: [
+      ConvertAddAllToSpread.newInstance,
+    ],
+    LintNames.slash_for_doc_comments: [
+      ConvertDocumentationIntoLine.newInstance,
+    ],
+    LintNames.sort_child_properties_last: [
+      SortChildPropertyLast.newInstance,
+    ],
+    LintNames.type_annotate_public_apis: [
+      AddTypeAnnotation.newInstance,
+    ],
+    LintNames.unnecessary_null_in_if_null_operators: [
+      RemoveIfNullOperator.newInstance,
+    ],
+    LintNames.use_full_hex_values_for_flutter_colors: [
+      ReplaceWithEightDigitHex.newInstance,
+    ],
+    LintNames.use_function_type_syntax_for_parameters: [
+      ConvertToGenericFunctionSyntax.newInstance,
+    ],
+  };
+
+  /// A map from error codes to a list of generators used to create the
+  /// correction producers used to build fixes for those diagnostics. The
+  /// generators used for lint rules are in the [lintProducerMap].
+  static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
+    CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
+      AddRequiredKeyword.newInstance,
+    ],
+    CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE: [
+      RemoveQuestionMark.newInstance,
+    ],
+    CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE: [
+      RemoveQuestionMark.newInstance,
+    ],
+    CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE: [
+      RemoveQuestionMark.newInstance,
+    ],
+    CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE: [
+      RemoveQuestionMark.newInstance,
+    ],
+    HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
+      RemoveQuestionMark.newInstance,
+    ],
+    HintCode.UNUSED_ELEMENT: [
+      RemoveUnusedElement.newInstance,
+    ],
+    HintCode.UNUSED_FIELD: [
+      RemoveUnusedField.newInstance,
+    ],
+    HintCode.UNUSED_LOCAL_VARIABLE: [
+      RemoveUnusedLocalVariable.newInstance,
+    ],
+    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
+      AddTypeAnnotation.newInstance,
+    ],
+    StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
+      WrapInText.newInstance,
+    ],
+    StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
+      RemoveDeadIfNull.newInstance,
+    ],
+    StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1: [
+      AddFieldFormalParameters.newInstance,
+    ],
+    StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2: [
+      AddFieldFormalParameters.newInstance,
+    ],
+    StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
+      AddFieldFormalParameters.newInstance,
+    ],
+  };
+
   final DartFixContext context;
+
   final ResourceProvider resourceProvider;
   final TypeSystem typeSystem;
 
   final LibraryElement unitLibraryElement;
   final CompilationUnit unit;
-
   final AnalysisError error;
+
   final int errorOffset;
+
   final int errorLength;
 
   final List<Fix> fixes = <Fix>[];
@@ -4363,104 +4514,19 @@ class FixProcessor extends BaseProcessor {
     }
 
     var errorCode = error.errorCode;
-    if (errorCode == HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE) {
-      await compute(RemoveQuestionMark());
-    } else if (errorCode == HintCode.UNUSED_ELEMENT) {
-      await compute(RemoveUnusedElement());
-    } else if (errorCode == HintCode.UNUSED_FIELD) {
-      await compute(RemoveUnusedField());
-    } else if (errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
-      await compute(RemoveUnusedLocalVariable());
-    } else if (errorCode ==
-        CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER) {
-      await compute(AddRequiredKeyword());
-    } else if (errorCode ==
-        CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE) {
-      await compute(RemoveQuestionMark());
-    } else if (errorCode ==
-        CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE) {
-      await compute(RemoveQuestionMark());
-    } else if (errorCode == CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE) {
-      await compute(RemoveQuestionMark());
-    } else if (errorCode == CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE) {
-      await compute(RemoveQuestionMark());
-    } else if (errorCode == ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE) {
-      await compute(AddTypeAnnotation());
-    } else if (errorCode == StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE) {
-      await compute(WrapInText());
-    } else if (errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION) {
-      await compute(RemoveDeadIfNull());
-    } else if (errorCode ==
-            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
-        errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
-        errorCode ==
-            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS) {
-      await compute(AddFieldFormalParameters());
-    } else if (errorCode is LintCode) {
-      var name = errorCode.name;
-      if (name == LintNames.always_declare_return_types) {
-        await compute(AddReturnType());
-      } else if (name == LintNames.always_specify_types) {
-        await compute(AddTypeAnnotation());
-      } else if (name == LintNames.avoid_private_typedef_functions) {
-        await compute(InlineTypedef());
-      } else if (name == LintNames.avoid_relative_lib_imports) {
-        await compute(ConvertToPackageImport());
-      } else if (name == LintNames.avoid_returning_null_for_future) {
-        await compute(WrapInFuture());
-      } else if (name == LintNames.avoid_types_as_parameter_names) {
-        await compute(ConvertToOnType());
-      } else if (name == LintNames.curly_braces_in_flow_control_structures) {
-        await compute(UseCurlyBraces());
-      } else if (name == LintNames.diagnostic_describe_all_properties) {
-        await compute(AddDiagnosticPropertyReference());
-      } else if (name == LintNames.omit_local_variable_types) {
-        await compute(ReplaceWithVar());
-      } else if (name == LintNames.prefer_collection_literals) {
-        await compute(ConvertToListLiteral());
-        await compute(ConvertToMapLiteral());
-        await compute(ConvertToSetLiteral());
-      } else if (name == LintNames.prefer_contains) {
-        await compute(ConvertToContains());
-      } else if (errorCode.name ==
-          LintNames.prefer_expression_function_bodies) {
-        await compute(ConvertToExpressionFunctionBody());
-      } else if (errorCode.name ==
-          LintNames.prefer_for_elements_to_map_fromIterable) {
-        await compute(ConvertMapFromIterableToForLiteral());
-      } else if (name == LintNames.prefer_generic_function_type_aliases) {
-        await compute(ConvertToGenericFunctionSyntax());
-      } else if (errorCode.name ==
-          LintNames.prefer_if_elements_to_conditional_expressions) {
-        await compute(ConvertConditionalExpressionToIfElement());
-      } else if (name == LintNames.prefer_inlined_adds) {
-        await compute(InlineInvocation());
-      } else if (name == LintNames.prefer_int_literals) {
-        await compute(ConvertToIntLiteral());
-      } else if (name == LintNames.prefer_interpolation_to_compose_strings) {
-        await compute(ReplaceWithInterpolation());
-      } else if (name == LintNames.prefer_iterable_whereType) {
-        await compute(ConvertToWhereType());
-      } else if (name == LintNames.prefer_null_aware_operators) {
-        await compute(ConvertToNullAware());
-      } else if (name == LintNames.prefer_relative_imports) {
-        await compute(ConvertToRelativeImport());
-      } else if (name == LintNames.prefer_single_quotes) {
-        await compute(ConvertToSingleQuotes());
-      } else if (name == LintNames.prefer_spread_collections) {
-        await compute(ConvertAddAllToSpread());
-      } else if (errorCode.name == LintNames.slash_for_doc_comments) {
-        await compute(ConvertDocumentationIntoLine());
-      } else if (name == LintNames.sort_child_properties_last) {
-        await compute(SortChildPropertyLast());
-      } else if (name == LintNames.type_annotate_public_apis) {
-        await compute(AddTypeAnnotation());
-      } else if (name == LintNames.unnecessary_null_in_if_null_operators) {
-        await compute(RemoveIfNullOperator());
-      } else if (name == LintNames.use_full_hex_values_for_flutter_colors) {
-        await compute(ReplaceWithEightDigitHex());
-      } else if (name == LintNames.use_function_type_syntax_for_parameters) {
-        await compute(ConvertToGenericFunctionSyntax());
+    if (errorCode is LintCode) {
+      var generators = lintProducerMap[errorCode.name];
+      if (generators != null) {
+        for (var generator in generators) {
+          await compute(generator());
+        }
+      }
+    } else {
+      var generators = nonLintProducerMap[errorCode];
+      if (generators != null) {
+        for (var generator in generators) {
+          await compute(generator());
+        }
       }
     }
   }

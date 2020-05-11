@@ -196,7 +196,8 @@ class InfoBuilder {
         break;
       case NullabilityFixKind.compoundAssignmentHasBadCombinedType:
       case NullabilityFixKind.compoundAssignmentHasNullableSource:
-        // We don't offer any edits around bad compound assignments.
+        // We don't offer any edits around bad compound assignments or bad
+        // increment/decrement operations.
         break;
     }
     return edits;

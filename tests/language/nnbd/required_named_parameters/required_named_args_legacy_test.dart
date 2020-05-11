@@ -15,13 +15,17 @@ main() {
 
   // Valid: Invocation with all arguments provided.
   f("", p1: 100, p2: "", p3: true);
+  Function.apply(f, [""], {#p1: 100, #p2: "", #p3: true});
 
   // Valid: Invocation that omits non-required named arguments.
   f("", p1: 100, p2: "");
+  Function.apply(f, [""], {#p1: 100, #p2: ""});
 
   // Valid: Invocation may pass null as a required named argument.
   f("", p1: null, p2: null);
+  Function.apply(f, [""], {#p1: null, #p2: null});
 
   // Valid: Invocation may omit a required named argument.
   f("", p1: 100);
+  Function.apply(f, [""], {#p1: 100});
 }

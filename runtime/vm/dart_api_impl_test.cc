@@ -3373,6 +3373,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
     weak2 = Dart_NewWeakPersistentHandle(obj, NULL, kWeak2ExternalSize,
                                          NopCallback);
     EXPECT_VALID(AsHandle(strong_ref));
+    EXPECT_VALID(AsHandle(weak2));
     Dart_ExitScope();
   }
   {

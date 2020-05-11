@@ -770,7 +770,7 @@
       }
     },
     "dartk-android-(debug|product|release)-(arm|arm64)": {},
-    "dartkp-(linux|win|mac)-(debug|product|release)-(simarm|simarm64)": {
+    "dartkp-(linux|win|mac)-(debug|product|release)-(arm64|simarm|simarm64)": {
       "options": {
         "use-elf": true
       }
@@ -1949,6 +1949,33 @@
           "name": "vm tests",
           "arguments": [
             "-ndartk-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 1
+        }
+      ]
+    },
+    {
+      "builders": [
+        "cross-vm-precomp-linux-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is for the cross arm AOT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "dart_precompiled_runtime",
+            "gen_snapshot",
+            "runtime_kernel"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 1

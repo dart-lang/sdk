@@ -147,7 +147,7 @@ analyzer:
     implicit-casts: false
 ''');
 
-    var aPath = '/workspace/third_party/dart/aaa/lib/a.dart';
+    var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
     await assertErrorsInFile(aPath, r'''
 num a = 0;
 int b = a;

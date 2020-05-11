@@ -259,7 +259,7 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
 }
 
 SmiPtr BaseReader::ReadAsSmi() {
-  SmiPtr value = Read<SmiPtr>();
+  SmiPtr value = static_cast<SmiPtr>(Read<intptr_t>());
   ASSERT((static_cast<uword>(value) & kSmiTagMask) == kSmiTag);
   return value;
 }
@@ -1297,14 +1297,14 @@ void ForwardList::SerializeAll(ObjectVisitor* writer) {
 
 void SnapshotWriter::WriteClassId(ClassLayout* cls) {
   ASSERT(!Snapshot::IsFull(kind_));
-  int class_id = cls->ptr()->id_;
+  int class_id = cls->id_;
   ASSERT(!IsSingletonClassId(class_id) && !IsBootstrapedClassId(class_id));
 
   // Write out the library url and class name.
-  LibraryPtr library = cls->ptr()->library_;
+  LibraryPtr library = cls->library_;
   ASSERT(library != Library::null());
   WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
-  WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
+  WriteObjectImpl(cls->name_, kAsInlinedObject);
 }
 
 void SnapshotWriter::WriteStaticImplicitClosure(intptr_t object_id,

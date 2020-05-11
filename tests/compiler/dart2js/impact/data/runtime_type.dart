@@ -6,9 +6,16 @@
 
 /*member: Class1a.:static=[Object.(0)]*/
 class Class1a<T> {
-  /*member: Class1a.==:
+  /*spec:nnbd-off.member: Class1a.==:
    dynamic=[this:Class1a.runtimeType,Object.runtimeType,Type.==],
-   runtimeType=[equals:Class1a<Class1a.T>/Object]
+   runtimeType=[equals:Class1a<Class1a.T>==Object]
+  */
+  /*spec:nnbd-sdk.member: Class1a.==:
+   dynamic=[
+    Object.runtimeType,
+    Type.==,
+    this:Class1a.runtimeType],
+   runtimeType=[equals:Class1a<Class1a.T*>*==Object]
   */
   bool operator ==(other) {
     return runtimeType == other.runtimeType;
@@ -17,9 +24,19 @@ class Class1a<T> {
 
 /*member: Class1b.:static=[Class1a.(0)]*/
 class Class1b<T> extends Class1a<T> {
-  /*member: Class1b.==:
-   dynamic=[this:Class1b.runtimeType,Object.runtimeType,Type.==],
-   runtimeType=[equals:Object/Class1b<Class1b.T>]
+  /*spec:nnbd-off.member: Class1b.==:
+   dynamic=[
+    Object.runtimeType,
+    Type.==,
+    this:Class1b.runtimeType],
+   runtimeType=[equals:Object==Class1b<Class1b.T>]
+  */
+  /*spec:nnbd-sdk.member: Class1b.==:
+   dynamic=[
+    Object.runtimeType,
+    Type.==,
+    this:Class1b.runtimeType],
+   runtimeType=[equals:Object==Class1b<Class1b.T*>*]
   */
   bool operator ==(other) {
     return other.runtimeType == runtimeType;
@@ -28,9 +45,22 @@ class Class1b<T> extends Class1a<T> {
 
 /*member: Class1c.:static=[Object.(0)]*/
 class Class1c<T> implements Class1a<T> {
-  /*member: Class1c.==:
-   dynamic=[this:Class1c.runtimeType,Object.==,Object.runtimeType,Type.==],
-   runtimeType=[equals:Class1c<Class1c.T>/Object],
+  /*spec:nnbd-off.member: Class1c.==:
+   dynamic=[
+    Object.==,
+    Object.runtimeType,
+    Type.==,
+    this:Class1c.runtimeType],
+   runtimeType=[equals:Class1c<Class1c.T>==Object],
+   type=[inst:JSNull]
+  */
+  /*spec:nnbd-sdk.member: Class1c.==:
+   dynamic=[
+    Object.==,
+    Object.runtimeType,
+    Type.==,
+    this:Class1c.runtimeType],
+   runtimeType=[equals:Class1c<Class1c.T*>*==Object],
    type=[inst:JSNull]
   */
   bool operator ==(other) {
@@ -40,9 +70,22 @@ class Class1c<T> implements Class1a<T> {
 
 /*member: Class1d.:static=[Object.(0)]*/
 class Class1d<T> implements Class1a<T> {
-  /*member: Class1d.==:
-   dynamic=[this:Class1d.runtimeType,Object.==,Object.runtimeType,Type.==],
-   runtimeType=[equals:Object/Class1d<Class1d.T>],
+  /*spec:nnbd-off.member: Class1d.==:
+   dynamic=[
+    Object.==,
+    Object.runtimeType,
+    Type.==,
+    this:Class1d.runtimeType],
+   runtimeType=[equals:Object==Class1d<Class1d.T>],
+   type=[inst:JSNull]
+  */
+  /*spec:nnbd-sdk.member: Class1d.==:
+   dynamic=[
+    Object.==,
+    Object.runtimeType,
+    Type.==,
+    this:Class1d.runtimeType],
+   runtimeType=[equals:Object==Class1d<Class1d.T*>*],
    type=[inst:JSNull]
   */
   bool operator ==(other) {
@@ -62,7 +105,7 @@ class Class3 {
 /*member: Class4.:static=[Object.(0)]*/
 class Class4 {}
 
-/*member: toString1:
+/*spec:nnbd-off.member: toString1:
  dynamic=[
   Class2.runtimeType,
   toString(0)],
@@ -117,10 +160,69 @@ class Class4 {}
   inst:JSString,
   inst:JSUnmodifiableArray<dynamic>,
   param:Class2<int>]
+*/
+/*spec:nnbd-sdk.member: toString1:
+ dynamic=[
+  Class2.runtimeType,
+  toString(0)],
+ runtimeType=[string:Class2<int*>*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  S(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSString,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:Class2<int*>*]
 */
 toString1(Class2<int> c) => '${c.runtimeType}';
 
-/*member: toString2:
+/*spec:nnbd-off.member: toString2:
  dynamic=[
   Class2.==,
   Class2.runtimeType,
@@ -178,9 +280,70 @@ toString1(Class2<int> c) => '${c.runtimeType}';
   inst:JSUnmodifiableArray<dynamic>,
   param:Class2<int>]
 */
+/*spec:nnbd-sdk.member: toString2:
+ dynamic=[
+  Class2.==,
+  Class2.runtimeType,
+  toString(0)],
+ runtimeType=[string:Class2<int*>*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  S(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSString,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:Class2<int*>*]
+*/
 toString2(Class2<int> c) => '${c?.runtimeType}';
 
-/*member: toString3:
+/*spec:nnbd-off.member: toString3:
  dynamic=[
   Class2.runtimeType,
   Type.toString(0)],
@@ -233,10 +396,67 @@ toString2(Class2<int> c) => '${c?.runtimeType}';
   inst:JSMutableArray<dynamic>,
   inst:JSUnmodifiableArray<dynamic>,
   param:Class2<int>]
+*/
+/*spec:nnbd-sdk.member: toString3:
+ dynamic=[
+  Class2.runtimeType,
+  Type.toString(0)],
+ runtimeType=[string:Class2<int*>*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:Class2<int*>*]
 */
 toString3(Class2<int> c) => c.runtimeType.toString();
 
-/*member: toString4:
+/*spec:nnbd-off.member: toString4:
  dynamic=[
   Class2.runtimeType,
   Type.==,
@@ -291,10 +511,69 @@ toString3(Class2<int> c) => c.runtimeType.toString();
   inst:JSNull,
   inst:JSUnmodifiableArray<dynamic>,
   param:Class2<int>]
+*/
+/*spec:nnbd-sdk.member: toString4:
+ dynamic=[
+  Class2.runtimeType,
+  Type.==,
+  Type.toString(0)],
+ runtimeType=[string:Class2<int*>*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:Class2<int*>*]
 */
 toString4(Class2<int> c) => c.runtimeType?.toString();
 
-/*member: toString5:
+/*spec:nnbd-off.member: toString5:
  dynamic=[
   Class2.==,
   Class2.runtimeType,
@@ -351,9 +630,69 @@ toString4(Class2<int> c) => c.runtimeType?.toString();
   inst:JSUnmodifiableArray<dynamic>,
   param:Class2<int>]
 */
+/*spec:nnbd-sdk.member: toString5:
+ dynamic=[
+  Class2.==,
+  Class2.runtimeType,
+  Type.==,
+  Type.toString(0)],
+ runtimeType=[string:Class2<int*>*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:Class2<int*>*]
+*/
 toString5(Class2<int> c) => c?.runtimeType?.toString();
 
-/*member: toString6:
+/*spec:nnbd-off.member: toString6:
  dynamic=[
   Class2.==,
   Class2.runtimeType,
@@ -409,9 +748,68 @@ toString5(Class2<int> c) => c?.runtimeType?.toString();
   inst:JSUnmodifiableArray<dynamic>,
   param:Class2<int>]
 */
+/*spec:nnbd-sdk.member: toString6:
+ dynamic=[
+  Class2.==,
+  Class2.runtimeType,
+  Type.toString(0)],
+ runtimeType=[string:Class2<int*>*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:Class2<int*>*]
+*/
 toString6(Class2<int> c) => c?.runtimeType.toString();
 
-/*member: unknown:
+/*spec:nnbd-off.member: unknown:
  dynamic=[Class2.runtimeType],
  runtimeType=[unknown:Class2<int>],
  static=[
@@ -463,16 +861,71 @@ toString6(Class2<int> c) => c?.runtimeType.toString();
   inst:JSUnmodifiableArray<dynamic>,
   param:Class2<int>]
 */
+/*spec:nnbd-sdk.member: unknown:
+ dynamic=[Class2.runtimeType],
+ runtimeType=[unknown:Class2<int*>*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:Class2<int*>*]
+*/
 unknown(Class2<int> c) => c.runtimeType;
 
-/*member: equals1:
+/*spec:nnbd-off.member: equals1:
  dynamic=[
   Class1a.==,
   Class1a.runtimeType,
   Class1d.==,
   Class1d.runtimeType,
   Type.==],
- runtimeType=[equals:Class1a<int>/Class1d<int>],
+ runtimeType=[equals:Class1a<int>==Class1d<int>],
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -524,9 +977,71 @@ unknown(Class2<int> c) => c.runtimeType;
   param:Class1a<int>,
   param:Class1d<int>]
 */
+/*spec:nnbd-sdk.member: equals1:
+ dynamic=[
+  Class1a.==,
+  Class1a.runtimeType,
+  Class1d.==,
+  Class1d.runtimeType,
+  Type.==],
+ runtimeType=[equals:Class1a<int*>*==Class1d<int*>*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:Class1a<int*>*,
+  param:Class1d<int*>*]
+*/
 equals1(Class1a<int> a, Class1d<int> b) => a?.runtimeType == b?.runtimeType;
 
-/*member: almostEquals1:
+/*spec:nnbd-off.member: almostEquals1:
  dynamic=[
   Class3.runtimeType,
   Type.==],
@@ -569,10 +1084,57 @@ equals1(Class1a<int> a, Class1d<int> b) => a?.runtimeType == b?.runtimeType;
   inst:JSBool,
   inst:JSNull,
   param:Class3]
+*/
+/*spec:nnbd-sdk.member: almostEquals1:
+ dynamic=[
+  Class3.runtimeType,
+  Type.==],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*]
 */
 almostEquals1(Class3 a) => a.runtimeType == null;
 
-/*member: almostEquals2:
+/*spec:nnbd-off.member: almostEquals2:
  dynamic=[
   Class3.==,
   Class3.runtimeType,
@@ -616,10 +1178,58 @@ almostEquals1(Class3 a) => a.runtimeType == null;
   inst:JSBool,
   inst:JSNull,
   param:Class3]
+*/
+/*spec:nnbd-sdk.member: almostEquals2:
+ dynamic=[
+  Class3.==,
+  Class3.runtimeType,
+  Type.==],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*]
 */
 almostEquals2(Class3 a) => a?.runtimeType == null;
 
-/*member: almostEquals3:
+/*spec:nnbd-off.member: almostEquals3:
  dynamic=[
   Class3.runtimeType,
   Null.==],
@@ -662,10 +1272,57 @@ almostEquals2(Class3 a) => a?.runtimeType == null;
   inst:JSBool,
   inst:JSNull,
   param:Class3]
+*/
+/*spec:nnbd-sdk.member: almostEquals3:
+ dynamic=[
+  Class3.runtimeType,
+  Null.==],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*]
 */
 almostEquals3(Class3 a) => null == a.runtimeType;
 
-/*member: almostEquals4:
+/*spec:nnbd-off.member: almostEquals4:
  dynamic=[
   Class3.==,
   Class3.runtimeType,
@@ -710,9 +1367,57 @@ almostEquals3(Class3 a) => null == a.runtimeType;
   inst:JSNull,
   param:Class3]
 */
+/*spec:nnbd-sdk.member: almostEquals4:
+ dynamic=[
+  Class3.==,
+  Class3.runtimeType,
+  Null.==],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*]
+*/
 almostEquals4(Class3 a) => null == a?.runtimeType;
 
-/*member: almostEquals5:
+/*spec:nnbd-off.member: almostEquals5:
  dynamic=[
   Class3.field,
   Class3.runtimeType,
@@ -755,10 +1460,57 @@ almostEquals4(Class3 a) => null == a?.runtimeType;
   inst:Closure,
   inst:JSBool,
   param:Class3]
+*/
+/*spec:nnbd-sdk.member: almostEquals5:
+ dynamic=[
+  Class3.field,
+  Class3.runtimeType,
+  Type.==],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  param:Class3*]
 */
 almostEquals5(Class3 a) => a.runtimeType == a.field;
 
-/*member: almostEquals6:
+/*spec:nnbd-off.member: almostEquals6:
  dynamic=[
   Class3.==,
   Class3.field,
@@ -803,10 +1555,59 @@ almostEquals5(Class3 a) => a.runtimeType == a.field;
   inst:JSBool,
   inst:JSNull,
   param:Class3]
+*/
+/*spec:nnbd-sdk.member: almostEquals6:
+ dynamic=[
+  Class3.==,
+  Class3.field,
+  Class3.runtimeType,
+  Type.==],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*]
 */
 almostEquals6(Class3 a) => a?.runtimeType == a.field;
 
-/*member: almostEquals7:
+/*spec:nnbd-off.member: almostEquals7:
  dynamic=[
   Class3.==,
   Class3.field,
@@ -851,10 +1652,59 @@ almostEquals6(Class3 a) => a?.runtimeType == a.field;
   inst:JSBool,
   inst:JSNull,
   param:Class3]
+*/
+/*spec:nnbd-sdk.member: almostEquals7:
+ dynamic=[
+  Class3.==,
+  Class3.field,
+  Class3.runtimeType,
+  Type.==],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*]
 */
 almostEquals7(Class3 a) => a.runtimeType == a?.field;
 
-/*member: almostEquals8:
+/*spec:nnbd-off.member: almostEquals8:
  dynamic=[
   Class3.==,
   Class3.field,
@@ -900,9 +1750,58 @@ almostEquals7(Class3 a) => a.runtimeType == a?.field;
   inst:JSNull,
   param:Class3]
 */
+/*spec:nnbd-sdk.member: almostEquals8:
+ dynamic=[
+  Class3.==,
+  Class3.field,
+  Class3.runtimeType,
+  Type.==],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*]
+*/
 almostEquals8(Class3 a) => a?.runtimeType == a?.field;
 
-/*member: almostEquals9:
+/*spec:nnbd-off.member: almostEquals9:
  dynamic=[
   Class3.field,
   Class3.runtimeType,
@@ -945,10 +1844,57 @@ almostEquals8(Class3 a) => a?.runtimeType == a?.field;
   inst:Closure,
   inst:JSBool,
   param:Class3]
+*/
+/*spec:nnbd-sdk.member: almostEquals9:
+ dynamic=[
+  Class3.field,
+  Class3.runtimeType,
+  Object.==],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  param:Class3*]
 */
 almostEquals9(Class3 a) => a.field == a.runtimeType;
 
-/*member: almostEquals10:
+/*spec:nnbd-off.member: almostEquals10:
  dynamic=[
   Class3.==,
   Class3.field,
@@ -993,10 +1939,59 @@ almostEquals9(Class3 a) => a.field == a.runtimeType;
   inst:JSBool,
   inst:JSNull,
   param:Class3]
+*/
+/*spec:nnbd-sdk.member: almostEquals10:
+ dynamic=[
+  Class3.==,
+  Class3.field,
+  Class3.runtimeType,
+  Object.==],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*]
 */
 almostEquals10(Class3 a) => a?.field == a.runtimeType;
 
-/*member: almostEquals11:
+/*spec:nnbd-off.member: almostEquals11:
  dynamic=[
   Class3.==,
   Class3.field,
@@ -1041,10 +2036,59 @@ almostEquals10(Class3 a) => a?.field == a.runtimeType;
   inst:JSBool,
   inst:JSNull,
   param:Class3]
+*/
+/*spec:nnbd-sdk.member: almostEquals11:
+ dynamic=[
+  Class3.==,
+  Class3.field,
+  Class3.runtimeType,
+  Object.==],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*]
 */
 almostEquals11(Class3 a) => a.field == a?.runtimeType;
 
-/*member: almostEquals12:
+/*spec:nnbd-off.member: almostEquals12:
  dynamic=[
   Class3.==,
   Class3.field,
@@ -1090,9 +2134,58 @@ almostEquals11(Class3 a) => a.field == a?.runtimeType;
   inst:JSNull,
   param:Class3]
 */
+/*spec:nnbd-sdk.member: almostEquals12:
+ dynamic=[
+  Class3.==,
+  Class3.field,
+  Class3.runtimeType,
+  Object.==],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*]
+*/
 almostEquals12(Class3 a) => a?.field == a?.runtimeType;
 
-/*member: almostToString1:
+/*spec:nnbd-off.member: almostToString1:
  dynamic=[
   Class3.runtimeType,
   Type.toString],
@@ -1135,9 +2228,55 @@ almostEquals12(Class3 a) => a?.field == a?.runtimeType;
   inst:JSBool,
   param:Class3]
 */
+/*spec:nnbd-sdk.member: almostToString1:
+ dynamic=[
+  Class3.runtimeType,
+  Type.toString],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  param:Class3*]
+*/
 almostToString1(Class3 a) => a.runtimeType.toString;
 
-/*member: almostToString2:
+/*spec:nnbd-off.member: almostToString2:
  dynamic=[
   Class3.==,
   Class3.runtimeType,
@@ -1183,9 +2322,58 @@ almostToString1(Class3 a) => a.runtimeType.toString;
   inst:JSNull,
   param:Class3]
 */
+/*spec:nnbd-sdk.member: almostToString2:
+ dynamic=[
+  Class3.==,
+  Class3.runtimeType,
+  Type.==,
+  Type.toString],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*]
+*/
 almostToString2(Class3 a) => a?.runtimeType?.toString;
 
-/*member: almostToString3:
+/*spec:nnbd-off.member: almostToString3:
  dynamic=[
   Class3.runtimeType,
   Type.noSuchMethod(1)],
@@ -1228,10 +2416,57 @@ almostToString2(Class3 a) => a?.runtimeType?.toString;
   inst:JSBool,
   inst:JSNull,
   param:Class3]
+*/
+/*spec:nnbd-sdk.member: almostToString3:
+ dynamic=[
+  Class3.runtimeType,
+  Type.noSuchMethod(1)],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*]
 */
 almostToString3(Class3 a) => a.runtimeType.noSuchMethod(null);
 
-/*member: almostToString4:
+/*spec:nnbd-off.member: almostToString4:
  dynamic=[
   Class3.==,
   Class3.runtimeType,
@@ -1276,14 +2511,62 @@ almostToString3(Class3 a) => a.runtimeType.noSuchMethod(null);
   inst:JSNull,
   param:Class3]
 */
+/*spec:nnbd-sdk.member: almostToString4:
+ dynamic=[
+  Class3.==,
+  Class3.runtimeType,
+  Type.noSuchMethod(1)],
+ runtimeType=[unknown:Class3*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*]
+*/
 almostToString4(Class3 a) => a?.runtimeType.noSuchMethod(null);
 
-/*member: notEquals1:
+/*spec:nnbd-off.member: notEquals1:
  dynamic=[
   Class3.runtimeType,
   Class4.runtimeType,
   Type.==],
- runtimeType=[equals:Class3/Class4],
+ runtimeType=[equals:Class3==Class4],
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -1322,16 +2605,64 @@ almostToString4(Class3 a) => a?.runtimeType.noSuchMethod(null);
   inst:JSBool,
   param:Class3,
   param:Class4]
+*/
+/*spec:nnbd-sdk.member: notEquals1:
+ dynamic=[
+  Class3.runtimeType,
+  Class4.runtimeType,
+  Type.==],
+ runtimeType=[equals:Class3*==Class4*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  param:Class3*,
+  param:Class4*]
 */
 notEquals1(Class3 a, Class4 b) => a.runtimeType != b.runtimeType;
 
-/*member: notEquals2:
+/*spec:nnbd-off.member: notEquals2:
  dynamic=[
   Class3.==,
   Class3.runtimeType,
   Class4.runtimeType,
   Type.==],
- runtimeType=[equals:Class3/Class4],
+ runtimeType=[equals:Class3==Class4],
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -1371,16 +2702,66 @@ notEquals1(Class3 a, Class4 b) => a.runtimeType != b.runtimeType;
   inst:JSNull,
   param:Class3,
   param:Class4]
+*/
+/*spec:nnbd-sdk.member: notEquals2:
+ dynamic=[
+  Class3.==,
+  Class3.runtimeType,
+  Class4.runtimeType,
+  Type.==],
+ runtimeType=[equals:Class3*==Class4*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*,
+  param:Class4*]
 */
 notEquals2(Class3 a, Class4 b) => a?.runtimeType != b.runtimeType;
 
-/*member: notEquals3:
+/*spec:nnbd-off.member: notEquals3:
  dynamic=[
   Class3.runtimeType,
   Class4.==,
   Class4.runtimeType,
   Type.==],
- runtimeType=[equals:Class3/Class4],
+ runtimeType=[equals:Class3==Class4],
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -1421,16 +2802,66 @@ notEquals2(Class3 a, Class4 b) => a?.runtimeType != b.runtimeType;
   param:Class3,
   param:Class4]
 */
+/*spec:nnbd-sdk.member: notEquals3:
+ dynamic=[
+  Class3.runtimeType,
+  Class4.==,
+  Class4.runtimeType,
+  Type.==],
+ runtimeType=[equals:Class3*==Class4*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*,
+  param:Class4*]
+*/
 notEquals3(Class3 a, Class4 b) => a.runtimeType != b?.runtimeType;
 
-/*member: notEquals4:
+/*spec:nnbd-off.member: notEquals4:
  dynamic=[
   Class3.==,
   Class3.runtimeType,
   Class4.==,
   Class4.runtimeType,
   Type.==],
- runtimeType=[equals:Class3/Class4],
+ runtimeType=[equals:Class3==Class4],
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -1470,6 +2901,57 @@ notEquals3(Class3 a, Class4 b) => a.runtimeType != b?.runtimeType;
   inst:JSNull,
   param:Class3,
   param:Class4]
+*/
+/*spec:nnbd-sdk.member: notEquals4:
+ dynamic=[
+  Class3.==,
+  Class3.runtimeType,
+  Class4.==,
+  Class4.runtimeType,
+  Type.==],
+ runtimeType=[equals:Class3*==Class4*],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:Class3*,
+  param:Class4*]
 */
 notEquals4(Class3 a, Class4 b) => a?.runtimeType != b?.runtimeType;
 

@@ -45,7 +45,7 @@ void ObjectLayout::Validate(IsolateGroup* isolate_group) const {
     return;
   }
   // Validate that the tags_ field is sensible.
-  uint32_t tags = ptr()->tags_;
+  uint32_t tags = tags_;
   if (IsNewObject()) {
     if (!NewBit::decode(tags)) {
       FATAL1("New object missing kNewBit: %x\n", tags);
@@ -362,7 +362,7 @@ intptr_t ObjectLayout::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       break;
     default:
       FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?", class_id,
-             this, static_cast<uint32_t>(ptr()->tags_));
+             this, static_cast<uint32_t>(tags_));
       break;
   }
 

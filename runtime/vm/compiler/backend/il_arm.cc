@@ -1345,28 +1345,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Load the thread object. If we were called by a trampoline, the thread is
   // already loaded.
   if (FLAG_precompiled_mode) {
-    compiler::Label skip_reloc;
-    __ b(&skip_reloc);
-    compiler->InsertBSSRelocation(
-        BSS::Relocation::DRT_GetThreadForNativeCallback);
-    __ Bind(&skip_reloc);
-
-    // For historical reasons, the PC on ARM points 8 bytes (two instructions)
-    // past the current instruction.
-    __ sub(
-        R0, PC,
-        compiler::Operand(Instr::kPCReadOffset + compiler::target::kWordSize));
-
-    // R0 holds the address of the relocation.
-    __ ldr(R1, compiler::Address(R0));
-
-    // R1 holds the relocation itself: R0 - bss_start.
-    // R0 = R0 + (bss_start - R0) = bss_start
-    __ add(R0, R0, compiler::Operand(R1));
-
-    // R0 holds the start of the BSS section.
-    // Load the "get-thread" routine: *bss_start.
-    __ ldr(R1, compiler::Address(R0));
+    compiler->LoadBSSEntry(BSS::Relocation::DRT_GetThreadForNativeCallback, R1,
+                           R0);
   } else if (!NativeCallbackTrampolines::Enabled()) {
     // In JIT mode, we can just paste the address of the runtime entry into the
     // generated code directly. This is not a problem since we don't save
@@ -4825,10 +4805,10 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
         live_fpu_regs ? object_store->allocate_mint_with_fpu_regs_stub()
                       : object_store->allocate_mint_without_fpu_regs_stub());
 
-      ASSERT(!locs()->live_registers()->ContainsRegister(R0));
-      auto extended_env = compiler->SlowPathEnvironmentFor(this, 0);
-      compiler->GenerateStubCall(token_pos(), stub, PcDescriptorsLayout::kOther,
-                                 locs(), DeoptId::kNone, extended_env);
+    ASSERT(!locs()->live_registers()->ContainsRegister(R0));
+    auto extended_env = compiler->SlowPathEnvironmentFor(this, 0);
+    compiler->GenerateStubCall(token_pos(), stub, PcDescriptorsLayout::kOther,
+                               locs(), DeoptId::kNone, extended_env);
   } else {
     BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(),
                                     out_reg, tmp);

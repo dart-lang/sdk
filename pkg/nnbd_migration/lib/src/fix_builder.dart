@@ -39,6 +39,16 @@ import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
+bool _isIncrementOrDecrementOperator(TokenType tokenType) {
+  switch (tokenType) {
+    case TokenType.PLUS_PLUS:
+    case TokenType.MINUS_MINUS:
+      return true;
+    default:
+      return false;
+  }
+}
+
 /// Problem reported by [FixBuilder] when encountering a compound assignment
 /// for which the combination result is nullable.  This occurs if the compound
 /// assignment resolves to a user-defined operator that returns a nullable type,
@@ -289,8 +299,8 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   final Expando<bool> _shouldStayNullAware = Expando();
 
-  final Map<AssignmentExpression, _AssignmentExpressionHandler>
-      _assignmentExpressionHandlers = {};
+  final Map<Expression, _AssignmentLikeExpressionHandler>
+      _assignmentLikeExpressionHandlers = {};
 
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
@@ -429,12 +439,23 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       _wrapExceptions(node, () => type, () {
         var parent = node.parent;
         if (parent is AssignmentExpression) {
-          return (_assignmentExpressionHandlers[parent] ??=
+          return (_assignmentLikeExpressionHandlers[parent] ??=
                   _AssignmentExpressionHandler(parent))
               .modifySubexpressionType(this, node, type);
-        } else {
-          return _modifyRValueType(node, type);
+        } else if (parent is PrefixExpression) {
+          if (_isIncrementOrDecrementOperator(parent.operator.type)) {
+            return (_assignmentLikeExpressionHandlers[parent] ??=
+                    _PrefixExpressionHandler(parent))
+                .modifySubexpressionType(this, node, type);
+          }
+        } else if (parent is PostfixExpression) {
+          if (_isIncrementOrDecrementOperator(parent.operator.type)) {
+            return (_assignmentLikeExpressionHandlers[parent] ??=
+                    _PostfixExpressionHandler(parent))
+                .modifySubexpressionType(this, node, type);
+          }
         }
+        return _modifyRValueType(node, type);
       });
 
   @override
@@ -627,12 +648,28 @@ class NonNullableUnnamedOptionalParameter implements Problem {
 /// Common supertype for problems reported by [FixBuilder._addProblem].
 abstract class Problem {}
 
-/// Data structure keeping track of intermediate results when the fix builder
-/// is handling an assignment expression.
-class _AssignmentExpressionHandler {
-  /// The assignment expression in question.
+/// Specialization of [_AssignmentLikeExpressionHandler] for
+/// [AssignmentExpression].
+class _AssignmentExpressionHandler extends _AssignmentLikeExpressionHandler {
+  @override
   final AssignmentExpression node;
 
+  _AssignmentExpressionHandler(this.node);
+
+  @override
+  MethodElement get combiner => node.staticElement;
+
+  @override
+  TokenType get combinerType => node.operator.type;
+
+  @override
+  Expression get target => node.leftHandSide;
+}
+
+/// Data structure keeping track of intermediate results when the fix builder
+/// is handling an assignment expression, or an expression that desugars to an
+/// assignment.
+abstract class _AssignmentLikeExpressionHandler {
   /// For compound and null-aware assignments, the type read from the LHS.
   /*late final*/ DartType readType;
 
@@ -642,26 +679,36 @@ class _AssignmentExpressionHandler {
   /// The type that should be used as a context type when inferring the RHS.
   DartType rhsContextType;
 
-  _AssignmentExpressionHandler(this.node);
+  /// Gets the static element representing the combiner.
+  MethodElement get combiner;
+
+  /// Gets the operator type representing the combiner.
+  TokenType get combinerType;
+
+  /// Gets the expression in question.
+  Expression get node;
+
+  /// Gets the target of the assignment.
+  Expression get target;
 
   /// Called after visiting the RHS of the assignment, to verify that for
   /// compound assignments, the return value of the assignment is assignable to
   /// [writeType].
   void handleAssignmentRhs(
       MigrationResolutionHooksImpl hooks, DartType rhsType) {
-    MethodElement combiner = node.staticElement;
+    MethodElement combiner = this.combiner;
     if (combiner != null) {
       var fixBuilder = hooks._fixBuilder;
       var combinerReturnType =
           fixBuilder._typeSystem.refineBinaryExpressionType(
         readType,
-        node.operator.type,
+        combinerType,
         rhsType,
         combiner.returnType,
       );
       if (!fixBuilder._typeSystem.isSubtypeOf(combinerReturnType, writeType)) {
-        (fixBuilder._getChange(node) as NodeChangeForAssignment)
-            .isCompoundAssignmentWithBadCombinedType = true;
+        (fixBuilder._getChange(node) as NodeChangeForAssignmentLike)
+            .hasBadCombinedType = true;
       }
     }
   }
@@ -670,18 +717,18 @@ class _AssignmentExpressionHandler {
   /// [writeType], and [rhsContextType].  Also verifies that for compound
   /// assignments, the [readType] is non-nullable, and that for null-aware
   /// assignments, the [readType] is nullable.
-  void handleLValueType(MigrationResolutionHooksImpl hooks,
-      TokenType operatorType, DartType resolvedType) {
+  void handleLValueType(
+      MigrationResolutionHooksImpl hooks, DartType resolvedType) {
     assert(resolvedType.nullabilitySuffix != NullabilitySuffix.star);
-    // Provisionally store the resolved type as the type of the lhs, so that
+    // Provisionally store the resolved type as the type of the target, so that
     // getReadType can fall back on it if necessary.
-    var lhs = node.leftHandSide;
-    lhs.staticType = resolvedType;
+    var target = this.target;
+    target.staticType = resolvedType;
     // The type passed in by the resolver for the LHS of an assignment is the
     // "write type".
     var writeType = resolvedType;
-    if (lhs is SimpleIdentifier) {
-      var element = lhs.staticElement;
+    if (target is SimpleIdentifier) {
+      var element = target.staticElement;
       if (element is PromotableElement) {
         // However, if the LHS is a reference to a local variable that has
         // been promoted, the resolver passes in the promoted type.  We
@@ -694,12 +741,12 @@ class _AssignmentExpressionHandler {
     assert(writeType.nullabilitySuffix != NullabilitySuffix.star);
     this.writeType = writeType;
     var fixBuilder = hooks._fixBuilder;
-    if (operatorType == TokenType.EQ) {
+    if (combinerType == TokenType.EQ) {
       rhsContextType = writeType;
     } else {
-      readType = getReadType(lhs);
+      readType = getReadType(target);
       assert(readType.nullabilitySuffix != NullabilitySuffix.star);
-      if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
+      if (combinerType == TokenType.QUESTION_QUESTION_EQ) {
         rhsContextType = writeType;
         if (fixBuilder._typeSystem.isNonNullable(readType)) {
           (fixBuilder._getChange(node) as NodeChangeForAssignment)
@@ -708,8 +755,8 @@ class _AssignmentExpressionHandler {
       } else {
         if (!readType.isDynamic &&
             fixBuilder._typeSystem.isPotentiallyNullable(readType)) {
-          (fixBuilder._getChange(node) as NodeChangeForAssignment)
-              .isCompoundAssignmentWithNullableSource = true;
+          (fixBuilder._getChange(node) as NodeChangeForAssignmentLike)
+              .hasNullableSource = true;
         }
       }
     }
@@ -718,11 +765,18 @@ class _AssignmentExpressionHandler {
   /// Called after visiting the LHS or the RHS of the assignment.
   DartType modifySubexpressionType(MigrationResolutionHooksImpl hooks,
       Expression subexpression, DartType type) {
-    if (identical(subexpression, node.leftHandSide)) {
-      handleLValueType(hooks, node.operator.type, type);
+    if (identical(subexpression, target)) {
+      handleLValueType(hooks, type);
+      if (node is! AssignmentExpression) {
+        // Must be a pre or post increment/decrement, so the "RHS" is implicitly
+        // the integer 1.
+        handleAssignmentRhs(hooks, hooks._fixBuilder.typeProvider.intType);
+      }
       return type;
     } else {
-      assert(identical(subexpression, node.rightHandSide));
+      var node = this.node;
+      assert(node is AssignmentExpression &&
+          identical(subexpression, node.rightHandSide));
       type =
           hooks._modifyRValueType(subexpression, type, context: rhsContextType);
       handleAssignmentRhs(hooks, type);
@@ -934,4 +988,42 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
             nullabilityHint:
                 _fixBuilder._variables.getNullabilityHint(source, node));
   }
+}
+
+/// Specialization of [_AssignmentLikeExpressionHandler] for
+/// [PostfixExpression].
+class _PostfixExpressionHandler extends _AssignmentLikeExpressionHandler {
+  @override
+  final PostfixExpression node;
+
+  _PostfixExpressionHandler(this.node)
+      : assert(_isIncrementOrDecrementOperator(node.operator.type));
+
+  @override
+  MethodElement get combiner => node.staticElement;
+
+  @override
+  TokenType get combinerType => node.operator.type;
+
+  @override
+  Expression get target => node.operand;
+}
+
+/// Specialization of [_AssignmentLikeExpressionHandler] for
+/// [PrefixExpression].
+class _PrefixExpressionHandler extends _AssignmentLikeExpressionHandler {
+  @override
+  final PrefixExpression node;
+
+  _PrefixExpressionHandler(this.node)
+      : assert(_isIncrementOrDecrementOperator(node.operator.type));
+
+  @override
+  MethodElement get combiner => node.staticElement;
+
+  @override
+  TokenType get combinerType => node.operator.type;
+
+  @override
+  Expression get target => node.operand;
 }

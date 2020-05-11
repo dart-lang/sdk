@@ -67,7 +67,7 @@ testIfThenElse() {
     return 1;
 }
 
-/*member: testForIn:
+/*spec:nnbd-off.member: testForIn:
  dynamic=[
   Iterator.current,
   Iterator.iterator,
@@ -113,12 +113,61 @@ testIfThenElse() {
   inst:JSNull,
   inst:Null]
 */
+/*spec:nnbd-sdk.member: testForIn:
+ dynamic=[
+  Iterator.current,
+  Iterator.iterator,
+  Iterator.moveNext(0)],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkConcurrentModificationError(2),
+  findType(1),
+  instanceType(1)],
+ type=[
+  impl:Iterable<dynamic>*,
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  inst:Null]
+*/
 testForIn(o) {
   // ignore: UNUSED_LOCAL_VARIABLE
   for (var e in o) {}
 }
 
-/*member: testForInTyped:
+/*spec:nnbd-off.member: testForInTyped:
  dynamic=[
   Iterator.current,
   Iterator.iterator,
@@ -165,6 +214,56 @@ testForIn(o) {
   inst:JSNull,
   inst:Null]
 */
+/*spec:nnbd-sdk.member: testForInTyped:
+ dynamic=[
+  Iterator.current,
+  Iterator.iterator,
+  Iterator.moveNext(0)],
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkConcurrentModificationError(2),
+  findType(1),
+  instanceType(1)],
+ type=[
+  impl:Iterable<dynamic>*,
+  impl:int*,
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  inst:Null]
+*/
 testForInTyped(o) {
   // ignore: UNUSED_LOCAL_VARIABLE
   for (int e in o) {}
@@ -180,7 +279,7 @@ testTryCatch() {
   try {} catch (e) {}
 }
 
-/*member: testTryCatchOn:
+/*spec:nnbd-off.member: testTryCatchOn:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -217,6 +316,51 @@ testTryCatch() {
   unwrapException(1)],
  type=[
   catch:String,
+  inst:Closure,
+  inst:JSBool,
+  inst:PlainJavaScriptObject,
+  inst:UnknownJavaScriptObject]
+*/
+/*spec:nnbd-sdk.member: testTryCatchOn:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _generalNullableAsCheckImplementation(1),
+  _generalNullableIsTestImplementation(1),
+  _installSpecializedAsCheck(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1),
+  unwrapException(1)],
+ type=[
+  catch:String*,
   inst:Closure,
   inst:JSBool,
   inst:PlainJavaScriptObject,

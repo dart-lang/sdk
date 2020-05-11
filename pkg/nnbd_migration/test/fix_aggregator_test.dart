@@ -91,7 +91,7 @@ class FixAggregatorTest extends FixAggregatorTestBase {
     await analyze(content);
     var previewInfo = run({
       findNode.assignment('+='): NodeChangeForAssignment()
-        ..isCompoundAssignmentWithBadCombinedType = true
+        ..hasBadCombinedType = true
     });
     expect(previewInfo.applyTo(code), content);
     expect(previewInfo, hasLength(1));
@@ -107,7 +107,7 @@ class FixAggregatorTest extends FixAggregatorTestBase {
     await analyze(content);
     var previewInfo = run({
       findNode.assignment('+='): NodeChangeForAssignment()
-        ..isCompoundAssignmentWithNullableSource = true
+        ..hasNullableSource = true
     });
     expect(previewInfo.applyTo(code), content);
     expect(previewInfo, hasLength(1));
@@ -142,6 +142,16 @@ class FixAggregatorTest extends FixAggregatorTestBase {
         NullabilityFixDescription.nullAwareAssignmentUnnecessaryInStrongMode);
     expect(edit.isInformative, isTrue);
     expect(edit.length, '??='.length);
+  }
+
+  Future<void> test_assignment_weak_null_aware_remove() async {
+    var content = 'f(int x, int y) => x ??= y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('??='): NodeChangeForAssignment()
+        ..isWeakNullAware = true
+    }, warnOnWeakCode: false);
+    expect(previewInfo.applyTo(code), 'f(int x, int y) => x;');
   }
 
   Future<void> test_eliminateDeadIf_changesInKeptCode() async {
@@ -854,6 +864,131 @@ f(Object o) => o as a.Future<Null>;
     var previewInfo = run(
         {property: NodeChangeForPropertyAccess()..addNullCheck(_MockInfo())});
     expect(previewInfo.applyTo(code), 'f(a) => a..b!.c;');
+  }
+
+  Future<void> test_post_increment_add_null_check() async {
+    var content = 'f(int x) => x++;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.postfix('++'): NodeChangeForPostfixExpression()
+        ..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x) => x++!;');
+  }
+
+  Future<void> test_post_increment_change_target() async {
+    var content = 'f(List<int> x) => x[0]++;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.postfix('++'): NodeChangeForPostfixExpression(),
+      findNode.index('[0]').target: NodeChangeForExpression()
+        ..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(List<int> x) => x![0]++;');
+  }
+
+  Future<void> test_post_increment_introduce_as() async {
+    var content = 'f(int x) => x++;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.postfix('++'): NodeChangeForPostfixExpression()
+        ..introduceAs(nnbdTypeProvider.intType, null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x) => x++ as int;');
+  }
+
+  Future<void> test_post_increment_with_bad_combined_type() async {
+    var content = 'f(int x) => x++;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.postfix('++'): NodeChangeForPostfixExpression()
+        ..hasBadCombinedType = true
+    });
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('++')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.compoundAssignmentHasBadCombinedType);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '++'.length);
+  }
+
+  Future<void> test_post_increment_with_nullable_source() async {
+    var content = 'f(int x) => x++;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.postfix('++'): NodeChangeForPostfixExpression()
+        ..hasNullableSource = true
+    });
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('++')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.compoundAssignmentHasNullableSource);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '++'.length);
+  }
+
+  Future<void> test_pre_increment_add_null_check() async {
+    var content = 'f(int x) => ++x;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.prefix('++'): NodeChangeForPrefixExpression()..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x) => (++x)!;');
+  }
+
+  Future<void> test_pre_increment_change_target() async {
+    var content = 'f(List<int> x) => ++x[0];';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.prefix('++'): NodeChangeForPrefixExpression(),
+      findNode.index('[0]').target: NodeChangeForExpression()
+        ..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(List<int> x) => ++x![0];');
+  }
+
+  Future<void> test_pre_increment_introduce_as() async {
+    var content = 'f(int x) => ++x;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.prefix('++'): NodeChangeForPrefixExpression()
+        ..introduceAs(nnbdTypeProvider.intType, null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x) => ++x as int;');
+  }
+
+  Future<void> test_pre_increment_with_bad_combined_type() async {
+    var content = 'f(int x) => ++x;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.prefix('++'): NodeChangeForPrefixExpression()
+        ..hasBadCombinedType = true
+    });
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('++')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.compoundAssignmentHasBadCombinedType);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '++'.length);
+  }
+
+  Future<void> test_pre_increment_with_nullable_source() async {
+    var content = 'f(int x) => ++x;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.prefix('++'): NodeChangeForPrefixExpression()
+        ..hasNullableSource = true
+    });
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('++')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.compoundAssignmentHasNullableSource);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '++'.length);
   }
 
   Future<void>

@@ -18,9 +18,11 @@ const String _dartTypeId = 'DartError';
 /// Crash backend host.
 const String _crashServerHost = 'clients2.google.com';
 
-// This should be one of 'report' or 'staging_report'.
-/// Path to the crash servlet.
-const String _crashEndpointPath = '/cr/staging_report';
+/// Path to the staging crash servlet.
+const String _crashEndpointPathStaging = '/cr/staging_report';
+
+/// Path to the prod crash servlet.
+const String _crashEndpointPathProd = '/cr/report';
 
 /// The field corresponding to the multipart/form-data file attachment where
 /// crash backend expects to find the Dart stack trace.
@@ -36,8 +38,7 @@ const String _stackTraceFilename = 'stacktrace_file';
 ///
 /// Clients shouldn't extend, mixin or implement this class.
 class CrashReportSender {
-  static final Uri _baseUri = new Uri(
-      scheme: 'https', host: _crashServerHost, path: _crashEndpointPath);
+  final Uri _baseUri;
 
   static const int _maxReportsToSend = 1000;
 
@@ -50,12 +51,30 @@ class CrashReportSender {
   int _reportsSent = 0;
   int _skippedReports = 0;
 
-  /// Create a new [CrashReportSender].
-  CrashReportSender(
+  CrashReportSender._(
     this.crashProductId,
     this.shouldSend, {
     http.Client httpClient,
-  }) : _httpClient = httpClient ?? new http.Client();
+    String endpointPath = _crashEndpointPathStaging,
+  })  : _httpClient = httpClient ?? new http.Client(),
+        _baseUri = new Uri(
+            scheme: 'https', host: _crashServerHost, path: endpointPath);
+
+  /// Create a new [CrashReportSender] connected to the staging endpoint.
+  CrashReportSender.staging(
+    String crashProductId,
+    EnablementCallback shouldSend, {
+    http.Client httpClient,
+  }) : this._(crashProductId, shouldSend,
+            httpClient: httpClient, endpointPath: _crashEndpointPathStaging);
+
+  /// Create a new [CrashReportSender] connected to the prod endpoint.
+  CrashReportSender.prod(
+    String crashProductId,
+    EnablementCallback shouldSend, {
+    http.Client httpClient,
+  }) : this._(crashProductId, shouldSend,
+            httpClient: httpClient, endpointPath: _crashEndpointPathProd);
 
   /// Sends one crash report.
   ///

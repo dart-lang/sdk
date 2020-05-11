@@ -714,45 +714,6 @@ class VMService extends MessageRouter {
         details: "Unknown service: ${message.method}");
   }
 
-  Future<String> _spawnUri(Message message) async {
-    var token = message.params['token'];
-    if (token == null) {
-      return encodeMissingParamError(message, 'token');
-    }
-    if (token is! String) {
-      return encodeInvalidParamError(message, 'token');
-    }
-    var uri = message.params['uri'];
-    if (uri == null) {
-      return encodeMissingParamError(message, 'uri');
-    }
-    if (uri is! String) {
-      return encodeInvalidParamError(message, 'uri');
-    }
-    var args = message.params['args'];
-    var argsOfString = new List<String>();
-    if (args != null) {
-      if (args is! List) {
-        return encodeInvalidParamError(message, 'args');
-      }
-      for (var arg in args) {
-        if (arg is! String) {
-          return encodeInvalidParamError(message, 'args');
-        }
-        argsOfString.add(arg);
-      }
-    }
-    var msg = message.params['message'];
-
-    Isolate.spawnUri(Uri.parse(uri), argsOfString, msg).then((isolate) {
-      _spawnUriNotify(isolate.controlPort, token);
-    }).catchError((e) {
-      _spawnUriNotify(e.toString(), token);
-    });
-
-    return encodeSuccess(message);
-  }
-
   Future<Response> routeRequest(VMService _, Message message) async {
     final response = await _routeRequestImpl(message);
     if (response == null) {
@@ -779,9 +740,6 @@ class VMService extends MessageRouter {
       }
       if (message.method == 'registerService') {
         return await _registerService(message);
-      }
-      if (message.method == '_spawnUri') {
-        return await _spawnUri(message);
       }
       if (message.method == 'setClientName') {
         return _setClientName(message);
@@ -848,6 +806,3 @@ void _vmCancelStream(String streamId) native "VMService_CancelStream";
 
 /// Get the bytes to the tar archive.
 Uint8List _requestAssets() native "VMService_RequestAssets";
-
-/// Notify the vm service that an isolate has been spawned via rpc.
-void _spawnUriNotify(obj, String token) native "VMService_spawnUriNotify";

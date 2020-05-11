@@ -68,7 +68,7 @@ import "dart:core" as core;
 
 import "dart:async";
 
-static final field asy::StreamTransformer<dynamic, dynamic> t = new asy::_StreamHandlerTransformer::•<dynamic, dynamic>(handleData: (dynamic data, asy::EventSink<dynamic> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::add}(data)), handleDone: (asy::EventSink<dynamic> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::close}()));
+static final field asy::StreamTransformer<core::Object?, core::Object?> t = new asy::_StreamHandlerTransformer::•<core::Object?, core::Object?>(handleData: (core::Object? data, asy::EventSink<core::Object?> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::add}(data)), handleDone: (asy::EventSink<core::Object?> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::close}()));
 static final field core::List<dynamic> s1 = <dynamic>[];
 static final field core::int? s2 = let final core::List<dynamic> #t1 = self::s1 in #t1.{core::List::==}(null) ?{core::int?} null : #t1.{core::List::length};
 static final field core::List<core::int> s3 = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:17:16: Error: Can't use the default List constructor.

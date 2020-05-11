@@ -434,11 +434,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // e.g. `Iterable<?>`
       if (constraint.lower is! UnknownType) {
         return grounded
-            ? leastClosure(constraint.lower, bottomType)
+            ? leastClosure(constraint.lower, const DynamicType(), bottomType)
             : constraint.lower;
       } else {
         return grounded
-            ? greatestClosure(constraint.upper, bottomType)
+            ? greatestClosure(constraint.upper, const DynamicType(), bottomType)
             : constraint.upper;
       }
     } else {
@@ -450,11 +450,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // e.g. `Iterable<?>`
       if (constraint.upper is! UnknownType) {
         return grounded
-            ? greatestClosure(constraint.upper, bottomType)
+            ? greatestClosure(constraint.upper, const DynamicType(), bottomType)
             : constraint.upper;
       } else {
         return grounded
-            ? leastClosure(constraint.lower, bottomType)
+            ? leastClosure(constraint.lower, const DynamicType(), bottomType)
             : constraint.lower;
       }
     }

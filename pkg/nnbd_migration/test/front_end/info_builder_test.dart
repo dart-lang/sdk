@@ -694,6 +694,56 @@ String? g() => 1 == 2 ? "Hello" : null;
         explanation: "Changed type 'String' to be nullable");
   }
 
+  Future<void> test_increment_nullable_result() async {
+    var unit = await buildInfoForSingleTestFile('''
+abstract class C {
+  C/*?*/ operator+(int i);
+}
+void f(C/*!*/ a) {
+  a++;
+}
+''', migratedContent: '''
+abstract class C {
+  C/*?*/ operator+(int  i);
+}
+void f(C/*!*/ a) {
+  a++;
+}
+''');
+    var operator = '++';
+    var operatorOffset = unit.content.indexOf(operator);
+    var region =
+        unit.regions.where((region) => region.offset == operatorOffset).single;
+    assertRegion(
+        region: region,
+        length: operator.length,
+        explanation: 'Compound assignment has bad combined type',
+        kind: NullabilityFixKind.compoundAssignmentHasBadCombinedType,
+        edits: isEmpty);
+  }
+
+  Future<void> test_increment_nullable_source() async {
+    var unit = await buildInfoForSingleTestFile('''
+void f(int/*?*/ a) {
+  a++;
+}
+''', migratedContent: '''
+void f(int/*?*/ a) {
+  a++;
+}
+''');
+    var operator = '++';
+    var operatorOffset = unit.content.indexOf(operator);
+    var region =
+        unit.regions.where((region) => region.offset == operatorOffset).single;
+    assertRegion(
+        region: region,
+        length: operator.length,
+        explanation: 'Compound assignment has nullable source',
+        kind: NullabilityFixKind.compoundAssignmentHasNullableSource,
+        edits: isEmpty);
+  }
+
   Future<void> test_insertedRequired_fieldFormal() async {
     var unit = await buildInfoForSingleTestFile('''
 class C {
@@ -782,6 +832,45 @@ C/*!*/ _f(C  c) => (c + c)!;
         length: 1,
         explanation: 'Added a non-null assertion to nullable expression',
         kind: NullabilityFixKind.checkExpression);
+  }
+
+  void test_nullAwareAssignment_remove() async {
+    var unit = await buildInfoForSingleTestFile('''
+int f(int/*!*/ x, int y) => x ??= y;
+''', migratedContent: '''
+int  f(int/*!*/ x, int  y) => x ??= y;
+''', warnOnWeakCode: false, removeViaComments: false);
+    var codeToRemove = ' ??= y';
+    var removalOffset = unit.content.indexOf(codeToRemove);
+    var region =
+        unit.regions.where((region) => region.offset == removalOffset).single;
+    assertRegion(
+        region: region,
+        length: codeToRemove.length,
+        explanation:
+            'Removed a null-aware assignment, because the target cannot be '
+            'null',
+        kind: NullabilityFixKind.removeDeadCode,
+        edits: isEmpty);
+  }
+
+  void test_nullAwareAssignment_unnecessaryInStrongMode() async {
+    var unit = await buildInfoForSingleTestFile('''
+int f(int/*!*/ x, int y) => x ??= y;
+''', migratedContent: '''
+int  f(int/*!*/ x, int  y) => x ??= y;
+''', warnOnWeakCode: true);
+    var operator = '??=';
+    var operatorOffset = unit.content.indexOf(operator);
+    var region =
+        unit.regions.where((region) => region.offset == operatorOffset).single;
+    assertRegion(
+        region: region,
+        length: operator.length,
+        explanation:
+            'Null-aware assignment will be unnecessary in strong checking mode',
+        kind: NullabilityFixKind.nullAwareAssignmentUnnecessaryInStrongMode,
+        edits: isEmpty);
   }
 
   void test_nullAwarenessUnnecessaryInStrongMode() async {

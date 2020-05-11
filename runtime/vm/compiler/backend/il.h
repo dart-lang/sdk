@@ -3726,15 +3726,7 @@ class TemplateDartCall : public Definition {
     }
   }
 
-  StringPtr Selector() {
-    if (auto static_call = this->AsStaticCall()) {
-      return static_call->function().name();
-    } else if (auto instance_call = this->AsInstanceCall()) {
-      return instance_call->function_name().raw();
-    } else {
-      UNREACHABLE();
-    }
-  }
+  inline StringPtr Selector();
 
   virtual bool MayThrow() const { return true; }
   virtual bool CanCallDart() const { return true; }
@@ -9195,6 +9187,17 @@ class FlowGraphVisitor : public ValueObject {
     return NULL;                                                               \
   }                                                                            \
   void Name::EmitNativeCode(FlowGraphCompiler* compiler) { UNIMPLEMENTED(); }
+
+template <intptr_t kExtraInputs>
+StringPtr TemplateDartCall<kExtraInputs>::Selector() {
+  if (auto static_call = this->AsStaticCall()) {
+    return static_call->function().name();
+  } else if (auto instance_call = this->AsInstanceCall()) {
+    return instance_call->function_name().raw();
+  } else {
+    UNREACHABLE();
+  }
+}
 
 }  // namespace dart
 

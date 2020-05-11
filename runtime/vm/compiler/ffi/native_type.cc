@@ -103,8 +103,9 @@ intptr_t NativeFundamentalType::AlignmentInBytesStack() const {
     case kAlignedToValueSize:
       // iOS on arm64 only aligns to size.
       return SizeInBytes();
+    default:
+      UNREACHABLE();
   }
-  UNREACHABLE();
 }
 
 intptr_t NativeFundamentalType::AlignmentInBytesField() const {
@@ -120,8 +121,9 @@ intptr_t NativeFundamentalType::AlignmentInBytesField() const {
       }
       return SizeInBytes();
     }
+    default:
+      UNREACHABLE();
   }
-  UNREACHABLE();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

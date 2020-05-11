@@ -566,6 +566,22 @@ char* Dart::Cleanup() {
   delete predefined_handles_;
   predefined_handles_ = NULL;
 
+  // Set the VM isolate as current isolate.
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Cleaning up vm isolate\n",
+                 UptimeMillis());
+  }
+
+  // If Dart_Cleanup() is called on a thread which hasn't invoked any Dart API
+  // functions before, entering the "vm-isolate" will cause lazy creation of a
+  // OSThread (which is attached to the current thread via TLS).
+  //
+  // If we run in PRODUCT mode this lazy creation of OSThread can happen here,
+  // which is why disabling the OSThread creation has to come after entering the
+  // "vm-isolate".
+  const bool result = Thread::EnterIsolate(vm_isolate_);
+  ASSERT(result);
+
   // Disable creation of any new OSThread structures which means no more new
   // threads can do an EnterIsolate. This must come after isolate shutdown
   // because new threads may need to be spawned to shutdown the isolates.
@@ -577,14 +593,6 @@ char* Dart::Cleanup() {
                  UptimeMillis());
   }
   OSThread::DisableOSThreadCreation();
-
-  // Set the VM isolate as current isolate.
-  if (FLAG_trace_shutdown) {
-    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Cleaning up vm isolate\n",
-                 UptimeMillis());
-  }
-  bool result = Thread::EnterIsolate(vm_isolate_);
-  ASSERT(result);
 
   ShutdownIsolate();
   vm_isolate_ = NULL;

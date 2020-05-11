@@ -135,4 +135,7 @@ class UseCurlyBraces extends CorrectionProducer {
       builder.addSimpleInsertion(body.end, '$eol$prefix}');
     });
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static UseCurlyBraces newInstance() => UseCurlyBraces();
 }

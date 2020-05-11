@@ -40,7 +40,7 @@ class Zone::Segment {
   void* alignment_;
 
   // Computes the address of the nth byte in this segment.
-  uword address(int n) { return reinterpret_cast<uword>(this) + n; }
+  uword address(intptr_t n) { return reinterpret_cast<uword>(this) + n; }
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Segment);
 };
@@ -195,6 +195,7 @@ void Zone::DeleteAll() {
 #endif
   position_ = initial_buffer_.start();
   limit_ = initial_buffer_.end();
+  small_segment_capacity_ = 0;
   head_ = NULL;
   large_segments_ = NULL;
   previous_ = NULL;
@@ -252,8 +253,22 @@ uword Zone::AllocateExpand(intptr_t size) {
     return AllocateLargeSegment(size);
   }
 
+  const intptr_t kSuperPageSize = 2 * MB;
+  intptr_t next_size;
+  if (small_segment_capacity_ < kSuperPageSize) {
+    // When the Zone is small, grow linearly to reduce size and use the segment
+    // cache to avoid expensive mmap calls.
+    next_size = kSegmentSize;
+  } else {
+    // When the Zone is large, grow geometrically to avoid Page Table Entry
+    // exhaustion. Using 1.125 ratio.
+    next_size = Utils::RoundUp(small_segment_capacity_ >> 3, kSuperPageSize);
+  }
+  ASSERT(next_size >= kSegmentSize);
+
   // Allocate another segment and chain it up.
-  head_ = Segment::New(kSegmentSize, head_);
+  head_ = Segment::New(next_size, head_);
+  small_segment_capacity_ += next_size;
 
   // Recompute 'position' and 'limit' based on the new head segment.
   uword result = Utils::RoundUp(head_->start(), kAlignment);

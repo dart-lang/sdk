@@ -39,7 +39,7 @@ int Utils::VSNPrint(char* str, size_t size, const char* format, va_list args) {
 
 sys::ComponentContext* ComponentContext() {
   static std::unique_ptr<sys::ComponentContext> context =
-      sys::ComponentContext::Create();
+      sys::ComponentContext::CreateAndServeOutgoingDirectory();
   return context.get();
 }
 
