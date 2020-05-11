@@ -17,8 +17,10 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
 // If the client does not provide capabilities.completion.completionItemKind.valueSet
 // then we must never send a kind that's not in this list.
@@ -44,7 +46,8 @@ final defaultSupportedCompletionKinds = HashSet<CompletionItemKind>.of([
 ]);
 
 class CompletionHandler
-    extends MessageHandler<CompletionParams, List<CompletionItem>> {
+    extends MessageHandler<CompletionParams, List<CompletionItem>>
+    with LspPluginRequestHandlerMixin {
   final bool suggestFromUnimportedLibraries;
   CompletionHandler(
       LspAnalysisServer server, this.suggestFromUnimportedLibraries)
@@ -60,10 +63,6 @@ class CompletionHandler
   @override
   Future<ErrorOr<List<CompletionItem>>> handle(
       CompletionParams params, CancellationToken token) async {
-    if (!isDartDocument(params.textDocument)) {
-      return success(const []);
-    }
-
     final completionCapabilities =
         server?.clientCapabilities?.textDocument?.completion;
 
@@ -79,15 +78,37 @@ class CompletionHandler
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
-    return offset.mapResult((offset) => _getItems(
+
+    final lineInfo = unit.map<ErrorOr<LineInfo>>(
+      // If we don't have a unit, we can still try to obtain the line info for
+      // plugin contributors.
+      (error) => path.mapResult(getLineInfo),
+      (unit) => success(unit.lineInfo),
+    );
+    final offset =
+        await lineInfo.mapResult((lineInfo) => toOffset(lineInfo, pos));
+
+    return offset.mapResult((offset) {
+      if (unit.isError) {
+        return _getItemsFromPluginsOnly(
+          completionCapabilities,
+          clientSupportedCompletionKinds,
+          lineInfo.result,
+          path.result,
+          offset,
+          token,
+        );
+      } else {
+        return _getItems(
           completionCapabilities,
           clientSupportedCompletionKinds,
           includeSuggestionSets,
           unit.result,
           offset,
           token,
-        ));
+        );
+      }
+    });
   }
 
   /// Build a list of existing imports so we can filter out any suggestions
@@ -154,22 +175,37 @@ class CompletionHandler
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       );
-      final suggestions =
-          await contributor.computeSuggestions(completionRequest);
+
+      final suggestions = await Future.wait([
+        contributor.computeSuggestions(completionRequest),
+        _getPluginSuggestions(unit.path, offset),
+      ]);
+      final serverSuggestions = suggestions[0];
+      final pluginSuggestions = suggestions[1];
 
       if (token.isCancellationRequested) {
         return cancelled();
       }
 
-      final results = suggestions
-          .map((item) => toCompletionItem(
-                completionCapabilities,
-                clientSupportedCompletionKinds,
-                unit.lineInfo,
-                item,
-                completionRequest.replacementOffset,
-                completionRequest.replacementLength,
-              ))
+      final results = serverSuggestions
+          .map(
+            (item) => toCompletionItem(
+              completionCapabilities,
+              clientSupportedCompletionKinds,
+              unit.lineInfo,
+              item,
+              completionRequest.replacementOffset,
+              completionRequest.replacementLength,
+            ),
+          )
+          .followedBy(
+            _pluginResultsToItems(
+              completionCapabilities,
+              clientSupportedCompletionKinds,
+              unit.lineInfo,
+              pluginSuggestions,
+            ),
+          )
           .toList();
 
       // Now compute items in suggestion sets.
@@ -255,5 +291,59 @@ class CompletionHandler
     } on AbortCompletion {
       return success([]);
     }
+  }
+
+  Future<ErrorOr<List<CompletionItem>>> _getItemsFromPluginsOnly(
+    TextDocumentClientCapabilitiesCompletion completionCapabilities,
+    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    LineInfo lineInfo,
+    String path,
+    int offset,
+    CancellationToken token,
+  ) async {
+    final pluginResults = await _getPluginSuggestions(path, offset);
+
+    if (token.isCancellationRequested) {
+      return cancelled();
+    }
+
+    return success(_pluginResultsToItems(
+      completionCapabilities,
+      clientSupportedCompletionKinds,
+      lineInfo,
+      pluginResults,
+    ).toList());
+  }
+
+  Future<List<plugin.CompletionGetSuggestionsResult>> _getPluginSuggestions(
+    String path,
+    int offset,
+  ) async {
+    final requestParams = plugin.CompletionGetSuggestionsParams(path, offset);
+    final responses = await requestFromPlugins(path, requestParams);
+
+    return responses
+        .map((e) => plugin.CompletionGetSuggestionsResult.fromResponse(e))
+        .toList();
+  }
+
+  Iterable<CompletionItem> _pluginResultsToItems(
+    TextDocumentClientCapabilitiesCompletion completionCapabilities,
+    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    LineInfo lineInfo,
+    List<plugin.CompletionGetSuggestionsResult> pluginResults,
+  ) {
+    return pluginResults.expand((result) {
+      return result.results.map(
+        (item) => toCompletionItem(
+          completionCapabilities,
+          clientSupportedCompletionKinds,
+          lineInfo,
+          item,
+          result.replacementOffset,
+          result.replacementLength,
+        ),
+      );
+    });
   }
 }

@@ -19,7 +19,8 @@ import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 
 class DefinitionHandler
-    extends MessageHandler<TextDocumentPositionParams, List<Location>> {
+    extends MessageHandler<TextDocumentPositionParams, List<Location>>
+    with LspPluginRequestHandlerMixin {
   DefinitionHandler(LspAnalysisServer server) : super(server);
   @override
   Method get handlesMessage => Method.textDocument_definition;
@@ -35,13 +36,7 @@ class DefinitionHandler
     // LSP requests must be converted to DAS-protocol requests for compatibility
     // with plugins.
     final requestParams = plugin.AnalysisGetNavigationParams(path, offset, 0);
-
-    final driver = server.getAnalysisDriver(path);
-    final pluginFutures = server.pluginManager
-        .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
-
-    final responses =
-        await waitForResponses(pluginFutures, requestParameters: requestParams);
+    final responses = await requestFromPlugins(path, requestParams);
 
     return responses
         .map((response) =>

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -112,6 +114,82 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
 
     await expectLater(
         request, throwsA(isResponseError(ErrorCodes.InvalidParams)));
+  }
+
+  Future<void> test_fromPlugin_dartFile() async {
+    final content = '''
+    void main() {
+      var x = '';
+      print(^);
+    }
+    ''';
+
+    final pluginResult = plugin.CompletionGetSuggestionsResult(
+      content.indexOf('^'),
+      0,
+      [
+        plugin.CompletionSuggestion(
+          plugin.CompletionSuggestionKind.INVOCATION,
+          100,
+          'x.toUpperCase()',
+          -1,
+          -1,
+          false,
+          false,
+        ),
+      ],
+    );
+    configureTestPlugin(respondWith: pluginResult);
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final fromServer = res.singleWhere((c) => c.label == 'x');
+    final fromPlugin = res.singleWhere((c) => c.label == 'x.toUpperCase()');
+
+    expect(fromServer.kind, equals(CompletionItemKind.Variable));
+    expect(fromPlugin.kind, equals(CompletionItemKind.Method));
+  }
+
+  Future<void> test_fromPlugin_nonDartFile() async {
+    final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
+    final pluginAnalyzedFileUri = Uri.file(pluginAnalyzedFilePath);
+    final content = '''
+    CREATE TABLE foo (
+      id INTEGER NOT NULL PRIMARY KEY
+    );
+
+    query: SELECT ^ FROM foo;
+    ''';
+
+    final pluginResult = plugin.CompletionGetSuggestionsResult(
+      content.indexOf('^'),
+      0,
+      [
+        plugin.CompletionSuggestion(
+          plugin.CompletionSuggestionKind.IDENTIFIER,
+          100,
+          'id',
+          -1,
+          -1,
+          false,
+          false,
+        ),
+      ],
+    );
+    configureTestPlugin(respondWith: pluginResult);
+
+    await initialize();
+    await openFile(pluginAnalyzedFileUri, withoutMarkers(content));
+    final res =
+        await getCompletion(pluginAnalyzedFileUri, positionFromMarker(content));
+
+    expect(res, hasLength(1));
+    final suggestion = res.single;
+
+    expect(suggestion.kind, CompletionItemKind.Variable);
+    expect(suggestion.label, equals('id'));
   }
 
   Future<void> test_gettersAndSetters() async {
