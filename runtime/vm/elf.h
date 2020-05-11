@@ -26,6 +26,12 @@ class Elf : public ZoneAllocated {
 
   static const intptr_t kPageSize = 4096;
 
+  // Used by the non-symbolic stack frame printer to calculate the relocated
+  // base address of the loaded ELF snapshot given the start of the VM
+  // instructions. Only works for ELF snapshots written by Dart, not those
+  // compiled from assembly.
+  static uword SnapshotRelocatedBaseAddress(uword vm_start);
+
   intptr_t NextMemoryOffset() const { return memory_offset_; }
   intptr_t NextSectionIndex() const { return sections_.length(); }
   intptr_t AddText(const char* name, const uint8_t* bytes, intptr_t size);
@@ -78,6 +84,8 @@ class Elf : public ZoneAllocated {
 
   void FinalizeProgramTable();
   void ComputeFileOffsets();
+  bool VerifySegmentOrder();
+
   void WriteHeader();
   void WriteSectionTable();
   void WriteProgramTable();

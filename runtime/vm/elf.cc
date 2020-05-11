@@ -7,6 +7,7 @@
 #include "platform/elf.h"
 #include "vm/cpu.h"
 #include "vm/hash_map.h"
+#include "vm/image_snapshot.h"
 #include "vm/thread.h"
 #include "vm/zone_text_buffer.h"
 
@@ -640,6 +641,21 @@ Elf::Elf(Zone* zone, StreamingWriteStream* stream)
   AddSection(shstrtab_, ".shstrtab");
 }
 
+// The VM segment comes after the program header segment and BSS segments,
+// both of which are a single page.
+static constexpr uword kVmSnapshotOffset = 2 * Elf::kPageSize;
+
+// Find the relocated base of the loaded ELF snapshot. Returns 0 if there is
+// no loaded ELF snapshot.
+uword Elf::SnapshotRelocatedBaseAddress(uword vm_start) {
+  ASSERT(vm_start > kVmSnapshotOffset);
+
+  const Image vm_instructions_image(reinterpret_cast<const void*>(vm_start));
+  if (!vm_instructions_image.compiled_to_elf()) return 0;
+
+  return vm_start - kVmSnapshotOffset;
+}
+
 void Elf::AddSection(Section* section, const char* name) {
   ASSERT(section_table_file_size_ < 0);
   ASSERT(!shstrtab_->HasBeenFinalized());
@@ -736,6 +752,9 @@ intptr_t Elf::AddBSSData(const char* name, intptr_t size) {
 
   ProgramBits* const image =
       new (zone_) ProgramBits(true, false, true, bytes, size);
+  static_assert(Image::kBssAlignment <= kPageSize,
+                "ELF .bss section is not aligned as expected by Image class");
+  ASSERT_EQUAL(image->alignment, kPageSize);
   AddSection(image, ".bss");
 
   return AddSectionSymbol(image, name, size);
@@ -778,6 +797,8 @@ void Elf::Finalize() {
   // sections and segments.
   FinalizeProgramTable();
   ComputeFileOffsets();
+
+  ASSERT(VerifySegmentOrder());
 
   // Finally, write the ELF file contents.
   WriteHeader();
@@ -842,6 +863,63 @@ void Elf::ComputeFileOffsets() {
   section_table_file_offset_ = file_offset;
   section_table_file_size_ = sections_.length() * kElfSectionTableEntrySize;
   file_offset += section_table_file_size_;
+}
+
+bool Elf::VerifySegmentOrder() {
+  // We can only verify the segment order after FinalizeProgramTable(), since
+  // we assume that all segments have been added, including the two program
+  // table segments.
+  ASSERT(program_table_file_size_ > 0);
+
+  // Find the names and symbols for the .bss and .text segments.
+  auto const bss_section_name = shstrtab_->Lookup(".bss");
+  // For separate debugging information for assembly snapshots, no .bss section
+  // is added. However, we're only interested in strict segment orders when
+  // generating ELF snapshots, so only continue when there's a .bss section.
+  if (bss_section_name == -1) return true;
+  auto const text_section_name = shstrtab_->Lookup(".text");
+  ASSERT(text_section_name != -1);
+
+  auto const bss_symbol_name = dynstrtab_->Lookup("_kDartBSSData");
+  auto const vm_symbol_name =
+      dynstrtab_->Lookup(kVmSnapshotInstructionsAsmSymbol);
+  auto const isolate_symbol_name =
+      dynstrtab_->Lookup(kIsolateSnapshotInstructionsAsmSymbol);
+  ASSERT(bss_symbol_name != -1);
+  ASSERT(vm_symbol_name != -1);
+  ASSERT(isolate_symbol_name != -1);
+
+  auto const bss_symbol = dynsym_->FindSymbolWithNameIndex(bss_symbol_name);
+  auto const vm_symbol = dynsym_->FindSymbolWithNameIndex(vm_symbol_name);
+  auto const isolate_symbol =
+      dynsym_->FindSymbolWithNameIndex(isolate_symbol_name);
+  ASSERT(bss_symbol != nullptr);
+  ASSERT(vm_symbol != nullptr);
+  ASSERT(isolate_symbol != nullptr);
+
+  // Check that the first non-program table segments are in the expected order.
+  auto const bss_segment = segments_[2];
+  ASSERT_EQUAL(bss_segment->segment_type, elf::PT_LOAD);
+  ASSERT_EQUAL(bss_segment->section_name(), bss_section_name);
+  ASSERT_EQUAL(bss_segment->memory_offset(), bss_symbol->offset);
+  ASSERT_EQUAL(bss_segment->MemorySize(), bss_symbol->size);
+  auto const vm_segment = segments_[3];
+  ASSERT_EQUAL(vm_segment->segment_type, elf::PT_LOAD);
+  ASSERT_EQUAL(vm_segment->section_name(), text_section_name);
+  ASSERT_EQUAL(vm_segment->memory_offset(), vm_symbol->offset);
+  ASSERT_EQUAL(vm_segment->MemorySize(), vm_symbol->size);
+  auto const isolate_segment = segments_[4];
+  ASSERT_EQUAL(isolate_segment->segment_type, elf::PT_LOAD);
+  ASSERT_EQUAL(isolate_segment->section_name(), text_section_name);
+  ASSERT_EQUAL(isolate_segment->memory_offset(), isolate_symbol->offset);
+  ASSERT_EQUAL(isolate_segment->MemorySize(), isolate_symbol->size);
+
+  // Also make sure that the memory offset of the VM segment is as expected.
+  ASSERT_EQUAL(bss_segment->memory_offset(), kPageSize);
+  ASSERT(bss_segment->MemorySize() <= kPageSize);
+  ASSERT_EQUAL(vm_segment->memory_offset(), kVmSnapshotOffset);
+
+  return true;
 }
 
 void Elf::WriteHeader() {

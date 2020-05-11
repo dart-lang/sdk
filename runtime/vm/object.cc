@@ -27,6 +27,7 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/double_conversion.h"
+#include "vm/elf.h"
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
 #include "vm/hash.h"
@@ -23589,17 +23590,31 @@ StackTracePtr StackTrace::New(const Array& code_array,
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
+// Prints the best representation(s) for the call address.
 static void PrintNonSymbolicStackFrameBody(ZoneTextBuffer* buffer,
                                            uword call_addr,
                                            uword isolate_instructions,
                                            uword vm_instructions) {
   const word vm_offset = call_addr - vm_instructions;
   const word isolate_offset = call_addr - isolate_instructions;
+  // If the VM instructions image was compiled directly to ELF, we can determine
+  // the base address of the snapshot shared object from the section start.
+  const uword snapshot_base =
+      Elf::SnapshotRelocatedBaseAddress(vm_instructions);
+
   // Pick the closest instructions section start before the call address.
   if (vm_offset > 0 && (isolate_offset < 0 || vm_offset < isolate_offset)) {
+    if (snapshot_base != 0) {
+      const uword relocated_section = vm_instructions - snapshot_base;
+      buffer->Printf(" virt %" Pp "", relocated_section + vm_offset);
+    }
     buffer->Printf(" %s+0x%" Px "", kVmSnapshotInstructionsAsmSymbol,
                    vm_offset);
   } else if (isolate_offset > 0) {
+    if (snapshot_base != 0) {
+      const uword relocated_section = isolate_instructions - snapshot_base;
+      buffer->Printf(" virt %" Pp "", relocated_section + isolate_offset);
+    }
     buffer->Printf(" %s+0x%" Px "", kIsolateSnapshotInstructionsAsmSymbol,
                    isolate_offset);
   } else {
