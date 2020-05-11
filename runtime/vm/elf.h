@@ -37,6 +37,12 @@ class Elf : public ZoneAllocated {
                        intptr_t address,
                        intptr_t size);
 
+  // Returns whether the symbol was found. If found, sets the contents of
+  // offset and size appropriately if either or both are not nullptr.
+  bool FindDynamicSymbol(const char* name,
+                         intptr_t* offset,
+                         intptr_t* size) const;
+
   void Finalize();
 
   intptr_t position() const { return stream_->position(); }

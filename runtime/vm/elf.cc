@@ -380,6 +380,10 @@ class StringTable : public Section {
     return offset;
   }
 
+  intptr_t Lookup(const char* str) const {
+    return text_indices_.LookupValue(str) - 1;
+  }
+
   const bool dynamic_;
   ZoneTextBuffer text_;
   // To avoid kNoValue for intptr_t (0), we store an index n as n + 1.
@@ -394,39 +398,40 @@ class Symbol : public ZoneAllocated {
          intptr_t section,
          intptr_t offset,
          intptr_t size)
-      : cstr_(cstr),
-        name_index_(name),
-        info_(info),
-        section_index_(section),
-        offset_(offset),
-        size_(size) {}
+      : name_index(name),
+        info(info),
+        section_index(section),
+        offset(offset),
+        size(size),
+        cstr_(cstr) {}
 
   void Write(Elf* stream) const {
-    stream->WriteWord(name_index_);
+    stream->WriteWord(name_index);
 #if defined(TARGET_ARCH_IS_32_BIT)
-    stream->WriteAddr(offset_);
-    stream->WriteWord(size_);
-    stream->WriteByte(info_);
+    stream->WriteAddr(offset);
+    stream->WriteWord(size);
+    stream->WriteByte(info);
     stream->WriteByte(0);
-    stream->WriteHalf(section_index_);
+    stream->WriteHalf(section_index);
 #else
-    stream->WriteByte(info_);
+    stream->WriteByte(info);
     stream->WriteByte(0);
-    stream->WriteHalf(section_index_);
-    stream->WriteAddr(offset_);
-    stream->WriteXWord(size_);
+    stream->WriteHalf(section_index);
+    stream->WriteAddr(offset);
+    stream->WriteXWord(size);
 #endif
   }
+
+  const intptr_t name_index;
+  const intptr_t info;
+  const intptr_t section_index;
+  const intptr_t offset;
+  const intptr_t size;
 
  private:
   friend class SymbolHashTable;  // For cstr_ access.
 
-  const char* cstr_;
-  intptr_t name_index_;
-  intptr_t info_;
-  intptr_t section_index_;
-  intptr_t offset_;
-  intptr_t size_;
+  const char* const cstr_;
 };
 
 class SymbolTable : public Section {
@@ -461,6 +466,14 @@ class SymbolTable : public Section {
   void AddSymbol(const Symbol* symbol) { symbols_.Add(symbol); }
   intptr_t Length() const { return symbols_.length(); }
   const Symbol* At(intptr_t i) const { return symbols_[i]; }
+
+  const Symbol* FindSymbolWithNameIndex(intptr_t name_index) const {
+    for (intptr_t i = 0; i < Length(); i++) {
+      auto const symbol = At(i);
+      if (symbol->name_index == name_index) return symbol;
+    }
+    return nullptr;
+  }
 
  private:
   const bool dynamic_;
@@ -694,6 +707,22 @@ void Elf::AddStaticSymbol(intptr_t section,
   Symbol* symbol =
       new (zone_) Symbol(name, name_index, info, section, address, size);
   symtab_->AddSymbol(symbol);
+}
+
+bool Elf::FindDynamicSymbol(const char* name,
+                            intptr_t* offset,
+                            intptr_t* size) const {
+  auto const name_index = dynstrtab_->Lookup(name);
+  if (name_index < 0) return false;
+  auto const symbol = dynsym_->FindSymbolWithNameIndex(name_index);
+  if (symbol == nullptr) return false;
+  if (offset != nullptr) {
+    *offset = symbol->offset;
+  }
+  if (size != nullptr) {
+    *size = symbol->size;
+  }
+  return true;
 }
 
 intptr_t Elf::AddBSSData(const char* name, intptr_t size) {

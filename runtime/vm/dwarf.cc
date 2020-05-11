@@ -362,10 +362,15 @@ void Dwarf::WriteCompilationUnit() {
   // compilation unit. Dwarf consumers use this to quickly decide which
   // compilation unit DIE to consult for a given pc.
   if (asm_stream_ != nullptr) {
-    PrintNamedAddress("_kDartIsolateSnapshotInstructions");
+    PrintNamedAddress(kIsolateSnapshotInstructionsAsmSymbol);
   }
   if (elf_ != nullptr) {
-    addr(0);
+    intptr_t offset;
+    if (!elf_->FindDynamicSymbol(kIsolateSnapshotInstructionsAsmSymbol, &offset,
+                                 nullptr)) {
+      UNREACHABLE();
+    }
+    addr(offset);
   }
 
   // DW_AT_high_pc
@@ -807,8 +812,11 @@ void Dwarf::WriteLines() {
             previous_line = line;
           }
 
-          // 3. Emit LNP row.
-          u1(DW_LNS_copy);
+          // 3. Emit LNP row if the address register has been updated to a
+          // non-zero value (dartbug.com/41756).
+          if (previous_code_index >= 0) {
+            u1(DW_LNS_copy);
+          }
 
           // 4. Update LNP pc.
           if (previous_code_index < 0) {
