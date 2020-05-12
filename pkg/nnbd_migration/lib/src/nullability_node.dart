@@ -1245,8 +1245,12 @@ class UpstreamPropagationStep extends PropagationStep
   /// any.
   final NullabilityEdge edge;
 
+  @override
+  final bool isStartingPoint;
+
   UpstreamPropagationStep(
-      this.principalCause, this.node, this.newNonNullIntent, this.edge);
+      this.principalCause, this.node, this.newNonNullIntent, this.edge,
+      {this.isStartingPoint = false});
 
   UpstreamPropagationStep.fromJson(
       dynamic json, NullabilityGraphDeserializer deserializer)
@@ -1254,7 +1258,8 @@ class UpstreamPropagationStep extends PropagationStep
             as UpstreamPropagationStep,
         node = deserializer.nodeForId(json['node'] as int),
         newNonNullIntent = NonNullIntent.fromJson(json['newState']),
-        edge = deserializer.edgeForId(json['edge'] as int);
+        edge = deserializer.edgeForId(json['edge'] as int),
+        isStartingPoint = json['isStartingPoint'] as bool ?? false;
 
   @override
   CodeReference get codeReference => edge?.codeReference;
@@ -1266,7 +1271,8 @@ class UpstreamPropagationStep extends PropagationStep
       'cause': serializer.idForStep(principalCause),
       'node': serializer.idForNode(node),
       'newState': newNonNullIntent.toJson(),
-      'edge': serializer.idForEdge(edge)
+      'edge': serializer.idForEdge(edge),
+      if (isStartingPoint) 'isStartingPoint': true
     };
   }
 
@@ -1488,8 +1494,9 @@ class _PropagationState {
   /// lines.
   void _propagateUpstream() {
     Queue<UpstreamPropagationStep> pendingSteps = Queue();
-    pendingSteps
-        .add(UpstreamPropagationStep(null, _never, NonNullIntent.direct, null));
+    pendingSteps.add(UpstreamPropagationStep(
+        null, _never, NonNullIntent.direct, null,
+        isStartingPoint: true));
     while (pendingSteps.isNotEmpty) {
       var cause = pendingSteps.removeFirst();
       var pendingNode = cause.node;

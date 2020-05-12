@@ -245,7 +245,7 @@ class InfoBuilder {
       return;
     }
     assert(identical(step.node, node));
-    while (step != null) {
+    while (step != null && !step.isStartingPoint) {
       entries.add(_nodeToTraceEntry(step.node));
       if (step.codeReference != null) {
         entries.add(_stepToTraceEntry(step));

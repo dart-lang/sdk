@@ -422,6 +422,8 @@ abstract class SubstitutionNodeInfo extends NullabilityNodeInfo {
 /// Information about a propagation step that occurred during upstream
 /// propagation.
 abstract class UpstreamPropagationStepInfo implements PropagationStepInfo {
+  bool get isStartingPoint;
+
   /// The node whose nullability was changed.
   ///
   /// Any propagation step that took effect should have a non-null value here.
