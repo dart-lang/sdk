@@ -24,4 +24,8 @@ class ClassID {
   static final int cidTwoByteString = 0;
   @pragma("vm:entry-point")
   static final int cidUint8ArrayView = 0;
+  @pragma("vm:entry-point")
+  static final int cidUint8Array = 0;
+  @pragma("vm:entry-point")
+  static final int cidInt8Array = 0;
 }
