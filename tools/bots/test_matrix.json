@@ -2122,7 +2122,16 @@
             "lib",
             "dartdevc_native"
           ],
-          "shards": 6,
+          "shards": 5,
+          "fileset": "dart2js_nnbd"
+        },
+        {
+          "name": "ddc nnbd weak co19 tests",
+          "arguments": [
+            "-ndartdevk-weak-linux-release-chrome",
+            "co19/LanguageFeatures/nnbd"
+          ],
+          "shards": 2,
           "fileset": "dart2js_nnbd"
         },
         {
