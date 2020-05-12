@@ -4,12 +4,9 @@ Condition,Test,Expectations,Comment,Issue,Issue state
 ,codegen/logical_expression_test,Fail,Issue 17027,https://dartbug.com/17027,open
 ,codegen/side_effect_tdiv_regression_test,Fail,Issue 33050,https://dartbug.com/33050,open
 ,codegen/simple_function_subtype_test,Fail,simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.,,
-,end_to_end/show_package_warnings_test,RuntimeError,missing errors from the FE,,
 ,inference/simple_inferrer_const_closure2_test,Fail,Issue 16507,https://dartbug.com/16507,open
 ,inference/simple_inferrer_const_closure_test,Fail,Issue 16507,https://dartbug.com/16507,open
 ,inference/simple_inferrer_global_field_closure_test,Fail,Issue 16507,https://dartbug.com/16507,open
-,sourcemaps/d2js_validity_test,RuntimeError,Issue 33072,https://dartbug.com/33072,open
-,sourcemaps/deferred_d2js_validity_test,RuntimeError,Issue 33072,https://dartbug.com/33072,open
 $compiler == dart2js,bounds_check4a_test,RuntimeError,Issue 32741,https://dartbug.com/32741,open
 $compiler == dart2js,bounds_check4b_test,RuntimeError,Issue 32741,https://dartbug.com/32741,open
 $compiler == dart2js,generic_class_is_test,Fail,Issue 32004,https://dartbug.com/32004,open

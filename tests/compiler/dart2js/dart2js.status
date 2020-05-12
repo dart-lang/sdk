@@ -39,7 +39,6 @@ deferred/load_mapping_test: Slow, Pass
 end_to_end/dart2js_batch_test: Slow, Pass
 end_to_end/exit_code_test: Slow, Pass
 end_to_end/in_user_code_test: Slow, Pass
-end_to_end/show_package_warnings_test: Slow, Pass
 
 [ $checked ]
 codegen/value_range_kernel_test: Slow, Pass
