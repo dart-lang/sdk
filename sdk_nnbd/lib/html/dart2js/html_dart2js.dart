@@ -20484,6 +20484,15 @@ class MediaDevices extends EventTarget {
 
   @JSName('getSupportedConstraints')
   _getSupportedConstraints_1() native;
+
+  Future<MediaStream> getUserMedia([Map? constraints]) {
+    var constraints_dict = null;
+    if (constraints != null) {
+      constraints_dict = convertDartToNative_Dictionary(constraints);
+    }
+    return promiseToFuture<MediaStream>(
+        JS("", "#.getUserMedia(#)", this, constraints_dict));
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

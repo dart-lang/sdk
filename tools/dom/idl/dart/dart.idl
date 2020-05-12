@@ -316,11 +316,6 @@ interface SVGNumber {
 };
 
 [DartSupplemental]
-interface MediaDevices {
-  [DartSuppress] Promise<MediaStream> getUserMedia(optional MediaStreamConstraints constraints);
-};
-
-[DartSupplemental]
 interface Navigator {
   [DartSuppress] void getUserMedia(MediaStreamConstraints constraints,
                                    NavigatorUserMediaSuccessCallback successCallback,
