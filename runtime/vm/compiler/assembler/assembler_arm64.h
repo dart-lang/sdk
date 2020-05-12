@@ -151,7 +151,8 @@ class Address : public ValueObject {
       ASSERT((at == PairOffset) || (at == PairPreIndex) ||
              (at == PairPostIndex));
       ASSERT(Utils::IsInt(7 + scale, offset) &&
-             (offset == ((offset >> scale) << scale)));
+             (static_cast<uint32_t>(offset) ==
+              ((static_cast<uint32_t>(offset) >> scale) << scale)));
       int32_t idx = 0;
       switch (at) {
         case PairPostIndex:
@@ -167,8 +168,10 @@ class Address : public ValueObject {
           UNREACHABLE();
           break;
       }
-      encoding_ = idx | (((offset >> scale) << kImm7Shift) & kImm7Mask) |
-                  Arm64Encode::Rn(rn);
+      encoding_ =
+          idx |
+          ((static_cast<uint32_t>(offset >> scale) << kImm7Shift) & kImm7Mask) |
+          Arm64Encode::Rn(rn);
     }
     type_ = at;
     base_ = ConcreteRegister(rn);
@@ -199,7 +202,8 @@ class Address : public ValueObject {
              (at == PairPostIndex));
       const int32_t scale = Log2OperandSizeBytes(sz);
       return (Utils::IsInt(7 + scale, offset) &&
-              (offset == ((offset >> scale) << scale)));
+              (static_cast<uint32_t>(offset) ==
+               ((static_cast<uint32_t>(offset) >> scale) << scale)));
     }
   }
 
@@ -1877,12 +1881,14 @@ class Assembler : public AssemblerBase {
       BailoutWithBranchOffsetError();
     }
     const int32_t imm32 = static_cast<int32_t>(imm);
-    const int32_t off = (((imm32 >> 2) << kImm19Shift) & kImm19Mask);
+    const int32_t off =
+        ((static_cast<uint32_t>(imm32 >> 2) << kImm19Shift) & kImm19Mask);
     return (instr & ~kImm19Mask) | off;
   }
 
   int64_t DecodeImm19BranchOffset(int32_t instr) {
-    const int32_t off = (((instr & kImm19Mask) >> kImm19Shift) << 13) >> 11;
+    int32_t insns = (static_cast<uint32_t>(instr) & kImm19Mask) >> kImm19Shift;
+    const int32_t off = static_cast<int32_t>(insns << 13) >> 11;
     return static_cast<int64_t>(off);
   }
 
@@ -1892,12 +1898,14 @@ class Assembler : public AssemblerBase {
       BailoutWithBranchOffsetError();
     }
     const int32_t imm32 = static_cast<int32_t>(imm);
-    const int32_t off = (((imm32 >> 2) << kImm14Shift) & kImm14Mask);
+    const int32_t off =
+        ((static_cast<uint32_t>(imm32 >> 2) << kImm14Shift) & kImm14Mask);
     return (instr & ~kImm14Mask) | off;
   }
 
   int64_t DecodeImm14BranchOffset(int32_t instr) {
-    const int32_t off = (((instr & kImm14Mask) >> kImm14Shift) << 18) >> 16;
+    int32_t insns = (static_cast<uint32_t>(instr) & kImm14Mask) >> kImm14Shift;
+    const int32_t off = static_cast<int32_t>(insns << 18) >> 16;
     return static_cast<int64_t>(off);
   }
 
@@ -2211,7 +2219,8 @@ class Assembler : public AssemblerBase {
     ASSERT(Utils::IsInt(21, imm.value()));
     ASSERT((rd != R31) && (rd != CSP));
     const int32_t loimm = (imm.value() & 0x3) << 29;
-    const int32_t hiimm = ((imm.value() >> 2) << kImm19Shift) & kImm19Mask;
+    const int32_t hiimm =
+        (static_cast<uint32_t>(imm.value() >> 2) << kImm19Shift) & kImm19Mask;
     const int32_t encoding = op | loimm | hiimm | Arm64Encode::Rd(rd);
     Emit(encoding);
   }

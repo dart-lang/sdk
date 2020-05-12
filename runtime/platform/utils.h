@@ -300,6 +300,25 @@ class Utils {
     return static_cast<int64_t>(static_cast<uint64_t>(a) << b);
   }
 
+  template <typename T>
+  static inline T RotateLeft(T value, uint8_t rotate) {
+    const uint8_t width = sizeof(T) * kBitsPerByte;
+    ASSERT(0 <= rotate);
+    ASSERT(rotate <= width);
+    using Unsigned = typename std::make_unsigned<T>::type;
+    return (static_cast<Unsigned>(value) << rotate) |
+           (static_cast<T>(value) >> ((width - rotate) & (width - 1)));
+  }
+  template <typename T>
+  static inline T RotateRight(T value, uint8_t rotate) {
+    const uint8_t width = sizeof(T) * kBitsPerByte;
+    ASSERT(0 <= rotate);
+    ASSERT(rotate <= width);
+    using Unsigned = typename std::make_unsigned<T>::type;
+    return (static_cast<T>(value) >> rotate) |
+           (static_cast<Unsigned>(value) << ((width - rotate) & (width - 1)));
+  }
+
   // Utility functions for converting values from host endianness to
   // big or little endian values.
   static uint16_t HostToBigEndian16(uint16_t host_value);

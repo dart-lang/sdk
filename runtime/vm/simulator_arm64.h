@@ -68,9 +68,9 @@ class Simulator {
 
   int64_t get_sp() const { return get_register(SPREG); }
 
-  int64_t get_pc() const;
-  int64_t get_last_pc() const;
-  void set_pc(int64_t pc);
+  uint64_t get_pc() const;
+  uint64_t get_last_pc() const;
+  void set_pc(uint64_t pc);
 
   // High address.
   uword stack_base() const { return stack_base_; }
