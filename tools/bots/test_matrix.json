@@ -3342,14 +3342,6 @@
           ]
         },
         {
-          "name": "analyze tools/gardening",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--fatal-warnings",
-            "tools/gardening"
-          ]
-        },
-        {
           "name": "dartanalyzer --batch tests",
           "arguments": [
             "-nanalyzer-${system}"
