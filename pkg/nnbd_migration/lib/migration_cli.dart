@@ -270,17 +270,13 @@ class MigrationCli {
       assert(previewUrls.length <= 1,
           'Got unexpected extra preview URLs from server');
 
-      logger.stdout(ansi.emphasized('View migration results:'));
-
-      // TODO(devoncarew): Open a browser automatically.
+      // TODO(#41809): Open a browser automatically.
       logger.stdout('''
-Visit:
-  
+View the migration suggestions by visiting:
+
   ${ansi.emphasized(url)}
 
-to see the migration results. Use the interactive web view to review, improve, or apply
-the results (alternatively, to apply the results without using the web preview, re-run
-the tool with --${CommandLineOptions.applyChangesFlag}).
+Use this interactive web view to review, improve, or apply the results.
 ''');
 
       logger.stdout('When finished with the preview, hit ctrl-c '
