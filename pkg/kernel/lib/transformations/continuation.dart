@@ -1151,7 +1151,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     return null;
   }
 
-  defaultExpression(TreeNode node) => throw 'unreachable';
+  defaultExpression(TreeNode node) => throw 'unreachable $node';
 }
 
 class AsyncStarFunctionRewriter extends AsyncRewriterBase {

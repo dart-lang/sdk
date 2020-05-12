@@ -6,7 +6,4 @@ x.y = 42;
 x.z = true;
 void foo() {
   if (x != null) {}
-  if (null != x) {}
 }
-
-main() {}

@@ -1661,8 +1661,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   void doBinaryExpression(Token token) {
     assert(checkState(token, <ValueKind>[
-      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
-      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
     ]));
     Expression right = popForValue();
     Object left = pop();
@@ -1673,6 +1681,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (left is Generator) {
         push(left.buildEqualsOperation(token, right, isNot: isNot));
       } else {
+        if (left is ProblemBuilder) {
+          ProblemBuilder problem = left;
+          left = buildProblem(problem.message, problem.charOffset, noLength);
+        }
         assert(left is Expression);
         push(forest.createEquals(fileOffset, left, right, isNot: isNot));
       }

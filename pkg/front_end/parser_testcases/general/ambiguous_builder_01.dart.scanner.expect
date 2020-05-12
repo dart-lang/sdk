@@ -1,0 +1,13 @@
+x.y = 42;
+x.z = true;
+void foo() {
+if (x != null) {}
+}
+
+
+x[StringToken].[SimpleToken]y[StringToken] =[SimpleToken] 42[StringToken];[SimpleToken]
+x[StringToken].[SimpleToken]z[StringToken] =[SimpleToken] true[KeywordToken];[SimpleToken]
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] !=[SimpleToken] null[KeywordToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]
