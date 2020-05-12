@@ -9,6 +9,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+
 #include <cstdlib>
 
 #include "platform/atomic.h"
@@ -263,6 +264,15 @@ void Timeline::ReclaimCachedBlocksFromThreads() {
 }
 
 #ifndef PRODUCT
+void Timeline::PrintFlagsToJSONArray(JSONArray* arr) {
+#define ADD_RECORDED_STREAM_NAME(name, fuchsia_name)                           \
+  if (stream_##name##_.enabled()) {                                            \
+    arr->AddValue(#name);                                                      \
+  }
+  TIMELINE_STREAM_LIST(ADD_RECORDED_STREAM_NAME);
+#undef ADD_RECORDED_STREAM_NAME
+}
+
 void Timeline::PrintFlagsToJSON(JSONStream* js) {
   JSONObject obj(js);
   obj.AddProperty("type", "TimelineFlags");

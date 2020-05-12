@@ -3647,6 +3647,12 @@ static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
   TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
 #undef SET_ENABLE_STREAM
 
+  // Notify clients that the set of subscribed streams has been updated.
+  if (Service::timeline_stream.enabled()) {
+    ServiceEvent event(NULL, ServiceEvent::kTimelineStreamSubscriptionsUpdate);
+    Service::HandleEvent(&event);
+  }
+
   PrintSuccess(js);
 
   return true;

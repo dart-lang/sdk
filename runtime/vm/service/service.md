@@ -1390,6 +1390,9 @@ The _recordedStreams_ parameter is the list of all timeline streams which are
 to be enabled. Streams not explicitly specified will be disabled. Invalid stream
 names are ignored.
 
+A `TimelineStreamSubscriptionsUpdate` event is sent on the `Timeline` stream as
+a result of invoking this RPC.
+
 To get the list of currently enabled timeline streams, see [getVMTimelineFlags](#getvmtimelineflags).
 
 See [Success](#success).
@@ -1428,7 +1431,7 @@ Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateRelo
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
 GC | GC
 Extension | Extension
-Timeline | TimelineEvents
+Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
 Logging | Logging
 Service | ServiceRegistered, ServiceUnregistered
 HeapSnapshot | HeapSnapshot
@@ -2033,6 +2036,11 @@ class Event extends Response {
   // This is provided for the TimelineEvents event.
   TimelineEvent[] timelineEvents [optional];
 
+  // The new set of recorded timeline streams.
+  //
+  // This is provided for the TimelineStreamSubscriptionsUpdate event.
+  string[] updatedStreams [optional];
+
   // Is the isolate paused at an await, yield, or yield* statement?
   //
   // This is provided for the event kinds:
@@ -2175,6 +2183,17 @@ enum EventKind {
 
   // Event from dart:developer.log.
   Logging,
+
+  // A block of timeline events has been completed.
+  //
+  // This service event is not sent for individual timeline events. It is
+  // subject to buffering, so the most recent timeline events may never be
+  // included in any TimelineEvents event if no timeline events occur later to
+  // complete the block.
+  TimelineEvents,
+
+  // The set of active timeline streams was changed via `setVMTimelineFlags`.
+  TimelineStreamSubscriptionsUpdate,
 
   // Notification that a Service has been registered into the Service Protocol
   // from another client.
@@ -3767,5 +3786,6 @@ version | comments
 the VM service.
 3.32 | Added `getClassList` RPC and `ClassList` object.
 3.33 | Added deprecation notice for `getClientName`, `setClientName`, `requireResumeApproval`, and `ClientName`. These RPCs are moving to the DDS protocol and will be removed in v4.0 of the VM service protocol.
+3.34 | Added `TimelineStreamSubscriptionsUpdate` event which is sent when `setVMTimelineFlags` is invoked.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

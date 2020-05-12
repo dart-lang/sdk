@@ -154,6 +154,8 @@ String assertEventKind(String obj) {
   if (obj == "ServiceExtensionAdded") return obj;
   if (obj == "ServiceRegistered") return obj;
   if (obj == "ServiceUnregistered") return obj;
+  if (obj == "TimelineEvents") return obj;
+  if (obj == "TimelineStreamSubscriptionsUpdate") return obj;
   if (obj == "VMFlagUpdate") return obj;
   if (obj == "VMUpdate") return obj;
   if (obj == "WriteEvent") return obj;

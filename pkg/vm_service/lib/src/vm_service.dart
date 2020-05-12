@@ -1077,6 +1077,9 @@ abstract class VmServiceInterface {
   /// are to be enabled. Streams not explicitly specified will be disabled.
   /// Invalid stream names are ignored.
   ///
+  /// A `TimelineStreamSubscriptionsUpdate` event is sent on the `Timeline`
+  /// stream as a result of invoking this RPC.
+  ///
   /// To get the list of currently enabled timeline streams, see
   /// [getVMTimelineFlags].
   ///
@@ -1109,7 +1112,7 @@ abstract class VmServiceInterface {
   /// BreakpointResolved, BreakpointRemoved, Inspect, None
   /// GC | GC
   /// Extension | Extension
-  /// Timeline | TimelineEvents
+  /// Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
   /// Logging | Logging
   /// Service | ServiceRegistered, ServiceUnregistered
   /// HeapSnapshot | HeapSnapshot
@@ -1612,7 +1615,7 @@ class VmService implements VmServiceInterface {
   // Extension
   Stream<Event> get onExtensionEvent => _getEventController('Extension').stream;
 
-  // TimelineEvents
+  // TimelineEvents, TimelineStreamsSubscriptionUpdate
   Stream<Event> get onTimelineEvent => _getEventController('Timeline').stream;
 
   // Logging
@@ -2361,6 +2364,18 @@ class EventKind {
 
   /// Event from dart:developer.log.
   static const String kLogging = 'Logging';
+
+  /// A block of timeline events has been completed.
+  ///
+  /// This service event is not sent for individual timeline events. It is
+  /// subject to buffering, so the most recent timeline events may never be
+  /// included in any TimelineEvents event if no timeline events occur later to
+  /// complete the block.
+  static const String kTimelineEvents = 'TimelineEvents';
+
+  /// The set of active timeline streams was changed via `setVMTimelineFlags`.
+  static const String kTimelineStreamSubscriptionsUpdate =
+      'TimelineStreamSubscriptionsUpdate';
 
   /// Notification that a Service has been registered into the Service Protocol
   /// from another client.
@@ -3576,6 +3591,12 @@ class Event extends Response {
   @optional
   List<TimelineEvent> timelineEvents;
 
+  /// The new set of recorded timeline streams.
+  ///
+  /// This is provided for the TimelineStreamSubscriptionsUpdate event.
+  @optional
+  List<String> updatedStreams;
+
   /// Is the isolate paused at an await, yield, or yield* statement?
   ///
   /// This is provided for the event kinds:
@@ -3662,6 +3683,7 @@ class Event extends Response {
     this.extensionKind,
     this.extensionData,
     this.timelineEvents,
+    this.updatedStreams,
     this.atAsyncSuspension,
     this.status,
     this.logRecord,
@@ -3695,6 +3717,9 @@ class Event extends Response {
         ? null
         : List<TimelineEvent>.from(createServiceObject(
             json['timelineEvents'], const ['TimelineEvent']));
+    updatedStreams = json['updatedStreams'] == null
+        ? null
+        : List<String>.from(json['updatedStreams']);
     atAsyncSuspension = json['atAsyncSuspension'];
     status = json['status'];
     logRecord = createServiceObject(json['logRecord'], const ['LogRecord']);
@@ -3729,6 +3754,8 @@ class Event extends Response {
     _setIfNotNull(json, 'extensionData', extensionData?.data);
     _setIfNotNull(json, 'timelineEvents',
         timelineEvents?.map((f) => f?.toJson())?.toList());
+    _setIfNotNull(
+        json, 'updatedStreams', updatedStreams?.map((f) => f)?.toList());
     _setIfNotNull(json, 'atAsyncSuspension', atAsyncSuspension);
     _setIfNotNull(json, 'status', status);
     _setIfNotNull(json, 'logRecord', logRecord?.toJson());

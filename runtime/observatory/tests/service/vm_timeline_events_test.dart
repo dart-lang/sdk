@@ -30,6 +30,9 @@ Completer completer;
 int eventCount;
 
 onTimelineEvent(ServiceEvent event) {
+  if (event.kind != ServiceEvent.kTimelineEvents) {
+    return;
+  }
   eventCount++;
   expect(filterEvents(event.timelineEvents, isDart).length, greaterThan(0));
   if (eventCount == 5) {
