@@ -23,7 +23,6 @@ void main(List<String> args) {
     packageDirectory('sdk/lib/_internal/sdk_library_metadata'),
     packageDirectory('sdk/lib/_internal/js_runtime'),
     packageDirectory('third_party/pkg/protobuf/protobuf'),
-    packageDirectory('tools/gardening'),
   ];
 
   var cfePackageDirs = [

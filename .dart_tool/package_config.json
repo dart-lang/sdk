@@ -271,12 +271,6 @@
       "languageVersion": "2.7"
     },
     {
-      "name": "gardening",
-      "rootUri": "../tools/gardening",
-      "packageUri": "lib/",
-      "languageVersion": "2.7"
-    },
-    {
       "name": "glob",
       "rootUri": "../third_party/pkg/glob",
       "packageUri": "lib/",
