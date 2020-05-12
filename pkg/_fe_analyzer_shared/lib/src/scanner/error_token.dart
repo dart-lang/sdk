@@ -16,7 +16,7 @@ import '../messages/codes.dart'
         templateUnsupportedOperator,
         templateUnterminatedString;
 
-import 'recover.dart' show closeBraceFor, closeQuoteFor, openBraceFor;
+import 'recover.dart' show closeBraceFor, closeQuoteFor;
 
 import 'scanner.dart' show Token, unicodeReplacementCharacter;
 
@@ -214,21 +214,4 @@ class UnmatchedToken extends ErrorToken {
 
   Message get assertionMessage =>
       templateUnmatchedToken.withArguments(closeBraceFor(begin.lexeme), begin);
-}
-
-/// Represents a close brace without a matching open brace.
-///
-/// In this case, brace means any of `)`, `}`, `]`, parenthesis, curly
-/// brace and square brace, respectively.
-class UnmatchedEndToken extends ErrorToken {
-  final Token endToken;
-
-  UnmatchedEndToken(Token endToken)
-      : this.endToken = endToken,
-        super(endToken.charOffset);
-
-  String toString() => "UnmatchedEndToken(${endToken.lexeme})";
-
-  Message get assertionMessage => templateUnmatchedToken.withArguments(
-      openBraceFor(endToken.lexeme), endToken);
 }

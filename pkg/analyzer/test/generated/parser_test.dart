@@ -3187,8 +3187,7 @@ class Foo {
     parseStatement("void}", expectedEndOffset: 4);
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1),
-      expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 4, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1)
     ]);
   }
 
@@ -3257,10 +3256,9 @@ class Foo {
   }
 
   void test_expectedTypeName_as_void() {
-    parseExpression("x as void)", expectedEndOffset: 9, errors: [
-      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 4),
-      expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 9, 1),
-    ]);
+    parseExpression("x as void)",
+        expectedEndOffset: 9,
+        errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 4)]);
   }
 
   void test_expectedTypeName_is() {
@@ -3269,10 +3267,9 @@ class Foo {
   }
 
   void test_expectedTypeName_is_void() {
-    parseExpression("x is void)", expectedEndOffset: 9, errors: [
-      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 4),
-      expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 9, 1),
-    ]);
+    parseExpression("x is void)",
+        expectedEndOffset: 9,
+        errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 4)]);
   }
 
   void test_exportAsType() {
@@ -4617,8 +4614,7 @@ class Wrong<T> {
         ? [
             expectedError(
                 ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 0, 3),
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 3),
-            expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 3, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 3)
           ]
         : [
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 3, 1),
@@ -4715,15 +4711,10 @@ class Wrong<T> {
     createParser('void m {} }', expectedEndOffset: 10);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    if (usingFastaParser) {
-      listener.assertErrors([
-        expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 5, 1),
-        expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 10, 1),
-      ]);
-    } else {
-      listener.assertErrors(
-          [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 7, 1)]);
-    }
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS,
+          usingFastaParser ? 5 : 7, 1)
+    ]);
     expect(member, isMethodDeclaration);
     MethodDeclaration method = member;
     expect(method.parameters, hasLength(0));
@@ -4733,15 +4724,10 @@ class Wrong<T> {
     createParser('void m => null; }', expectedEndOffset: 16);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    if (usingFastaParser) {
-      listener.assertErrors([
-        expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 5, 1),
-        expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 16, 1),
-      ]);
-    } else {
-      listener.assertErrors(
-          [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 7, 1)]);
-    }
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS,
+          usingFastaParser ? 5 : 7, 1)
+    ]);
   }
 
   void test_missingNameForNamedParameter_colon() {
@@ -5538,47 +5524,33 @@ main() {
     createParser('(a, b})');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    if (usingFastaParser) {
-      listener.assertErrors([
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 1),
-        expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 5, 1),
-      ]);
-    } else {
-      listener.assertErrors([
-        expectedError(
-            ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, 5, 1)
-      ]);
-    }
+    listener.assertErrors([
+      expectedError(
+          usingFastaParser
+              ? ParserErrorCode.EXPECTED_TOKEN
+              : ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
+          5,
+          1)
+    ]);
   }
 
   void test_unexpectedTerminatorForParameterGroup_optional() {
     createParser('(a, b])');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    if (usingFastaParser) {
-      listener.assertErrors([
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 1),
-        expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 5, 1),
-      ]);
-    } else {
-      listener.assertErrors([
-        expectedError(
-            ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, 5, 1)
-      ]);
-    }
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 1)]
+        : [
+            expectedError(
+                ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, 5, 1)
+          ]);
   }
 
   void test_unexpectedToken_endOfFieldDeclarationStatement() {
     parseStatement("String s = (null));", expectedEndOffset: 17);
-    if (usingFastaParser) {
-      listener.assertErrors([
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
-        expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 17, 1),
-      ]);
-    } else {
-      listener.assertErrors(
-          [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 17, 1)]);
-    }
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1)]
+        : [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 17, 1)]);
   }
 
   void test_unexpectedToken_invalidPostfixExpression() {
@@ -5881,8 +5853,7 @@ void main() {
     if (usingFastaParser) {
       listener.assertErrors([
         expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
-        expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 9, 1),
-        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1),
+        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)
       ]);
     } else {
       listener.assertErrors([
@@ -5901,7 +5872,6 @@ void main() {
     if (usingFastaParser) {
       listener.assertErrors([
         expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
-        expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 9, 1),
         expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)
       ]);
     } else {
@@ -11068,10 +11038,8 @@ class C {
 
   void test_incompleteLocalVariable_atTheEndOfBlock() {
     Statement statement = parseStatement('String v }', expectedEndOffset: 9);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
-      expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 9, 1),
-    ]);
+    listener
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1)]);
     expect(statement, isVariableDeclarationStatement);
     expect(statement.toSource(), 'String v;');
   }
@@ -11080,8 +11048,7 @@ class C {
     Statement statement = parseStatement('final }', expectedEndOffset: 6);
     listener.assertErrors([
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1),
-      expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 6, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1)
     ]);
     expect(statement, isVariableDeclarationStatement);
     expect(statement.toSource(), 'final ;');
@@ -11593,18 +11560,13 @@ class C {
     createParser('@override }', expectedEndOffset: 10);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 10, 1)]);
     if (usingFastaParser) {
-      listener.assertErrors([
-        expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 10, 1),
-        expectedError(ScannerErrorCode.UNEXPECTED_TOKEN, 10, 1),
-      ]);
       // TODO(danrubel): Consider generating a sub method so that the
       // existing annotation can be associated with a class member.
       expect(member, isNull);
     } else {
-      listener.assertErrors([
-        expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 10, 1),
-      ]);
       expect(member, isMethodDeclaration);
       MethodDeclaration method = member;
       expect(method.documentationComment, isNull);

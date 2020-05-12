@@ -663,11 +663,7 @@ f({a: 0}) {}
   void test_incorrectlyTerminatedGroup_named_positional() {
     testRecovery('''
 f({a: 0]) {}
-''', [
-      ScannerErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ScannerErrorCode.UNEXPECTED_TOKEN,
-    ], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
 f({a: 0}) {}
 ''');
   }
@@ -675,10 +671,7 @@ f({a: 0}) {}
   void test_incorrectlyTerminatedGroup_none_named() {
     testRecovery('''
 f(a}) {}
-''', [
-      ParserErrorCode.EXPECTED_TOKEN,
-      ScannerErrorCode.UNEXPECTED_TOKEN,
-    ], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f(a) {}
 ''');
   }
@@ -686,10 +679,7 @@ f(a) {}
   void test_incorrectlyTerminatedGroup_none_positional() {
     testRecovery('''
 f(a]) {}
-''', [
-      ParserErrorCode.EXPECTED_TOKEN,
-      ScannerErrorCode.UNEXPECTED_TOKEN,
-    ], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f(a) {}
 ''');
   }
@@ -697,11 +687,7 @@ f(a) {}
   void test_incorrectlyTerminatedGroup_positional_named() {
     testRecovery('''
 f([a = 0}) {}
-''', [
-      ScannerErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ScannerErrorCode.UNEXPECTED_TOKEN,
-    ], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
 f([a = 0]) {}
 ''');
   }

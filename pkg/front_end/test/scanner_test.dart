@@ -772,28 +772,22 @@ abstract class ScannerTestBase {
     var closeParen = closeBracket.next;
     expect(closeParen.next.type, TokenType.EOF);
     expect(openParen.endToken, same(closeParen));
-    listener.assertErrors([
-      new TestError(1, ScannerErrorCode.UNEXPECTED_TOKEN, [']']),
-    ]);
+    listener.assertNoErrors();
   }
 
   void test_mismatched_closer2() {
-    // When openers and closers are mismatched, the scanner has two options:
-    // * If there is a matching opener on the stack it can create fake closers
-    //   for everything up til there, or
-    // * It can treat the closer as a non-closer (basically ignore that it's a
-    //   closer).
-    // The scanner tries both options to see which is better (leads to fewest
-    // rewrites later) and picks that strategy.
-    // Example: `[(])` can be scanned in 2 ways:
-    // 1) `[()])` where the first `)` is synthetic and the last `)` is
-    //    ignored/unmatched (i.e. 2 recoveries).
-    // 2) `[(])` where `]` is ignored/unmatched and `[` is unmatched (i.e.
-    //    2 recoveries).
-    // Both options are "equally bad" and the first choice is made.
+    // When openers and closers are mismatched, analyzer favors considering the
+    // closer to be mismatched, which means that `[(])` parses as a pair of
+    // matched parenthesis with an unmatched open bracket before them
+    // and an unmatched closing bracket between them.
     ErrorListener listener = new ErrorListener();
     BeginToken openBracket = scanWithListener('[(])', listener);
     BeginToken openParen = openBracket.next;
+    // When openers and closers are mismatched
+    // fasta favors considering the opener to be mismatched,
+    // and inserts synthetic closers as needed.
+    // `[(])` is parsed as `[()])` where the first `)` is synthetic
+    // and the trailing `)` is unmatched.
     var closeParen = openParen.next;
     expect(closeParen.isSynthetic, isTrue);
     var closeBracket = closeParen.next;
@@ -805,7 +799,6 @@ abstract class ScannerTestBase {
     expect(openParen.endToken, same(closeParen));
     listener.assertErrors([
       new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [')']),
-      new TestError(3, ScannerErrorCode.UNEXPECTED_TOKEN, [')']),
     ]);
   }
 

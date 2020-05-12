@@ -2,16 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../base/errors.dart' show ErrorCode, ErrorSeverity, ErrorType;
-
-import '../messages/codes.dart'
-    show Code, codeUnexpectedDollarInString, codeUnmatchedToken;
-
-import 'error_token.dart'
-    show ErrorToken, UnmatchedEndToken, UnsupportedOperator;
-
-import 'token_constants.dart' show BAD_INPUT_TOKEN;
-
+import '../base/errors.dart';
+import '../messages/codes.dart';
+import 'error_token.dart';
+import 'token_constants.dart';
 import 'token.dart' show Token, TokenType;
 
 /**
@@ -24,13 +18,6 @@ class ScannerErrorCode extends ErrorCode {
    */
   static const ScannerErrorCode EXPECTED_TOKEN =
       const ScannerErrorCode('EXPECTED_TOKEN', "Expected to find '{0}'.");
-
-  /**
-   * Parameters:
-   * 0: the token that was unexpected but found
-   */
-  static const ScannerErrorCode UNEXPECTED_TOKEN =
-      const ScannerErrorCode('UNEXPECTED_TOKEN', "Unexpected text '{0}'.");
 
   /**
    * Parameters:
@@ -163,11 +150,6 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
 
     default:
       if (errorCode == codeUnmatchedToken) {
-        if (token is UnmatchedEndToken) {
-          charOffset = token.endToken.charOffset;
-          return _makeError(
-              ScannerErrorCode.UNEXPECTED_TOKEN, [token.endToken.lexeme]);
-        }
         charOffset = token.begin.endToken.charOffset;
         TokenType type = token.begin?.type;
         if (type == TokenType.OPEN_CURLY_BRACKET ||

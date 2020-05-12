@@ -133,7 +133,7 @@ class Scanner {
   void reportError(
       ScannerErrorCode errorCode, int offset, List<Object> arguments) {
     _errorListener
-        ?.onError(AnalysisError(source, offset, 1, errorCode, arguments));
+        .onError(AnalysisError(source, offset, 1, errorCode, arguments));
   }
 
   void setSourceStart(int line, int column) {

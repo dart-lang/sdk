@@ -27,7 +27,6 @@ import 'characters.dart';
 import 'error_token.dart'
     show
         NonAsciiIdentifierToken,
-        UnmatchedEndToken,
         UnmatchedToken,
         UnsupportedOperator,
         UnterminatedString,
@@ -125,33 +124,13 @@ abstract class AbstractScanner implements Scanner {
    */
   Link<BeginToken> groupingStack = const Link<BeginToken>();
 
-  final bool inRecoveryOption;
-  int recoveryCount = 0;
-
   AbstractScanner(ScannerConfiguration config, this.includeComments,
       this.languageVersionChanged,
       {int numberOfBytesHint})
-      : lineStarts = new LineStarts(numberOfBytesHint),
-        inRecoveryOption = false {
+      : lineStarts = new LineStarts(numberOfBytesHint) {
     this.tail = this.tokens;
     this.errorTail = this.tokens;
     this.configuration = config;
-  }
-
-  AbstractScanner createRecoveryOptionScanner();
-
-  AbstractScanner.recoveryOptionScanner(AbstractScanner copyFrom)
-      : lineStarts = [],
-        includeComments = false,
-        languageVersionChanged = null,
-        inRecoveryOption = true {
-    this.tail = this.tokens;
-    this.errorTail = this.tokens;
-    this._enableExtensionMethods = copyFrom._enableExtensionMethods;
-    this._enableNonNullable = copyFrom._enableNonNullable;
-    this._enableTripleShift = copyFrom._enableTripleShift;
-    this.tokenStart = copyFrom.tokenStart;
-    this.groupingStack = copyFrom.groupingStack;
   }
 
   @override
@@ -383,22 +362,9 @@ abstract class AbstractScanner implements Scanner {
    */
   int appendEndGroup(TokenType type, int openKind) {
     assert(!identical(openKind, LT_TOKEN)); // openKind is < for > and >>
-    bool foundMatchingBrace = discardBeginGroupUntil(openKind);
-    return appendEndGroupInternal(foundMatchingBrace, type, openKind);
-  }
-
-  /// Append the end group (parenthesis, bracket etc).
-  /// If [foundMatchingBrace] is true the grouping stack (stack of parenthesis
-  /// etc) is updated, otherwise it's left alone.
-  /// In effect, if [foundMatchingBrace] is false this end token is basically
-  /// ignored, i.e. not really seen as an end group.
-  int appendEndGroupInternal(
-      bool foundMatchingBrace, TokenType type, int openKind) {
-    if (!foundMatchingBrace) {
-      // No begin group. Leave the grouping stack alone and just continue.
-      Token ignoredToken = new Token(type, tokenStart, comments);
-      appendToken(ignoredToken);
-      prependErrorToken(new UnmatchedEndToken(ignoredToken));
+    if (!discardBeginGroupUntil(openKind)) {
+      // No begin group found. Just continue.
+      appendPrecedenceToken(type);
       return advance();
     }
     appendPrecedenceToken(type);
@@ -506,7 +472,7 @@ abstract class AbstractScanner implements Scanner {
    * then discard begin group tokens up to that match and return `true`,
    * otherwise return `false`.
    * This recovers nicely from from situations like "{[}" and "{foo());}",
-   * but not "foo(() {bar());});"
+   * but not "foo(() {bar());});
    */
   bool discardBeginGroupUntil(int openKind) {
     Link<BeginToken> originalStack = groupingStack;
@@ -533,8 +499,6 @@ abstract class AbstractScanner implements Scanner {
       groupingStack = groupingStack.tail;
     } while (!groupingStack.isEmpty);
 
-    recoveryCount++;
-
     // If the stack does not have any opener of the given type,
     // then return without discarding anything.
     // This recovers nicely from from situations like "{foo());}".
@@ -543,90 +507,16 @@ abstract class AbstractScanner implements Scanner {
       return false;
     }
 
-    // We found a matching group somewhere in the stack, but generally don't
-    // know if we should recover by inserting synthetic closers or
-    // basically ignore the current token.
-    // We're in a recovery setting so we're allowed to be 'relatively slow' ---
-    // try both and see which is better (i.e. gives fewest rewrites later).
-    // To not get exponential runtime we will not do this nested though.
-    // E.g. we can recover "{[}" as "{[]}" (better) or (with . for ignored
-    // tokens) "{[.".
-    // Or we can recover "[(])]" as "[()].." or "[(.)]" (better).
-    if (!inRecoveryOption) {
-      TokenType type;
-      switch (openKind) {
-        case OPEN_SQUARE_BRACKET_TOKEN:
-          type = TokenType.CLOSE_SQUARE_BRACKET;
-          break;
-        case OPEN_CURLY_BRACKET_TOKEN:
-          type = TokenType.CLOSE_CURLY_BRACKET;
-          break;
-        case OPEN_PAREN_TOKEN:
-          type = TokenType.CLOSE_PAREN;
-          break;
-        default:
-          throw new StateError("Unexpected openKind");
-      }
-
-      // Option #1: Insert synthetic closers.
-      int option1Recoveries;
-      {
-        AbstractScanner option1 = createRecoveryOptionScanner();
-        option1.insertSyntheticClosers(originalStack, groupingStack);
-        option1Recoveries =
-            option1.recoveryOptionTokenizer(option1.appendEndGroupInternal(
-                /* foundMatchingBrace = */ true,
-                type,
-                openKind));
-        option1Recoveries += option1.groupingStack.slowLength();
-      }
-
-      // Option #2: ignore this token.
-      int option2Recoveries;
-      {
-        AbstractScanner option2 = createRecoveryOptionScanner();
-        option2.groupingStack = originalStack;
-        option2Recoveries =
-            option2.recoveryOptionTokenizer(option2.appendEndGroupInternal(
-                /* foundMatchingBrace = */ false,
-                type,
-                openKind));
-        // We add 1 to make this option pay for ignoring this token.
-        option2Recoveries += option2.groupingStack.slowLength() + 1;
-      }
-
-      // The option-runs might have set invalid endGroup pointers. Reset them.
-      for (Link<BeginToken> link = originalStack;
-          link.isNotEmpty;
-          link = link.tail) {
-        link.head.endToken = null;
-      }
-
-      if (option2Recoveries < option1Recoveries) {
-        // Perform option #2 recovery.
-        groupingStack = originalStack;
-        return false;
-      }
-      // option #1 is the default, so fall though.
-    }
-
     // Insert synthetic closers and report errors for any unbalanced openers.
     // This recovers nicely from from situations like "{[}".
-    insertSyntheticClosers(originalStack, groupingStack);
-    return true;
-  }
-
-  void insertSyntheticClosers(
-      Link<BeginToken> originalStack, Link<BeginToken> entryToUse) {
-    // Insert synthetic closers and report errors for any unbalanced openers.
-    // This recovers nicely from from situations like "{[}".
-    while (!identical(originalStack, entryToUse)) {
+    while (!identical(originalStack, groupingStack)) {
       // Don't report unmatched errors for <; it is also the less-than operator.
-      if (!identical(entryToUse.head.kind, LT_TOKEN)) {
+      if (!identical(groupingStack.head.kind, LT_TOKEN)) {
         unmatchedBeginGroup(originalStack.head);
       }
       originalStack = originalStack.tail;
     }
+    return true;
   }
 
   /**
@@ -711,7 +601,6 @@ abstract class AbstractScanner implements Scanner {
     appendToken(new SyntheticToken(type, tokenStart)..beforeSynthetic = tail);
     begin.endGroup = tail;
     prependErrorToken(new UnmatchedToken(begin));
-    recoveryCount++;
   }
 
   /// Return true when at EOF.
@@ -749,26 +638,6 @@ abstract class AbstractScanner implements Scanner {
     lineStarts.add(stringOffset + 1);
 
     return firstToken();
-  }
-
-  /// Tokenize a (small) part of the data. Used for recovery "option testing".
-  ///
-  /// Returns the number of recoveries performed.
-  int recoveryOptionTokenizer(int next) {
-    int iterations = 0;
-    while (!atEndOfFile()) {
-      while (!identical(next, $EOF)) {
-        // TODO(jensj): Look at number of lines, tokens, parenthesis stack,
-        // semi-colon etc, not just number of iterations.
-        next = bigSwitch(next);
-        iterations++;
-
-        if (iterations > 100) {
-          break;
-        }
-      }
-    }
-    return recoveryCount;
   }
 
   int bigHeaderSwitch(int next) {

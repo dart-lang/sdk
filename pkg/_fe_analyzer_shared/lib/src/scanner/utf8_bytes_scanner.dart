@@ -97,19 +97,6 @@ class Utf8BytesScanner extends AbstractScanner {
     }
   }
 
-  Utf8BytesScanner.createRecoveryOptionScanner(Utf8BytesScanner copyFrom)
-      : super.recoveryOptionScanner(copyFrom) {
-    this.bytes = copyFrom.bytes;
-    this.byteOffset = copyFrom.byteOffset;
-    this.scanSlack = copyFrom.scanSlack;
-    this.scanSlackOffset = copyFrom.scanSlackOffset;
-    this.utf8Slack = copyFrom.utf8Slack;
-  }
-
-  Utf8BytesScanner createRecoveryOptionScanner() {
-    return new Utf8BytesScanner.createRecoveryOptionScanner(this);
-  }
-
   bool containsBomAt(int offset) {
     const List<int> BOM_UTF8 = const [0xEF, 0xBB, 0xBF];
 

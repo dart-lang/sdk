@@ -2094,7 +2094,6 @@ class ParserTestListener implements Listener {
 
   void handleErrorToken(ErrorToken token) {
     doPrint('handleErrorToken(' '$token)');
-    handleRecoverableError(token.assertionMessage, token, token);
   }
 
   void handleUnescapeError(

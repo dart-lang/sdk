@@ -4,8 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart';
-import 'package:_fe_analyzer_shared/src/scanner/error_token.dart'
-    show UnmatchedEndToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:front_end/src/fasta/messages.dart';
@@ -541,10 +539,7 @@ class CollectionElementTest {
 
   void parseEntry(String source, List<String> expectedCalls,
       {bool inAsync, List<ExpectedError> errors, String expectAfter}) {
-    Token start = scanString(source).tokens;
-    while (start is UnmatchedEndToken) {
-      start = start.next;
-    }
+    final start = scanString(source).tokens;
     final listener = new TestInfoListener();
     final parser = new Parser(listener);
     if (inAsync != null) parser.asyncState = AsyncModifier.Async;
@@ -571,10 +566,10 @@ class MapElementTest {
     parseEntry(
       'before }',
       [
-        'handleIdentifier before expression',
+        'handleIdentifier  expression',
         'handleNoTypeArguments }',
         'handleNoArguments }',
-        'handleSend before }',
+        'handleSend  }',
         'handleIdentifier  expression',
         'handleNoTypeArguments }',
         'handleNoArguments }',
@@ -582,6 +577,7 @@ class MapElementTest {
         'handleLiteralMapEntry :, }',
       ],
       errors: [
+        error(codeExpectedIdentifier, 7, 1),
         error(codeExpectedButGot, 7, 1),
         error(codeExpectedIdentifier, 7, 1),
       ],
