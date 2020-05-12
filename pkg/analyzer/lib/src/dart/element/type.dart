@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -293,15 +294,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     var substitution = Substitution.fromPairs(typeFormals, argumentTypes);
 
     ParameterElement transformParameter(ParameterElement p) {
-      var type = p.type;
-      var newType = substitution.substituteType(type);
-      if (identical(newType, type)) return p;
-      return ParameterElementImpl.synthetic(
-          p.name,
-          newType,
-          // ignore: deprecated_member_use_from_same_package
-          p.parameterKind)
-        ..isExplicitlyCovariant = p.isCovariant;
+      return p.copyWith(
+        type: substitution.substituteType(p.type),
+      );
     }
 
     return FunctionTypeImpl(
@@ -319,14 +314,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         .replaceTopAndBottom(typeProvider, isCovariant: isCovariant);
     ParameterElement transformParameter(ParameterElement p) {
       TypeImpl type = p.type;
-      var newType =
-          type.replaceTopAndBottom(typeProvider, isCovariant: !isCovariant);
-      if (identical(newType, type)) return p;
-      return ParameterElementImpl.synthetic(
-          p.name,
-          newType,
-          // ignore: deprecated_member_use_from_same_package
-          p.parameterKind);
+      var newType = type.replaceTopAndBottom(
+        typeProvider,
+        isCovariant: !isCovariant,
+      );
+      return p.copyWith(type: newType);
     }
 
     var parameters = _transformOrShare(this.parameters, transformParameter);

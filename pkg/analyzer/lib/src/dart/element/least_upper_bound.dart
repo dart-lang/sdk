@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
@@ -722,10 +723,8 @@ class LeastUpperBoundHelper {
           fIndex++;
           gIndex++;
           parameters.add(
-            ParameterElementImpl.synthetic(
-              fParameter.name,
-              _parameterType(fParameter, gParameter),
-              ParameterKind.REQUIRED,
+            fParameter.copyWith(
+              type: _parameterType(fParameter, gParameter),
             ),
           );
         } else {
@@ -736,10 +735,8 @@ class LeastUpperBoundHelper {
           fIndex++;
           gIndex++;
           parameters.add(
-            ParameterElementImpl.synthetic(
-              fParameter.name,
-              _parameterType(fParameter, gParameter),
-              ParameterKind.POSITIONAL,
+            fParameter.copyWith(
+              type: _parameterType(fParameter, gParameter),
             ),
           );
         } else {
@@ -752,10 +749,9 @@ class LeastUpperBoundHelper {
             fIndex++;
             gIndex++;
             parameters.add(
-              ParameterElementImpl.synthetic(
-                fParameter.name,
-                _parameterType(fParameter, gParameter),
-                fParameter.isRequiredNamed || gParameter.isRequiredNamed
+              fParameter.copyWith(
+                type: _parameterType(fParameter, gParameter),
+                kind: fParameter.isRequiredNamed || gParameter.isRequiredNamed
                     ? ParameterKind.NAMED_REQUIRED
                     : ParameterKind.NAMED,
               ),

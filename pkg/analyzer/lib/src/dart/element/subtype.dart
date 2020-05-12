@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -485,10 +486,8 @@ class SubtypeHelper {
       typeFormals: type.typeFormals,
       parameters: type.parameters.map((e) {
         if (e.isNamed) {
-          return ParameterElementImpl.synthetic(
-            e.name,
-            e.type,
-            ParameterKind.NAMED_REQUIRED,
+          return e.copyWith(
+            kind: ParameterKind.NAMED_REQUIRED,
           );
         } else {
           return e;

@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
@@ -302,10 +302,12 @@ class GreatestLowerBoundHelper {
           fIndex++;
           gIndex++;
           parameters.add(
-            ParameterElementImpl.synthetic(
-              fParameter.name,
-              _typeSystem.getLeastUpperBound(fParameter.type, gParameter.type),
-              fParameter.isOptional || gParameter.isOptional
+            fParameter.copyWith(
+              type: _typeSystem.getLeastUpperBound(
+                fParameter.type,
+                gParameter.type,
+              ),
+              kind: fParameter.isOptional || gParameter.isOptional
                   ? ParameterKind.POSITIONAL
                   : ParameterKind.REQUIRED,
             ),
@@ -320,11 +322,12 @@ class GreatestLowerBoundHelper {
             fIndex++;
             gIndex++;
             parameters.add(
-              ParameterElementImpl.synthetic(
-                fParameter.name,
-                _typeSystem.getLeastUpperBound(
-                    fParameter.type, gParameter.type),
-                fParameter.isRequiredNamed && gParameter.isRequiredNamed
+              fParameter.copyWith(
+                type: _typeSystem.getLeastUpperBound(
+                  fParameter.type,
+                  gParameter.type,
+                ),
+                kind: fParameter.isRequiredNamed && gParameter.isRequiredNamed
                     ? ParameterKind.NAMED_REQUIRED
                     : ParameterKind.NAMED,
               ),
@@ -332,21 +335,13 @@ class GreatestLowerBoundHelper {
           } else if (compareNames < 0) {
             fIndex++;
             parameters.add(
-              ParameterElementImpl.synthetic(
-                fParameter.name,
-                fParameter.type,
-                ParameterKind.NAMED,
-              ),
+              fParameter.copyWith(kind: ParameterKind.NAMED),
             );
           } else {
             assert(compareNames > 0);
             gIndex++;
             parameters.add(
-              ParameterElementImpl.synthetic(
-                gParameter.name,
-                gParameter.type,
-                ParameterKind.NAMED,
-              ),
+              gParameter.copyWith(kind: ParameterKind.NAMED),
             );
           }
         } else {
@@ -359,20 +354,12 @@ class GreatestLowerBoundHelper {
       var fParameter = fParameters[fIndex++];
       if (fParameter.isPositional) {
         parameters.add(
-          ParameterElementImpl.synthetic(
-            fParameter.name,
-            fParameter.type,
-            ParameterKind.POSITIONAL,
-          ),
+          fParameter.copyWith(kind: ParameterKind.POSITIONAL),
         );
       } else {
         assert(fParameter.isNamed);
         parameters.add(
-          ParameterElementImpl.synthetic(
-            fParameter.name,
-            fParameter.type,
-            ParameterKind.NAMED,
-          ),
+          fParameter.copyWith(kind: ParameterKind.NAMED),
         );
       }
     }
@@ -381,20 +368,12 @@ class GreatestLowerBoundHelper {
       var gParameter = gParameters[gIndex++];
       if (gParameter.isPositional) {
         parameters.add(
-          ParameterElementImpl.synthetic(
-            gParameter.name,
-            gParameter.type,
-            ParameterKind.POSITIONAL,
-          ),
+          gParameter.copyWith(kind: ParameterKind.POSITIONAL),
         );
       } else {
         assert(gParameter.isNamed);
         parameters.add(
-          ParameterElementImpl.synthetic(
-            gParameter.name,
-            gParameter.type,
-            ParameterKind.NAMED,
-          ),
+          gParameter.copyWith(kind: ParameterKind.NAMED),
         );
       }
     }

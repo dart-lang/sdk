@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
@@ -71,15 +72,8 @@ FunctionType replaceTypeParameters(
   var substitution = Substitution.fromPairs(type.typeFormals, typeArguments);
 
   ParameterElement transformParameter(ParameterElement p) {
-    var type = p.type;
-    var newType = substitution.substituteType(type);
-    if (identical(newType, type)) return p;
-    return ParameterElementImpl.synthetic(
-      p.name,
-      newType,
-      // ignore: deprecated_member_use_from_same_package
-      p.parameterKind,
-    )..isExplicitlyCovariant = p.isCovariant;
+    var type = substitution.substituteType(p.type);
+    return p.copyWith(type: type);
   }
 
   return FunctionTypeImpl(
@@ -119,12 +113,8 @@ class FreshTypeParameters {
     return FunctionTypeImpl(
       typeFormals: freshTypeParameters,
       parameters: type.parameters.map((parameter) {
-        return ParameterElementImpl.synthetic(
-          parameter.name,
-          substitute(parameter.type),
-          // ignore: deprecated_member_use_from_same_package
-          parameter.parameterKind,
-        )..isExplicitlyCovariant = parameter.isCovariant;
+        var type = substitute(parameter.type);
+        return parameter.copyWith(type: type);
       }).toList(),
       returnType: substitute(type.returnType),
       nullabilitySuffix: type.nullabilitySuffix,
@@ -426,7 +416,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
     var parameters = type.parameters.map((parameter) {
       var type = inner.visit(parameter.type);
-      return _parameterElement(parameter, type);
+      return parameter.copyWith(type: type);
     }).toList();
 
     inner.invertVariance();
@@ -473,7 +463,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
     var parameters = type.parameters.map((parameter) {
       var type = inner.visit(parameter.type);
-      return _parameterElement(parameter, type);
+      return parameter.copyWith(type: type);
     }).toList();
 
     inner.invertVariance();
@@ -573,20 +563,6 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
       return NullabilitySuffix.star;
     }
     return NullabilitySuffix.none;
-  }
-
-  static ParameterElementImpl _parameterElement(
-    ParameterElement parameter,
-    DartType type,
-  ) {
-    var result = ParameterElementImpl.synthetic(
-      parameter.name,
-      type,
-      // ignore: deprecated_member_use_from_same_package
-      parameter.parameterKind,
-    );
-    result.isExplicitlyCovariant = parameter.isCovariant;
-    return result;
   }
 }
 

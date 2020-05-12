@@ -339,26 +339,6 @@ class FunctionTypeTest with ElementsTypesMixin {
     expect(f.instantiate([]), same(f));
   }
 
-  test_synthetic_instantiate_share_parameters() {
-    // T Function<T>(int x)
-    var t = typeParameter('T');
-    var x = requiredParameter(name: 'x', type: intType);
-    FunctionType f = FunctionTypeImpl(
-      typeFormals: [t],
-      parameters: [x],
-      returnType: typeParameterTypeNone(t),
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    FunctionType instantiated = f.instantiate([objectType]);
-    basicChecks(instantiated,
-        element: isNull,
-        displayName: 'Object Function(int)',
-        returnType: same(objectType),
-        normalParameterNames: ['x'],
-        normalParameterTypes: [same(intType)],
-        parameters: same(f.parameters));
-  }
-
   test_synthetic_namedParameter() {
     var p = namedParameter(name: 'x', type: objectType);
     FunctionType f = FunctionTypeImpl(
