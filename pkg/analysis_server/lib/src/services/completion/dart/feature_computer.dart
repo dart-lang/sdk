@@ -9,10 +9,11 @@ import 'dart:math' as math;
 import 'package:analysis_server/src/protocol_server.dart'
     show convertElementToElementKind;
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, CompilationUnitElement, Element, FieldElement;
+    show ClassElement, Element, FieldElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -537,25 +538,5 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       return node.parent.accept(this);
     }
     return null;
-  }
-}
-
-/// Additional behavior for elements related to the computation of features.
-extension ElementExtension on Element {
-  /// Return `true` if this element, or any enclosing element, has been
-  /// annotated with the `@deprecated` annotation.
-  bool get hasOrInheritsDeprecated {
-    if (hasDeprecated) {
-      return true;
-    }
-    var element = enclosingElement;
-    if (element is ClassElement) {
-      if (element.hasDeprecated) {
-        return true;
-      }
-      element = element.enclosingElement;
-    }
-    return element is CompilationUnitElement &&
-        element.enclosingElement.hasDeprecated;
   }
 }
