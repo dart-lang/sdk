@@ -13460,6 +13460,8 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
+  ASYNC_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
+  INTERNAL_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS2);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 

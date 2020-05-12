@@ -111,6 +111,11 @@ static IntrinsicDesc developer_intrinsics[] = {
   DEVELOPER_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
   {nullptr, nullptr},
 };
+
+static IntrinsicDesc internal_intrinsics[] = {
+  INTERNAL_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
+  {nullptr, nullptr},
+};
 // clang-format on
 
 void Intrinsifier::InitializeState() {
@@ -123,7 +128,7 @@ void Intrinsifier::InitializeState() {
   String& str2 = String::Handle(zone);
   Error& error = Error::Handle(zone);
 
-  static const intptr_t kNumLibs = 4;
+  static const intptr_t kNumLibs = 5;
   LibraryInstrinsicsDesc intrinsics[kNumLibs] = {
       {Library::Handle(zone, Library::CoreLibrary()), core_intrinsics},
       {Library::Handle(zone, Library::MathLibrary()), math_intrinsics},
@@ -131,6 +136,7 @@ void Intrinsifier::InitializeState() {
        typed_data_intrinsics},
       {Library::Handle(zone, Library::DeveloperLibrary()),
        developer_intrinsics},
+      {Library::Handle(zone, Library::InternalLibrary()), internal_intrinsics},
   };
 
   for (intptr_t i = 0; i < kNumLibs; i++) {

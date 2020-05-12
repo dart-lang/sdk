@@ -2021,27 +2021,32 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ ret();
 }
 
-// Allocates a _OneByteString. The content is not initialized.
-// 'length-reg' contains the desired length as a _Smi or _Mint.
+// Allocates a _OneByteString or _TwoByteString. The content is not initialized.
+// 'length_reg' contains the desired length as a _Smi or _Mint.
 // Returns new string as tagged pointer in EAX.
-static void TryAllocateOneByteString(Assembler* assembler,
-                                     Label* ok,
-                                     Label* failure,
-                                     Register length_reg) {
+static void TryAllocateString(Assembler* assembler,
+                              classid_t cid,
+                              Label* ok,
+                              Label* failure,
+                              Register length_reg) {
+  ASSERT(cid == kOneByteStringCid || cid == kTwoByteStringCid);
   // _Mint length: call to runtime to produce error.
   __ BranchIfNotSmi(length_reg, failure);
   // negative length: call to runtime to produce error.
   __ cmpl(length_reg, Immediate(0));
   __ j(LESS, failure);
 
-  NOT_IN_PRODUCT(
-      __ MaybeTraceAllocation(kOneByteStringCid, EAX, failure, false));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, EAX, failure, false));
   if (length_reg != EDI) {
     __ movl(EDI, length_reg);
   }
   Label pop_and_fail;
   __ pushl(EDI);  // Preserve length.
-  __ SmiUntag(EDI);
+  if (cid == kOneByteStringCid) {
+    __ SmiUntag(EDI);
+  } else {
+    // Untag length and multiply by element size -> no-op.
+  }
   const intptr_t fixed_size_plus_alignment_padding =
       target::String::InstanceSize() +
       target::ObjectAlignment::kObjectAlignment - 1;
@@ -2049,7 +2054,6 @@ static void TryAllocateOneByteString(Assembler* assembler,
                        fixed_size_plus_alignment_padding));  // EDI is untagged.
   __ andl(EDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
 
-  const intptr_t cid = kOneByteStringCid;
   __ movl(EAX, Address(THR, target::Thread::top_offset()));
   __ movl(EBX, EAX);
 
@@ -2122,7 +2126,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ j(NOT_ZERO, normal_ir_body);  // 'start', 'end' not Smi.
 
   __ subl(EDI, Address(ESP, +kStartIndexOffset));
-  TryAllocateOneByteString(assembler, &ok, normal_ir_body, EDI);
+  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body, EDI);
   __ Bind(&ok);
   // EAX: new string as tagged pointer.
   // Copy string.
@@ -2156,8 +2160,8 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::OneByteStringSetAt(Assembler* assembler,
-                                         Label* normal_ir_body) {
+void AsmIntrinsifier::WriteIntoOneByteString(Assembler* assembler,
+                                             Label* normal_ir_body) {
   __ movl(ECX, Address(ESP, +1 * target::kWordSize));  // Value.
   __ movl(EBX, Address(ESP, +2 * target::kWordSize));  // Index.
   __ movl(EAX, Address(ESP, +3 * target::kWordSize));  // OneByteString.
@@ -2168,11 +2172,36 @@ void AsmIntrinsifier::OneByteStringSetAt(Assembler* assembler,
   __ ret();
 }
 
-void AsmIntrinsifier::OneByteString_allocate(Assembler* assembler,
+void AsmIntrinsifier::WriteIntoTwoByteString(Assembler* assembler,
                                              Label* normal_ir_body) {
+  __ movl(ECX, Address(ESP, +1 * target::kWordSize));  // Value.
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, +3 * target::kWordSize));  // TwoByteString.
+  // Untag index and multiply by element size -> no-op.
+  __ SmiUntag(ECX);
+  __ movw(FieldAddress(EAX, EBX, TIMES_1, target::TwoByteString::data_offset()),
+          ECX);
+  __ ret();
+}
+
+void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
+                                            Label* normal_ir_body) {
   __ movl(EDI, Address(ESP, +1 * target::kWordSize));  // Length.
   Label ok;
-  TryAllocateOneByteString(assembler, &ok, normal_ir_body, EDI);
+  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body, EDI);
+  // EDI: Start address to copy from (untagged).
+
+  __ Bind(&ok);
+  __ ret();
+
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
+                                            Label* normal_ir_body) {
+  __ movl(EDI, Address(ESP, +1 * target::kWordSize));  // Length.
+  Label ok;
+  TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body, EDI);
   // EDI: Start address to copy from (untagged).
 
   __ Bind(&ok);

@@ -4147,7 +4147,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       return false;
     }
 
-    case MethodRecognizer::kOneByteStringSetAt: {
+    case MethodRecognizer::kWriteIntoOneByteString:
+    case MethodRecognizer::kWriteIntoTwoByteString: {
       // This is an internal method, no need to check argument types nor
       // range.
       *entry = new (Z)
@@ -4168,11 +4169,13 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       value->AsUnboxInteger()->mark_truncating();
       flow_graph->AppendTo(*entry, value, env, FlowGraph::kValue);
 
+      const bool is_onebyte = kind == MethodRecognizer::kWriteIntoOneByteString;
+      const intptr_t index_scale = is_onebyte ? 1 : 2;
+      const intptr_t cid = is_onebyte ? kOneByteStringCid : kTwoByteStringCid;
       *last = new (Z) StoreIndexedInstr(
           new (Z) Value(str), new (Z) Value(index), new (Z) Value(value),
-          kNoStoreBarrier, /*index_unboxed=*/false,
-          /*index_scale=*/1, kOneByteStringCid, kAlignedAccess,
-          call->deopt_id(), call->token_pos());
+          kNoStoreBarrier, /*index_unboxed=*/false, index_scale, cid,
+          kAlignedAccess, call->deopt_id(), call->token_pos());
       flow_graph->AppendTo(value, *last, env, FlowGraph::kEffect);
 
       // We need a return value to replace uses of the original definition.

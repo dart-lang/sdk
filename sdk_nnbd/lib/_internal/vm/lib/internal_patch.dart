@@ -35,6 +35,26 @@ List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList)
 Object extractTypeArguments<T>(T instance, Function extract)
     native "Internal_extractTypeArguments";
 
+/// The returned string is a [_OneByteString] with uninitialized content.
+@pragma("vm:entry-point", "call")
+String allocateOneByteString(int length)
+    native "Internal_allocateOneByteString";
+
+/// The [string] must be a [_OneByteString]. The [index] must be valid.
+@pragma("vm:entry-point", "call")
+void writeIntoOneByteString(String string, int index, int codePoint)
+    native "Internal_writeIntoOneByteString";
+
+/// The returned string is a [_TwoByteString] with uninitialized content.
+@pragma("vm:entry-point", "call")
+String allocateTwoByteString(int length)
+    native "Internal_allocateTwoByteString";
+
+/// The [string] must be a [_TwoByteString]. The [index] must be valid.
+@pragma("vm:entry-point", "call")
+void writeIntoTwoByteString(String string, int index, int codePoint)
+    native "Internal_writeIntoTwoByteString";
+
 class VMLibraryHooks {
   // Example: "dart:isolate _Timer._factory"
   static var timerFactory;
