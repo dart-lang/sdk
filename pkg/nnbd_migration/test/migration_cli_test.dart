@@ -139,12 +139,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   }
 
   Future<String> getSourceFromServer(Uri uri, String path) async {
-    var authToken = uri.queryParameters['authToken'];
-    var response = await http.get(
-        uri.replace(
-            path: resourceProvider.pathContext.toUri(path).path,
-            queryParameters: {'inline': 'true', 'authToken': authToken}),
-        headers: {'Content-Type': 'application/json; charset=UTF-8'});
+    http.Response response = await tryGetSourceFromServer(uri, path);
     assertHttpSuccess(response);
     return jsonDecode(response.body)['sourceCode'] as String;
   }
@@ -420,6 +415,65 @@ int? f() => null
     });
   }
 
+  test_lifecycle_preview_rerun_added_file() async {
+    var projectContents = simpleProject();
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var test2Path =
+          resourceProvider.pathContext.join(projectDir, 'lib', 'test2.dart');
+      var newSourceText = 'void g() {}';
+      resourceProvider.getFile(test2Path).writeAsStringSync(newSourceText);
+      // We haven't rerun, so getting the file details from the server should
+      // fail
+      var response = await tryGetSourceFromServer(uri, test2Path);
+      expect(response.statusCode, 404);
+      response = await http.post(uri.replace(path: 'rerun-migration'),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      // Now that we've rerun, the server should yield the new source text
+      expect(await getSourceFromServer(uri, test2Path), newSourceText);
+    });
+  }
+
+  test_lifecycle_preview_rerun_deleted_file() async {
+    var projectContents = simpleProject();
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    // Note: we use the summary to verify that the deletion was noticed
+    var summaryPath = resourceProvider.convertPath('/summary.json');
+    await runWithPreviewServer(cli, ['--summary', summaryPath, projectDir],
+        (url) async {
+      await assertPreviewServerResponsive(url);
+      // lib/test.dart should be readable from the server and appear in the
+      // summary
+      var uri = Uri.parse(url);
+      var testPath =
+          resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
+      await getSourceFromServer(uri, testPath);
+      var summaryData =
+          jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
+      var separator = resourceProvider.pathContext.separator;
+      expect(summaryData['changes']['byPath'],
+          contains('lib${separator}test.dart'));
+      // Now delete the lib file and rerun
+      resourceProvider.deleteFile(testPath);
+      var response = await http.post(uri.replace(path: 'rerun-migration'),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      // lib/test.dart should no longer be readable from the server and
+      // should no longer appear in the summary
+      response = await tryGetSourceFromServer(uri, testPath);
+      expect(response.statusCode, 404);
+      summaryData =
+          jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
+      expect(summaryData['changes']['byPath'],
+          isNot(contains('lib${separator}test.dart')));
+    });
+  }
+
   test_lifecycle_summary() async {
     var projectContents = simpleProject();
     var projectDir = await createProjectDir(projectContents);
@@ -590,6 +644,15 @@ int f() => null;
   test_uses_physical_resource_provider_by_default() {
     var cli = MigrationCli(binaryName: 'nnbd_migration');
     expect(cli.resourceProvider, same(PhysicalResourceProvider.INSTANCE));
+  }
+
+  Future<http.Response> tryGetSourceFromServer(Uri uri, String path) async {
+    var authToken = uri.queryParameters['authToken'];
+    return await http.get(
+        uri.replace(
+            path: resourceProvider.pathContext.toUri(path).path,
+            queryParameters: {'inline': 'true', 'authToken': authToken}),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'});
   }
 
   _MigrationCli _createCli() {

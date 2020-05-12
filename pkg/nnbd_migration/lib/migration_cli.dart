@@ -489,8 +489,7 @@ Use this interactive web view to review, improve, or apply the results.
     //
     // TODO(paulberry): remove changedPaths entirely.
     _dartFixListener.reset();
-    var driver = _fixCodeProcessor.context.driver;
-    driver.knownFiles.forEach(driver.changeFile);
+    _fixCodeProcessor.prepareToRerun();
     await _fixCodeProcessor.runFirstPhase();
     // TODO(paulberry): check for errors (see
     // https://github.com/dart-lang/sdk/issues/41712)
@@ -628,17 +627,20 @@ class _DriverProvider implements DriverProvider {
 class _FixCodeProcessor extends Object with FixCodeProcessor {
   final DriverBasedAnalysisContext context;
 
-  final Set<String> pathsToProcess;
+  Set<String> pathsToProcess;
 
   _ProgressBar _progressBar;
 
   final MigrationCli _migrationCli;
 
   _FixCodeProcessor(this.context, this._migrationCli)
-      : pathsToProcess = context.contextRoot
-            .analyzedFiles()
-            .where((s) => s.endsWith('.dart'))
-            .toSet();
+      : pathsToProcess = _computePathsToProcess(context);
+
+  void prepareToRerun() {
+    var driver = context.driver;
+    pathsToProcess = _computePathsToProcess(context);
+    pathsToProcess.forEach(driver.changeFile);
+  }
 
   /// Call the supplied [process] function to process each compilation unit.
   Future<void> processResources(
@@ -715,6 +717,13 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
 
     return nonNullableFixTask.previewUrls;
   }
+
+  static Set<String> _computePathsToProcess(
+          DriverBasedAnalysisContext context) =>
+      context.contextRoot
+          .analyzedFiles()
+          .where((s) => s.endsWith('.dart'))
+          .toSet();
 }
 
 /// Given a Logger and an analysis issue, render the issue to the logger.
