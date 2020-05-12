@@ -625,18 +625,3 @@ LanguageFeatures/Simple-bounds/static/typedef1_typedef_l1_t08: Skip # github.com
 LanguageFeatures/regression/32903_t02: Skip # github.com/dart-lang/language/issues/115
 LanguageFeatures/regression/34560_t02: Skip # github.com/dart-lang/language/issues/115
 
-[ $runtime != none ]
-LibTest/async/Completer/completeError_A02_t01: Skip # See breaking change #40674
-LibTest/async/Future/Future.error_A01_t01: Skip # See breaking change #40674
-LibTest/async/StreamController/addError_A02_t01: Skip # See breaking change #40674
-LibTest/collection/HashSet/HashSet.from_A02_t01: Skip # See breaking change #40674
-LibTest/collection/ListQueue/ListQueue.from_A03_t01: Skip # See breaking change #40674
-LibTest/core/RuneIterator/RuneIterator.at_A01_t01: Skip # See breaking change #40674
-LibTest/core/RuneIterator/RuneIterator.at_A02_t01: Skip # See breaking change #40674
-LibTest/core/RuneIterator/RuneIterator.at_A03_t01: Skip # See breaking change #40674
-LibTest/core/RuneIterator/RuneIterator_A01_t01: Skip # See breaking change #40674
-LibTest/core/RuneIterator/currentAsString_A03_t01: Skip # See breaking change #40674
-LibTest/core/RuneIterator/movePrevious_A02_t02: Skip # See breaking change #40674
-LibTest/core/RuneIterator/rawIndex_A02_t01: Skip # See breaking change #40674
-LibTest/core/RuneIterator/reset_A01_t01: Skip # See breaking change #40674
-LibTest/core/RuneIterator/reset_A01_t02: Skip # See breaking change #40674
