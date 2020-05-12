@@ -126,16 +126,16 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     }
   }
 
-  String createProjectDir(Map<String, String> contents) {
-    var projectPathPosix = '/test_project';
+  String createProjectDir(Map<String, String> contents,
+      {String posixPath = '/test_project'}) {
     for (var entry in contents.entries) {
       var relativePathPosix = entry.key;
       assert(!path.posix.isAbsolute(relativePathPosix));
-      var filePathPosix = path.posix.join(projectPathPosix, relativePathPosix);
+      var filePathPosix = path.posix.join(posixPath, relativePathPosix);
       resourceProvider.newFile(
           resourceProvider.convertPath(filePathPosix), entry.value);
     }
-    return resourceProvider.convertPath(projectPathPosix);
+    return resourceProvider.convertPath(posixPath);
   }
 
   Future<String> getSourceFromServer(Uri uri, String path) async {
@@ -471,6 +471,39 @@ int? f() => null
           jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
       expect(summaryData['changes']['byPath'],
           isNot(contains('lib${separator}test.dart')));
+    });
+  }
+
+  test_lifecycle_preview_serves_only_from_project_dir() async {
+    var crazyFunctionName = 'crazyFunctionNameThatHasNeverBeenSeenBefore';
+    var projectContents =
+        simpleProject(sourceText: 'void $crazyFunctionName() {}');
+    var mainProjectDir = await createProjectDir(projectContents);
+    var otherProjectDir = await createProjectDir(projectContents,
+        posixPath: '/other_project_dir');
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [mainProjectDir], (url) async {
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+
+      Future<http.Response> tryGetSourceFromProject(String projectDir) =>
+          tryGetSourceFromServer(
+              uri,
+              resourceProvider.pathContext
+                  .join(projectDir, 'lib', 'test.dart'));
+
+      // To verify that we're forming the request correctly, make sure that we
+      // can read a file from mainProjectDir.
+      var response = await tryGetSourceFromProject(mainProjectDir);
+      assertHttpSuccess(response);
+      // And that crazyFunctionName appears in the response
+      expect(response.body, contains(crazyFunctionName));
+      // Now verify that making the exact same request from otherProjectDir
+      // fails.
+      response = await tryGetSourceFromProject(otherProjectDir);
+      expect(response.statusCode, 404);
+      // And check that we didn't leak any info through the 404 response.
+      expect(response.body, isNot(contains(crazyFunctionName)));
     });
   }
 

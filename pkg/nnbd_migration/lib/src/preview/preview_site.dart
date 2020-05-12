@@ -142,16 +142,10 @@ class PreviewSite extends Site
       var unitInfo = unitInfoMap[decodedPath];
       if (unitInfo != null) {
         if (uri.queryParameters.containsKey('inline')) {
-          // TODO(devoncarew): Ensure that we don't serve content outside of our
-          //  project.
-
           // Note: `return await` needed due to
           // https://github.com/dart-lang/sdk/issues/39204
           return await respond(request, DartFilePage(this, unitInfo));
         } else if (uri.queryParameters.containsKey('region')) {
-          // TODO(devoncarew): Ensure that we don't serve content outside of our
-          //  project.
-
           // Note: `return await` needed due to
           // https://github.com/dart-lang/sdk/issues/39204
           return await respond(request, RegionPage(this, unitInfo));
