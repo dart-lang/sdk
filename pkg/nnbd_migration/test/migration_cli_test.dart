@@ -138,6 +138,17 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     return resourceProvider.convertPath(projectPathPosix);
   }
 
+  Future<String> getSourceFromServer(Uri uri, String path) async {
+    var authToken = uri.queryParameters['authToken'];
+    var response = await http.get(
+        uri.replace(
+            path: resourceProvider.pathContext.toUri(path).path,
+            queryParameters: {'inline': 'true', 'authToken': authToken}),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'});
+    assertHttpSuccess(response);
+    return jsonDecode(response.body)['sourceCode'] as String;
+  }
+
   Future<void> runWithPreviewServer(_MigrationCli cli, List<String> args,
       Future<void> Function(String) callback) async {
     String url;
@@ -386,6 +397,29 @@ int? f() => null
     });
   }
 
+  test_lifecycle_preview_rerun() async {
+    var origSourceText = 'void f() {}';
+    var projectContents = simpleProject(sourceText: origSourceText);
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var testPath =
+          resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
+      var newSourceText = 'void g() {}';
+      resourceProvider.getFile(testPath).writeAsStringSync(newSourceText);
+      // We haven't rerun, so getting the file details from the server should
+      // still yield the original source text
+      expect(await getSourceFromServer(uri, testPath), origSourceText);
+      var response = await http.post(uri.replace(path: 'rerun-migration'),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      // Now that we've rerun, the server should yield the new source text
+      expect(await getSourceFromServer(uri, testPath), newSourceText);
+    });
+  }
+
   test_lifecycle_summary() async {
     var projectContents = simpleProject();
     var projectDir = await createProjectDir(projectContents);
@@ -409,6 +443,38 @@ int? f() => null
     var separator = resourceProvider.pathContext.separator;
     expect(summaryData['changes']['byPath']['lib${separator}test.dart'],
         {'makeTypeNullableDueToHint': 1});
+  }
+
+  test_lifecycle_summary_rewritten_upon_rerun() async {
+    var projectContents = simpleProject(sourceText: 'int f(int/*?*/ i) => i;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    var summaryPath = resourceProvider.convertPath('/summary.json');
+    await runWithPreviewServer(cli, ['--summary', summaryPath, projectDir],
+        (url) async {
+      await assertPreviewServerResponsive(url);
+      var summaryData =
+          jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
+      var separator = resourceProvider.pathContext.separator;
+      expect(summaryData['changes']['byPath']['lib${separator}test.dart'],
+          {'makeTypeNullableDueToHint': 1, 'makeTypeNullable': 1});
+      var testPath =
+          resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
+      var newSourceText = 'int f(int/*?*/ i) => i + 1;';
+      resourceProvider.getFile(testPath).writeAsStringSync(newSourceText);
+      // Rerunning should create a new summary
+      var uri = Uri.parse(url);
+      var response = await http.post(uri.replace(path: 'rerun-migration'),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      summaryData =
+          jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
+      expect(summaryData['changes']['byPath']['lib${separator}test.dart'], {
+        'typeNotMadeNullable': 1,
+        'makeTypeNullableDueToHint': 1,
+        'checkExpression': 1
+      });
+    });
   }
 
   test_lifecycle_uri_error() async {

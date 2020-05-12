@@ -16,6 +16,7 @@ import 'package:analyzer/file_system/file_system.dart'
     show File, ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/sdk.dart';
@@ -107,6 +108,10 @@ class MigrationCli {
   final Map<String, List<AnalysisError>> fileErrors = {};
 
   final Map<String, LineInfo> lineInfo = {};
+
+  _DartFixListener _dartFixListener;
+
+  _FixCodeProcessor _fixCodeProcessor;
 
   MigrationCli(
       {@required this.binaryName,
@@ -217,41 +222,42 @@ class MigrationCli {
 
     List<String> previewUrls;
     NonNullableFix nonNullableFix;
-    _DartFixListener dartFixListener;
     await _withProgress(
         '${ansi.emphasized('Generating migration suggestions')}', () async {
       var contextCollection = AnalysisContextCollectionImpl(
           includedPaths: [options.directory],
           resourceProvider: resourceProvider,
           sdkPath: options.sdkPath);
-      var context = contextCollection.contexts.single;
-      var fixCodeProcessor = _FixCodeProcessor(context, this);
-      dartFixListener = _DartFixListener(
-          _DriverProvider(resourceProvider, context.currentSession));
-      nonNullableFix = NonNullableFix(dartFixListener, resourceProvider,
+      DriverBasedAnalysisContext context =
+          contextCollection.contexts.single as DriverBasedAnalysisContext;
+      _fixCodeProcessor = _FixCodeProcessor(context, this);
+      _dartFixListener =
+          _DartFixListener(_DriverProvider(resourceProvider, context));
+      nonNullableFix = NonNullableFix(_dartFixListener, resourceProvider,
           included: [options.directory],
           preferredPort: options.previewPort,
           enablePreview: options.webPreview,
           summaryPath: options.summary);
-      fixCodeProcessor.registerCodeTask(nonNullableFix);
+      nonNullableFix.rerunFunction = _rerunFunction;
+      _fixCodeProcessor.registerCodeTask(nonNullableFix);
 
       try {
-        await fixCodeProcessor.runFirstPhase();
-        fixCodeProcessor._progressBar.clear();
+        await _fixCodeProcessor.runFirstPhase();
+        _fixCodeProcessor._progressBar.clear();
         _checkForErrors();
       } on StateError catch (e) {
         logger.stdout(e.toString());
         exitCode = 1;
       }
       if (exitCode != null) return;
-      previewUrls = await fixCodeProcessor.runLaterPhases();
+      previewUrls = await _fixCodeProcessor.runLaterPhases();
     });
     if (exitCode != null) return;
 
     if (options.applyChanges) {
       logger.stdout(ansi.emphasized('Applying changes:'));
 
-      var allEdits = dartFixListener.sourceChange.edits;
+      var allEdits = _dartFixListener.sourceChange.edits;
       _applyMigrationSuggestions(allEdits);
 
       logger.stdout('');
@@ -288,7 +294,7 @@ Use this interactive web view to review, improve, or apply the results.
     } else {
       logger.stdout(ansi.emphasized('Summary of changes:'));
 
-      _displayChangeSummary(dartFixListener);
+      _displayChangeSummary(_dartFixListener);
 
       logger.stdout('');
       logger.stdout('To apply these changes, re-run the tool with '
@@ -470,6 +476,27 @@ Use this interactive web view to review, improve, or apply the results.
   bool _isUriError(AnalysisError error) =>
       error.errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST;
 
+  Future<void> _rerunFunction([List<String> changedPaths]) async {
+    // Note: we don't support [changedPaths].  The only time it is non-null is
+    // when the tool decides to re-run automatically due to deleting a hint.
+    // That's problematic for two reasons: (1) if the user first makes a change
+    // to some other file (without re-running) and then removes a hint, only the
+    // file affected by the removal will be in changedPaths, so the user will
+    // think that migration has been totally re-run when it hasn't.
+    // (2) removing a hint shouldn't force a re-run anyhow (see
+    // https://github.com/dart-lang/sdk/issues/41795), and once that is fixed
+    // changedPaths will always be null.
+    //
+    // TODO(paulberry): remove changedPaths entirely.
+    _dartFixListener.reset();
+    var driver = _fixCodeProcessor.context.driver;
+    driver.knownFiles.forEach(driver.changeFile);
+    await _fixCodeProcessor.runFirstPhase();
+    // TODO(paulberry): check for errors (see
+    // https://github.com/dart-lang/sdk/issues/41712)
+    await _fixCodeProcessor.runLaterPhases();
+  }
+
   void _showUsage(bool isVerbose) {
     logger.stderr('Usage: $binaryName [options...] [<package directory>]');
 
@@ -565,6 +592,16 @@ class _DartFixListener implements DartFixListenerInterface {
   void addSuggestion(String description, Location location) {
     suggestions.add(_DartFixSuggestion(description, location: location));
   }
+
+  /// Reset this listener so that it can accrue a new set of changes.
+  void reset() {
+    suggestions.clear();
+    sourceChange
+      ..edits.clear()
+      ..linkedEditGroups.clear()
+      ..selection = null
+      ..id = null;
+  }
 }
 
 class _DartFixSuggestion {
@@ -579,16 +616,17 @@ class _DriverProvider implements DriverProvider {
   @override
   final ResourceProvider resourceProvider;
 
-  final AnalysisSession analysisSession;
+  final AnalysisContext analysisContext;
 
-  _DriverProvider(this.resourceProvider, this.analysisSession);
+  _DriverProvider(this.resourceProvider, this.analysisContext);
 
   @override
-  AnalysisSession getAnalysisSession(String path) => analysisSession;
+  AnalysisSession getAnalysisSession(String path) =>
+      analysisContext.currentSession;
 }
 
 class _FixCodeProcessor extends Object with FixCodeProcessor {
-  final AnalysisContext context;
+  final DriverBasedAnalysisContext context;
 
   final Set<String> pathsToProcess;
 
