@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart';
-import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
-    as fasta;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart'
     show ErrorToken;
