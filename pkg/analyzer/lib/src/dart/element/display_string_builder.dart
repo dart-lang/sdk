@@ -121,7 +121,11 @@ class ElementDisplayStringBuilder {
     _writeType(type.returnType);
     _write(' Function');
     _writeTypeParameters(type.typeFormals);
-    _writeFormalParameters(type.parameters, withNamesOfPositional: false);
+    _writeFormalParameters(
+      type.parameters,
+      withNamesOfPositional: false,
+      withDefaultValueCode: false,
+    );
     _writeNullability(type.nullabilitySuffix);
   }
 
@@ -211,6 +215,7 @@ class ElementDisplayStringBuilder {
   void _writeFormalParameters(
     List<ParameterElement> parameters, {
     bool withNamesOfPositional = true,
+    bool withDefaultValueCode = true,
   }) {
     _write('(');
 
@@ -242,6 +247,7 @@ class ElementDisplayStringBuilder {
       _writeWithoutDelimiters(
         parameter,
         withNamesOfPositional: withNamesOfPositional,
+        withDefaultValueCode: withDefaultValueCode,
       );
     }
 
@@ -335,6 +341,7 @@ class ElementDisplayStringBuilder {
   void _writeWithoutDelimiters(
     ParameterElement element, {
     bool withNamesOfPositional = true,
+    bool withDefaultValueCode = true,
   }) {
     if (element.isRequiredNamed) {
       _write('required ');
@@ -345,6 +352,11 @@ class ElementDisplayStringBuilder {
     if (element.isNamed || withNamesOfPositional) {
       _write(' ');
       _write(element.displayName);
+    }
+
+    if (withDefaultValueCode && element.defaultValueCode != null) {
+      _write(' = ');
+      _write(element.defaultValueCode);
     }
   }
 

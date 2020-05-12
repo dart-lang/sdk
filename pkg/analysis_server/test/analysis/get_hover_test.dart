@@ -336,7 +336,7 @@ extension E on A {}
 library my.library;
 /// doc aaa
 /// doc bbb
-List<String> fff(int a, String b) {
+List<String> fff(int a, [String b = 'b']) {
 }
 ''');
     var hover = await prepareHover('fff(int a');
@@ -345,7 +345,8 @@ List<String> fff(int a, String b) {
     expect(hover.containingLibraryPath, testFile);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-    expect(hover.elementDescription, 'List<String> fff(int a, String b)');
+    expect(
+        hover.elementDescription, "List<String> fff(int a, [String b = 'b'])");
     expect(hover.elementKind, 'function');
     // types
     expect(hover.staticType, isNull);
@@ -692,6 +693,14 @@ class A {
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_parameter_defaultValue() async {
+    addTestFile('void b([int a=123]) { }');
+    var hover = await prepareHover('a=');
+    // element
+    expect(hover.elementDescription, '[int a = 123]');
+    expect(hover.elementKind, 'parameter');
   }
 
   Future<void> test_parameter_reference_fieldFormal() async {
