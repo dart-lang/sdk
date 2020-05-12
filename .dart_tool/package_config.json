@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-04-27T16:42:25.459210",
+  "generated": "2020-05-12T10:16:07.605273",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -36,7 +36,7 @@
       "name": "analysis_server_client",
       "rootUri": "../pkg/analysis_server_client",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.8"
     },
     {
       "name": "analysis_tool",
@@ -137,7 +137,7 @@
       "name": "crypto",
       "rootUri": "../third_party/pkg/crypto",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.3"
     },
     {
       "name": "csslib",
@@ -191,7 +191,7 @@
       "name": "dartfix",
       "rootUri": "../pkg/dartfix",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.8"
     },
     {
       "name": "dds",
@@ -255,6 +255,11 @@
       "packageUri": ".nonexisting/"
     },
     {
+      "name": "front_end_nnbd_mixed",
+      "rootUri": "../pkg/front_end/testcases/nnbd_mixed",
+      "packageUri": ".nonexisting/"
+    },
+    {
       "name": "front_end_nonfunction_type_aliases",
       "rootUri": "../pkg/front_end/testcases/nonfunction_type_aliases",
       "packageUri": ".nonexisting/"
@@ -305,7 +310,7 @@
       "name": "http_parser",
       "rootUri": "../third_party/pkg/http_parser",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.3"
     },
     {
       "name": "http_retry",
@@ -585,7 +590,7 @@
       "name": "string_scanner",
       "rootUri": "../third_party/pkg/string_scanner",
       "packageUri": "lib/",
-      "languageVersion": "1.8"
+      "languageVersion": "2.0"
     },
     {
       "name": "telemetry",
