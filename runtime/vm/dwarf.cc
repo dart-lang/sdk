@@ -123,14 +123,16 @@ void Dwarf::AddCode(const Code& code,
 
   ASSERT(name != nullptr);
   ASSERT(payload_start >= 0);
-  auto const virtual_address = elf_->NextMemoryOffset() + payload_start;
-  elf_->AddStaticSymbol(elf_->NextSectionIndex(), name, virtual_address,
-                        code.Size());
+  // Since we're in the middle of generating this section, pull the next section
+  // index and starting address for the next segment from the ELF object.
+  auto const section_index = elf_->NextSectionIndex();
+  auto const relocated_address = elf_->NextMemoryOffset() + payload_start;
+  elf_->AddCodeSymbol(name, section_index, relocated_address, code.Size());
 
   ASSERT(!code.IsNull());
   ASSERT(code_to_address_.Lookup(&code) == nullptr);
   const auto& zone_code = Code::ZoneHandle(zone_, code.raw());
-  code_to_address_.Insert(CodeAddressPair(&zone_code, virtual_address));
+  code_to_address_.Insert(CodeAddressPair(&zone_code, relocated_address));
 
   AddCodeHelper(zone_code);
 }

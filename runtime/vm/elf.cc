@@ -624,9 +624,10 @@ class DynamicSegment : public BlobSection {
 
 static const intptr_t kProgramTableSegmentSize = Elf::kPageSize;
 
-Elf::Elf(Zone* zone, StreamingWriteStream* stream)
+Elf::Elf(Zone* zone, StreamingWriteStream* stream, bool strip)
     : zone_(zone),
       stream_(stream),
+      strip_(strip),
       shstrtab_(new (zone) StringTable(/*allocate=*/false)),
       dynstrtab_(new (zone) StringTable(/*allocate=*/true)),
       dynsym_(new (zone) SymbolTable(/*dynamic=*/true)),
@@ -672,21 +673,15 @@ void Elf::AddSection(Section* section, const char* name) {
   }
 }
 
-intptr_t Elf::AddSectionSymbol(const Section* section,
-                               const char* name,
-                               intptr_t size) {
-  ASSERT(!dynstrtab_->HasBeenFinalized() && !dynsym_->HasBeenFinalized());
-  auto const name_index = dynstrtab_->AddString(name);
+intptr_t Elf::AddSegmentSymbol(const Section* section, const char* name) {
   auto const info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
   auto const section_index = section->section_index();
   // For shared libraries, this is the offset from the DSO base. For static
   // libraries, this is section relative.
-  auto const memory_offset = section->memory_offset();
-  auto const symbol = new (zone_)
-      Symbol(name, name_index, info, section_index, memory_offset, size);
-  dynsym_->AddSymbol(symbol);
-
-  return memory_offset;
+  auto const address = section->memory_offset();
+  auto const size = section->MemorySize();
+  AddDynamicSymbol(name, info, section_index, address, size);
+  return address;
 }
 
 intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
@@ -698,31 +693,16 @@ intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
   }
   AddSection(image, ".text");
 
-  return AddSectionSymbol(image, name, size);
+  return AddSegmentSymbol(image, name);
 }
 
-void Elf::AddStaticSymbol(intptr_t section,
-                          const char* name,
-                          intptr_t address,
-                          intptr_t size) {
-  // Lazily allocate the static string and symbol tables, as we only add static
-  // symbols in unstripped ELF files.
-  if (strtab_ == nullptr) {
-    ASSERT(symtab_ == nullptr);
-    ASSERT(section_table_file_size_ < 0);
-    strtab_ = new (zone_) StringTable(/* allocate= */ false);
-    AddSection(strtab_, ".strtab");
-    symtab_ = new (zone_) SymbolTable(/*dynamic=*/false);
-    AddSection(symtab_, ".symtab");
-    symtab_->section_link = strtab_->section_index();
-  }
-
-  ASSERT(!strtab_->HasBeenFinalized() && !symtab_->HasBeenFinalized());
-  auto const name_index = strtab_->AddString(name);
+void Elf::AddCodeSymbol(const char* name,
+                        intptr_t section_index,
+                        intptr_t address,
+                        intptr_t size) {
+  ASSERT(!strip_);
   auto const info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
-  Symbol* symbol =
-      new (zone_) Symbol(name, name_index, info, section, address, size);
-  symtab_->AddSymbol(symbol);
+  AddStaticSymbol(name, info, section_index, address, size);
 }
 
 bool Elf::FindDynamicSymbol(const char* name,
@@ -757,7 +737,7 @@ intptr_t Elf::AddBSSData(const char* name, intptr_t size) {
   ASSERT_EQUAL(image->alignment, kPageSize);
   AddSection(image, ".bss");
 
-  return AddSectionSymbol(image, name, size);
+  return AddSegmentSymbol(image, name);
 }
 
 intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
@@ -765,14 +745,59 @@ intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
   ProgramBits* image = new (zone_) ProgramBits(true, false, false, bytes, size);
   AddSection(image, ".rodata");
 
-  return AddSectionSymbol(image, name, size);
+  return AddSegmentSymbol(image, name);
 }
 
 void Elf::AddDebug(const char* name, const uint8_t* bytes, intptr_t size) {
+  ASSERT(!strip_);
   ASSERT(bytes != nullptr);
   ProgramBits* image =
       new (zone_) ProgramBits(false, false, false, bytes, size);
   AddSection(image, name);
+}
+
+void Elf::AddDynamicSymbol(const char* name,
+                           intptr_t info,
+                           intptr_t section_index,
+                           intptr_t address,
+                           intptr_t size) {
+  ASSERT(!dynstrtab_->HasBeenFinalized() && !dynsym_->HasBeenFinalized());
+  auto const name_index = dynstrtab_->AddString(name);
+  auto const symbol =
+      new (zone_) Symbol(name, name_index, info, section_index, address, size);
+  dynsym_->AddSymbol(symbol);
+
+  // Some tools assume the static symbol table is a superset of the dynamic
+  // symbol table when it exists (see dartbug.com/41783).
+  if (!strip_) {
+    AddStaticSymbol(name, info, section_index, address, size);
+  }
+}
+
+void Elf::AddStaticSymbol(const char* name,
+                          intptr_t info,
+                          intptr_t section_index,
+                          intptr_t address,
+                          intptr_t size) {
+  ASSERT(!strip_);
+
+  // Lazily allocate the static string and symbol tables, as we only add static
+  // symbols in unstripped ELF files.
+  if (strtab_ == nullptr) {
+    ASSERT(symtab_ == nullptr);
+    ASSERT(section_table_file_size_ < 0);
+    strtab_ = new (zone_) StringTable(/* allocate= */ false);
+    AddSection(strtab_, ".strtab");
+    symtab_ = new (zone_) SymbolTable(/*dynamic=*/false);
+    AddSection(symtab_, ".symtab");
+    symtab_->section_link = strtab_->section_index();
+  }
+
+  ASSERT(!symtab_->HasBeenFinalized() && !strtab_->HasBeenFinalized());
+  auto const name_index = strtab_->AddString(name);
+  auto const symbol =
+      new (zone_) Symbol(name, name_index, info, section_index, address, size);
+  symtab_->AddSymbol(symbol);
 }
 
 void Elf::Finalize() {

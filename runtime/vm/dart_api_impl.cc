@@ -6536,7 +6536,7 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
                                     callback, debug_callback_data);
 
-  Elf* elf = new (Z) Elf(Z, &elf_stream);
+  Elf* elf = new (Z) Elf(Z, &elf_stream, strip);
   Dwarf* elf_dwarf = strip ? nullptr : new (Z) Dwarf(Z, nullptr, elf);
   Elf* debug_elf = generate_debug ? new (Z) Elf(Z, &debug_stream) : nullptr;
   Dwarf* debug_dwarf =
