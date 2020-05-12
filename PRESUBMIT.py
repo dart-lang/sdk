@@ -337,6 +337,36 @@ def _CheckClangTidy(input_api, output_api):
     ]
 
 
+def _CheckTestMatrixValid(input_api, output_api):
+    """Run script to check that the test matrix has no errors."""
+
+    def test_matrix_filter(affected_file):
+        """Only run test if either the test matrix or the code that
+           validates it was modified."""
+        path = affected_file.LocalPath()
+        return (path == 'tools/bots/test_matrix.json' or
+                path == 'tools/validate_test_matrix.dart' or
+                path.startswith('pkg/smith/'))
+
+    if len(
+            input_api.AffectedFiles(
+                include_deletes=False, file_filter=test_matrix_filter)) == 0:
+        return []
+
+    command = [
+        'tools/sdks/dart-sdk/bin/dart',
+        'tools/validate_test_matrix.dart',
+    ]
+    stdout = input_api.subprocess.check_output(command).strip()
+    if not stdout:
+        return []
+    else:
+        return [
+            output_api.PresubmitError(
+                'The test matrix is not valid:', long_text=stdout)
+        ]
+
+
 def _CommonChecks(input_api, output_api):
     results = []
     results.extend(_CheckNnbdSdkSync(input_api, output_api))
@@ -347,6 +377,7 @@ def _CommonChecks(input_api, output_api):
     results.extend(_CheckStatusFiles(input_api, output_api))
     results.extend(_CheckLayering(input_api, output_api))
     results.extend(_CheckClangTidy(input_api, output_api))
+    results.extend(_CheckTestMatrixValid(input_api, output_api))
     results.extend(
         input_api.canned_checks.CheckPatchFormatted(input_api, output_api))
     return results
