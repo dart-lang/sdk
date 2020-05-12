@@ -696,6 +696,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   static const _compileErrorExitCode = 254;
   static const _uncaughtExceptionExitCode = 255;
   static const _adbInfraFailureCodes = [10];
+  static const _ubsanFailureExitCode = 1;
 
   VMCommandOutput(Command command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time, int pid)
@@ -751,6 +752,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     // The actual outcome depends on the exitCode.
     if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
     if (exitCode == _uncaughtExceptionExitCode) return Expectation.runtimeError;
+    if (exitCode == _ubsanFailureExitCode) return Expectation.fail;
     if (exitCode != 0) {
       var ourExit = 5;
       // Unknown nonzero exit code from vm command.

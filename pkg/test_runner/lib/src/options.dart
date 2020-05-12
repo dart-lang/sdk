@@ -1014,8 +1014,10 @@ final Map<String, String> sanitizerEnvironmentVariables = (() {
   if (symbolizerPath != null) {
     symbolizerPath = path.join(Directory.current.path, symbolizerPath);
     environment['ASAN_SYMBOLIZER_PATH'] = symbolizerPath;
+    environment['LSAN_SYMBOLIZER_PATH'] = symbolizerPath;
     environment['MSAN_SYMBOLIZER_PATH'] = symbolizerPath;
     environment['TSAN_SYMBOLIZER_PATH'] = symbolizerPath;
+    environment['UBSAN_SYMBOLIZER_PATH'] = symbolizerPath;
   }
 
   return environment;
