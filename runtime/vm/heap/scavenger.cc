@@ -4,6 +4,7 @@
 
 #include "vm/heap/scavenger.h"
 
+#include "platform/leak_sanitizer.h"
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/flag_list.h"

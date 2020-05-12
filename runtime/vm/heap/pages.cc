@@ -4,8 +4,8 @@
 
 #include "vm/heap/pages.h"
 
-#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
+#include "platform/leak_sanitizer.h"
 #include "vm/dart.h"
 #include "vm/heap/become.h"
 #include "vm/heap/compactor.h"

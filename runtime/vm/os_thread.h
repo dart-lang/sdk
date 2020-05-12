@@ -5,7 +5,6 @@
 #ifndef RUNTIME_VM_OS_THREAD_H_
 #define RUNTIME_VM_OS_THREAD_H_
 
-#include "platform/address_sanitizer.h"
 #include "platform/atomic.h"
 #include "platform/globals.h"
 #include "platform/safe_stack.h"
