@@ -7247,7 +7247,8 @@ intptr_t Function::GetRequiredFlagIndex(intptr_t index,
                                         intptr_t* flag_mask) const {
   ASSERT(index >= num_fixed_parameters());
   index -= num_fixed_parameters();
-  *flag_mask = 1 << (index % compiler::target::kNumParameterFlagsPerElement);
+  *flag_mask = 1 << (static_cast<uintptr_t>(index) %
+                     compiler::target::kNumParameterFlagsPerElement);
   return NumParameters() +
          index / compiler::target::kNumParameterFlagsPerElement;
 }
