@@ -909,8 +909,9 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
           instr,
           new (Z) AssertAssignableInstr(
               instr->token_pos(), new (Z) Value(instr->ArgumentAt(1)),
+              new (Z) Value(flow_graph_->GetConstant(dst_type)),
               new (Z) Value(instantiator_type_args),
-              new (Z) Value(function_type_args), dst_type,
+              new (Z) Value(function_type_args),
               String::ZoneHandle(zone(), field.name()), instr->deopt_id()),
           instr->env(), FlowGraph::kEffect);
     }

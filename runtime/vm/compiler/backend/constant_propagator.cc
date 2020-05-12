@@ -431,13 +431,15 @@ void ConstantPropagator::VisitPushArgument(PushArgumentInstr* instr) {
 }
 
 void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
+  const auto& value = instr->value()->definition()->constant_value();
+  const auto& dst_type = instr->dst_type()->definition()->constant_value();
+
+  if (IsNonConstant(value) || IsNonConstant(dst_type)) {
     SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
+  } else if (IsConstant(value) && IsConstant(dst_type)) {
     // We are ignoring the instantiator and instantiator_type_arguments, but
     // still monotonic and safe.
-    if (instr->value()->Type()->IsAssignableTo(instr->dst_type())) {
+    if (instr->value()->Type()->IsAssignableTo(AbstractType::Cast(dst_type))) {
       SetValue(instr, value);
     } else {
       SetValue(instr, non_constant_);

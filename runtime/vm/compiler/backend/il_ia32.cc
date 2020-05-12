@@ -363,15 +363,17 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 4;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
-  summary->set_in(1, Location::RegisterLocation(
+  summary->set_in(
+      1, LocationFixedRegisterOrConstant(dst_type(), TypeTestABI::kDstTypeReg));
+  summary->set_in(2, Location::RegisterLocation(
                          TypeTestABI::kInstantiatorTypeArgumentsReg));
   summary->set_in(
-      2, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
+      3, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }

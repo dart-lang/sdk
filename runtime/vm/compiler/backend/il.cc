@@ -974,14 +974,6 @@ bool GuardFieldTypeInstr::AttributesEqual(Instruction* other) const {
   return field().raw() == other->AsGuardFieldType()->field().raw();
 }
 
-bool AssertAssignableInstr::AttributesEqual(Instruction* other) const {
-  AssertAssignableInstr* other_assert = other->AsAssertAssignable();
-  ASSERT(other_assert != NULL);
-  // This predicate has to be commutative for DominatorBasedCSE to work.
-  // TODO(fschneider): Eliminate more asserts with subtype relation.
-  return dst_type().raw() == other_assert->dst_type().raw();
-}
-
 Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
   // If all values for type parameters are known (i.e. from instantiator and
   // function) we can instantiate the sub and super type and remove this
@@ -2862,11 +2854,17 @@ Definition* AssertBooleanInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (FLAG_eliminate_type_checks &&
-      value()->Type()->IsAssignableTo(dst_type())) {
+  // We need dst_type() to be a constant AbstractType to perform any
+  // canonicalization.
+  if (!dst_type()->BindsToConstant()) return this;
+  const auto& abs_type = AbstractType::Cast(dst_type()->BoundConstant());
+
+  if (abs_type.IsTopTypeForSubtyping() ||
+      (FLAG_eliminate_type_checks &&
+       value()->Type()->IsAssignableTo(abs_type))) {
     return value()->definition();
   }
-  if (dst_type().IsInstantiated()) {
+  if (abs_type.IsInstantiated()) {
     return this;
   }
 
@@ -2930,8 +2928,8 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   if ((instantiator_type_args != nullptr) && (function_type_args != nullptr)) {
     AbstractType& new_dst_type = AbstractType::Handle(
         Z,
-        dst_type().InstantiateFrom(*instantiator_type_args, *function_type_args,
-                                   kAllFree, nullptr, Heap::kOld));
+        abs_type.InstantiateFrom(*instantiator_type_args, *function_type_args,
+                                 kAllFree, nullptr, Heap::kOld));
     if (new_dst_type.IsNull()) {
       // Failed instantiation in dead code.
       return this;
@@ -2944,7 +2942,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     // Successfully instantiated destination type: update the type attached
     // to this instruction and set type arguments to null because we no
     // longer need them (the type was instantiated).
-    set_dst_type(new_dst_type);
+    dst_type()->BindTo(flow_graph->GetConstant(new_dst_type));
     instantiator_type_arguments()->BindTo(flow_graph->constant_null());
     function_type_arguments()->BindTo(flow_graph->constant_null());
 
@@ -5050,7 +5048,7 @@ intptr_t AssertAssignableInstr::statistics_tag() const {
 
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateAssertAssignable(value()->Type(), token_pos(), deopt_id(),
-                                     dst_type(), dst_name(), locs());
+                                     dst_name(), locs());
   ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
 }
 

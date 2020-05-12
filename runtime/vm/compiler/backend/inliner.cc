@@ -2611,11 +2611,12 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
     if (exactness != nullptr && exactness->is_exact) {
       exactness->emit_exactness_guard = true;
     } else {
+      auto const function_type_args = flow_graph->constant_null();
+      auto const dst_type = flow_graph->GetConstant(value_type);
       AssertAssignableInstr* assert_value = new (Z) AssertAssignableInstr(
-          token_pos, new (Z) Value(stored_value), new (Z) Value(type_args),
-          new (Z)
-              Value(flow_graph->constant_null()),  // Function type arguments.
-          value_type, Symbols::Value(), call->deopt_id());
+          token_pos, new (Z) Value(stored_value), new (Z) Value(dst_type),
+          new (Z) Value(type_args), new (Z) Value(function_type_args),
+          Symbols::Value(), call->deopt_id());
       cursor = flow_graph->AppendTo(cursor, assert_value, call->env(),
                                     FlowGraph::kValue);
     }

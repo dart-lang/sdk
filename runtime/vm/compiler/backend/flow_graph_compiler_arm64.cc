@@ -654,6 +654,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
 // - Class equality (only if class is not parameterized).
 // Inputs:
 // - R0: instance being type checked.
+// - R8: destination type (if non-constant).
 // - R2: instantiator type arguments or raw_null.
 // - R1: function type arguments or raw_null.
 // Returns:
@@ -663,20 +664,26 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
 void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
                                                  TokenPosition token_pos,
                                                  intptr_t deopt_id,
-                                                 const AbstractType& dst_type,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
   ASSERT(!TokenPosition(token_pos).IsClassifying());
-  ASSERT(!dst_type.IsNull());
-  ASSERT(dst_type.IsFinalized());
-  // Assignable check is skipped in FlowGraphBuilder, not here.
-  ASSERT(!dst_type.IsTopTypeForSubtyping());
+  ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
 
-  if (ShouldUseTypeTestingStubFor(is_optimizing(), dst_type)) {
-    GenerateAssertAssignableViaTypeTestingStub(
-        receiver_type, token_pos, deopt_id, dst_type, dst_name, locs);
-  } else {
-    compiler::Label is_assignable_fast, is_assignable, runtime_call;
+  compiler::Label is_assignable_fast, is_assignable, runtime_call;
+  // Generate inline type check, linking to runtime call if not assignable.
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
+
+  if (locs->in(1).IsConstant()) {
+    const auto& dst_type = AbstractType::Cast(locs->in(1).constant());
+    ASSERT(dst_type.IsFinalized());
+
+    if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
+
+    if (ShouldUseTypeTestingStubFor(is_optimizing(), dst_type)) {
+      GenerateAssertAssignableViaTypeTestingStub(receiver_type, token_pos,
+                                                 deopt_id, dst_name, locs);
+      return;
+    }
 
     if (Instance::NullIsAssignableTo(dst_type)) {
       __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
@@ -686,45 +693,56 @@ void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
     __ PushPair(TypeTestABI::kFunctionTypeArgumentsReg,
                 TypeTestABI::kInstantiatorTypeArgumentsReg);
 
-    // Generate inline type check, linking to runtime call if not assignable.
-    SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
     test_cache = GenerateInlineInstanceof(token_pos, dst_type, &is_assignable,
                                           &runtime_call);
-
-    __ Bind(&runtime_call);
-    __ ldp(TypeTestABI::kFunctionTypeArgumentsReg,
-           TypeTestABI::kInstantiatorTypeArgumentsReg,
-           compiler::Address(SP, 0 * kWordSize, compiler::Address::PairOffset));
-    __ PushPair(TypeTestABI::kInstanceReg,
-                NULL_REG);         // Make room for the result and
-                                   // push the source object.
-    __ LoadObject(TMP, dst_type);  // Push the type of the dest.
-    __ PushPair(TypeTestABI::kInstantiatorTypeArgumentsReg, TMP);
-    __ LoadObject(TMP, dst_name);  // Push the name of the destination.
-    __ PushPair(TMP, TypeTestABI::kFunctionTypeArgumentsReg);
-
-    __ LoadUniqueObject(R0, test_cache);
-    __ LoadObject(TMP, Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
-    __ PushPair(TMP, R0);
-    GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
-    // Pop the parameters supplied to the runtime entry. The result of the
-    // type check runtime call is the checked value.
-    __ Drop(7);
-    __ Pop(R0);
-    __ Bind(&is_assignable);
-    __ PopPair(TypeTestABI::kFunctionTypeArgumentsReg,
-               TypeTestABI::kInstantiatorTypeArgumentsReg);
-    __ Bind(&is_assignable_fast);
+  } else {
+    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
+    UNREACHABLE();
   }
+
+  __ Bind(&runtime_call);
+  __ ldp(TypeTestABI::kFunctionTypeArgumentsReg,
+         TypeTestABI::kInstantiatorTypeArgumentsReg,
+         compiler::Address(SP, 0 * kWordSize, compiler::Address::PairOffset));
+  // Make room for the result and push the source object.
+  __ PushPair(TypeTestABI::kInstanceReg, NULL_REG);
+  // Push the destination type and the instantiator type arguments.
+  if (locs->in(1).IsConstant()) {
+    __ LoadObject(TMP, locs->in(1).constant());
+    __ PushPair(TypeTestABI::kInstantiatorTypeArgumentsReg, TMP);
+  } else {
+    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
+    UNREACHABLE();
+  }
+  // Push the function type arguments and the name of the destination.
+  __ LoadObject(TMP, dst_name);
+  __ PushPair(TMP, TypeTestABI::kFunctionTypeArgumentsReg);
+
+  __ LoadUniqueObject(R0, test_cache);
+  __ LoadObject(TMP, Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
+  __ PushPair(TMP, R0);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
+  // Pop the parameters supplied to the runtime entry. The result of the
+  // type check runtime call is the checked value.
+  __ Drop(7);
+  __ Pop(TypeTestABI::kInstanceReg);
+  __ Bind(&is_assignable);
+  __ PopPair(TypeTestABI::kFunctionTypeArgumentsReg,
+             TypeTestABI::kInstantiatorTypeArgumentsReg);
+  __ Bind(&is_assignable_fast);
 }
 
 void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     CompileType* receiver_type,
     TokenPosition token_pos,
     intptr_t deopt_id,
-    const AbstractType& dst_type,
     const String& dst_name,
     LocationSummary* locs) {
+  ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
+  // We must have a constant dst_type for generating a call to the stub.
+  ASSERT(locs->in(1).IsConstant());
+  const auto& dst_type = AbstractType::Cast(locs->in(1).constant());
+
   // If the dst_type is instantiated we know the target TTS stub at
   // compile-time and can therefore use a pc-relative call.
   const bool use_pc_relative_call = dst_type.IsInstantiated() &&

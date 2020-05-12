@@ -476,21 +476,26 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
+  auto const dst_type_loc =
+      LocationFixedRegisterOrConstant(dst_type(), TypeTestABI::kDstTypeReg);
+
   // When using a type testing stub, we want to prevent spilling of the
   // function/instantiator type argument vectors, since stub preserves them. So
   // we make this a `kNoCall` summary, even though most other registers can be
   // modified by the stub. To tell the register allocator about it, we reserve
   // all the other registers as temporary registers.
   // TODO(http://dartbug.com/32788): Simplify this.
-  const bool using_stub =
-      FlowGraphCompiler::ShouldUseTypeTestingStubFor(opt, dst_type());
+  const bool using_stub = dst_type_loc.IsConstant() &&
+                          FlowGraphCompiler::ShouldUseTypeTestingStubFor(
+                              opt, AbstractType::Cast(dst_type_loc.constant()));
 
   const intptr_t kNonChangeableInputRegs =
       (1 << TypeTestABI::kInstanceReg) |
+      ((dst_type_loc.IsRegister() ? 1 : 0) << TypeTestABI::kDstTypeReg) |
       (1 << TypeTestABI::kInstantiatorTypeArgumentsReg) |
       (1 << TypeTestABI::kFunctionTypeArgumentsReg);
 
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 4;
 
   // We invoke a stub that can potentially clobber any CPU register
   // but can only clobber FPU registers on the slow path when
@@ -510,10 +515,11 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
       zone, kNumInputs, kNumTemps,
       using_stub ? LocationSummary::kCallCalleeSafe : LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
-  summary->set_in(1, Location::RegisterLocation(
+  summary->set_in(1, dst_type_loc);
+  summary->set_in(2, Location::RegisterLocation(
                          TypeTestABI::kInstantiatorTypeArgumentsReg));
   summary->set_in(
-      2, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
+      3, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
   summary->set_out(0, Location::SameAsFirstInput());
 
   if (using_stub) {

@@ -421,8 +421,9 @@ static const char* TypeToUserVisibleName(const AbstractType& type) {
 
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %s, '%s',", TypeToUserVisibleName(dst_type()),
-           dst_name().ToCString());
+  f->Print(", ");
+  dst_type()->PrintTo(f);
+  f->Print(", '%s',", dst_name().ToCString());
   f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");

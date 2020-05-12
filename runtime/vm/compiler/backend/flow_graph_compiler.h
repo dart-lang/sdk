@@ -568,10 +568,12 @@ class FlowGraphCompiler : public ValueObject {
                      Representation src_type,
                      TemporaryRegisterAllocator* temp);
 
+  bool CheckAssertAssignableTypeTestingABILocations(
+      const LocationSummary& locs);
+
   void GenerateAssertAssignable(CompileType* receiver_type,
                                 TokenPosition token_pos,
                                 intptr_t deopt_id,
-                                const AbstractType& dst_type,
                                 const String& dst_name,
                                 LocationSummary* locs);
 
@@ -583,7 +585,6 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateAssertAssignableViaTypeTestingStub(CompileType* receiver_type,
                                                   TokenPosition token_pos,
                                                   intptr_t deopt_id,
-                                                  const AbstractType& dst_type,
                                                   const String& dst_name,
                                                   LocationSummary* locs);
 

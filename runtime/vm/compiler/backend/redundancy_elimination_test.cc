@@ -361,10 +361,11 @@ static Definition* MakeRedefinition(CompilerState* S,
 static Definition* MakeAssertAssignable(CompilerState* S,
                                         FlowGraph* flow_graph,
                                         Definition* defn) {
+  const auto& dst_type = AbstractType::ZoneHandle(Type::ObjectType());
   return new AssertAssignableInstr(TokenPosition::kNoSource, new Value(defn),
+                                   new Value(flow_graph->GetConstant(dst_type)),
                                    new Value(flow_graph->constant_null()),
                                    new Value(flow_graph->constant_null()),
-                                   AbstractType::ZoneHandle(Type::ObjectType()),
                                    Symbols::Empty(), S->GetNextDeoptId());
 }
 

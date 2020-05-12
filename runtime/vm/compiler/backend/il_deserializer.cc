@@ -885,15 +885,14 @@ AssertAssignableInstr* FlowGraphDeserializer::DeserializeAssertAssignable(
   auto const val = ParseValue(Retrieve(sexp, 1));
   if (val == nullptr) return nullptr;
 
-  auto const inst_type_args = ParseValue(Retrieve(sexp, 2));
+  auto const dst_type = ParseValue(Retrieve(sexp, 2));
+  if (dst_type == nullptr) return nullptr;
+
+  auto const inst_type_args = ParseValue(Retrieve(sexp, 3));
   if (inst_type_args == nullptr) return nullptr;
 
-  auto const func_type_args = ParseValue(Retrieve(sexp, 3));
+  auto const func_type_args = ParseValue(Retrieve(sexp, 4));
   if (func_type_args == nullptr) return nullptr;
-
-  auto& dst_type = AbstractType::Handle(zone());
-  auto const dst_type_sexp = Retrieve(sexp, "type");
-  if (!ParseDartValue(dst_type_sexp, &dst_type)) return nullptr;
 
   auto& dst_name = String::ZoneHandle(zone());
   auto const dst_name_sexp = Retrieve(sexp, "name");
@@ -908,8 +907,8 @@ AssertAssignableInstr* FlowGraphDeserializer::DeserializeAssertAssignable(
   }
 
   return new (zone())
-      AssertAssignableInstr(info.token_pos, val, inst_type_args, func_type_args,
-                            dst_type, dst_name, info.deopt_id, kind);
+      AssertAssignableInstr(info.token_pos, val, dst_type, inst_type_args,
+                            func_type_args, dst_name, info.deopt_id, kind);
 }
 
 AssertBooleanInstr* FlowGraphDeserializer::DeserializeAssertBoolean(

@@ -1160,11 +1160,15 @@ CompileType ConstantInstr::ComputeType() const {
 CompileType AssertAssignableInstr::ComputeType() const {
   CompileType* value_type = value()->Type();
 
-  if (value_type->IsSubtypeOf(dst_type())) {
-    return *value_type;
+  const AbstractType* abs_type = &AbstractType::dynamic_type();
+  if (dst_type()->BindsToConstant() &&
+      dst_type()->BoundConstant().IsAbstractType()) {
+    abs_type = &AbstractType::Cast(dst_type()->BoundConstant());
+    if (value_type->IsSubtypeOf(*abs_type)) {
+      return *value_type;
+    }
   }
-
-  return CompileType::FromAbstractType(dst_type(), value_type->is_nullable());
+  return CompileType::FromAbstractType(*abs_type, value_type->is_nullable());
 }
 
 bool AssertAssignableInstr::RecomputeType() {

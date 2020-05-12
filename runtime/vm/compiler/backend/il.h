@@ -3510,7 +3510,7 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
   DISALLOW_COPY_AND_ASSIGN(AssertSubtypeInstr);
 };
 
-class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
+class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
  public:
 #define FOR_EACH_ASSERT_ASSIGNABLE_KIND(V)                                     \
   V(ParameterCheck)                                                            \
@@ -3527,24 +3527,21 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
 
   AssertAssignableInstr(TokenPosition token_pos,
                         Value* value,
+                        Value* dst_type,
                         Value* instantiator_type_arguments,
                         Value* function_type_arguments,
-                        const AbstractType& dst_type,
                         const String& dst_name,
                         intptr_t deopt_id,
                         Kind kind = kUnknown)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
-        dst_type_(AbstractType::ZoneHandle(dst_type.raw())),
         dst_name_(dst_name),
         kind_(kind) {
-    ASSERT(!dst_type.IsNull());
-    ASSERT(!dst_type.IsTypeRef());
     ASSERT(!dst_name.IsNull());
-    ASSERT(!dst_type.IsDynamicType());
     SetInputAt(0, value);
-    SetInputAt(1, instantiator_type_arguments);
-    SetInputAt(2, function_type_arguments);
+    SetInputAt(1, dst_type);
+    SetInputAt(2, instantiator_type_arguments);
+    SetInputAt(3, function_type_arguments);
   }
 
   virtual intptr_t statistics_tag() const;
@@ -3554,15 +3551,11 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
   virtual bool RecomputeType();
 
   Value* value() const { return inputs_[0]; }
-  Value* instantiator_type_arguments() const { return inputs_[1]; }
-  Value* function_type_arguments() const { return inputs_[2]; }
+  Value* dst_type() const { return inputs_[1]; }
+  Value* instantiator_type_arguments() const { return inputs_[2]; }
+  Value* function_type_arguments() const { return inputs_[3]; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
-  const AbstractType& dst_type() const { return dst_type_; }
-  void set_dst_type(const AbstractType& dst_type) {
-    ASSERT(!dst_type.IsTypeRef());
-    dst_type_ = dst_type.raw();
-  }
   const String& dst_name() const { return dst_name_; }
 
   virtual bool ComputeCanDeoptimize() const {
@@ -3577,7 +3570,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual Value* RedefinedValue() const;
 
@@ -3586,7 +3579,6 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
 
  private:
   const TokenPosition token_pos_;
-  AbstractType& dst_type_;
   const String& dst_name_;
   const Kind kind_;
 

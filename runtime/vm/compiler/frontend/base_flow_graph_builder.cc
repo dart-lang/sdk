@@ -1105,15 +1105,15 @@ void BaseFlowGraphBuilder::reset_context_depth_for_deopt_id(intptr_t deopt_id) {
 
 Fragment BaseFlowGraphBuilder::AssertAssignable(
     TokenPosition position,
-    const AbstractType& dst_type,
     const String& dst_name,
     AssertAssignableInstr::Kind kind) {
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
+  Value* dst_type = Pop();
   Value* value = Pop();
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
-      position, value, instantiator_type_args, function_type_args, dst_type,
+      position, value, dst_type, instantiator_type_args, function_type_args,
       dst_name, GetNextDeoptId(), kind);
   Push(instr);
 

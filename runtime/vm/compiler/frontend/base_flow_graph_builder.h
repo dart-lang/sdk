@@ -397,11 +397,10 @@ class BaseFlowGraphBuilder {
   // _StringBase._interpolate call.
   Fragment StringInterpolate(TokenPosition position);
 
-  // Pops function type arguments, instantiator type arguments and value; and
-  // type checks value against the type arguments.
+  // Pops function type arguments, instantiator type arguments, dst_type, and
+  // value; and type checks value against the type arguments.
   Fragment AssertAssignable(
       TokenPosition position,
-      const AbstractType& dst_type,
       const String& dst_name,
       AssertAssignableInstr::Kind kind = AssertAssignableInstr::kUnknown);
 

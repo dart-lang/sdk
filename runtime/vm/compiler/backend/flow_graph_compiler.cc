@@ -2308,6 +2308,22 @@ void FlowGraphCompiler::GenerateCidRangesCheck(
   }
 }
 
+bool FlowGraphCompiler::CheckAssertAssignableTypeTestingABILocations(
+    const LocationSummary& locs) {
+  ASSERT(locs.in(0).IsRegister() &&
+         locs.in(0).reg() == TypeTestABI::kInstanceReg);
+  ASSERT((locs.in(1).IsConstant() && locs.in(1).constant().IsAbstractType()) ||
+         (locs.in(1).IsRegister() &&
+          locs.in(1).reg() == TypeTestABI::kDstTypeReg));
+  ASSERT(locs.in(2).IsRegister() &&
+         locs.in(2).reg() == TypeTestABI::kInstantiatorTypeArgumentsReg);
+  ASSERT(locs.in(3).IsRegister() &&
+         locs.in(3).reg() == TypeTestABI::kFunctionTypeArgumentsReg);
+  ASSERT(locs.out(0).IsRegister() &&
+         locs.out(0).reg() == TypeTestABI::kInstanceReg);
+  return true;
+}
+
 bool FlowGraphCompiler::ShouldUseTypeTestingStubFor(bool optimizing,
                                                     const AbstractType& type) {
   return FLAG_precompiled_mode ||
