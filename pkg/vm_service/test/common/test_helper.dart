@@ -141,7 +141,9 @@ class _ServiceTesteeLauncher {
       List<String> extraArgs) {
     String dartExecutable = Platform.executable;
 
-    var fullArgs = <String>[];
+    var fullArgs = <String>[
+      '--disable-dart-dev',
+    ];
     if (pause_on_start) {
       fullArgs.add('--pause-isolates-on-start');
     }

@@ -999,7 +999,7 @@ void main(int argc, char** argv) {
   char* script_name;
   const int EXTRA_VM_ARGUMENTS = 10;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
-  CommandLineOptions dart_options(argc);
+  CommandLineOptions dart_options(argc + EXTRA_VM_ARGUMENTS);
   bool print_flags_seen = false;
   bool verbose_debug_seen = false;
 

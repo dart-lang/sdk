@@ -168,6 +168,7 @@ class Options {
 
   // VM Service argument processing.
   static const char* vm_service_server_ip_;
+  static bool enable_vm_service_;
   static int vm_service_server_port_;
   static bool ExtractPortAndAddress(const char* option_value,
                                     int* out_port,

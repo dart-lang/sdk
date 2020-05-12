@@ -65,7 +65,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
     }
     _shuttingDown = true;
     // Don't accept anymore HTTP requests.
-    await _server.close();
+    await _server?.close();
 
     // Close connections to clients.
     await clientManager.shutdown();
