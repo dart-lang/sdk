@@ -45,6 +45,7 @@ class EnclosingExecutableContext {
   final bool isAsynchronous;
   final bool isConstConstructor;
   final bool isFactoryConstructor;
+  final bool isGenerativeConstructor;
   final bool isGenerator;
   final bool isStaticMethod;
 
@@ -59,12 +60,18 @@ class EnclosingExecutableContext {
         isConstConstructor = element is ConstructorElement && element.isConst,
         isFactoryConstructor =
             element is ConstructorElement && element.isFactory,
+        isGenerativeConstructor =
+            element is ConstructorElement && !element.isFactory,
         isGenerator = element != null && element.isGenerator,
         isStaticMethod = _isStaticMethod(element);
 
   EnclosingExecutableContext.empty() : this(null);
 
   bool get isMethod => element is MethodElement;
+
+  bool get isSynchronous => !isAsynchronous;
+
+  DartType get returnType => element.returnType;
 
   static bool _isStaticMethod(ExecutableElement element) {
     var enclosing = element?.enclosingElement;
@@ -572,21 +579,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    ExecutableElement function = _enclosingExecutable.element;
-    FunctionType functionType = function?.type;
-    DartType expectedReturnType = functionType == null
-        ? DynamicTypeImpl.instance
-        : functionType.returnType;
-    bool isSetterWithImplicitReturn = function.hasImplicitReturnType &&
-        function is PropertyAccessorElement &&
-        function.isSetter;
-    if (!isSetterWithImplicitReturn) {
-      _returnTypeVerifier.verifyReturnExpression(
-        node.expression,
-        expectedReturnType,
-        isArrowFunction: true,
-      );
-    }
+    _returnTypeVerifier.verifyExpressionFunctionBody(node);
     super.visitExpressionFunctionBody(node);
   }
 
