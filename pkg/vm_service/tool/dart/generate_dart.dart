@@ -220,7 +220,7 @@ final String _implCode = r'''
   }
 
   Future _processRequest(Map<String, dynamic> json) async {
-    final Map m = await _routeRequest(json['method'], json['params'] ?? {});
+    final Map m = await _routeRequest(json['method'], json['params'] ?? <String, dynamic>{});
     m['id'] = json['id'];
     m['jsonrpc'] = '2.0';
     String message = jsonEncode(m);
@@ -230,7 +230,7 @@ final String _implCode = r'''
 
   Future _processNotification(Map<String, dynamic> json) async {
     final String method = json['method'];
-    final Map params = json['params'] ?? {};
+    final Map params = json['params'] ?? <String, dynamic>{};
     if (method == 'streamNotify') {
       String streamId = params['streamId'];
       _getEventController(streamId).add(createServiceObject(params['event'], const ['Event']));
@@ -239,7 +239,7 @@ final String _implCode = r'''
     }
   }
 
-  Future<Map> _routeRequest(String method, Map params) async{
+  Future<Map> _routeRequest(String method, Map<String, dynamic> params) async{
     if (!_services.containsKey(method)) {
       RPCError error = RPCError(
           method, RPCError.kMethodNotFound, 'method not found \'$method\'');

@@ -3,6 +3,8 @@
 ## 4.0.4
 - Update to version `3.34.0` of the spec.
 - Fixed issue where `TimelineEvents` was not a valid service event kind.
+- Fixed issue where invoking a service extension with no arguments would result
+  in a TypeError during request routing.
 - Added `TimelineStreamSubscriptionsUpdate` event, which is broadcast when
   `setVMTimelineFlags` is used to change the set of currently recording timeline
   streams.
