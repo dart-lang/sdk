@@ -234,8 +234,10 @@ class MigrationCli {
           enablePreview: options.webPreview,
           summaryPath: options.summary);
       fixCodeProcessor.registerCodeTask(nonNullableFix);
+
       try {
         await fixCodeProcessor.runFirstPhase();
+        fixCodeProcessor._progressBar.clear();
         _checkForErrors();
       } on StateError catch (e) {
         logger.stdout(e.toString());
@@ -594,6 +596,8 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
 
   final Set<String> pathsToProcess;
 
+  _ProgressBar _progressBar;
+
   final MigrationCli _migrationCli;
 
   _FixCodeProcessor(this.context, this._migrationCli)
@@ -603,7 +607,7 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
             .toSet();
 
   /// Call the supplied [process] function to process each compilation unit.
-  Future processResources(
+  Future<void> processResources(
       Future<void> Function(ResolvedUnitResult result) process) async {
     var driver = context.currentSession;
     var pathsProcessed = <String>{};
@@ -642,11 +646,15 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
   }
 
   Future<void> runFirstPhase() async {
+    // All tasks should be registered; [numPhases] should be finalized.
+    _progressBar = _ProgressBar(pathsToProcess.length * numPhases);
+
     // Process package
     await processPackage(context.contextRoot.root);
 
     // Process each source file.
     await processResources((ResolvedUnitResult result) async {
+      _progressBar.tick();
       List<AnalysisError> errors = result.errors
           .where((error) => error.severity == Severity.error)
           .toList();
@@ -664,10 +672,12 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
   Future<List<String>> runLaterPhases() async {
     for (var phase = 1; phase < numPhases; phase++) {
       await processResources((ResolvedUnitResult result) async {
+        _progressBar.tick();
         await processCodeTasks(phase, result);
       });
     }
     await finishCodeTasks();
+    _progressBar.complete();
 
     return nonNullableFixTask.previewUrls;
   }
@@ -710,5 +720,77 @@ class _IssueRenderer {
         return 'info';
     }
     return '???';
+  }
+}
+
+/// A facility for drawing a progress bar in the terminal.
+///
+/// The bar is instantiated with the total number of "ticks" to be completed,
+/// and progress is made by calling [tick]. The bar is drawn across one entire
+/// line, like so:
+///
+///     [----------                                                   ]
+///
+/// The hyphens represent completed progress, and the whitespace represents
+/// remaining progress.
+///
+/// If there is no terminal, the progress bar will not be drawn.
+class _ProgressBar {
+  /// Whether the progress bar should be drawn.
+  /*late*/ bool _shouldDrawProgress;
+
+  /// The width of the terminal, in terms of characters.
+  /*late*/ int _width;
+
+  /// The inner width of the terminal, in terms of characters.
+  ///
+  /// This represents the number of characters available for drawing progress.
+  /*late*/ int _innerWidth;
+
+  final int _totalTickCount;
+
+  int _tickCount = 0;
+
+  _ProgressBar(this._totalTickCount) {
+    if (!stdout.hasTerminal) {
+      _shouldDrawProgress = false;
+    } else {
+      _shouldDrawProgress = true;
+      _width = stdout.terminalColumns;
+      _innerWidth = stdout.terminalColumns - 2;
+      stdout.write('[' + ' ' * _innerWidth + ']');
+    }
+  }
+
+  /// Clear the progress bar from the terminal, allowing other logging to be
+  /// printed.
+  void clear() {
+    if (!_shouldDrawProgress) {
+      return;
+    }
+    stdout.write('\r' + ' ' * _width + '\r');
+  }
+
+  /// Draw the progress bar as complete, and print two newlines.
+  void complete() {
+    if (!_shouldDrawProgress) {
+      return;
+    }
+    stdout.write('\r[' + '-' * _innerWidth + ']\n\n');
+  }
+
+  /// Progress the bar by one tick.
+  void tick() {
+    if (!_shouldDrawProgress) {
+      return;
+    }
+    _tickCount++;
+    var fractionComplete = _tickCount * _innerWidth ~/ _totalTickCount - 1;
+    var remaining = _innerWidth - fractionComplete - 1;
+    stdout.write('\r[' + // Bring cursor back to the start of the line.
+        '-' * fractionComplete + // Print complete work.
+        AnsiProgress.kAnimationItems[_tickCount % 4] + // Print spinner.
+        ' ' * remaining + // Print remaining work.
+        ']');
   }
 }
