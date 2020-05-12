@@ -4382,7 +4382,7 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
     // Compute instance size. First word contains a pointer to a properly
     // sized typed array once the first native field has been set.
     const intptr_t host_instance_size = sizeof(InstanceLayout) + kWordSize;
-#if defined(PRECOMPILER)
+#if defined(DART_PRECOMPILER)
     const intptr_t target_instance_size =
         compiler::target::Instance::InstanceSize() +
         compiler::target::kWordSize;
