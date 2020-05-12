@@ -35,10 +35,10 @@ import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart';
 
-import '../kernel/redirecting_factory_body.dart' show redirectingName;
 import '../kernel/kernel_builder.dart' show compareProcedures;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
+import '../kernel/redirecting_factory_body.dart' show redirectingName;
 import '../kernel/type_algorithms.dart'
     show Variance, computeTypeVariableBuilderVariance;
 
@@ -47,6 +47,8 @@ import '../names.dart' show noSuchMethodName;
 import '../problems.dart' show unexpected, unhandled;
 
 import '../scope.dart';
+
+import '../type_inference/type_schema.dart';
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -1054,29 +1056,19 @@ class SourceClassBuilder extends ClassBuilderImpl
                 addRedirectingConstructor(declaration, library, referenceFrom);
               }
               if (targetBuilder is FunctionBuilder) {
-                List<DartType> typeArguments = declaration.typeArguments;
-                if (typeArguments == null) {
-                  // TODO(32049) If type arguments aren't specified, they should
-                  // be inferred.  Currently, the inference is not performed.
-                  // The code below is a workaround.
-                  typeArguments = new List<DartType>.filled(
-                      targetBuilder.member.enclosingClass.typeParameters.length,
-                      const DynamicType(),
-                      growable: true);
-                }
+                List<DartType> typeArguments = declaration.typeArguments ??
+                    new List<DartType>.filled(
+                        targetBuilder
+                            .member.enclosingClass.typeParameters.length,
+                        const UnknownType());
                 declaration.setRedirectingFactoryBody(
                     targetBuilder.member, typeArguments);
               } else if (targetBuilder is DillMemberBuilder) {
-                List<DartType> typeArguments = declaration.typeArguments;
-                if (typeArguments == null) {
-                  // TODO(32049) If type arguments aren't specified, they should
-                  // be inferred.  Currently, the inference is not performed.
-                  // The code below is a workaround.
-                  typeArguments = new List<DartType>.filled(
-                      targetBuilder.member.enclosingClass.typeParameters.length,
-                      const DynamicType(),
-                      growable: true);
-                }
+                List<DartType> typeArguments = declaration.typeArguments ??
+                    new List<DartType>.filled(
+                        targetBuilder
+                            .member.enclosingClass.typeParameters.length,
+                        const UnknownType());
                 declaration.setRedirectingFactoryBody(
                     targetBuilder.member, typeArguments);
               } else if (targetBuilder is AmbiguousBuilder) {

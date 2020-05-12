@@ -321,10 +321,10 @@ class KernelTarget extends TargetImplementation {
       loader.checkTypes();
       loader.checkOverrides(myClasses);
       loader.checkAbstractMembers(myClasses);
-      loader.checkRedirectingFactories(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
       loader.buildOutlineExpressions(loader.coreTypes);
+      loader.checkRedirectingFactories(myClasses);
       _updateDelayedParameterTypes();
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();

@@ -2005,7 +2005,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   InvocationInferenceResult inferInvocation(DartType typeContext, int offset,
-      FunctionType calleeType, Arguments arguments, Name targetName,
+      FunctionType calleeType, Arguments arguments,
       {List<VariableDeclaration> hoistedExpressions,
       bool isOverloadedArithmeticOperator: false,
       DartType returnType,
@@ -2022,22 +2022,16 @@ class TypeInferrerImpl implements TypeInferrer {
     if (extensionTypeParameterCount != 0) {
       assert(returnType == null,
           "Unexpected explicit return type for extension method invocation.");
-      return _inferGenericExtensionMethodInvocation(
-          extensionTypeParameterCount,
-          typeContext,
-          offset,
-          calleeType,
-          arguments,
-          targetName,
-          hoistedExpressions,
+      return _inferGenericExtensionMethodInvocation(extensionTypeParameterCount,
+          typeContext, offset, calleeType, arguments, hoistedExpressions,
           isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
           receiverType: receiverType,
           skipTypeArgumentInference: skipTypeArgumentInference,
           isConst: isConst,
           isImplicitExtensionMember: isImplicitExtensionMember);
     }
-    return _inferInvocation(typeContext, offset, calleeType, arguments,
-        targetName, hoistedExpressions,
+    return _inferInvocation(
+        typeContext, offset, calleeType, arguments, hoistedExpressions,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType,
         returnType: returnType,
@@ -2053,7 +2047,6 @@ class TypeInferrerImpl implements TypeInferrer {
       int offset,
       FunctionType calleeType,
       Arguments arguments,
-      Name targetName,
       List<VariableDeclaration> hoistedExpressions,
       {bool isOverloadedArithmeticOperator: false,
       DartType receiverType,
@@ -2073,7 +2066,7 @@ class TypeInferrerImpl implements TypeInferrer {
         arguments.fileOffset, [arguments.positional.first],
         types: getExplicitExtensionTypeArguments(arguments));
     _inferInvocation(const UnknownType(), offset, extensionFunctionType,
-        extensionArguments, targetName, hoistedExpressions,
+        extensionArguments, hoistedExpressions,
         skipTypeArgumentInference: skipTypeArgumentInference,
         receiverType: receiverType,
         isImplicitExtensionMember: isImplicitExtensionMember,
@@ -2099,7 +2092,7 @@ class TypeInferrerImpl implements TypeInferrer {
         arguments.fileOffset, arguments.positional.skip(1).toList(),
         named: arguments.named, types: getExplicitTypeArguments(arguments));
     InvocationInferenceResult result = _inferInvocation(typeContext, offset,
-        targetFunctionType, targetArguments, targetName, hoistedExpressions,
+        targetFunctionType, targetArguments, hoistedExpressions,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         skipTypeArgumentInference: skipTypeArgumentInference,
         isConst: isConst,
@@ -2124,7 +2117,6 @@ class TypeInferrerImpl implements TypeInferrer {
       int offset,
       FunctionType calleeType,
       Arguments arguments,
-      Name targetName,
       List<VariableDeclaration> hoistedExpressions,
       {bool isOverloadedArithmeticOperator: false,
       bool isBinaryOperator: false,
@@ -2636,7 +2628,7 @@ class TypeInferrerImpl implements TypeInferrer {
       {bool isImplicitCall}) {
     assert(isImplicitCall != null);
     InvocationInferenceResult result = inferInvocation(
-        typeContext, fileOffset, unknownFunction, arguments, name,
+        typeContext, fileOffset, unknownFunction, arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: const DynamicType(),
         isImplicitCall: isImplicitCall);
@@ -2660,7 +2652,7 @@ class TypeInferrerImpl implements TypeInferrer {
       {bool isImplicitCall}) {
     assert(isImplicitCall != null);
     InvocationInferenceResult result = inferInvocation(
-        typeContext, fileOffset, unknownFunction, arguments, name,
+        typeContext, fileOffset, unknownFunction, arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
         isImplicitCall: isImplicitCall);
@@ -2694,7 +2686,7 @@ class TypeInferrerImpl implements TypeInferrer {
         implicitInvocationPropertyName: implicitInvocationPropertyName,
         extensionAccessCandidates:
             target.isAmbiguous ? target.candidates : null);
-    inferInvocation(typeContext, fileOffset, unknownFunction, arguments, name,
+    inferInvocation(typeContext, fileOffset, unknownFunction, arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
         isImplicitCall: isExpressionInvocation || isImplicitCall);
@@ -2749,8 +2741,8 @@ class TypeInferrerImpl implements TypeInferrer {
     } else {
       StaticInvocation staticInvocation = transformExtensionMethodInvocation(
           fileOffset, target, receiver, arguments);
-      InvocationInferenceResult result = inferInvocation(typeContext,
-          fileOffset, functionType, staticInvocation.arguments, name,
+      InvocationInferenceResult result = inferInvocation(
+          typeContext, fileOffset, functionType, staticInvocation.arguments,
           hoistedExpressions: hoistedExpressions,
           receiverType: receiverType,
           isImplicitExtensionMember: true,
@@ -2797,7 +2789,7 @@ class TypeInferrerImpl implements TypeInferrer {
     assert(target.isCallFunction || target.isNullableCallFunction);
     FunctionType functionType = getFunctionType(target, receiverType);
     InvocationInferenceResult result = inferInvocation(
-        typeContext, fileOffset, functionType, arguments, callName,
+        typeContext, fileOffset, functionType, arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
         isImplicitCall: isImplicitCall);
@@ -2874,7 +2866,7 @@ class TypeInferrerImpl implements TypeInferrer {
       contravariantCheck = true;
     }
     InvocationInferenceResult result = inferInvocation(
-        typeContext, fileOffset, functionType, arguments, target.member?.name,
+        typeContext, fileOffset, functionType, arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
         isImplicitCall: isImplicitCall);
@@ -3349,7 +3341,7 @@ class TypeInferrerImpl implements TypeInferrer {
     FunctionType functionType = getFunctionType(target, receiverType);
 
     InvocationInferenceResult result = inferInvocation(
-        typeContext, fileOffset, functionType, arguments, target.member?.name,
+        typeContext, fileOffset, functionType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType,
         isImplicitExtensionMember: target.isExtensionMember);
