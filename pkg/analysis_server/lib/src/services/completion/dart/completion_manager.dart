@@ -78,16 +78,21 @@ class DartCompletionManager implements CompletionContributor {
   /// relevance than other included suggestions.
   final List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
 
+  /// The listener to be notified at certain points in the process of building
+  /// suggestions, or `null` if no notification should occur.
+  final SuggestionListener listener;
+
   /// Initialize a newly created completion manager. The parameters
   /// [includedElementKinds], [includedElementNames], and
   /// [includedSuggestionRelevanceTags] must either all be `null` or must all be
   /// non-`null`.
-  DartCompletionManager({
-    this.dartdocDirectiveInfo,
-    this.includedElementKinds,
-    this.includedElementNames,
-    this.includedSuggestionRelevanceTags,
-  }) : assert((includedElementKinds != null &&
+  DartCompletionManager(
+      {this.dartdocDirectiveInfo,
+      this.includedElementKinds,
+      this.includedElementNames,
+      this.includedSuggestionRelevanceTags,
+      this.listener})
+      : assert((includedElementKinds != null &&
                 includedElementNames != null &&
                 includedSuggestionRelevanceTags != null) ||
             (includedElementKinds == null &&
@@ -123,7 +128,7 @@ class DartCompletionManager implements CompletionContributor {
     // Request Dart specific completions from each contributor
     var suggestionMap = <String, CompletionSuggestion>{};
     var constructorMap = <String, List<String>>{};
-    var builder = SuggestionBuilder(dartRequest);
+    var builder = SuggestionBuilder(dartRequest, listener: listener);
     var contributors = <DartCompletionContributor>[
       ArgListContributor(),
       CombinatorContributor(),
