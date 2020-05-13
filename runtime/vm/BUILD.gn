@@ -83,6 +83,7 @@ library_for_all_configs("libdart_vm") {
         # necessary.
         "//sdk/fidl/fuchsia.deprecatedtimezone",
         "//sdk/lib/sys/cpp",
+        "//sdk/lib/sys/inspect/cpp",
         "//zircon/public/lib/fbl",
         "//zircon/public/lib/trace-engine",
       ]
