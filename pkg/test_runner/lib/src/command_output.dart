@@ -486,8 +486,8 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
         var column = int.parse(fields[5]);
         var length = int.parse(fields[6]);
 
-        var error = StaticError(
-            line: line, column: column, length: length, code: errorCode);
+        var error = StaticError({ErrorSource.analyzer: errorCode},
+            line: line, column: column, length: length);
 
         if (severity == 'ERROR') {
           errors.add(error);
@@ -1076,7 +1076,8 @@ class FastaCommandOutput extends CompilationCommandOutput
       var line = int.parse(match.group(2));
       var column = int.parse(match.group(3));
       var message = match.group(4);
-      errors.add(StaticError(line: line, column: column, message: message));
+      errors.add(
+          StaticError({ErrorSource.cfe: message}, line: line, column: column));
     }
   }
 
@@ -1203,10 +1204,11 @@ mixin _StaticErrorOutput on CommandOutput {
   Expectation _validateExpectedErrors(TestCase testCase,
       [OutputWriter writer]) {
     // Filter out errors that aren't for this configuration.
-    var expected = testCase.testFile.expectedErrors.where((error) =>
-        testCase.configuration.compiler == Compiler.dart2analyzer
-            ? error.isAnalyzer
-            : error.isCfe);
+    var errorSource = testCase.configuration.compiler == Compiler.dart2analyzer
+        ? ErrorSource.analyzer
+        : ErrorSource.cfe;
+    var expected = testCase.testFile.expectedErrors
+        .where((error) => error.hasError(errorSource));
 
     var validation = StaticError.validateExpectations(
       expected,

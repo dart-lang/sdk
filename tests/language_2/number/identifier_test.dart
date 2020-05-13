@@ -36,6 +36,7 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   //                     ^^^
   // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_NON_TYPE
+
   // "a" will be part of hex literal, the following "s" is an error.
   0x10as int;
 //^^^^^
