@@ -128,7 +128,6 @@ main() {
   }
 
   Future<void> test_extension() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
   static void foo() {}
@@ -238,7 +237,6 @@ class A {
   }
 
   Future<void> test_field_ofExtension_explicit_static() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
   static var fff; // declaration
@@ -274,7 +272,6 @@ main() {
   }
 
   Future<void> test_field_ofExtension_implicit_instance() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
   var get fff => null;
@@ -309,7 +306,6 @@ main() {
   }
 
   Future<void> test_field_ofExtension_implicit_static() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
   static var get fff => null;
@@ -515,7 +511,6 @@ main(A a) {
   }
 
   Future<void> test_method_ofExtension() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
   void foo() {}

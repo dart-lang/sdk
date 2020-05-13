@@ -56,7 +56,7 @@ void testErrors() {
   testIndexError(list, index, name) {
     try {
       list[list.length];
-    } catch (err, s) {
+    } on RangeError catch (err, s) {
       Expect.isTrue(err is RangeError, "$name[$index]");
       Expect.equals(list.length, err.invalidValue, "$name[$index] value");
       Expect.equals(list.length - 1, err.end, "$name[$index] end");
@@ -83,7 +83,7 @@ void testErrors() {
     var result;
     try {
       result = list.sublist(start, end);
-    } catch (actualError) {
+    } on RangeError catch (actualError) {
       Expect.isNotNull(realError, "$name should not fail");
       Expect.isTrue(actualError is RangeError, "$name is-error: $actualError");
       Expect.equals(realError.name, actualError.name, "$name name");

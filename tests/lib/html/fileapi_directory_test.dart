@@ -29,8 +29,7 @@ main() async {
     test('directoryDoesntExist', () async {
       try {
         await fs.root.getDirectory('directory2');
-      } catch (error) {
-        expect(true, error is DomException);
+      } on DomException catch (error) {
         expect(DomException.NOT_FOUND, error.name);
       }
     });

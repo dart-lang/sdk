@@ -518,7 +518,7 @@ typedef struct {
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x0000000b)
+#define DART_FLAGS_CURRENT_VERSION (0x0000000c)
 
 typedef struct {
   int32_t version;
@@ -528,7 +528,6 @@ typedef struct {
   bool obfuscate;
   Dart_QualifiedFunctionName* entry_points;
   bool load_vmservice_library;
-  bool unsafe_trust_strong_mode_types;
   bool copy_parent_code;
 } Dart_IsolateFlags;
 
@@ -844,6 +843,9 @@ DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Initialize(
  *
  * \return NULL if cleanup is successful. Returns an error message otherwise.
  *   The caller is responsible for freeing the error message.
+ *
+ * NOTE: This function must not be called on a thread that was created by the VM
+ * itself.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Cleanup();
 

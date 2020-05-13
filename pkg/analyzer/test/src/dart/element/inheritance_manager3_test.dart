@@ -5,8 +5,6 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:meta/meta.dart';
@@ -51,7 +49,7 @@ abstract class I {
   void foo();
 }
 
-abstrac class J {
+abstract class J {
   void foo();
 }
 
@@ -967,8 +965,8 @@ mixin M on A {}
     await resolveTestCode('''
 class A {}
 ''');
-    var member = manager.getMember(
-      typeProvider.objectType,
+    var member = manager.getMember2(
+      typeProvider.objectType.element,
       Name(null, 'hashCode'),
       forSuper: true,
     );
@@ -1322,10 +1320,8 @@ class _InheritanceManager3Base extends DriverResolutionTest {
     @required String name,
     String expected,
   }) {
-    var interfaceType = _classInterfaceType(className);
-
-    var member = manager.getInherited(
-      interfaceType,
+    var member = manager.getInherited2(
+      findElement.classOrMixin(className),
       Name(null, name),
     );
 
@@ -1339,12 +1335,10 @@ class _InheritanceManager3Base extends DriverResolutionTest {
     bool concrete = false,
     bool forSuper = false,
   }) {
-    var interfaceType = _classInterfaceType(className);
-
     ExecutableElement member;
     NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-      member = manager.getMember(
-        interfaceType,
+      member = manager.getMember2(
+        findElement.classOrMixin(className),
         Name(null, name),
         concrete: concrete,
         forSuper: forSuper,
@@ -1375,14 +1369,14 @@ class _InheritanceManager3Base extends DriverResolutionTest {
   }
 
   void _assertInheritedConcreteMap(String className, String expected) {
-    var type = _classInterfaceType(className);
-    var map = manager.getInheritedConcreteMap(type);
+    var element = findElement.classOrMixin(className);
+    var map = manager.getInheritedConcreteMap2(element);
     _assertNameToExecutableMap(map, expected);
   }
 
   void _assertInheritedMap(String className, String expected) {
-    var type = _classInterfaceType(className);
-    var map = manager.getInheritedMap(type);
+    var element = findElement.classOrMixin(className);
+    var map = manager.getInheritedMap2(element);
     _assertNameToExecutableMap(map, expected);
   }
 
@@ -1407,13 +1401,5 @@ class _InheritanceManager3Base extends DriverResolutionTest {
       print(actual);
     }
     expect(actual, expected);
-  }
-
-  InterfaceType _classInterfaceType(String className) {
-    var element = findElement.classOrMixin(className);
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
   }
 }

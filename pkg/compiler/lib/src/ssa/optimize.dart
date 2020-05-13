@@ -2380,8 +2380,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   HInstruction get zapInstruction {
     if (zapInstructionCache == null) {
       // A constant with no type does not pollute types at phi nodes.
-      ConstantValue constant = const UnreachableConstantValue();
-      zapInstructionCache = analyzer.graph.addConstant(constant, closedWorld);
+      zapInstructionCache = analyzer.graph.addConstantUnreachable(closedWorld);
     }
     return zapInstructionCache;
   }

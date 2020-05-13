@@ -194,7 +194,7 @@ Future<Map<String, Object>> doPost(String path) async {
 Uri getGitHubErrorUri(
         String description, Object exception, Object stackTrace) =>
     Uri.https('github.com', 'dart-lang/sdk/issues/new', {
-      'title': 'Issue with NNBD migration tool: $description',
+      'title': 'Customer-reported issue with NNBD migration tool: $description',
       'labels': 'area-analyzer,analyzer-nnbd-migration,type-bug',
       'body': '''
 $description
@@ -224,6 +224,7 @@ $stackTrace
 /// pre-populating some labels and a body template.
 Uri getGitHubProblemUri() =>
     Uri.https('github.com', 'dart-lang/sdk/issues/new', {
+      'title': 'Customer-reported issue with NNBD migration tool',
       'labels': 'area-analyzer,analyzer-nnbd-migration,type-bug',
       'body': '''
 #### Steps to reproduce
@@ -532,7 +533,11 @@ void populateEditDetails([EditDetails response]) {
   var line = response.line;
   Element explanation = document.createElement('p');
   editPanel.append(explanation);
-  explanation.append(Text('$explanationMessage at $relPath:$line.'));
+  explanation
+    ..appendText('$explanationMessage at ')
+    ..append(AnchorElement(
+        href: pathWithQueryParameters(filePath, {'line': line.toString()}))
+      ..appendText('$relPath:$line.'));
   explanation.scrollIntoView();
   _populateEditTraces(response, editPanel, parentDirectory);
   _populateEditLinks(response, editPanel);

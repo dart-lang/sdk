@@ -14,6 +14,17 @@ library from "org-dartlang-test:///lib.dart" as lib {
     static factory allocate(dart.core::double* x, dart.core::double* y, dart.ffi::Pointer<lib::Coordinate*>* next) → lib::Coordinate* {
       return null;
     }
+    abstract member-signature get _addressOf() → dart.ffi::Pointer<dart.ffi::Struct*>*;
+    abstract member-signature get _identityHashCode() → dart.core::int*;
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
     get x() → dart.core::double*
       return dart.ffi::_loadDouble(this.{dart.ffi::Struct::_addressOf}, (#C8).{dart.core::List::[]}(dart.ffi::_abi()));
     set x(dart.core::double* #v) → void

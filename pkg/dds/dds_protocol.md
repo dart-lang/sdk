@@ -1,6 +1,6 @@
-# Dart Development Service Protocol 0.x
+# Dart Development Service Protocol 1.0
 
-This document describes _version 0.x_ of the Dart Development Service Protocol.
+This document describes _version 1.0_ of the Dart Development Service Protocol.
 This protocol is an extension of the Dart VM Service Protocol and implements it
 in it's entirety. For details on the VM Service Protocol, see the [Dart VM Service Protocol Specification][service-protocol].
 
@@ -17,10 +17,13 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [Revision History](#revision-history)
 - [Public RPCs](#public-rpcs)
   - [getClientName](#getclientname)
+  - [getLogHistorySize](#getloghistorysize)
   - [requirePermissionToResume](#requirepermissiontoresume)
   - [setClientName](#setclientname)
+  - [setLogHistorySize](#setloghistorysize)
 - [Public Types](#public-types)
   - [ClientName](#clientname)
+  - [Size](#size)
 
 ## RPCs, Requests, and Responses
 
@@ -57,6 +60,18 @@ connected VM service client. If no name was previously set through the
 [setClientName](#setclientname) RPC, a default name will be returned.
 
 See [ClientName](#clientname)
+
+### getLogHistorySize
+
+```
+Size getLogHistorySize()
+```
+
+The _getLogHistorySize_ RPC is used to retrieve the current size of the log
+history buffer. If the returned [Size](#size) is zero, then log history is
+disabled.
+
+See [Size](#size).
 
 ### requirePermissionToResume
 
@@ -106,6 +121,19 @@ the client's name will be reset to its default name.
 
 See [Success](#success).
 
+### setLogHistorySize
+
+```
+Success setLogHistorySize(int size)
+```
+
+The _setLogHistorySize_ RPC is used to set the size of the ring buffer used for
+caching a limited set of historical log messages. If _size_ is 0, logging history
+will be disabled. The maximum history size is 100,000 messages, with the default
+set to 10,000 messages.
+
+See [Success](#success).
+
 ## Public Types
 
 The DDS Protocol supports all [public types defined in the VM Service protocol][service-protocol-public-types].
@@ -121,11 +149,21 @@ class ClientName extends Response {
 
 See [getClientName](#getclientname) and [setClientName](#setclientname).
 
+### Size
+
+```
+class Size extends Response {
+  int size;
+}
+```
+
+A simple object representing a size response.
+
 ## Revision History
 
 version | comments
 ------- | --------
-0.x | Initial revision
+1.0 | Initial revision
 
 [resume]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#resume
 [success]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#success

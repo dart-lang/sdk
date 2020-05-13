@@ -138,60 +138,72 @@ void test1() {
 
   c1a[0];
 
-  C1<Object> c1b = C1<Object>(); // Neither extension is more specific.
+  C1<Object?> c1b = C1<Object?>(); // Neither extension is more specific.
 
   c1b.m1;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The property 'm1' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
+  // [cfe] The property 'm1' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   c1b.m1 = 0;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The property 'm1' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
+  // [cfe] The property 'm1' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   c1b.m1 += 0;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The property 'm1' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
+  // [cfe] The property 'm1' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   c1b.m1++;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The property 'm1' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
+  // [cfe] The property 'm1' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   c1b.m2;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] The property 'm2' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
+  // [cfe] The property 'm2' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   c1b[0];
 //^^^
 // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
 //   ^
-// [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
+// [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   c1b[0] = 0;
 //^^^
 // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
 //   ^
-// [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
+// [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   c1b[0] += 0;
 //^^^
 // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
 //   ^
-// [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
+// [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 //   ^
-// [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
+// [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   c1b[0]++;
 //^^^
 // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
 //   ^
-// [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
+// [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 //   ^
-// [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
+// [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
+
+  C1<Object> c1c = C1<Object>(); // E1A is more specific.
+  
+  c1c.m1 = 0;
+  //  ^^
+  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+  // [cfe] The setter 'm1' isn't defined for the class 'C1<Object>'.
+
+  c1c.m2;
+  //  ^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] The getter 'm2' isn't defined for the class 'C1<Object>'.
 }
 
 // Getter on the extension itself.

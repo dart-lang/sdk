@@ -1076,6 +1076,12 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
   }
 VM_METRIC_LIST(VM_METRIC_API);
 #undef VM_METRIC_API
+#else  // !defined(PRODUCT)
+#define VM_METRIC_API(type, variable, name, unit)                              \
+  DART_EXPORT int64_t Dart_VM##variable##Metric() { return -1; }
+VM_METRIC_LIST(VM_METRIC_API)
+#undef VM_METRIC_API
+#endif  // !defined(PRODUCT)
 
 #define ISOLATE_GROUP_METRIC_API(type, variable, name, unit)                   \
   DART_EXPORT int64_t Dart_Isolate##variable##Metric(Dart_Isolate isolate) {   \
@@ -1088,6 +1094,7 @@ VM_METRIC_LIST(VM_METRIC_API);
 ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_API)
 #undef ISOLATE_GROUP_METRIC_API
 
+#if !defined(PRODUCT)
 #define ISOLATE_METRIC_API(type, variable, name, unit)                         \
   DART_EXPORT int64_t Dart_Isolate##variable##Metric(Dart_Isolate isolate) {   \
     if (isolate == NULL) {                                                     \
@@ -1098,20 +1105,13 @@ ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_API)
   }
 ISOLATE_METRIC_LIST(ISOLATE_METRIC_API)
 #undef ISOLATE_METRIC_API
-
 #else  // !defined(PRODUCT)
-
-#define VM_METRIC_API(type, variable, name, unit)                              \
-  DART_EXPORT int64_t Dart_VM##variable##Metric() { return -1; }
-VM_METRIC_LIST(VM_METRIC_API)
-#undef VM_METRIC_API
-
 #define ISOLATE_METRIC_API(type, variable, name, unit)                         \
   DART_EXPORT int64_t Dart_Isolate##variable##Metric(Dart_Isolate isolate) {   \
     return -1;                                                                 \
   }
 ISOLATE_METRIC_LIST(ISOLATE_METRIC_API)
-ISOLATE_GROUP_METRIC_LIST(ISOLATE_METRIC_API)
+#undef ISOLATE_METRIC_API
 #endif  // !defined(PRODUCT)
 
 // --- Isolates ---
@@ -1956,7 +1956,7 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     RunLoopData data;
     data.monitor = &monitor;
     data.done = false;
-    I->message_handler()->Run(Dart::thread_pool(), NULL, RunLoopDone,
+    I->message_handler()->Run(I->group()->thread_pool(), NULL, RunLoopDone,
                               reinterpret_cast<uword>(&data));
     while (!data.done) {
       ml.Wait();

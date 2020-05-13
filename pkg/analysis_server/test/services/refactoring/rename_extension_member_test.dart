@@ -16,12 +16,6 @@ void main() {
 
 @reflectiveTest
 class RenameExtensionMemberTest extends RenameRefactoringTest {
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
-    super.setUp();
-  }
-
   Future<void> test_checkFinalConditions_hasMember_MethodElement() async {
     await indexTestUnit('''
 extension E on int {

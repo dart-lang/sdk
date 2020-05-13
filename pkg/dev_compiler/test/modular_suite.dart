@@ -75,7 +75,12 @@ class SourceToSummaryDillStep implements IOModularStep {
     List<String> extraArgs;
     if (module.isSdk) {
       sources = ['dart:core'];
-      extraArgs = ['--libraries-file', '$rootScheme:///sdk/lib/libraries.json'];
+      extraArgs = [
+        '--libraries-file',
+        '$rootScheme:///sdk_nnbd/lib/libraries.json',
+        '--enable-experiment',
+        'non-nullable',
+      ];
       assert(transitiveDependencies.isEmpty);
     } else {
       sources = module.sources.map(sourceToImportUri).toList();
@@ -149,7 +154,13 @@ class DDCStep implements IOModularStep {
     List<String> extraArgs;
     if (module.isSdk) {
       sources = ['dart:core'];
-      extraArgs = ['--compile-sdk'];
+      extraArgs = [
+        '--compile-sdk',
+        '--libraries-file',
+        '$rootScheme:///sdk_nnbd/lib/libraries.json',
+        '--enable-experiment',
+        'non-nullable',
+      ];
       assert(transitiveDependencies.isEmpty);
     } else {
       var sdkModule = module.dependencies.firstWhere((m) => m.isSdk);
@@ -229,6 +240,8 @@ class RunD8 implements IOModularStep {
     var runjs = '''
     import { dart, _isolate_helper } from 'dart_sdk.js';
     import { main } from 'main.js';
+    // Run with weak null safety.
+    dart.nullSafety(false);
     _isolate_helper.startRootIsolate(() => {}, []);
     main.main();
     ''';

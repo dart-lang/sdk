@@ -392,7 +392,7 @@ Fragment FlowGraphBuilder::ThrowException(TokenPosition position) {
   instructions +=
       Fragment(new (Z) ThrowInstr(position, GetNextDeoptId(), exception))
           .closed();
-  // Use it's side effect of leaving a constant on the stack (does not change
+  // Use its side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
 
@@ -408,7 +408,7 @@ Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
       Fragment(new (Z) ReThrowInstr(position, catch_try_index, GetNextDeoptId(),
                                     exception, stacktrace))
           .closed();
-  // Use it's side effect of leaving a constant on the stack (does not change
+  // Use its side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
 
@@ -678,7 +678,7 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   return instructions;
 }
 
-Fragment FlowGraphBuilder::ThrowNoSuchMethodError() {
+Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
   const Class& klass = Class::ZoneHandle(
       Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
   ASSERT(!klass.IsNull());
@@ -688,20 +688,36 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError() {
 
   Fragment instructions;
 
-  // Call NoSuchMethodError._throwNew static function.
-  instructions += NullConstant();  // receiver
+  const Class& owner = Class::Handle(Z, target.Owner());
+  AbstractType& receiver = AbstractType::ZoneHandle();
+  InvocationMirror::Kind kind = InvocationMirror::Kind::kMethod;
+  InvocationMirror::Level level;
+  if (owner.IsTopLevel()) {
+    level = InvocationMirror::Level::kTopLevel;
+  } else {
+    receiver = owner.RareType();
+    if (target.kind() == FunctionLayout::kConstructor) {
+      level = InvocationMirror::Level::kConstructor;
+    } else {
+      level = InvocationMirror::Level::kStatic;
+    }
+  }
 
-  instructions +=
-      Constant(H.DartString("<unknown>", Heap::kOld));  // memberName
-  instructions += IntConstant(-1);                      // invocation_type
-  instructions += NullConstant();                       // type arguments
-  instructions += NullConstant();                       // arguments
-  instructions += NullConstant();                       // argumentNames
+  // Call NoSuchMethodError._throwNew static function.
+  instructions += Constant(receiver);                              // receiver
+  instructions += Constant(String::ZoneHandle(Z, target.name()));  // memberName
+  instructions += IntConstant(InvocationMirror::EncodeType(level, kind));
+  instructions += IntConstant(0);  // type arguments length
+  instructions += NullConstant();  // type arguments
+  instructions += NullConstant();  // arguments
+  instructions += NullConstant();  // argumentNames
 
   instructions += StaticCall(TokenPosition::kNoSource, throw_function,
-                             /* argument_count = */ 6, ICData::kStatic);
-  // Leave "result" on the stack since callers expect it to be there (even
-  // though the function will result in an exception).
+                             /* argument_count = */ 7, ICData::kStatic);
+
+  // Properly close graph with a ThrowInstr, although it is not executed.
+  instructions += ThrowException(TokenPosition::kNoSource);
+  instructions += Drop();
 
   return instructions;
 }
@@ -1534,9 +1550,6 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
                                            const String& dst_name,
                                            AssertAssignableInstr::Kind kind) {
   Fragment instructions;
-  if (!I->should_emit_strong_mode_checks()) {
-    return Fragment();
-  }
   if (!dst_type.IsTopTypeForSubtyping()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
@@ -1552,10 +1565,6 @@ Fragment FlowGraphBuilder::AssertAssignableLoadTypeArguments(
     const AbstractType& dst_type,
     const String& dst_name,
     AssertAssignableInstr::Kind kind) {
-  if (!I->should_emit_strong_mode_checks()) {
-    return Fragment();
-  }
-
   Fragment instructions;
 
   if (!dst_type.IsInstantiated(kCurrentClass)) {
@@ -1599,7 +1608,6 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
     Fragment* explicit_checks,
     Fragment* implicit_checks,
     Fragment* implicit_redefinitions) {
-  if (!I->should_emit_strong_mode_checks()) return;
   const Function& dart_function = parsed_function_->function();
 
   const Function* forwarding_target = nullptr;
@@ -2033,7 +2041,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     }
   }
 
-  if (function.NeedsArgumentTypeChecks(I)) {
+  if (function.NeedsArgumentTypeChecks()) {
     BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
                             &body, &body, nullptr);
   }
@@ -2402,7 +2410,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   // We're going to throw away the explicit checks because the target will
   // always check them.
   Fragment implicit_checks;
-  if (function.NeedsArgumentTypeChecks(I)) {
+  if (function.NeedsArgumentTypeChecks()) {
     Fragment explicit_checks_unused;
     if (target.is_static()) {
       // Tearoffs of static methods needs to perform arguments checks since
@@ -2460,7 +2468,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   // Setup multiple entrypoints if useful.
   FunctionEntryInstr* extra_entry = nullptr;
-  if (function.MayHaveUncheckedEntryPoint(I)) {
+  if (function.MayHaveUncheckedEntryPoint()) {
     // The prologue for a closure will always have context handling (e.g.
     // setting up the receiver variable), but we don't need it on the unchecked
     // entry because the only time we reference this is for loading the
@@ -2538,7 +2546,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       body += LoadLocal(parsed_function_->ParameterVariable(0));
     }
     body += LoadLocal(setter_value);
-    if (I->argument_type_checks() && setter_value->needs_type_check()) {
+    if (setter_value->needs_type_check()) {
       body += CheckAssignable(setter_value->type(), setter_value->name(),
                               AssertAssignableInstr::kParameterCheck);
     }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -109,12 +110,9 @@ class C {
 @reflectiveTest
 class ShadowFieldWithNNBDTest extends ShadowFieldTest {
   @override
-  AssistKind get kind => DartAssistKind.SHADOW_FIELD;
-
-  @override
   void setUp() {
     super.setUp();
-    createAnalysisOptionsFile(experiments: ['non-nullable']);
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
   }
 
   Future<void> test_notNull() async {

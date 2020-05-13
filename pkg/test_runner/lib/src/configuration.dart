@@ -69,7 +69,8 @@ class TestConfiguration {
       this.reproducingArguments,
       this.fastTestsOnly,
       this.printPassingStdout})
-      : _packages = packages;
+      : _packages = packages,
+        isPreNNBD = configuration.name.split('-').contains('prennbd');
 
   final Map<String, RegExp> selectors;
   final Progress progress;
@@ -98,6 +99,7 @@ class TestConfiguration {
   final bool writeResults;
   final bool writeLogs;
   final bool printPassingStdout;
+  final bool isPreNNBD;
 
   Architecture get architecture => configuration.architecture;
   Compiler get compiler => configuration.compiler;
@@ -468,13 +470,11 @@ class TestConfiguration {
     var normal = '$result$arch';
     var cross = '${result}X$arch';
 
-    // TODO(38701): When enabling the NNBD experiment, we need to use the
-    // forked version of the SDK core libraries that have NNBD support. Remove
-    // this once the forked SDK at `<repo>/sdk_nnbd` has been merged back with
-    // `<repo>/sdk`.
-    if (experiments.contains("non-nullable")) {
-      normal += "NNBD";
-      cross += "NNBD";
+    // TODO(sigmund): remove once all prennbd coverage is dropped. Currently
+    // only dart2js supports opting-out of using the nnbd sdk.
+    if (isPreNNBD) {
+      normal += 'Legacy';
+      cross += 'Legacy';
     }
 
     var outDir = system.outputDirectory;

@@ -22,6 +22,6 @@ var a = new A();
 var x = a. /*@target=A::b*/ b. /*@target=B::c*/ c;
 var y =
     a. /*@ type=B* */ /*@target=A::b*/ b. /*@target=B::c*/ /*@target=B::c*/ c
-        /*@target=Object::==*/ ??= new D();
+        /*@target=C::==*/ ??= new D();
 
 main() {}

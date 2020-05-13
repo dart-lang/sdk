@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -41,7 +42,7 @@ void function({@required String param}) {
 @reflectiveTest
 class AddRequiredWithNNBDTest extends FixProcessorTest {
   @override
-  List<String> get experiments => ['non-nullable'];
+  List<String> get experiments => [EnableString.non_nullable];
 
   @override
   FixKind get kind => DartFixKind.ADD_REQUIRED2;

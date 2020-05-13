@@ -6,28 +6,24 @@
 
 import 'package:expect/expect.dart';
 
-/*spec:nnbd-off.class: Class:*/
-/*prod:nnbd-off.class: Class:*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class:*/
 class Class<T> {
-  /*spec:nnbd-off.member: Class.:*/
-  /*prod:nnbd-off.member: Class.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class.:*/
   Class();
 }
 
-/*spec:nnbd-off.member: main:*/
-/*prod:nnbd-off.member: main:*/
+/*spec:nnbd-off|prod:nnbd-off.member: main:*/
 main() {
-  /*spec:nnbd-off.needsArgs,needsSignature*/
-  /*prod:nnbd-off.needsArgs,needsSignature*/
+  /*needsArgs,needsSignature*/
   T local1a<T>() => null;
 
-  /*spec:nnbd-off.needsArgs,needsSignature*/
-  /*prod:nnbd-off.needsArgs,needsSignature*/
+  /*needsArgs,needsSignature*/
   T local1b<T>() => null;
 
   /*spec:nnbd-off.direct,explicit=[local2.T],needsArgs,needsSignature*/
-  /*prod:nnbd-off.needsArgs,needsSignature*/
-  T local2<T>(T t, String s) => t;
+  /*prod:nnbd-off|prod:nnbd-sdk.needsArgs,needsSignature*/
+  /*spec:nnbd-sdk.direct,explicit=[local2.T*],needsArgs,needsSignature*/ T
+      local2<T>(T t, String s) => t;
 
   Expect.isTrue(local1a.runtimeType == local1b.runtimeType);
   Expect.isFalse(local1a.runtimeType == local2.runtimeType);

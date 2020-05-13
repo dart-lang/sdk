@@ -480,7 +480,7 @@ static int64_t TimespecToMilliseconds(const struct timespec& t) {
 static void MillisecondsToTimespec(int64_t millis, struct timespec* t) {
   ASSERT(t != NULL);
   t->tv_sec = millis / kMillisecondsPerSecond;
-  t->tv_nsec = (millis - (t->tv_sec * kMillisecondsPerSecond)) * 1000L;
+  t->tv_nsec = (millis % kMillisecondsPerSecond) * 1000L;
 }
 
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {

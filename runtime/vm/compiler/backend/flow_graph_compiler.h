@@ -1094,7 +1094,6 @@ class FlowGraphCompiler : public ValueObject {
                                         intptr_t type_arguments_field_offset);
 
   void GenerateGetterIntrinsic(intptr_t offset);
-  void GenerateSetterIntrinsic(intptr_t offset);
 
   // Perform a greedy local register allocation.  Consider all registers free.
   void AllocateRegistersLocally(Instruction* instr);

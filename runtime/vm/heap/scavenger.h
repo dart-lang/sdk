@@ -112,6 +112,9 @@ class ScavengeStats {
 };
 
 class Scavenger {
+ private:
+  static const intptr_t kTLABSize = 512 * KB;
+
  public:
   Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words);
   ~Scavenger();
@@ -193,6 +196,17 @@ class Scavenger {
   bool GrowthControlState() { return growth_control_; }
 
   bool scavenging() const { return scavenging_; }
+
+  // The maximum number of Dart mutator threads we allow to execute at the same
+  // time.
+  static intptr_t MaxMutatorThreadCount() {
+    // With a max new-space of 16 MB and 512kb TLABs we would allow up to 8
+    // mutator threads to run at the same time.
+    const intptr_t max_parallel_tlab_usage =
+        (FLAG_new_gen_semi_max_size * MB) / Scavenger::kTLABSize;
+    const intptr_t max_pool_size = max_parallel_tlab_usage / 4;
+    return max_pool_size;
+  }
 
  private:
   // Ids for time and data records in Heap::GCStats.

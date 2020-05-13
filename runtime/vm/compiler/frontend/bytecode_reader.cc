@@ -912,7 +912,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         //     checked at the entry because the parameter is marked covariant,
         //     neither of those cases require a dynamic invocation forwarder;
         //   * we assume that all closures are entered in a checked way.
-        if (!Field::IsGetterName(name) && I->should_emit_strong_mode_checks() &&
+        if (!Field::IsGetterName(name) &&
             (name.raw() != Symbols::EqualOperator().raw()) &&
             (name.raw() != Symbols::Call().raw())) {
           name = Function::CreateDynamicInvocationForwarderName(name);

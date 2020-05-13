@@ -25,6 +25,16 @@ class C extends core::Object {
   }
   method foo(core::int* param) → core::int*
     return param;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static field core::int* globalVariable = 1;
 static final field core::bool* assertStatementsEnabled = (() → core::bool* {
@@ -46,54 +56,54 @@ static set topLevelSetter(dynamic val) → void {
 static method dummy() → dynamic
   return 1;
 static method staticMembers() → dynamic async {
-  core::num* a = self::C::staticField.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* a = self::C::staticField.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(2, a);
-  core::num* f = (self::C::staticField = 1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* f = (self::C::staticField = 1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(2, f);
-  core::num* b = self::C::staticGetter.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* b = self::C::staticGetter.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(2, b);
-  core::num* c = (self::C::staticSetter = 1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* c = (self::C::staticSetter = 1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(2, c);
-  core::num* d = self::C::staticFoo(2).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* d = self::C::staticFoo(2).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(3, d);
-  core::num* e = self::C::staticField.{core::num::+}(self::C::staticGetter).{core::num::+}(self::C::staticSetter = 1).{core::num::+}(self::C::staticFoo(1)).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* e = self::C::staticField.{core::num::+}(self::C::staticGetter).{core::num::+}(self::C::staticSetter = 1).{core::num::+}(self::C::staticFoo(1)).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(5, e);
 }
 static method topLevelMembers() → dynamic async {
-  core::num* a = self::globalVariable.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* a = self::globalVariable.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(2, a);
-  core::num* b = self::topLevelGetter.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* b = self::topLevelGetter.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(2, b);
-  core::num* c = (self::topLevelSetter = 1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* c = (self::topLevelSetter = 1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(2, c);
-  core::num* d = self::topLevelFoo(1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* d = self::topLevelFoo(1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(2, d);
-  core::num* e = self::globalVariable.{core::num::+}(self::topLevelGetter).{core::num::+}(self::topLevelSetter = 1).{core::num::+}(self::topLevelFoo(1)).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* e = self::globalVariable.{core::num::+}(self::topLevelGetter).{core::num::+}(self::topLevelSetter = 1).{core::num::+}(self::topLevelFoo(1)).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(5, e);
 }
 static method instanceMembers() → dynamic async {
   self::C* inst = new self::C::•();
-  core::num* a = inst.{self::C::field}.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* a = inst.{self::C::field}.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(2, a);
-  core::num* b = inst.{self::C::getter}.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* b = inst.{self::C::getter}.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(2, b);
-  core::num* c = (inst.{self::C::setter} = 1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* c = (inst.{self::C::setter} = 1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(2, c);
-  core::num* d = inst.{self::C::foo}(1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* d = inst.{self::C::foo}(1).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(2, d);
-  core::num* e = inst.{self::C::field}.{core::num::+}(inst.{self::C::getter}).{core::num::+}(inst.{self::C::setter} = 1).{core::num::+}(inst.{self::C::foo}(1)).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* e = inst.{self::C::field}.{core::num::+}(inst.{self::C::getter}).{core::num::+}(inst.{self::C::setter} = 1).{core::num::+}(inst.{self::C::foo}(1)).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(5, e);
 }
 static method others() → dynamic async {
   core::String* a = "${self::globalVariable} ${await self::dummy()} ".{core::String::+}(await "someString");
   self::expect("1 1 someString", a);
   self::C* c = new self::C::•();
-  core::num* d = c.{self::C::field}.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* d = c.{self::C::field}.{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   core::int* cnt = 2;
   core::List<core::int*>* b = <core::int*>[1, 2, 3];
   b.{core::List::[]=}(cnt, await self::dummy() as{TypeError,ForDynamic} core::int*);
   self::expect(1, b.{core::List::[]}(cnt));
-  core::num* e = b.{core::List::[]}(0).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num*);
+  core::num* e = b.{core::List::[]}(0).{core::num::+}(await self::dummy() as{TypeError,ForDynamic} core::num);
   self::expect(2, e);
 }
 static method conditionals() → dynamic async {

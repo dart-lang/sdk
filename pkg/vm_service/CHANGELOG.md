@@ -1,6 +1,6 @@
 # Changelog
 
-## next
+## 4.0.3 
 - Update to version `3.33.0` of the spec.
 - Add static error code constants to `RPCError`.
 - Update the toString() method or `RPCError` and add a toMap() method.

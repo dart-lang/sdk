@@ -596,6 +596,20 @@ class Object {
     kUserVisibleName
   };
 
+  // Sometimes simple formating might produce the same name for two different
+  // entities, for example we might inject a synthetic forwarder into the
+  // class which has the same name as an already existing function, or
+  // two different types can be formatted as X<T> because T has different
+  // meaning (refers to a different type parameter) in these two types.
+  // Such ambiguity might be acceptable in some contexts but not in others, so
+  // some formatting methods have two modes - one which tries to be more
+  // user friendly, and another one which tries to avoid name conflicts by
+  // emitting longer and less user friendly names.
+  enum class NameDisambiguation {
+    kYes,
+    kNo,
+  };
+
  protected:
   // Used for extracting the C++ vtable during bringup.
   Object() : raw_(null_) {}
@@ -1016,6 +1030,8 @@ class Class : public Object {
   const char* ScrubbedNameCString() const;
   StringPtr UserVisibleName() const;
   const char* UserVisibleNameCString() const;
+
+  const char* NameCString(NameVisibility name_visibility) const;
 
   // The mixin for this class if one exists. Otherwise, returns a raw pointer
   // to this class.
@@ -2412,8 +2428,12 @@ class Function : public Object {
   StringPtr UserVisibleName() const;  // Same as scrubbed name.
   const char* UserVisibleNameCString() const;
 
-  void PrintQualifiedName(NameVisibility name_visibility,
-                          ZoneTextBuffer* printer) const;
+  const char* NameCString(NameVisibility name_visibility) const;
+
+  void PrintQualifiedName(
+      NameVisibility name_visibility,
+      ZoneTextBuffer* printer,
+      NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
   StringPtr QualifiedScrubbedName() const;
   StringPtr QualifiedUserVisibleName() const;
 
@@ -2834,17 +2854,14 @@ class Function : public Object {
   }
   bool IsInFactoryScope() const;
 
-  bool NeedsArgumentTypeChecks(Isolate* I) const {
-    if (!I->should_emit_strong_mode_checks()) {
-      return false;
-    }
+  bool NeedsArgumentTypeChecks() const {
     return IsClosureFunction() ||
            !(is_static() || (kind() == FunctionLayout::kConstructor));
   }
 
   bool NeedsMonomorphicCheckedEntry(Zone* zone) const;
 
-  bool MayHaveUncheckedEntryPoint(Isolate* I) const;
+  bool MayHaveUncheckedEntryPoint() const;
 
   TokenPosition token_pos() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -6293,7 +6310,8 @@ class Code : public Object {
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
   const char* Name() const;
-  const char* QualifiedName() const;
+  const char* QualifiedName(NameVisibility name_visibility,
+                            NameDisambiguation name_disambiguation) const;
 
   int64_t compile_timestamp() const {
 #if defined(PRODUCT)
@@ -7359,10 +7377,12 @@ class TypeArguments : public Instance {
 
   // Print the internal or public name of a subvector of this type argument
   // vector, e.g. "<T, dynamic, List<T>, int>".
-  void PrintSubvectorName(intptr_t from_index,
-                          intptr_t len,
-                          NameVisibility name_visibility,
-                          ZoneTextBuffer* printer) const;
+  void PrintSubvectorName(
+      intptr_t from_index,
+      intptr_t len,
+      NameVisibility name_visibility,
+      ZoneTextBuffer* printer,
+      NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType.
@@ -7686,7 +7706,10 @@ class AbstractType : public Instance {
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
-  void PrintName(NameVisibility visibility, ZoneTextBuffer* printer) const;
+  void PrintName(
+      NameVisibility visibility,
+      ZoneTextBuffer* printer,
+      NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
 
   // Add the class name and URI of each occuring type to the uris
   // list and mark ambiguous triplets to be printed.
@@ -9770,7 +9793,7 @@ class TypedData : public TypedDataBase {
     ASSERT((byte_offset >= 0) &&                                               \
            (byte_offset + static_cast<intptr_t>(sizeof(type)) - 1) <           \
                LengthInBytes());                                               \
-    return ReadUnaligned(ReadOnlyDataAddr<type>(byte_offset));                 \
+    return LoadUnaligned(ReadOnlyDataAddr<type>(byte_offset));                 \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
     NoSafepointScope no_safepoint;                                             \
@@ -9905,7 +9928,7 @@ class ExternalTypedData : public TypedDataBase {
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
-    return ReadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
+    return LoadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
     StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
@@ -10871,7 +10894,7 @@ void Object::SetRaw(ObjectPtr value) {
       uword addr = ObjectLayout::ToAddr(raw_);
       if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
         ASSERT(FLAG_write_protect_code);
-        addr = ObjectLayout::ToAddr(HeapPage::ToWritable(raw_));
+        addr = ObjectLayout::ToAddr(OldPage::ToWritable(raw_));
         ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
       }
     }

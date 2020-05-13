@@ -58,7 +58,7 @@ class WebSocketClient extends Client {
             onResponse(rpc);
             break;
         }
-      } catch (e) {
+      } on dynamic catch (e) {
         socket.close(idErrorCode, e.message);
       }
     } else {

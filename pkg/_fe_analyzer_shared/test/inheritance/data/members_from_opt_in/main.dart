@@ -9,6 +9,16 @@
 import 'opt_in.dart';
 
 /*class: LegacyClass:Class,Interface,LegacyClass,Object*/
+/*cfe|cfe:builder.member: LegacyClass.toString:String* Function()**/
+/*cfe|cfe:builder.member: LegacyClass.runtimeType:Type**/
+/*cfe|cfe:builder.member: LegacyClass._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: LegacyClass._identityHashCode:int**/
+/*cfe|cfe:builder.member: LegacyClass.hashCode:int**/
+/*cfe|cfe:builder.member: LegacyClass._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass.==:bool* Function(dynamic)**/
 class LegacyClass extends Class implements Interface {
   /*member: LegacyClass.method1:int* Function()**/
   /*member: LegacyClass.method2:int* Function()**/
@@ -127,6 +137,16 @@ class LegacyClass extends Class implements Interface {
 }
 
 /*class: LegacyClass2a:Class,LegacyClass2a,Object*/
+/*cfe|cfe:builder.member: LegacyClass2a.toString:String* Function()**/
+/*cfe|cfe:builder.member: LegacyClass2a.runtimeType:Type**/
+/*cfe|cfe:builder.member: LegacyClass2a._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass2a._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass2a.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: LegacyClass2a._identityHashCode:int**/
+/*cfe|cfe:builder.member: LegacyClass2a.hashCode:int**/
+/*cfe|cfe:builder.member: LegacyClass2a._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass2a._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass2a.==:bool* Function(dynamic)**/
 abstract class LegacyClass2a extends Class {
   /*member: LegacyClass2a.field1:int**/
   /*member: LegacyClass2a.field1=:int**/
@@ -167,6 +187,16 @@ abstract class LegacyClass2a extends Class {
 }
 
 /*class: LegacyInterface2:Interface,LegacyInterface2,Object*/
+/*cfe|cfe:builder.member: LegacyInterface2.toString:String* Function()**/
+/*cfe|cfe:builder.member: LegacyInterface2.runtimeType:Type**/
+/*cfe|cfe:builder.member: LegacyInterface2._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyInterface2._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: LegacyInterface2.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: LegacyInterface2._identityHashCode:int**/
+/*cfe|cfe:builder.member: LegacyInterface2.hashCode:int**/
+/*cfe|cfe:builder.member: LegacyInterface2._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyInterface2._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyInterface2.==:bool* Function(dynamic)**/
 abstract class LegacyInterface2 implements Interface {
   /*member: LegacyInterface2.field1:int**/
   /*member: LegacyInterface2.field1=:int**/
@@ -225,6 +255,16 @@ abstract class LegacyInterface2 implements Interface {
 }
 
 /*class: LegacyClass2b:Class,Interface,LegacyClass2a,LegacyClass2b,LegacyInterface2,Object*/
+/*cfe|cfe:builder.member: LegacyClass2b.toString:String* Function()**/
+/*cfe|cfe:builder.member: LegacyClass2b.runtimeType:Type**/
+/*cfe|cfe:builder.member: LegacyClass2b._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass2b._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass2b.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: LegacyClass2b._identityHashCode:int**/
+/*cfe|cfe:builder.member: LegacyClass2b.hashCode:int**/
+/*cfe|cfe:builder.member: LegacyClass2b._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass2b._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass2b.==:bool* Function(dynamic)**/
 abstract class LegacyClass2b extends LegacyClass2a implements LegacyInterface2 {
   /*member: LegacyClass2b.field1:int**/
   /*member: LegacyClass2b.field1=:int**/
@@ -289,6 +329,16 @@ abstract class LegacyClass2b extends LegacyClass2a implements LegacyInterface2 {
 }
 
 /*class: LegacyGenericClass1:GenericInterface<T*>,LegacyGenericClass1<T*>,Object*/
+/*cfe|cfe:builder.member: LegacyGenericClass1.toString:String* Function()**/
+/*cfe|cfe:builder.member: LegacyGenericClass1.runtimeType:Type**/
+/*cfe|cfe:builder.member: LegacyGenericClass1._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyGenericClass1._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: LegacyGenericClass1.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: LegacyGenericClass1._identityHashCode:int**/
+/*cfe|cfe:builder.member: LegacyGenericClass1.hashCode:int**/
+/*cfe|cfe:builder.member: LegacyGenericClass1._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyGenericClass1._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyGenericClass1.==:bool* Function(dynamic)**/
 abstract class LegacyGenericClass1<T> implements GenericInterface<T> {
   /*member: LegacyGenericClass1.genericMethod1:S* Function<S>(T*, S*, {T* c, S* d})**/
   /*member: LegacyGenericClass1.genericMethod2:S* Function<S>(T*, S*, [T*, S*])**/

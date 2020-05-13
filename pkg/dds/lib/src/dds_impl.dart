@@ -8,6 +8,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
   _DartDevelopmentService(this._remoteVmServiceUri, this._uri) {
     _clientManager = _ClientManager(this);
     _isolateManager = _IsolateManager(this);
+    _loggingRepository = _LoggingRepository();
     _streamManager = _StreamManager(this);
   }
 
@@ -135,6 +136,9 @@ class _DartDevelopmentService implements DartDevelopmentService {
 
   _IsolateManager get isolateManager => _isolateManager;
   _IsolateManager _isolateManager;
+
+  _LoggingRepository get loggingRepository => _loggingRepository;
+  _LoggingRepository _loggingRepository;
 
   _StreamManager get streamManager => _streamManager;
   _StreamManager _streamManager;

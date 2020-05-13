@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
@@ -43,22 +44,6 @@ class CiderCompletionComputer {
 
   CiderCompletionComputer(this._logger, this._cache, this._fileResolver);
 
-  @deprecated
-  Future<List<CompletionSuggestion>> compute(String path, int offset) async {
-    var fileContext = _fileResolver.getFileContext(path);
-    var file = fileContext.file;
-
-    var location = file.lineInfo.getLocation(offset);
-
-    var result = await compute2(
-      path: path,
-      line: location.lineNumber - 1,
-      column: location.columnNumber - 1,
-    );
-
-    return result.suggestions;
-  }
-
   /// Return completion suggestions for the file and position.
   ///
   /// The [path] must be the absolute and normalized path of the file.
@@ -66,7 +51,7 @@ class CiderCompletionComputer {
   /// The content of the file has already been updated.
   ///
   /// The [line] and [column] are zero based.
-  Future<CiderCompletionResult> compute2({
+  Future<CiderCompletionResult> compute({
     @required String path,
     @required int line,
     @required int column,
@@ -134,19 +119,31 @@ class CiderCompletionComputer {
       });
     }
 
+    var filter = _FilterSort(
+      _dartCompletionRequest,
+      suggestions,
+    );
+
     _logger.run('Filter suggestions', () {
-      suggestions = _FilterSort(
-        _dartCompletionRequest,
-        suggestions,
-      ).perform();
+      suggestions = filter.perform();
     });
 
-    var result = CiderCompletionResult._(suggestions);
+    var result = CiderCompletionResult._(
+        suggestions, CiderPosition(line, column - filter._pattern.length));
 
     _cache._lastResult =
         _LastCompletionResult(path, resolvedSignature, offset, result);
 
     return result;
+  }
+
+  @Deprecated('Use compute')
+  Future<CiderCompletionResult> compute2({
+    @required String path,
+    @required int line,
+    @required int column,
+  }) async {
+    return compute(path: path, line: line, column: column);
   }
 
   /// Return suggestions from libraries imported into the [target].
@@ -188,19 +185,33 @@ class CiderCompletionComputer {
   /// Compute all unprefixed suggestions for all elements exported from
   /// the library.
   List<CompletionSuggestion> _librarySuggestions(LibraryElement element) {
-    var visitor = LibraryElementSuggestionBuilder(_dartCompletionRequest, '');
+    var suggestionBuilder = SuggestionBuilder(_dartCompletionRequest);
+    var visitor = LibraryElementSuggestionBuilder(
+        _dartCompletionRequest, suggestionBuilder);
     var exportMap = element.exportNamespace.definedNames;
     for (var definedElement in exportMap.values) {
       definedElement.accept(visitor);
     }
-    return visitor.suggestions;
+    return suggestionBuilder.suggestions.toList();
   }
 }
 
 class CiderCompletionResult {
   final List<CompletionSuggestion> suggestions;
 
-  CiderCompletionResult._(this.suggestions);
+  /// The start of the range that should be replaced with the suggestion. This
+  /// position always precedes or is the same as the cursor provided in the
+  /// completion request.
+  final CiderPosition prefixStart;
+
+  CiderCompletionResult._(this.suggestions, this.prefixStart);
+}
+
+class CiderPosition {
+  final int line;
+  final int column;
+
+  CiderPosition(this.line, this.column);
 }
 
 class _CiderImportedLibrarySuggestions {
@@ -215,12 +226,13 @@ class _FilterSort {
   final List<CompletionSuggestion> _suggestions;
 
   FuzzyMatcher _matcher;
+  String _pattern;
 
   _FilterSort(this._request, this._suggestions);
 
   List<CompletionSuggestion> perform() {
-    var pattern = _matchingPattern();
-    _matcher = FuzzyMatcher(pattern, matchStyle: MatchStyle.SYMBOL);
+    _pattern = _matchingPattern();
+    _matcher = FuzzyMatcher(_pattern, matchStyle: MatchStyle.SYMBOL);
 
     var scored = _suggestions
         .map((e) => _FuzzyScoredSuggestion(e, _score(e)))

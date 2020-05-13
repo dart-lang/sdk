@@ -230,10 +230,55 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(FinalizeWeakPersistentHandlesVisitor);
 };
 
+void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
+  if (FLAG_idle_timeout_micros == 0) return;
+
+  // If the isolate has not started running application code yet, we ignore the
+  // idle time.
+  if (!isolate_group_->initial_spawn_successful()) return;
+
+  int64_t idle_expiry = 0;
+  // Obtain the idle time we should wait.
+  if (isolate_group_->idle_time_handler()->ShouldNotifyIdle(&idle_expiry)) {
+    MonitorLeaveScope mls(ml);
+    NotifyIdle();
+    return;
+  }
+
+  // Wait for the recommended idle timeout.
+  // We can be woken up because of a), b) or c)
+  const auto result =
+      ml->WaitMicros(idle_expiry - OS::GetCurrentMonotonicMicros());
+
+  // a) If there are new tasks we have to run them.
+  if (TasksWaitingToRunLocked()) return;
+
+  // b) If the thread pool is shutting down we're done.
+  if (ShuttingDownLocked()) return;
+
+  // c) We timed out and should run the idle notifier.
+  if (result == Monitor::kTimedOut &&
+      isolate_group_->idle_time_handler()->ShouldNotifyIdle(&idle_expiry)) {
+    MonitorLeaveScope mls(ml);
+    NotifyIdle();
+    return;
+  }
+
+  // There must've been another thread doing active work in the meantime.
+  // If that thread becomes idle and is the last idle thread it will run this
+  // code again.
+}
+
+void MutatorThreadPool::NotifyIdle() {
+  EnterIsolateGroupScope isolate_group_scope(isolate_group_);
+  isolate_group_->idle_time_handler()->NotifyIdleUsingDefaultDeadline();
+}
+
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
                            ObjectStore* object_store)
     : embedder_data_(embedder_data),
+      thread_pool_(),
       isolates_lock_(new SafepointRwLock()),
       isolates_(),
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
@@ -255,6 +300,11 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()) {
+  const bool is_vm_isolate = Dart::VmIsolateNameEquals(source_->name);
+  if (!is_vm_isolate) {
+    thread_pool_.reset(
+        new MutatorThreadPool(this, Scavenger::MaxMutatorThreadCount()));
+  }
   {
     WriteRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
     id_ = isolate_group_random_->NextUInt64();
@@ -332,12 +382,10 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
 
   is_vm_isolate_heap_ = is_vm_isolate;
 
-#if !defined(PRODUCT)
 #define ISOLATE_METRIC_CONSTRUCTORS(type, variable, name, unit)                \
   metric_##variable##_.InitInstance(this, name, nullptr, Metric::unit);
   ISOLATE_GROUP_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
 #undef ISOLATE_METRIC_CONSTRUCTORS
-#endif
 }
 
 void IsolateGroup::Shutdown() {
@@ -364,6 +412,14 @@ void IsolateGroup::Shutdown() {
     if (group_shutdown_callback != nullptr) {
       group_shutdown_callback(embedder_data());
     }
+  }
+
+  // Ensure to join all threads before starting to delete the members.
+  // (for vm-isolate we don't have a thread pool)
+  if (!Dart::VmIsolateNameEquals(source()->name)) {
+    ASSERT(thread_pool_ != nullptr);
+    thread_pool_->Shutdown();
+    thread_pool_.reset();
   }
 
   delete this;
@@ -1417,9 +1473,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
 #undef ISOLATE_METRIC_CONSTRUCTORS
           reload_every_n_stack_overflow_checks_(FLAG_reload_every),
 #endif  // !defined(PRODUCT)
-#if !defined(PRODUCT)
-      object_id_ring_(new ObjectIdRing()),
-#endif
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
@@ -2216,7 +2269,7 @@ void Isolate::SetStickyError(ErrorPtr sticky_error) {
 }
 
 void Isolate::Run() {
-  message_handler()->Run(Dart::thread_pool(), RunIsolate, ShutdownIsolate,
+  message_handler()->Run(group()->thread_pool(), RunIsolate, ShutdownIsolate,
                          reinterpret_cast<uword>(this));
 }
 
@@ -2462,7 +2515,24 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   const bool shutdown_group =
       isolate_group->UnregisterIsolateDecrementCount(isolate);
   if (shutdown_group) {
-    isolate_group->Shutdown();
+    if (!OSThread::CurrentThreadRunsOn(isolate_group->thread_pool())) {
+      isolate_group->Shutdown();
+    } else {
+      class ShutdownGroupTask : public ThreadPool::Task {
+       public:
+        explicit ShutdownGroupTask(IsolateGroup* isolate_group)
+            : isolate_group_(isolate_group) {}
+
+        virtual void Run() { isolate_group_->Shutdown(); }
+
+       private:
+        IsolateGroup* isolate_group_;
+      };
+      // The current thread is running on the isolate group's thread pool.
+      // So we cannot safely delete the isolate group (and it's pool).
+      // Instead we will destroy the isolate group on the VM-global pool.
+      Dart::thread_pool()->Run<ShutdownGroupTask>(isolate_group);
+    }
   } else {
     if (FLAG_enable_isolate_groups) {
       // TODO(dartbug.com/36097): An isolate just died. A significant amount of
@@ -2511,9 +2581,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit objects in the field table.
   field_table()->VisitObjectPointers(visitor);
-  if (saved_initial_field_table() != nullptr) {
-    saved_initial_field_table()->VisitObjectPointers(visitor);
-  }
 
   visitor->clear_gc_root_type();
   // Visit the objects directly referenced from the isolate structure.
@@ -2628,6 +2695,10 @@ void IsolateGroup::ForEachIsolate(
 
 Isolate* IsolateGroup::FirstIsolate() const {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  return FirstIsolateLocked();
+}
+
+Isolate* IsolateGroup::FirstIsolateLocked() const {
   return isolates_.IsEmpty() ? nullptr : isolates_.First();
 }
 
@@ -2680,6 +2751,9 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
     object_store()->VisitObjectPointers(visitor);
   }
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
+  if (saved_initial_field_table() != nullptr) {
+    saved_initial_field_table()->VisitObjectPointers(visitor);
+  }
   VisitStackPointers(visitor, validate_frames);
 }
 
@@ -2705,7 +2779,10 @@ void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
 void IsolateGroup::VisitObjectIdRingPointers(ObjectPointerVisitor* visitor) {
 #if !defined(PRODUCT)
   for (Isolate* isolate : isolates_) {
-    isolate->object_id_ring()->VisitPointers(visitor);
+    ObjectIdRing* ring = isolate->object_id_ring();
+    if (ring != nullptr) {
+      ring->VisitPointers(visitor);
+    }
   }
 #endif  // !defined(PRODUCT)
 }
@@ -2764,6 +2841,15 @@ intptr_t IsolateGroup::GetClassSizeForHeapWalkAt(intptr_t cid) {
   return shared_class_table()->SizeAt(cid);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
+
+#if !defined(PRODUCT)
+ObjectIdRing* Isolate::EnsureObjectIdRing() {
+  if (object_id_ring_ == nullptr) {
+    object_id_ring_ = new ObjectIdRing();
+  }
+  return object_id_ring_;
+}
+#endif  // !defined(PRODUCT)
 
 void Isolate::AddPendingDeopt(uword fp, uword pc) {
   // GrowableArray::Add is not atomic and may be interrupt by a profiler

@@ -1372,8 +1372,8 @@ typedef int32_t (*SimulatorLeafRuntimeCall)(int32_t r0,
 typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
 
 // Calls to native Dart functions are based on this interface.
-typedef void (*SimulatorBootstrapNativeCall)(NativeArguments* arguments);
-typedef void (*SimulatorNativeCall)(NativeArguments* arguments, uword target);
+typedef void (*SimulatorNativeCallWrapper)(Dart_NativeArguments arguments,
+                                           Dart_NativeFunction target);
 
 void Simulator::SupervisorCall(Instr* instr) {
   int svc = instr->SvcField();
@@ -1443,22 +1443,15 @@ void Simulator::SupervisorCall(Instr* instr) {
             set_register(R0, r0);
             set_register(R1, r1);
           }
-        } else if (redirection->call_kind() == kBootstrapNativeCall) {
-          ASSERT(redirection->argument_count() == 1);
-          NativeArguments* arguments;
-          arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
-          SimulatorBootstrapNativeCall target =
-              reinterpret_cast<SimulatorBootstrapNativeCall>(external);
-          target(arguments);
-          set_register(R0, icount_);  // Zap result register from void function.
         } else {
-          ASSERT(redirection->call_kind() == kNativeCall);
-          NativeArguments* arguments;
-          arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
-          uword target_func = get_register(R1);
-          SimulatorNativeCall target =
-              reinterpret_cast<SimulatorNativeCall>(external);
-          target(arguments, target_func);
+          ASSERT(redirection->call_kind() == kNativeCallWrapper);
+          SimulatorNativeCallWrapper wrapper =
+              reinterpret_cast<SimulatorNativeCallWrapper>(external);
+          Dart_NativeArguments arguments =
+              reinterpret_cast<Dart_NativeArguments>(get_register(R0));
+          Dart_NativeFunction target_func =
+              reinterpret_cast<Dart_NativeFunction>(get_register(R1));
+          wrapper(arguments, target_func);
           set_register(R0, icount_);  // Zap result register from void function.
           set_register(R1, icount_);
         }

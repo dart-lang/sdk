@@ -1,0 +1,11 @@
+class B {}foo
+class M1 {foo
+class M2 {
+}
+}
+
+class[KeywordToken] B[StringToken] {[BeginToken]}[SimpleToken]foo[StringToken]
+class[KeywordToken] M1[StringToken] {[BeginToken]foo[StringToken]
+class[KeywordToken] M2[StringToken] {[BeginToken]
+}[SimpleToken]
+}[SimpleToken][SimpleToken]

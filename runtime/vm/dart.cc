@@ -559,6 +559,7 @@ char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
                  UptimeMillis());
   }
+  thread_pool_->Shutdown();
   delete thread_pool_;
   thread_pool_ = NULL;
 
@@ -667,18 +668,13 @@ static bool CloneIntoChildIsolateAOT(Thread* T,
                                      Isolate* I,
                                      IsolateGroup* source_isolate_group) {
   // In AOT we speed up isolate spawning by copying donor's isolate structure.
-  Isolate* donor_isolate = source_isolate_group != nullptr
-                               ? source_isolate_group->FirstIsolate()
-                               : nullptr;
-  if (donor_isolate == nullptr) {
+  if (source_isolate_group == nullptr) {
     return false;
   }
   I->isolate_object_store()->Init();
   I->isolate_object_store()->PreallocateObjects();
-  // Initialize field_table with initial values.
-  I->set_field_table(T, donor_isolate->saved_initial_field_table()->Clone());
-  I->set_saved_initial_field_table(
-      donor_isolate->saved_initial_field_table_shareable());
+  I->set_field_table(
+      T, source_isolate_group->saved_initial_field_table()->Clone());
 
   return true;
 }
@@ -724,6 +720,8 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
     }
 
     ReversePcLookupCache::BuildAndAttachToIsolateGroup(I->group());
+    I->group()->set_saved_initial_field_table(
+        std::shared_ptr<FieldTable>(I->field_table()->Clone()));
 
 #if defined(SUPPORT_TIMELINE)
     if (tbes.enabled()) {

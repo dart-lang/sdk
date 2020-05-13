@@ -226,8 +226,6 @@ class SynchronousSession {
   TypeSystemImpl _typeSystemLegacy;
   TypeSystemImpl _typeSystemNonNullableByDefault;
 
-  InheritanceManager3 _inheritanceManager;
-
   SynchronousSession(this._analysisOptions, this.declaredVariables);
 
   AnalysisOptionsImpl get analysisOptions => _analysisOptions;
@@ -244,10 +242,6 @@ class SynchronousSession {
       implicitCasts: analysisOptions.implicitCasts,
       strictInference: analysisOptions.strictInference,
     );
-  }
-
-  InheritanceManager3 get inheritanceManager {
-    return _inheritanceManager ??= InheritanceManager3();
   }
 
   @Deprecated('Use LibraryElement.typeProvider')
@@ -280,8 +274,6 @@ class SynchronousSession {
 
     _typeSystemLegacy = null;
     _typeSystemNonNullableByDefault = null;
-
-    _inheritanceManager = null;
   }
 
   void setTypeProviders({

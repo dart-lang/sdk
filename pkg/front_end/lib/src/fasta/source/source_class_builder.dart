@@ -616,9 +616,14 @@ class SourceClassBuilder extends ClassBuilderImpl
     return count;
   }
 
-  List<TypeDeclarationBuilder> computeDirectSupertypes(
+  /// Return a map whose keys are the supertypes of this [SourceClassBuilder]
+  /// after expansion of type aliases, if any. For each supertype key, the
+  /// corresponding value is the type alias which was unaliased in order to
+  /// find the supertype, or null if the supertype was not aliased.
+  Map<TypeDeclarationBuilder, TypeAliasBuilder> computeDirectSupertypes(
       ClassBuilder objectClass) {
-    final List<TypeDeclarationBuilder> result = <TypeDeclarationBuilder>[];
+    final Map<TypeDeclarationBuilder, TypeAliasBuilder> result =
+        <TypeDeclarationBuilder, TypeAliasBuilder>{};
     final TypeBuilder supertype = this.supertypeBuilder;
     if (supertype != null) {
       TypeDeclarationBuilder declarationBuilder = supertype.declaration;
@@ -627,10 +632,12 @@ class SourceClassBuilder extends ClassBuilderImpl
         NamedTypeBuilder namedBuilder = supertype;
         declarationBuilder =
             aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+        result[declarationBuilder] = aliasBuilder;
+      } else {
+        result[declarationBuilder] = null;
       }
-      result.add(declarationBuilder);
     } else if (objectClass != this) {
-      result.add(objectClass);
+      result[objectClass] = null;
     }
     final List<TypeBuilder> interfaces = this.interfaceBuilders;
     if (interfaces != null) {
@@ -642,8 +649,10 @@ class SourceClassBuilder extends ClassBuilderImpl
           NamedTypeBuilder namedBuilder = interface;
           declarationBuilder =
               aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+          result[declarationBuilder] = aliasBuilder;
+        } else {
+          result[declarationBuilder] = null;
         }
-        result.add(declarationBuilder);
       }
     }
     final TypeBuilder mixedInTypeBuilder = this.mixedInTypeBuilder;
@@ -655,8 +664,10 @@ class SourceClassBuilder extends ClassBuilderImpl
         NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
         declarationBuilder =
             aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+        result[declarationBuilder] = aliasBuilder;
+      } else {
+        result[declarationBuilder] = null;
       }
-      result.add(declarationBuilder);
     }
     return result;
   }

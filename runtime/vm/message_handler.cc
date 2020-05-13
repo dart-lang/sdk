@@ -438,18 +438,9 @@ void MessageHandler::TaskCallback() {
         ml.Enter();
       }
 
-      bool handle_messages = true;
-      while (handle_messages) {
-        handle_messages = false;
-
-        // Handle any pending messages for this message handler.
-        if (status != kShutdown) {
-          status = HandleMessages(&ml, (status == kOK), true);
-        }
-
-        if (status == kOK && HasLivePorts()) {
-          handle_messages = CheckIfIdleLocked(&ml);
-        }
+      // Handle any pending messages for this message handler.
+      if (status != kShutdown) {
+        status = HandleMessages(&ml, (status == kOK), true);
       }
     }
 
@@ -520,48 +511,6 @@ void MessageHandler::TaskCallback() {
   if (delete_me) {
     delete this;
   }
-}
-
-bool MessageHandler::CheckIfIdleLocked(MonitorLocker* ml) {
-  if (isolate() == nullptr ||
-      !isolate()->group()->idle_time_handler()->ShouldCheckForIdle()) {
-    // No idle task to schedule.
-    return false;
-  }
-  if (!isolate()->group()->initial_spawn_successful()) {
-    // The isolate has not started running application code yet.
-    return false;
-  }
-  int64_t idle_expirary = 0;
-  if (isolate()->group()->idle_time_handler()->ShouldNotifyIdle(
-          &idle_expirary)) {
-    // We've been without a message long enough to hope we can do some
-    // cleanup before the next message arrives.
-    RunIdleTaskLocked(ml);
-    // We may have received new messages while running idle task, so return
-    // true so that the handle messages loop is run again.
-    return true;
-  }
-
-  // We wait here for the scheduled idle time to expire or
-  // new messages or OOB messages to arrive.
-  paused_for_messages_ = true;
-  ml->WaitMicros(idle_expirary - OS::GetCurrentMonotonicMicros());
-  paused_for_messages_ = false;
-  // We want to loop back in order to handle the new messages
-  // or run the idle task.
-  return true;
-}
-
-void MessageHandler::RunIdleTaskLocked(MonitorLocker* ml) {
-  // Idle tasks may take a while: don't block other isolates sending
-  // us messages.
-  ml->Exit();
-  {
-    StartIsolateScope start_isolate(isolate());
-    isolate()->group()->idle_time_handler()->NotifyIdleUsingDefaultDeadline();
-  }
-  ml->Enter();
 }
 
 void MessageHandler::ClosePort(Dart_Port port) {

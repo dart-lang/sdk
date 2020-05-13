@@ -261,7 +261,6 @@ void CallSpecializer::AddCheckNull(Value* to_check,
                                    intptr_t deopt_id,
                                    Environment* deopt_environment,
                                    Instruction* insert_before) {
-  ASSERT(I->can_use_strong_mode_types());
   if (to_check->Type()->is_nullable()) {
     CheckNullInstr* check_null =
         new (Z) CheckNullInstr(to_check->CopyWithType(Z), function_name,
@@ -867,7 +866,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 
   // Build an AssertAssignable if necessary.
   const AbstractType& dst_type = AbstractType::ZoneHandle(zone(), field.type());
-  if (I->argument_type_checks() && !dst_type.IsTopTypeForSubtyping()) {
+  if (!dst_type.IsTopTypeForSubtyping()) {
     // Compute if we need to type check the value. Always type check if
     // at a dynamic invocation.
     bool needs_check = true;
@@ -1204,7 +1203,6 @@ bool CallSpecializer::TryReplaceInstanceOfWithRangeCheck(
 bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
     InstanceCallInstr* call,
     const AbstractType& type) {
-  ASSERT(I->can_use_strong_mode_types());
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
   if (!type.IsInstantiated()) {
     return false;
@@ -1274,8 +1272,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
   }
 
-  if (I->can_use_strong_mode_types() &&
-      TryOptimizeInstanceOfUsingStaticTypes(call, type)) {
+  if (TryOptimizeInstanceOfUsingStaticTypes(call, type)) {
     return;
   }
 
@@ -1408,8 +1405,7 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
     }
   }
 
-  if (I->can_use_strong_mode_types() &&
-      TryOptimizeStaticCallUsingStaticTypes(call)) {
+  if (TryOptimizeStaticCallUsingStaticTypes(call)) {
     return;
   }
 }

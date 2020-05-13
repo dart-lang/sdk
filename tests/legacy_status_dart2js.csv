@@ -4,7 +4,6 @@ Condition,Test,Expectations,Comment,Issue,Issue state
 ,codegen/logical_expression_test,Fail,Issue 17027,https://dartbug.com/17027,open
 ,codegen/side_effect_tdiv_regression_test,Fail,Issue 33050,https://dartbug.com/33050,open
 ,codegen/simple_function_subtype_test,Fail,simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.,,
-,end_to_end/generate_code_with_compile_time_errors_test,RuntimeError,not supported yet with the new FE.,,
 ,end_to_end/show_package_warnings_test,RuntimeError,missing errors from the FE,,
 ,inference/simple_inferrer_const_closure2_test,Fail,Issue 16507,https://dartbug.com/16507,open
 ,inference/simple_inferrer_const_closure_test,Fail,Issue 16507,https://dartbug.com/16507,open

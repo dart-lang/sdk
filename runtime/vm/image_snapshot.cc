@@ -315,7 +315,7 @@ void ImageWriter::DumpInstructionsSizes() {
   js.OpenArray();
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     auto& data = instructions_[i];
-    owner = data.code_->owner();
+    owner = WeakSerializationReference::Unwrap(data.code_->owner());
     js.OpenObject();
     if (owner.IsFunction()) {
       cls = Function::Cast(owner).Owner();
@@ -324,8 +324,16 @@ void ImageWriter::DumpInstructionsSizes() {
       url = lib.url();
       js.PrintPropertyStr("l", url);
       js.PrintPropertyStr("c", name);
+    } else if (owner.IsClass()) {
+      cls ^= owner.raw();
+      name = cls.ScrubbedName();
+      lib = cls.library();
+      js.PrintPropertyStr("l", url);
+      js.PrintPropertyStr("c", name);
     }
-    js.PrintProperty("n", data.code_->QualifiedName());
+    js.PrintProperty(
+        "n", data.code_->QualifiedName(Object::kInternalName,
+                                       Object::NameDisambiguation::kYes));
     js.PrintProperty("s", SizeInSnapshot(data.insns_->raw()));
     js.CloseObject();
   }
@@ -636,7 +644,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   assembly_stream_.Print("%s:\n", instructions_symbol);
 
   // This head also provides the gap to make the instructions snapshot
-  // look like a HeapPage.
+  // look like a OldPage.
   const intptr_t image_size = Utils::RoundUp(
       next_text_offset_, compiler::target::ObjectAlignment::kObjectAlignment);
   WriteWordLiteralText(image_size);
@@ -1088,7 +1096,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #endif
 
   // This header provides the gap to make the instructions snapshot look like a
-  // HeapPage.
+  // OldPage.
   const intptr_t image_size = Utils::RoundUp(
       next_text_offset_, compiler::target::ObjectAlignment::kObjectAlignment);
   instructions_blob_stream_.WriteTargetWord(image_size);

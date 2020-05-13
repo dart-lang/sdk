@@ -14,7 +14,6 @@ class Class1 {
   }
 
   method2() {
-    /**/
     num local<T>(int n) => null;
     return local;
   }
@@ -27,8 +26,9 @@ class Class1 {
 }
 
 class Class2 {
+  /*spec:nnbd-sdk.member: Class2.method4:direct,explicit=[method4.T*],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
   /*spec:nnbd-off.member: Class2.method4:direct,explicit=[method4.T],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
-  /*prod:nnbd-off.member: Class2.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*prod:nnbd-off|prod:nnbd-sdk.member: Class2.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
   method4<T>() {
     /*needsSignature*/
     num local(T n) => null;
@@ -46,17 +46,17 @@ class Class3 {
 }
 
 class Class4 {
+  /*spec:nnbd-sdk.member: Class4.method6:direct,explicit=[method6.T*],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
   /*spec:nnbd-off.member: Class4.method6:direct,explicit=[method6.T],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
-  /*prod:nnbd-off.member: Class4.method6:*/
   method6<T>() {
-    /**/
     num local(num n, T t) => null;
     return local;
   }
 }
 
 /*spec:nnbd-off.member: method7:direct,explicit=[method7.T],needsArgs*/
-/*prod:nnbd-off.member: method7:needsArgs*/
+/*prod:nnbd-off|prod:nnbd-sdk.member: method7:needsArgs*/
+/*spec:nnbd-sdk.member: method7:direct,explicit=[method7.T*],needsArgs*/
 method7<T>() {
   /*needsSignature*/
   num local(T n) => null;
@@ -71,17 +71,17 @@ method8<T>() {
 }
 
 /*spec:nnbd-off.member: method9:direct,explicit=[method9.T],needsArgs*/
-/*prod:nnbd-off.member: method9:*/
+/*spec:nnbd-sdk.member: method9:direct,explicit=[method9.T*],needsArgs*/
 method9<T>() {
-  /**/
   num local(num n, T t) => null;
   return local;
 }
 
 method10() {
   /*spec:nnbd-off.direct,explicit=[local.T],needsArgs,needsInst=[<dynamic>,<num>,<num>],needsSignature*/
-  /*prod:nnbd-off.needsSignature*/
-  num local<T>(T n) => null;
+  /*prod:nnbd-off|prod:nnbd-sdk.needsSignature*/
+  /*spec:nnbd-sdk.direct,explicit=[local.T*],needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/ num
+      local<T>(T n) => null;
   return local;
 }
 
@@ -93,8 +93,8 @@ method11() {
 
 method12() {
   /*spec:nnbd-off.direct,explicit=[local.T],needsArgs,needsInst=[<dynamic>,<num>,<num>]*/
-  /*prod:nnbd-off.*/
-  num local<T>(num n, T t) => null;
+  /*spec:nnbd-sdk.direct,explicit=[local.T*],needsArgs,needsInst=[<dynamic>,<num*>,<num*>]*/ num
+      local<T>(num n, T t) => null;
   return local;
 }
 
@@ -106,8 +106,9 @@ num Function(num) method13() {
 
 num Function(num) method14() {
   /*spec:nnbd-off.direct,explicit=[local.T],needsArgs,needsInst=[<dynamic>,<num>,<num>],needsSignature*/
-  /*prod:nnbd-off.needsSignature*/
-  num local<T>(T n) => null;
+  /*prod:nnbd-off|prod:nnbd-sdk.needsSignature*/
+  /*spec:nnbd-sdk.direct,explicit=[local.T*],needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/ num
+      local<T>(T n) => null;
   return local;
 }
 

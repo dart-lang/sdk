@@ -1755,7 +1755,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   @override
   void visitBlock(ir.Block block) {
     assert(!isAborted());
-    if (!_isReachable) return; // This can only happen when inlining.
+    // [block] can be unreachable at the beginning of a block if an
+    // ir.BlockExpression that is a subexpression of an expression that contains
+    // a throwing prior subexpression, e.g. `[throw e, {...[]}]`.
+    if (!_isReachable) return;
+
     for (ir.Statement statement in block.statements) {
       statement.accept(this);
       if (!_isReachable) {
@@ -3617,7 +3621,13 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   @override
   void visitBlockExpression(ir.BlockExpression node) {
     node.body.accept(this);
-    node.value.accept(this);
+    // Body can be partially generated due to an exception exit and be missing
+    // bindings referenced in the value.
+    if (!_isReachable) {
+      stack.add(graph.addConstantUnreachable(closedWorld));
+    } else {
+      node.value.accept(this);
+    }
   }
 
   /// Extracts the list of instructions for the positional subset of arguments.
@@ -5956,7 +5966,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       _enterInlinedMethod(function, compiledArguments, instanceType);
       _inlinedFrom(function, sourceInformation, () {
         if (!_isReachable) {
-          _emitReturn(graph.addConstantNull(closedWorld), sourceInformation);
+          _emitReturn(
+              graph.addConstantUnreachable(closedWorld), sourceInformation);
         } else {
           _doInline(function);
         }

@@ -143,7 +143,7 @@ abstract class _FileSystemWatcher {
       try {
         _id = _initWatcher();
         _newWatcher();
-      } catch (e) {
+      } on dynamic catch (e) {
         _broadcastController.addError(new FileSystemException(
             "Failed to initialize file system entity watcher", null, e));
         _broadcastController.close();
@@ -154,7 +154,7 @@ abstract class _FileSystemWatcher {
     try {
       pathId =
           _watchPath(_id!, _Namespace._namespace, _path, _events, _recursive);
-    } catch (e) {
+    } on dynamic catch (e) {
       _broadcastController
           .addError(new FileSystemException("Failed to watch path", _path, e));
       _broadcastController.close();

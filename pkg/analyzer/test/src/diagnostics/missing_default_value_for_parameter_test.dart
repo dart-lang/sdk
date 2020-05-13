@@ -115,6 +115,42 @@ class C {
 ''');
   }
 
+  test_constructor_redirectingFactory_nonNullable_named_optional() async {
+    await assertNoErrorsInCode('''
+class A {
+  factory A({int a}) = B;
+}
+
+class B implements A {
+  B({int a = 0});
+}
+''');
+  }
+
+  test_constructor_redirectingFactory_nonNullable_positional_optional() async {
+    await assertNoErrorsInCode('''
+class A {
+  factory A([int a]) = B;
+}
+
+class B implements A {
+  B([int a = 0]);
+}
+''');
+  }
+
+  test_constructor_redirectingFactory_nullable_named_optional() async {
+    await assertNoErrorsInCode('''
+class A {
+  factory A({int? a}) = B;
+}
+
+class B implements A {
+  B({int? a});
+}
+''');
+  }
+
   test_fieldFormalParameter_functionTyped_named_optional() async {
     await assertNoErrorsInCode('''
 class A {

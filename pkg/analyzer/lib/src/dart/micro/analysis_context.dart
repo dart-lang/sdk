@@ -13,6 +13,7 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -82,6 +83,10 @@ class MicroContextObjects {
 
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {
     synchronousSession.analysisOptions = analysisOptions;
+  }
+
+  InheritanceManager3 get inheritanceManager {
+    return analysisSession.inheritanceManager;
   }
 }
 

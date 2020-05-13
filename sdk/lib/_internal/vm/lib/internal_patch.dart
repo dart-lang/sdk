@@ -133,3 +133,16 @@ void reachabilityFence(Object object) native "Internal_reachabilityFence";
 
 void sendAndExit(SendPort sendPort, var message)
     native "SendPortImpl_sendAndExitInternal_";
+
+void spawnFunction(
+    SendPort readyPort,
+    String uri,
+    Function topLevelFunction,
+    var message,
+    bool paused,
+    bool errorsAreFatal,
+    SendPort onExit,
+    SendPort onError,
+    String packageConfig,
+    bool newIsolateGroup,
+    String debugName) native "Isolate_spawnFunction";

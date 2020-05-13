@@ -928,6 +928,37 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   }
 
   @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    // Field formal parameter types are generally handled in [visitTypeName],
+    // _function-typed_ field formal parameters need to be handled here.
+    if (node.parameters != null) {
+      var decoratedType =
+          _fixBuilder._variables.decoratedElementType(node.declaredElement);
+      if (decoratedType.node.isNullable) {
+        (_fixBuilder._getChange(node) as NodeChangeForFieldFormalParameter)
+            .recordNullability(decoratedType, decoratedType.node.isNullable,
+                nullabilityHint:
+                    _fixBuilder._variables.getNullabilityHint(source, node));
+      }
+    }
+    super.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    var decoratedType =
+        _fixBuilder._variables.decoratedElementType(node.declaredElement);
+    if (decoratedType.node.isNullable) {
+      (_fixBuilder._getChange(node)
+              as NodeChangeForFunctionTypedFormalParameter)
+          .recordNullability(decoratedType, decoratedType.node.isNullable,
+              nullabilityHint:
+                  _fixBuilder._variables.getNullabilityHint(source, node));
+    }
+    super.visitFunctionTypedFormalParameter(node);
+  }
+
+  @override
   void visitGenericFunctionType(GenericFunctionType node) {
     var decoratedType = _fixBuilder._variables
         .decoratedTypeAnnotation(_fixBuilder.source, node);

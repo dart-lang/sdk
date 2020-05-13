@@ -12,17 +12,27 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   get f2() → core::List<(self::C::T*) →* void>* {
     return <(self::C::T*) →* void>[this.{self::C::f1}];
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method g1(self::C<core::num*>* c) → void {
-  (core::num*) →* void x = let final self::C<core::num*>* #t1 = c in #t1.{core::Object::==}(null) ?{(core::num*) →* void} null : #t1.{self::C::f1} as{TypeError,CovarianceCheck} (core::num*) →* void;
+  (core::num*) →* void x = let final self::C<core::num*>* #t1 = c in #t1.{self::C::==}(null) ?{(core::num*) →* void} null : #t1.{self::C::f1} as{TypeError,CovarianceCheck} (core::num*) →* void;
   core::print("hello");
   x.call(1.5);
 }
 static method g2(self::C<core::num*>* c) → void {
-  (core::int*) →* void x = let final self::C<core::num*>* #t2 = c in #t2.{core::Object::==}(null) ?{(core::num*) →* void} null : #t2.{self::C::f1} as{TypeError,CovarianceCheck} (core::num*) →* void;
+  (core::int*) →* void x = let final self::C<core::num*>* #t2 = c in #t2.{self::C::==}(null) ?{(core::num*) →* void} null : #t2.{self::C::f1} as{TypeError,CovarianceCheck} (core::num*) →* void;
   x.call(1);
 }
 static method g3(self::C<core::num*>* c) → void {
-  core::List<(core::num*) →* void>* x = let final self::C<core::num*>* #t3 = c in #t3.{core::Object::==}(null) ?{core::List<(core::num*) →* void>*} null : #t3.{self::C::f2} as{TypeError,CovarianceCheck} core::List<(core::num*) →* void>*;
+  core::List<(core::num*) →* void>* x = let final self::C<core::num*>* #t3 = c in #t3.{self::C::==}(null) ?{core::List<(core::num*) →* void>*} null : #t3.{self::C::f2} as{TypeError,CovarianceCheck} core::List<(core::num*) →* void>*;
 }
 static method main() → void {}

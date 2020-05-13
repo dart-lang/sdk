@@ -1841,20 +1841,20 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
     // Get card table.
     __ Bind(&remember_card);
-    __ AndImmediate(TMP, R1, target::kPageMask);  // HeapPage.
+    __ AndImmediate(TMP, R1, target::kOldPageMask);  // OldPage.
     __ ldr(TMP,
-           Address(TMP, target::HeapPage::card_table_offset()));  // Card table.
+           Address(TMP, target::OldPage::card_table_offset()));  // Card table.
     __ cmp(TMP, Operand(0));
     __ b(&remember_card_slow, EQ);
 
     // Dirty the card.
-    __ AndImmediate(TMP, R1, target::kPageMask);  // HeapPage.
-    __ sub(R9, R9, Operand(TMP));                 // Offset in page.
+    __ AndImmediate(TMP, R1, target::kOldPageMask);  // OldPage.
+    __ sub(R9, R9, Operand(TMP));                    // Offset in page.
     __ ldr(TMP,
-           Address(TMP, target::HeapPage::card_table_offset()));  // Card table.
+           Address(TMP, target::OldPage::card_table_offset()));  // Card table.
     __ add(TMP, TMP,
            Operand(R9, LSR,
-                   target::HeapPage::kBytesPerCardLog2));  // Card address.
+                   target::OldPage::kBytesPerCardLog2));  // Card address.
     __ strb(R1,
             Address(TMP, 0));  // Low byte of R0 is non-zero from object tag.
     __ Ret();

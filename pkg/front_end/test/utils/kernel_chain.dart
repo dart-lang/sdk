@@ -24,8 +24,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/fasta_codes.dart'
-    show templateInternalProblemUnhandled, templateUnspecified;
+import 'package:front_end/src/fasta/fasta_codes.dart' show templateUnspecified;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 
@@ -49,13 +48,7 @@ import 'package:kernel/naive_type_checker.dart' show NaiveTypeChecker;
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
 import 'package:kernel/text/text_serialization_verifier.dart'
-    show
-        RoundTripStatus,
-        TextDeserializationFailure,
-        TextRoundTripFailure,
-        TextSerializationFailure,
-        TextSerializationVerificationFailure,
-        TextSerializationVerifier;
+    show RoundTripStatus, TextSerializationVerifier;
 
 import 'package:testing/testing.dart'
     show
@@ -379,33 +372,12 @@ class KernelTextSerialization
           verifier.verify(library);
         }
       }
-      for (TextSerializationVerificationFailure failure in verifier.failures) {
-        LocatedMessage message;
-        if (failure is TextSerializationFailure) {
-          message = templateUnspecified
-              .withArguments("Failed to serialize a node: ${failure.message}")
-              .withLocation(failure.uri, failure.offset, 1);
-        } else if (failure is TextDeserializationFailure) {
-          message = templateUnspecified
-              .withArguments("Failed to deserialize a node: ${failure.message}")
-              .withLocation(failure.uri, failure.offset, 1);
-        } else if (failure is TextRoundTripFailure) {
-          String formattedInitial =
-              failure.initial.isNotEmpty ? failure.initial : "<empty>";
-          String formattedSerialized =
-              failure.serialized.isNotEmpty ? failure.serialized : "<empty>";
-          message = templateUnspecified
-              .withArguments(
-                  "Round trip failure: initial doesn't match serialized.\n"
-                  "  Initial    : $formattedInitial\n"
-                  "  Serialized : $formattedSerialized")
-              .withLocation(failure.uri, failure.offset, 1);
-        } else {
-          message = templateInternalProblemUnhandled
-              .withArguments(
-                  "${failure.runtimeType}", "KernelTextSerialization.run")
-              .withLocation(failure.uri, failure.offset, 1);
-        }
+
+      List<RoundTripStatus> failures = verifier.failures;
+      for (RoundTripStatus failure in failures) {
+        LocatedMessage message = templateUnspecified
+            .withArguments("\n${failure}")
+            .withLocation(failure.uri, failure.offset, 1);
         options.report(message, message.code.severity);
       }
 
@@ -415,7 +387,7 @@ class KernelTextSerialization
         String filename = "${uri.toFilePath()}${suffix}";
         uri = new File(filename).uri;
         StringBuffer buffer = new StringBuffer();
-        for (RoundTripStatus status in verifier.status) {
+        for (RoundTripStatus status in verifier.takeStatus()) {
           status.printOn(buffer);
         }
         await openWrite(uri, (IOSink sink) {
@@ -423,7 +395,7 @@ class KernelTextSerialization
         });
       }
 
-      if (verifier.failures.isNotEmpty) {
+      if (failures.isNotEmpty) {
         return new Result<ComponentResult>(
             null,
             context.expectationSet["TextSerializationFailure"],

@@ -16,8 +16,8 @@ void main() {
 class TestCase<T extends Node> {
   final String name;
   final T node;
-  final SerializationState serializationState;
-  final DeserializationState deserializationState;
+  final SerializationState Function() makeSerializationState;
+  final DeserializationState Function() makeDeserializationState;
   final String expectation;
   final TextSerializer<T> serializer;
 
@@ -26,15 +26,17 @@ class TestCase<T extends Node> {
       this.node,
       this.expectation,
       this.serializer,
-      SerializationState serializationState,
-      DeserializationState deserializationState})
+      SerializationState Function() makeSerializationState,
+      DeserializationState Function() makeDeserializationState})
       : assert(node != null),
         assert(expectation != null),
         assert(serializer != null),
-        this.serializationState =
-            serializationState ?? new SerializationState(null),
-        this.deserializationState = deserializationState ??
-            new DeserializationState(null, new CanonicalName.root());
+        this.makeSerializationState = makeSerializationState ??
+            (() => new SerializationState(new SerializationEnvironment(null))),
+        this.makeDeserializationState = makeDeserializationState ??
+            (() => new DeserializationState(
+                new DeserializationEnvironment(null),
+                new CanonicalName.root()));
 
   T readNode(String input, DeserializationState state) {
     TextIterator stream = new TextIterator(input, 0);
@@ -104,12 +106,12 @@ void test() {
           name: '/* suppose: dynamic x; */ x = 42;',
           node: new ExpressionStatement(new VariableSet(x, new IntLiteral(42))),
           expectation: '(expr (set-var "x^0" (int 42)))',
-          serializationState: new SerializationState(
-            new SerializationEnvironment(null)
-              ..addBinder(x, 'x^0')
-              ..close(),
-          ),
-          deserializationState: new DeserializationState(
+          makeSerializationState: () => new SerializationState(
+                new SerializationEnvironment(null)
+                  ..addBinder(x, 'x^0')
+                  ..close(),
+              ),
+          makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null)
                 ..addBinder('x^0', x)
                 ..close(),
@@ -128,8 +130,9 @@ void test() {
           node: new ExpressionStatement(new StaticGet(field)),
           expectation: ''
               '(expr (get-static "package:foo/bar.dart::@fields::field"))',
-          serializationState: new SerializationState(null),
-          deserializationState: new DeserializationState(null, component.root),
+          makeSerializationState: () => new SerializationState(null),
+          makeDeserializationState: () =>
+              new DeserializationState(null, component.root),
           serializer: statementSerializer);
     }(),
     () {
@@ -146,8 +149,9 @@ void test() {
           expectation: ''
               '(expr'
               ' (set-static "package:foo/bar.dart::@fields::field" (int 1)))',
-          serializationState: new SerializationState(null),
-          deserializationState: new DeserializationState(null, component.root),
+          makeSerializationState: () => new SerializationState(null),
+          makeDeserializationState: () =>
+              new DeserializationState(null, component.root),
           serializer: statementSerializer);
     }(),
     () {
@@ -172,8 +176,9 @@ void test() {
           expectation: ''
               '(expr (invoke-static "package:foo/bar.dart::@methods::foo"'
               ' () ((int 42)) ()))',
-          serializationState: new SerializationState(null),
-          deserializationState: new DeserializationState(null, component.root),
+          makeSerializationState: () => new SerializationState(null),
+          makeDeserializationState: () =>
+              new DeserializationState(null, component.root),
           serializer: statementSerializer);
     }(),
     () {
@@ -192,14 +197,14 @@ void test() {
               '/* suppose A { const A(); const factory A.foo() = A; } */'
               ' const A.foo();',
           node: new ExpressionStatement(new StaticInvocation.byReference(
-              factoryConstructor.reference, new Arguments([]),
-              isConst: true)),
+              factoryConstructor.reference, new Arguments([]), isConst: true)),
           expectation: ''
               '(expr (invoke-const-static'
               ' "package:foo/bar.dart::A::@factories::foo"'
               ' () () ()))',
-          serializationState: new SerializationState(null),
-          deserializationState: new DeserializationState(null, component.root),
+          makeSerializationState: () => new SerializationState(null),
+          makeDeserializationState: () =>
+              new DeserializationState(null, component.root),
           serializer: statementSerializer);
     }(),
     () {
@@ -220,11 +225,11 @@ void test() {
           expectation: ''
               '(expr (get-direct-prop (get-var "x^0" _)'
               ' "package:foo/bar.dart::A::@fields::field"))',
-          serializationState:
+          makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, 'x^0')
                 ..close()),
-          deserializationState: new DeserializationState(
+          makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null)
                 ..addBinder('x^0', x)
                 ..close(),
@@ -249,11 +254,11 @@ void test() {
           expectation: ''
               '(expr (set-direct-prop (get-var "x^0" _)'
               ' "package:foo/bar.dart::A::@fields::field" (int 42)))',
-          serializationState:
+          makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, 'x^0')
                 ..close()),
-          deserializationState: new DeserializationState(
+          makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null)
                 ..addBinder('x^0', x)
                 ..close(),
@@ -281,11 +286,11 @@ void test() {
               '(expr (invoke-direct-method (get-var "x^0" _)'
               ' "package:foo/bar.dart::A::@methods::foo"'
               ' () () ()))',
-          serializationState:
+          makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, 'x^0')
                 ..close()),
-          deserializationState: new DeserializationState(
+          makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null)
                 ..addBinder('x^0', x)
                 ..close(),
@@ -310,8 +315,9 @@ void test() {
               '(expr (invoke-constructor'
               ' "package:foo/bar.dart::A::@constructors::foo"'
               ' () () ()))',
-          serializationState: new SerializationState(null),
-          deserializationState: new DeserializationState(null, component.root),
+          makeSerializationState: () => new SerializationState(null),
+          makeDeserializationState: () =>
+              new DeserializationState(null, component.root),
           serializer: statementSerializer);
     }(),
     () {
@@ -327,14 +333,14 @@ void test() {
       return new TestCase<Statement>(
           name: '/* suppose A {const A.foo();} */ const A();',
           node: new ExpressionStatement(new ConstructorInvocation.byReference(
-              constructor.reference, new Arguments([]),
-              isConst: true)),
+              constructor.reference, new Arguments([]), isConst: true)),
           expectation: ''
               '(expr (invoke-const-constructor'
               ' "package:foo/bar.dart::A::@constructors::foo"'
               ' () () ()))',
-          serializationState: new SerializationState(null),
-          deserializationState: new DeserializationState(null, component.root),
+          makeSerializationState: () => new SerializationState(null),
+          makeDeserializationState: () =>
+              new DeserializationState(null, component.root),
           serializer: statementSerializer);
     }(),
     () {
@@ -359,9 +365,9 @@ void test() {
               '(expr (type (-> ("T^0") ((dynamic)) ((dynamic)) '
               '((-> ("T^1") ((dynamic)) ((dynamic)) () () () '
               '(par "T^1" _))) () () (par "T^0" _))))',
-          serializationState:
+          makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
-          deserializationState: new DeserializationState(
+          makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null), null),
           serializer: statementSerializer);
     }(),
@@ -386,9 +392,9 @@ void test() {
               '(expr (fun (sync ("T^0") ((dynamic)) ((dynamic)) ((var '
               '"t1^1" (par "T^0" _) _ ())) ((var "t2^2" (par "T^0" _) '
               '_ ())) () (par "T^0" _) (ret (get-var "t1^1" _)))))',
-          serializationState:
+          makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
-          deserializationState: new DeserializationState(
+          makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null), null),
           serializer: statementSerializer);
     }(),
@@ -411,9 +417,9 @@ void test() {
               '(static-method (public "foo")'
               ' (sync () () () ((var "x^0" (dynamic) _ ())) () ()'
               ' (dynamic) (ret (get-var "x^0" _))))',
-          serializationState:
+          makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
-          deserializationState: new DeserializationState(
+          makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null), null),
           serializer: procedureSerializer);
     }(),
@@ -452,9 +458,9 @@ void test() {
               ' (sync () () () ((var "x^0" (dynamic) _ ())) () () (dynamic)'
               ' (ret (invoke-static "package:foo/bar.dart::@methods::foo"'
               ' () ((get-var "x^0" _)) ()))))))',
-          serializationState:
+          makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
-          deserializationState: new DeserializationState(
+          makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null), new CanonicalName.root()),
           serializer: librarySerializer);
     }(),
@@ -476,18 +482,30 @@ void test() {
           expectation: ''
               '(legacy "package:foo/bar.dart"'
               ' ((static-method (public "foo")'
-              ' (sync () () () () () () (interface "package:foo/bar.dart::A" ())'
+              ' (sync () () () () () ()'
+              ' (interface "package:foo/bar.dart::A" ())'
               ' (ret (null))))))',
-          serializationState:
+          makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
-          deserializationState: new DeserializationState(
+          makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null), component.root),
           serializer: librarySerializer);
+    }(),
+    () {
+      return new TestCase<Statement>(
+          name: 'dynamic x;',
+          node: VariableDeclaration('x', type: const DynamicType()),
+          expectation: '(local (var "x^0" (dynamic) _ ()))',
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), new CanonicalName.root()),
+          serializer: statementSerializer);
     }(),
   ];
   for (TestCase testCase in tests) {
     String roundTripInput =
-        testCase.writeNode(testCase.node, testCase.serializationState);
+        testCase.writeNode(testCase.node, testCase.makeSerializationState());
     if (roundTripInput != testCase.expectation) {
       failures.add(''
           "* initial serialization for test '${testCase.name}'"
@@ -495,9 +513,9 @@ void test() {
     }
 
     TreeNode deserialized =
-        testCase.readNode(roundTripInput, testCase.deserializationState);
+        testCase.readNode(roundTripInput, testCase.makeDeserializationState());
     String roundTripOutput =
-        testCase.writeNode(deserialized, testCase.serializationState);
+        testCase.writeNode(deserialized, testCase.makeSerializationState());
     if (roundTripOutput != roundTripInput) {
       failures.add(''
           "* input '${testCase.name}' gave output '${roundTripOutput}'");

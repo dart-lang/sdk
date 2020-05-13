@@ -64,6 +64,7 @@ class FileState {
   final Set<FileState> directReferencedFiles = Set();
   final Set<FileState> directReferencedLibraries = Set();
   final List<FileState> libraryFiles = [];
+  FileState partOfLibrary;
 
   List<int> _digest;
   bool _exists;
@@ -215,6 +216,13 @@ class FileState {
       var file = _fileForRelativeUri(uri);
       partedFiles.add(file);
     }
+    if (unlinked2.hasPartOfDirective) {
+      var uri = unlinked2.partOfUri;
+      if (uri.isNotEmpty) {
+        partOfLibrary = _fileForRelativeUri(uri);
+        directReferencedFiles.add(partOfLibrary);
+      }
+    }
     libraryFiles.add(this);
     libraryFiles.addAll(partedFiles);
 
@@ -292,6 +300,7 @@ class FileState {
     var hasDartCoreImport = false;
     var hasLibraryDirective = false;
     var hasPartOfDirective = false;
+    var partOfUriStr = '';
     for (var directive in unit.directives) {
       if (directive is ExportDirective) {
         var builder = _serializeNamespaceDirective(directive);
@@ -309,6 +318,9 @@ class FileState {
         parts.add(uriStr ?? '');
       } else if (directive is PartOfDirective) {
         hasPartOfDirective = true;
+        if (directive.uri != null) {
+          partOfUriStr = directive.uri.stringValue;
+        }
       }
     }
     if (!hasDartCoreImport) {
@@ -326,6 +338,7 @@ class FileState {
       parts: parts,
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
+      partOfUri: partOfUriStr,
       lineStarts: unit.lineInfo.lineStarts,
       informativeData: informativeData,
     );

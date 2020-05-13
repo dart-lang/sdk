@@ -11,9 +11,7 @@ void main() {
   group('migrate', defineMigrateTests, timeout: longTimeout);
 }
 
-// TODO(jcollins-g): Set to true and/or remove when when NNBD is enabled in the
-//  SDK running this test.
-bool _nnbdIsEnabled = false;
+bool _nnbdIsEnabled = true;
 
 void defineMigrateTests() {
   final didYouForgetToRunPubGet = contains('Did you forget to run "pub get"?');

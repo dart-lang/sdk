@@ -57,7 +57,10 @@ class MigrateCommand extends Command {
 
   @override
   String get description =>
-      'Perform a null safety migration on a project or package.';
+      'Perform a null safety migration on a project or package.'
+      '\n\nThe migrate feature is in preview and not yet complete; we welcome '
+      'feedback.\n\n'
+      'https://github.com/dart-lang/sdk/tree/master/pkg/nnbd_migration#providing-feedback';
 
   @override
   String get invocation {

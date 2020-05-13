@@ -2244,6 +2244,10 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
   @Id(3)
   bool get hasPartOfDirective;
 
+  /// URI of the `part of` directive.
+  @Id(8)
+  String get partOfUri;
+
   /// URIs of `import` directives.
   @Id(2)
   List<UnlinkedNamespaceDirective> get imports;

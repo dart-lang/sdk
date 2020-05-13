@@ -14,7 +14,8 @@ class LegacyCovariant<T> {
 foo(param) {
   LegacyCovariant<num> c = LegacyCovariant<num>();
   (c as LegacyCovariant<int>).method();
-  // present: 'LegacyCovariant_int._as'
+  // present: '._as('
+  // present: /(legacy_)?LegacyCovariant_(legacy_)?int._as/
 }
 """;
 
@@ -25,7 +26,7 @@ class LegacyCovariant<T> {
 foo(param) {
   LegacyCovariant<num> c = LegacyCovariant<num>();
   (c as LegacyCovariant<Object>).method();
-  // absent: 'LegacyCovariant_Object._as'
+  // absent: '._as('
 }
 """;
 
@@ -36,7 +37,8 @@ class Covariant<out T> {
 foo(param) {
   Covariant<num> c = Covariant<num>();
   (c as Covariant<int>).method();
-  // present: 'Covariant_int._as'
+  // present: '._as('
+  // present: /(legacy_)?Covariant_(legacy_)?int._as/
 }
 """;
 
@@ -47,7 +49,7 @@ class Covariant<out T> {
 foo(param) {
   Covariant<num> c = Covariant<num>();
   (c as Covariant<Object>).method();
-  // absent: 'Covariant_Object._as'
+  // absent: '._as('
 }
 """;
 
@@ -58,7 +60,8 @@ class Contravariant<in T> {
 foo(param) {
   Contravariant<num> c = Contravariant<num>();
   (c as Contravariant<Object>).method();
-  // present: 'Contravariant_Object._as'
+  // present: '._as('
+  // present: /(legacy_)?Contravariant_(legacy_)?Object._as/
 }
 """;
 
@@ -69,7 +72,7 @@ class Contravariant<in T> {
 foo(param) {
   Contravariant<num> c = Contravariant<num>();
   (c as Contravariant<int>).method();
-  // absent: 'Contravariant_int._as'
+  // absent: '._as('
 }
 """;
 
@@ -80,7 +83,8 @@ class Invariant<inout T> {
 foo(param) {
   Invariant<num> i = Invariant<num>();
   (i as Invariant<Object>).method();
-  // present: 'Invariant_Object._as'
+  // present: '._as('
+  // present: /(legacy_)?Invariant_(legacy_)?Object._as/
 }
 """;
 
@@ -91,7 +95,8 @@ class Invariant<inout T> {
 foo(param) {
   Invariant<num> i = Invariant<num>();
   (i as Invariant<int>).method();
-  // present: 'Invariant_int._as'
+  // present: '._as('
+  // present: /(legacy_)?Invariant_(legacy_)?int._as/
 }
 """;
 
@@ -102,7 +107,7 @@ class Invariant<inout T> {
 foo(param) {
   Invariant<num> i = Invariant<num>();
   (i as Invariant<num>).method();
-  // absent: 'Invariant_num._as'
+  // absent: '._as('
 }
 """;
 

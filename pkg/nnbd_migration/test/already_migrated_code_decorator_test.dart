@@ -45,9 +45,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
       : this._(
           nullabilitySuffix,
           NullabilityGraphForTesting(),
-          TestTypeProvider(
-              isNonNullableByDefault:
-                  nullabilitySuffix == NullabilitySuffix.none),
+          TestTypeProvider(),
         );
 
   _AlreadyMigratedCodeDecoratorTestBase._(

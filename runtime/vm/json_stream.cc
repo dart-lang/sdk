@@ -41,7 +41,7 @@ JSONStream::JSONStream(intptr_t buf_size)
   ObjectIdRing* ring = NULL;
   Isolate* isolate = Isolate::Current();
   if (isolate != NULL) {
-    ring = isolate->object_id_ring();
+    ring = isolate->EnsureObjectIdRing();
   }
   default_id_zone_.Init(ring, ObjectIdRing::kAllocateId);
 }

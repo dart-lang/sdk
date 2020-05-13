@@ -8455,6 +8455,14 @@ const MessageCode messageTypeVariableSameNameAsEnclosing = const MessageCode(
         r"""A type variable can't have the same name as its enclosing declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypedefCause = messageTypedefCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypedefCause = const MessageCode("TypedefCause",
+    severity: Severity.context,
+    message: r"""The issue arises via this type alias.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeTypedefInClass = messageTypedefInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8507,6 +8515,16 @@ const MessageCode messageTypedefTypeVariableNotConstructorCause =
     const MessageCode("TypedefTypeVariableNotConstructorCause",
         severity: Severity.context,
         message: r"""This is the type variable ultimately denoted.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypedefUnaliasedTypeCause =
+    messageTypedefUnaliasedTypeCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypedefUnaliasedTypeCause = const MessageCode(
+    "TypedefUnaliasedTypeCause",
+    severity: Severity.context,
+    message: r"""This is the type denoted by the type alias.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnexpectedDollarInString = messageUnexpectedDollarInString;

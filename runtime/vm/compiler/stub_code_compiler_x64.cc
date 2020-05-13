@@ -1852,19 +1852,18 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
     // Get card table.
     __ Bind(&remember_card);
-    __ movq(TMP, RDX);                           // Object.
-    __ andq(TMP, Immediate(target::kPageMask));  // HeapPage.
-    __ cmpq(Address(TMP, target::HeapPage::card_table_offset()), Immediate(0));
+    __ movq(TMP, RDX);                              // Object.
+    __ andq(TMP, Immediate(target::kOldPageMask));  // OldPage.
+    __ cmpq(Address(TMP, target::OldPage::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
     // Dirty the card.
     __ subq(R13, TMP);  // Offset in page.
-    __ movq(
-        TMP,
-        Address(TMP, target::HeapPage::card_table_offset()));  // Card table.
-    __ shrq(R13,
-            Immediate(
-                target::HeapPage::kBytesPerCardLog2));  // Index in card table.
+    __ movq(TMP,
+            Address(TMP, target::OldPage::card_table_offset()));  // Card table.
+    __ shrq(
+        R13,
+        Immediate(target::OldPage::kBytesPerCardLog2));  // Index in card table.
     __ movb(Address(TMP, R13, TIMES_1, 0), Immediate(1));
     __ ret();
 

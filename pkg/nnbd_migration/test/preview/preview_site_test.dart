@@ -251,7 +251,7 @@ int/*?*/? y = x;
         offsetMapper: unitInfo.offsetMapper);
     var trace = unitInfo.regions[1].traces[0];
     assertTraceEntry(unitInfo, trace.entries[0], null,
-        unitInfo.content.indexOf('int/*?*/? y'), contains('explicit type'));
+        unitInfo.content.indexOf('int/*?*/? y'), contains('y (test.dart:2:1)'));
     assertTraceEntry(unitInfo, trace.entries[1], 'y',
         unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
     expect(state.hasBeenApplied, false);

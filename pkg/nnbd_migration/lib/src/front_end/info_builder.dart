@@ -232,8 +232,16 @@ class InfoBuilder {
   void _computeTraceNonNullableInfo(NullabilityNodeInfo node,
       List<TraceInfo> traces, FixReasonTarget target) {
     var entries = <TraceEntryInfo>[];
+    var description = 'Non-nullability reason${target.suffix}';
     var step = node.whyNotNullable;
     if (step == null) {
+      if (node != this.info.never) {
+        // 'never' indicates we're describing an edge to never, such as a `!`.
+        traces.add(TraceInfo(description, [
+          _nodeToTraceEntry(node,
+              description: 'No reason found to make nullable')
+        ]));
+      }
       return;
     }
     assert(identical(step.node, node));
@@ -244,7 +252,6 @@ class InfoBuilder {
       }
       step = step.principalCause;
     }
-    var description = 'Non-nullability reason${target.suffix}';
     traces.add(TraceInfo(description, entries));
   }
 
@@ -404,8 +411,9 @@ class InfoBuilder {
                 codeReference.line, length));
   }
 
-  TraceEntryInfo _nodeToTraceEntry(NullabilityNodeInfo node) {
-    var description = node.toString(); // TODO(paulberry): improve this message
+  TraceEntryInfo _nodeToTraceEntry(NullabilityNodeInfo node,
+      {String description}) {
+    description ??= node.toString(); // TODO(paulberry): improve this message
     return _makeTraceEntry(description, node.codeReference);
   }
 

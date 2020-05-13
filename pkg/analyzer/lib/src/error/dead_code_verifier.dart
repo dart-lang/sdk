@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -40,8 +39,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Initialize a newly created dead code verifier that will report dead code
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
-  DeadCodeVerifier(this._errorReporter, FeatureSet featureSet,
-      {TypeSystemImpl typeSystem})
+  DeadCodeVerifier(this._errorReporter, {TypeSystemImpl typeSystem})
       : this._typeSystem = typeSystem ??
             TypeSystemImpl(
               implicitCasts: true,

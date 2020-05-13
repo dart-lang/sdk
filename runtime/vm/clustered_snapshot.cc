@@ -1203,10 +1203,6 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field.InitializeGuardedListLengthInObjectOffset();
       }
     }
-
-    Isolate* isolate = Isolate::Current();
-    isolate->set_saved_initial_field_table(
-        std::shared_ptr<FieldTable>(isolate->field_table()->Clone()));
   }
 };
 
@@ -6510,6 +6506,19 @@ char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(
 #undef SET_P
 #undef CHECK_FLAG
 #undef SET_FLAG
+
+    if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
+      if (strncmp(cursor, "null-safety", end - cursor) == 0) {
+        FLAG_null_safety = kNullSafetyOptionStrong;
+        cursor = end;
+        continue;
+      }
+      if (strncmp(cursor, "no-null-safety", end - cursor) == 0) {
+        FLAG_null_safety = kNullSafetyOptionWeak;
+        cursor = end;
+        continue;
+      }
+    }
 
     cursor = end;
   }

@@ -97,7 +97,7 @@ class Location : public ValueObject {
   // Note that two locations with different kinds should never point to
   // the same place. For example kQuadStackSlot location should never intersect
   // with kDoubleStackSlot location.
-  enum Kind {
+  enum Kind : intptr_t {
     // This location is invalid.  Payload must be zero.
     kInvalid = 0,
 

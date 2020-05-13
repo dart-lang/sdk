@@ -31,15 +31,12 @@ class KeywordContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
-    var suggestions = <CompletionSuggestion>[];
-
     // Don't suggest anything right after double or integer literals.
     if (request.target.isDoubleOrIntLiteral()) {
-      return suggestions;
+      return const <CompletionSuggestion>[];
     }
-
-    request.target.containingNode.accept(_KeywordVisitor(request, suggestions));
-    return suggestions;
+    request.target.containingNode.accept(_KeywordVisitor(request, builder));
+    return const <CompletionSuggestion>[];
   }
 }
 
@@ -47,12 +44,11 @@ class KeywordContributor extends DartCompletionContributor {
 class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   final DartCompletionRequest request;
 
+  final SuggestionBuilder builder;
+
   final Object entity;
 
-  final List<CompletionSuggestion> suggestions;
-
-  _KeywordVisitor(this.request, this.suggestions)
-      : entity = request.target.entity;
+  _KeywordVisitor(this.request, this.builder) : entity = request.target.entity;
 
   int get defaultKeyword =>
       request.useNewRelevance ? 800 : DART_RELEVANCE_KEYWORD;
@@ -877,10 +873,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     _addSuggestion2(keyword.lexeme, relevance: relevance);
   }
 
-  void _addSuggestion2(String completion, {int offset, int relevance}) {
-    offset ??= completion.length;
-    suggestions.add(CompletionSuggestion(CompletionSuggestionKind.KEYWORD,
-        relevance ?? defaultKeyword, completion, offset, 0, false, false));
+  void _addSuggestion2(String keyword, {int offset, int relevance}) {
+    builder.suggestKeyword(keyword,
+        offset: offset, relevance: relevance ?? defaultKeyword);
   }
 
   void _addSuggestions(List<Keyword> keywords, {int relevance}) {

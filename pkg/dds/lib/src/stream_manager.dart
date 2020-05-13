@@ -97,6 +97,11 @@ class _StreamManager {
         if (isolateManagerStreams.contains(streamId)) {
           dds.isolateManager.handleIsolateEvent(parameters);
         }
+        // Keep a history of log messages to send to clients when they first
+        // subscribe to the Logging stream.
+        if (streamId == kLoggingStream) {
+          dds.loggingRepository.add(parameters.asMap);
+        }
         streamNotify(streamId, parameters.value);
       },
     );
@@ -125,6 +130,9 @@ class _StreamManager {
     }
     if (client != null) {
       streamListeners[stream].add(client);
+      if (stream == kLoggingStream) {
+        dds.loggingRepository.sendHistoricalLogs(client);
+      }
     }
   }
 
@@ -181,6 +189,7 @@ class _StreamManager {
 
   static const kDebugStream = 'Debug';
   static const kIsolateStream = 'Isolate';
+  static const kLoggingStream = 'Logging';
 
   // Never cancel the Debug or Isolate stream as `_IsolateManager` requires
   // them for isolate state notifications.
@@ -189,9 +198,16 @@ class _StreamManager {
     kIsolateStream,
   };
 
+  // Never cancel the Logging stream as `_LoggingRepository` requires it to
+  // keep a log history.
+  static const loggingRepositoryStreams = <String>{
+    kLoggingStream,
+  };
+
   // The set of streams that DDS requires to function.
   static final ddsCoreStreams = <String>{
     ...isolateManagerStreams,
+    ...loggingRepositoryStreams,
   };
 
   final _DartDevelopmentService dds;

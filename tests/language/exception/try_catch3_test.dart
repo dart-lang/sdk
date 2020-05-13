@@ -55,25 +55,25 @@ class Helper {
       }
       try {
         j = j + 24;
-      } catch (e) {
+      } on TestException catch (e) {
         i = 300;
         print(e.getMessage());
       }
       try {
         j += 20;
-      } catch (e) {
+      } on TestException catch (e) {
         i = 400;
         print(e.getMessage());
       }
       try {
         j += 40;
-      } catch (e) {
+      } on TestException catch (e) {
         i = 600;
         print(e.getMessage());
       }
       try {
         j += 60;
-      } catch (e, trace) {
+      } on TestException catch (e, trace) {
         i = 700;
         print(trace.toString());
         print(e.getMessage());

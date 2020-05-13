@@ -21,6 +21,7 @@ regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
 rasta/issue_000032: FormatterCrash
+regress/ambiguous_builder_01: FormatterCrash
 regress/issue_34614: FormatterCrash
 extensions/ambiguous: FormatterCrash
 extensions/annotations: FormatterCrash

@@ -4,7 +4,8 @@
 
 // @dart = 2.7
 
-/*class: A:direct,explicit=[A.T],needsArgs*/
+/*spec:nnbd-off|prod:nnbd-off.class: A:direct,explicit=[A.T],needsArgs*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: A:direct,explicit=[A.T*],needsArgs*/
 class A<T> {
   m(T t) => t is T;
 }

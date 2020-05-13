@@ -1548,8 +1548,8 @@ typedef double (*SimulatorLeafFloatRuntimeCall)(double d0,
                                                 double d7);
 
 // Calls to native Dart functions are based on this interface.
-typedef void (*SimulatorBootstrapNativeCall)(NativeArguments* arguments);
-typedef void (*SimulatorNativeCall)(NativeArguments* arguments, uword target);
+typedef void (*SimulatorNativeCallWrapper)(Dart_NativeArguments arguments,
+                                           Dart_NativeFunction target);
 
 void Simulator::DoRedirectedCall(Instr* instr) {
   SimulatorSetjmpBuffer buffer(this);
@@ -1602,23 +1602,15 @@ void Simulator::DoRedirectedCall(Instr* instr) {
       const double res = target(d0, d1, d2, d3, d4, d5, d6, d7);
       set_vregisterd(V0, 0, bit_cast<int64_t, double>(res));
       set_vregisterd(V0, 1, 0);
-    } else if (redirection->call_kind() == kBootstrapNativeCall) {
-      ASSERT(redirection->argument_count() == 1);
-      NativeArguments* arguments;
-      arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
-      SimulatorBootstrapNativeCall target =
-          reinterpret_cast<SimulatorBootstrapNativeCall>(external);
-      target(arguments);
-      // Zap result register from void function.
-      set_register(instr, R0, icount_);
     } else {
-      ASSERT(redirection->call_kind() == kNativeCall);
-      NativeArguments* arguments;
-      arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
-      uword target_func = get_register(R1);
-      SimulatorNativeCall target =
-          reinterpret_cast<SimulatorNativeCall>(external);
-      target(arguments, target_func);
+      ASSERT(redirection->call_kind() == kNativeCallWrapper);
+      SimulatorNativeCallWrapper wrapper =
+          reinterpret_cast<SimulatorNativeCallWrapper>(external);
+      Dart_NativeArguments arguments =
+          reinterpret_cast<Dart_NativeArguments>(get_register(R0));
+      Dart_NativeFunction target =
+          reinterpret_cast<Dart_NativeFunction>(get_register(R1));
+      wrapper(arguments, target);
       // Zap result register from void function.
       set_register(instr, R0, icount_);
       set_register(instr, R1, icount_);

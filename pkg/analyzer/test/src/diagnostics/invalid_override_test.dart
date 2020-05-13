@@ -439,6 +439,63 @@ class B extends A {
     ]);
   }
 
+  test_mixin_field_type() async {
+    await assertErrorsInCode(r'''
+class A {
+  String foo = '';
+}
+
+mixin M on A {
+  int foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 53, 3),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 53, 3),
+    ]);
+  }
+
+  test_mixin_getter_type() async {
+    await assertErrorsInCode(r'''
+class A {
+  String get foo => '';
+}
+
+mixin M on A {
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 62, 3),
+    ]);
+  }
+
+  test_mixin_method_returnType() async {
+    await assertErrorsInCode(r'''
+class A {
+  String foo() => '';
+}
+
+mixin M on A {
+  int foo() => 0;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 56, 3),
+    ]);
+  }
+
+  test_mixin_setter_type() async {
+    await assertErrorsInCode(r'''
+class A {
+  set foo(String _) {}
+}
+
+mixin M on A {
+  set foo(int _) {}
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 57, 3),
+    ]);
+  }
+
   test_setter_normalParamType() async {
     await assertErrorsInCode('''
 class A {

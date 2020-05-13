@@ -14,12 +14,31 @@ class X extends core::Object {
     ;
   method toString() → core::String*
     return "X(${this.{self::X::x}}, ${this.{self::X::y}})";
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Y extends core::Object {
   synthetic constructor •() → self::Y*
     : super core::Object::•()
     ;
   method f(dynamic _) → dynamic {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method f1() → asy::Future<core::List<core::Object*>*>* /* originally async */ {
   final asy::_AsyncAwaitCompleter<core::List<core::Object*>*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::List<core::Object*>*>();
@@ -39,8 +58,8 @@ static method f1() → asy::Future<core::List<core::Object*>*>* /* originally as
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -68,8 +87,8 @@ static method f3() → asy::Future<core::Object*>* /* originally async */ {
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -101,8 +120,8 @@ static method foo() → asy::Future<self::X*>* /* originally async */ {
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -129,8 +148,8 @@ static method main() → asy::Future<void>* /* originally async */ {
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);

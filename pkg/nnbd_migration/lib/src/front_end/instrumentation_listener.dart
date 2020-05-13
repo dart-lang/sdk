@@ -9,20 +9,24 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_information.dart';
+import 'package:nnbd_migration/src/front_end/migration_summary.dart';
 
 /// A listener used to gather instrumentation information from the migration
 /// engine.
 class InstrumentationListener implements NullabilityMigrationInstrumentation {
+  final MigrationSummary migrationSummary;
+
   /// The instrumentation information being gathered.
   InstrumentationInformation data = InstrumentationInformation();
 
   /// Initialize a newly created listener.
-  InstrumentationListener();
+  InstrumentationListener({this.migrationSummary});
 
   @override
   void changes(Source source, Map<int, List<AtomicEdit>> changes) {
     assert(_sourceInfo(source).changes == null);
     _sourceInfo(source).changes = changes;
+    migrationSummary?.recordChanges(source, changes);
   }
 
   @override
@@ -125,5 +129,10 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
         }
       }
     }
+  }
+
+  @override
+  void finished() {
+    migrationSummary?.write();
   }
 }

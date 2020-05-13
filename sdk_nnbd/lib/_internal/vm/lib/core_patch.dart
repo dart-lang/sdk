@@ -98,19 +98,19 @@ class num {
 // implement sync* generator functions. A sync* generator allocates
 // and returns a new _SyncIterable object.
 
-typedef bool _SyncGeneratorCallback<T>(_SyncIterator<T> iterator);
+typedef _SyncGeneratorCallback<T> = bool Function(_SyncIterator<T>);
+typedef _SyncGeneratorCallbackCallback<T> = _SyncGeneratorCallback<T>
+    Function();
 
 class _SyncIterable<T> extends IterableBase<T> {
-  // _moveNextFn is the closurized body of the generator function.
-  final _SyncGeneratorCallback<T> _moveNextFn;
+  // Closure that effectively "clones" the inner _moveNextFn.
+  // This means a _SyncIterable creates _SyncIterators that do not share state.
+  final _SyncGeneratorCallbackCallback<T> _moveNextFnMaker;
 
-  const _SyncIterable(this._moveNextFn);
+  const _SyncIterable(this._moveNextFnMaker);
 
   Iterator<T> get iterator {
-    // Note: _Closure._clone returns _Closure which is not related to
-    // _SyncGeneratorCallback, which means we need explicit cast.
-    return new _SyncIterator<T>(unsafeCast<_SyncGeneratorCallback<T>>(
-        unsafeCast<_Closure>(_moveNextFn)._clone()));
+    return _SyncIterator<T>(_moveNextFnMaker());
   }
 }
 

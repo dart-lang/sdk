@@ -68,7 +68,9 @@ class ReadStream : public ValueObject {
   // Reads 'len' bytes from the stream.
   void ReadBytes(uint8_t* addr, intptr_t len) {
     ASSERT((end_ - current_) >= len);
-    memmove(addr, current_, len);
+    if (len != 0) {
+      memmove(addr, current_, len);
+    }
     current_ += len;
   }
 
@@ -128,23 +130,24 @@ class ReadStream : public ValueObject {
 
   template <typename T>
   T Read(uint8_t end_byte_marker) {
+    using Unsigned = typename std::make_unsigned<T>::type;
     const uint8_t* c = current_;
     ASSERT(c < end_);
     uint8_t b = *c++;
     if (b > kMaxUnsignedDataPerByte) {
       current_ = c;
-      return static_cast<T>(b) - end_byte_marker;
+      return static_cast<Unsigned>(b) - end_byte_marker;
     }
     T r = 0;
     uint8_t s = 0;
     do {
-      r |= static_cast<T>(b) << s;
+      r |= static_cast<Unsigned>(b) << s;
       s += kDataBitsPerByte;
       ASSERT(c < end_);
       b = *c++;
     } while (b <= kMaxUnsignedDataPerByte);
     current_ = c;
-    return r | ((static_cast<T>(b) - end_byte_marker) << s);
+    return r | ((static_cast<Unsigned>(b) - end_byte_marker) << s);
   }
 
   uint16_t Read16(uint8_t end_byte_marker) {
@@ -406,7 +409,9 @@ class WriteStream : public ValueObject {
       Resize(len);
     }
     ASSERT((end_ - current_) >= len);
-    memmove(current_, addr, len);
+    if (len != 0) {
+      memmove(current_, addr, len);
+    }
     current_ += len;
   }
 
@@ -550,7 +555,9 @@ class StreamingWriteStream : public ValueObject {
 
   void WriteBytes(const uint8_t* buffer, intptr_t size) {
     EnsureAvailable(size);
-    memmove(cursor_, buffer, size);
+    if (size != 0) {
+      memmove(cursor_, buffer, size);
+    }
     cursor_ += size;
   }
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
@@ -78,6 +79,21 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     return stderrText;
   }
 
+  void assertHttpSuccess(http.Response response) {
+    if (response.statusCode == 500) {
+      try {
+        var decodedResponse = jsonDecode(response.body);
+        print('Exception: ${decodedResponse['exception']}');
+        print('Stack trace:');
+        print(decodedResponse['stackTrace']);
+      } catch (_) {
+        print(response.body);
+      }
+      fail('HTTP request failed');
+    }
+    expect(response.statusCode, 200);
+  }
+
   Future<String> assertParseArgsFailure(List<String> args) async {
     var cli = _createCli();
     await cli.run(args);
@@ -96,7 +112,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
 
   Future assertPreviewServerResponsive(String url) async {
     var response = await http.get(url);
-    expect(response.statusCode, 200);
+    assertHttpSuccess(response);
   }
 
   void assertProjectContents(String projectDir, Map<String, String> expected) {
@@ -133,6 +149,10 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     });
     // Server should be stopped now
     expect(http.get(url), throwsA(anything));
+  }
+
+  void setUp() {
+    resourceProvider.newFolder(resourceProvider.pathContext.current);
   }
 
   Map<String, String> simpleProject({bool migrated: false, String sourceText}) {
@@ -301,12 +321,15 @@ int? f() => null
     var cli = _createCli();
     await cli.run(['--no-web-preview', projectDir]);
     // Check that a summary was printed
-    expect(logger.stdoutBuffer.toString(), contains('Summary'));
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('Summary'));
     // And that it refers to test.dart and pubspec.yaml
-    expect(logger.stdoutBuffer.toString(), contains('test.dart'));
-    expect(logger.stdoutBuffer.toString(), contains('pubspec.yaml'));
+    expect(output, contains('test.dart'));
+    expect(output, contains('pubspec.yaml'));
+    // And that it contains text from a changed line
+    expect(output, contains('f() => null'));
     // And that it tells the user they can rerun with `--apply-changes`
-    expect(logger.stdoutBuffer.toString(), contains('--apply-changes'));
+    expect(output, contains('--apply-changes'));
     // No changes should have been made
     assertProjectContents(projectDir, projectContents);
   }
@@ -324,6 +347,35 @@ int? f() => null
     assertProjectContents(projectDir, projectContents);
   }
 
+  test_lifecycle_preview_add_hint() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var authToken = uri.queryParameters['authToken'];
+      var response = await http.post(
+          uri.replace(
+              path: resourceProvider.pathContext
+                  .toUri(resourceProvider.pathContext
+                      .join(projectDir, 'lib', 'test.dart'))
+                  .path,
+              queryParameters: {
+                'offset': '3',
+                'end': '3',
+                'replacement': '/*!*/',
+                'authToken': authToken
+              }),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      assertProjectContents(
+          projectDir, simpleProject(sourceText: 'int/*!*/ x;'));
+    });
+  }
+
   test_lifecycle_preview_extra_forward_slash() async {
     var projectDir = await createProjectDir(simpleProject());
     var cli = _createCli();
@@ -332,6 +384,31 @@ int? f() => null
       await assertPreviewServerResponsive(
           uri.replace(path: uri.path + '/').toString());
     });
+  }
+
+  test_lifecycle_summary() async {
+    var projectContents = simpleProject();
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    var summaryPath = resourceProvider.convertPath('/summary.json');
+    await cli.run(['--no-web-preview', '--summary', summaryPath, projectDir]);
+    var summaryData =
+        jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
+    expect(summaryData, TypeMatcher<Map>());
+    expect(summaryData, contains('changes'));
+  }
+
+  test_lifecycle_summary_does_not_double_count_hint_removals() async {
+    var projectContents = simpleProject(sourceText: 'int/*?*/ x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    var summaryPath = resourceProvider.convertPath('/summary.json');
+    await cli.run(['--no-web-preview', '--summary', summaryPath, projectDir]);
+    var summaryData =
+        jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
+    var separator = resourceProvider.pathContext.separator;
+    expect(summaryData['changes']['byPath']['lib${separator}test.dart'],
+        {'makeTypeNullableDueToHint': 1});
   }
 
   test_lifecycle_uri_error() async {
@@ -355,12 +432,41 @@ int f() => null;
     expect(output, contains('Please fix the analysis issues'));
   }
 
+  test_migrate_path_absolute() {
+    resourceProvider.newFolder(resourceProvider.pathContext
+        .join(resourceProvider.pathContext.current, 'foo'));
+    expect(
+        resourceProvider.pathContext
+            .isAbsolute(assertParseArgsSuccess(['foo']).directory),
+        isTrue);
+  }
+
+  test_migrate_path_file() async {
+    resourceProvider.newFile(resourceProvider.pathContext.absolute('foo'), '');
+    expect(await assertParseArgsFailure(['foo']), contains('foo is a file'));
+  }
+
+  test_migrate_path_non_existent() async {
+    expect(
+        await assertParseArgsFailure(['foo']), contains('foo does not exist'));
+  }
+
   test_migrate_path_none() {
-    expect(assertParseArgsSuccess([]).directory, Directory.current.path);
+    expect(assertParseArgsSuccess([]).directory,
+        resourceProvider.pathContext.current);
+  }
+
+  test_migrate_path_normalized() {
+    expect(assertParseArgsSuccess(['..']).directory, isNot(contains('..')));
   }
 
   test_migrate_path_one() {
-    expect(assertParseArgsSuccess(['foo']).directory, 'foo');
+    resourceProvider.newFolder(resourceProvider.pathContext
+        .join(resourceProvider.pathContext.current, 'foo'));
+    expect(
+        assertParseArgsSuccess(['foo']).directory,
+        resourceProvider.pathContext
+            .join(resourceProvider.pathContext.current, 'foo'));
   }
 
   test_migrate_path_two() async {
@@ -402,6 +508,12 @@ int f() => null;
     expect(await _getHelpText(verbose: true), contains(optionName));
   }
 
+  test_option_summary() {
+    var summaryPath = resourceProvider.convertPath('/summary.json');
+    expect(assertParseArgsSuccess(['--summary', summaryPath]).summary,
+        summaryPath);
+  }
+
   test_option_unrecognized() async {
     expect(
         await assertParseArgsFailure(['--this-option-does-not-exist']),
@@ -437,7 +549,10 @@ class _MigrationCliTestPosix extends _MigrationCliTestBase
 
   _MigrationCliTestPosix()
       : resourceProvider = MemoryResourceProvider(
-            context: path.style == path.Style.posix ? null : path.posix);
+            context: path.style == path.Style.posix
+                ? null
+                : path.Context(
+                    style: path.Style.posix, current: '/working_dir'));
 }
 
 @reflectiveTest
@@ -450,7 +565,8 @@ class _MigrationCliTestWindows extends _MigrationCliTestBase
       : resourceProvider = MemoryResourceProvider(
             context: path.style == path.Style.windows
                 ? null
-                : path.Context(style: path.Style.windows, current: 'C:\\'));
+                : path.Context(
+                    style: path.Style.windows, current: 'C:\\working_dir'));
 }
 
 /// TODO(paulberry): move into cli_util

@@ -25,7 +25,6 @@ class UpdateSdkConstraintsTest extends FixProcessorTest {
   }
 
   Future<void> test_asInConstContext() async {
-    createAnalysisOptionsFile(experiments: [EnableString.constant_update_2018]);
     await testUpdate(content: '''
 const dynamic a = 2;
 const c = a as int;
@@ -33,7 +32,6 @@ const c = a as int;
   }
 
   Future<void> test_boolOperator() async {
-    createAnalysisOptionsFile(experiments: [EnableString.constant_update_2018]);
     await testUpdate(content: '''
 const c = true & false;
 ''', to: '^2.2.2');
@@ -75,7 +73,6 @@ class C {
   }
 
   Future<void> test_isInConstContext() async {
-    createAnalysisOptionsFile(experiments: [EnableString.constant_update_2018]);
     await testUpdate(content: '''
 const a = 0;
 const c = a is int;

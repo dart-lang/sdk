@@ -1296,6 +1296,24 @@ f({required int x}) {}
     expect(previewInfo.values.single.single.isDeletion, true);
   }
 
+  Future<void>
+      test_requiredAnnotationToRequiredKeyword_simple_removeViaComment() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+f({@required int x}) {}
+''');
+    var annotation = findNode.annotation('required');
+    var previewInfo = run(
+        {annotation: NodeChangeForAnnotation()..changeToRequiredKeyword = true},
+        removeViaComments: true);
+    expect(previewInfo.applyTo(code), '''
+import 'package:meta/meta.dart';
+f({required int x}) {}
+''');
+    expect(previewInfo.values.single.single.isDeletion, true);
+  }
+
   Future<void> test_variableDeclarationList_addExplicitType_insert() async {
     await analyze('final x = 0;');
     var previewInfo = run({

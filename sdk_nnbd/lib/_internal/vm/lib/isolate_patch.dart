@@ -14,6 +14,7 @@ import "dart:async"
 
 import "dart:collection" show HashMap;
 import "dart:typed_data" show ByteBuffer, TypedData, Uint8List;
+import "dart:_internal" show spawnFunction;
 
 /// These are the additional parts of this patch library:
 // part "timer_impl.dart";
@@ -373,10 +374,21 @@ class Isolate {
       script = await Isolate.resolvePackageUri(script);
     }
 
+    const bool newIsolateGroup = false;
     final RawReceivePort readyPort = new RawReceivePort();
     try {
-      _spawnFunction(readyPort.sendPort, script.toString(), entryPoint, message,
-          paused, errorsAreFatal, onExit, onError, packageConfig, debugName);
+      spawnFunction(
+          readyPort.sendPort,
+          script.toString(),
+          entryPoint,
+          message,
+          paused,
+          errorsAreFatal,
+          onExit,
+          onError,
+          packageConfig,
+          newIsolateGroup,
+          debugName);
       return await _spawnCommon(readyPort);
     } catch (e, st) {
       readyPort.close();
@@ -500,17 +512,7 @@ class Isolate {
   static const _DEL_ERROR = 8;
   static const _ERROR_FATAL = 9;
 
-  static void _spawnFunction(
-      SendPort readyPort,
-      String uri,
-      Function topLevelFunction,
-      var message,
-      bool paused,
-      bool errorsAreFatal,
-      SendPort? onExit,
-      SendPort? onError,
-      String? packageConfig,
-      String? debugName) native "Isolate_spawnFunction";
+  // For 'spawnFunction' see internal_patch.dart.
 
   static void _spawnUri(
       SendPort readyPort,

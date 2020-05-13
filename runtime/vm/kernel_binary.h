@@ -7,6 +7,7 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
+#include "platform/unaligned.h"
 #include "vm/kernel.h"
 #include "vm/object.h"
 
@@ -236,7 +237,8 @@ class Reader : public ValueObject {
     ASSERT((size_ >= 4) && (offset >= 0) && (offset <= size_ - 4));
     uint32_t value;
     if (raw_buffer_ != NULL) {
-      value = *reinterpret_cast<const uint32_t*>(raw_buffer_ + offset);
+      value = LoadUnaligned(
+          reinterpret_cast<const uint32_t*>(raw_buffer_ + offset));
     } else {
       value = typed_data_->GetUint32(offset);
     }
@@ -259,7 +261,7 @@ class Reader : public ValueObject {
 
   double ReadDouble() {
     ASSERT((size_ >= 8) && (offset_ >= 0) && (offset_ <= size_ - 8));
-    double value = ReadUnaligned(
+    double value = LoadUnaligned(
         reinterpret_cast<const double*>(&this->buffer()[offset_]));
     offset_ += 8;
     return value;

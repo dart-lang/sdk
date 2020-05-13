@@ -107,8 +107,8 @@ Change the type of the map literal or the context in which it is used.
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -134,8 +134,8 @@ static method mapfun() → asy::Future<core::Map<core::int*, core::bool*>*>* /* 
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -161,8 +161,8 @@ static method setfun() → asy::Future<core::Set<core::int*>*>* /* originally as
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -188,8 +188,8 @@ static method iterablefun() → asy::Future<core::Iterable<core::int*>*>* /* ori
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -221,8 +221,8 @@ Future<LinkedHashSet<int>> lhsfun() async => {};
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -254,8 +254,8 @@ Future<LinkedHashMap<int, bool>> lhmfun() async => {};
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);

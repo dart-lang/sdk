@@ -5,10 +5,9 @@
 // @dart = 2.7
 
 /*spec:nnbd-off.class: A:direct,explicit=[A.T],needsArgs*/
-/*prod:nnbd-off.class: A:*/
+/*spec:nnbd-sdk.class: A:direct,explicit=[A.T*],needsArgs*/
 class A<T> {
-  /*spec:nnbd-off.member: A.m:*/
-  /*prod:nnbd-off.member: A.m:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: A.m:*/
   void m(T t) {}
 
   /*member: A.f:*/

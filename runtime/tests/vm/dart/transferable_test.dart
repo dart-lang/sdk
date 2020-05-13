@@ -37,19 +37,12 @@ main() async {
   final transferable = stopwatch.elapsedMilliseconds;
   print(
       'standard($standard ms)/transferable($transferable ms): ${standard / transferable}x');
-  Expect.isTrue(standard / transferable > 1.2);
   keepTimerRunning = false;
 }
 
 packageList(Uint8List data, bool useTransferable) {
   return useTransferable
       ? TransferableTypedData.fromList(<Uint8List>[data])
-      : data;
-}
-
-packageByteData(ByteData data, bool useTransferable) {
-  return useTransferable
-      ? TransferableTypedData.fromList(<Uint8List>[data.buffer.asUint8List()])
       : data;
 }
 
@@ -85,11 +78,15 @@ runBatch({bool useTransferable}) async {
     await inbox.moveNext();
 
     final received = inbox.current;
-    final receivedData =
-        received is TransferableTypedData ? received.materialize() : received;
+    final receivedData = received is TransferableTypedData
+        ? received.materialize().asUint8List()
+        : received;
+
     int time = workWatch.elapsedMilliseconds;
     print('${time}ms for round-trip');
     workWatch.reset();
+
+    Expect.equals(data.length, receivedData.length);
   }
   outbox.send(null);
 

@@ -27,18 +27,14 @@ Future<int, String>
 // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 // [cfe] Expected 1 type arguments.
 foo4() async {
-// [error line 29, column 1]
-// [cfe] Functions marked 'async' must have a return type assignable to 'Future'.
   return "String";
-  //     ^
-  // [cfe] A value of type 'String' can't be assigned to a variable of type 'FutureOr<invalid-type>'.
 }
 
 int
-// [error line 37, column 1, length 3]
+// [error line 33, column 1, length 3]
 // [analyzer] STATIC_TYPE_WARNING.ILLEGAL_ASYNC_RETURN_TYPE
 foo5() async {
-// [error line 40, column 1]
+// [error line 36, column 1, length 3]
 // [cfe] Functions marked 'async' must have a return type assignable to 'Future'.
   return 3;
 }
@@ -48,11 +44,9 @@ Future<int> foo6() async {
   return new Future<int>.value(3);
 }
 
-Future<Future<int>>
-foo7() async {
+Future<Future<int>> foo7() async {
+  // This is fine, the future is used to complete the returned future.
   return new Future<int>.value(3);
-  //     ^^^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
 }
 
 Iterable<int> foo8() sync* {

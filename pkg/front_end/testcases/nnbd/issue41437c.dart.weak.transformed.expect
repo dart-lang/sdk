@@ -65,8 +65,8 @@ static method getStreamNull() → asy::Stream<dynamic> /* originally async* */ {
         }
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-        :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
       }
     finally {
       :controller.{asy::_AsyncStarStreamController::close}();
@@ -100,8 +100,8 @@ static method getStreamBool() → asy::Stream<core::bool> /* originally async* *
         }
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-        :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
       }
     finally {
       :controller.{asy::_AsyncStarStreamController::close}();
@@ -135,8 +135,8 @@ static method test1() → asy::Stream<core::bool> /* originally async* */ {
         }
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-        :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
       }
     finally {
       :controller.{asy::_AsyncStarStreamController::close}();
@@ -177,8 +177,8 @@ static method test4() → asy::Stream<core::bool> /* originally async* */ {
         }
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-        :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
       }
     finally {
       :controller.{asy::_AsyncStarStreamController::close}();
@@ -219,8 +219,8 @@ static method test7() → asy::Stream<core::bool> /* originally async* */ {
         }
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-        :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
       }
     finally {
       :controller.{asy::_AsyncStarStreamController::close}();
@@ -266,8 +266,8 @@ static method test() → dynamic /* originally async */ {
                 }
                 return;
               }
-              on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-                :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+              on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
               }
             finally {
               :controller.{asy::_AsyncStarStreamController::close}();
@@ -308,8 +308,8 @@ static method test() → dynamic /* originally async */ {
                 }
                 return;
               }
-              on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-                :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+              on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
               }
             finally {
               :controller.{asy::_AsyncStarStreamController::close}();
@@ -350,8 +350,8 @@ static method test() → dynamic /* originally async */ {
                 }
                 return;
               }
-              on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-                :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+              on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
               }
             finally {
               :controller.{asy::_AsyncStarStreamController::close}();
@@ -388,8 +388,8 @@ static method test() → dynamic /* originally async */ {
                 }
                 return;
               }
-              on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-                :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+              on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
               }
             finally {
               :controller.{asy::_AsyncStarStreamController::close}();
@@ -428,8 +428,8 @@ static method test() → dynamic /* originally async */ {
                 }
                 return;
               }
-              on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-                :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+              on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
               }
             finally {
               :controller.{asy::_AsyncStarStreamController::close}();
@@ -468,8 +468,8 @@ static method test() → dynamic /* originally async */ {
                 }
                 return;
               }
-              on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-                :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+              on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
               }
             finally {
               :controller.{asy::_AsyncStarStreamController::close}();
@@ -485,8 +485,8 @@ static method test() → dynamic /* originally async */ {
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);

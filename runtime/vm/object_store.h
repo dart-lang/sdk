@@ -211,7 +211,6 @@ class ObjectPointerVisitor;
   RW(Array, dispatch_table_code_entries)                                       \
   RW(Array, code_order_table)                                                  \
   RW(Array, obfuscation_map)                                                   \
-  RW(Array, saved_initial_field_values)                                        \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
   RW(Class, ffi_struct_class)                                                  \

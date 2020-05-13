@@ -694,6 +694,40 @@ String? g() => 1 == 2 ? "Hello" : null;
         explanation: "Changed type 'String' to be nullable");
   }
 
+  Future<void> test_function_typed_parameter_made_nullable_due_to_hint() async {
+    var content = 'f(void g(int i)/*?*/) {}';
+    var migratedContent = 'f(void g(int  i)/*?*/) {}';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    var textToRemove = '/*?*/';
+    assertRegionPair(regions, 0,
+        offset1: migratedContent.indexOf(textToRemove),
+        length1: 2,
+        offset2: migratedContent.indexOf(textToRemove) + 3,
+        length2: 2,
+        explanation:
+            "Changed type 'void Function(int)' to be nullable, due to a "
+            'nullability hint',
+        kind: NullabilityFixKind.makeTypeNullableDueToHint,
+        traces: isNotNull, edits: (List<EditDetail> edits) {
+      expect(edits, hasLength(2));
+      var editsByDescription = {for (var edit in edits) edit.description: edit};
+      assertEdit(
+          edit: editsByDescription['Change to /*!*/ hint'],
+          offset: content.indexOf(textToRemove),
+          length: textToRemove.length,
+          replacement: '/*!*/');
+      assertEdit(
+          edit: editsByDescription['Remove /*?*/ hint'],
+          offset: content.indexOf(textToRemove),
+          length: textToRemove.length,
+          replacement: '');
+      return true;
+    });
+  }
+
   Future<void> test_increment_nullable_result() async {
     var unit = await buildInfoForSingleTestFile('''
 abstract class C {
@@ -985,7 +1019,7 @@ void f(A  a) => a.m = null;
     // Entry 0 is the nullability of the type of A.m.
     // TODO(srawlins): "A" is probably incorrect here. Should be "A.m".
     assertTraceEntry(unit, entries[0], 'A', unit.content.indexOf('int?'),
-        contains('explicit type'));
+        contains('A.m (test.dart:2:3)'));
   }
 
   Future<void> test_removal_handles_offsets_correctly() async {
@@ -1328,7 +1362,12 @@ String? g() => 1 == 2 ? "Hello" : null;
     expect(region.explanation, "Type 'int' was not made nullable");
     expect(region.edits.map((edit) => edit.description).toSet(),
         {'Add /*?*/ hint', 'Add /*!*/ hint'});
-    expect(region.traces, isEmpty);
+    var trace = region.traces.first;
+    expect(trace.description, 'Non-nullability reason');
+    var entries = trace.entries;
+    expect(entries, hasLength(1));
+    assertTraceEntry(unit, entries[0], null, unit.content.indexOf('int'),
+        'No reason found to make nullable');
     expect(region.kind, NullabilityFixKind.typeNotMadeNullable);
   }
 

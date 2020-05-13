@@ -579,7 +579,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       LibraryBuilder coreLibrary = loader.read(
           resolve(this.importUri,
               new Uri(scheme: "dart", path: "core").toString(), -1),
-          -1);
+          -1,
+          accessor: loader.first);
       imported = coreLibrary
           .loader.builders[new Uri(scheme: 'dart', path: dottedName)];
     }

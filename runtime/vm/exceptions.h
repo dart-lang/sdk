@@ -181,9 +181,9 @@ class CatchEntryMove {
   static CatchEntryMove FromSlot(SourceKind kind,
                                  intptr_t src_slot,
                                  intptr_t dest_slot) {
-    return CatchEntryMove(src_slot,
-                          SourceKindField::encode(kind) |
-                              (dest_slot << SourceKindField::bitsize()));
+    return CatchEntryMove(src_slot, SourceKindField::encode(kind) |
+                                        (static_cast<uintptr_t>(dest_slot)
+                                         << SourceKindField::bitsize()));
   }
 
   static intptr_t EncodePairSource(intptr_t src_lo_slot, intptr_t src_hi_slot) {

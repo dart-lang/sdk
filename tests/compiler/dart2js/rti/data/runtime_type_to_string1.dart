@@ -4,32 +4,25 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off.class: Class1:*/
-/*prod:nnbd-off.class: Class1:*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class1:*/
 class Class1 {
-  /*spec:nnbd-off.member: Class1.:*/
-  /*prod:nnbd-off.member: Class1.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class1.:*/
   Class1();
 }
 
-/*spec:nnbd-off.class: Class2:*/
-/*prod:nnbd-off.class: Class2:*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class2:*/
 class Class2<T> {
-  /*spec:nnbd-off.member: Class2.:*/
-  /*prod:nnbd-off.member: Class2.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class2.:*/
   Class2();
 }
 
-/*spec:nnbd-off.class: Class3:needsArgs*/
-/*prod:nnbd-off.class: Class3:*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: Class3:needsArgs*/
 class Class3<T> implements Class1 {
-  /*spec:nnbd-off.member: Class3.:*/
-  /*prod:nnbd-off.member: Class3.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class3.:*/
   Class3();
 }
 
-/*spec:nnbd-off.member: main:*/
-/*prod:nnbd-off.member: main:*/
+/*spec:nnbd-off|prod:nnbd-off.member: main:*/
 main() {
   Class1 cls1 = new Class1();
   print(cls1.runtimeType.toString());

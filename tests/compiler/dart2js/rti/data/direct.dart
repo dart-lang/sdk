@@ -4,7 +4,8 @@
 
 // @dart = 2.7
 
-/*class: A:explicit=[A<int>],needsArgs*/
+/*spec:nnbd-off|prod:nnbd-off.class: A:explicit=[A<int>],needsArgs*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: A:explicit=[A<int*>*],needsArgs*/
 class A<T> {}
 
 main() {

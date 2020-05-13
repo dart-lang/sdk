@@ -537,6 +537,14 @@ class ObjectLayout {
     }
   }
 
+  template <typename type>
+  void StorePointerUnaligned(type const* addr, type value, Thread* thread) {
+    StoreUnaligned(const_cast<type*>(addr), value);
+    if (value->IsHeapObject()) {
+      CheckHeapPointerStore(value, thread);
+    }
+  }
+
   DART_FORCE_INLINE
   void CheckHeapPointerStore(ObjectPtr value, Thread* thread) {
     uint32_t source_tags = this->tags_;
@@ -1643,50 +1651,41 @@ class PcDescriptorsLayout : public ObjectLayout {
    public:
     // Most of the time try_index will be small and merged field will fit into
     // one byte.
-    static int32_t Encode(intptr_t kind,
-                          intptr_t try_index,
-                          intptr_t yield_index) {
-      const intptr_t kind_shift = Utils::ShiftForPowerOfTwo(kind);
-      ASSERT(Utils::IsUint(kKindShiftSize, kind_shift));
-      ASSERT(Utils::IsInt(kTryIndexSize, try_index));
-      ASSERT(Utils::IsInt(kYieldIndexSize, yield_index));
-      return (yield_index << kYieldIndexPos) | (try_index << kTryIndexPos) |
-             (kind_shift << kKindShiftPos);
+    static uint32_t Encode(intptr_t kind,
+                           intptr_t try_index,
+                           intptr_t yield_index) {
+      return KindShiftBits::encode(Utils::ShiftForPowerOfTwo(kind)) |
+             TryIndexBits::encode(try_index + 1) |
+             YieldIndexBits::encode(yield_index + 1);
     }
 
-    static intptr_t DecodeKind(int32_t kind_and_metadata) {
-      const intptr_t kKindShiftMask = (1 << kKindShiftSize) - 1;
-      return 1 << (kind_and_metadata & kKindShiftMask);
+    static intptr_t DecodeKind(uint32_t kind_and_metadata) {
+      return 1 << KindShiftBits::decode(kind_and_metadata);
     }
 
-    static intptr_t DecodeTryIndex(int32_t kind_and_metadata) {
-      // Arithmetic shift.
-      return static_cast<int32_t>(static_cast<uint32_t>(kind_and_metadata)
-                                  << (32 - (kTryIndexPos + kTryIndexSize))) >>
-             (32 - kTryIndexSize);
+    static intptr_t DecodeTryIndex(uint32_t kind_and_metadata) {
+      return TryIndexBits::decode(kind_and_metadata) - 1;
     }
 
-    static intptr_t DecodeYieldIndex(int32_t kind_and_metadata) {
-      // Arithmetic shift.
-      return static_cast<int32_t>(
-                 static_cast<uint32_t>(kind_and_metadata)
-                 << (32 - (kYieldIndexPos + kYieldIndexSize))) >>
-             (32 - kYieldIndexSize);
+    static intptr_t DecodeYieldIndex(uint32_t kind_and_metadata) {
+      return YieldIndexBits::decode(kind_and_metadata) - 1;
     }
 
    private:
-    static const intptr_t kKindShiftPos = 0;
     static const intptr_t kKindShiftSize = 3;
-    // Is kKindShiftSize enough bits?
-    COMPILE_ASSERT(kLastKind <= 1 << ((1 << kKindShiftSize) - 1));
-
-    static const intptr_t kTryIndexPos = kKindShiftPos + kKindShiftSize;
     static const intptr_t kTryIndexSize = 10;
+    static const intptr_t kYieldIndexSize = 32 - kKindShiftSize - kTryIndexSize;
 
-    static const intptr_t kYieldIndexPos = kTryIndexPos + kTryIndexSize;
-    static const intptr_t kYieldIndexSize = 32 - kYieldIndexPos;
-
-    COMPILE_ASSERT((kYieldIndexPos + kYieldIndexSize) == 32);
+    class KindShiftBits
+        : public BitField<uint32_t, intptr_t, 0, kKindShiftSize> {};
+    class TryIndexBits : public BitField<uint32_t,
+                                         intptr_t,
+                                         KindShiftBits::kNextBit,
+                                         kTryIndexSize> {};
+    class YieldIndexBits : public BitField<uint32_t,
+                                           intptr_t,
+                                           TryIndexBits::kNextBit,
+                                           kYieldIndexSize> {};
   };
 
  private:
@@ -2562,7 +2561,7 @@ class ArrayLayout : public InstanceLayout {
   friend class ICData;            // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
 
-  friend class HeapPage;
+  friend class OldPage;
 };
 
 class ImmutableArrayLayout : public ArrayLayout {

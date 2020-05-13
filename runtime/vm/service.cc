@@ -1685,8 +1685,7 @@ static ObjectPtr LookupObjectId(Thread* thread,
     return Object::null();
   }
 
-  ObjectIdRing* ring = thread->isolate()->object_id_ring();
-  ASSERT(ring != NULL);
+  ObjectIdRing* ring = thread->isolate()->EnsureObjectIdRing();
   intptr_t id = -1;
   if (!GetIntegerId(arg, &id)) {
     *kind = ObjectIdRing::kInvalid;

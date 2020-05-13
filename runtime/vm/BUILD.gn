@@ -157,7 +157,7 @@ template("gen_vm_platform") {
     }
     single_root_scheme = "org-dartlang-sdk"
     single_root_base = rebase_path("../../")
-    if (use_nnbd) {
+    if (!dont_use_nnbd) {
       libraries_specification_uri =
           "org-dartlang-sdk:///sdk_nnbd/lib/libraries.json"
     } else {
@@ -175,7 +175,7 @@ template("gen_vm_platform") {
       "-Ddart.developer.causal_async_stacks=$allow_causal_async_stacks",
       "-Ddart.isVM=true",
     ]
-    if (use_nnbd) {
+    if (!dont_use_nnbd) {
       args += [ "--enable-experiment=non-nullable" ]
       args += [ "--nnbd-agnostic" ]
     }

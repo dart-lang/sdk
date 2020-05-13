@@ -1725,8 +1725,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var type = _variables.decoratedElementType(declaredElement);
       var enclosingElement = declaredElement.enclosingElement;
       if (!declaredElement.isStatic && enclosingElement is ClassElement) {
-        var overriddenElements = _inheritanceManager.getOverridden(
-            enclosingElement.thisType,
+        var overriddenElements = _inheritanceManager.getOverridden2(
+            enclosingElement,
             Name(enclosingElement.library.source.uri, declaredElement.name));
         for (var overriddenElement
             in overriddenElements ?? <ExecutableElement>[]) {
@@ -1734,8 +1734,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               variable, type, enclosingElement, overriddenElement);
         }
         if (!declaredElement.isFinal) {
-          var overriddenElements = _inheritanceManager.getOverridden(
-              enclosingElement.thisType,
+          var overriddenElements = _inheritanceManager.getOverridden2(
+              enclosingElement,
               Name(enclosingElement.library.source.uri,
                   declaredElement.name + '='));
           for (var overriddenElement
@@ -2032,7 +2032,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType _dispatch(AstNode node, {bool skipNullCheckHint = false}) {
     var type = node?.accept(this);
-    if (!skipNullCheckHint && node is Expression) {
+    if (!skipNullCheckHint &&
+        node is Expression &&
+        // A /*!*/ hint following an AsExpression should be interpreted as a
+        // nullability hint for the type, not a null-check hint.
+        node is! AsExpression) {
       type = _handleNullCheckHint(node, type);
     }
     return type;
@@ -2181,11 +2185,17 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           sourceType = _makeNullableDynamicType(compoundOperatorInfo);
         }
       } else {
+        var unwrappedExpression = expression.unParenthesized;
+        var hard = (questionAssignNode == null &&
+                _postDominatedLocals.isReferenceInScope(expression)) ||
+            // An edge from a cast should be hard, so that the cast type
+            // annotation is appropriately made nullable according to the
+            // destination type.
+            unwrappedExpression is AsExpression;
         _checkAssignment(edgeOrigin, FixReasonTarget.root,
             source: sourceType,
             destination: destinationType,
-            hard: questionAssignNode == null &&
-                _postDominatedLocals.isReferenceInScope(expression),
+            hard: hard,
             sourceIsFunctionLiteral: expression is FunctionExpression);
       }
       if (destinationLocalVariable != null) {
@@ -2269,8 +2279,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (declaredElement is! ConstructorElement) {
         var enclosingElement = declaredElement.enclosingElement;
         if (enclosingElement is ClassElement) {
-          var overriddenElements = _inheritanceManager.getOverridden(
-              enclosingElement.thisType,
+          var overriddenElements = _inheritanceManager.getOverridden2(
+              enclosingElement,
               Name(enclosingElement.library.source.uri, declaredElement.name));
           for (var overriddenElement
               in overriddenElements ?? <ExecutableElement>[]) {
@@ -2957,8 +2967,8 @@ mixin _AssignmentChecker {
   /// [destination].  [origin] should be used as the origin for any edges
   /// created.  [hard] indicates whether a hard edge should be created.
   /// [sourceIsFunctionLiteral] indicates whether the source of the assignment
-  /// is a function literal expression. [sourceIsSetupCall] indicates whether the
-  /// source of the assignment is a function literal passed to the test
+  /// is a function literal expression. [sourceIsSetupCall] indicates whether
+  /// the source of the assignment is a function literal passed to the test
   /// package's `setUp` function.
   void _checkAssignment(EdgeOrigin origin, FixReasonTarget edgeTarget,
       {@required DecoratedType source,

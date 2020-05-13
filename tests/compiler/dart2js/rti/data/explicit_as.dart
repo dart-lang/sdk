@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 /*spec:nnbd-off.class: C:direct,explicit=[C.T,C<String>],needsArgs*/
-/*prod:nnbd-off.class: C:*/
+/*spec:nnbd-sdk.class: C:direct,explicit=[C.T*,C<String*>*],needsArgs*/
 class C<T> {
   T field;
 }

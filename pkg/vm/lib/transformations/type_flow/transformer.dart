@@ -1001,12 +1001,12 @@ class _TreeShakerPass1 extends Transformer {
 
   @override
   TreeNode defaultMember(Member node) {
+    currentMember = node;
     if (shaker.isMemberBodyReachable(node)) {
       if (kPrintTrace) {
         tracePrint("Visiting $node");
       }
       shaker.addUsedMember(node);
-      currentMember = node;
       node.transformChildren(this);
     } else if (shaker.isMemberReferencedFromNativeCode(node)) {
       // Preserve members referenced from native code to satisfy lookups, even
@@ -1015,11 +1015,13 @@ class _TreeShakerPass1 extends Transformer {
       // its enclosing class are allocated.
       shaker.addUsedMember(node);
     }
+    currentMember = null;
     return node;
   }
 
   @override
   TreeNode visitField(Field node) {
+    currentMember = node;
     if (shaker.retainField(node)) {
       if (kPrintTrace) {
         tracePrint("Visiting $node");
@@ -1037,6 +1039,7 @@ class _TreeShakerPass1 extends Transformer {
       // used as an instance call target.
       fieldMorpher.adjustInstanceCallTarget(node, isSetter: true);
     }
+    currentMember = null;
     return node;
   }
 

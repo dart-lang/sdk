@@ -659,7 +659,7 @@ static Dart_QualifiedFunctionName no_entry_points[] = {
 
 static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
   uint8_t* kernel_buffer = NULL;
-  intptr_t kernel_buffer_size = NULL;
+  intptr_t kernel_buffer_size = 0;
   ReadFile(inputs.GetArgument(0), &kernel_buffer, &kernel_buffer_size);
 
   Dart_IsolateFlags isolate_flags;

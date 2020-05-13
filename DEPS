@@ -43,7 +43,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "306b15d60048bee617b7d5ede9b49ebafb7d1c42",
+  "co19_rev": "f65f3578f95415c9a2f3ad002aac7b507549e64a",
   "co19_2_rev": "368bfa9e877a2df003547f64bb17e30596af10c7",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -69,10 +69,10 @@ vars = {
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
   "charcode_tag": "9085e6b6127f084d66c0a94810a808121459012a",
   "chrome_rev" : "19997",
-  "cli_util_rev" : "4ad7ccbe3195fd2583b30f86a86697ef61e80f41",
+  "cli_util_tag" : "0.1.4",
   "collection_tag": "7be42e03d427cc19571cd7f9fc628a5913a6b757",
   "convert_tag": "49bde5b371eb5c2c8e721557cf762f17c75e49fc",
-  "crypto_tag" : "2.0.6",
+  "crypto_tag": "7422fb2f6584fe1839eb30bc4ca56e9f9760b801",
   "csslib_tag": "bf372d4fdc6dfa232ad93f77a0a3de0891edd04c",
   "dart2js_info_tag" : "0.6.0",
 
@@ -97,7 +97,7 @@ vars = {
   "html_tag": "083a36cd801a4b787ba156b7c6e4c8b2e2daed4a",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev" : "ea269f79321d659208402088f3297e8920a88ee6",
-  "http_parser_tag" : "3.1.3",
+  "http_parser_tag": "6e63a97b5aaa2b4d1215fe01683e51fb73258e54",
   "http_retry_tag": "0.1.1",
   "http_tag": "a131e563c09349f624d5421237183a06fb10552d",
   "http_throttle_tag" : "1.0.2",
@@ -116,7 +116,7 @@ vars = {
   "mustache_tag": "664737ecad027e6b96d0d1e627257efa0e46fcb1",
   "oauth2_tag": "1.6.0",
   "package_config_tag": "v1.9.2",
-  "path_tag": "1.7.0",
+  "path_tag": "4b8c83cd5ccfcc8101acd2940ffb5a44d24ec57e",
   "pedantic_tag": "v1.9.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "86fbb2cde9bbc66c8d159909d2f65a5981ea5b50",
@@ -139,7 +139,7 @@ vars = {
   "stack_trace_tag": "1.9.3",
   "stagehand_tag": "v3.3.7",
   "stream_channel_tag": "2.0.0",
-  "string_scanner_tag": "1.0.3",
+  "string_scanner_tag": "a918e7371af6b6e73bfd534ff9da6084741c1f99",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "b3da31e9684a99cfe5f192b89914492018b44da7",
@@ -275,7 +275,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/charcode":
       Var("dart_git") + "charcode.git" + "@" + Var("charcode_tag"),
   Var("dart_root") + "/third_party/pkg/cli_util":
-      Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_rev"),
+      Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_tag"),
   Var("dart_root") + "/third_party/pkg/collection":
       Var("dart_git") + "collection.git" + "@" + Var("collection_tag"),
   Var("dart_root") + "/third_party/pkg/convert":

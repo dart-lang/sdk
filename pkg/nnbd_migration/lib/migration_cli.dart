@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' hide File;
 
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
@@ -12,7 +12,8 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
+import 'package:analyzer/file_system/file_system.dart'
+    show File, ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -25,6 +26,8 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
 import 'package:nnbd_migration/api_for_analysis_server/driver_provider.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/utilities/source_edit_diff_formatter.dart';
 import 'package:path/path.dart' show Context;
 
 String _pluralize(int count, String single, {String multiple}) {
@@ -44,6 +47,7 @@ class CommandLineOptions {
   static const ignoreErrorsFlag = 'ignore-errors';
   static const previewPortOption = 'preview-port';
   static const sdkPathOption = 'sdk-path';
+  static const summaryOption = 'summary';
   static const verboseFlag = 'verbose';
   static const webPreviewFlag = 'web-preview';
 
@@ -57,6 +61,8 @@ class CommandLineOptions {
 
   final String sdkPath;
 
+  final String summary;
+
   final bool webPreview;
 
   CommandLineOptions(
@@ -65,6 +71,7 @@ class CommandLineOptions {
       @required this.ignoreErrors,
       @required this.previewPort,
       @required this.sdkPath,
+      @required this.summary,
       @required this.webPreview});
 }
 
@@ -140,11 +147,20 @@ class MigrationCli {
       var rest = argResults.rest;
       String migratePath;
       if (rest.isEmpty) {
-        migratePath = Directory.current.path;
+        migratePath = pathContext.current;
       } else if (rest.length > 1) {
         throw _BadArgException('No more than one path may be specified.');
       } else {
-        migratePath = rest[0];
+        migratePath = pathContext
+            .normalize(pathContext.join(pathContext.current, rest[0]));
+      }
+      var migrateResource = resourceProvider.getResource(migratePath);
+      if (migrateResource is File) {
+        if (migrateResource.exists) {
+          throw _BadArgException('$migratePath is a file.');
+        } else {
+          throw _BadArgException('$migratePath does not exist.');
+        }
       }
       var applyChanges =
           argResults[CommandLineOptions.applyChangesFlag] as bool;
@@ -169,6 +185,7 @@ class MigrationCli {
           sdkPath: argResults[CommandLineOptions.sdkPathOption] as String ??
               defaultSdkPathOverride ??
               getSdkPath(),
+          summary: argResults[CommandLineOptions.summaryOption] as String,
           webPreview: webPreview);
       if (isVerbose) {
         logger = loggerFactory(true);
@@ -195,8 +212,6 @@ class MigrationCli {
     parseCommandLineArgs(args);
     if (exitCode != null) return;
 
-    // TODO(paulberry): if debugging, create instrumentation log
-
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
 
@@ -213,10 +228,11 @@ class MigrationCli {
       var fixCodeProcessor = _FixCodeProcessor(context, this);
       dartFixListener = _DartFixListener(
           _DriverProvider(resourceProvider, context.currentSession));
-      nonNullableFix = NonNullableFix(dartFixListener,
+      nonNullableFix = NonNullableFix(dartFixListener, resourceProvider,
           included: [options.directory],
           preferredPort: options.previewPort,
-          enablePreview: options.webPreview);
+          enablePreview: options.webPreview,
+          summaryPath: options.summary);
       fixCodeProcessor.registerCodeTask(nonNullableFix);
       try {
         await fixCodeProcessor.runFirstPhase();
@@ -383,6 +399,9 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
             'dynamically allocate a port.');
     parser.addOption(CommandLineOptions.sdkPathOption,
         help: 'The path to the Dart SDK.', hide: hide);
+    parser.addOption(CommandLineOptions.summaryOption,
+        help:
+            'Output path for a machine-readable summary of migration changes');
     parser.addFlag(CommandLineOptions.verboseFlag,
         abbr: 'v',
         defaultsTo: false,
@@ -407,10 +426,12 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
     }
 
     // present a diff-like view
+    var diffStyle = DiffStyle(logger.ansi);
     for (SourceFileEdit sourceFileEdit in migrationResults.sourceChange.edits) {
       String file = sourceFileEdit.file;
       String relPath = pathContext.relative(file, from: options.directory);
-      int count = sourceFileEdit.edits.length;
+      var edits = sourceFileEdit.edits;
+      int count = edits.length;
 
       logger.stdout('');
       logger.stdout('${ansi.emphasized(relPath)} '
@@ -424,8 +445,10 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
       if (source == null) {
         logger.stdout('  (unable to retrieve source for file)');
       } else {
-        // TODO(paulberry): implement this
-        logger.stdout('  (diff view not yet functional)');
+        for (var line
+            in diffStyle.formatDiff(source, _sourceEditsToAtomicEdits(edits))) {
+          logger.stdout('  $line');
+        }
       }
     }
   }
@@ -488,6 +511,14 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
     } else {
       return Logger.standard(ansi: ansi);
     }
+  }
+
+  static Map<int, List<AtomicEdit>> _sourceEditsToAtomicEdits(
+      List<SourceEdit> edits) {
+    return {
+      for (var edit in edits)
+        edit.offset: [AtomicEdit.replace(edit.length, edit.replacement)]
+    };
   }
 }
 

@@ -86,7 +86,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
             type.getDisplayString(withNullability: true), object);
       }
 
-      var interface = inheritance.getInterface(element.thisType);
+      var interface = inheritance.getInterface(element);
       for (var name in interface.map.keys) {
         var executable = interface.map[name];
 

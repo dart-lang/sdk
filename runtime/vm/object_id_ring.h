@@ -39,7 +39,7 @@ class ObjectIdRing {
   static const int32_t kInvalidId = -1;
   static const int32_t kDefaultCapacity = 8192;
 
-  explicit ObjectIdRing(int32_t capacity = kDefaultCapacity);
+  ObjectIdRing();
   ~ObjectIdRing();
 
   // Adds the argument to the ring and returns its id. Note we do not allow

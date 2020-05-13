@@ -18,10 +18,9 @@ class Class1 {
 }
 
 /*spec:nnbd-off.class: Class2:direct,explicit=[Class2.T],needsArgs*/
-/*prod:nnbd-off.class: Class2:*/
+/*spec:nnbd-sdk.class: Class2:direct,explicit=[Class2.T*],needsArgs*/
 class Class2<T> {
-  /*spec:nnbd-off.member: Class2.method4:*/
-  /*prod:nnbd-off.member: Class2.method4:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class2.method4:*/
   num method4(T n) => null;
 }
 
@@ -31,8 +30,8 @@ class Class3<T> {
   T method5(num n) => null;
 }
 
-/*prod:nnbd-off.class: Class4:*/
 /*spec:nnbd-off.class: Class4:direct,explicit=[Class4.T],needsArgs*/
+/*spec:nnbd-sdk.class: Class4:direct,explicit=[Class4.T*],needsArgs*/
 class Class4<T> {
   /*member: Class4.method6:*/
   num method6(num n, T t) => null;

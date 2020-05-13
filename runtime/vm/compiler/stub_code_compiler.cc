@@ -62,6 +62,14 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
   if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
     __ LoadField(CODE_REG,
                  FieldAddress(kFunctionReg, target::Function::code_offset()));
+    if (FLAG_enable_interpreter) {
+      // InterpretCall stub needs arguments descriptor for all function calls.
+      __ LoadObject(ARGS_DESC_REG,
+                    CastHandle<Object>(OneArgArgumentsDescriptor()));
+    } else {
+      // Load a GC-safe value for the arguments descriptor (unused but tagged).
+      __ LoadImmediate(ARGS_DESC_REG, 0);
+    }
   }
   __ Call(FieldAddress(kFunctionReg, target::Function::entry_point_offset()));
   __ Drop(1);  // Drop argument.

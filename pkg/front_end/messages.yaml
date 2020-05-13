@@ -2230,6 +2230,14 @@ TypedefNullableType:
   configuration: nnbd-strong
   script: typedef F = void Function()?;
 
+TypedefUnaliasedTypeCause:
+  template: "This is the type denoted by the type alias."
+  severity: CONTEXT
+
+TypedefCause:
+  template: "The issue arises via this type alias."
+  severity: CONTEXT
+
 LibraryDirectiveNotFirst:
   index: 37
   template: "The library directive must appear before all other directives."

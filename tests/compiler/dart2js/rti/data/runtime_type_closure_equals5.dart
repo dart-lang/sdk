@@ -6,36 +6,30 @@
 
 import 'package:expect/expect.dart';
 
-/*prod:nnbd-off.class: Class1:needsArgs*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: Class1:needsArgs*/
 /*spec:nnbd-off.class: Class1:direct,explicit=[Class1.T],needsArgs*/
+/*spec:nnbd-sdk.class: Class1:direct,explicit=[Class1.T*],needsArgs*/
 class Class1<T> {
-  /*spec:nnbd-off.member: Class1.:*/
-  /*prod:nnbd-off.member: Class1.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class1.:*/
   Class1();
 
-  /*spec:nnbd-off.member: Class1.method1a:needsSignature*/
-  /*prod:nnbd-off.member: Class1.method1a:needsSignature*/
+  /*member: Class1.method1a:needsSignature*/
   T method1a() => null;
 
-  /*spec:nnbd-off.member: Class1.method1b:needsSignature*/
-  /*prod:nnbd-off.member: Class1.method1b:needsSignature*/
+  /*member: Class1.method1b:needsSignature*/
   T method1b() => null;
 
-  /*spec:nnbd-off.member: Class1.method2:needsSignature*/
-  /*prod:nnbd-off.member: Class1.method2:needsSignature*/
+  /*member: Class1.method2:needsSignature*/
   T method2(T t, String s) => t;
 }
 
-/*spec:nnbd-off.class: Class2:*/
-/*prod:nnbd-off.class: Class2:*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class2:*/
 class Class2<T> {
-  /*spec:nnbd-off.member: Class2.:*/
-  /*prod:nnbd-off.member: Class2.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class2.:*/
   Class2();
 }
 
-/*spec:nnbd-off.member: main:*/
-/*prod:nnbd-off.member: main:*/
+/*spec:nnbd-off|prod:nnbd-off.member: main:*/
 main() {
   var c = new Class1<int>();
 

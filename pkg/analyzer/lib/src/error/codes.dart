@@ -12,6 +12,10 @@ export 'package:analyzer/src/dart/error/hint_codes.dart';
 export 'package:analyzer/src/dart/error/lint_codes.dart';
 export 'package:analyzer/src/dart/error/todo_codes.dart';
 
+// It is hard to visually separate each code's _doc comment_ from its published
+// _documentation comment_ when each is written as an end-of-line comment.
+// ignore_for_file: slash_for_doc_comments
+
 /**
  * The error codes used for compile time errors caused by constant evaluation
  * that would throw an exception when run in checked mode. The client of the
@@ -5304,12 +5308,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       correction: "Try adding a part-of directive to '{0}'.",
       hasPublishedDocs: true);
 
-  /// Parts: It is a static warning if the referenced part declaration
-  /// <i>p</i> names a library that does not have a library tag.
-  ///
-  /// Parameters:
-  /// 0: the URI of the expected library
-  /// 1: the non-matching actual library name from the "part of" declaration
+  /**
+   * Parts: It is a static warning if the referenced part declaration <i>p</i>
+   * names a library that does not have a library tag.
+   *
+   * Parameters:
+   * 0: the URI of the expected library
+   * 1: the non-matching actual library name from the "part of" declaration
+   */
   static const CompileTimeErrorCode PART_OF_UNNAMED_LIBRARY =
       CompileTimeErrorCode(
           'PART_OF_UNNAMED_LIBRARY',
@@ -5766,11 +5772,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('SUPER_INITIALIZER_IN_OBJECT',
           "The class 'Object' can't invoke a constructor from a superclass.");
 
-  /// It is an error if any case of a switch statement except the last case
-  /// (the default case if present) may complete normally. The previous
-  /// syntactic restriction requiring the last statement of each case to be
-  /// one of an enumerated list of statements (break, continue, return,
-  /// throw, or rethrow) is removed.
+  /**
+   * It is an error if any case of a switch statement except the last case (the
+   * default case if present) may complete normally. The previous syntactic
+   * restriction requiring the last statement of each case to be one of an
+   * enumerated list of statements (break, continue, return, throw, or rethrow)
+   * is removed.
+   */
   static const CompileTimeErrorCode SWITCH_CASE_COMPLETES_NORMALLY =
       CompileTimeErrorCode('SWITCH_CASE_COMPLETES_NORMALLY',
           "The 'case' should not complete normally.",

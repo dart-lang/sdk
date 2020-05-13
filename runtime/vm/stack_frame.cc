@@ -114,9 +114,12 @@ IsolateGroup* StackFrame::IsolateGroupOfBareInstructionsFrame() const {
   }
 
   isolate_group = this->isolate_group();
-  if (isolate_group->object_store()->code_order_table() != Object::null()) {
-    auto rct = isolate_group->reverse_pc_lookup_cache();
-    if (rct->Contains(pc())) return isolate_group;
+  auto* object_store = isolate_group->object_store();
+  if (object_store != nullptr) {
+    if (object_store->code_order_table() != Object::null()) {
+      auto rct = isolate_group->reverse_pc_lookup_cache();
+      if (rct->Contains(pc())) return isolate_group;
+    }
   }
 
   return nullptr;

@@ -133,10 +133,8 @@ class _ClassVerifier {
       return;
     }
 
-    InterfaceTypeImpl type = classElement.thisType;
-
     // Compute the interface of the class.
-    var interface = inheritance.getInterface(type);
+    var interface = inheritance.getInterface(classElement);
 
     // Report conflicts between direct superinterfaces of the class.
     for (var conflict in interface.conflicts) {
@@ -146,6 +144,7 @@ class _ClassVerifier {
     if (classElement.supertype != null) {
       directSuperInterfaces.add(classElement.supertype);
     }
+    directSuperInterfaces.addAll(classElement.superclassConstraints);
 
     // Each mixin in `class C extends S with M0, M1, M2 {}` is equivalent to:
     //   class S&M0 extends S { ...members of M0... }
@@ -155,7 +154,7 @@ class _ClassVerifier {
     // So, we need to check members of each mixin against superinterfaces
     // of `S`, and superinterfaces of all previous mixins.
     var mixinNodes = withClause?.mixinTypes;
-    var mixinTypes = type.mixins;
+    var mixinTypes = classElement.mixins;
     for (var i = 0; i < mixinTypes.length; i++) {
       var mixinType = mixinTypes[i];
       _checkDeclaredMembers(mixinNodes[i], mixinType, mixinIndex: i);
@@ -301,7 +300,7 @@ class _ClassVerifier {
   }
 
   /// Check that instance members of [type] are valid overrides of the
-  /// corresponding instance members in each of [allSuperinterfaces].
+  /// corresponding instance members in each of [directSuperInterfaces].
   void _checkDeclaredMembers(AstNode node, InterfaceTypeImpl type,
       {@required int mixinIndex}) {
     var libraryUri = type.element.library.source.uri;
@@ -598,7 +597,7 @@ class _ClassVerifier {
   void _reportInconsistentInheritance(AstNode node, Conflict conflict) {
     var name = conflict.name;
 
-    if (conflict.getter != null && conflict.method != null) {
+    if (conflict is GetterMethodConflict) {
       reporter.reportErrorForNode(
         CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
         node,
@@ -608,7 +607,7 @@ class _ClassVerifier {
           conflict.method.enclosingElement.name
         ],
       );
-    } else {
+    } else if (conflict is CandidatesConflict) {
       var candidatesStr = conflict.candidates.map((candidate) {
         var className = candidate.enclosingElement.name;
         var typeStr = candidate.type.getDisplayString(
@@ -622,6 +621,8 @@ class _ClassVerifier {
         node,
         [name.name, candidatesStr],
       );
+    } else {
+      throw StateError('${conflict.runtimeType}');
     }
   }
 

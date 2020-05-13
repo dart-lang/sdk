@@ -1,0 +1,27 @@
+void good() {
+[
+([
+])
+];
+}
+
+void bad() {
+[
+(
+])
+];
+}
+
+void[KeywordToken] good[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+[[BeginToken]
+([BeginToken][[BeginToken]
+][SimpleToken])[SimpleToken]
+][SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] bad[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+[[BeginToken]
+([BeginToken]
+][SimpleToken])[SimpleToken]
+][SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

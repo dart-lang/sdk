@@ -11,16 +11,21 @@ import '../helpers/compiler_helper.dart';
 
 const String TEST = r'''
 class A {
-  var field = 42;
+  int field = 0;
+}
+dynamic g;
+test(A a) {
+  var b = [42, -1];
+  var c = a.field;
+  g = b[0] ~/ b[1];
+  // `~/` on numbers is known to have no effects so it should not block
+  // store-forwarding of a field.
+  return c + a.field;
 }
 main() {
-  var a = new A();
-  var b = [42, -1];
-  // Force a setter on [field].
-  if (false) a.field = 12;
-  var c = a.field;
-  print(b[0] ~/ b[1]);
-  return c + a.field;
+  // Assign field so it is not defacto final.
+  test(A()..field = 42);
+  test(A()..field = 43);
 }
 ''';
 

@@ -8,6 +8,16 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
     method fooMethod() → void {
       dart.core::print("fooMethod");
     }
+    abstract member-signature get _identityHashCode() → dart.core::int*;
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
   }
 }
 library from "org-dartlang-test:///lib2.dart" as lib2 {
@@ -28,7 +38,7 @@ library from "org-dartlang-test:///lib3.dart" as lib3 {
 
   static method lib3Method(lib1::Foo* foo) → void {
     lib1::Foo* bar = new lib2::Bar::•();
-    dart.core::bool* equal = foo.{dart.core::Object::==}(bar);
+    dart.core::bool* equal = foo.{lib1::Foo::==}(bar);
     dart.core::print("foo == bar = ${equal}");
     dart.core::print("Done!");
   }

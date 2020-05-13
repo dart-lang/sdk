@@ -56,6 +56,8 @@ abstract class NullabilityNodeTarget {
     return '$description (${codeReference.shortName})';
   }
 
+  NullabilityNodeTarget get supertype => _NullabilityNodeTarget_Supertype(this);
+
   /// Creates a new [NullabilityNodeTarget] representing a named function
   /// parameter of this target.
   NullabilityNodeTarget namedParameter(String name) =>
@@ -156,6 +158,14 @@ class _NullabilityNodeTarget_ReturnType extends _NullabilityNodeTarget_Part {
 
   @override
   String get description => 'return type of ${inner.description}';
+}
+
+/// Nullability node target representing one of a class's supertypes.
+class _NullabilityNodeTarget_Supertype extends _NullabilityNodeTarget_Part {
+  _NullabilityNodeTarget_Supertype(NullabilityNodeTarget inner) : super(inner);
+
+  @override
+  String get description => 'supertype of ${inner.description}';
 }
 
 /// Nullability node target for which we only know a string description.

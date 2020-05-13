@@ -1,0 +1,66 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/callable_type_variable.dart:25:19: Error: Too few positional arguments: 1 required, 0 given.
+//     var v1 = field(); // error
+//                   ^
+//
+// pkg/front_end/testcases/general/callable_type_variable.dart:28:24: Error: Too few positional arguments: 1 required, 0 given.
+//     var v4 = field.call(); // error
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class1<T extends core::Function* = core::Function*> extends core::Object {
+  generic-covariant-impl field self::Class1::T* field;
+  constructor •(self::Class1::T* field) → self::Class1<self::Class1::T*>*
+    : self::Class1::field = field, super core::Object::•()
+    ;
+  method method() → dynamic {
+    dynamic v1 = this.{self::Class1::field}.call();
+    dynamic v2 = let final core::int* #t1 = 0 in this.{self::Class1::field}.call(#t1);
+    self::Class1::T* v3 = this.{self::Class1::field}.call;
+    dynamic v4 = this.{self::Class1::field}.call();
+    dynamic v5 = this.{self::Class1::field}.call(0);
+  }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+class Class2<T extends (core::int*) →* core::String* = (core::int*) →* core::String*> extends core::Object {
+  generic-covariant-impl field self::Class2::T* field;
+  constructor •(self::Class2::T* field) → self::Class2<self::Class2::T*>*
+    : self::Class2::field = field, super core::Object::•()
+    ;
+  method method() → dynamic {
+    invalid-type v1 = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/general/callable_type_variable.dart:25:19: Error: Too few positional arguments: 1 required, 0 given.
+    var v1 = field(); // error
+                  ^" in this.{self::Class2::field}.call();
+    core::String* v2 = let final core::int* #t3 = 0 in this.{self::Class2::field}.call(#t3);
+    self::Class2::T* v3 = this.{self::Class2::field}.call;
+    invalid-type v4 = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/general/callable_type_variable.dart:28:24: Error: Too few positional arguments: 1 required, 0 given.
+    var v4 = field.call(); // error
+                       ^" in this.{self::Class2::field}.call();
+    core::String* v5 = this.{self::Class2::field}.call(0);
+  }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+static method main() → dynamic {}

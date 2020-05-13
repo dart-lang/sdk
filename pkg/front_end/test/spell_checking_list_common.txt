@@ -179,6 +179,7 @@ are
 aren't
 argument
 arguments
+arises
 arithmetic
 arose
 around
@@ -468,6 +469,7 @@ closed
 closer
 closers
 closes
+closest
 closing
 closure
 closures
@@ -655,6 +657,7 @@ correction
 correctly
 correctness
 correspond
+correspondence
 corresponding
 corresponds
 cost
@@ -1082,6 +1085,7 @@ exporting
 exports
 exposed
 exposes
+expressed
 expression
 expressions
 extend
@@ -1731,6 +1735,7 @@ lowercase
 lowered
 lowering
 lowerings
+lowest
 machine
 made
 magenta

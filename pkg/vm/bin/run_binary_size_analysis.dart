@@ -16,6 +16,8 @@ import 'dart:math' show max;
 
 import 'package:path/path.dart' as p;
 
+import 'package:vm/snapshot/instruction_sizes.dart' as instruction_sizes;
+
 void main(List<String> args) async {
   if (args.length != 2) {
     print(r"""
@@ -35,27 +37,18 @@ $ google-chrome <output-directory>/index.html
   final input = new File(args[0]);
   final outputDir = new Directory(args[1]);
 
+  if (!input.existsSync()) {
+    print("Input file ${input} does not exist");
+    return;
+  }
+
   // Load symbols data produced by the AOT compiler and convert it to
   // a tree.
-  final symbols = await input
-      .openRead()
-      .cast<List<int>>()
-      .transform(utf8.decoder)
-      .transform(json.decoder)
-      .first;
+  final symbols = await instruction_sizes.load(input);
 
   final root = {'n': '', 'children': {}, 'k': kindPath, 'maxDepth': 0};
   for (var symbol in symbols) {
-    final name = symbol['n'];
-    final size = symbol['s'];
-
-    if (symbol.containsKey('c')) {
-      final libraryUri = symbol['l'];
-      final className = symbol['c'];
-      addSymbol(root, '${libraryUri}/${className}', name, size);
-    } else {
-      addSymbol(root, '@stubs', name, size);
-    }
+    addSymbol(root, treePath(symbol), symbol.name.scrubbed, symbol.size);
   }
   final tree = flatten(root);
 
@@ -90,6 +83,19 @@ $ google-chrome <output-directory>/index.html
   print('Generated ${p.toUri(p.absolute(outputDir.path, 'index.html'))}');
 }
 
+/// Returns a /-separated path to the given symbol within the treemap.
+String treePath(instruction_sizes.SymbolInfo symbol) {
+  if (symbol.name.isStub) {
+    if (symbol.name.isAllocationStub) {
+      return '@stubs/allocation-stubs/${symbol.libraryUri}/${symbol.className}';
+    } else {
+      return '@stubs';
+    }
+  } else {
+    return '${symbol.libraryUri}/${symbol.className}';
+  }
+}
+
 const kindSymbol = 's';
 const kindPath = 'p';
 const kindBucket = 'b';
@@ -99,6 +105,9 @@ const symbolTypeGlobalText = 'T';
 /// an existing child.
 Map<String, dynamic> addChild(
     Map<String, dynamic> node, String kind, String name) {
+  if (kind == kindSymbol && node['children'].containsKey(name)) {
+    print('Duplicate symbol ${name}');
+  }
   return node['children'].putIfAbsent(name, () {
     final n = <String, dynamic>{'n': name, 'k': kind};
     if (kind != kindSymbol) {

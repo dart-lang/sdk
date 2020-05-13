@@ -35,7 +35,7 @@ static method main() → dynamic {
     final core::Map<core::int*, core::int*>* #t5 = <core::int*, core::int*>{};
     #t5.{core::Map::[]=}(1, 1);
     {
-      core::Iterator<core::MapEntry<core::int*, core::int*>*>* :sync-for-iterator = <core::int*, core::int*>{2: 2}.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = <core::int*, core::int*>{2: 2}.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::int*, core::int*>* #t6 = :sync-for-iterator.{core::Iterator::current};
         #t5.{core::Map::[]=}(#t6.{core::MapEntry::key}, #t6.{core::MapEntry::value});
@@ -43,7 +43,7 @@ static method main() → dynamic {
     }
     final core::Map<core::int*, core::int*>* #t7 = <core::int*, core::int*>{3: 3};
     if(!#t7.{core::Object::==}(null)) {
-      core::Iterator<core::MapEntry<core::int*, core::int*>*>* :sync-for-iterator = #t7.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = #t7.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::int*, core::int*>* #t8 = :sync-for-iterator.{core::Iterator::current};
         #t5.{core::Map::[]=}(#t8.{core::MapEntry::key}, #t8.{core::MapEntry::value});

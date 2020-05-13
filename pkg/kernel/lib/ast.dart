@@ -640,6 +640,8 @@ class Library extends NamedNode
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
+
+  String leakingDebugToString() => astToText.debugLibraryToString(this);
 }
 
 /// An import or export declaration in a library.

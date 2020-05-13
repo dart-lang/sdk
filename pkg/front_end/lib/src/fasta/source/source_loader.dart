@@ -89,6 +89,8 @@ import '../fasta_codes.dart'
         messageObjectImplements,
         messageObjectMixesIn,
         messagePartOrphan,
+        messageTypedefCause,
+        messageTypedefUnaliasedTypeCause,
         noLength,
         templateAmbiguousSupertypes,
         templateCantReadFile,
@@ -676,8 +678,10 @@ class SourceLoader extends Loader {
       workList = <SourceClassBuilder>[];
       for (int i = 0; i < previousWorkList.length; i++) {
         SourceClassBuilder cls = previousWorkList[i];
-        List<TypeDeclarationBuilder> directSupertypes =
+        Map<TypeDeclarationBuilder, TypeAliasBuilder> directSupertypeMap =
             cls.computeDirectSupertypes(objectClass);
+        List<TypeDeclarationBuilder> directSupertypes =
+            directSupertypeMap.keys.toList();
         bool allSupertypesProcessed = true;
         for (int i = 0; i < directSupertypes.length; i++) {
           Builder supertype = directSupertypes[i];
@@ -694,7 +698,7 @@ class SourceLoader extends Loader {
         }
         if (allSupertypesProcessed) {
           topologicallySortedClasses.add(cls);
-          checkClassSupertypes(cls, directSupertypes, blackListedClasses);
+          checkClassSupertypes(cls, directSupertypeMap, blackListedClasses);
         } else {
           workList.add(cls);
         }
@@ -743,9 +747,11 @@ class SourceLoader extends Loader {
 
   void checkClassSupertypes(
       SourceClassBuilder cls,
-      List<TypeDeclarationBuilder> directSupertypes,
+      Map<TypeDeclarationBuilder, TypeAliasBuilder> directSupertypeMap,
       Set<ClassBuilder> blackListedClasses) {
     // Check that the direct supertypes aren't black-listed or enums.
+    List<TypeDeclarationBuilder> directSupertypes =
+        directSupertypeMap.keys.toList();
     for (int i = 0; i < directSupertypes.length; i++) {
       TypeDeclarationBuilder supertype = directSupertypes[i];
       if (supertype is EnumBuilder) {
@@ -753,11 +759,24 @@ class SourceLoader extends Loader {
             cls.charOffset, noLength);
       } else if (!cls.library.mayImplementRestrictedTypes &&
           blackListedClasses.contains(supertype)) {
-        cls.addProblem(
-            templateExtendingRestricted
-                .withArguments(supertype.fullNameForErrors),
-            cls.charOffset,
-            noLength);
+        TypeAliasBuilder aliasBuilder = directSupertypeMap[supertype];
+        if (aliasBuilder != null) {
+          cls.addProblem(
+              templateExtendingRestricted
+                  .withArguments(supertype.fullNameForErrors),
+              cls.charOffset,
+              noLength,
+              context: [
+                messageTypedefCause.withLocation(
+                    aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+              ]);
+        } else {
+          cls.addProblem(
+              templateExtendingRestricted
+                  .withArguments(supertype.fullNameForErrors),
+              cls.charOffset,
+              noLength);
+        }
       }
     }
 
@@ -771,6 +790,29 @@ class SourceLoader extends Loader {
           TypeAliasBuilder aliasBuilder = builder;
           NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
           builder = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+          if (builder is! ClassBuilder) {
+            cls.addProblem(
+                templateIllegalMixin.withArguments(builder.fullNameForErrors),
+                cls.charOffset,
+                noLength,
+                context: [
+                  messageTypedefCause.withLocation(
+                      aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+                ]);
+            return;
+          } else if (!cls.library.mayImplementRestrictedTypes &&
+              blackListedClasses.contains(builder)) {
+            cls.addProblem(
+                templateExtendingRestricted
+                    .withArguments(mixedInTypeBuilder.fullNameForErrors),
+                cls.charOffset,
+                noLength,
+                context: [
+                  messageTypedefUnaliasedTypeCause.withLocation(
+                      builder.fileUri, builder.charOffset, noLength),
+                ]);
+            return;
+          }
         }
         if (builder is ClassBuilder) {
           isClassBuilder = true;

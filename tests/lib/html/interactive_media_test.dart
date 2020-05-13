@@ -27,7 +27,7 @@ main() async {
               device.label.endsWith('Built-in Microphone');
           expect(goodDevLabel, true);
         }
-      } catch (e) {
+      } on DomException catch (e) {
         // Could fail if bot machine doesn't support audio or video.
         expect(e.name == DomException.NOT_FOUND, true);
       }
@@ -54,7 +54,7 @@ main() async {
         video.src = url;
 
         return completer.future;
-      }).catchError((e) {
+      }).catchError((dynamic e) {
         // Could fail if bot machine doesn't support audio or video.
         expect(e.name == DomException.NOT_FOUND, true);
       });
@@ -87,7 +87,7 @@ main() async {
         video.src = url;
 
         return completer.future;
-      }).catchError((e) {
+      }).catchError((dynamic e) {
         // Could fail if bot machine doesn't support audio or video.
         expect(e.name == DomException.NOT_FOUND, true);
       });

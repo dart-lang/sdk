@@ -1296,6 +1296,10 @@ void BackgroundCompiler::Start() {
   if (running_ || !done_) return;
   running_ = true;
   done_ = false;
+  // If we ever wanted to run the BG compiler on the
+  // `IsolateGroup::mutator_pool()` we would need to ensure the BG compiler
+  // stops when it's idle - otherwise the [MutatorThreadPool]-based idle
+  // notification would not work anymore.
   bool task_started = Dart::thread_pool()->Run<BackgroundCompilerTask>(this);
   if (!task_started) {
     running_ = false;

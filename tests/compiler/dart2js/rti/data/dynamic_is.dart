@@ -5,7 +5,8 @@
 // @dart = 2.7
 
 class A {
-  /*member: A.instanceMethod:direct,explicit=[instanceMethod.T],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
+  /*spec:nnbd-off|prod:nnbd-off.member: A.instanceMethod:direct,explicit=[instanceMethod.T],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
+  /*spec:nnbd-sdk|prod:nnbd-sdk.member: A.instanceMethod:direct,explicit=[instanceMethod.T*],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
   instanceMethod<T>(t) => t is T;
 }
 

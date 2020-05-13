@@ -220,7 +220,8 @@ checkerForAbsentPresent(String test) {
     }
     for (Match match in matches) {
       String directive = match.group(1);
-      String pattern = match.groups([2, 3]).where((s) => s != null).single;
+      Pattern pattern = match.groups([2, 3, 4]).where((s) => s != null).single;
+      if (match.group(4) != null) pattern = RegExp(pattern);
       if (directive == 'present') {
         Expect.isTrue(generated.contains(pattern),
             "Cannot find '$pattern' in:\n$generated");
@@ -236,5 +237,6 @@ checkerForAbsentPresent(String test) {
 }
 
 RegExp _directivePattern = new RegExp(
-    //      \1                     \2        \3
-    r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)')''', multiLine: true);
+    //      \1                     \2        \3         \4
+    r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)'|/(.*)/)''',
+    multiLine: true);

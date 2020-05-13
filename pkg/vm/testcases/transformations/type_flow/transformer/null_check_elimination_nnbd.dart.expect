@@ -21,7 +21,7 @@ static method testAlwaysNull([@vm.inferred-type.metadata=#lib::A?] self::A a) �
 static method main() → void {
   final core::List<self::A> list = <self::A>[let core::String #arg1 = "foo" in let core::Null? #arg2 = null in let core::Null? #arg3 = null in new self::A::•(#arg1, #arg2, alwaysNull: #arg3), self::staticField];
   {
-    core::Iterator<self::A*> :sync-for-iterator = [@vm.direct-call.metadata=_GrowableList::iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<InterfaceType(A*)>] list.{core::Iterable::iterator};
+    core::Iterator<self::A> :sync-for-iterator = [@vm.direct-call.metadata=_GrowableList::iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<InterfaceType(A)>] list.{core::Iterable::iterator};
     for (; [@vm.direct-call.metadata=ListIterator::moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       self::A a = [@vm.direct-call.metadata=ListIterator::current] [@vm.inferred-type.metadata=#lib::A?] :sync-for-iterator.{core::Iterator::current};
       {

@@ -17,7 +17,7 @@ class Helper {
     int j = 0;
     try {
       j = func();
-    } catch (exception) {
+    } on MyException1 catch (exception) {
       i = i + 100;
       print(exception.message_);
     } finally {

@@ -34,9 +34,8 @@ import 'package:kernel/ast.dart'
         VariableDeclaration,
         Visitor;
 
-// TODO(annagrin): remove private fields
-// See [issue 40272](https://github.com/dart-lang/sdk/issues/40272)
-
+/// Dart scope
+///
 /// Provides information about symbols available inside a dart scope.
 class DartScope {
   final Library library;
@@ -44,21 +43,21 @@ class DartScope {
   final Procedure procedure;
   final Map<String, DartType> definitions;
   final List<TypeParameter> typeParameters;
-  final Set<String> privateFields;
 
   DartScope(this.library, this.cls, this.procedure, this.definitions,
-      this.typeParameters, this.privateFields);
+      this.typeParameters);
 
   @override
   String toString() {
     return '''DartScope {
-      Library = ${library.importUri},
-      Class ${cls?.name},
-      Procedure $procedure,
-      isStatic ${procedure.isStatic},
+      Library: ${library.importUri},
+      Class: ${cls?.name},
+      Procedure: $procedure,
+      isStatic: ${procedure.isStatic},
       Scope: $definitions,
-      typeParameters: $typeParameters,
-      privateFields: $privateFields''';
+      typeParameters: $typeParameters
+    }
+    ''';
   }
 }
 
@@ -77,7 +76,6 @@ class DartScopeBuilder extends Visitor<void> {
   final int _line;
   final int _column;
   int _offset;
-  final Set<String> _privateFields = {};
   final Map<String, DartType> _definitions = {};
   final List<TypeParameter> _typeParameters = [];
 
@@ -86,8 +84,7 @@ class DartScopeBuilder extends Visitor<void> {
   DartScope build() {
     if (_library == null || _procedure == null) return null;
 
-    return DartScope(_library, _cls, _procedure, _definitions, _typeParameters,
-        _privateFields);
+    return DartScope(_library, _cls, _procedure, _definitions, _typeParameters);
   }
 
   @override
@@ -110,20 +107,6 @@ class DartScopeBuilder extends Visitor<void> {
       _typeParameters.addAll(cls.typeParameters);
 
       super.visitClass(cls);
-    }
-  }
-
-  @override
-  void visitField(Field node) {
-    if (node.name.isPrivate) {
-      _privateFields.add(node.name.name);
-    }
-  }
-
-  @override
-  void visitFieldReference(Field node) {
-    if (node.name.isPrivate) {
-      _privateFields.add(node.name.name);
     }
   }
 
@@ -184,11 +167,7 @@ class DartScopeBuilder extends Visitor<void> {
 }
 
 class PrivateFieldsVisitor extends Visitor<void> {
-  final Set<String> _privateFields = {};
-
-  Set<String> getPrivateFields() {
-    return _privateFields;
-  }
+  final Map<String, String> privateFields = {};
 
   @override
   void defaultNode(Node node) {
@@ -196,23 +175,30 @@ class PrivateFieldsVisitor extends Visitor<void> {
   }
 
   @override
+  void visitFieldReference(Field node) {
+    if (node.name.isPrivate) {
+      privateFields[node.name.name] = node.name.library.importUri.toString();
+    }
+  }
+
+  @override
   void visitField(Field node) {
     if (node.name.isPrivate) {
-      _privateFields.add(node.name.name);
+      privateFields[node.name.name] = node.name.library.importUri.toString();
     }
   }
 
   @override
   void visitPropertyGet(PropertyGet node) {
     if (node.name.isPrivate) {
-      _privateFields.add(node.name.name);
+      privateFields[node.name.name] = node.name.library.importUri.toString();
     }
   }
 
   @override
   void visitPropertySet(PropertySet node) {
     if (node.name.isPrivate) {
-      _privateFields.add(node.name.name);
+      privateFields[node.name.name] = node.name.library.importUri.toString();
     }
   }
 }
@@ -428,8 +414,6 @@ error.name + ": " + error.message;
       Map<String, String> modules,
       String currentModule,
       String expression) async {
-    var currentModuleVariable = currentModule.split('/').last;
-
     // 1. Compile expression to kernel AST
 
     var procedure = await _compiler.compileExpression(
@@ -459,57 +443,51 @@ error.name + ": " + error.message;
     var jsFun = _kernel2jsCompiler.emitFunction(
         procedure.function, '$debugProcedureName');
 
-    // 3. apply (hopefully temporary) workarounds for what ideally
-    // need to be done in FE
-
-    // Unused symbols are not captured inside functions, for example,
-    // core.print is not available inside a top-level function foo()
-    // if foo does not use anything from core.
+    // 3. apply temporary workarounds for what ideally
+    // needs to be done in the compiler
 
     // get private fields accessed by the evaluated expression
     var fieldsCollector = PrivateFieldsVisitor();
     procedure.accept(fieldsCollector);
-    var privateFields = fieldsCollector.getPrivateFields();
-    privateFields
-        .removeWhere((String name) => scope.privateFields.contains(name));
+    var privateFields = fieldsCollector.privateFields;
+
+    // collect libraries where private fields are defined
+    var currentLibraries = <String, String>{};
+    var currentModules = <String, String>{};
+    for (var variable in modules.keys) {
+      var module = modules[variable];
+      for (var field in privateFields.keys) {
+        var library = privateFields[field];
+        var libraryVariable =
+            library.replaceAll('.dart', '').replaceAll('/', '__');
+        if (libraryVariable.endsWith(variable)) {
+          if (currentLibraries[field] != null) {
+            onDiagnostic(_createInternalError(
+                scope.library.importUri,
+                0,
+                0,
+                'ExpressionCompiler: $field defined in more than one library: '
+                '${currentLibraries[field]}, $variable'));
+            return null;
+          }
+          currentLibraries[field] = variable;
+          currentModules[variable] = module;
+        }
+      }
+    }
+
+    _log('ExpressionCompiler: privateFields: $privateFields');
+    _log('ExpressionCompiler: currentLibraries: $currentLibraries');
+    _log('ExpressionCompiler: currentModules: $currentModules');
 
     var body = js_ast.Block([
-      // require dart, core, self and other modules
-      ...modules.keys.map((String variable) {
-        var module = modules[variable];
-        _log('ExpressionCompiler: '
-            'module: $module, '
-            'variable: $variable, '
-            'currentModule: $currentModule');
-
-        return _createRequireModuleStatement(
-            module,
-            // Inside a module, the library variable compiler creates is the
-            // file name without extension (currentModuleVariable).
-            //
-            // Inside a non-package module, the statement we need to produce
-            // to reload the library is
-            //      'main = require('web/main.dart').web__main'
-            //
-            // This is the only special case where currentModuleVariable
-            // ('main') is different from variable and field ('web_name')
-            //
-            // In all other cases, the variable, currentModuleVariable and
-            // the field are the same:
-            //      'library = require('packages/_test/library.dart').library'
-            //
-            // TODO(annagrin): save metadata decribing the variables and fields
-            // to use during compilation and use this information here to make
-            // expression compilation resilient to name convention changes
-            // See [issue 891](https://github.com/dart-lang/webdev/issues/891)
-            module == currentModule ? currentModuleVariable : variable,
-            variable);
-      }),
+      // require modules used in evaluated expression
+      ...currentModules.keys.map((String variable) =>
+          _createRequireModuleStatement(
+              currentModules[variable], variable, variable)),
       // re-create private field accessors
-      ...scope.privateFields
-          .map((String v) => _createPrivateField(v, currentModuleVariable)),
-      ...privateFields
-          .map((String v) => _createPrivateField(v, currentModuleVariable)),
+      ...currentLibraries.keys
+          .map((String k) => _createPrivateField(k, currentLibraries[k])),
       // statements generated by the FE
       ...jsFun.body.statements
     ]);

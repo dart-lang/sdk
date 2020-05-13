@@ -13674,7 +13674,9 @@ class Element extends Node
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
       _parseRange!.selectNodeContents(contextElement);
-      fragment = _parseRange!.createContextualFragment(html!);
+      // createContextualFragment expects a non-nullable html string.
+      // If null is passed, it gets converted to 'null' instead.
+      fragment = _parseRange!.createContextualFragment(html ?? 'null');
     } else {
       contextElement._innerHtml = html;
 
@@ -37166,16 +37168,18 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   Future cancel() {
-    // Return type cannot be null due to override, so return empty Future
-    // instead.
-    var emptyFuture = new Future<void>.value();
-    if (_canceled) return emptyFuture;
+    // Check for strong mode. This function can no longer return null in strong
+    // mode, so only return null in weak mode to preserve synchronous timing.
+    // See issue 41653 for more details.
+    dynamic emptyFuture =
+        typeAcceptsNull<Event>() ? null : Future<void>.value();
+    if (_canceled) return emptyFuture as Future;
 
     _unlisten();
     // Clear out the target to indicate this is complete.
     _target = null;
     _onData = null;
-    return emptyFuture;
+    return emptyFuture as Future;
   }
 
   bool get _canceled => _target == null;

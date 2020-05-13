@@ -1309,26 +1309,8 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
         }
         return false;
       }
-      case FunctionLayout::kImplicitSetter: {
-        if (!isolate()->argument_type_checks()) {
-          Field& field = Field::Handle(function().accessor_field());
-          ASSERT(!field.IsNull());
-#if defined(DEBUG)
-          // HACK: Clone the field to ignore assertion in Field::guarded_cid().
-          // The same reasons as above apply, but we only check if it's dynamic.
-          field = field.CloneFromOriginal();
-#endif
-
-          if (field.is_instance() && field.guarded_cid() == kDynamicCid) {
-            SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-            GenerateSetterIntrinsic(compiler::target::Field::OffsetOf(field));
-            SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
-            return true;
-          }
-          return false;
-        }
+      case FunctionLayout::kImplicitSetter:
         break;
-      }
 #if !defined(TARGET_ARCH_IA32)
       case FunctionLayout::kMethodExtractor: {
         auto& extracted_method = Function::ZoneHandle(

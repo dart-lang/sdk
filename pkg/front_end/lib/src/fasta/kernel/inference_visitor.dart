@@ -3529,7 +3529,6 @@ class InferenceVisitor
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.invalid:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
@@ -3626,7 +3625,6 @@ class InferenceVisitor
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.invalid:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
@@ -3718,7 +3716,6 @@ class InferenceVisitor
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.invalid:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
@@ -3801,7 +3798,6 @@ class InferenceVisitor
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.invalid:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
@@ -3893,7 +3889,6 @@ class InferenceVisitor
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.invalid:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
@@ -4019,7 +4014,6 @@ class InferenceVisitor
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.invalid:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
@@ -5089,7 +5083,7 @@ class InferenceVisitor
         node.interfaceTarget != null
             ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget,
                 isPotentiallyNullable: false)
-            : const ObjectAccessTarget.unresolved());
+            : const ObjectAccessTarget.missing());
   }
 
   @override
@@ -5108,7 +5102,7 @@ class InferenceVisitor
         node.interfaceTarget != null
             ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget,
                 isPotentiallyNullable: false)
-            : const ObjectAccessTarget.unresolved());
+            : const ObjectAccessTarget.missing());
   }
 
   @override

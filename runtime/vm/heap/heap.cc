@@ -34,6 +34,10 @@
 namespace dart {
 
 DEFINE_FLAG(bool, write_protect_vm_isolate, true, "Write protect vm_isolate.");
+DEFINE_FLAG(bool,
+            disable_heap_verification,
+            false,
+            "Explicitly disable heap verification.");
 
 // We ensure that the GC does not use the current isolate.
 class NoActiveIsolateScope {
@@ -101,10 +105,10 @@ uword Heap::AllocateNew(intptr_t size) {
 
   // It is possible a GC doesn't clear enough space.
   // In that case, we must fall through and allocate into old space.
-  return AllocateOld(size, HeapPage::kData);
+  return AllocateOld(size, OldPage::kData);
 }
 
-uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
+uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   CollectForDebugging();
   uword addr = old_space_.TryAllocate(size, type);
@@ -205,7 +209,7 @@ bool Heap::OldContains(uword addr) const {
 }
 
 bool Heap::CodeContains(uword addr) const {
-  return old_space_.Contains(addr, HeapPage::kExecutable);
+  return old_space_.Contains(addr, OldPage::kExecutable);
 }
 
 bool Heap::DataContains(uword addr) const {
@@ -325,14 +329,14 @@ void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 InstructionsPtr Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
   // Only executable pages can have RawInstructions objects.
-  ObjectPtr raw_obj = old_space_.FindObject(visitor, HeapPage::kExecutable);
+  ObjectPtr raw_obj = old_space_.FindObject(visitor, OldPage::kExecutable);
   ASSERT((raw_obj == Object::null()) ||
          (raw_obj->GetClassId() == kInstructionsCid));
   return static_cast<InstructionsPtr>(raw_obj);
 }
 
 ObjectPtr Heap::FindOldObject(FindObjectVisitor* visitor) const {
-  return old_space_.FindObject(visitor, HeapPage::kData);
+  return old_space_.FindObject(visitor, OldPage::kData);
 }
 
 ObjectPtr Heap::FindNewObject(FindObjectVisitor* visitor) {
@@ -641,14 +645,12 @@ void Heap::WaitForSweeperTasksAtSafepoint(Thread* thread) {
 }
 
 void Heap::UpdateGlobalMaxUsed() {
-#if !defined(PRODUCT)
   ASSERT(isolate_group_ != NULL);
   // We are accessing the used in words count for both new and old space
   // without synchronizing. The value of this metric is approximate.
   isolate_group_->GetHeapGlobalUsedMaxMetric()->SetValue(
       (UsedInWords(Heap::kNew) * kWordSize) +
       (UsedInWords(Heap::kOld) * kWordSize));
-#endif  // !defined(PRODUCT)
 }
 
 void Heap::InitGrowthControl() {
@@ -768,6 +770,9 @@ ObjectSet* Heap::CreateAllocatedObjectSet(Zone* zone,
 }
 
 bool Heap::Verify(MarkExpectation mark_expectation) {
+  if (FLAG_disable_heap_verification) {
+    return true;
+  }
   HeapIterationScope heap_iteration_scope(Thread::Current());
   return VerifyGC(mark_expectation);
 }

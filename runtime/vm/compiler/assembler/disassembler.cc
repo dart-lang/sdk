@@ -4,6 +4,7 @@
 
 #include "vm/compiler/assembler/disassembler.h"
 
+#include "platform/unaligned.h"
 #include "vm/code_patcher.h"
 #include "vm/deopt_instructions.h"
 #include "vm/globals.h"
@@ -232,7 +233,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   Object& obj = Object::Handle(zone);
   for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
     const uword addr = code.GetPointerOffsetAt(i) + code.PayloadStart();
-    obj = *reinterpret_cast<ObjectPtr*>(addr);
+    obj = LoadUnaligned(reinterpret_cast<ObjectPtr*>(addr));
     THR_Print(" %d : %#" Px " '%s'\n", code.GetPointerOffsetAt(i), addr,
               obj.ToCString());
   }
@@ -417,7 +418,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
           cls ^= code.owner();
           if (cls.IsNull()) {
             THR_Print("  0x%" Px ": %s, (%s)%s\n", base + offset,
-                      code.QualifiedName(), skind, s_entry_point);
+                      code.QualifiedName(Object::kScrubbedName,
+                                         Object::NameDisambiguation::kYes),
+                      skind, s_entry_point);
           } else {
             THR_Print("  0x%" Px ": allocation stub for %s, (%s)%s\n",
                       base + offset, cls.ToCString(), skind, s_entry_point);

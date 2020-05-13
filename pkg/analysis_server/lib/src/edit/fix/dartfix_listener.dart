@@ -5,6 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show Location, SourceChange, SourceEdit, SourceFileEdit;
@@ -25,6 +26,8 @@ class DartFixListener implements DartFixListenerInterface {
   List<String> details = [];
 
   DartFixListener(this.server);
+
+  ResourceProvider get resourceProvider => server.resourceProvider;
 
   /// Add the given [detail] to the list of details to be returned to the
   /// client.

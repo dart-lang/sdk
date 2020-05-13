@@ -30,6 +30,7 @@ import 'package:analyzer/src/error/duplicate_definition_verifier.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
+import 'package:analyzer/src/error/return_type_verifier.dart';
 import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -62,6 +63,8 @@ class EnclosingExecutableContext {
         isStaticMethod = _isStaticMethod(element);
 
   EnclosingExecutableContext.empty() : this(null);
+
+  bool get isMethod => element is MethodElement;
 
   static bool _isStaticMethod(ExecutableElement element) {
     var enclosing = element?.enclosingElement;
@@ -228,12 +231,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   final DuplicateDefinitionVerifier _duplicateDefinitionVerifier;
   TypeArgumentsVerifier _typeArgumentsVerifier;
   ConstructorFieldsVerifier _constructorFieldsVerifier;
+  ReturnTypeVerifier _returnTypeVerifier;
 
   /**
    * Initialize a newly created error verifier.
    */
   ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
-      this._typeProvider, this._inheritanceManager, bool enableSuperMixins)
+      this._typeProvider, this._inheritanceManager,
+      [@deprecated bool enableSuperMixins])
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
@@ -251,6 +256,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _typeArgumentsVerifier =
         TypeArgumentsVerifier(_options, _currentLibrary, _errorReporter);
     _constructorFieldsVerifier = ConstructorFieldsVerifier(
+      typeSystem: _typeSystem,
+      errorReporter: _errorReporter,
+    );
+    _returnTypeVerifier = ReturnTypeVerifier(
+      typeProvider: _typeProvider,
       typeSystem: _typeSystem,
       errorReporter: _errorReporter,
     );
@@ -279,6 +289,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     assert(_enclosingEnum == null);
     assert(_enclosingExecutable.element == null);
     _enclosingClass = classElement;
+  }
+
+  /// The language team is thinking about adding abstract fields, or external
+  /// fields. But for now we will ignore such fields in `Struct` subtypes.
+  bool get _isEnclosingClassFfiStruct {
+    var superClass = _enclosingClass?.supertype?.element;
+    return superClass != null &&
+        superClass.library.name == 'dart.ffi' &&
+        superClass.name == 'Struct';
   }
 
   bool get _isNonNullableByDefault =>
@@ -562,8 +581,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         function is PropertyAccessorElement &&
         function.isSetter;
     if (!isSetterWithImplicitReturn) {
-      _checkForReturnOfInvalidType(node.expression, expectedReturnType,
-          isArrowFunction: true);
+      _returnTypeVerifier.verifyReturnExpression(
+        node.expression,
+        expectedReturnType,
+        isArrowFunction: true,
+      );
     }
     super.visitExpressionFunctionBody(node);
   }
@@ -694,7 +716,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
       }
       _checkForTypeAnnotationDeferredClass(returnType);
-      _checkForIllegalReturnType(returnType);
+      _returnTypeVerifier.verifyReturnType(returnType);
       _checkForImplicitDynamicReturn(node.name, node.declaredElement);
       super.visitFunctionDeclaration(node);
     });
@@ -886,7 +908,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
       _checkForExtensionDeclaresMemberOfObject(node);
       _checkForTypeAnnotationDeferredClass(returnType);
-      _checkForIllegalReturnType(returnType);
+      _returnTypeVerifier.verifyReturnType(returnType);
       _checkForImplicitDynamicReturn(node, node.declaredElement);
       _checkForMustCallSuper(node);
       _checkForWrongTypeParameterVarianceInMethod(node);
@@ -1034,7 +1056,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else {
       _enclosingExecutable._returnsWith.add(node);
     }
-    _checkForAllReturnStatementErrorCodes(node);
+    _returnTypeVerifier.verifyReturnStatement(node);
     super.visitReturnStatement(node);
   }
 
@@ -1274,31 +1296,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * Check that return statements without expressions are not in a generative
-   * constructor and the return type is not assignable to `null`; that is, we
-   * don't have `return;` if the enclosing method has a non-void containing
-   * return type.
-   */
-  void _checkForAllEmptyReturnStatementErrorCodes(
-      ReturnStatement statement, DartType expectedReturnType) {
-    if (_enclosingExecutable.isGenerator) {
-      return;
-    }
-    var returnType = _enclosingExecutable.isAsynchronous
-        ? _typeSystem.flatten(expectedReturnType)
-        : expectedReturnType;
-    if (returnType.isDynamic ||
-        returnType.isDartCoreNull ||
-        returnType.isVoid) {
-      return;
-    }
-    // If we reach here, this is an invalid return
-    _errorReporter.reportErrorForToken(
-        StaticWarningCode.RETURN_WITHOUT_VALUE, statement.returnKeyword);
-    return;
-  }
-
-  /**
    * Verify that all classes of the given [withClause] are valid.
    *
    * See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
@@ -1406,53 +1403,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           redirectedConstructor,
           [redirectedType, constructorType]);
     }
-  }
-
-  /**
-   * Check that the return [statement] of the form <i>return e;</i> is not in a
-   * generative constructor.
-   *
-   * Check that return statements without expressions are not in a generative
-   * constructor and the return type is not assignable to `null`; that is, we
-   * don't have `return;` if the enclosing method has a non-void containing
-   * return type.
-   *
-   * Check that the return type matches the type of the declared return type in
-   * the enclosing method or function.
-   */
-  void _checkForAllReturnStatementErrorCodes(ReturnStatement statement) {
-    FunctionType functionType = _enclosingExecutable.element.type;
-    DartType expectedReturnType = functionType == null
-        ? DynamicTypeImpl.instance
-        : functionType.returnType;
-    Expression returnExpression = statement.expression;
-
-    // RETURN_IN_GENERATIVE_CONSTRUCTOR
-    bool isGenerativeConstructor(ExecutableElement element) =>
-        element is ConstructorElement && !element.isFactory;
-    if (isGenerativeConstructor(_enclosingExecutable.element)) {
-      if (returnExpression == null) {
-        return;
-      }
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
-          returnExpression);
-      return;
-    }
-    // RETURN_WITHOUT_VALUE
-    if (returnExpression == null) {
-      _checkForAllEmptyReturnStatementErrorCodes(statement, expectedReturnType);
-      return;
-    } else if (_enclosingExecutable.isGenerator) {
-      // RETURN_IN_GENERATOR
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_IN_GENERATOR,
-          statement,
-          [_enclosingExecutable.isAsynchronous ? "async*" : "sync*"]);
-      return;
-    }
-
-    _checkForReturnOfInvalidType(returnExpression, expectedReturnType);
   }
 
   /**
@@ -1815,7 +1765,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_enclosingClass == null) {
       return;
     }
-    InterfaceType enclosingType = _enclosingClass.thisType;
     Uri libraryUri = _currentLibrary.source.uri;
 
     // method declared in the enclosing class vs. inherited getter/setter
@@ -1823,10 +1772,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       String name = method.name;
 
       // find inherited property accessor
-      ExecutableElement inherited = _inheritanceManager.getInherited(
-          enclosingType, Name(libraryUri, name));
-      inherited ??= _inheritanceManager.getInherited(
-          enclosingType, Name(libraryUri, '$name='));
+      ExecutableElement inherited = _inheritanceManager.getInherited2(
+          _enclosingClass, Name(libraryUri, name));
+      inherited ??= _inheritanceManager.getInherited2(
+          _enclosingClass, Name(libraryUri, '$name='));
 
       if (method.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(
@@ -1850,10 +1799,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       String name = accessor.displayName;
 
       // find inherited method or property accessor
-      ExecutableElement inherited = _inheritanceManager.getInherited(
-          enclosingType, Name(libraryUri, name));
-      inherited ??= _inheritanceManager.getInherited(
-          enclosingType, Name(libraryUri, '$name='));
+      ExecutableElement inherited = _inheritanceManager.getInherited2(
+          _enclosingClass, Name(libraryUri, name));
+      inherited ??= _inheritanceManager.getInherited2(
+          _enclosingClass, Name(libraryUri, '$name='));
 
       if (accessor.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(
@@ -2724,54 +2673,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * If the current function is async, async*, or sync*, verify that its
-   * declared return type is assignable to Future, Stream, or Iterable,
-   * respectively.  If not, report the error using [returnType].
-   */
-  void _checkForIllegalReturnType(TypeAnnotation returnType) {
-    if (returnType == null) {
-      // No declared return type, so the return type must be dynamic, which is
-      // assignable to everything.
-      return;
-    }
-    if (_enclosingExecutable.isAsynchronous) {
-      if (_enclosingExecutable.isGenerator) {
-        _checkForIllegalReturnTypeCode(
-          returnType,
-          _typeProvider.streamElement,
-          StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
-        );
-      } else {
-        _checkForIllegalReturnTypeCode(
-          returnType,
-          _typeProvider.futureElement,
-          StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE,
-        );
-      }
-    } else if (_enclosingExecutable.isGenerator) {
-      _checkForIllegalReturnTypeCode(
-        returnType,
-        _typeProvider.iterableElement,
-        StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
-      );
-    }
-  }
-
-  /**
-   * If the current function is async, async*, or sync*, verify that its
-   * declared return type is assignable to Future, Stream, or Iterable,
-   * respectively. This is called by [_checkForIllegalReturnType] to check if
-   * a value with the type of the declared [returnTypeName] is assignable to
-   * [expectedElement] and if not report [errorCode].
-   */
-  void _checkForIllegalReturnTypeCode(TypeAnnotation returnTypeName,
-      ClassElement expectedElement, StaticTypeWarningCode errorCode) {
-    if (!_isLegalReturnType(expectedElement)) {
-      _errorReporter.reportErrorForNode(errorCode, returnTypeName);
-    }
-  }
-
-  /**
    * Verify that the given implements [clause] does not implement classes such
    * as 'num' or 'String'.
    *
@@ -3422,12 +3323,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    InterfaceTypeImpl enclosingType = _enclosingClass.thisType;
     Uri mixinLibraryUri = mixinElement.librarySource.uri;
     for (var name in mixinElementImpl.superInvokedNames) {
       var nameObject = Name(mixinLibraryUri, name);
 
-      var superMember = _inheritanceManager.getMember(enclosingType, nameObject,
+      var superMember = _inheritanceManager.getMember2(
+          _enclosingClass, nameObject,
           forMixinIndex: mixinIndex, concrete: true, forSuper: true);
 
       if (superMember == null) {
@@ -3477,7 +3378,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (declaredSupertype is! InterfaceType) {
       return;
     }
-    InterfaceType superclass = declaredSupertype;
     Map<LibraryElement, Map<String, String>> mixedInNames =
         <LibraryElement, Map<String, String>>{};
 
@@ -3497,8 +3397,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           return true;
         }
         names[name] = typeName.name.name;
-        ExecutableElement inheritedMember = _inheritanceManager.getMember(
-          superclass,
+        ExecutableElement inheritedMember = _inheritanceManager.getMember2(
+          declaredSupertype.element,
           Name(library.source.uri, name),
           concrete: true,
         );
@@ -3752,6 +3652,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     if (fields.isLate) return;
     if (fields.isFinal) return;
+
+    if (_isEnclosingClassFfiStruct) return;
 
     for (var field in fields.variables) {
       if (field.initializer != null) continue;
@@ -4186,96 +4088,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, body);
-  }
-
-  /**
-   * Check that a type mis-match between the type of the [returnExpression] and
-   * the [expectedReturnType] by the enclosing method or function.
-   *
-   * This method is called both by [_checkForAllReturnStatementErrorCodes]
-   * and [visitExpressionFunctionBody].
-   */
-  void _checkForReturnOfInvalidType(
-      Expression returnExpression, DartType expectedType,
-      {bool isArrowFunction = false}) {
-    if (_enclosingExecutable == null) {
-      return;
-    }
-    if (_enclosingExecutable.isGenerator) {
-      // "return expression;" is disallowed in generators, but this is checked
-      // elsewhere.  Bare "return" is always allowed in generators regardless
-      // of the return type.  So no need to do any further checking.
-      return;
-    }
-    if (returnExpression == null) {
-      return; // Empty returns are handled elsewhere
-    }
-
-    DartType expressionType = getStaticType(returnExpression);
-
-    var toType = expectedType;
-    var fromType = expressionType;
-    if (_enclosingExecutable.isAsynchronous) {
-      toType = _typeSystem.flatten(toType);
-      fromType = _typeSystem.flatten(fromType);
-      if (!_isLegalReturnType(_typeProvider.futureElement)) {
-        // ILLEGAL_ASYNC_RETURN_TYPE has already been reported, meaning the
-        // _declared_ return type is illegal; don't confuse by also reporting
-        // that the type being returned here does not match that illegal return
-        // type.
-        return;
-      }
-    }
-
-    void reportTypeError() {
-      String displayName = _enclosingExecutable.element.displayName;
-
-      if (displayName.isEmpty) {
-        _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
-            returnExpression,
-            [fromType, toType]);
-      } else if (_enclosingExecutable.element is MethodElement) {
-        _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
-            returnExpression,
-            [fromType, toType, displayName]);
-      } else {
-        _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
-            returnExpression,
-            [fromType, toType, displayName]);
-      }
-    }
-
-    // Anything can be returned to `void` in an arrow bodied function
-    // or to `Future<void>` in an async arrow bodied function.
-    if (isArrowFunction && toType.isVoid) {
-      return;
-    }
-
-    if (toType.isVoid) {
-      if (fromType.isVoid ||
-          fromType.isDynamic ||
-          fromType.isDartCoreNull ||
-          fromType.isBottom) {
-        return;
-      }
-    } else if (fromType.isVoid) {
-      if (toType.isDynamic || toType.isDartCoreNull || toType.isBottom) {
-        return;
-      }
-    }
-    if (!expectedType.isVoid && !fromType.isVoid) {
-      var checkWithType = !_enclosingExecutable.isAsynchronous
-          ? fromType
-          : _typeProvider.futureType2(fromType);
-      if (_typeSystem.isAssignableTo2(checkWithType, expectedType)) {
-        return;
-      }
-    }
-
-    reportTypeError();
   }
 
   /**
@@ -5118,14 +4930,30 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkUseOfDefaultValuesInParameters(FormalParameterList node) {
     if (!_isNonNullableByDefault) return;
 
-    var parent = node.parent;
-    var defaultValuesAreExpected =
-        parent is ConstructorDeclaration && parent.externalKeyword == null ||
-            parent is FunctionExpression ||
-            parent is MethodDeclaration &&
-                !parent.isAbstract &&
-                parent.externalKeyword == null &&
-                parent.body is! NativeFunctionBody;
+    var defaultValuesAreExpected = () {
+      var parent = node.parent;
+      if (parent is ConstructorDeclaration) {
+        if (parent.externalKeyword != null) {
+          return false;
+        } else if (parent.factoryKeyword != null &&
+            parent.redirectedConstructor != null) {
+          return false;
+        }
+        return true;
+      } else if (parent is FunctionExpression) {
+        return true;
+      } else if (parent is MethodDeclaration) {
+        if (parent.isAbstract) {
+          return false;
+        } else if (parent.externalKeyword != null) {
+          return false;
+        } else if (parent.body is NativeFunctionBody) {
+          return false;
+        }
+        return true;
+      }
+      return false;
+    }();
 
     for (var parameter in node.parameters) {
       if (parameter is DefaultFormalParameter) {
@@ -5373,35 +5201,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /// Returns whether a value with the type of the the enclosing function's
-  /// declared return type is assignable to [expectedElement].
-  bool _isLegalReturnType(ClassElement expectedElement) {
-    DartType returnType = _enclosingExecutable.element.returnType;
-    //
-    // When checking an async/sync*/async* method, we know the exact type
-    // that will be returned (e.g. Future, Iterable, or Stream).
-    //
-    // For example an `async` function body will return a `Future<T>` for
-    // some `T` (possibly `dynamic`).
-    //
-    // We allow the declared return type to be a supertype of that
-    // (e.g. `dynamic`, `Object`), or Future<S> for some S.
-    // (We assume the T <: S relation is checked elsewhere.)
-    //
-    // We do not allow user-defined subtypes of Future, because an `async`
-    // method will never return those.
-    //
-    // To check for this, we ensure that `Future<bottom> <: returnType`.
-    //
-    // Similar logic applies for sync* and async*.
-    //
-    var lowerBound = expectedElement.instantiate(
-      typeArguments: [NeverTypeImpl.instance],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    return _typeSystem.isSubtypeOf2(lowerBound, returnType);
-  }
-
   /**
    * Return `true` if the given 'this' [expression] is in a valid context.
    */
@@ -5479,9 +5278,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     var current = _enclosingExecutable;
     try {
       _enclosingExecutable = EnclosingExecutableContext(element);
+      _returnTypeVerifier.enclosingExecutable = _enclosingExecutable;
       operation();
     } finally {
       _enclosingExecutable = current;
+      _returnTypeVerifier.enclosingExecutable = _enclosingExecutable;
     }
   }
 

@@ -4,12 +4,12 @@
 
 // @dart = 2.7
 
-/*prod:nnbd-off.class: A:*/
 /*spec:nnbd-off.class: A:direct,explicit=[A.T],needsArgs*/
+/*spec:nnbd-sdk.class: A:direct,explicit=[A.T*],needsArgs*/
 class A<T> {
   @pragma('dart2js:noInline')
   m() {
-    return /**/ (T t, String s) {};
+    return (T t, String s) {};
   }
 }
 

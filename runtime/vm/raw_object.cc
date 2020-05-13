@@ -688,7 +688,7 @@ intptr_t ImmutableArrayLayout::VisitImmutableArrayPointers(
 }
 
 void ObjectLayout::RememberCard(ObjectPtr const* slot) {
-  HeapPage::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
+  OldPage::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
 }
 
 DEFINE_LEAF_RUNTIME_ENTRY(void,
@@ -699,7 +699,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void,
   ObjectPtr object = static_cast<ObjectPtr>(object_in);
   ASSERT(object->IsOldObject());
   ASSERT(object->ptr()->IsCardRemembered());
-  HeapPage::Of(object)->RememberCard(slot);
+  OldPage::Of(object)->RememberCard(slot);
 }
 END_LEAF_RUNTIME_ENTRY
 

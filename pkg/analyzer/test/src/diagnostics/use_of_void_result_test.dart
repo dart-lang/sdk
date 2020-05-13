@@ -568,6 +568,7 @@ extension on void {
   }
 }
 ''', [
+      error(HintCode.UNUSED_ELEMENT, 22, 8),
       error(StaticWarningCode.USE_OF_VOID_RESULT, 96, 4),
     ]);
   }

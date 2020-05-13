@@ -1959,6 +1959,18 @@ C f(C c, int i) => c..x = i;
         hard: false);
   }
 
+  Future<void> test_cast_type_used_as_non_nullable() async {
+    await analyze('''
+void f(int/*!*/ i) {}
+void g(num/*?*/ j) {
+  f(j as int);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int)').node,
+        decoratedTypeAnnotation('int/*!*/').node,
+        hard: true);
+  }
+
   Future<void> test_catch_clause() async {
     await analyze('''
 foo() => 1;
@@ -3456,6 +3468,33 @@ void test(int/*2*/ i) {
     var i_3 = checkExpression('i/*3*/');
     assertNullCheck(i_3, assertEdge(int_2.node, int_1.node, hard: true));
     assertEdge(int_2.node, int_1.node, hard: true);
+  }
+
+  Future<void> test_functionInvocation_parameter_functionTyped() async {
+    await analyze('''
+void f(void g()) {}
+void test() {
+  f(null);
+}
+''');
+
+    var parameter = variables.decoratedElementType(
+        findNode.functionTypedFormalParameter('void g()').declaredElement);
+    assertNullCheck(checkExpression('null'),
+        assertEdge(inSet(alwaysPlus), parameter.node, hard: false));
+  }
+
+  Future<void>
+      test_functionInvocation_parameter_functionTyped_named_missing() async {
+    await analyze('''
+void f({void g()}) {}
+void h() {
+  f();
+}
+''');
+    var parameter = variables.decoratedElementType(
+        findNode.functionTypedFormalParameter('void g()').declaredElement);
+    expect(getEdges(always, parameter.node), isNotEmpty);
   }
 
   Future<void> test_functionInvocation_parameter_named() async {
@@ -5186,6 +5225,24 @@ class C {
   Future<void> test_non_null_hint_is_not_expression_hint() async {
     await analyze('int/*!*/ x;');
     expect(hasNullCheckHint(findNode.simple('int')), isFalse);
+  }
+
+  Future<void> test_override_parameter_function_typed() async {
+    await analyze('''
+abstract class Base {
+  void f(void g(int i)/*1*/);
+}
+class Derived extends Base {
+  void f(void g(int i)/*2*/) {}
+}
+''');
+    var p1 = variables.decoratedElementType(findNode
+        .functionTypedFormalParameter('void g(int i)/*1*/')
+        .declaredElement);
+    var p2 = variables.decoratedElementType(findNode
+        .functionTypedFormalParameter('void g(int i)/*2*/')
+        .declaredElement);
+    assertEdge(p1.node, p2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_parameter_type_named() async {

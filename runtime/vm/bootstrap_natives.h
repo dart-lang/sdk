@@ -317,7 +317,7 @@ namespace dart {
   V(Int32x4_setFlagZ, 2)                                                       \
   V(Int32x4_setFlagW, 2)                                                       \
   V(Int32x4_select, 3)                                                         \
-  V(Isolate_spawnFunction, 10)                                                 \
+  V(Isolate_spawnFunction, 11)                                                 \
   V(Isolate_spawnUri, 12)                                                      \
   V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
   V(Isolate_getCurrentRootUriStr, 0)                                           \
@@ -484,7 +484,7 @@ class BootstrapNatives : public AllStatic {
                                     int argument_count,
                                     bool* auto_setup_scope);
 
-  static const uint8_t* Symbol(Dart_NativeFunction* nf);
+  static const uint8_t* Symbol(Dart_NativeFunction nf);
 
 #define DECLARE_BOOTSTRAP_NATIVE(name, ignored)                                \
   static ObjectPtr DN_##name(Thread* thread, Zone* zone,                       \

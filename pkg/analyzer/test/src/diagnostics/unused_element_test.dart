@@ -715,6 +715,17 @@ main() {
 ''');
   }
 
+  test_method_isUsed_privateExtension() async {
+    await assertNoErrorsInCode(r'''
+extension _A on String {
+  void m() {}
+}
+void main() {
+  "hello".m();
+}
+''');
+  }
+
   test_method_isUsed_staticInvocation() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -722,6 +733,17 @@ class A {
 }
 main() {
   A._m();
+}
+''');
+  }
+
+  test_method_isUsed_unnamedExtension() async {
+    await assertNoErrorsInCode(r'''
+extension on String {
+  void m() {}
+}
+void main() {
+  "hello".m();
 }
 ''');
   }
@@ -747,6 +769,16 @@ class A {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 19, 2),
+    ]);
+  }
+
+  test_method_notUsed_privateExtension() async {
+    await assertErrorsInCode(r'''
+extension _A on String {
+  void m() {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 32, 1),
     ]);
   }
 
@@ -782,6 +814,16 @@ class A {
 int g() => 7;
 ''', [
       error(HintCode.UNUSED_ELEMENT, 16, 2),
+    ]);
+  }
+
+  test_method_notUsed_unnamedExtension() async {
+    await assertErrorsInCode(r'''
+extension on String {
+  void m() {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 29, 1),
     ]);
   }
 
