@@ -286,6 +286,10 @@ minor breaking changes:
     `runZonedGuarded()` functions from `dart:async` directly if needing to
     specify those.
 
+*   Class `HttpClient` and `HttpServer`, when receiving `HttpRequest` or
+    `HttpClientResponse`, will now put a 8K size limit on its header fields and
+    values.
+
 [#33501]: https://github.com/dart-lang/sdk/issues/33501
 [#40702]: https://github.com/dart-lang/sdk/issues/40702
 [#40483]: https://github.com/dart-lang/sdk/issues/40483
