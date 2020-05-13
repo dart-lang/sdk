@@ -543,13 +543,26 @@ class _Utf8Decoder {
       start = 0;
     }
 
-    String result = decodeGeneral(bytes, start, end, single);
+    String result = _convertRecursive(bytes, start, end, single);
     if (isErrorState(_state)) {
       String message = errorDescription(_state);
       _state = initial; // Ready for more input.
       throw FormatException(message, codeUnits, errorOffset + _charOrIndex);
     }
     return result;
+  }
+
+  String _convertRecursive(Uint8List bytes, int start, int end, bool single) {
+    // Chunk long strings to avoid a pathological case of JS repeated string
+    // concatenation.
+    if (end - start > 1000) {
+      int mid = (start + end) ~/ 2;
+      String s1 = _convertRecursive(bytes, start, mid, false);
+      if (isErrorState(_state)) return s1;
+      String s2 = _convertRecursive(bytes, mid, end, single);
+      return s1 + s2;
+    }
+    return decodeGeneral(bytes, start, end, single);
   }
 
   /// Flushes this decoder as if closed.
