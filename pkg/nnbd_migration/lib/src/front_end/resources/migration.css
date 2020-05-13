@@ -336,8 +336,12 @@ footer .wide {
 }
 
 .region.informative-region {
-  background-color: #888888;
-  color: #000000;
+  background-color: #404549; /* #282b2e, lightened 10% */
+  border-bottom: solid rgba(255, 255, 0, 0.7) 1px;
+  display: inline-block;
+  height: 14px; 
+  position: relative;
+  top: 1px;
 }
 
 .target {
