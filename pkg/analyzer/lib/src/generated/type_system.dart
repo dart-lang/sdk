@@ -634,6 +634,36 @@ class TypeSystemImpl extends TypeSystem {
     return T;
   }
 
+  /// Compute "future value type" of [T].
+  ///
+  /// https://github.com/dart-lang/language/
+  /// See `nnbd/feature-specification.md`
+  /// See `#the-future-value-type-of-an-asynchronous-non-generator-function`
+  DartType futureValueType(DartType T) {
+    // futureValueType(`S?`) = futureValueType(`S`), for all `S`.
+    // futureValueType(`S*`) = futureValueType(`S`), for all `S`.
+    if (T.nullabilitySuffix != NullabilitySuffix.none) {
+      var S = (T as TypeImpl).withNullability(NullabilitySuffix.none);
+      return futureValueType(S);
+    }
+
+    // futureValueType(Future<`S`>) = `S`, for all `S`.
+    // futureValueType(FutureOr<`S`>) = `S`, for all `S`.
+    if (T is InterfaceType) {
+      if (T.isDartAsyncFuture || T.isDartAsyncFutureOr) {
+        return T.typeArguments[0];
+      }
+    }
+
+    // futureValueType(`void`) = `void`.
+    if (identical(T, VoidTypeImpl.instance)) {
+      return T;
+    }
+
+    // Otherwise, for all `S`, futureValueType(`S`) = `Object?`.
+    return objectQuestion;
+  }
+
   /// Given a type t, if t is an interface type with a call method
   /// defined, return the function type for the call method, otherwise
   /// return null.
