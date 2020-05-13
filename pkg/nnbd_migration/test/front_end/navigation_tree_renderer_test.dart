@@ -199,14 +199,3 @@ extension on TypeMatcher<NavigationTreeNode> {
   TypeMatcher<NavigationTreeNode> havingPath(dynamic matcher) =>
       having((node) => node.path, 'path', matcher);
 }
-
-extension _E<T, U> on TypeMatcher<Map<T, U>> {
-  TypeMatcher<Map<T, U>> containing(Map<T, dynamic> matchers) {
-    var result = this;
-    for (var entry in matchers.entries) {
-      result = result.having(
-          (map) => map[entry.key], entry.key.toString(), entry.value);
-    }
-    return result;
-  }
-}
