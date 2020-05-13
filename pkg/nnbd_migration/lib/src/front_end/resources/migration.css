@@ -497,8 +497,6 @@ ul.trace {
 
 ul.trace li {
   color: white;
-  margin-left: 14px;
-  text-indent: -14px;
 }
 
 ul.trace li .function {

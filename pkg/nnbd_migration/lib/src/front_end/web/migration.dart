@@ -741,7 +741,7 @@ void _populateEditTraces(
     var ul = traceParagraph
         .append(document.createElement('ul')..classes = ['trace']);
     for (var entry in trace.entries) {
-      Element li = document.createElement('li')..innerHtml = '&#x274F; ';
+      Element li = document.createElement('li');
       ul.append(li);
       li.append(document.createElement('span')
         ..classes = ['function']

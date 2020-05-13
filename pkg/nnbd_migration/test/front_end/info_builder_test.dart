@@ -1016,9 +1016,7 @@ void f(A  a) => a.m = null;
     expect(trace.description, 'Nullability reason');
     var entries = trace.entries;
     expect(entries, hasLength(2));
-    // Entry 0 is the nullability of the type of A.m.
-    // TODO(srawlins): "A" is probably incorrect here. Should be "A.m".
-    assertTraceEntry(unit, entries[0], 'A', unit.content.indexOf('int?'),
+    assertTraceEntry(unit, entries[0], 'A.m', unit.content.indexOf('int?'),
         contains('A.m (test.dart:2:3)'));
   }
 
@@ -1104,6 +1102,64 @@ int  f(Object  o) {
         edits: isEmpty);
   }
 
+  Future<void> test_trace_constructor_named() async {
+    var unit = await buildInfoForSingleTestFile('''
+class C {
+  C.named(int i) {}
+}
+void f() {
+  C.named(null);
+}
+''', migratedContent: '''
+class C {
+  C.named(int? i) {}
+}
+void f() {
+  C.named(null);
+}
+''');
+    var region = unit.regions
+        .where((info) => info.offset == unit.content.indexOf('? i) {}'))
+        .single;
+    expect(region.traces, hasLength(1));
+    var trace = region.traces.single;
+    expect(trace.description, 'Nullability reason');
+    var entries = trace.entries;
+    assertTraceEntry(unit, entries[0], 'C.named',
+        unit.content.indexOf('int? i) {}'), contains('parameter 0 of C.named'));
+  }
+
+  Future<void> test_trace_constructor_unnamed() async {
+    var unit = await buildInfoForSingleTestFile('''
+class C {
+  C(int i) {}
+}
+void f() {
+  C(null);
+}
+''', migratedContent: '''
+class C {
+  C(int? i) {}
+}
+void f() {
+  C(null);
+}
+''');
+    var region = unit.regions
+        .where((info) => info.offset == unit.content.indexOf('? i) {}'))
+        .single;
+    expect(region.traces, hasLength(1));
+    var trace = region.traces.single;
+    expect(trace.description, 'Nullability reason');
+    var entries = trace.entries;
+    assertTraceEntry(
+        unit,
+        entries[0],
+        'C.<unnamed>',
+        unit.content.indexOf('int? i) {}'),
+        contains('parameter 0 of C.<unnamed>'));
+  }
+
   Future<void> test_trace_deadCode() async {
     var unit = await buildInfoForSingleTestFile('''
 void f(int/*!*/ i) {
@@ -1129,6 +1185,37 @@ void f(int/*!*/ i) {
     // Entry 1 is the edge from f's argument to never, due to the `/*!*/` hint.
     assertTraceEntry(unit, entries[1], 'f', unit.content.indexOf('int'),
         'explicitly hinted to be non-nullable');
+  }
+
+  Future<void> test_trace_extension_unnamed() async {
+    var unit = await buildInfoForSingleTestFile('''
+extension on String {
+  m(int i) {}
+}
+void f() {
+  "".m(null);
+}
+''', migratedContent: '''
+extension on String  {
+  m(int? i) {}
+}
+void f() {
+  "".m(null);
+}
+''');
+    var region = unit.regions
+        .where((info) => info.offset == unit.content.indexOf('? i) {}'))
+        .single;
+    expect(region.traces, hasLength(1));
+    var trace = region.traces.single;
+    expect(trace.description, 'Nullability reason');
+    var entries = trace.entries;
+    assertTraceEntry(
+        unit,
+        entries[0],
+        '<unnamed extension>.m',
+        unit.content.indexOf('int? i) {}'),
+        contains('parameter 0 of <unnamed>.m'));
   }
 
   Future<void> test_trace_nullableType() async {
