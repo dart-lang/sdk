@@ -752,7 +752,10 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     // The actual outcome depends on the exitCode.
     if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
     if (exitCode == _uncaughtExceptionExitCode) return Expectation.runtimeError;
-    if (exitCode == _ubsanFailureExitCode) return Expectation.fail;
+    if ((exitCode == _ubsanFailureExitCode) &&
+        (testCase.configuration.sanitizer == Sanitizer.ubsan)) {
+      return Expectation.fail;
+    }
     if (exitCode != 0) {
       var ourExit = 5;
       // Unknown nonzero exit code from vm command.
