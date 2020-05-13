@@ -291,6 +291,19 @@ enum HintActionKind {
   addNonNullableHint,
 }
 
+/// Abstract interface for assigning ids numbers to nodes, and performing
+/// lookups afterwards.
+abstract class NodeMapper extends NodeToIdMapper {
+  /// Gets the node corresponding to the given [id].
+  NullabilityNodeInfo nodeForId(int id);
+}
+
+/// Abstract interface for assigning ids numbers to nodes.
+abstract class NodeToIdMapper {
+  /// Gets the id corresponding to the given [node].
+  int idForNode(NullabilityNodeInfo node);
+}
+
 /// Interface used by the migration engine to expose information to its client
 /// about the decisions made during migration, and how those decisions relate to
 /// the input source code.
@@ -432,6 +445,26 @@ abstract class SimpleFixReasonInfo implements FixReasonInfo {
 
   /// Description of the fix.
   String get description;
+}
+
+/// A simple implementation of [NodeMapper] that assigns ids to nodes as they
+/// are requested, backed by a map.
+///
+/// Be careful not to leak references to nodes by holding on to this beyond the
+/// lifetime of the nodes it maps.
+class SimpleNodeMapper extends NodeMapper {
+  final _nodeToId = <NullabilityNodeInfo, int>{};
+  final _idToNode = <int, NullabilityNodeInfo>{};
+
+  @override
+  int idForNode(NullabilityNodeInfo node) {
+    final id = _nodeToId.putIfAbsent(node, () => _nodeToId.length);
+    _idToNode.putIfAbsent(id, () => node);
+    return id;
+  }
+
+  @override
+  NullabilityNodeInfo nodeForId(int id) => _idToNode[id];
 }
 
 /// Information exposed to the migration client about a node in the nullability

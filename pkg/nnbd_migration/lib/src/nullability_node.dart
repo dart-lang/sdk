@@ -81,13 +81,6 @@ enum LateCondition {
   possiblyLateDueToTestSetup,
 }
 
-/// Abstract interface for assigning ids numbers to nodes.  This allows us to
-/// annotate nodes with their ids when analyzing postmortem output.
-abstract class NodeToIdMapper {
-  /// Gets the id corresponding to the given [node].
-  int idForNode(NullabilityNode node);
-}
-
 /// Data structure to keep track of the relationship from one [NullabilityNode]
 /// object to another [NullabilityNode] that is "downstream" from it (meaning
 /// that if the former node is nullable, then the latter node will either have
@@ -550,7 +543,7 @@ class NullabilityGraphDeserializer implements NodeToIdMapper {
   }
 
   @override
-  int idForNode(NullabilityNode node) => _nodeToIdMap[node];
+  int idForNode(NullabilityNodeInfo node) => _nodeToIdMap[node];
 
   /// Gets the node having the given [id], deserializing it if it hasn't been
   /// deserialized already.
