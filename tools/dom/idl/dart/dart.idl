@@ -320,6 +320,11 @@ interface Navigator {
   [DartSuppress] void getUserMedia(MediaStreamConstraints constraints,
                                    NavigatorUserMediaSuccessCallback successCallback,
                                    NavigatorUserMediaErrorCallback errorCallback);
+  // deviceMemory is only available on some browsers so it is nullable.
+  [DartSuppress, MeasureAs=NavigatorDeviceMemory,RuntimeEnabled=NavigatorDeviceMemory,SecureContext]
+  readonly attribute float deviceMemory;
+  [MeasureAs=NavigatorDeviceMemory,RuntimeEnabled=NavigatorDeviceMemory,SecureContext]
+  readonly attribute float? deviceMemory;
 };
 
 [DartSupplemental,

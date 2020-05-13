@@ -22633,7 +22633,7 @@ class Navigator extends NavigatorConcurrentHardware
 
   CredentialsContainer get credentials native;
 
-  num get deviceMemory native;
+  num? get deviceMemory native;
 
   String? get doNotTrack native;
 
