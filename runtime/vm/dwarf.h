@@ -397,6 +397,12 @@ class Dwarf : public ZoneAllocated {
     return bin_stream_->Position();
   }
 
+  static constexpr intptr_t kNoLineInformation = 0;
+
+  // Returns the line number or kNoLineInformation if there is no line
+  // information available for the given token position.
+  static intptr_t TokenPositionToLine(const TokenPosition& token_pos);
+
   void WriteAbbreviations();
   void WriteCompilationUnit();
   void WriteAbstractFunctions();

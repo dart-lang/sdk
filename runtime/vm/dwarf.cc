@@ -156,6 +156,14 @@ intptr_t Dwarf::AddCodeHelper(const Code& code) {
   return index;
 }
 
+intptr_t Dwarf::TokenPositionToLine(const TokenPosition& token_pos) {
+  // By the point we're creating the DWARF information, the values of
+  // non-special token positions have been converted to line numbers, so
+  // we just need to handle special (negative) token positions.
+  ASSERT(token_pos.value() > TokenPosition::kLast.value());
+  return token_pos.value() < 0 ? kNoLineInformation : token_pos.value();
+}
+
 intptr_t Dwarf::AddFunction(const Function& function) {
   RELEASE_ASSERT(!function.IsNull());
   FunctionIndexPair* pair = function_to_index_.Lookup(&function);
@@ -418,12 +426,14 @@ void Dwarf::WriteAbstractFunctions() {
   if (elf_ != nullptr) {
     abstract_origins_ = zone_->Alloc<uint32_t>(functions_.length());
   }
+  // By the point we're creating DWARF information, scripts have already lost
+  // their token stream, so we can't look up their line number information.
+  auto const line = kNoLineInformation;
   for (intptr_t i = 0; i < functions_.length(); i++) {
     const Function& function = *(functions_[i]);
     name = function.QualifiedUserVisibleName();
     script = function.script();
     const intptr_t file = LookupScript(script);
-    const intptr_t line = 0;  // Unknown, script already lost its token stream.
 
     if (asm_stream_ != nullptr) {
       Print(".Lfunc%" Pd ":\n",
@@ -592,7 +602,7 @@ void Dwarf::WriteInliningNode(InliningNode* node,
                               SnapshotTextObjectNamer* namer) {
   RELEASE_ASSERT(elf_ == nullptr || root_code_address >= 0);
   intptr_t file = LookupScript(parent_script);
-  intptr_t line = node->call_pos.value();
+  const auto& token_pos = node->call_pos;
   intptr_t function_index = LookupFunction(node->function);
   const Script& script = Script::Handle(zone_, node->function.script());
 
@@ -628,7 +638,7 @@ void Dwarf::WriteInliningNode(InliningNode* node,
   // DW_AT_call_file
   uleb128(file);
   // DW_AT_call_line
-  uleb128(line);
+  uleb128(TokenPositionToLine(token_pos));
 
   for (InliningNode* child = node->children_head; child != NULL;
        child = child->children_next) {
@@ -806,8 +816,7 @@ void Dwarf::WriteLines() {
           }
 
           // 2. Update LNP line.
-          TokenPosition pos = token_positions.Last();
-          intptr_t line = pos.value();
+          const auto line = TokenPositionToLine(token_positions.Last());
           if (line != previous_line) {
             u1(DW_LNS_advance_line);
             sleb128(line - previous_line);
