@@ -35,15 +35,13 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
   }
 
   void setUp() {
-    reranPaths = null;
     dartfixListener = DartFixListener(null);
     resourceProvider = MemoryResourceProvider();
     final migrationInfo = MigrationInfo({}, {}, null, null);
     state = MigrationState(null, null, dartfixListener, null);
     state.pathMapper = PathMapper(resourceProvider);
     state.migrationInfo = migrationInfo;
-    site = PreviewSite(state, ([paths]) async {
-      reranPaths = paths;
+    site = PreviewSite(state, () async {
       return state;
     });
   }
@@ -160,7 +158,6 @@ void main(List args) {
     expect(file.readAsStringSync(), 'int/*?*/ foo() {}');
     expect(state.hasBeenApplied, false);
     expect(state.needsRerun, true);
-    expect(reranPaths, null);
     expect(unitInfo.content, 'int/*?*/ foo() {}');
   }
 
@@ -181,7 +178,6 @@ mixin PreviewSiteTestMixin {
   PreviewSite site;
   DartFixListener dartfixListener;
   MigrationState state;
-  List<String> reranPaths;
 
   Future<void> performEdit(String path, int offset, String replacement) {
     final pathUri = Uri.file(path).path;
@@ -197,14 +193,12 @@ class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
   @override
   void setUp() {
     super.setUp();
-    reranPaths = null;
     dartfixListener = DartFixListener(null);
     final migrationInfo = MigrationInfo({}, {}, null, null);
     state = MigrationState(null, null, dartfixListener, null);
     state.pathMapper = PathMapper(resourceProvider);
     state.migrationInfo = migrationInfo;
-    site = PreviewSite(state, ([paths]) async {
-      reranPaths = paths;
+    site = PreviewSite(state, () async {
       return state;
     });
   }
@@ -256,6 +250,5 @@ int/*?*/? y = x;
         unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
     expect(state.hasBeenApplied, false);
     expect(state.needsRerun, true);
-    expect(reranPaths, null);
   }
 }

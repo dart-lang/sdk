@@ -60,7 +60,7 @@ class PreviewSite extends Site
   final Map<String, UnitInfo> unitInfoMap = {};
 
   // A function provided by DartFix to rerun the migration.
-  final Future<MigrationState> Function([List<String>]) rerunFunction;
+  final Future<MigrationState> Function() rerunFunction;
 
   final String serviceAuthToken = _makeAuthToken();
 
@@ -257,12 +257,12 @@ class PreviewSite extends Site
     file.writeAsStringSync(newContent);
     unitInfo.diskContent = newContent;
     if (!insertionOnly) {
-      await rerunMigration([path]);
+      await rerunMigration();
     }
   }
 
-  Future<void> rerunMigration([List<String> changedPaths]) async {
-    migrationState = await rerunFunction(changedPaths);
+  Future<void> rerunMigration() async {
+    migrationState = await rerunFunction();
     reset();
   }
 

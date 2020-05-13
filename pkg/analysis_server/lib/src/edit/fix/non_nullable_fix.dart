@@ -80,7 +80,7 @@ class NonNullableFix extends FixCodeTask {
   /// If this occurs, then don't update any code.
   bool _packageIsNNBD = true;
 
-  Future<void> Function([List<String>]) rerunFunction;
+  Future<void> Function() rerunFunction;
 
   /// A list of the URLs corresponding to the included roots.
   List<String> previewUrls;
@@ -257,9 +257,9 @@ environment:
     _packageIsNNBD = false;
   }
 
-  Future<MigrationState> rerun([List<String> changedPaths]) async {
+  Future<MigrationState> rerun() async {
     reset();
-    await rerunFunction(changedPaths);
+    await rerunFunction();
     final state = MigrationState(
         migration, includedRoot, listener, instrumentationListener);
     await state.refresh();

@@ -476,18 +476,7 @@ Use this interactive web view to review, improve, or apply the results.
   bool _isUriError(AnalysisError error) =>
       error.errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST;
 
-  Future<void> _rerunFunction([List<String> changedPaths]) async {
-    // Note: we don't support [changedPaths].  The only time it is non-null is
-    // when the tool decides to re-run automatically due to deleting a hint.
-    // That's problematic for two reasons: (1) if the user first makes a change
-    // to some other file (without re-running) and then removes a hint, only the
-    // file affected by the removal will be in changedPaths, so the user will
-    // think that migration has been totally re-run when it hasn't.
-    // (2) removing a hint shouldn't force a re-run anyhow (see
-    // https://github.com/dart-lang/sdk/issues/41795), and once that is fixed
-    // changedPaths will always be null.
-    //
-    // TODO(paulberry): remove changedPaths entirely.
+  Future<void> _rerunFunction() async {
     _dartFixListener.reset();
     _fixCodeProcessor.prepareToRerun();
     await _fixCodeProcessor.runFirstPhase();

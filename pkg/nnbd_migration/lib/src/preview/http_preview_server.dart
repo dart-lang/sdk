@@ -33,7 +33,7 @@ class HttpPreviewServer {
   Future<HttpServer> _serverFuture;
 
   // A function which allows the migration to be rerun, taking changed paths.
-  final Future<MigrationState> Function([List<String>]) rerunFunction;
+  final Future<MigrationState> Function() rerunFunction;
 
   /// Integer for a port to run the preview server on.  If null or zero, allow
   /// [HttpServer.bind] to pick one.
