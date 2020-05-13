@@ -7,6 +7,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 import 'package:nnbd_migration/src/front_end/unit_link.dart';
@@ -36,6 +37,24 @@ class EditDetail {
           String description, SourceEdit sourceEdit) =>
       EditDetail(description, sourceEdit.offset, sourceEdit.length,
           sourceEdit.replacement);
+}
+
+/// Everything the front end needs to know to tell the server to perform a hint
+/// action.
+class HintAction {
+  final HintActionKind kind;
+  final int nodeId;
+  HintAction(this.kind, this.nodeId);
+
+  HintAction.fromJson(Map<String, Object> json)
+      : nodeId = json['nodeId'] as int,
+        kind = HintActionKind.values
+            .singleWhere((action) => action.index == json['kind']);
+
+  Map<String, Object> toJson() => {
+        'nodeId': nodeId,
+        'kind': kind.index,
+      };
 }
 
 /// A class storing rendering information for an entire migration report.
@@ -198,7 +217,12 @@ class TraceEntryInfo {
   /// code location is known.
   final NavigationTarget target;
 
-  TraceEntryInfo(this.description, this.function, this.target);
+  /// The hint actions available on this trace entry, or `[]` if none.
+  final List<HintAction> hintActions;
+
+  TraceEntryInfo(this.description, this.function, this.target,
+      {this.hintActions = const []})
+      : assert(hintActions != null);
 }
 
 /// Information about a nullability trace.

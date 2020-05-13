@@ -4,6 +4,7 @@
 
 import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/front_end/info_builder.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
@@ -18,6 +19,9 @@ class MigrationState {
 
   /// The root directory that contains all of the files that were migrated.
   final String includedRoot;
+
+  /// The mapper user to give nodes ids.
+  final NodeMapper nodeMapper = SimpleNodeMapper();
 
   /// The listener used to collect fixes.
   final DartFixListenerInterface listener;
@@ -52,7 +56,7 @@ class MigrationState {
     assert(!hasBeenApplied);
     var provider = listener.server.resourceProvider;
     var infoBuilder = InfoBuilder(provider, includedRoot,
-        instrumentationListener.data, listener, migration);
+        instrumentationListener.data, listener, migration, nodeMapper);
     var unitInfos = await infoBuilder.explainMigration();
     var pathContext = provider.pathContext;
     migrationInfo = MigrationInfo(

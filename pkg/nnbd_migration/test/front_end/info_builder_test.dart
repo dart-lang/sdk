@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/info_builder.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
@@ -1247,14 +1248,23 @@ void h() {
     expect(entries, hasLength(6));
     // Entry 0 is the nullability of f's argument
     assertTraceEntry(unit, entries[0], 'f',
-        unit.content.indexOf('int? i) {} // f'), contains('parameter 0 of f'));
+        unit.content.indexOf('int? i) {} // f'), contains('parameter 0 of f'),
+        hintActions: {
+          HintActionKind.addNullableHint,
+          HintActionKind.addNonNullableHint
+        });
+
     // Entry 1 is the edge from g's argument to f's argument, due to g's call to
     // f.
     assertTraceEntry(
         unit, entries[1], 'g', unit.content.indexOf('i);'), 'data flow');
     // Entry 2 is the nullability of g's argument
     assertTraceEntry(unit, entries[2], 'g',
-        unit.content.indexOf('int? i) { // g'), contains('parameter 0 of g'));
+        unit.content.indexOf('int? i) { // g'), contains('parameter 0 of g'),
+        hintActions: {
+          HintActionKind.addNullableHint,
+          HintActionKind.addNonNullableHint
+        });
     // Entry 3 is the edge from null to g's argument, due to h's call to g.
     assertTraceEntry(
         unit, entries[3], 'h', unit.content.indexOf('null'), 'data flow');

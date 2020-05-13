@@ -25,6 +25,9 @@ import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 
 /// A builder used to build the migration information for a library.
 class InfoBuilder {
+  /// The node mapper for the migration state.
+  NodeMapper nodeMapper;
+
   /// The resource provider used to access the file system.
   ResourceProvider provider;
 
@@ -46,7 +49,7 @@ class InfoBuilder {
 
   /// Initialize a newly created builder.
   InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
-      this.migration);
+      this.migration, this.nodeMapper);
 
   /// The provider used to get information about libraries.
   DriverProvider get driverProvider => listener.server;
@@ -400,7 +403,8 @@ class InfoBuilder {
   }
 
   TraceEntryInfo _makeTraceEntry(
-      String description, CodeReference codeReference) {
+      String description, CodeReference codeReference,
+      {List<HintAction> hintActions = const []}) {
     var length = 1; // TODO(paulberry): figure out the correct value.
     return TraceEntryInfo(
         description,
@@ -408,13 +412,17 @@ class InfoBuilder {
         codeReference == null
             ? null
             : NavigationTarget(codeReference.path, codeReference.offset,
-                codeReference.line, length));
+                codeReference.line, length),
+        hintActions: hintActions);
   }
 
   TraceEntryInfo _nodeToTraceEntry(NullabilityNodeInfo node,
       {String description}) {
     description ??= node.toString(); // TODO(paulberry): improve this message
-    return _makeTraceEntry(description, node.codeReference);
+    return _makeTraceEntry(description, node.codeReference,
+        hintActions: node.hintActions.keys
+            .map((kind) => HintAction(kind, nodeMapper.idForNode(node)))
+            .toList());
   }
 
   TraceEntryInfo _stepToTraceEntry(PropagationStepInfo step) {
