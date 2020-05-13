@@ -159,9 +159,7 @@ class _ServiceTesteeLauncher {
 
     final String dartExecutable = Platform.executable;
 
-    final fullArgs = <String>[
-      '--disable-dart-dev',
-    ];
+    final fullArgs = <String>[];
     if (pause_on_start) {
       fullArgs.add('--pause-isolates-on-start');
     }
@@ -417,7 +415,7 @@ class _ServiceTesterRunner {
       () => ignoreLateException(
         () async {
           if (useDds) {
-            await dds?.shutdown();
+            await dds.shutdown();
           }
           process.requestExit();
         },

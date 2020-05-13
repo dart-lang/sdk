@@ -587,9 +587,7 @@ class Server {
       serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
     }
 
-    var arguments = <String>[
-      '--disable-dart-dev',
-    ];
+    var arguments = <String>[];
     //
     // Add VM arguments.
     //

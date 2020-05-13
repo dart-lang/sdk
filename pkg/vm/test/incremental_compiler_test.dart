@@ -454,7 +454,7 @@ main() {
 
       const kObservatoryListening = 'Observatory listening on ';
       final RegExp observatoryPortRegExp =
-          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)");
+          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)/");
       int port;
       final splitter = new LineSplitter();
       Completer<String> portLineCompleter = new Completer<String>();
@@ -580,7 +580,7 @@ main() {
 
       const kObservatoryListening = 'Observatory listening on ';
       final RegExp observatoryPortRegExp =
-          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)");
+          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)/");
       int port;
       final splitter = new LineSplitter();
       Completer<String> portLineCompleter = new Completer<String>();
@@ -679,7 +679,7 @@ main() {
       String portLine = await portLineCompleter.future;
 
       final RegExp observatoryPortRegExp =
-          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)");
+          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)/");
       expect(observatoryPortRegExp.hasMatch(portLine), isTrue);
       final match = observatoryPortRegExp.firstMatch(portLine);
       final port = int.parse(match.group(1));
@@ -820,7 +820,7 @@ main() {
 
       const kObservatoryListening = 'Observatory listening on ';
       final RegExp observatoryPortRegExp =
-          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)");
+          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)/");
       int port;
       final splitter = new LineSplitter();
       Completer<String> portLineCompleter = new Completer<String>();
@@ -1297,7 +1297,7 @@ class RemoteVm {
 
   /// Retrieves the ID of the main isolate using the service protocol.
   Future<String> _computeMainId() async {
-    var vm = await rpc.sendRequest('getVM', {});
+    var vm = await rpc.sendRequest('getVM');
     var isolates = vm['isolates'];
     for (var isolate in isolates) {
       if (isolate['name'].contains(r'$main')) {

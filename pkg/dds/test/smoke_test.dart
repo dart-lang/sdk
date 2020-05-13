@@ -18,7 +18,6 @@ Future<Process> spawnDartProcess(String script) async {
   final serviceInfoFile = await File.fromUri(serviceInfoUri).create();
 
   final arguments = [
-    '--disable-dart-dev',
     '--observe=0',
     '--pause-isolates-on-start',
     '--write-service-info=$serviceInfoUri',
