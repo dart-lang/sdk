@@ -277,6 +277,20 @@ enum EdgeOriginKind {
 /// about a reason for a modification to the source file.
 abstract class FixReasonInfo {}
 
+/// Enum describing the possible hints that can be performed on an edge or a
+/// node.
+///
+/// Which actions are available can be built by other visitors, and the hint can
+/// be applied by visitors such as EditPlanner when the user requests it from
+/// the front end.
+enum HintActionKind {
+  /// Add a `/*?*/` hint to a type.
+  addNullableHint,
+
+  /// Add a `/*!*/` hint to a type.
+  addNonNullableHint,
+}
+
 /// Interface used by the migration engine to expose information to its client
 /// about the decisions made during migration, and how those decisions relate to
 /// the input source code.
@@ -369,6 +383,14 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
   /// available to query as well.
   Iterable<EdgeInfo> get downstreamEdges;
 
+  /// The hint actions users can perform on this node, indexed by the type of
+  /// hint.
+  ///
+  /// Each edit is represented as a [Map<int, List<AtomicEdit>>] as is typical
+  /// of [AtomicEdit]s since they do not have an offset. See extensions
+  /// [AtomicEditMap] and [AtomicEditList] for usage.
+  Map<HintActionKind, Map<int, List<AtomicEdit>>> get hintActions;
+
   /// After migration is complete, this getter can be used to query whether
   /// the type associated with this node was determined to be "exact nullable."
   bool get isExactNullable;
@@ -444,4 +466,20 @@ abstract class UpstreamPropagationStepInfo implements PropagationStepInfo {
   NullabilityNodeInfo get node;
 
   UpstreamPropagationStepInfo get principalCause;
+}
+
+/// Extension methods to make [HintActionKind] act as a smart enum.
+extension HintActionKindBehaviors on HintActionKind {
+  /// Get the text description of a [HintActionKind], for display to users.
+  String get description {
+    switch (this) {
+      case HintActionKind.addNullableHint:
+        return 'Add /*?*/ hint';
+      case HintActionKind.addNonNullableHint:
+        return 'Add /*!*/ hint';
+    }
+
+    assert(false);
+    return null;
+  }
 }

@@ -9,6 +9,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nullability_state.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
@@ -705,6 +706,9 @@ class NullabilityGraphSerializer {
 abstract class NullabilityNode implements NullabilityNodeInfo {
   LateCondition _lateCondition = LateCondition.notLate;
 
+  @override
+  final hintActions = <HintActionKind, Map<int, List<AtomicEdit>>>{};
+
   bool _isPossiblyOptional = false;
 
   /// List of [NullabilityEdge] objects describing this node's relationship to
@@ -1321,6 +1325,9 @@ class _NullabilityNodeImmutable extends NullabilityNode {
 
   @override
   String get debugSuffix => isNullable ? '?' : '';
+
+  @override
+  Map<HintActionKind, Map<int, List<AtomicEdit>>> get hintActions => const {};
 
   @override
   // Note: the node "always" is not exact nullable, because exact nullability is
