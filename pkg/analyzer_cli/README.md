@@ -2,7 +2,7 @@
 
 Use _dartanalyzer_ to statically analyze your code at the command line,
 checking for errors and warnings that are specified in the
-[Dart Language Specification](https://www.dartlang.org/docs/spec/).
+[Dart Language Specification](https://dart.dev/guides/language/spec).
 DartPad, code editors, and IDEs such as Android Studio and VS Code
 use the same analysis engine that dartanalyzer uses.
 

@@ -5025,7 +5025,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// a method annotated with `@mustCallSuper` is implicitly annotated with
   /// `@mustCallSuper`.
   ///
-  /// [1] https://pub.dartlang.org/documentation/meta/latest/meta/mustCallSuper-constant.html
+  /// [1] https://pub.dev/documentation/meta/latest/meta/mustCallSuper-constant.html
   MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {
     Element member = node.declaredElement;
     if (member.enclosingElement is! ClassElement) {

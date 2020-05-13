@@ -581,6 +581,6 @@ class CommandLineOptions {
     errorSink.writeln('');
     errorSink.writeln('''
 Run "dartanalyzer -h -v" for verbose help output, including less commonly used options.
-For more information, see https://www.dartlang.org/tools/analyzer.\n''');
+For more information, see https://dart.dev/tools/dartanalyzer.\n''');
   }
 }

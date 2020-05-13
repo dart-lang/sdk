@@ -682,7 +682,7 @@ abstract class DiagnosticPage extends Page {
       <nav class="masthead-nav">
         <a href="/status" ${isNavPage ? ' class="active"' : ''}>Diagnostics</a>
         <a href="/feedback" ${isCurrentPage('/feedback') ? ' class="active"' : ''}>Feedback</a>
-        <a href="https://www.dartlang.org/tools/analyzer" target="_blank">Docs</a>
+        <a href="https://dart.dev/tools/dartanalyzer" target="_blank">Docs</a>
         <a href="https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html" target="_blank">Spec</a>
       </nav>
     </div>
