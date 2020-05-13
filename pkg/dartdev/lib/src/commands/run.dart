@@ -254,7 +254,7 @@ class _DebuggingSession {
   Uri _bindAddress = Uri.http('127.0.0.1', '');
   DartDevelopmentService _dds;
   bool _observe = false;
-  int _port = 0;
+  int _port = 8181;
   Process _process;
   Uri _serviceInfoUri;
   Future _stderrDone;
