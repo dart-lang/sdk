@@ -8842,10 +8842,6 @@ void Function::PrintQualifiedName(
     if (fun.IsMethodExtractor()) {
       printer->AddString("[tear-off-extractor] ");
     }
-    if (fun.IsAsyncClosure() || fun.IsAsyncGenClosure() ||
-        fun.IsGeneratorClosure()) {
-      printer->AddString("[body] ");
-    }
   }
 
   if (fun.IsClosureFunction()) {
@@ -8877,6 +8873,12 @@ void Function::PrintQualifiedName(
       } else {
         printer->AddString(fun.NameCString(name_visibility));
       }
+      // If we skipped rewritten async/async*/sync* body then append a suffix
+      // to the end of the name.
+      if (fun.raw() != raw() &&
+          name_disambiguation == NameDisambiguation::kYes) {
+        printer->AddString("{body}");
+      }
       return;
     }
   }
@@ -8894,6 +8896,12 @@ void Function::PrintQualifiedName(
   }
 
   printer->AddString(fun.NameCString(name_visibility));
+
+  // If we skipped rewritten async/async*/sync* body then append a suffix
+  // to the end of the name.
+  if (fun.raw() != raw() && name_disambiguation == NameDisambiguation::kYes) {
+    printer->AddString("{body}");
+  }
 
   // Field dispatchers are specialized for an argument descriptor so there
   // might be multiples of them with the same name but different argument
