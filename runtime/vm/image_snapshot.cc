@@ -903,7 +903,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
   assembly_stream_.Print(".bss\n");
   // Align the BSS contents as expected by the Image class.
-  assembly_stream_.Align(Image::kBssAlignment);
+  Align(Image::kBssAlignment);
   assembly_stream_.Print("%s:\n", bss_symbol);
 
   // Currently we only put one symbol in the data section, the address of
