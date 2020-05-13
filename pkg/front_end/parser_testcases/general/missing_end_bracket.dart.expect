@@ -1,3 +1,9 @@
+Problems reported:
+
+parser/general/missing_end_bracket:1:8: Can't find '}' to match '{'.
+main() {
+       ^
+
 beginCompilationUnit(main)
   beginMetadataStar(main)
   endMetadataStar(0)
@@ -22,4 +28,5 @@ beginCompilationUnit(main)
     endTopLevelMethod(main, null, })
   endTopLevelDeclaration()
   handleErrorToken(UnmatchedToken({))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '}' to match '{'., null, {string: }, token: {}], UnmatchedToken({), UnmatchedToken({))
 endCompilationUnit(1, )

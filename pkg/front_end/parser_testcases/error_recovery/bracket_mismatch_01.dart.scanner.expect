@@ -1,0 +1,67 @@
+class C {
+C({c});
+C m() {
+return C(
+c: [
+C(c: [
+C(),
+C(),
+C(),
+]),
+C(),
+C(),
+],
+);
+}
+}
+
+class D {
+D({d});
+D m() {
+return D(
+d: [
+D(d:
+D(),
+D(),
+D(),
+]),
+D(),
+D(),
+],
+);
+}
+}
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]([BeginToken]{[BeginToken]c[StringToken]}[SimpleToken])[SimpleToken];[SimpleToken]
+C[StringToken] m[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] C[StringToken]([BeginToken]
+c[StringToken]:[SimpleToken] [[BeginToken]
+C[StringToken]([BeginToken]c[StringToken]:[SimpleToken] [[BeginToken]
+C[StringToken]([BeginToken])[SimpleToken],[SimpleToken]
+C[StringToken]([BeginToken])[SimpleToken],[SimpleToken]
+C[StringToken]([BeginToken])[SimpleToken],[SimpleToken]
+][SimpleToken])[SimpleToken],[SimpleToken]
+C[StringToken]([BeginToken])[SimpleToken],[SimpleToken]
+C[StringToken]([BeginToken])[SimpleToken],[SimpleToken]
+][SimpleToken],[SimpleToken]
+)[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] D[StringToken] {[BeginToken]
+D[StringToken]([BeginToken]{[BeginToken]d[StringToken]}[SimpleToken])[SimpleToken];[SimpleToken]
+D[StringToken] m[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] D[StringToken]([BeginToken]
+d[StringToken]:[SimpleToken] [[BeginToken]
+D[StringToken]([BeginToken]d[StringToken]:[SimpleToken]
+D[StringToken]([BeginToken])[SimpleToken],[SimpleToken]
+D[StringToken]([BeginToken])[SimpleToken],[SimpleToken]
+D[StringToken]([BeginToken])[SimpleToken],[SimpleToken]
+][SimpleToken])[SimpleToken],[SimpleToken]
+D[StringToken]([BeginToken])[SimpleToken],[SimpleToken]
+D[StringToken]([BeginToken])[SimpleToken],[SimpleToken]
+][SimpleToken],[SimpleToken]
+)[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken][SimpleToken]

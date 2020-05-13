@@ -1,0 +1,7 @@
+void foo() {
+{[1]};
+}
+
+[UnmatchedToken]void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+{[BeginToken][[BeginToken]1[StringToken]][SyntheticToken]}[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]
