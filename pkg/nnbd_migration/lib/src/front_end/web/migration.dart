@@ -716,16 +716,24 @@ AnchorElement _aElementForLink(TargetLink link, String parentDirectory) {
 }
 
 void _populateEditLinks(EditDetails response, Element editPanel) {
-  if (response.edits != null) {
-    Element editParagraph = document.createElement('p');
-    editPanel.append(editParagraph);
-    for (var edit in response.edits) {
-      Element a = document.createElement('a');
-      editParagraph.append(a);
-      a.append(Text(edit.description));
-      a.setAttribute('href', edit.href);
-      a.classes = ['add-hint-link', 'before-apply', 'button'];
-    }
+  if (response.edits == null) {
+    return;
+  }
+
+  var subheading = editPanel.append(document.createElement('p'));
+  subheading.append(document.createElement('span')
+    ..classes = ['type-description']
+    ..append(Text('Actions')));
+  subheading.append(Text(':'));
+
+  Element editParagraph = document.createElement('p');
+  editPanel.append(editParagraph);
+  for (var edit in response.edits) {
+    Element a = document.createElement('a');
+    editParagraph.append(a);
+    a.append(Text(edit.description));
+    a.setAttribute('href', edit.href);
+    a.classes = ['add-hint-link', 'before-apply', 'button'];
   }
 }
 

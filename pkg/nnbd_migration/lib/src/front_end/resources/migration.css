@@ -483,7 +483,7 @@ body.rerunning .rerunning-pane {
   transform: translate(-50%, -50%);
 }
 
-p.trace .type-description {
+.edit-panel .type-description {
   /* From HLJS's .hljs-keyword, .hljs-selector-tag, .hljs-deletion */
   color: #cc7832;
   font-family: monospace;
