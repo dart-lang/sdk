@@ -3145,10 +3145,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _emitCovarianceBoundsCheck(f.typeParameters, body);
 
     void initParameter(VariableDeclaration p, js_ast.Identifier jsParam) {
-      if (isCovariantParameter(p)) {
-        var castExpr = _emitCast(jsParam, p.type);
-        if (!identical(castExpr, jsParam)) body.add(castExpr.toStatement());
-      }
+      // When the parameter is covariant, insert the null check before the
+      // covariant cast to avoid a TypeError when testing equality with null.
       if (name == '==') {
         // In Dart `operator ==` methods are not called with a null argument.
         // This is handled before calling them. For performance reasons, we push
@@ -3158,7 +3156,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // the Dart code already handles it (typically by an `is` check).
         // Eliminate it when possible.
         body.add(js.statement('if (# == null) return false;', [jsParam]));
-      } else if (_annotatedNullCheck(p.annotations)) {
+      }
+      if (isCovariantParameter(p)) {
+        var castExpr = _emitCast(jsParam, p.type);
+        if (!identical(castExpr, jsParam)) body.add(castExpr.toStatement());
+      }
+
+      if (name == '==') return;
+
+      if (_annotatedNullCheck(p.annotations)) {
         body.add(_nullParameterCheck(jsParam));
       } else if (_mustBeNonNullable(p.type) &&
           !_annotatedNotNull(p.annotations)) {
