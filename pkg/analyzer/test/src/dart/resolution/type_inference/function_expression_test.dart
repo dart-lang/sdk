@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -231,13 +230,7 @@ var v = (bool b) {
   }
 
   test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [],
-      legacy: [
-        error(HintCode.MISSING_RETURN, 28, 102),
-      ],
-    );
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 enum E { a, b }
 
 main() {
@@ -250,7 +243,7 @@ main() {
     }
   };
 }
-''', expectedErrors);
+''');
     _assertReturnType('(E e) {', 'int');
   }
 
@@ -259,13 +252,7 @@ main() {
 enum E { a, b }
 ''');
 
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [],
-      legacy: [
-        error(HintCode.MISSING_RETURN, 34, 108),
-      ],
-    );
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 import 'a.dart' as p;
 
 main() {
@@ -278,7 +265,7 @@ main() {
     }
   };
 }
-''', expectedErrors);
+''');
     _assertReturnType('(p.E e) {', 'int');
   }
 
@@ -311,13 +298,7 @@ var v = (bool b) {
   }
 
   test_noContext_returnType_sync_blockBody_nullable_switch() async {
-    var expectedErrors = expectedErrorsByNullability(
-      nullable: [],
-      legacy: [
-        error(HintCode.MISSING_RETURN, 11, 68),
-      ],
-    );
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 main() {
   (int a) {
     switch (a) {
@@ -326,7 +307,7 @@ main() {
     }
   };
 }
-''', expectedErrors);
+''');
     _assertReturnType(
       '(int a) {',
       typeStringByNullability(nullable: 'int?', legacy: 'int'),

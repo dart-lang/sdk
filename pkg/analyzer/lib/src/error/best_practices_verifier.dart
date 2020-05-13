@@ -18,6 +18,7 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -1107,37 +1108,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
+    // Generators are never required to have a return statement.
+    if (body.isGenerator) {
+      return;
+    }
+
     if (body is BlockFunctionBody) {
-      // Prefer the type from the element model, in case we've inferred one.
-      DartType returnType = element?.returnType ?? returnNode?.type;
+      var bodyContext = BodyInferenceContext.of(body);
+      // TODO(scheglov) Update InferenceContext to record any type, dynamic.
+      var returnType = bodyContext.contextType ?? DynamicTypeImpl.instance;
 
-      // Skip the check if we're missing a return type (e.g. erroneous code).
-      // Generators are never required to have a return statement.
-      if (returnType == null || body.isGenerator) {
-        return;
-      }
-
-      var flattenedType =
-          body.isAsynchronous ? _typeSystem.flatten(returnType) : returnType;
-
-      // Function expressions without a return will have their return type set
-      // to `Null` regardless of their context type. So we need to figure out
-      // if a return type was expected from the original downwards context.
-      //
-      // This helps detect hint cases like `int Function() f = () {}`.
-      // See https://github.com/dart-lang/sdk/issues/28233 for context.
-      if (flattenedType.isDartCoreNull && functionNode is FunctionExpression) {
-        var contextType = InferenceContext.getContext(functionNode);
-        if (contextType is FunctionType) {
-          returnType = contextType.returnType;
-          flattenedType = body.isAsynchronous
-              ? _typeSystem.flatten(returnType)
-              : returnType;
-        }
-      }
-
+      // TODO(scheglov) replace with a TypeSystem call?
       // dynamic, Null, void, and FutureOr<T> where T is (dynamic, Null, void)
       // are allowed to omit a return.
+      var flattenedType = returnType;
       if (flattenedType.isDartAsyncFutureOr) {
         flattenedType = (flattenedType as InterfaceType).typeArguments[0];
       }
