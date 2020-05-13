@@ -155,6 +155,26 @@ class LibraryContext {
                 unit,
               ),
             );
+
+            // TODO(scheglov) remove after fixing linking issues
+            {
+              var existingLibraryReference =
+                  elementFactory.rootReference[libraryFile.uriStr];
+              if (existingLibraryReference != null) {
+                var existingElement = existingLibraryReference.element;
+                if (existingElement != null) {
+                  var existingSource = existingElement?.source;
+                  throw StateError(
+                    '[The library is already loaded]'
+                    '[oldUri: ${existingSource.uri}]'
+                    '[oldPath: ${existingSource.fullName}]'
+                    '[newUri: ${libraryFile.uriStr}]'
+                    '[newPath: ${libraryFile.path}]'
+                    '[cycle: $cycle]',
+                  );
+                }
+              }
+            }
           }
 
           inputLibraries.add(
