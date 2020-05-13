@@ -80,8 +80,6 @@ Future<String> f() async {
     ]);
   }
 
-  /// The spec and implementations don't match in legacy mode.
-  /// https://github.com/dart-lang/language/issues/960
   test_function_async_block_int__to_Future_void() async {
     await assertNoErrorsInCode(r'''
 Future<void> f() async {

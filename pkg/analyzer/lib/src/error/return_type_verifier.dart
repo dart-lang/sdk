@@ -187,12 +187,8 @@ class ReturnTypeVerifier {
     if (enclosingExecutable.isAsynchronous) {
       var flatten_T = _typeSystem.flatten(T);
       var flatten_S = _typeSystem.flatten(S);
-      // It is a compile-time error if `flatten(T)` is `void`,
+      // It is a compile-time error if `T` is `void`,
       // and `flatten(S)` is neither `void`, `dynamic`, nor `Null`.
-      //
-      // The spec and implementations don't match in legacy mode.
-      // https://github.com/dart-lang/language/issues/960
-      // We should check `flatten_T` here, but check `T` instead.
       if (T.isVoid) {
         if (!_isVoidDynamicOrNull(flatten_S)) {
           reportTypeError();
