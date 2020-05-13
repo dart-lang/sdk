@@ -14,6 +14,7 @@ import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
@@ -557,6 +558,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       nullabilityNode = _graph.never;
     } else {
       nullabilityNode = NullabilityNode.forTypeAnnotation(target);
+      nullabilityNode.hintActions
+        ..[HintActionKind.addNullableHint] = {
+          node.end: [AtomicEdit.insert('/*?*/')]
+        }
+        ..[HintActionKind.addNonNullableHint] = {
+          node.end: [AtomicEdit.insert('/*!*/')]
+        };
     }
     DecoratedType decoratedType;
     if (type is FunctionType && node is! GenericFunctionType) {
@@ -743,8 +751,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _positionalParameters = previousPositionalParameters;
         _namedParameters = previousNamedParameters;
       }
-      decoratedType = DecoratedType(
-          declaredElement.type, NullabilityNode.forTypeAnnotation(target),
+      final nullabilityNode = NullabilityNode.forTypeAnnotation(target);
+      decoratedType = DecoratedType(declaredElement.type, nullabilityNode,
           returnType: decoratedReturnType,
           positionalParameters: positionalParameters,
           namedParameters: namedParameters);
@@ -782,6 +790,10 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         default:
           break;
       }
+
+      decoratedType.node.hintActions
+        ..remove(HintActionKind.addNonNullableHint)
+        ..remove(HintActionKind.addNullableHint);
     }
   }
 
