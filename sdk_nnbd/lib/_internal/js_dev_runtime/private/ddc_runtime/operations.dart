@@ -781,6 +781,7 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
       $_resetFields.push(() => {
         init = initializer;
         value = null;
+        executed = false;
       });
       executed = true;
     }
@@ -793,6 +794,7 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
     $desc.set = function(x) {
       init = null;
       value = x;
+      // executed is dead since init is set to null
     };
   }
   return ${defineProperty(to, name, desc)};
