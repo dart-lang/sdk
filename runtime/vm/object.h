@@ -3384,6 +3384,20 @@ class Function : public Object {
     return modifier() != FunctionLayout::kNoModifier;
   }
 
+  // Recognise synthetic sync-yielding functions like the inner-most:
+  //   user_func /* was sync* */ {
+  //     :sync_op_gen() {
+  //        :sync_op() yielding {
+  //          // ...
+  //        }
+  //      }
+  //   }
+  bool IsSyncYielding() const {
+    return (parent_function() != Function::null())
+               ? Function::Handle(parent_function()).IsSyncGenClosure()
+               : false;
+  }
+
   bool IsTypedDataViewFactory() const {
     if (is_native() && kind() == FunctionLayout::kConstructor) {
       // This is a native factory constructor.

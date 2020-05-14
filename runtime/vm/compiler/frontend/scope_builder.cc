@@ -213,7 +213,17 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
 
       ParameterTypeCheckMode type_check_mode = kTypeCheckAllParameters;
-      if (function.IsNonImplicitClosureFunction()) {
+      if (function.IsSyncYielding()) {
+        // Don't type check the parameter of sync-yielding since these calls are
+        // all synthetic and types should always match.
+        ASSERT((function.NumParameters() - function.NumImplicitParameters()) ==
+               1);
+        ASSERT(
+            Class::Handle(
+                AbstractType::Handle(function.ParameterTypeAt(1)).type_class())
+                .Name() == Symbols::_SyncIterator().raw());
+        type_check_mode = kTypeCheckForStaticFunction;
+      } else if (function.IsNonImplicitClosureFunction()) {
         type_check_mode = kTypeCheckAllParameters;
       } else if (function.IsImplicitClosureFunction()) {
         if (MethodCanSkipTypeChecksForNonCovariantArguments(
