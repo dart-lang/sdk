@@ -99,7 +99,7 @@ class Builder {
   final Architecture arch;
   final Sanitizer sanitizer;
   final Runtime runtime;
-  final List<Configuration> testedConfigurations;
+  final Set<Configuration> testedConfigurations;
 
   Builder(this.name, this.description, this.steps, this.system, this.mode,
       this.arch, this.sanitizer, this.runtime, this.testedConfigurations);
@@ -167,11 +167,11 @@ String _expandVariables(String string, Map<String, String> values) {
   return string;
 }
 
-List<Configuration> _getTestedConfigurations(List<Step> steps) {
+Set<Configuration> _getTestedConfigurations(List<Step> steps) {
   return steps
       .where((step) => step.isTestStep)
       .map((step) => step.testedConfiguration)
-      .toList();
+      .toSet();
 }
 
 T _findIfNotNull<T>(T Function(String) find, String name) {
