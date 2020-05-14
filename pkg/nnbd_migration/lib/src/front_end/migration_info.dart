@@ -302,12 +302,13 @@ class UnitInfo {
     final contentCopy = content;
     final regionsCopy = List<RegionInfo>.from(regions);
     final length = replacement.length;
-    offset = offsetMapper.map(offset);
+    final migratedOffset = offsetMapper.map(offset);
     try {
-      content = content.replaceRange(offset, offset, replacement);
+      content =
+          content.replaceRange(migratedOffset, migratedOffset, replacement);
       regions.clear();
       regions.addAll(regionsCopy.map((region) {
-        if (region.offset < offset) {
+        if (region.offset < migratedOffset) {
           return region;
         }
         // TODO: perhaps this should be handled by offset mapper instead, since
@@ -326,7 +327,9 @@ class UnitInfo {
       }));
 
       diskChangesOffsetMapper = OffsetMapper.sequence(
-          diskChangesOffsetMapper, OffsetMapper.forInsertion(offset, length));
+          diskChangesOffsetMapper,
+          OffsetMapper.forInsertion(
+              diskChangesOffsetMapper.map(offset), length));
     } catch (e) {
       regions.clear();
       regions.addAll(regionsCopy);
