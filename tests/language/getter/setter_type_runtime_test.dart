@@ -1,19 +1,22 @@
+// TODO(multitest): This was automatically migrated from a multitest and may
+// contain strange or dead code.
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Getters and setters can have different types, and it is not a warning if the
-// two types are assignable.
+// Getters and setters can have different types, but it is a warning if the
+// two types are not assignable.
 
-// [NNBD non-migrated]: NNBD requires a getter's return type to be a subtype of
-// the corresponding setter's parameter type. So this test would be a static
-// error, and hence there is no corresponding NNBD version.
 import "package:expect/expect.dart";
 
 int bar = 499;
 
+
 get foo => bar;
 
-void set foo(String str) {
+void set foo(
+
+    str) {
   bar = str.length;
 }
 

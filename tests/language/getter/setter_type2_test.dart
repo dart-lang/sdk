@@ -4,16 +4,13 @@
 // Getters and setters can have different types, and it is not a warning if the
 // two types are assignable.
 
-// [NNBD non-migrated]: NNBD requires a getter's return type to be a subtype of
-// the corresponding setter's parameter type. So this test would be a static
-// error, and hence there is no corresponding NNBD version.
 import "package:expect/expect.dart";
 
 int bar = 499;
 
-get foo => bar;
+int get foo => bar;
 
-void set foo(String str) {
+void set foo(str) {
   bar = str.length;
 }
 
