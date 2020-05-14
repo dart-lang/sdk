@@ -23,6 +23,7 @@ import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:args/args.dart';
+import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
@@ -74,6 +75,36 @@ class CommandLineOptions {
       @required this.sdkPath,
       @required this.summary,
       @required this.webPreview});
+}
+
+class MigrateCommand extends Command<dynamic> {
+  final bool verbose;
+
+  MigrateCommand({this.verbose = false}) {
+    MigrationCli._defineOptions(argParser, !verbose);
+  }
+
+  @override
+  String get description =>
+      'Perform a null safety migration on a project or package.'
+      '\n\nThe migrate feature is in preview and not yet complete; we welcome '
+      'feedback.\n\n'
+      'https://github.com/dart-lang/sdk/tree/master/pkg/nnbd_migration#providing-feedback';
+
+  @override
+  String get invocation {
+    return '${super.invocation} [project or directory]';
+  }
+
+  @override
+  String get name => 'migrate';
+
+  @override
+  FutureOr<int> run() async {
+    var cli = MigrationCli(binaryName: 'dart $name');
+    await cli.run(argResults, isVerbose: verbose);
+    return cli.exitCode;
+  }
 }
 
 /// Command-line API for the migration tool, with additional methods exposed for
@@ -140,9 +171,9 @@ class MigrationCli {
   /// If no additional work should be done (e.g. because the user asked for
   /// help, or supplied a bad option), a nonzero value is stored in [exitCode].
   @visibleForTesting
-  void decodeCommandLineArgs(ArgResults argResults) {
+  void decodeCommandLineArgs(ArgResults argResults, {bool isVerbose}) {
     try {
-      var isVerbose = argResults[CommandLineOptions.verboseFlag] as bool;
+      isVerbose ??= argResults[CommandLineOptions.verboseFlag] as bool;
       if (argResults[CommandLineOptions.helpFlag] as bool) {
         _showUsage(isVerbose);
         exitCode = 0;
@@ -216,8 +247,8 @@ class MigrationCli {
   }
 
   /// Runs the full migration process.
-  void run(ArgResults argResults) async {
-    decodeCommandLineArgs(argResults);
+  void run(ArgResults argResults, {bool isVerbose}) async {
+    decodeCommandLineArgs(argResults, isVerbose: isVerbose);
     if (exitCode != null) return;
 
     logger.stdout('Migrating ${options.directory}');
