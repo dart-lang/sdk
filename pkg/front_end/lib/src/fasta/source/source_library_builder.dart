@@ -449,6 +449,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _languageVersion =
         new LanguageVersion(version, fileUri, offset, length, explicit);
     library.setLanguageVersion(version);
+
+    if (loader.target.enableNonNullable &&
+        (loader.nnbdMode == NnbdMode.Strong ||
+            loader.nnbdMode == NnbdMode.Agnostic)) {
+      // In strong and agnostic mode, the language version is not allowed to
+      // opt a library out of nnbd.
+      if (!isNonNullableByDefault) {
+        addPostponedProblem(
+            messageStrongModeNNBDButOptOut, offset, length, fileUri);
+        _languageVersion = new InvalidLanguageVersion(
+            fileUri, offset, length, explicit, loader.target.currentSdkVersion);
+      }
+    }
   }
 
   ConstructorReferenceBuilder addConstructorReference(Object name,

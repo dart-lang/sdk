@@ -190,6 +190,7 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.sdk: const UriValue(),
   Flags.singleRootBase: const UriValue(),
   Flags.singleRootScheme: const StringValue(),
+  Flags.nnbdWeakMode: const BoolValue(false),
   Flags.nnbdStrongMode: const BoolValue(false),
   Flags.nnbdAgnosticMode: const BoolValue(false),
   Flags.target: const StringValue(),
@@ -283,6 +284,8 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final bool nnbdStrongMode = options[Flags.nnbdStrongMode];
 
+  final bool nnbdWeakMode = options[Flags.nnbdWeakMode];
+
   final bool nnbdAgnosticMode = options[Flags.nnbdAgnosticMode];
 
   final NnbdMode nnbdMode = nnbdAgnosticMode
@@ -291,9 +294,21 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final List<Uri> linkDependencies = options[Flags.linkDependencies] ?? [];
 
+  if (nnbdStrongMode && nnbdWeakMode) {
+    return throw new CommandLineProblem.deprecated(
+        "Can't specify both '${Flags.nnbdStrongMode}' and "
+        "'${Flags.nnbdWeakMode}'.");
+  }
+
   if (nnbdStrongMode && nnbdAgnosticMode) {
     return throw new CommandLineProblem.deprecated(
         "Can't specify both '${Flags.nnbdStrongMode}' and "
+        "'${Flags.nnbdAgnosticMode}'.");
+  }
+
+  if (nnbdWeakMode && nnbdAgnosticMode) {
+    return throw new CommandLineProblem.deprecated(
+        "Can't specify both '${Flags.nnbdWeakMode}' and "
         "'${Flags.nnbdAgnosticMode}'.");
   }
 

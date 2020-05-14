@@ -75,7 +75,10 @@
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
         "/testcases/shaker/",
-        "/testcases/expression/"
+        "/testcases/expression/",
+        "/testcases/general_nnbd_opt_out/",
+        "/testcases/nnbd_mixed/",
+        "/testcases/nonfunction_type_aliases/"
       ]
     },
     {
@@ -93,7 +96,10 @@
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
         "/testcases/shaker/",
-        "/testcases/expression/"
+        "/testcases/expression/",
+        "/testcases/general_nnbd_opt_out/",
+        "/testcases/nnbd_mixed/",
+        "/testcases/nonfunction_type_aliases/"
       ]
     },
     {
@@ -111,7 +117,10 @@
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
         "/testcases/shaker/",
-        "/testcases/expression/"
+        "/testcases/expression/",
+        "/testcases/general_nnbd_opt_out/",
+        "/testcases/nnbd_mixed/",
+        "/testcases/nonfunction_type_aliases/"
       ]
     },
     {
@@ -129,7 +138,10 @@
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
         "/testcases/shaker/",
-        "/testcases/expression/"
+        "/testcases/expression/",
+        "/testcases/general_nnbd_opt_out/",
+        "/testcases/nnbd_mixed/",
+        "/testcases/nonfunction_type_aliases/"
       ]
     },
     {

@@ -39,6 +39,7 @@ name.#name
 name.stack
 native('native
 nativetype
+nnbd
 nosuchmethod
 num1%.3ms
 o

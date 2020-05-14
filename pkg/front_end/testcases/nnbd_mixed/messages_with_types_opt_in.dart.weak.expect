@@ -1,0 +1,274 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:17:6: Error: The return type of the method 'SubInIn.nullableBad' is 'T?', which does not match the return type, 'int?', of the overridden method, 'SuperIn.nullableBad'.
+// Change to a subtype of 'int?'.
+//   T? nullableBad<T>(T t) => null;
+//      ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:10:8: Context: This is the overridden method ('nullableBad').
+//   int? nullableBad<T>(T t) => 1;
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:18:5: Error: The return type of the method 'SubInIn.nonNullableBad' is 'T', which does not match the return type, 'int', of the overridden method, 'SuperIn.nonNullableBad'.
+// Change to a subtype of 'int'.
+//   T nonNullableBad<T>(T t) => t;
+//     ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:11:7: Context: This is the overridden method ('nonNullableBad').
+//   int nonNullableBad<T>(T t) => 2;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:24:6: Error: The return type of the method 'SubOutIn.nullableBad' is 'T?', which does not match the return type, 'int', of the overridden method, 'SuperOut.nullableBad'.
+// Change to a subtype of 'int'.
+//   T? nullableBad<T>(T t) => null;
+//      ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:12:7: Context: This is the overridden method ('nullableBad').
+//   int nullableBad<T>(T t) => 1;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:25:5: Error: The return type of the method 'SubOutIn.nonNullableBad' is 'T', which does not match the return type, 'int', of the overridden method, 'SuperOut.nonNullableBad'.
+// Change to a subtype of 'int'.
+//   T nonNullableBad<T>(T t) => t;
+//     ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:13:7: Context: This is the overridden method ('nonNullableBad').
+//   int nonNullableBad<T>(T t) => 2;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:32:17: Error: A value of type 'double' can't be assigned to a variable of type 'int Function()?'.
+//   nullableVar = nonNullableVar;
+//                 ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:33:20: Error: A value of type 'int Function()?' can't be assigned to a variable of type 'double'.
+//   nonNullableVar = nullableVar;
+//                    ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:34:15: Error: A value of type 'int Function()?' can't be assigned to a variable of type 'String'.
+//   legacyVar = nullableVar;
+//               ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:35:17: Error: A value of type 'String' can't be assigned to a variable of type 'int Function()?'.
+//   nullableVar = legacyVar;
+//                 ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:36:20: Error: A value of type 'String' can't be assigned to a variable of type 'double'.
+//   nonNullableVar = legacyVar;
+//                    ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:37:15: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+//   legacyVar = nonNullableVar;
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+import "messages_with_types_opt_out.dart" as mes;
+
+import "org-dartlang-testcase:///messages_with_types_opt_out.dart";
+
+class SuperIn extends core::Object {
+  synthetic constructor •() → self::SuperIn
+    : super core::Object::•()
+    ;
+  method nullableSame() → core::String?
+    return "foo";
+  method nonNullableSame() → core::String
+    return "bar";
+  method nullableBad<T extends core::Object? = dynamic>(self::SuperIn::nullableBad::T% t) → core::int?
+    return 1;
+  method nonNullableBad<T extends core::Object? = dynamic>(self::SuperIn::nonNullableBad::T% t) → core::int
+    return 2;
+}
+class SubInIn extends self::SuperIn {
+  synthetic constructor •() → self::SubInIn
+    : super self::SuperIn::•()
+    ;
+  method nullableSame() → core::String?
+    return "foo";
+  method nonNullableSame() → core::String
+    return "bar";
+  method nullableBad<T extends core::Object? = dynamic>(self::SubInIn::nullableBad::T% t) → self::SubInIn::nullableBad::T?
+    return null;
+  method nonNullableBad<T extends core::Object? = dynamic>(self::SubInIn::nonNullableBad::T% t) → self::SubInIn::nonNullableBad::T%
+    return t;
+}
+class SubOutIn extends mes::SuperOut {
+  synthetic constructor •() → self::SubOutIn
+    : super mes::SuperOut::•()
+    ;
+  method nullableSame() → core::String?
+    return "foo";
+  method nonNullableSame() → core::String
+    return "bar";
+  method nullableBad<T extends core::Object? = dynamic>(self::SubOutIn::nullableBad::T% t) → self::SubOutIn::nullableBad::T?
+    return null;
+  method nonNullableBad<T extends core::Object? = dynamic>(self::SubOutIn::nonNullableBad::T% t) → self::SubOutIn::nonNullableBad::T%
+    return t;
+}
+static field () →? core::int nullableVar = () → core::int => 3;
+static field core::double nonNullableVar = 4.0;
+static method testOptIn() → dynamic {
+  self::nullableVar = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:32:17: Error: A value of type 'double' can't be assigned to a variable of type 'int Function()?'.
+  nullableVar = nonNullableVar;
+                ^" in self::nonNullableVar as{TypeError,ForNonNullableByDefault} () →? core::int;
+  self::nonNullableVar = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:33:20: Error: A value of type 'int Function()?' can't be assigned to a variable of type 'double'.
+  nonNullableVar = nullableVar;
+                   ^" in self::nullableVar as{TypeError,ForNonNullableByDefault} core::double;
+  mes::legacyVar = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:34:15: Error: A value of type 'int Function()?' can't be assigned to a variable of type 'String'.
+  legacyVar = nullableVar;
+              ^" in self::nullableVar as{TypeError,ForNonNullableByDefault} core::String*;
+  self::nullableVar = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:35:17: Error: A value of type 'String' can't be assigned to a variable of type 'int Function()?'.
+  nullableVar = legacyVar;
+                ^" in mes::legacyVar as{TypeError,ForNonNullableByDefault} () →? core::int;
+  self::nonNullableVar = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:36:20: Error: A value of type 'String' can't be assigned to a variable of type 'double'.
+  nonNullableVar = legacyVar;
+                   ^" in mes::legacyVar as{TypeError,ForNonNullableByDefault} core::double;
+  mes::legacyVar = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:37:15: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+  legacyVar = nonNullableVar;
+              ^" in self::nonNullableVar as{TypeError,ForNonNullableByDefault} core::String*;
+}
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:19:5: Error: The return type of the method 'SubOutOut.nullableBad' is 'T', which does not match the return type, 'int', of the overridden method, 'SuperOut.nullableBad'.
+// Change to a subtype of 'int'.
+//   T nullableBad<T>(T t) => null;
+//     ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:12:7: Context: This is the overridden method ('nullableBad').
+//   int nullableBad<T>(T t) => 1;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:20:5: Error: The return type of the method 'SubOutOut.nonNullableBad' is 'T', which does not match the return type, 'int', of the overridden method, 'SuperOut.nonNullableBad'.
+// Change to a subtype of 'int'.
+//   T nonNullableBad<T>(T t) => t;
+//     ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:13:7: Context: This is the overridden method ('nonNullableBad').
+//   int nonNullableBad<T>(T t) => 2;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:26:5: Error: The return type of the method 'SubInOut.nullableBad' is 'T', which does not match the return type, 'int', of the overridden method, 'SuperIn.nullableBad'.
+// Change to a subtype of 'int'.
+//   T nullableBad<T>(T t) => null;
+//     ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:10:8: Context: This is the overridden method ('nullableBad').
+//   int? nullableBad<T>(T t) => 1;
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:27:5: Error: The return type of the method 'SubInOut.nonNullableBad' is 'T', which does not match the return type, 'int', of the overridden method, 'SuperIn.nonNullableBad'.
+// Change to a subtype of 'int'.
+//   T nonNullableBad<T>(T t) => t;
+//     ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:11:7: Context: This is the overridden method ('nonNullableBad').
+//   int nonNullableBad<T>(T t) => 2;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:33:17: Error: A value of type 'double' can't be assigned to a variable of type 'int Function()'.
+//   nullableVar = nonNullableVar;
+//                 ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:34:20: Error: A value of type 'int Function()' can't be assigned to a variable of type 'double'.
+//   nonNullableVar = nullableVar;
+//                    ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:35:15: Error: A value of type 'int Function()' can't be assigned to a variable of type 'String'.
+//   legacyVar = nullableVar;
+//               ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:36:17: Error: A value of type 'String' can't be assigned to a variable of type 'int Function()'.
+//   nullableVar = legacyVar;
+//                 ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:37:20: Error: A value of type 'String' can't be assigned to a variable of type 'double'.
+//   nonNullableVar = legacyVar;
+//                    ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:38:15: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+//   legacyVar = nonNullableVar;
+//               ^
+//
+import self as mes;
+import "dart:core" as core;
+import "messages_with_types_opt_in.dart" as self;
+
+import "org-dartlang-testcase:///messages_with_types_opt_in.dart";
+
+class SuperOut extends core::Object {
+  synthetic constructor •() → mes::SuperOut*
+    : super core::Object::•()
+    ;
+  method nullableSame() → core::String*
+    return "foo";
+  method nonNullableSame() → core::String*
+    return "bar";
+  method nullableBad<T extends core::Object* = dynamic>(mes::SuperOut::nullableBad::T* t) → core::int*
+    return 1;
+  method nonNullableBad<T extends core::Object* = dynamic>(mes::SuperOut::nonNullableBad::T* t) → core::int*
+    return 2;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+class SubOutOut extends mes::SuperOut {
+  synthetic constructor •() → mes::SubOutOut*
+    : super mes::SuperOut::•()
+    ;
+  method nullableSame() → core::String*
+    return "foo";
+  method nonNullableSame() → core::String*
+    return "bar";
+  method nullableBad<T extends core::Object* = dynamic>(mes::SubOutOut::nullableBad::T* t) → mes::SubOutOut::nullableBad::T*
+    return null;
+  method nonNullableBad<T extends core::Object* = dynamic>(mes::SubOutOut::nonNullableBad::T* t) → mes::SubOutOut::nonNullableBad::T*
+    return t;
+}
+class SubInOut extends self::SuperIn {
+  synthetic constructor •() → mes::SubInOut*
+    : super self::SuperIn::•()
+    ;
+  method nullableSame() → core::String*
+    return "foo";
+  method nonNullableSame() → core::String*
+    return "bar";
+  method nullableBad<T extends core::Object* = dynamic>(mes::SubInOut::nullableBad::T* t) → mes::SubInOut::nullableBad::T*
+    return null;
+  method nonNullableBad<T extends core::Object* = dynamic>(mes::SubInOut::nonNullableBad::T* t) → mes::SubInOut::nonNullableBad::T*
+    return t;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+static field core::String* legacyVar = "legacy";
+static method testOptOut() → dynamic {
+  self::nullableVar = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:33:17: Error: A value of type 'double' can't be assigned to a variable of type 'int Function()'.
+  nullableVar = nonNullableVar;
+                ^" in self::nonNullableVar as{TypeError} () →? core::int;
+  self::nonNullableVar = let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:34:20: Error: A value of type 'int Function()' can't be assigned to a variable of type 'double'.
+  nonNullableVar = nullableVar;
+                   ^" in self::nullableVar as{TypeError} core::double;
+  mes::legacyVar = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:35:15: Error: A value of type 'int Function()' can't be assigned to a variable of type 'String'.
+  legacyVar = nullableVar;
+              ^" in self::nullableVar as{TypeError} core::String*;
+  self::nullableVar = let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:36:17: Error: A value of type 'String' can't be assigned to a variable of type 'int Function()'.
+  nullableVar = legacyVar;
+                ^" in mes::legacyVar as{TypeError} () →? core::int;
+  self::nonNullableVar = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:37:20: Error: A value of type 'String' can't be assigned to a variable of type 'double'.
+  nonNullableVar = legacyVar;
+                   ^" in mes::legacyVar as{TypeError} core::double;
+  mes::legacyVar = let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:38:15: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+  legacyVar = nonNullableVar;
+              ^" in self::nonNullableVar as{TypeError} core::String*;
+}

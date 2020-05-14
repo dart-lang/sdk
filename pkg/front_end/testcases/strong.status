@@ -167,15 +167,11 @@ inference_new/infer_assign_to_property_custom: TypeCheckError
 inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # Expected
 instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
-nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/issue41180: RuntimeError # Strong mode runtime checking fails due to mixed strong mode.
-nnbd/issue41567: TypeCheckError
-nnbd/messages_with_types_opt_in: TypeCheckError
-nnbd/messages_with_types_opt_out: TypeCheckError
-nnbd/never_opt_out: TypeCheckError
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
+nnbd/strong_lib_not_ok_from_dill/strong: RuntimeError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError

@@ -1,0 +1,39 @@
+library opted_out_lib;
+import self as self;
+import "issue41496b_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue41496b_lib.dart" as opt_in;
+
+typedef LegacyFoo = () →* void;
+static method test(() →* void f) → dynamic {}
+static method main() → dynamic {
+  iss::main();
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41496b_lib.dart:7:11: Error: Field 'f1' should be initialized because its type 'void Function()' doesn't allow null.
+// LegacyFoo f1;
+//           ^^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41496b_lib.dart:10:20: Error: Field 'f2' should be initialized because its type 'void Function()' doesn't allow null.
+//   static LegacyFoo f2;
+//                    ^^
+//
+import self as iss;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue41496b.dart";
+
+class C extends core::Object {
+  static field () → void f2 = null;
+  synthetic constructor •() → iss::C
+    : super core::Object::•()
+    ;
+}
+static field () → void f1;
+static method main() → dynamic {
+  new iss::C::•();
+}

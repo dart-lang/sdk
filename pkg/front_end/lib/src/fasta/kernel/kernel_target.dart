@@ -96,6 +96,7 @@ import '../messages.dart'
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
+        messageStrongModeNNBDButOptOut,
         noLength,
         templateFieldNonNullableNotInitializedByConstructorError,
         templateFieldNonNullableWithoutInitializerError,
@@ -249,6 +250,13 @@ class KernelTarget extends TargetImplementation {
     if (dillTarget.isLoaded) {
       LibraryBuilder builder = dillTarget.loader.builders[uri];
       if (builder != null) {
+        if (enableNonNullable &&
+            (loader.nnbdMode == NnbdMode.Strong ||
+                loader.nnbdMode == NnbdMode.Agnostic)) {
+          if (!builder.isNonNullableByDefault) {
+            loader.addProblem(messageStrongModeNNBDButOptOut, -1, 1, fileUri);
+          }
+        }
         return builder;
       }
     }

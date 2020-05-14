@@ -1,0 +1,158 @@
+library;
+import self as self;
+import "never_opt_out_lib.dart" as nev;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///never_opt_out_lib.dart";
+
+class B extends nev::A {
+  field core::Null? neverField = null;
+  field core::Null? nullField = null;
+  synthetic constructor •() → self::B*
+    : super nev::A::•()
+    ;
+  method neverMethod(core::Null? value) → core::Null?
+    return value;
+  get neverProperty() → core::Null?
+    return null;
+  set neverProperty(core::Null? value) → void {}
+  method nullMethod(core::Null? value) → core::Null?
+    return value;
+  get nullProperty() → core::Null?
+    return null;
+  set nullProperty(core::Null? value) → void {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+class C extends nev::A {
+  field Never* neverField = null;
+  field Never* nullField = null;
+  synthetic constructor •() → self::C*
+    : super nev::A::•()
+    ;
+  method neverMethod(Never* value) → Never*
+    return value;
+  get neverProperty() → Never*
+    return null;
+  set neverProperty(Never* value) → void {}
+  method nullMethod(Never* value) → Never*
+    return value;
+  get nullProperty() → Never*
+    return null;
+  set nullProperty(Never* value) → void {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+static field Never* optOutNever;
+static field core::Null? inferredOptOutNever = nev::optInNever;
+static method main() → dynamic {
+  Never* localNever = null;
+  core::Null? localNull = null;
+  Never* inferredLocalNever = nev::optInNever;
+  localNever = localNever;
+  self::optOutNever = localNever;
+  nev::optInNever = localNever;
+  localNull = localNever;
+  self::inferredOptOutNever = localNever;
+  inferredLocalNever = localNever;
+  localNever = self::optOutNever;
+  self::optOutNever = self::optOutNever;
+  nev::optInNever = self::optOutNever;
+  localNull = self::optOutNever;
+  self::inferredOptOutNever = self::optOutNever;
+  inferredLocalNever = self::optOutNever;
+  localNever = nev::optInNever;
+  self::optOutNever = nev::optInNever;
+  nev::optInNever = nev::optInNever;
+  localNull = nev::optInNever;
+  self::inferredOptOutNever = nev::optInNever;
+  inferredLocalNever = nev::optInNever;
+  localNever = localNull;
+  self::optOutNever = localNull;
+  nev::optInNever = localNull as{TypeError} Never;
+  localNull = localNull;
+  self::inferredOptOutNever = localNull;
+  inferredLocalNever = localNull;
+  localNever = self::inferredOptOutNever;
+  self::optOutNever = self::inferredOptOutNever;
+  nev::optInNever = self::inferredOptOutNever as{TypeError} Never;
+  localNull = self::inferredOptOutNever;
+  self::inferredOptOutNever = self::inferredOptOutNever;
+  inferredLocalNever = self::inferredOptOutNever;
+  localNever = inferredLocalNever;
+  self::optOutNever = inferredLocalNever;
+  nev::optInNever = inferredLocalNever;
+  localNull = inferredLocalNever;
+  self::inferredOptOutNever = inferredLocalNever;
+  inferredLocalNever = inferredLocalNever;
+  self::throws(() → Never* => self::optOutNever = nev::throwing());
+  self::throws(() → Never* => localNever = nev::throwing());
+  self::throws(() → Never* => self::optOutNever = nev::throwing());
+  self::throws(() → Never* => nev::optInNever = nev::throwing());
+  self::throws(() → Never* => self::inferredOptOutNever = nev::throwing());
+  self::throws(() → Never* => inferredLocalNever = nev::throwing());
+}
+static method throws(() →* void f) → dynamic {
+  try {
+    f.call();
+  }
+  on dynamic catch(final dynamic _) {
+    return;
+  }
+  throw "Expected exception";
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:19:28: Error: A value of type 'Type' can't be assigned to a variable of type 'Null'.
+//  - 'Type' is from 'dart:core'.
+//   Null get nullProperty => Null;
+//                            ^
+//
+import self as nev;
+import "dart:core" as core;
+import "never_opt_out.dart" as self;
+
+import "org-dartlang-testcase:///never_opt_out.dart";
+
+class A extends core::Object {
+  field Never neverField = throw "Should not reach here";
+  field core::Null? nullField = null;
+  synthetic constructor •() → nev::A
+    : super core::Object::•()
+    ;
+  method neverMethod(Never value) → Never
+    return value;
+  get neverProperty() → Never
+    return throw "Should not reach here";
+  set neverProperty(Never value) → void {}
+  method nullMethod(core::Null? value) → core::Null?
+    return value;
+  get nullProperty() → core::Null?
+    return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:19:28: Error: A value of type 'Type' can't be assigned to a variable of type 'Null'.
+ - 'Type' is from 'dart:core'.
+  Null get nullProperty => Null;
+                           ^" in core::Null? as{TypeError,ForNonNullableByDefault} core::Null?;
+  set nullProperty(core::Null? value) → void {}
+}
+static field Never optInNever = self::optOutNever;
+static method throwing() → Never
+  return throw "Never!";
