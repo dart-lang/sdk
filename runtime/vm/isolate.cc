@@ -423,6 +423,16 @@ void IsolateGroup::Shutdown() {
   }
 
   delete this;
+
+  // After this isolate group has died we might need to notify a pending
+  // `Dart_Cleanup()` call.
+  {
+    MonitorLocker ml(Isolate::isolate_creation_monitor_);
+    if (!Isolate::creation_enabled_ &&
+        !IsolateGroup::HasApplicationIsolateGroups()) {
+      ml.Notify();
+    }
+  }
 }
 
 void IsolateGroup::set_heap(std::unique_ptr<Heap> heap) {
@@ -663,6 +673,26 @@ void IsolateGroup::RegisterIsolateGroup(IsolateGroup* isolate_group) {
 void IsolateGroup::UnregisterIsolateGroup(IsolateGroup* isolate_group) {
   WriteRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
   isolate_groups_->Remove(isolate_group);
+}
+
+bool IsolateGroup::HasApplicationIsolateGroups() {
+  ReadRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
+  for (auto group : *isolate_groups_) {
+    if (!IsolateGroup::IsVMInternalIsolate(group)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool IsolateGroup::HasOnlyVMIsolateGroup() {
+  ReadRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
+  for (auto group : *isolate_groups_) {
+    if (!Dart::VmIsolateNameEquals(group->source()->name)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void IsolateGroup::Init() {
@@ -2479,7 +2509,6 @@ void Isolate::Shutdown() {
 }
 
 void Isolate::LowLevelCleanup(Isolate* isolate) {
-  const bool is_application_isolate = !Isolate::IsVMInternalIsolate(isolate);
 #if !defined(DART_PECOMPILED_RUNTIME)
   if (KernelIsolate::IsKernelIsolate(isolate)) {
     KernelIsolate::SetKernelIsolate(nullptr);
@@ -2540,12 +2569,6 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
       // inform the GC about this situation.
     }
   }
-
-  // After deleting the isolate we know that all it's resources have been freed.
-  // We still delay the notification to a possible call to `Dart::Cleanup()` to
-  // after a potential shutdown of the group, which would turn down any pending
-  // GC tasks as well as the heap.
-  Isolate::MarkIsolateDead(is_application_isolate);
 }  // namespace dart
 
 Dart_InitializeIsolateCallback Isolate::initialize_callback_ = nullptr;
@@ -2556,8 +2579,6 @@ Dart_IsolateGroupCleanupCallback Isolate::cleanup_group_callback_ = nullptr;
 
 Random* IsolateGroup::isolate_group_random_ = nullptr;
 Monitor* Isolate::isolate_creation_monitor_ = nullptr;
-intptr_t Isolate::application_isolates_count_ = 0;
-intptr_t Isolate::total_isolates_count_ = 0;
 bool Isolate::creation_enabled_ = false;
 
 RwLock* IsolateGroup::isolate_groups_rwlock_ = nullptr;
@@ -3410,8 +3431,11 @@ void Isolate::VisitIsolates(IsolateVisitor* visitor) {
 }
 
 intptr_t Isolate::IsolateListLength() {
-  MonitorLocker ml(isolate_creation_monitor_);
-  return total_isolates_count_;
+  intptr_t count = 0;
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->ForEachIsolate([&](Isolate* isolate) { count++; });
+  });
+  return count;
 }
 
 Isolate* Isolate::LookupIsolateByPort(Dart_Port port) {
@@ -3443,10 +3467,6 @@ std::unique_ptr<char[]> Isolate::LookupIsolateNameByPort(Dart_Port port) {
 
 bool Isolate::TryMarkIsolateReady(Isolate* isolate) {
   MonitorLocker ml(isolate_creation_monitor_);
-  total_isolates_count_++;
-  if (!Isolate::IsVMInternalIsolate(isolate)) {
-    application_isolates_count_++;
-  }
   if (!creation_enabled_) {
     return false;
   }
@@ -3457,19 +3477,6 @@ bool Isolate::TryMarkIsolateReady(Isolate* isolate) {
 void Isolate::UnMarkIsolateReady(Isolate* isolate) {
   MonitorLocker ml(isolate_creation_monitor_);
   isolate->accepts_messages_ = false;
-}
-
-void Isolate::MarkIsolateDead(bool is_application_isolate) {
-  MonitorLocker ml(isolate_creation_monitor_);
-  ASSERT(total_isolates_count_ > 0);
-  total_isolates_count_--;
-  if (is_application_isolate) {
-    ASSERT(application_isolates_count_ > 0);
-    application_isolates_count_--;
-  }
-  if (!creation_enabled_) {
-    ml.Notify();
-  }
 }
 
 void Isolate::DisableIsolateCreation() {
@@ -3487,14 +3494,15 @@ bool Isolate::IsolateCreationEnabled() {
   return creation_enabled_;
 }
 
-bool Isolate::IsVMInternalIsolate(const Isolate* isolate) {
+bool IsolateGroup::IsVMInternalIsolate(const IsolateGroup* group) {
   // We use a name comparison here because this method can be called during
   // shutdown, where the actual isolate pointers might've already been cleared.
-  return Dart::VmIsolateNameEquals(isolate->name()) ||
+  const char* name = group->source()->name;
+  return Dart::VmIsolateNameEquals(name) ||
 #if !defined(DART_PRECOMPILED_RUNTIME)
-         KernelIsolate::NameEquals(isolate->name()) ||
+         KernelIsolate::NameEquals(name) ||
 #endif
-         ServiceIsolate::NameEquals(isolate->name());
+         ServiceIsolate::NameEquals(name);
 }
 
 void Isolate::KillLocked(LibMsgId msg_id) {

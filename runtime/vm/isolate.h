@@ -309,6 +309,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   IdleTimeHandler* idle_time_handler() { return &idle_time_handler_; }
 
+  // Returns true if this is the first isolate registered.
   void RegisterIsolate(Isolate* isolate);
   void RegisterIsolateLocked(Isolate* isolate);
   void UnregisterIsolate(Isolate* isolate);
@@ -488,6 +489,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // Manage list of existing isolate groups.
   static void RegisterIsolateGroup(IsolateGroup* isolate_group);
   static void UnregisterIsolateGroup(IsolateGroup* isolate_group);
+
+  static bool HasApplicationIsolateGroups();
+  static bool HasOnlyVMIsolateGroup();
+  static bool IsVMInternalIsolate(const IsolateGroup* group);
 
   int64_t UptimeMicros() const;
 
@@ -1244,7 +1249,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
   static bool IsolateCreationEnabled();
-  static bool IsVMInternalIsolate(const Isolate* isolate);
+  static bool IsVMInternalIsolate(const Isolate* isolate) {
+    return IsolateGroup::IsVMInternalIsolate(isolate->group());
+  }
 
 #if !defined(PRODUCT)
   intptr_t reload_every_n_stack_overflow_checks() const {
@@ -1522,17 +1529,14 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // Manage list of existing isolates.
   static bool TryMarkIsolateReady(Isolate* isolate);
   static void UnMarkIsolateReady(Isolate* isolate);
-  static void MarkIsolateDead(bool is_application_isolate);
+  static void MaybeNotifyVMShutdown();
   bool AcceptsMessagesLocked() {
     ASSERT(isolate_creation_monitor_->IsOwnedByCurrentThread());
     return accepts_messages_;
   }
 
-  // This monitor protects application_isolates_count_, total_isolates_count_,
-  // creation_enabled_.
+  // This monitor protects [creation_enabled_].
   static Monitor* isolate_creation_monitor_;
-  static intptr_t application_isolates_count_;
-  static intptr_t total_isolates_count_;
   static bool creation_enabled_;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
