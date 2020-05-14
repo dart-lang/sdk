@@ -661,6 +661,18 @@ class Object {
     value.writeTo(const_cast<FieldType*>(addr));
   }
 
+  template <typename FieldType>
+  FieldType LoadNonPointer(const FieldType* addr) const {
+    return *const_cast<FieldType*>(addr);
+  }
+
+  template <typename FieldType, std::memory_order order>
+  FieldType LoadNonPointer(const FieldType* addr) const {
+    return reinterpret_cast<std::atomic<FieldType>*>(
+               const_cast<FieldType*>(addr))
+        ->load(order);
+  }
+
   // Needs two template arguments to allow assigning enums to fixed-size ints.
   template <typename FieldType, typename ValueType>
   void StoreNonPointer(const FieldType* addr, ValueType value) const {
@@ -675,14 +687,6 @@ class Object {
     ASSERT(reinterpret_cast<uword>(addr) >= ObjectLayout::ToAddr(raw()));
     reinterpret_cast<std::atomic<FieldType>*>(const_cast<FieldType*>(addr))
         ->store(value, order);
-  }
-
-  template <typename FieldType,
-            std::memory_order order = std::memory_order_relaxed>
-  FieldType LoadNonPointer(const FieldType* addr) const {
-    return reinterpret_cast<std::atomic<FieldType>*>(
-               const_cast<FieldType*>(addr))
-        ->load(order);
   }
 
   // Provides non-const access to non-pointer fields within the object. Such
@@ -4714,18 +4718,23 @@ class Library : public Object {
 
   // Resolving native methods for script loaded in the library.
   Dart_NativeEntryResolver native_entry_resolver() const {
-    return LoadNonPointer(&raw_ptr()->native_entry_resolver_);
+    return LoadNonPointer<Dart_NativeEntryResolver, std::memory_order_relaxed>(
+        &raw_ptr()->native_entry_resolver_);
   }
   void set_native_entry_resolver(Dart_NativeEntryResolver value) const {
-    StoreNonPointer(&raw_ptr()->native_entry_resolver_, value);
+    StoreNonPointer<Dart_NativeEntryResolver, Dart_NativeEntryResolver,
+                    std::memory_order_relaxed>(
+        &raw_ptr()->native_entry_resolver_, value);
   }
   Dart_NativeEntrySymbol native_entry_symbol_resolver() const {
-    return LoadNonPointer(&raw_ptr()->native_entry_symbol_resolver_);
+    return LoadNonPointer<Dart_NativeEntrySymbol, std::memory_order_relaxed>(
+        &raw_ptr()->native_entry_symbol_resolver_);
   }
   void set_native_entry_symbol_resolver(
       Dart_NativeEntrySymbol native_symbol_resolver) const {
-    StoreNonPointer(&raw_ptr()->native_entry_symbol_resolver_,
-                    native_symbol_resolver);
+    StoreNonPointer<Dart_NativeEntrySymbol, Dart_NativeEntrySymbol,
+                    std::memory_order_relaxed>(
+        &raw_ptr()->native_entry_symbol_resolver_, native_symbol_resolver);
   }
 
   bool is_in_fullsnapshot() const {
