@@ -585,8 +585,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           return;
         }
         final _InternetAddress address = it.current as _InternetAddress;
-        var socket = new _NativeSocket.normal();
-        socket.localAddress = address;
+        var socket = new _NativeSocket.normal(address);
         var result;
         if (sourceAddress == null) {
           if (address.type == InternetAddressType.unix) {
@@ -734,8 +733,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
     final address = await _resolveHost(host);
 
-    var socket = new _NativeSocket.listen();
-    socket.localAddress = address;
+    var socket = new _NativeSocket.listen(address);
     var result;
     if (address.type == InternetAddressType.unix) {
       var path = address.address;
@@ -784,9 +782,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   _NativeSocket.datagram(this.localAddress)
       : typeFlags = typeNormalSocket | typeUdpSocket;
 
-  _NativeSocket.normal() : typeFlags = typeNormalSocket | typeTcpSocket;
+  _NativeSocket.normal(this.localAddress)
+      : typeFlags = typeNormalSocket | typeTcpSocket;
 
-  _NativeSocket.listen() : typeFlags = typeListeningSocket | typeTcpSocket {
+  _NativeSocket.listen(this.localAddress)
+      : typeFlags = typeListeningSocket | typeTcpSocket {
     isClosedWrite = true;
   }
 
@@ -985,10 +985,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     connections--;
     tokens++;
     returnTokens(listeningTokenBatchSize);
-    var socket = new _NativeSocket.normal();
+    var socket = new _NativeSocket.normal(address);
     if (nativeAccept(socket) != true) return null;
     socket.localPort = localPort;
-    socket.localAddress = address;
     setupResourceInfo(socket);
     final resourceInformation = resourceInfo;
     assert(resourceInformation != null ||
@@ -1301,7 +1300,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   void reportError(error, StackTrace? st, String message) {
-    var e = createError(error, message, address, localPort);
+    var e =
+        createError(error, message, isUdp || isTcp ? address : null, localPort);
     // Invoke the error handler if any.
     if (eventHandlers[errorEvent] != null) {
       eventHandlers[errorEvent](e, st);
