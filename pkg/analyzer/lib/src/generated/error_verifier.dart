@@ -244,8 +244,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Initialize a newly created error verifier.
    */
   ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
-      this._typeProvider, this._inheritanceManager,
-      [@deprecated bool enableSuperMixins])
+      this._typeProvider, this._inheritanceManager)
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
@@ -272,13 +271,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       errorReporter: _errorReporter,
     );
   }
-
-  /**
-   * If `true`, mixins are allowed to inherit from types other than Object, and
-   * are allowed to reference `super`.
-   */
-  @deprecated
-  bool get enableSuperMixins => false;
 
   ClassElement get enclosingClass => _enclosingClass;
 
