@@ -58,7 +58,9 @@ testMixinSupertypes() async {
     }
     env.elementEnvironment.forEachSupertype(element, (InterfaceType supertype) {
       if (!supertype.typeArguments.isEmpty) {
-        Expect.listEquals(typeVariables, supertype.typeArguments,
+        Expect.listEquals(
+            env.printTypes(typeVariables),
+            env.printTypes(supertype.typeArguments),
             "Type argument mismatch on supertype $supertype of $element.");
       } else {
         Expect.equals(Object, supertype.element);
@@ -144,11 +146,13 @@ testNonTrivialSubstitutions() async {
     env.elementEnvironment.forEachSupertype(element, (InterfaceType supertype) {
       if (typeArguments.containsKey(supertype.element)) {
         Expect.listEquals(
-            typeArguments[supertype.element],
-            supertype.typeArguments,
+            env.printTypes(typeArguments[supertype.element]),
+            env.printTypes(supertype.typeArguments),
             "Type argument mismatch on supertype $supertype of $element.");
       } else if (!supertype.typeArguments.isEmpty) {
-        Expect.listEquals(typeVariables, supertype.typeArguments,
+        Expect.listEquals(
+            env.printTypes(typeVariables),
+            env.printTypes(supertype.typeArguments),
             "Type argument mismatch on supertype $supertype of $element.");
       } else if (env.elementEnvironment
           .isUnnamedMixinApplication(supertype.element)) {
