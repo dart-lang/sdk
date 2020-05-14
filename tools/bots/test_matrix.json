@@ -4,7 +4,6 @@
     "firefox": "67"
   },
   "branches": [
-    "analyzer-stable",
     "master"
   ],
   "filesets": {
@@ -2945,10 +2944,7 @@
       "builders": [
         "analyzer-linux-release",
         "analyzer-mac-release",
-        "analyzer-win-release",
-        "analyzer-linux-release-analyzer-stable",
-        "analyzer-mac-release-analyzer-stable",
-        "analyzer-win-release-analyzer-stable"
+        "analyzer-win-release"
       ],
       "meta": {
         "description": "This configuration is used by the analyzer builders."
@@ -3095,8 +3091,7 @@
     },
     {
       "builders": [
-        "analyzer-analysis-server-linux",
-        "analyzer-analysis-server-linux-analyzer-stable"
+        "analyzer-analysis-server-linux"
       ],
       "meta": {
         "description": "Analyze analyzer related packages."
@@ -3534,8 +3529,7 @@
     },
     {
       "builders": [
-        "flutter-analyze",
-        "flutter-analyze-analyzer-stable"
+        "flutter-analyze"
       ],
       "meta": {
         "description": "This configuration is used for analyzing flutter."
