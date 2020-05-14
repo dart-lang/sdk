@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -54,8 +53,6 @@ class InheritanceManager3 {
   /// The set of classes that are currently being processed, used to detect
   /// self-referencing cycles.
   final Set<ClassElement> _processingClasses = <ClassElement>{};
-
-  InheritanceManager3([@deprecated TypeSystem typeSystem]);
 
   /// Return the result of [getInherited2] with [type] substitution.
   ExecutableElement getInherited(InterfaceType type, Name name) {
