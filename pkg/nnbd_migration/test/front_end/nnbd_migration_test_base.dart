@@ -25,6 +25,11 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   Set<UnitInfo> infos;
   NodeMapper nodeMapper;
 
+  void setUp() {
+    super.setUp();
+    nodeMapper = SimpleNodeMapper();
+  }
+
   /// Assert that some target in [targets] has various properties.
   void assertInTargets(
       {@required Iterable<NavigationTarget> targets,
@@ -214,7 +219,6 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     migration.finish();
     // Build the migration info.
     var info = instrumentationListener.data;
-    nodeMapper = SimpleNodeMapper();
     var builder = InfoBuilder(
         resourceProvider, includedRoot, info, listener, migration, nodeMapper);
     infos = await builder.explainMigration();

@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
 import 'package:nnbd_migration/src/front_end/path_mapper.dart';
@@ -47,6 +48,8 @@ class PreviewSite extends Site
   static const highlightJsPath = '/highlight.pack.js';
 
   static const navigationTreePath = '/_preview/navigationTree.json';
+
+  static const applyHintPath = '/apply-hint';
 
   static const applyMigrationPath = '/apply-migration';
 
@@ -183,6 +186,11 @@ class PreviewSite extends Site
 
         respondOk(request);
         return;
+      } else if (path == applyHintPath) {
+        final hintAction = HintAction.fromJson(await requestBodyJson(request));
+        await performHintAction(hintAction);
+        respondOk(request);
+        return;
       } else if (uri.queryParameters.containsKey('replacement')) {
         await performEdit(uri);
 
@@ -260,6 +268,47 @@ class PreviewSite extends Site
       await rerunMigration();
     }
   }
+
+  /// Perform the edit indicated by the [uri].
+  Future<void> performHintAction(HintAction hintAction) async {
+    final node = migrationState.nodeMapper.nodeForId(hintAction.nodeId);
+    final edits = node.hintActions[hintAction.kind];
+    if (edits == null) {
+      throw StateError('This edit was not available to perform.');
+    }
+    //
+    // Update the code on disk.
+    //
+    var path = node.codeReference.path;
+    var file = pathMapper.provider.getFile(path);
+    var diskContent = file.readAsStringSync();
+    if (!unitInfoMap[path].hadDiskContent(diskContent)) {
+      throw StateError('Cannot perform edit. This file has been changed since'
+          ' last migration run. Press the "rerun from sources" button and then'
+          ' try again. (Changed file path is ${file.path})');
+    }
+    final unitInfo = unitInfoMap[path];
+    final diskMapper = unitInfo.diskChangesOffsetMapper;
+    var newContent = diskContent;
+    migrationState.needsRerun = true;
+    for (final entry in edits.entries) {
+      final offset = entry.key;
+      final edits = entry.value;
+      final sourceEdit = edits.toSourceEdit(diskMapper.map(offset));
+      // TODO(mfairhurst): handle deletions
+      unitInfo.handleInsertion(sourceEdit.offset, sourceEdit.replacement);
+      newContent = sourceEdit.apply(newContent);
+    }
+    file.writeAsStringSync(newContent);
+    unitInfo.diskContent = newContent;
+  }
+
+  Future<Map<String, Object>> requestBodyJson(HttpRequest request) async =>
+      (await request
+          .map((entry) => entry.map((i) => i.toInt()).toList())
+          .transform<String>(Utf8Decoder())
+          .transform(JsonDecoder())
+          .single) as Map<String, Object>;
 
   Future<void> rerunMigration() async {
     migrationState = await rerunFunction();

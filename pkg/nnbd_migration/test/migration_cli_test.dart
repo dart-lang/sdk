@@ -519,6 +519,41 @@ int? f() => null
     });
   }
 
+  test_lifecycle_preview_stack_hint_action() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var authToken = uri.queryParameters['authToken'];
+      var regionResponse = await http.get(
+          uri.replace(
+              path: resourceProvider.pathContext
+                  .toUri(resourceProvider.pathContext
+                      .join(projectDir, 'lib', 'test.dart'))
+                  .path,
+              queryParameters: {
+                'region': 'region',
+                'offset': '3',
+                'authToken': authToken
+              }),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      var regionJson = jsonDecode(regionResponse.body);
+      var response = await http.post(
+          uri.replace(
+              path: 'apply-hint', queryParameters: {'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'},
+          body: jsonEncode(
+              regionJson['traces'][0]['entries'][0]['hintActions'][0]));
+      assertHttpSuccess(response);
+      assertProjectContents(
+          projectDir, simpleProject(sourceText: 'int/*?*/ x;'));
+    });
+  }
+
   test_lifecycle_summary() async {
     var projectContents = simpleProject();
     var projectDir = await createProjectDir(projectContents);
