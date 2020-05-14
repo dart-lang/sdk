@@ -140,9 +140,8 @@ class MigrationCli {
   /// If no additional work should be done (e.g. because the user asked for
   /// help, or supplied a bad option), a nonzero value is stored in [exitCode].
   @visibleForTesting
-  void parseCommandLineArgs(List<String> args) {
+  void decodeCommandLineArgs(ArgResults argResults) {
     try {
-      var argResults = _createParser().parse(args);
       var isVerbose = argResults[CommandLineOptions.verboseFlag] as bool;
       if (argResults[CommandLineOptions.helpFlag] as bool) {
         _showUsage(isVerbose);
@@ -196,25 +195,29 @@ class MigrationCli {
         logger = loggerFactory(true);
       }
     } on Object catch (exception) {
-      String message;
-      if (exception is FormatException) {
-        message = exception.message;
-      } else if (exception is _BadArgException) {
-        message = exception.message;
-      } else {
-        message =
-            'Exception occurred while parsing command-line options: $exception';
-      }
-      logger.stderr(message);
-      _showUsage(false);
-      exitCode = 1;
-      return;
+      handleArgParsingException(exception);
     }
   }
 
+  void handleArgParsingException(Object exception) {
+    String message;
+    if (exception is FormatException) {
+      message = exception.message;
+    } else if (exception is _BadArgException) {
+      message = exception.message;
+    } else {
+      message =
+          'Exception occurred while parsing command-line options: $exception';
+    }
+    logger.stderr(message);
+    _showUsage(false);
+    exitCode = 1;
+    return;
+  }
+
   /// Runs the full migration process.
-  void run(List<String> args) async {
-    parseCommandLineArgs(args);
+  void run(ArgResults argResults) async {
+    decodeCommandLineArgs(argResults);
     if (exitCode != null) return;
 
     logger.stdout('Migrating ${options.directory}');
@@ -378,49 +381,6 @@ Use this interactive web view to review, improve, or apply the results.
     }
   }
 
-  ArgParser _createParser({bool hide = true}) {
-    var parser = ArgParser();
-    parser.addFlag(CommandLineOptions.applyChangesFlag,
-        defaultsTo: false,
-        negatable: false,
-        help: 'Apply the proposed null safety changes to the files on disk.');
-    parser.addFlag(CommandLineOptions.helpFlag,
-        abbr: 'h',
-        help:
-            'Display this help message. Add --verbose to show hidden options.',
-        defaultsTo: false,
-        negatable: false);
-    parser.addFlag(
-      CommandLineOptions.ignoreErrorsFlag,
-      defaultsTo: false,
-      negatable: false,
-      help: 'Attempt to perform null safety analysis even if there are '
-          'analysis errors in the project.',
-    );
-    parser.addOption(CommandLineOptions.previewPortOption,
-        help:
-            'Run the preview server on the specified port.  If not specified, '
-            'dynamically allocate a port.');
-    parser.addOption(CommandLineOptions.sdkPathOption,
-        help: 'The path to the Dart SDK.', hide: hide);
-    parser.addOption(CommandLineOptions.summaryOption,
-        help:
-            'Output path for a machine-readable summary of migration changes');
-    parser.addFlag(CommandLineOptions.verboseFlag,
-        abbr: 'v',
-        defaultsTo: false,
-        help: 'Verbose output.',
-        negatable: false);
-    parser.addFlag(CommandLineOptions.webPreviewFlag,
-        defaultsTo: true,
-        negatable: true,
-        help: 'Show an interactive preview of the proposed null safety changes '
-            'in a browser window.\n'
-            'With --no-web-preview, the proposed changes are instead printed to '
-            'the console.');
-    return parser;
-  }
-
   void _displayChangeSummary(_DartFixListener migrationResults) {
     Map<String, List<_DartFixSuggestion>> fileSuggestions = {};
     for (_DartFixSuggestion suggestion in migrationResults.suggestions) {
@@ -489,7 +449,7 @@ Use this interactive web view to review, improve, or apply the results.
     logger.stderr('Usage: $binaryName [options...] [<package directory>]');
 
     logger.stderr('');
-    logger.stderr(_createParser(hide: !isVerbose).usage);
+    logger.stderr(createParser(hide: !isVerbose).usage);
     if (!isVerbose) {
       logger.stderr('');
       logger
@@ -517,6 +477,18 @@ Use this interactive web view to review, improve, or apply the results.
     }
   }
 
+  static ArgParser createParser({bool hide = true}) {
+    var parser = ArgParser();
+    parser.addFlag(CommandLineOptions.helpFlag,
+        abbr: 'h',
+        help:
+            'Display this help message. Add --verbose to show hidden options.',
+        defaultsTo: false,
+        negatable: false);
+    _defineOptions(parser, hide);
+    return parser;
+  }
+
   static Logger _defaultLoggerFactory(bool isVerbose) {
     var ansi = Ansi(Ansi.terminalSupportsAnsi);
     if (isVerbose) {
@@ -524,6 +496,41 @@ Use this interactive web view to review, improve, or apply the results.
     } else {
       return Logger.standard(ansi: ansi);
     }
+  }
+
+  static void _defineOptions(ArgParser parser, bool hide) {
+    parser.addFlag(CommandLineOptions.applyChangesFlag,
+        defaultsTo: false,
+        negatable: false,
+        help: 'Apply the proposed null safety changes to the files on disk.');
+    parser.addFlag(
+      CommandLineOptions.ignoreErrorsFlag,
+      defaultsTo: false,
+      negatable: false,
+      help: 'Attempt to perform null safety analysis even if there are '
+          'analysis errors in the project.',
+    );
+    parser.addOption(CommandLineOptions.previewPortOption,
+        help:
+            'Run the preview server on the specified port.  If not specified, '
+            'dynamically allocate a port.');
+    parser.addOption(CommandLineOptions.sdkPathOption,
+        help: 'The path to the Dart SDK.', hide: hide);
+    parser.addOption(CommandLineOptions.summaryOption,
+        help:
+            'Output path for a machine-readable summary of migration changes');
+    parser.addFlag(CommandLineOptions.verboseFlag,
+        abbr: 'v',
+        defaultsTo: false,
+        help: 'Verbose output.',
+        negatable: false);
+    parser.addFlag(CommandLineOptions.webPreviewFlag,
+        defaultsTo: true,
+        negatable: true,
+        help: 'Show an interactive preview of the proposed null safety changes '
+            'in a browser window.\n'
+            'With --no-web-preview, the proposed changes are instead printed to '
+            'the console.');
   }
 
   static Map<int, List<AtomicEdit>> _sourceEditsToAtomicEdits(
