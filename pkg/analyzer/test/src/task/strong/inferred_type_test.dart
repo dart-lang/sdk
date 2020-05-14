@@ -4035,10 +4035,9 @@ var v = f<dynamic>(() { return 1; });
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
-  @failingTest
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/25824')
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() async {
-    // Note: (f<dynamic>) is not properly resulting in an instantiated
-    // function type due to dartbug.com/25824.
+    // Note: (f<dynamic>) is not a valid syntax.
     var mainUnit = await checkFileElement('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f<dynamic>)(() { return 1; });
@@ -4068,10 +4067,9 @@ var v = f<int>(() { return 1; });
     _assertTypeStr(v.type, 'List<int>');
   }
 
-  @failingTest
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/25824')
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() async {
-    // TODO(paulberry): for some reason (f<int>) is not properly resulting
-    // in an instantiated function type.
+    // Note: (f<int>) is not a valid syntax.
     var mainUnit = await checkFileElement('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f<int>)(() { return 1; });
