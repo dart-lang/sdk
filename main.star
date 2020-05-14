@@ -22,7 +22,6 @@ GOMA_RBE = {
 
 RELEASE_CHANNELS = ["beta", "dev", "stable"]
 CHANNELS = RELEASE_CHANNELS + ["try"]
-ANALYZER_CHANNELS = ["analyzer-stable"] + CHANNELS
 BRANCHES = ["master"] + RELEASE_CHANNELS
 
 TEST_PY_PATHS = "pkg/(async_helper|expect|smith|status_file|test_runner)/.+"
@@ -132,14 +131,6 @@ luci.project(
 
 luci.milo(
     logo="https://storage.googleapis.com/chrome-infra-public/logo/dartlang.png",
-)
-
-luci.console_view(
-    name="analyzer-stable",
-    repo="https://dart.googlesource.com/sdk",
-    title="SDK Analyzer Stable Branch Console",
-    refs=["refs/heads/analyzer-stable"],
-    header="console-header.textpb",
 )
 
 luci.console_view(
@@ -255,7 +246,7 @@ def dart_poller(name, bucket="ci", branches=BRANCHES, paths=None):
         )
 
 
-dart_poller("dart-gitiles-trigger", branches=BRANCHES + ["analyzer-stable"])
+dart_poller("dart-gitiles-trigger", branches=BRANCHES)
 dart_poller("dart-vm-gitiles-trigger", branches=["master"], paths=VM_PATHS)
 
 luci.gitiles_poller(
@@ -307,7 +298,6 @@ luci.cq_group(
     tree_status_host="dart-status.appspot.com",
     retry_config=cq.RETRY_NONE,
     verifiers=None,
-    cancel_stale_tryjobs=True,
 )
 
 
@@ -792,27 +782,27 @@ dart_ci_sandbox_builder(
 dart_ci_sandbox_builder(
     "analyzer-analysis-server-linux",
     category="analyzer|as",
-    channels=ANALYZER_CHANNELS,
+    channels=CHANNELS,
     on_cq=True)
 dart_ci_sandbox_builder(
     "analyzer-linux-release",
     category="analyzer|l",
     on_cq=True,
-    channels=ANALYZER_CHANNELS)
+    channels=CHANNELS)
 dart_ci_sandbox_builder(
     "analyzer-nnbd-linux-release",
     category="analyzer|nn",
-    channels=ANALYZER_CHANNELS)
+    channels=CHANNELS)
 dart_ci_sandbox_builder(
     "analyzer-mac-release",
     category="analyzer|m",
     dimensions=mac(),
-    channels=ANALYZER_CHANNELS)
+    channels=CHANNELS)
 dart_ci_sandbox_builder(
     "analyzer-win-release",
     category="analyzer|w",
     dimensions=windows(),
-    channels=ANALYZER_CHANNELS)
+    channels=CHANNELS)
 
 # sdk
 dart_ci_builder(
