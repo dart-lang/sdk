@@ -50,9 +50,17 @@ abstract class DartDevelopmentService {
   ///
   /// If provided, [serviceUri] will determine the address and port of the
   /// spawned Dart Development Service.
+  ///
+  /// [enableAuthCodes] controls whether or not an authentication code must
+  /// be provided by clients when communicating with this instance of
+  /// [DartDevelopmentService]. Authentication codes take the form of a base64
+  /// encoded string provided as the first element of the DDS path and is meant
+  /// to make it more difficult for unintended clients to connect to this
+  /// service. Authentication codes are enabled by default.
   static Future<DartDevelopmentService> startDartDevelopmentService(
     Uri remoteVmServiceUri, {
     Uri serviceUri,
+    bool enableAuthCodes = true,
   }) async {
     if (remoteVmServiceUri == null) {
       throw ArgumentError.notNull('remoteVmServiceUri');
@@ -67,8 +75,11 @@ abstract class DartDevelopmentService {
         'serviceUri must have an HTTP scheme. Actual: ${serviceUri.scheme}',
       );
     }
-
-    final service = _DartDevelopmentService(remoteVmServiceUri, serviceUri);
+    final service = _DartDevelopmentService(
+      remoteVmServiceUri,
+      serviceUri,
+      enableAuthCodes,
+    );
     await service.startService();
     return service;
   }
@@ -77,6 +88,10 @@ abstract class DartDevelopmentService {
 
   /// Stop accepting requests after gracefully handling existing requests.
   Future<void> shutdown();
+
+  /// Set to `true` if this isntance of [DartDevelopmentService] requires an
+  /// authentication code to connect.
+  bool get authCodesEnabled;
 
   /// The HTTP [Uri] of the remote VM service instance that this service will
   /// forward requests to.

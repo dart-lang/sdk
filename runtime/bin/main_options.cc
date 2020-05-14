@@ -380,10 +380,6 @@ bool Options::ProcessAbiVersionOption(const char* arg,
   return true;
 }
 
-static bool IsOption(const char* actual, const char* expected) {
-  return (OptionProcessor::ProcessOption(actual, expected) != nullptr);
-}
-
 int Options::ParseArguments(int argc,
                             char** argv,
                             bool vm_run_app_snapshot,
@@ -479,14 +475,6 @@ int Options::ParseArguments(int argc,
         enable_vm_service_) {
       implicitly_use_dart_dev = true;
       dart_options->AddArgument("run");
-      for (int j = 1; j < i; ++j) {
-        if (IsOption(argv[j], "--observe")) {
-          dart_options->AddArgument(argv[j]);
-        }
-        if (IsOption(argv[j], "--enable-vm-service")) {
-          dart_options->AddArgument(argv[j]);
-        }
-      }
     }
   } else if (!Options::disable_dart_dev() &&
              ((Options::help_option() && !Options::verbose_option()) ||
@@ -510,7 +498,8 @@ int Options::ParseArguments(int argc,
     // want to forward all the VM arguments to the spawned process to ensure
     // the program behaves as the user expects even though we're running
     // through DartDev without their knowledge.
-    dart_options->AddArguments(vm_argv, vm_argc);
+    dart_options->AddArguments(const_cast<const char**>(argv + 1),
+                               script_or_cmd_index - 1);
   } else if (i > 1) {
     // If we're running with DartDev, we're going to ignore the VM options for
     // this VM instance and print a warning.

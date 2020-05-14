@@ -9,37 +9,7 @@ import 'package:dds/dds.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service_io.dart';
 
-Uri remoteVmServiceUri;
-
-Future<Process> spawnDartProcess(String script) async {
-  final executable = Platform.executable;
-  final tmpDir = await Directory.systemTemp.createTemp('dart_service');
-  final serviceInfoUri = tmpDir.uri.resolve('service_info.json');
-  final serviceInfoFile = await File.fromUri(serviceInfoUri).create();
-
-  final arguments = [
-    '--disable-dart-dev',
-    '--observe=0',
-    '--pause-isolates-on-start',
-    '--write-service-info=$serviceInfoUri',
-    ...Platform.executableArguments,
-    Platform.script.resolve(script).toString(),
-  ];
-  final process = await Process.start(executable, arguments);
-  process.stdout
-      .transform(utf8.decoder)
-      .listen((line) => print('TESTEE OUT: $line'));
-  process.stderr
-      .transform(utf8.decoder)
-      .listen((line) => print('TESTEE ERR: $line'));
-  while ((await serviceInfoFile.length()) <= 5) {
-    await Future.delayed(const Duration(milliseconds: 50));
-  }
-  final content = await serviceInfoFile.readAsString();
-  final infoJson = json.decode(content);
-  remoteVmServiceUri = Uri.parse(infoJson['uri']);
-  return process;
-}
+import 'common/test_helper.dart';
 
 void main() {
   group('DDS', () {
@@ -57,36 +27,48 @@ void main() {
       process = null;
     });
 
-    test('Smoke Test', () async {
-      dds = await DartDevelopmentService.startDartDevelopmentService(
-        remoteVmServiceUri,
-      );
-      expect(dds.isRunning, true);
+    bool useAuthCodes = false;
+    for (int i = 0; i < 2; ++i) {
+      test('Smoke Test with ${useAuthCodes ? "" : "no "} authentication codes',
+          () async {
+        dds = await DartDevelopmentService.startDartDevelopmentService(
+          remoteVmServiceUri,
+          enableAuthCodes: useAuthCodes,
+        );
+        expect(dds.isRunning, true);
 
-      // Ensure basic websocket requests are forwarded correctly to the VM service.
-      final service = await vmServiceConnectUri(dds.wsUri.toString());
-      final version = await service.getVersion();
-      expect(version.major > 0, true);
-      expect(version.minor > 0, true);
+        // Ensure basic websocket requests are forwarded correctly to the VM service.
+        final service = await vmServiceConnectUri(dds.wsUri.toString());
+        final version = await service.getVersion();
+        expect(version.major > 0, true);
+        expect(version.minor > 0, true);
 
-      // Ensure we can still make requests of the VM service via HTTP.
-      HttpClient client = HttpClient();
-      final request = await client.getUrl(remoteVmServiceUri.replace(
-        pathSegments: [
-          if (remoteVmServiceUri.pathSegments.isNotEmpty)
-            remoteVmServiceUri.pathSegments.first,
-          'getVersion',
-        ],
-      ));
-      final response = await request.close();
-      final Map<String, dynamic> jsonResponse = (await response
-          .transform(utf8.decoder)
-          .transform(json.decoder)
-          .single);
-      expect(jsonResponse['result']['type'], 'Version');
-      expect(jsonResponse['result']['major'] > 0, true);
-      expect(jsonResponse['result']['minor'] > 0, true);
-    });
+        expect(
+          remoteVmServiceUri.pathSegments,
+          useAuthCodes ? isNotEmpty : isEmpty,
+        );
+
+        // Ensure we can still make requests of the VM service via HTTP.
+        HttpClient client = HttpClient();
+        final request = await client.getUrl(remoteVmServiceUri.replace(
+          pathSegments: [
+            if (remoteVmServiceUri.pathSegments.isNotEmpty)
+              remoteVmServiceUri.pathSegments.first,
+            'getVersion',
+          ],
+        ));
+        final response = await request.close();
+        final Map<String, dynamic> jsonResponse = (await response
+            .transform(utf8.decoder)
+            .transform(json.decoder)
+            .single);
+        expect(jsonResponse['result']['type'], 'Version');
+        expect(jsonResponse['result']['major'] > 0, true);
+        expect(jsonResponse['result']['minor'] > 0, true);
+      });
+
+      useAuthCodes = true;
+    }
 
     test('startup fails when VM service has existing clients', () async {
       Uri httpToWebSocketUri(Uri httpUri) {

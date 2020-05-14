@@ -116,6 +116,8 @@ class _DebuggingSession {
           // input flags.
           // Ignore.
         }
+      } else if (arg == '--disable-service-auth-codes') {
+        _disableServiceAuthCodes = true;
       }
     }
 
@@ -183,6 +185,7 @@ class _DebuggingSession {
     _dds = await DartDevelopmentService.startDartDevelopmentService(
       remoteVmServiceUri,
       serviceUri: _bindAddress.replace(port: _port),
+      enableAuthCodes: !_disableServiceAuthCodes,
     );
     if (_serviceInfoUri != null) {
       // Output the service connection information.
@@ -252,6 +255,7 @@ class _DebuggingSession {
   }
 
   Uri _bindAddress = Uri.http('127.0.0.1', '');
+  bool _disableServiceAuthCodes = false;
   DartDevelopmentService _dds;
   bool _observe = false;
   int _port = 8181;
