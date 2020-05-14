@@ -8,6 +8,7 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'package:vm/snapshot/instruction_sizes.dart' as instruction_sizes;
+import 'package:vm/snapshot/name.dart';
 
 void main() async {
   if (!Platform.executable.contains('dart-sdk')) {

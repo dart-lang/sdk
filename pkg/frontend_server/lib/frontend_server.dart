@@ -152,7 +152,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('null-safety',
       help:
           'Respect the nullability of types at runtime in casts and instance checks.',
-      defaultsTo: null)
+      defaultsTo: false)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, eg set-literals.',
       hide: true)
@@ -385,8 +385,7 @@ class FrontendCompiler implements CompilerInterface {
       ..experimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
-      ..nnbdMode =
-          (options['null-safety'] == true) ? NnbdMode.Strong : NnbdMode.Weak
+      ..nnbdMode = options['null-safety'] ? NnbdMode.Strong : NnbdMode.Weak
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {
@@ -447,11 +446,6 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
-    if (options['null-safety'] == null &&
-        compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
-      await autoDetectNullSafetyMode(_mainSource, compilerOptions);
-    }
-
     compilerOptions.bytecode = options['gen-bytecode'];
     final BytecodeOptions bytecodeOptions = BytecodeOptions(
       enableAsserts: options['enable-asserts'],
@@ -465,7 +459,7 @@ class FrontendCompiler implements CompilerInterface {
     compilerOptions.target = createFrontEndTarget(
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
-      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
+      nullSafety: options['null-safety'],
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
