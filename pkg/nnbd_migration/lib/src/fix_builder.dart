@@ -463,7 +463,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       ParameterElement parameter, DartType type) {
     var postMigrationType = parameter.type;
     if (postMigrationType != type) {
-      // TODO(paulberry): make sure we test all kinds of parameters
+      // TODO(paulberry): test field formal parameters.
       _fixBuilder._addedParameterTypes[parameter] = postMigrationType;
       return postMigrationType;
     }

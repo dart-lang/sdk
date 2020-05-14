@@ -809,11 +809,29 @@ class NodeChangeForSimpleFormalParameter
   EditPlan _apply(SimpleFormalParameter node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
     if (addExplicitType == null) return innerPlan;
-    return aggregator.planner.surround(innerPlan, prefix: [
-      AtomicEdit.insert(
-          addExplicitType.getDisplayString(withNullability: true)),
-      AtomicEdit.insert(' ')
-    ]);
+    var typeText = aggregator.typeToCode(addExplicitType);
+    if (node.keyword?.keyword == Keyword.VAR) {
+      // TODO(srawlins): Test instrumentation info.
+      var info =
+          AtomicEditInfo(NullabilityFixDescription.replaceVar(typeText), {});
+      return aggregator.planner.passThrough(node, innerPlans: [
+        aggregator.planner
+            .replaceToken(node, node.keyword, typeText, info: info),
+        ...aggregator.innerPlansForNode(node),
+      ]);
+    } else {
+      // TODO(srawlins): Test instrumentation info.
+      var info =
+          AtomicEditInfo(NullabilityFixDescription.addType(typeText), {});
+      // Skip past the offset of any metadata, a potential `final` keyword, and
+      // a potential `covariant` keyword.
+      var offset = node.type?.offset ?? node.identifier.offset;
+      return aggregator.planner.passThrough(node, innerPlans: [
+        aggregator.planner.insertText(node, offset,
+            [AtomicEdit.insert(typeText, info: info), AtomicEdit.insert(' ')]),
+        ...aggregator.innerPlansForNode(node),
+      ]);
+    }
   }
 }
 
@@ -941,7 +959,7 @@ class NodeChangeForVariableDeclarationList
           [AtomicEdit.insert('late', info: info), AtomicEdit.insert(' ')]));
     }
     if (addExplicitType != null) {
-      var typeText = addExplicitType.getDisplayString(withNullability: true);
+      var typeText = aggregator.typeToCode(addExplicitType);
       if (node.keyword?.keyword == Keyword.VAR) {
         var info =
             AtomicEditInfo(NullabilityFixDescription.replaceVar(typeText), {});
