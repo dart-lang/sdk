@@ -1,0 +1,56 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue41520.dart:7:11: Error: The method 'notAMethodOnObject' isn't defined for the class 'Object'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'notAMethodOnObject'.
+//     error.notAMethodOnObject();
+//           ^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue41520.dart:12:11: Error: The method 'notAMethodOnObject' isn't defined for the class 'Object'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'notAMethodOnObject'.
+//     error.notAMethodOnObject();
+//           ^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue41520.dart:13:16: Error: The method 'notAMethodOnStackTrace' isn't defined for the class 'StackTrace'.
+//  - 'StackTrace' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'notAMethodOnStackTrace'.
+//     stackTrace.notAMethodOnStackTrace();
+//                ^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method errors() → void {
+  try {
+  }
+  on core::Object catch(final core::Object error) {
+    invalid-expression "pkg/front_end/testcases/nnbd/issue41520.dart:7:11: Error: The method 'notAMethodOnObject' isn't defined for the class 'Object'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'notAMethodOnObject'.
+    error.notAMethodOnObject();
+          ^^^^^^^^^^^^^^^^^^";
+    self::_takesObject(error);
+  }
+  try {
+  }
+  on core::Object catch(final core::Object error, final core::StackTrace stackTrace) {
+    invalid-expression "pkg/front_end/testcases/nnbd/issue41520.dart:12:11: Error: The method 'notAMethodOnObject' isn't defined for the class 'Object'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'notAMethodOnObject'.
+    error.notAMethodOnObject();
+          ^^^^^^^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/nnbd/issue41520.dart:13:16: Error: The method 'notAMethodOnStackTrace' isn't defined for the class 'StackTrace'.
+ - 'StackTrace' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'notAMethodOnStackTrace'.
+    stackTrace.notAMethodOnStackTrace();
+               ^^^^^^^^^^^^^^^^^^^^^^";
+    self::_takesObject(error);
+    self::_takesStackTrace(stackTrace);
+  }
+}
+static method _takesObject(core::Object o) → void {}
+static method _takesStackTrace(core::StackTrace o) → void {}
+static method main() → void {}
