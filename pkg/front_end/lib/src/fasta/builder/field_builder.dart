@@ -128,7 +128,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               reference,
               lateIsSetReferenceFrom,
               getterReferenceFrom,
-              setterReferenceFrom);
+              setterReferenceFrom,
+              isCovariant);
         } else {
           _fieldEncoding = new LateFieldWithInitializerEncoding(
               name,
@@ -138,7 +139,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               reference,
               lateIsSetReferenceFrom,
               getterReferenceFrom,
-              setterReferenceFrom);
+              setterReferenceFrom,
+              isCovariant);
         }
       } else {
         if (isFinal) {
@@ -150,7 +152,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               reference,
               lateIsSetReferenceFrom,
               getterReferenceFrom,
-              setterReferenceFrom);
+              setterReferenceFrom,
+              isCovariant);
         } else {
           _fieldEncoding = new LateFieldWithoutInitializerEncoding(
               name,
@@ -160,7 +163,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               reference,
               lateIsSetReferenceFrom,
               getterReferenceFrom,
-              setterReferenceFrom);
+              setterReferenceFrom,
+              isCovariant);
         }
       }
     } else {
@@ -668,7 +672,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       Field referenceFrom,
       Field lateIsSetReferenceFrom,
       Procedure getterReferenceFrom,
-      Procedure setterReferenceFrom)
+      Procedure setterReferenceFrom,
+      bool isCovariant)
       : fileOffset = charOffset {
     _field =
         new Field(null, fileUri: fileUri, reference: referenceFrom?.reference)
@@ -687,7 +692,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         fileUri: fileUri, reference: getterReferenceFrom?.reference)
       ..fileOffset = charOffset
       ..isNonNullableByDefault = true;
-    _lateSetter = _createSetter(name, fileUri, charOffset, setterReferenceFrom);
+    _lateSetter = _createSetter(name, fileUri, charOffset, setterReferenceFrom,
+        isCovariant: isCovariant);
   }
 
   @override
@@ -775,8 +781,11 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       CoreTypes coreTypes, String name, Expression initializer);
 
   Procedure _createSetter(
-      String name, Uri fileUri, int charOffset, Procedure referenceFrom) {
-    VariableDeclaration parameter = new VariableDeclaration(null);
+      String name, Uri fileUri, int charOffset, Procedure referenceFrom,
+      {bool isCovariant}) {
+    assert(isCovariant != null);
+    VariableDeclaration parameter = new VariableDeclaration(null)
+      ..isCovariant = isCovariant;
     return new Procedure(
         null,
         ProcedureKind.Setter,
@@ -832,7 +841,6 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   @override
   void build(
       SourceLibraryBuilder libraryBuilder, SourceFieldBuilder fieldBuilder) {
-    _field..isCovariant = fieldBuilder.isCovariant;
     bool isInstanceMember;
     String className;
     bool isExtensionMember = fieldBuilder.isExtensionMember;
@@ -1002,9 +1010,18 @@ class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       Field referenceFrom,
       Field lateIsSetReferenceFrom,
       Procedure getterReferenceFrom,
-      Procedure setterReferenceFrom)
-      : super(name, fileUri, charOffset, charEndOffset, referenceFrom,
-            lateIsSetReferenceFrom, getterReferenceFrom, setterReferenceFrom);
+      Procedure setterReferenceFrom,
+      bool isCovariant)
+      : super(
+            name,
+            fileUri,
+            charOffset,
+            charEndOffset,
+            referenceFrom,
+            lateIsSetReferenceFrom,
+            getterReferenceFrom,
+            setterReferenceFrom,
+            isCovariant);
 }
 
 class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
@@ -1017,9 +1034,18 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
       Field referenceFrom,
       Field lateIsSetReferenceFrom,
       Procedure getterReferenceFrom,
-      Procedure setterReferenceFrom)
-      : super(name, fileUri, charOffset, charEndOffset, referenceFrom,
-            lateIsSetReferenceFrom, getterReferenceFrom, setterReferenceFrom);
+      Procedure setterReferenceFrom,
+      bool isCovariant)
+      : super(
+            name,
+            fileUri,
+            charOffset,
+            charEndOffset,
+            referenceFrom,
+            lateIsSetReferenceFrom,
+            getterReferenceFrom,
+            setterReferenceFrom,
+            isCovariant);
 
   @override
   Statement _createGetterBody(
@@ -1046,9 +1072,18 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       Field referenceFrom,
       Field lateIsSetReferenceFrom,
       Procedure getterReferenceFrom,
-      Procedure setterReferenceFrom)
-      : super(name, fileUri, charOffset, charEndOffset, referenceFrom,
-            lateIsSetReferenceFrom, getterReferenceFrom, setterReferenceFrom);
+      Procedure setterReferenceFrom,
+      bool isCovariant)
+      : super(
+            name,
+            fileUri,
+            charOffset,
+            charEndOffset,
+            referenceFrom,
+            lateIsSetReferenceFrom,
+            getterReferenceFrom,
+            setterReferenceFrom,
+            isCovariant);
 
   @override
   Statement _createSetterBody(
@@ -1075,9 +1110,18 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
       Field referenceFrom,
       Field lateIsSetReferenceFrom,
       Procedure getterReferenceFrom,
-      Procedure setterReferenceFrom)
-      : super(name, fileUri, charOffset, charEndOffset, referenceFrom,
-            lateIsSetReferenceFrom, getterReferenceFrom, setterReferenceFrom);
+      Procedure setterReferenceFrom,
+      bool isCovariant)
+      : super(
+            name,
+            fileUri,
+            charOffset,
+            charEndOffset,
+            referenceFrom,
+            lateIsSetReferenceFrom,
+            getterReferenceFrom,
+            setterReferenceFrom,
+            isCovariant);
   @override
   Statement _createGetterBody(
       CoreTypes coreTypes, String name, Expression initializer) {
@@ -1094,7 +1138,8 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
 
   @override
   Procedure _createSetter(
-          String name, Uri fileUri, int charOffset, Procedure referenceFrom) =>
+          String name, Uri fileUri, int charOffset, Procedure referenceFrom,
+          {bool isCovariant}) =>
       null;
 
   @override

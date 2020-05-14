@@ -1,0 +1,59 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/late_lowering/covariant_late_field.dart:19:31: Error: The parameter 'value' of the method 'C.invariantField' has type 'int', which does not match the corresponding type, 'num', in the overridden method, 'A.invariantField'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   void set invariantField(int value) {} // error
+//                               ^
+// pkg/front_end/testcases/late_lowering/covariant_late_field.dart:6:12: Context: This is the overridden method ('invariantField').
+//   late num invariantField;
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class A extends core::Object {
+  field core::num? _#A#invariantField = null;
+  field core::num? _#A#covariantField = null;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get invariantField() → core::num
+    return let final core::num? #t1 = this.{self::A::_#A#invariantField} in #t1.==(null) ?{core::num} throw new _in::LateInitializationErrorImpl::•("Field 'invariantField' has not been initialized.") : #t1{core::num};
+  set invariantField(core::num #t2) → void
+    this.{self::A::_#A#invariantField} = #t2;
+  get covariantField() → core::num
+    return let final core::num? #t3 = this.{self::A::_#A#covariantField} in #t3.==(null) ?{core::num} throw new _in::LateInitializationErrorImpl::•("Field 'covariantField' has not been initialized.") : #t3{core::num};
+  set covariantField(covariant core::num #t4) → void
+    this.{self::A::_#A#covariantField} = #t4;
+}
+abstract class B extends core::Object implements self::A {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  abstract get invariantField() → core::num;
+  abstract set invariantField(core::num value) → void;
+  abstract get covariantField() → core::num;
+  abstract set covariantField(covariant core::num value) → void;
+}
+abstract class C extends core::Object implements self::A {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  abstract get invariantField() → core::int;
+  set invariantField(core::int value) → void {}
+  abstract get covariantField() → core::int;
+  set covariantField(covariant core::int value) → void {}
+}
+abstract class D extends core::Object implements self::A {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  abstract get invariantField() → core::int;
+  set invariantField(covariant core::int value) → void {}
+  abstract get covariantField() → core::int;
+  set covariantField(covariant core::int value) → void {}
+}
+static method main() → dynamic {}

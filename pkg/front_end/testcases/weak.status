@@ -58,6 +58,8 @@ general_nnbd_opt_out/type_variable_as_super: RuntimeError
 general_nnbd_opt_out/type_variable_bound_access: TypeCheckError
 general_nnbd_opt_out/unsound_promotion: TypeCheckError
 general_nnbd_opt_out/void_methods: RuntimeError
+late_lowering/covariant_late_field: TypeCheckError
+nnbd/covariant_late_field: TypeCheckError
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
