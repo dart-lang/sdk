@@ -1108,40 +1108,39 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    // Generators are never required to have a return statement.
+    // Generators always return.
     if (body.isGenerator) {
       return;
     }
 
-    if (body is BlockFunctionBody) {
-      var bodyContext = BodyInferenceContext.of(body);
-      // TODO(scheglov) Update InferenceContext to record any type, dynamic.
-      var returnType = bodyContext.contextType ?? DynamicTypeImpl.instance;
-
-      // TODO(scheglov) replace with a TypeSystem call?
-      // dynamic, Null, void, and FutureOr<T> where T is (dynamic, Null, void)
-      // are allowed to omit a return.
-      var flattenedType = returnType;
-      if (flattenedType.isDartAsyncFutureOr) {
-        flattenedType = (flattenedType as InterfaceType).typeArguments[0];
-      }
-      if (flattenedType.isBottom ||
-          flattenedType.isDynamic ||
-          flattenedType.isDartCoreNull ||
-          flattenedType.isVoid) {
-        return;
-      }
-      // Otherwise issue a warning if the block doesn't have a return.
-      if (!ExitDetector.exits(body)) {
-        AstNode errorNode = functionNode is MethodDeclaration
-            ? functionNode.name
-            : functionNode is FunctionDeclaration
-                ? functionNode.name
-                : functionNode;
-        _errorReporter.reportErrorForNode(
-            HintCode.MISSING_RETURN, errorNode, [returnType]);
-      }
+    if (body is! BlockFunctionBody) {
+      return;
     }
+
+    var bodyContext = BodyInferenceContext.of(body);
+    // TODO(scheglov) Update InferenceContext to record any type, dynamic.
+    var returnType = bodyContext.contextType ?? DynamicTypeImpl.instance;
+
+    if (_typeSystem.isNullable(returnType)) {
+      return;
+    }
+
+    if (ExitDetector.exits(body)) {
+      return;
+    }
+
+    var errorNode = functionNode;
+    if (functionNode is FunctionDeclaration) {
+      errorNode = functionNode.name;
+    } else if (functionNode is MethodDeclaration) {
+      errorNode = functionNode.name;
+    }
+
+    _errorReporter.reportErrorForNode(
+      HintCode.MISSING_RETURN,
+      errorNode,
+      [returnType],
+    );
   }
 
   void _checkForNullableTypeInCatchClause(CatchClause node) {
