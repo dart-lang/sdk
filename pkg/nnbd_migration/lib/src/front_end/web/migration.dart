@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
 import 'package:nnbd_migration/src/front_end/web/file_details.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
@@ -162,7 +163,7 @@ Future<HttpRequest> doGet(String path,
     HttpRequest.request(pathWithQueryParameters(path, queryParameters),
         requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'});
 
-Future<Map<String, Object>> doPost(String path) async {
+Future<Map<String, Object>> doPost(String path, [Object body]) async {
   var completer = new Completer<HttpRequest>();
 
   var xhr = HttpRequest()
@@ -175,7 +176,7 @@ Future<Map<String, Object>> doPost(String path) async {
 
   xhr.onError.listen(completer.completeError);
 
-  xhr.send();
+  xhr.send(body == null ? null : jsonEncode(body));
 
   await completer.future;
 
@@ -762,6 +763,26 @@ void _populateEditTraces(
       }
       li.append(Text(': '));
       li.appendTextWithBreaks(entry.description ?? 'unknown');
+
+      if (entry.hintActions.isNotEmpty) {
+        var drawer = li.append(
+            document.createElement('p')..classes = ['drawer', 'before-apply']);
+        for (final hintAction in entry.hintActions) {
+          drawer.append(ButtonElement()
+            ..onClick.listen((event) async {
+              try {
+                await doPost(pathWithQueryParameters('/apply-hint', {}),
+                    hintAction.toJson());
+                // TODO(mfairhurst): Reloading the page entirely loses the stack
+                // trace view. Filed at dartbug.com/41872
+                window.location.reload();
+              } catch (e, st) {
+                handleError("Could not apply hint", e, st);
+              }
+            })
+            ..appendText(hintAction.kind.description));
+        }
+      }
     }
   }
 }

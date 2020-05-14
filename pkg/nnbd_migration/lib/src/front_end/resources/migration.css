@@ -510,6 +510,15 @@ ul.trace li .function {
   font-weight: 600;
 }
 
+ul.trace li p.drawer {
+  margin: 3px 0px;
+  padding: 0px 0px 0px 14px;
+}
+
+ul.trace li p.drawer button {
+  margin-right: 3px;
+}
+
 .elevation-z4 {
   box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2),
       0px 4px 5px 0px rgba(0, 0, 0, 0.14),
