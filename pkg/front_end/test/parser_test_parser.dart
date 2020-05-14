@@ -771,6 +771,7 @@ class TestParser extends Parser {
       Token token,
       Token name,
       Token lateToken,
+      Token externalToken,
       Token varFinalOrConst,
       DeclarationKind kind,
       String enclosingDeclarationName) {
@@ -783,7 +784,7 @@ class TestParser extends Parser {
         '$enclosingDeclarationName)');
     indent++;
     var result = super.parseFieldInitializerOpt(token, name, lateToken,
-        varFinalOrConst, kind, enclosingDeclarationName);
+        externalToken, varFinalOrConst, kind, enclosingDeclarationName);
     indent--;
     return result;
   }

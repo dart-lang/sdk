@@ -314,18 +314,21 @@ class SourceClassBuilder extends ClassBuilderImpl
     return supertype;
   }
 
-  void checkVarianceInField(Field field, TypeEnvironment typeEnvironment,
-      List<TypeParameter> typeParameters) {
+  void checkVarianceInField(SourceFieldBuilder fieldBuilder,
+      TypeEnvironment typeEnvironment, List<TypeParameter> typeParameters) {
     for (TypeParameter typeParameter in typeParameters) {
-      int fieldVariance = computeVariance(typeParameter, field.type);
-      if (field.hasImplicitGetter) {
-        reportVariancePositionIfInvalid(
-            fieldVariance, typeParameter, field.fileUri, field.fileOffset);
+      int fieldVariance =
+          computeVariance(typeParameter, fieldBuilder.fieldType);
+      if (fieldBuilder.isClassInstanceMember) {
+        reportVariancePositionIfInvalid(fieldVariance, typeParameter,
+            fieldBuilder.fileUri, fieldBuilder.charOffset);
       }
-      if (field.hasImplicitSetter && !field.isCovariant) {
+      if (fieldBuilder.isClassInstanceMember &&
+          fieldBuilder.isAssignable &&
+          !fieldBuilder.isCovariant) {
         fieldVariance = Variance.combine(Variance.contravariant, fieldVariance);
-        reportVariancePositionIfInvalid(
-            fieldVariance, typeParameter, field.fileUri, field.fileOffset);
+        reportVariancePositionIfInvalid(fieldVariance, typeParameter,
+            fieldBuilder.fileUri, fieldBuilder.charOffset);
       }
     }
   }
@@ -572,9 +575,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     forEach((String name, Builder builder) {
       // Check fields.
-      if (builder is FieldBuilder) {
-        checkVarianceInField(
-            builder.field, typeEnvironment, cls.typeParameters);
+      if (builder is SourceFieldBuilder) {
+        checkVarianceInField(builder, typeEnvironment, cls.typeParameters);
         libraryBuilder.checkTypesInField(builder, typeEnvironment);
       }
 

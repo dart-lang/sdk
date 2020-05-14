@@ -366,8 +366,15 @@ class Listener implements UnescapeErrorListener {
   /// - Variable declarations (count times)
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
-  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endClassFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     logEvent("Fields");
   }
 
@@ -378,11 +385,18 @@ class Listener implements UnescapeErrorListener {
   /// - Variable declarations (count times)
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
-  void endMixinFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endMixinFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     // TODO(danrubel): push implementation into subclasses
-    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
-        count, beginToken, endToken);
+    endClassFields(externalToken, staticToken, covariantToken, lateToken,
+        varFinalOrConst, count, beginToken, endToken);
   }
 
   /// Handle the end of a extension field declaration.  Substructures:
@@ -393,6 +407,7 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
   void endExtensionFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -401,8 +416,8 @@ class Listener implements UnescapeErrorListener {
       Token beginToken,
       Token endToken) {
     // TODO(danrubel): push implementation into subclasses
-    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
-        count, beginToken, endToken);
+    endClassFields(externalToken, staticToken, covariantToken, lateToken,
+        varFinalOrConst, count, beginToken, endToken);
   }
 
   /// Marks that the grammar term `forInitializerStatement` has been parsed and
@@ -1089,6 +1104,7 @@ class Listener implements UnescapeErrorListener {
   /// Doesn't have a corresponding begin event.
   /// Use [beginTopLevelMember] instead.
   void endTopLevelFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,

@@ -3019,8 +3019,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkTypesInField(
       FieldBuilder fieldBuilder, TypeEnvironment typeEnvironment) {
     // Check the bounds in the field's type.
-    checkBoundsInType(fieldBuilder.field.type, typeEnvironment,
-        fieldBuilder.fileUri, fieldBuilder.field.fileOffset,
+    checkBoundsInType(fieldBuilder.fieldType, typeEnvironment,
+        fieldBuilder.fileUri, fieldBuilder.charOffset,
         allowSuperBounded: true);
 
     // Check that the field has an initializer if its type is potentially
@@ -3028,16 +3028,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (isNonNullableByDefault) {
       // Only static and top-level fields are checked here.  Instance fields are
       // checked elsewhere.
-      DartType fieldType = fieldBuilder.field.type;
+      DartType fieldType = fieldBuilder.fieldType;
       if (!fieldBuilder.isDeclarationInstanceMember &&
-          !fieldBuilder.field.isLate &&
+          !fieldBuilder.isLate &&
+          !fieldBuilder.isExternal &&
           fieldType is! InvalidType &&
           isPotentiallyNonNullable(fieldType, typeEnvironment.futureOrClass) &&
           !fieldBuilder.hasInitializer) {
         addProblem(
             templateFieldNonNullableWithoutInitializerError.withArguments(
                 fieldBuilder.name,
-                fieldBuilder.field.type,
+                fieldBuilder.fieldType,
                 isNonNullableByDefault),
             fieldBuilder.charOffset,
             fieldBuilder.name.length,

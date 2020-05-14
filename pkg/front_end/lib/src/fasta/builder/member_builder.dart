@@ -12,6 +12,7 @@ import 'package:kernel/core_types.dart';
 import '../../base/common.dart';
 
 import '../kernel/class_hierarchy_builder.dart';
+import '../modifier.dart';
 import '../problems.dart' show unsupported;
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;
@@ -55,6 +56,8 @@ abstract class MemberBuilder implements ModifierBuilder {
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   ProcedureKind get kind;
+
+  bool get isExternal;
 
   void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
 
@@ -116,6 +119,9 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   bool get isNative => false;
 
   bool get isRedirectingGenerativeConstructor => false;
+
+  @override
+  bool get isExternal => (modifiers & externalMask) != 0;
 
   @override
   LibraryBuilder get library {

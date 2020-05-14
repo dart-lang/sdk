@@ -2456,9 +2456,6 @@ class Parser {
       DeclarationKind kind,
       String enclosingDeclarationName,
       bool nameIsRecovered) {
-    if (externalToken != null) {
-      reportRecoverableError(externalToken, codes.messageExternalField);
-    }
     // Covariant affects only the setter and final fields do not have a setter,
     // unless it's a late field (dartbug.com/40805).
     // Field that are covariant late final with initializers are checked further
@@ -2501,12 +2498,12 @@ class Parser {
     }
 
     int fieldCount = 1;
-    token = parseFieldInitializerOpt(
-        name, name, lateToken, varFinalOrConst, kind, enclosingDeclarationName);
+    token = parseFieldInitializerOpt(name, name, lateToken, externalToken,
+        varFinalOrConst, kind, enclosingDeclarationName);
     while (optional(',', token.next)) {
       name = ensureIdentifier(token.next, context);
-      token = parseFieldInitializerOpt(name, name, lateToken, varFinalOrConst,
-          kind, enclosingDeclarationName);
+      token = parseFieldInitializerOpt(name, name, lateToken, externalToken,
+          varFinalOrConst, kind, enclosingDeclarationName);
       ++fieldCount;
     }
     Token semicolon = token.next;
@@ -2532,24 +2529,24 @@ class Parser {
     }
     switch (kind) {
       case DeclarationKind.TopLevel:
-        listener.endTopLevelFields(staticToken, covariantToken, lateToken,
-            varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endTopLevelFields(externalToken, staticToken, covariantToken,
+            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
       case DeclarationKind.Class:
-        listener.endClassFields(staticToken, covariantToken, lateToken,
-            varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endClassFields(externalToken, staticToken, covariantToken,
+            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
       case DeclarationKind.Mixin:
-        listener.endMixinFields(staticToken, covariantToken, lateToken,
-            varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endMixinFields(externalToken, staticToken, covariantToken,
+            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
       case DeclarationKind.Extension:
-        if (staticToken == null) {
+        if (staticToken == null && externalToken == null) {
           reportRecoverableError(
               firstName, codes.messageExtensionDeclaresInstanceField);
         }
-        listener.endExtensionFields(staticToken, covariantToken, lateToken,
-            varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endExtensionFields(externalToken, staticToken, covariantToken,
+            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
     }
     return token;
@@ -2622,6 +2619,7 @@ class Parser {
       Token token,
       Token name,
       Token lateToken,
+      Token externalToken,
       Token varFinalOrConst,
       DeclarationKind kind,
       String enclosingDeclarationName) {
@@ -2643,7 +2641,8 @@ class Parser {
                   .withArguments(name.lexeme));
         } else if (kind == DeclarationKind.TopLevel &&
             optional("final", varFinalOrConst) &&
-            lateToken == null) {
+            lateToken == null &&
+            externalToken == null) {
           reportRecoverableError(
               name,
               codes.templateFinalFieldWithoutInitializer

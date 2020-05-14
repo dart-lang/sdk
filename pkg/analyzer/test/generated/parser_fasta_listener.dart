@@ -622,11 +622,18 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endClassFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     // beginMember --> endClassFields, endMember
     expectIn('Member');
-    super.endClassFields(staticToken, covariantToken, lateToken,
+    super.endClassFields(externalToken, staticToken, covariantToken, lateToken,
         varFinalOrConst, count, beginToken, endToken);
   }
 
@@ -744,6 +751,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endExtensionFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -753,8 +761,8 @@ class ForwardingTestListener extends ForwardingListener {
       Token endToken) {
     // beginMember --> endExtensionFields, endMember
     expectIn('Member');
-    super.endExtensionFields(staticToken, covariantToken, lateToken,
-        varFinalOrConst, count, beginToken, endToken);
+    super.endExtensionFields(externalToken, staticToken, covariantToken,
+        lateToken, varFinalOrConst, count, beginToken, endToken);
   }
 
   @override
@@ -998,11 +1006,18 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endMixinFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endMixinFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     // beginMember --> endMixinFields, endMember
     expectIn('Member');
-    super.endMixinFields(staticToken, covariantToken, lateToken,
+    super.endMixinFields(externalToken, staticToken, covariantToken, lateToken,
         varFinalOrConst, count, beginToken, endToken);
   }
 
@@ -1122,6 +1137,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endTopLevelFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -1130,8 +1146,8 @@ class ForwardingTestListener extends ForwardingListener {
       Token beginToken,
       Token endToken) {
     end('TopLevelMember');
-    super.endTopLevelFields(staticToken, covariantToken, lateToken,
-        varFinalOrConst, count, beginToken, endToken);
+    super.endTopLevelFields(externalToken, staticToken, covariantToken,
+        lateToken, varFinalOrConst, count, beginToken, endToken);
   }
 
   @override

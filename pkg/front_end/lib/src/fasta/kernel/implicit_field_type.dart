@@ -113,12 +113,11 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
       }
       return inferredType;
     } else if (initializerToken != null) {
-      InterfaceType enclosingClassThisType =
-          fieldBuilder.field.enclosingClass == null
-              ? null
-              : fieldBuilder.library.loader.typeInferenceEngine.coreTypes
-                  .thisInterfaceType(fieldBuilder.field.enclosingClass,
-                      fieldBuilder.field.enclosingLibrary.nonNullable);
+      InterfaceType enclosingClassThisType = fieldBuilder.classBuilder == null
+          ? null
+          : fieldBuilder.library.loader.typeInferenceEngine.coreTypes
+              .thisInterfaceType(fieldBuilder.classBuilder.cls,
+                  fieldBuilder.library.library.nonNullable);
       TypeInferrerImpl typeInferrer = fieldBuilder
           .library.loader.typeInferenceEngine
           .createTopLevelTypeInferrer(

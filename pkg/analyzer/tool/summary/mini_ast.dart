@@ -477,6 +477,7 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void endTopLevelFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
