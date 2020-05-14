@@ -299,9 +299,10 @@ bool Options::ExtractPortAndAddress(const char* option_value,
 
 static const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
 static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
+static const int INVALID_VM_SERVICE_SERVER_PORT = -1;
 
 const char* Options::vm_service_server_ip_ = DEFAULT_VM_SERVICE_SERVER_IP;
-int Options::vm_service_server_port_ = -1;
+int Options::vm_service_server_port_ = INVALID_VM_SERVICE_SERVER_PORT;
 bool Options::ProcessEnableVmServiceOption(const char* arg,
                                            CommandLineOptions* vm_options) {
   const char* value =
@@ -309,8 +310,7 @@ bool Options::ProcessEnableVmServiceOption(const char* arg,
   if (value == NULL) {
     return false;
   }
-  if (Options::disable_dart_dev() &&
-      !ExtractPortAndAddress(
+  if (!ExtractPortAndAddress(
           value, &vm_service_server_port_, &vm_service_server_ip_,
           DEFAULT_VM_SERVICE_SERVER_PORT, DEFAULT_VM_SERVICE_SERVER_IP)) {
     Syslog::PrintErr(
@@ -331,8 +331,7 @@ bool Options::ProcessObserveOption(const char* arg,
   if (value == NULL) {
     return false;
   }
-  if (Options::disable_dart_dev() &&
-      !ExtractPortAndAddress(
+  if (!ExtractPortAndAddress(
           value, &vm_service_server_port_, &vm_service_server_ip_,
           DEFAULT_VM_SERVICE_SERVER_PORT, DEFAULT_VM_SERVICE_SERVER_IP)) {
     Syslog::PrintErr(
@@ -426,6 +425,15 @@ int Options::ParseArguments(int argc,
       temp_vm_options.AddArgument(argv[i]);
       i++;
     }
+  }
+
+  if (!Options::disable_dart_dev()) {
+    // Don't start the VM service for the DartDev process. Without doing a
+    // second pass over the argument list to explicitly check for
+    // --disable-dart-dev, this is the earliest we can assume we know whether
+    // or not we're running with DartDev enabled.
+    vm_service_server_port_ = INVALID_VM_SERVICE_SERVER_PORT;
+    vm_service_server_ip_ = DEFAULT_VM_SERVICE_SERVER_IP;
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
