@@ -191,7 +191,7 @@ class ElementDisplayStringBuilder {
   }
 
   void writeUnknownInferredType() {
-    _write('?');
+    _write('_');
   }
 
   void writeVariableElement(VariableElement element) {

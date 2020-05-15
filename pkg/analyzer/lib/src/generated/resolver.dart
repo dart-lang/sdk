@@ -119,7 +119,7 @@ class InferenceContext {
   /// the type if found.
   ///
   /// The returned type may be partially or completely unknown, denoted with an
-  /// unknown type `?`, for example `List<?>` or `(?, int) -> void`.
+  /// unknown type `_`, for example `List<_>` or `(_, int) -> void`.
   /// You can use [TypeSystemImpl.upperBoundForType] or
   /// [TypeSystemImpl.lowerBoundForType] if you would prefer a known type
   /// that represents the bound of the context type.

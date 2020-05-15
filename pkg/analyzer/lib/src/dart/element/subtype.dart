@@ -38,7 +38,7 @@ class SubtypeHelper {
       return true;
     }
 
-    // `?` is treated as a top and a bottom type during inference.
+    // `_` is treated as a top and a bottom type during inference.
     if (identical(_T0, UnknownInferredType.instance) ||
         identical(_T1, UnknownInferredType.instance)) {
       return true;

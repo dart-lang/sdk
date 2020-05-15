@@ -564,7 +564,7 @@ class TypeSystemImpl extends TypeSystem {
    * at compile time, as `T` is unknown).
    *
    * Conceptually this is similar to the "least closure", except instead of
-   * eliminating `?` ([UnknownInferredType]) it eliminates all type variables
+   * eliminating `_` ([UnknownInferredType]) it eliminates all type variables
    * ([TypeParameterType]).
    *
    * The equivalent CFE code can be found in the `TypeVariableEliminator` class.
@@ -690,13 +690,13 @@ class TypeSystemImpl extends TypeSystem {
     return _leastUpperBoundHelper.getLeastUpperBound(T1, T2);
   }
 
-  /// Returns the greatest closure of the given type [schema] with respect to `?`.
+  /// Returns the greatest closure of the given type [schema] with respect to `_`.
   ///
-  /// The greatest closure of a type schema `P` with respect to `?` is defined as
-  /// `P` with every covariant occurrence of `?` replaced with `Null`, and every
-  /// contravariant occurrence of `?` replaced with `Object`.
+  /// The greatest closure of a type schema `P` with respect to `_` is defined as
+  /// `P` with every covariant occurrence of `_` replaced with `Null`, and every
+  /// contravariant occurrence of `_` replaced with `Object`.
   ///
-  /// If the schema contains no instances of `?`, the original schema object is
+  /// If the schema contains no instances of `_`, the original schema object is
   /// returned to avoid unnecessary allocation.
   ///
   /// Note that the closure of a type schema is a proper type.
@@ -1383,13 +1383,13 @@ class TypeSystemImpl extends TypeSystem {
     return false;
   }
 
-  /// Returns the least closure of the given type [schema] with respect to `?`.
+  /// Returns the least closure of the given type [schema] with respect to `_`.
   ///
-  /// The least closure of a type schema `P` with respect to `?` is defined as
-  /// `P` with every covariant occurrence of `?` replaced with `Object`, an
-  /// every contravariant occurrence of `?` replaced with `Null`.
+  /// The least closure of a type schema `P` with respect to `_` is defined as
+  /// `P` with every covariant occurrence of `_` replaced with `Object`, an
+  /// every contravariant occurrence of `_` replaced with `Null`.
   ///
-  /// If the schema contains no instances of `?`, the original schema object is
+  /// If the schema contains no instances of `_`, the original schema object is
   /// returned to avoid unnecessary allocation.
   ///
   /// Note that the closure of a type schema is a proper type.
