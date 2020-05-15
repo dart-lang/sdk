@@ -635,6 +635,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> saved_initial_field_table_;
   uint32_t isolate_group_flags_ = 0;
+
+  // Allow us to ensure the number of active mutators is limited by a maximum.
+  std::unique_ptr<Monitor> active_mutators_monitor_;
+  intptr_t active_mutators_ = 0;
+  intptr_t waiting_mutators_ = 0;
+  intptr_t max_active_mutators_ = 0;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed

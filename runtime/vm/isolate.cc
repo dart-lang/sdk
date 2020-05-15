@@ -98,6 +98,12 @@ DEFINE_FLAG_HANDLER(
     null_safety,
     "Respect the nullability of types in casts and instance checks.");
 
+DEFINE_FLAG(bool,
+            disable_thread_pool_limit,
+            false,
+            "Disables the limit of the thread pool (simulates custom embedder "
+            "with custom message handler on unlimited number of threads).");
+
 // Quick access to the locally defined thread() and isolate() methods.
 #define T (thread())
 #define I (isolate())
@@ -299,11 +305,15 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       symbols_lock_(new SafepointRwLock()),
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
-      saved_unlinked_calls_(Array::null()) {
+      saved_unlinked_calls_(Array::null()),
+      active_mutators_monitor_(new Monitor()),
+      max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
   const bool is_vm_isolate = Dart::VmIsolateNameEquals(source_->name);
   if (!is_vm_isolate) {
     thread_pool_.reset(
-        new MutatorThreadPool(this, Scavenger::MaxMutatorThreadCount()));
+        new MutatorThreadPool(this, FLAG_disable_thread_pool_limit
+                                        ? 0
+                                        : Scavenger::MaxMutatorThreadCount()));
   }
   {
     WriteRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
@@ -604,6 +614,22 @@ void IsolateGroup::IncreaseMutatorCount(Isolate* mutator) {
   if (mutator_thread != nullptr && mutator_thread->top_exit_frame_info() != 0) {
     thread_pool()->MarkCurrentWorkerAsUnBlocked();
   }
+
+  // Prevent too many mutators from entering the isolate group to avoid
+  // pathological behavior where many threads are fighting for obtaining TLABs.
+  {
+    // NOTE: This is performance critical code, we should avoid monitors and use
+    // std::atomics in the fast case (where active_mutators <
+    // max_active_mutators) and only use montiors in the uncommon case.
+    MonitorLocker ml(active_mutators_monitor_.get());
+    ASSERT(active_mutators_ <= max_active_mutators_);
+    while (active_mutators_ == max_active_mutators_) {
+      waiting_mutators_++;
+      ml.Wait();
+      waiting_mutators_--;
+    }
+    active_mutators_++;
+  }
 }
 
 void IsolateGroup::DecreaseMutatorCount(Isolate* mutator) {
@@ -616,6 +642,18 @@ void IsolateGroup::DecreaseMutatorCount(Isolate* mutator) {
   ASSERT(mutator_thread != nullptr);
   if (mutator_thread->top_exit_frame_info() != 0) {
     thread_pool()->MarkCurrentWorkerAsBlocked();
+  }
+
+  {
+    // NOTE: This is performance critical code, we should avoid monitors and use
+    // std::atomics in the fast case (where active_mutators <
+    // max_active_mutators) and only use montiors in the uncommon case.
+    MonitorLocker ml(active_mutators_monitor_.get());
+    ASSERT(active_mutators_ <= max_active_mutators_);
+    active_mutators_--;
+    if (waiting_mutators_ > 0) {
+      ml.Notify();
+    }
   }
 }
 

@@ -27,6 +27,7 @@ dart/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
 dart/isolates/fibonacci_call_ig_test: Skip # Only AOT has lightweight enough isolates to run those tests, JIT work is pending.
 dart/isolates/fibonacci_call_test: Skip # Only AOT has lightweight enough isolates to run those tests.
 dart/isolates/internal: Skip # Only AOT has lightweight enough isolates to run those tests.
+dart/isolates/limited_active_mutator_test:  Skip # Only AOT has lightweight enough isolates to run those tests.
 dart/isolates/ring_gc_sendAndExit_test: Skip # Only AOT has lightweight enough isolates to run those tests.
 dart/isolates/ring_gc_test: Skip # Only AOT has lightweight enough isolates to run those tests.
 dart/isolates/sum_recursive_call_ig_test: Skip # Only AOT has lightweight enough isolates to run those tests.

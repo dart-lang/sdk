@@ -205,7 +205,7 @@ class Scavenger {
     const intptr_t max_parallel_tlab_usage =
         (FLAG_new_gen_semi_max_size * MB) / Scavenger::kTLABSize;
     const intptr_t max_pool_size = max_parallel_tlab_usage / 4;
-    return max_pool_size;
+    return max_pool_size > 0 ? max_pool_size : 1;
   }
 
  private:
