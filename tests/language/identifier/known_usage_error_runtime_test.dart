@@ -22,7 +22,7 @@
 
 import 'dart:async';
 
-Future<int> f1() async {
+Future<void> f1() async {
   // Allowed:
   int async = 1;
 
@@ -30,7 +30,7 @@ Future<int> f1() async {
 
   Stream<int> s = new Stream<int>.fromFuture(new Future<int>.value(1));
   await for (int i in s) {
-    return i + 1;
+    return;
   }
 }
 
@@ -56,7 +56,7 @@ Iterable<int> f3() sync* {
 
 }
 
-int f4() {
+void f4() {
   int async = 1;
   int await = 1;
   int yield = 1;
@@ -69,8 +69,8 @@ int f4() {
 }
 
 main() {
-  Future<int> f = f1();
+  Future<void> f = f1();
   Stream s = f2();
   Iterable<int> i = f3();
-  int x = f4();
+  f4();
 }
