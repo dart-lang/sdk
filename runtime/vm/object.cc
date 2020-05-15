@@ -16316,10 +16316,8 @@ void Code::GetInlinedFunctionsAtInstruction(
     GrowableArray<TokenPosition>* token_positions) const {
   const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
   if (map.IsNull()) {
-    ASSERT(!IsFunctionCode() ||
-           (Isolate::Current()->object_store()->megamorphic_call_miss_code() ==
-            this->raw()));
-    return;  // VM stub, allocation stub, or megamorphic call miss function.
+    ASSERT(!IsFunctionCode());
+    return;  // VM stub, allocation stub, or type testing stub.
   }
   const Array& id_map = Array::Handle(inlined_id_to_function());
   const Function& root = Function::Handle(function());
@@ -16886,8 +16884,7 @@ MegamorphicCachePtr MegamorphicCache::New(const String& target_name,
   const intptr_t capacity = kInitialCapacity;
   const Array& buckets =
       Array::Handle(Array::New(kEntryLength * capacity, Heap::kOld));
-  const Function& handler =
-      Function::Handle(MegamorphicCacheTable::miss_handler(Isolate::Current()));
+  const Object& handler = Object::Handle();
   for (intptr_t i = 0; i < capacity; ++i) {
     SetEntry(buckets, i, smi_illegal_cid(), handler);
   }
@@ -16915,8 +16912,7 @@ void MegamorphicCache::EnsureCapacityLocked() const {
     const Array& new_buckets =
         Array::Handle(Array::New(kEntryLength * new_capacity));
 
-    auto& target =
-        Object::Handle(MegamorphicCacheTable::miss_handler(Isolate::Current()));
+    auto& target = Object::Handle();
     for (intptr_t i = 0; i < new_capacity; ++i) {
       SetEntry(new_buckets, i, smi_illegal_cid(), target);
     }
@@ -16975,7 +16971,7 @@ void MegamorphicCache::SwitchToBareInstructions() {
       CodePtr code = Function::CurrentCodeOf(Function::RawCast(*slot));
       *slot = Smi::FromAlignedAddress(Code::EntryPointOf(code));
     } else {
-      ASSERT(cid == kSmiCid);
+      ASSERT(cid == kSmiCid || cid == kNullCid);
     }
   }
 }

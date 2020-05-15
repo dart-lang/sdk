@@ -2854,7 +2854,8 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // Probe failed, check if it is a miss.
   __ cmpl(FieldAddress(EDI, EDX, TIMES_4, base),
           Immediate(target::ToRawSmi(kIllegalCid)));
-  __ j(ZERO, &load_target, Assembler::kNearJump);
+  Label miss;
+  __ j(ZERO, &miss, Assembler::kNearJump);
 
   // Try next entry in the table.
   __ AddImmediate(EDX, Immediate(target::ToRawSmi(1)));
@@ -2864,6 +2865,10 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ Bind(&smi_case);
   __ movl(EAX, Immediate(kSmiCid));
   __ jmp(&cid_loaded);
+
+  __ Bind(&miss);
+  __ popl(EBX);  // restore receiver
+  GenerateSwitchableCallMissStub(assembler);
 }
 
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
@@ -2897,15 +2902,6 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
   __ movl(EAX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                           CodeEntryKind::kNormal)));
   __ jmp(EAX);
-}
-
-// Called from megamorphic call sites and from megamorphic miss handlers.
-//  EBX: receiver
-//  EDX: arguments descriptor(or zero if invoked from unlinked/monomorphic call)
-void StubCodeCompiler::GenerateMegamorphicCallMissStub(Assembler* assembler) {
-  // On ia32 there is no need to load receiver from the actual arguments using
-  // arg descriptor because (unlike on arm, arm64) receiver is always available.
-  GenerateSwitchableCallMissStub(assembler);
 }
 
 void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {

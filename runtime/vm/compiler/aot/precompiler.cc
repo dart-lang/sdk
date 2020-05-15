@@ -293,9 +293,6 @@ void Precompiler::DoCompileAll() {
         stub_code =
             StubCode::GetBuildMethodExtractorStub(global_object_pool_builder());
         I->object_store()->set_build_method_extractor_code(stub_code);
-
-        MegamorphicCacheTable::ReInitMissHandlerCode(
-            isolate_, global_object_pool_builder());
       }
 
       CollectDynamicFunctionNames();

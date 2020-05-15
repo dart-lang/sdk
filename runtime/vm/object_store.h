@@ -206,8 +206,6 @@ class ObjectPointerVisitor;
   RW(Code, top_type_tts_stub)                                                  \
   RW(Code, unreachable_tts_stub)                                               \
   RW(Code, slow_tts_stub)                                                      \
-  R_(Code, megamorphic_call_miss_code)                                         \
-  R_(Function, megamorphic_call_miss_function)                                 \
   RW(Array, dispatch_table_code_entries)                                       \
   RW(Array, code_order_table)                                                  \
   RW(Array, obfuscation_map)                                                   \
@@ -378,12 +376,6 @@ class ObjectStore {
     }
   }
 
-  void SetMegamorphicCallMissHandler(const Code& code, const Function& func) {
-    // Hold onto the code so it is traced and not detached from the function.
-    megamorphic_call_miss_code_ = code.raw();
-    megamorphic_call_miss_function_ = func.raw();
-  }
-
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -418,7 +410,7 @@ class ObjectStore {
         return reinterpret_cast<ObjectPtr*>(&global_object_pool_);
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&megamorphic_call_miss_function_);
+        return reinterpret_cast<ObjectPtr*>(&slow_tts_stub_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:

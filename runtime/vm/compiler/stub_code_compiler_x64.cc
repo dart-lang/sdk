@@ -3531,7 +3531,8 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ Bind(&probe_failed);
   __ cmpq(FieldAddress(RDI, RCX, TIMES_8, base),
           Immediate(target::ToRawSmi(kIllegalCid)));
-  __ j(ZERO, &load_target, Assembler::kNearJump);
+  Label miss;
+  __ j(ZERO, &miss, Assembler::kNearJump);
 
   // Try next entry in the table.
   __ AddImmediate(RCX, Immediate(target::ToRawSmi(1)));
@@ -3541,6 +3542,9 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ Bind(&smi_case);
   __ movq(RAX, Immediate(kSmiCid));
   __ jmp(&cid_loaded);
+
+  __ Bind(&miss);
+  GenerateSwitchableCallMissStub(assembler);
 }
 
 // Input:
@@ -3637,15 +3641,6 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
   __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                           CodeEntryKind::kNormal)));
   __ jmp(RCX);
-}
-
-// Called from megamorphic call sites and from megamorphic miss handlers.
-//  RDX: receiver
-//  R10: arguments descriptor
-void StubCodeCompiler::GenerateMegamorphicCallMissStub(Assembler* assembler) {
-  // On x64 there is no need to load receiver from the actual arguments using
-  // arg descriptor because (unlike on arm, arm64) receiver is always available.
-  GenerateSwitchableCallMissStub(assembler);
 }
 
 // Called from switchable IC calls.

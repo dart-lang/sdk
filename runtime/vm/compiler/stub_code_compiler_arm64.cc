@@ -3557,7 +3557,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ BranchIfSmi(R0, &smi_case);
 
   // Loads the cid of the object.
-  __ LoadClassId(R0, R0);
+  __ LoadClassId(R8, R0);
 
   Label cid_loaded;
   __ Bind(&cid_loaded);
@@ -3567,14 +3567,14 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // R1: mask as a smi.
 
   // Make the cid into a smi.
-  __ SmiTag(R0);
-  // R0: class ID of the receiver (smi).
+  __ SmiTag(R8);
+  // R8: class ID of the receiver (smi).
 
   // Compute the table index.
   ASSERT(target::MegamorphicCache::kSpreadFactor == 7);
   // Use lsl and sub to multiply with 7 == 8 - 1.
-  __ LslImmediate(R3, R0, 3);
-  __ sub(R3, R3, Operand(R0));
+  __ LslImmediate(R3, R8, 3);
+  __ sub(R3, R3, Operand(R8));
   // R3: probe.
   Label loop;
   __ Bind(&loop);
@@ -3585,7 +3585,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ add(TMP, R2, Operand(R3, LSL, 3));
   __ ldr(R6, FieldAddress(TMP, base));
   Label probe_failed;
-  __ CompareRegisters(R6, R0);
+  __ CompareRegisters(R6, R8);
   __ b(&probe_failed, NE);
 
   Label load_target;
@@ -3614,7 +3614,8 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ Bind(&probe_failed);
   ASSERT(kIllegalCid == 0);
   __ tst(R6, Operand(R6));
-  __ b(&load_target, EQ);  // branch if miss.
+  Label miss;
+  __ b(&miss, EQ);  // branch if miss.
 
   // Try next extry in the table.
   __ AddImmediate(R3, target::ToRawSmi(1));
@@ -3622,8 +3623,11 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
 
   // Load cid for the Smi case.
   __ Bind(&smi_case);
-  __ LoadImmediate(R0, kSmiCid);
+  __ LoadImmediate(R8, kSmiCid);
   __ b(&cid_loaded);
+
+  __ Bind(&miss);
+  GenerateSwitchableCallMissStub(assembler);
 }
 
 // Input:
@@ -3730,38 +3734,6 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
   __ Pop(R5);        // result = IC
 
   __ Pop(R0);  // Restore receiver.
-  __ LeaveStubFrame();
-
-  __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset(
-                                        CodeEntryKind::kNormal)));
-  __ br(R1);
-}
-
-// Called from megamorphic call sites and from megamorphic miss handlers.
-//  R5: ICData/MegamorphicCache
-void StubCodeCompiler::GenerateMegamorphicCallMissStub(Assembler* assembler) {
-  __ ldr(CODE_REG,
-         Address(THR, target::Thread::switchable_call_miss_stub_offset()));
-  __ EnterStubFrame();
-  __ ldr(R4,
-         FieldAddress(R5, target::CallSiteData::arguments_descriptor_offset()));
-
-  // Load the receiver.
-  __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::size_offset());
-  __ add(TMP, FP, Operand(R2, LSL, 2));  // R2 is Smi.
-  __ LoadFromOffset(R6, TMP,
-                    target::frame_layout.param_end_from_fp * target::kWordSize);
-  __ Push(R6);  // Preserver receiver
-
-  __ Push(ZR);  // Result slot.
-  __ Push(ZR);  // Arg0: stub out.
-  __ Push(R6);  // Arg1: Receiver
-  __ CallRuntime(kSwitchableCallMissRuntimeEntry, 2);
-  __ Drop(1);
-  __ Pop(CODE_REG);  // result = stub
-  __ Pop(R5);        // result = IC
-
-  __ Pop(R0);  // Restore receiver into R0
   __ LeaveStubFrame();
 
   __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset(

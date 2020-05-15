@@ -11051,7 +11051,7 @@ void MegamorphicCache::SetEntry(const Array& array,
                                 intptr_t index,
                                 const Smi& class_id,
                                 const Object& target) {
-  ASSERT(target.IsFunction() || target.IsSmi());
+  ASSERT(target.IsNull() || target.IsFunction() || target.IsSmi());
   array.SetAt((index * kEntryLength) + kClassIdIndex, class_id);
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
